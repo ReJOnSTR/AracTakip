@@ -968,29 +968,73 @@ function importCompanyData(userId, backupData) {
                 const newVehicleId = vInfo.lastInsertRowid
 
                 // Sub-tables
+                // IMPORTANT: Map snake_case (DB/Export) to camelCase (Function Arguments)
                 if (v.maintenances) {
                     for (const m of v.maintenances) {
-                        createMaintenance({ ...m, vehicleId: newVehicleId })
+                        createMaintenance({
+                            vehicleId: newVehicleId,
+                            type: m.type,
+                            description: m.description,
+                            date: m.date,
+                            cost: m.cost,
+                            nextKm: m.next_km,
+                            nextDate: m.next_date,
+                            notes: m.notes
+                        })
                     }
                 }
                 if (v.inspections) {
                     for (const i of v.inspections) {
-                        createInspection({ ...i, vehicleId: newVehicleId })
+                        createInspection({
+                            vehicleId: newVehicleId,
+                            inspectionDate: i.inspection_date,
+                            nextInspection: i.next_inspection,
+                            result: i.result,
+                            cost: i.cost,
+                            notes: i.notes
+                        })
                     }
                 }
                 if (v.insurances) {
                     for (const ins of v.insurances) {
-                        createInsurance({ ...ins, vehicleId: newVehicleId })
+                        createInsurance({
+                            vehicleId: newVehicleId,
+                            company: ins.company,
+                            policyNo: ins.policy_no,
+                            type: ins.type,
+                            startDate: ins.start_date,
+                            endDate: ins.end_date,
+                            premium: ins.premium,
+                            notes: ins.notes
+                        })
                     }
                 }
                 if (v.assignments) {
                     for (const a of v.assignments) {
-                        createAssignment({ ...a, vehicleId: newVehicleId })
+                        createAssignment({
+                            vehicleId: newVehicleId,
+                            itemName: a.item_name,
+                            quantity: a.quantity,
+                            assignedTo: a.assigned_to,
+                            department: a.department,
+                            startDate: a.start_date,
+                            endDate: a.end_date,
+                            notes: a.notes
+                        })
                     }
                 }
                 if (v.services) {
                     for (const s of v.services) {
-                        createService({ ...s, vehicleId: newVehicleId })
+                        createService({
+                            vehicleId: newVehicleId,
+                            type: s.type,
+                            serviceName: s.service_name,
+                            description: s.description,
+                            date: s.date,
+                            km: s.km,
+                            cost: s.cost,
+                            notes: s.notes
+                        })
                     }
                 }
             }
