@@ -26,9 +26,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # Rebuild native modules for the specific OS
+      # Rebuild native modules correctly for Electron
       - name: Rebuild Native Modules
-        run: npm run rebuild
+        run: npx electron-builder install-app-deps
 
       - name: Build & Release
         env:
