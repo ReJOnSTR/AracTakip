@@ -12,8 +12,7 @@ export default function CustomInput({
     className,
     error,
     icon: Icon,
-    error,
-    icon: Icon,
+
     floatingLabel = true,
     onClear
 }) {
