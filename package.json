@@ -54,6 +54,22 @@
       "electron/**/*",
       "dist/**/*",
       "data/**/*"
-    ]
+    ],
+    "mac": {
+      "target": "dmg",
+      "icon": "resources/icon-mac.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "resources/icon-win.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }
