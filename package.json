@@ -58,7 +58,10 @@
       "data/**/*"
     ],
     "mac": {
-      "target": "dmg",
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "resources/icon.icns",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
