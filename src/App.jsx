@@ -61,7 +61,6 @@ function MainLayout({ children }) {
 
     return (
         <>
-            <TitleBar />
             <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`} style={{ marginTop: '38px', height: 'calc(100vh - 38px)' }}>
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
                 <div className="main-content">
@@ -79,124 +78,127 @@ function AppRoutes() {
     const { user } = useAuth()
 
     return (
-        <Routes>
-            <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-            <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+        <>
+            <TitleBar />
+            <Routes>
+                <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+                <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
 
-            <Route path="/" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Dashboard />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Dashboard />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/companies" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Companies />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/companies" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Companies />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/vehicles" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Vehicles />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/vehicles" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Vehicles />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/vehicles/:id" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <VehicleDetail />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/vehicles/:id" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <VehicleDetail />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/maintenance" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Maintenance />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/maintenance" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Maintenance />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/inspections" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Inspections />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/inspections" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Inspections />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/insurance" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Insurance />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/insurance" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Insurance />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/services" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Services />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/services" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Services />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/assignments" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Assignments />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/assignments" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Assignments />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/settings" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Settings />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/settings" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Settings />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/reports" element={
-                <ProtectedRoute>
-                    <CompanyProvider>
-                        <MainLayout>
-                            <Reports />
-                        </MainLayout>
-                    </CompanyProvider>
-                </ProtectedRoute>
-            } />
+                <Route path="/reports" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <Reports />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
 
-            <Route path="/print" element={<PrintPage />} />
+                <Route path="/print" element={<PrintPage />} />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </>
     )
 }
 
