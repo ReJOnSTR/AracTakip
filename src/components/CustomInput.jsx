@@ -76,7 +76,10 @@ export default function CustomInput({
 
     // Floating label logic
     const isFloating = floatingLabel
-    const hasValue = value && value.toString().length > 0
+    // Date/Time inputs have native placeholders (dd.mm.yyyy), so label MUST float to avoid overlap.
+    // Numbers might show spinners, helpful to keep label up.
+    const forceFloat = type === 'date' || type === 'datetime-local' || type === 'time' || type === 'month' || type === 'week'
+    const hasValue = (value && value.toString().length > 0) || forceFloat
     const wrapperClass = isFloating ? `form-group floating-label-group ${hasValue ? 'has-value' : ''}` : 'form-group'
 
     return (
