@@ -48,7 +48,8 @@
       {
         "provider": "github",
         "owner": "ReJOnSTR",
-        "repo": "AracTakip"
+        "repo": "AracTakip",
+        "releaseType": "release"
       }
     ],
     "files": [
