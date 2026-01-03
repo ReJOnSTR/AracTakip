@@ -2,6 +2,7 @@
   "name": "muayen",
   "version": "1.0.1",
   "description": "Muayen - Filo Yönetim Sistemi",
+  "author": "Halil Sak",
   "main": "electron/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
@@ -58,8 +59,9 @@
     "mac": {
       "target": "dmg",
       "icon": "resources/icon-mac.png",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null
     },
     "win": {
       "target": "nsis",
