@@ -879,8 +879,10 @@ body {
 /* Floating Label */
 .floating-label-group .form-input,
 .floating-label-group .form-select {
-  padding-top: 16px;
-  padding-bottom: 4px;
+  padding-top: 18px;
+  padding-bottom: 8px;
+  line-height: normal;
+  /* Ensure text is centered properly */
 }
 
 .floating-label-group .form-label {

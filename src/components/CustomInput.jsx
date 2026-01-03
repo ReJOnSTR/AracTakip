@@ -20,19 +20,32 @@ export default function CustomInput({
 
     const handleChange = (e) => {
         let val = e.target.value
+        const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward' || e.nativeEvent.inputType === 'deleteContentForward'
 
         if (format === 'uppercase') {
             val = val.toUpperCase()
         } else if (format === 'title') {
             val = val.replace(/\b\w/g, c => c.toUpperCase())
         } else if (format === 'phone') {
-            val = val.replace(/\D/g, '')
-            if (val.length > 10) val = val.slice(0, 10)
-            if (val.length > 6) val = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`
-            else if (val.length > 3) val = `(${val.slice(0, 3)}) ${val.slice(3)}`
-            else if (val.length > 0) val = `(${val}`
+            // If deleting, just allow the value to be updated without forcing format immediately
+            // This prevents "getting stuck" when deleting parenthesis/spaces
+            if (!isDeleting) {
+                const clean = val.replace(/\D/g, '')
+                if (clean.length > 0) {
+                    if (clean.length <= 3) val = `(${clean}`
+                    else if (clean.length <= 6) val = `(${clean.slice(0, 3)}) ${clean.slice(3)}`
+                    else val = `(${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6, 10)}`
+                } else {
+                    val = ''
+                }
+            }
+            // Limit length even when deleting to avoid overflow artifacts
+            if (val.length > 15) val = val.slice(0, 15)
+
         } else if (format === 'currency') {
             val = val.replace(/[^0-9.,]/g, '')
+            // Remove leading zeros if followed by another digit (e.g. 05 -> 5, but 0.5 stays)
+            val = val.replace(/^0+(?=\d)/, '')
         } else if (format === 'plate') {
             // TR Plate: 34 AB 1234
             val = val.toUpperCase().replace(/[^A-Z0-9\s]/g, '')

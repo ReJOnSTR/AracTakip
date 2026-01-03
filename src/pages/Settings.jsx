@@ -185,32 +185,34 @@ export default function Settings() {
                     <div className="settings-section">
                         <h2 className="settings-section-title">Sistem & Güncelleme</h2>
                         <div className="settings-list">
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
+                            <div className="settings-item" style={{ alignItems: 'flex-start', gap: '15px' }}>
+                                <div className="settings-item-icon" style={{ marginTop: '2px' }}>
                                     <Globe size={18} />
                                 </div>
                                 <div className="settings-item-content">
                                     <div className="settings-item-label">Versiyon</div>
-                                    <div className="settings-item-desc">Mevcut Sürüm: v{appVersion}</div>
+                                    <div className="settings-item-desc" style={{ marginBottom: '8px' }}>Mevcut Sürüm: <span style={{ fontFamily: 'monospace', background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px' }}>v{appVersion}</span></div>
+
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        {updateStatus === 'idle' || updateStatus === 'not-available' || updateStatus === 'error' || updateStatus === 'dev-mode' ? (
+                                            <button className="btn btn-sm btn-secondary" onClick={checkForUpdates} disabled={updateStatus === 'checking'}>
+                                                {updateStatus === 'checking' ? 'Kontrol Ediliyor...' : 'Denetle'}
+                                            </button>
+                                        ) : null}
+
+                                        {updateStatus === 'available' && (
+                                            <button className="btn btn-sm btn-primary" onClick={downloadUpdate}>
+                                                <Download size={14} /> İndir
+                                            </button>
+                                        )}
+
+                                        {updateStatus === 'downloaded' && (
+                                            <button className="btn btn-sm btn-success" onClick={quitAndInstall}>
+                                                <RefreshCw size={14} /> Yeniden Başlat
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-
-                                {updateStatus === 'idle' || updateStatus === 'not-available' || updateStatus === 'error' || updateStatus === 'dev-mode' ? (
-                                    <button className="btn btn-sm btn-secondary" onClick={checkForUpdates} disabled={updateStatus === 'checking'}>
-                                        {updateStatus === 'checking' ? 'Kontrol Ediliyor...' : 'Denetle'}
-                                    </button>
-                                ) : null}
-
-                                {updateStatus === 'available' && (
-                                    <button className="btn btn-sm btn-primary" onClick={downloadUpdate}>
-                                        <Download size={14} /> İndir
-                                    </button>
-                                )}
-
-                                {updateStatus === 'downloaded' && (
-                                    <button className="btn btn-sm btn-success" onClick={quitAndInstall}>
-                                        <RefreshCw size={14} /> Yeniden Başlat
-                                    </button>
-                                )}
                             </div>
 
                             {/* Update Status Messages */}
@@ -220,20 +222,21 @@ export default function Settings() {
                                     {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '12px' }}>Sürümünüz güncel.</span>}
                                     {updateStatus === 'dev-mode' && <span className="text-warning" style={{ fontSize: '12px' }}>Geliştirici modundasınız.</span>}
                                     {updateStatus === 'error' && (
-                                        <div style={{ fontSize: '12px' }}>
-                                            <span className="text-danger">Hata: {errorMsg}</span>
-                                            <div style={{ marginTop: '5px' }}>
-                                                <button
-                                                    className="btn btn-sm btn-outline-primary"
-                                                    style={{ width: '100%', justifyContent: 'center' }}
-                                                    onClick={() => window.electronAPI.openExternal('https://github.com/ReJOnSTR/AracTakip/releases/latest')}
-                                                >
-                                                    <Download size={14} /> Elle İndir (GitHub)
-                                                </button>
-                                                <p style={{ marginTop: '5px', fontSize: '11px', color: '#666' }}>
-                                                    * Mac güvenliği nedeniyle otomatik güncelleme yapılamadı.
-                                                </p>
+                                        <div style={{ fontSize: '12px', background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', border: '1px solid var(--danger-bg)' }}>
+                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--danger)', fontWeight: '500', marginBottom: '8px' }}>
+                                                <span>⚠️ Hata: {errorMsg}</span>
                                             </div>
+
+                                            <button
+                                                className="btn btn-sm btn-outline-primary"
+                                                style={{ width: '100%', justifyContent: 'center' }}
+                                                onClick={() => window.electronAPI.openExternal('https://github.com/ReJOnSTR/AracTakip/releases/latest')}
+                                            >
+                                                <Download size={14} /> Elle İndir (GitHub)
+                                            </button>
+                                            <p style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                                                Mac güvenlik ayarları nedeniyle otomatik güncelleme yapılamadı. Lütfen yukarıdaki butona tıklayıp son sürümü elle indirip kurun.
+                                            </p>
                                         </div>
                                     )}
 
