@@ -879,44 +879,53 @@ body {
 /* Floating Label */
 .floating-label-group .form-input,
 .floating-label-group .form-select {
-  padding-top: 18px;
-  padding-bottom: 8px;
+  padding-top: 24px !important;
+  padding-bottom: 8px !important;
   line-height: normal;
-  /* Ensure text is centered properly */
 }
 
 .floating-label-group .form-label {
   position: absolute;
   left: 12px;
-  top: 10px;
-  font-size: 12px;
+  top: 50%;
+  /* Start centered */
+  transform: translateY(-50%);
+  font-size: 13px;
   color: var(--text-muted);
   pointer-events: none;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.5, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: left top;
   margin: 0;
   z-index: 5;
   font-weight: 500;
   text-transform: none;
+  background: transparent;
+  padding: 0 2px;
 }
 
 .floating-label-group.has-value .form-label,
 .floating-label-group .form-input:focus~.form-label,
 .floating-label-group .form-select:focus~.form-label {
-  transform: translateY(-8px) scale(0.9);
+  top: 6px;
+  transform: translateY(0) scale(0.85);
+  /* Smaller and at top */
   color: var(--accent-primary);
+  font-weight: 600;
 }
 
 .floating-label-group.has-value .input-icon,
 .floating-label-group:focus-within .input-icon {
-  top: 10px;
-  /* Adjust if needed */
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent-primary);
 }
 
 /* Clear Button */
 .input-clear-btn {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -939,6 +948,32 @@ body {
 .form-select.input-error,
 .form-textarea.input-error {
   border-color: var(--danger);
+  /* Shake Animation */
+  animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes shake {
+
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 .form-input.input-error:focus,
@@ -948,11 +983,33 @@ body {
 
 .input-error-text {
   color: var(--danger);
-  font-size: 12px;
-  margin-top: 6px;
+  font-size: 11px;
+  margin-top: 4px;
+  margin-left: 4px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 4px;
+
+  /* Slide Down Animation */
+  animation: slideDownFade 0.3s ease forwards;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+display: flex;
+align-items: center;
+gap: 4px;
 }
 
 .form-select {

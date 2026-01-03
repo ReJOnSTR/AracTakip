@@ -12,7 +12,9 @@ export default function CustomInput({
     className,
     error,
     icon: Icon,
-    floatingLabel = false,
+    error,
+    icon: Icon,
+    floatingLabel = true,
     onClear
 }) {
     const [touched, setTouched] = useState(false)
