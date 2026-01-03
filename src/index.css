@@ -879,9 +879,11 @@ body {
 /* Floating Label */
 .floating-label-group .form-input,
 .floating-label-group .form-select {
-  height: 48px !important;
-  padding-top: 20px !important;
-  padding-bottom: 8px !important;
+  height: 40px !important;
+  padding-top: 16px !important;
+  padding-bottom: 4px !important;
+  font-size: 14px;
+  /* User requested adjustment */
   line-height: normal;
 }
 
@@ -891,10 +893,11 @@ body {
   top: 50%;
   /* Start centered */
   transform: translateY(-50%);
-  font-size: 12px;
+  font-size: 13px;
+  /* Placeholder state size */
   color: var(--text-muted);
   pointer-events: none;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: left top;
   margin: 0;
   z-index: 5;
@@ -907,9 +910,13 @@ body {
 .floating-label-group.has-value .form-label,
 .floating-label-group .form-input:focus~.form-label,
 .floating-label-group .form-select:focus~.form-label {
-  top: 6px;
-  transform: translateY(0) scale(0.85);
-  /* Smaller and at top */
+  top: 5px;
+  /* Tweak top position */
+  transform: translateY(0) scale(1);
+  /* No scale, just change font size directly for pixel perfection? Or scale 0.85 of 13px */
+  font-size: 10px;
+  /* Explicit smaller size when floating */
+  line-height: 1;
   color: var(--accent-primary);
   font-weight: 600;
 }
