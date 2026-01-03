@@ -219,7 +219,23 @@ export default function Settings() {
                                     {updateStatus === 'checking' && <span className="text-muted" style={{ fontSize: '12px' }}>Güncellemeler kontrol ediliyor...</span>}
                                     {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '12px' }}>Sürümünüz güncel.</span>}
                                     {updateStatus === 'dev-mode' && <span className="text-warning" style={{ fontSize: '12px' }}>Geliştirici modundasınız.</span>}
-                                    {updateStatus === 'error' && <span className="text-danger" style={{ fontSize: '12px' }}>Hata: {errorMsg}</span>}
+                                    {updateStatus === 'error' && (
+                                        <div style={{ fontSize: '12px' }}>
+                                            <span className="text-danger">Hata: {errorMsg}</span>
+                                            <div style={{ marginTop: '5px' }}>
+                                                <button
+                                                    className="btn btn-sm btn-outline-primary"
+                                                    style={{ width: '100%', justifyContent: 'center' }}
+                                                    onClick={() => window.electronAPI.openExternal('https://github.com/ReJOnSTR/AracTakip/releases/latest')}
+                                                >
+                                                    <Download size={14} /> Elle İndir (GitHub)
+                                                </button>
+                                                <p style={{ marginTop: '5px', fontSize: '11px', color: '#666' }}>
+                                                    * Mac güvenliği nedeniyle otomatik güncelleme yapılamadı.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {updateStatus === 'available' && (
                                         <div style={{ fontSize: '12px' }}>

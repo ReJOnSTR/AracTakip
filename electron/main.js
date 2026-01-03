@@ -637,3 +637,7 @@ ipcMain.handle('app:getVersion', () => {
     return app.getVersion()
 })
 
+ipcMain.on('app:openExternal', (event, url) => {
+    require('electron').shell.openExternal(url)
+})
+

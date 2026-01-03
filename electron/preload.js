@@ -91,5 +91,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // Notifications
-    showNotification: (title, body) => ipcRenderer.invoke('notification:show', { title, body })
+    showNotification: (title, body) => ipcRenderer.invoke('notification:show', { title, body }),
+
+    // Utils
+    openExternal: (url) => ipcRenderer.send('app:openExternal', url)
 })
