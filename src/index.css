@@ -879,7 +879,8 @@ body {
 /* Floating Label */
 .floating-label-group .form-input,
 .floating-label-group .form-select {
-  padding-top: 24px !important;
+  height: 48px !important;
+  padding-top: 20px !important;
   padding-bottom: 8px !important;
   line-height: normal;
 }
