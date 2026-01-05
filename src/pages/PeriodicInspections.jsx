@@ -13,7 +13,7 @@ import {
 } from '../utils/helpers'
 import { Plus, Pencil, Trash2, ClipboardCheck, Building2 } from 'lucide-react'
 
-export default function Inspections() {
+export default function PeriodicInspections() {
     const { currentCompany } = useCompany()
     const [inspections, setInspections] = useState([])
     const [vehicles, setVehicles] = useState([])
@@ -30,7 +30,7 @@ export default function Inspections() {
     })
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+    const [confirmModal, setConfirmModal] = useState(null)
 
     useEffect(() => {
         if (currentCompany) {
@@ -46,7 +46,7 @@ export default function Inspections() {
         setLoading(true)
         try {
             const [inspResult, vehiclesResult] = await Promise.all([
-                window.electronAPI.getAllInspections(currentCompany.id, 'traffic'),
+                window.electronAPI.getAllInspections(currentCompany.id, 'periodic'),
                 window.electronAPI.getVehicles(currentCompany.id)
             ])
 
@@ -83,7 +83,6 @@ export default function Inspections() {
         setFormData({
             vehicleId: inspection.vehicle_id.toString(),
             inspectionDate: inspection.inspection_date,
-            inspectionDate: inspection.inspection_date,
             nextInspection: inspection.next_inspection || '',
             result: inspection.result || '',
             cost: inspection.cost?.toString() || '',
@@ -116,7 +115,7 @@ export default function Inspections() {
             result: formData.result,
             cost: formData.cost ? parseFloat(formData.cost) : 0,
             notes: formData.notes,
-            type: 'traffic'
+            type: 'periodic' // EXPLICIT TYPE
         }
 
         let result
@@ -140,8 +139,8 @@ export default function Inspections() {
         setConfirmModal({
             type: 'single',
             item: inspection,
-            title: 'Muayene Silme',
-            message: 'Bu muayene kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'
+            title: 'Kontrol Silme',
+            message: 'Bu periyodik kontrol kaydını silmek istediğinize emin misiniz?'
         })
     }
 
@@ -155,21 +154,21 @@ export default function Inspections() {
     }
 
     const resultOptions = [
-        { value: 'passed', label: 'Geçti', color: 'success' },
-        { value: 'failed', label: 'Kaldı', color: 'danger' },
-        { value: 'conditional', label: 'Şartlı Geçti', color: 'warning' }
+        { value: 'passed', label: 'Uygundur', color: 'success' },
+        { value: 'failed', label: 'Uygun Değildir', color: 'danger' },
+        { value: 'conditional', label: 'Eksikler Var', color: 'warning' }
     ]
 
     const columns = [
         { key: 'vehicle_plate', label: 'Plaka' },
         {
             key: 'inspection_date',
-            label: 'Muayene Tarihi',
+            label: 'Kontrol Tarihi',
             render: (value) => formatDate(value)
         },
         {
             key: 'next_inspection',
-            label: 'Sonraki Muayene',
+            label: 'Sonraki Kontrol',
             render: (value) => {
                 if (!value) return '-'
                 const color = getStatusColor(value ? (new Date(value) - new Date()) / (1000 * 60 * 60 * 24) : null)
@@ -186,7 +185,7 @@ export default function Inspections() {
         },
         {
             key: 'cost',
-            label: 'Ücret',
+            label: 'Maliyet',
             render: (value) => formatCurrency(value)
         }
     ]
@@ -196,7 +195,7 @@ export default function Inspections() {
             <div className="empty-state">
                 <div className="empty-state-icon"><Building2 /></div>
                 <h2 className="empty-state-title">Şirket Seçilmedi</h2>
-                <p className="empty-state-desc">Muayene kayıtlarını görüntülemek için lütfen bir şirket seçin.</p>
+                <p className="empty-state-desc">Periyodik kontrolleri görüntülemek için lütfen bir şirket seçin.</p>
             </div>
         )
     }
@@ -214,13 +213,13 @@ export default function Inspections() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Muayene Takibi</h1>
-                    <p style={{ marginTop: '5px', color: '#666' }}>Araç muayene takibi.</p>
+                    <h1 className="page-title">Periyodik Kontroller</h1>
+                    <p style={{ marginTop: '5px', color: '#666' }}>Vinç ve iş makineleri periyodik muayene takibi.</p>
                 </div>
                 <div className="page-actions">
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
                         <Plus size={18} />
-                        Yeni Muayene
+                        Yeni Kontrol
                     </button>
                 </div>
             </div>
@@ -228,14 +227,14 @@ export default function Inspections() {
             {inspections.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><ClipboardCheck /></div>
-                    <h2 className="empty-state-title">Muayene Kaydı Yok</h2>
+                    <h2 className="empty-state-title">Kayıt Bulunamadı</h2>
                     <p className="empty-state-desc">
-                        {vehicles.length === 0 ? 'Önce araç eklemeniz gerekiyor.' : 'Henüz muayene kaydı eklenmemiş.'}
+                        {vehicles.length === 0 ? 'Önce araç eklemeniz gerekiyor.' : 'Henüz periyodik kontrol kaydı eklenmemiş.'}
                     </p>
                     {vehicles.length > 0 && (
                         <button className="btn btn-primary" onClick={openCreateModal}>
                             <Plus size={18} />
-                            Muayene Ekle
+                            Kontrol Ekle
                         </button>
                     )}
                 </div>
@@ -255,7 +254,7 @@ export default function Inspections() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                title={editingInspection ? 'Muayene Düzenle' : 'Yeni Muayene'}
+                title={editingInspection ? 'Kontrol Düzenle' : 'Yeni Periyodik Kontrol'}
                 footer={
                     <>
                         <button className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -278,10 +277,10 @@ export default function Inspections() {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <CustomInput label="Muayene Tarihi *" type="date" required={true} value={formData.inspectionDate} onChange={(value) => setFormData({ ...formData, inspectionDate: value })} />
+                            <CustomInput label="Kontrol Tarihi *" type="date" required={true} value={formData.inspectionDate} onChange={(value) => setFormData({ ...formData, inspectionDate: value })} />
                         </div>
                         <div className="form-group">
-                            <CustomInput label="Sonraki Muayene" type="date" value={formData.nextInspection} onChange={(value) => setFormData({ ...formData, nextInspection: value })} />
+                            <CustomInput label="Sonraki Kontrol" type="date" value={formData.nextInspection} onChange={(value) => setFormData({ ...formData, nextInspection: value })} />
                         </div>
                     </div>
 
@@ -296,7 +295,7 @@ export default function Inspections() {
                         />
 
                         <div className="form-group">
-                            <CustomInput label="Ücret (₺)" type="number" value={formData.cost} onChange={(value) => setFormData({ ...formData, cost: value })} placeholder="0.00" />
+                            <CustomInput label="Maliyet (₺)" type="number" value={formData.cost} onChange={(value) => setFormData({ ...formData, cost: value })} placeholder="0.00" />
                         </div>
                     </div>
 

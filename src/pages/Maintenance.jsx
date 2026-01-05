@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
@@ -33,6 +34,7 @@ export default function Maintenance() {
     })
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     useEffect(() => {
         if (currentCompany) {
@@ -139,11 +141,37 @@ export default function Maintenance() {
         }
     }
 
-    const handleDelete = async (maintenance) => {
-        if (confirm('Bu bakım kaydını silmek istediğinize emin misiniz?')) {
-            const result = await window.electronAPI.deleteMaintenance(maintenance.id)
-            if (result.success) loadData()
+    const handleDeleteClick = (maintenance) => {
+        setConfirmModal({
+            type: 'single',
+            item: maintenance,
+            title: 'Bakım Silme',
+            message: 'Bu bakım kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'
+        })
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids: ids,
+            title: 'Toplu Silme',
+            message: `${ids.length} bakım kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        if (confirmModal.type === 'single') {
+            await window.electronAPI.deleteMaintenance(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteMaintenance(id)
+            }
         }
+
+        if (confirmModal.type === 'bulk' || confirmModal.type === 'single') loadData()
+        setConfirmModal(null)
     }
 
     const columns = [
@@ -238,18 +266,11 @@ export default function Maintenance() {
                             options: maintenanceTypes
                         }
                     ]}
-                    onBulkDelete={async (ids) => {
-                        if (confirm(`${ids.length} bakım kaydını silmek istediğinize emin misiniz?`)) {
-                            for (const id of ids) {
-                                await window.electronAPI.deleteMaintenance(id)
-                            }
-                            loadData()
-                        }
-                    }}
+                    onBulkDelete={handleBulkDeleteClick}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
-                            <button title="Sil" className="danger" onClick={() => handleDelete(item)}><Trash2 size={16} /></button>
+                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
                         </>
                     )}
                 />
@@ -271,27 +292,24 @@ export default function Maintenance() {
             >
                 <form onSubmit={handleSubmit}>
                     <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Araç *</label>
-                            <CustomSelect
-                                className="form-select-custom"
-                                value={formData.vehicleId}
-                                onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                                options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                                placeholder="Araç seçin"
-                            />
-                        </div>
+                        <CustomSelect
+                            label="Araç"
+                            required={true}
+                            className="form-select-custom"
+                            value={formData.vehicleId}
+                            onChange={(value) => setFormData({ ...formData, vehicleId: value })}
+                            options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
+                            placeholder="Araç seçin"
+                        />
 
-                        <div className="form-group">
-                            <label className="form-label">Bakım Türü</label>
-                            <CustomSelect
-                                className="form-select-custom"
-                                value={formData.type}
-                                onChange={(value) => setFormData({ ...formData, type: value })}
-                                options={maintenanceTypes}
-                                placeholder="Seçiniz"
-                            />
-                        </div>
+                        <CustomSelect
+                            label="Bakım Türü"
+                            className="form-select-custom"
+                            value={formData.type}
+                            onChange={(value) => setFormData({ ...formData, type: value })}
+                            options={maintenanceTypes}
+                            placeholder="Seçiniz"
+                        />
                     </div>
 
                     <div className="form-group">
@@ -317,18 +335,28 @@ export default function Maintenance() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Notlar</label>
-                        <textarea
-                            className="form-textarea"
+                        <CustomInput
+                            label="Notlar"
                             placeholder="Ek notlar..."
                             value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, notes: value })}
+                            multiline={true}
+                            rows={3}
+                            floatingLabel={true}
                         />
                     </div>
 
                     {error && <div className="form-error">{error}</div>}
                 </form>
             </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
         </div>
     )
 }

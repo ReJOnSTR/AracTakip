@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomInput from '../components/CustomInput'
 import { formatDate } from '../utils/helpers'
@@ -20,6 +21,7 @@ export default function Companies() {
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     const resetForm = () => {
         setFormData({ name: '', taxNumber: '', address: '', phone: '' })
@@ -81,10 +83,35 @@ export default function Companies() {
         }
     }
 
-    const handleDelete = async (company) => {
-        if (confirm(`"${company.name}" şirketini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) {
-            await deleteCompany(company.id)
+    const handleDeleteClick = (company) => {
+        setConfirmModal({
+            type: 'single',
+            item: company,
+            title: 'Şirket Silme',
+            message: `"${company.name}" şirketini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids: ids,
+            title: 'Toplu Silme',
+            message: `${ids.length} şirketi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        if (confirmModal.type === 'single') {
+            await deleteCompany(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
+                await deleteCompany(id)
+            }
         }
+        setConfirmModal(null)
     }
 
     const columns = [
@@ -134,19 +161,13 @@ export default function Companies() {
                     data={companies}
                     showSearch={true}
                     showCheckboxes={true}
-                    onBulkDelete={async (ids) => {
-                        if (confirm(`${ids.length} şirketi silmek istediğinize emin misiniz?`)) {
-                            for (const id of ids) {
-                                await deleteCompany(id)
-                            }
-                        }
-                    }}
+                    onBulkDelete={handleBulkDeleteClick}
                     actions={(company) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(company)}>
                                 <Pencil size={16} />
                             </button>
-                            <button title="Sil" className="danger" onClick={() => handleDelete(company)}>
+                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(company)}>
                                 <Trash2 size={16} />
                             </button>
                         </>
@@ -203,18 +224,28 @@ export default function Companies() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Adres</label>
-                        <textarea
-                            className="form-textarea"
+                        <CustomInput
+                            label="Adres"
                             placeholder="Şirket adresi"
                             value={formData.address}
-                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, address: value })}
+                            multiline={true}
+                            rows={3}
+                            floatingLabel={true}
                         />
                     </div>
 
                     {error && <div className="form-error">{error}</div>}
                 </form>
             </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
         </div>
     )
 }

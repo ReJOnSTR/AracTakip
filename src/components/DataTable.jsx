@@ -216,6 +216,7 @@ export default function DataTable({
                             {filters.map(filter => (
                                 <CustomSelect
                                     key={filter.key}
+                                    label={filter.label}
                                     value={activeFilters[filter.key] || ''}
                                     onChange={(value) => handleFilterChange(filter.key, value)}
                                     options={filter.options}
@@ -374,6 +375,7 @@ export default function DataTable({
                             options={pageSizeOptions}
                             className="page-select-custom"
                             placeholder=""
+                            floatingLabel={false}
                         />
                         <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length}</span>
                     </div>

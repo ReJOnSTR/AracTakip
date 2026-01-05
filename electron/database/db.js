@@ -81,6 +81,7 @@ function initializeDatabase() {
             `CREATE TABLE IF NOT EXISTS inspections (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               vehicle_id INTEGER NOT NULL,
+              type TEXT DEFAULT 'traffic',
               inspection_date DATE NOT NULL,
               next_inspection DATE,
               result TEXT,
@@ -211,6 +212,9 @@ function migrateDatabase() {
             WHERE km = 0 OR km IS NULL
         `).run()
     } catch (e) { }
+
+    // Inspections Migrations
+    addColumn('inspections', 'type', "TEXT DEFAULT 'traffic'")
 }
 
 // Helpers
@@ -447,41 +451,35 @@ function deleteMaintenance(id) {
 
 // ============ INSPECTIONS ============
 
-function getInspections(vehicleId) {
+function getInspectionsByVehicle(vehicleId) {
     try {
-        const data = runQuery(`
-      SELECT i.*, v.plate as vehicle_plate 
-      FROM inspections i 
-      JOIN vehicles v ON i.vehicle_id = v.id 
-      WHERE i.vehicle_id = ? 
-      ORDER BY i.inspection_date DESC
-    `, [vehicleId])
+        const data = runQuery('SELECT * FROM inspections WHERE vehicle_id = ? ORDER BY inspection_date DESC', [vehicleId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
     }
 }
 
-function getAllInspections(companyId) {
+function getAllInspections(companyId, type = 'traffic') {
     try {
         const data = runQuery(`
-      SELECT i.*, v.plate as vehicle_plate, v.brand, v.model
-      FROM inspections i 
-      JOIN vehicles v ON i.vehicle_id = v.id 
-      WHERE v.company_id = ? 
-      ORDER BY i.next_inspection ASC
-    `, [companyId])
+            SELECT i.*, v.plate as vehicle_plate, v.brand, v.model
+            FROM inspections i
+            JOIN vehicles v ON i.vehicle_id = v.id
+            WHERE v.company_id = ? AND (i.type = ? OR i.type IS NULL)
+            ORDER BY i.inspection_date DESC
+        `, [companyId, type])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
     }
 }
 
-function createInspection({ vehicleId, inspectionDate, nextInspection, result, cost, notes }) {
+function createInspection(data) {
     try {
         const info = runExec(
-            'INSERT INTO inspections (vehicle_id, inspection_date, next_inspection, result, cost, notes) VALUES (?, ?, ?, ?, ?, ?)',
-            [vehicleId, inspectionDate, nextInspection, result, cost, notes]
+            'INSERT INTO inspections (vehicle_id, type, inspection_date, next_inspection, result, cost, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [data.vehicleId, data.type || 'traffic', data.inspectionDate, data.nextInspection, data.result, data.cost, data.notes]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -518,9 +516,9 @@ function getInsurances(vehicleId) {
       SELECT ins.*, v.plate as vehicle_plate 
       FROM insurances ins 
       JOIN vehicles v ON ins.vehicle_id = v.id 
-      WHERE ins.vehicle_id = ? 
-      ORDER BY ins.end_date DESC
-    `, [vehicleId])
+      WHERE ins.vehicle_id = ?
+            ORDER BY ins.end_date DESC
+            `, [vehicleId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -533,9 +531,9 @@ function getAllInsurances(companyId) {
       SELECT ins.*, v.plate as vehicle_plate, v.brand, v.model
       FROM insurances ins 
       JOIN vehicles v ON ins.vehicle_id = v.id 
-      WHERE v.company_id = ? 
-      ORDER BY ins.end_date ASC
-    `, [companyId])
+      WHERE v.company_id = ?
+            ORDER BY ins.end_date ASC
+            `, [companyId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -583,9 +581,9 @@ function getAssignments(vehicleId) {
       SELECT a.*, v.plate as vehicle_plate 
       FROM assignments a 
       JOIN vehicles v ON a.vehicle_id = v.id 
-      WHERE a.vehicle_id = ? 
-      ORDER BY a.start_date DESC
-    `, [vehicleId])
+      WHERE a.vehicle_id = ?
+            ORDER BY a.start_date DESC
+            `, [vehicleId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -598,9 +596,9 @@ function getAllAssignments(companyId) {
       SELECT a.*, v.plate as vehicle_plate, v.brand, v.model
       FROM assignments a 
       JOIN vehicles v ON a.vehicle_id = v.id 
-      WHERE v.company_id = ? 
-      ORDER BY a.start_date DESC
-    `, [companyId])
+      WHERE v.company_id = ?
+            ORDER BY a.start_date DESC
+            `, [companyId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -648,9 +646,9 @@ function getServices(vehicleId) {
       SELECT s.*, v.plate as vehicle_plate 
       FROM services s 
       JOIN vehicles v ON s.vehicle_id = v.id 
-      WHERE s.vehicle_id = ? 
-      ORDER BY s.date DESC
-    `, [vehicleId])
+      WHERE s.vehicle_id = ?
+            ORDER BY s.date DESC
+            `, [vehicleId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -663,9 +661,9 @@ function getAllServices(companyId) {
       SELECT s.*, v.plate as vehicle_plate, v.brand, v.model
       FROM services s 
       JOIN vehicles v ON s.vehicle_id = v.id 
-      WHERE v.company_id = ? 
-      ORDER BY s.date DESC
-    `, [companyId])
+      WHERE v.company_id = ?
+            ORDER BY s.date DESC
+            `, [companyId])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -737,47 +735,47 @@ function getDashboardStats(companyId) {
       SELECT COUNT(*) as count FROM inspections i
       JOIN vehicles v ON i.vehicle_id = v.id
       WHERE v.company_id = ? AND i.next_inspection BETWEEN ? AND ?
-    `, [companyId, today, thirtyDaysLater])
+            `, [companyId, today, thirtyDaysLater])
 
         const expiringInsurances = runQueryOne(`
       SELECT COUNT(*) as count FROM insurances ins
       JOIN vehicles v ON ins.vehicle_id = v.id
       WHERE v.company_id = ? AND ins.end_date BETWEEN ? AND ?
-    `, [companyId, today, thirtyDaysLater])
+            `, [companyId, today, thirtyDaysLater])
 
         const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
-        const monthPattern = `${currentMonth}%`
+        const monthPattern = `${currentMonth} % `
 
         // Detailed Monthly Cost Breakdown
         // Using LIKE is safer for text dates in SQLite than strftime
         const costDistribution = runQueryOne(`
-            SELECT 
+            SELECT
                 (SELECT COALESCE(SUM(cost), 0) FROM services s JOIN vehicles v ON s.vehicle_id = v.id WHERE v.company_id = ? AND s.date LIKE ?) as service,
-                (SELECT COALESCE(SUM(cost), 0) FROM maintenances m JOIN vehicles v ON m.vehicle_id = v.id WHERE v.company_id = ? AND m.date LIKE ?) as maintenance,
-                (SELECT COALESCE(SUM(cost), 0) FROM inspections i JOIN vehicles v ON i.vehicle_id = v.id WHERE v.company_id = ? AND i.inspection_date LIKE ?) as inspection,
-                (SELECT COALESCE(SUM(premium), 0) FROM insurances ins JOIN vehicles v ON ins.vehicle_id = v.id WHERE v.company_id = ? AND ins.start_date LIKE ?) as insurance
-        `, [companyId, monthPattern, companyId, monthPattern, companyId, monthPattern, companyId, monthPattern])
+            (SELECT COALESCE(SUM(cost), 0) FROM maintenances m JOIN vehicles v ON m.vehicle_id = v.id WHERE v.company_id = ? AND m.date LIKE ?) as maintenance,
+        (SELECT COALESCE(SUM(cost), 0) FROM inspections i JOIN vehicles v ON i.vehicle_id = v.id WHERE v.company_id = ? AND i.inspection_date LIKE ?) as inspection,
+            (SELECT COALESCE(SUM(premium), 0) FROM insurances ins JOIN vehicles v ON ins.vehicle_id = v.id WHERE v.company_id = ? AND ins.start_date LIKE ?) as insurance
+                `, [companyId, monthPattern, companyId, monthPattern, companyId, monthPattern, companyId, monthPattern])
 
         const monthlyCost = (costDistribution?.service || 0) + (costDistribution?.maintenance || 0) + (costDistribution?.inspection || 0) + (costDistribution?.insurance || 0)
 
         // Vehicle Status Distribution
         const statusStats = runQueryOne(`
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
-                SUM(CASE WHEN status = 'passive' THEN 1 ELSE 0 END) as passive,
-                SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as maintenance
+        SELECT
+        COUNT(*) as total,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN status = 'passive' THEN 1 ELSE 0 END) as passive,
+            SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as maintenance
             FROM vehicles WHERE company_id = ?
-        `, [companyId])
+            `, [companyId])
 
         // Top 5 High Mileage Vehicles
         const topVehicles = runQuery(`
             SELECT plate, brand, model, km, image 
             FROM vehicles 
-            WHERE company_id = ? 
+            WHERE company_id = ?
             ORDER BY km DESC 
             LIMIT 5
-        `, [companyId])
+            `, [companyId])
 
         return {
             success: true,
@@ -798,7 +796,7 @@ function getDashboardStats(companyId) {
                     inspection: costDistribution?.inspection || 0,
                     insurance: costDistribution?.insurance || 0
                 },
-                topVehicles: topVehicles || []
+                topVehicles: Array.isArray(topVehicles) ? topVehicles : []
             }
         }
     } catch (error) {
@@ -809,65 +807,81 @@ function getDashboardStats(companyId) {
 function getUpcomingEvents(companyId) {
     try {
         const today = new Date().toISOString().split('T')[0]
+        const maxDate = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 60 days lookahead
 
         // 1. Upcoming Inspections
         const inspections = runQuery(`
-            SELECT 
-                'Muayene' as type,
-                v.plate, 
-                v.brand, 
-                v.model, 
-                i.next_inspection as date
+        SELECT
+        CASE 
+                    WHEN i.type = 'periodic' THEN 'Periyodik Kontrol'
+                    ELSE 'Muayene'
+        END as type,
+            v.plate,
+            v.brand,
+            v.model,
+            i.next_inspection as date
             FROM inspections i
             JOIN vehicles v ON i.vehicle_id = v.id
-            WHERE v.company_id = ? AND i.next_inspection > ?
+            WHERE v.company_id = ? AND i.next_inspection IS NOT NULL AND i.next_inspection <= ?
             ORDER BY i.next_inspection ASC
-            LIMIT 5
-        `, [companyId, today])
+            LIMIT 20
+            `, [companyId, maxDate])
 
         // 2. Expiring Insurances
         const insurances = runQuery(`
-            SELECT 
-                'Sigorta' as type,
-                v.plate, 
-                v.brand, 
-                v.model, 
-                ins.end_date as date
+        SELECT
+        'Sigorta' as type,
+            v.plate,
+            v.brand,
+            v.model,
+            ins.end_date as date
             FROM insurances ins
             JOIN vehicles v ON ins.vehicle_id = v.id
-            WHERE v.company_id = ? AND ins.end_date > ?
+            WHERE v.company_id = ? AND ins.end_date IS NOT NULL AND ins.end_date <= ?
             ORDER BY ins.end_date ASC
-            LIMIT 5
-        `, [companyId, today])
+            LIMIT 20
+            `, [companyId, maxDate])
 
         // 3. Maintenance Due (Based on Date)
         const maintenances = runQuery(`
-            SELECT 
-                'Bakım' as type,
-                v.plate, 
-                v.brand, 
-                v.model, 
-                m.next_date as date
+        SELECT
+        'Bakım' as type,
+            v.plate,
+            v.brand,
+            v.model,
+            m.next_date as date
             FROM maintenances m
             JOIN vehicles v ON m.vehicle_id = v.id
-            WHERE v.company_id = ? AND m.next_date > ?
+            WHERE v.company_id = ? AND m.next_date IS NOT NULL AND m.next_date <= ?
             ORDER BY m.next_date ASC
-            LIMIT 5
-        `, [companyId, today])
+            LIMIT 20
+            `, [companyId, maxDate])
 
         // Combine and Sort
         let allEvents = [...inspections, ...insurances, ...maintenances]
 
-        // Calculate days left
-        allEvents = allEvents.map(event => {
-            const daysLeft = Math.ceil((new Date(event.date) - new Date(today)) / (1000 * 60 * 60 * 24))
-            return { ...event, days_left: daysLeft }
-        })
+        // Filter invalid dates and calculate days left
+        let calculatedEvents = []
+        for (const event of allEvents) {
+            if (!event.date) continue
+
+            const evtDate = new Date(event.date)
+            const todayDate = new Date(today)
+
+            if (isNaN(evtDate.getTime())) continue
+
+            const daysLeft = Math.ceil((evtDate - todayDate) / (1000 * 60 * 60 * 24))
+
+            // Explicitly exclude events further than 60 days
+            if (daysLeft > 60) continue
+
+            calculatedEvents.push({ ...event, days_left: daysLeft })
+        }
 
         // Sort by days left
-        allEvents.sort((a, b) => a.days_left - b.days_left)
+        calculatedEvents.sort((a, b) => a.days_left - b.days_left)
 
-        return { success: true, data: allEvents.slice(0, 10) }
+        return { success: true, data: calculatedEvents.slice(0, 50) }
     } catch (error) {
         return { success: false, error: error.message }
     }
@@ -883,14 +897,14 @@ function getRecentActivity(companyId) {
             SELECT 'Service' as type, s.date as date, v.plate, 'Servis Kaydı' as description, s.cost
             FROM services s JOIN vehicles v ON s.vehicle_id = v.id
             WHERE v.company_id = ? ORDER BY s.created_at DESC LIMIT 5
-        `, [companyId])
+            `, [companyId])
 
         // Maintenances
         const maintenances = runQuery(`
             SELECT 'Maintenance' as type, m.date as date, v.plate, 'Bakım Kaydı' as description, m.cost
             FROM maintenances m JOIN vehicles v ON m.vehicle_id = v.id
             WHERE v.company_id = ? ORDER BY m.created_at DESC LIMIT 5
-        `, [companyId])
+            `, [companyId])
 
         // Assignments
         const assignments = runQuery(`
@@ -902,7 +916,14 @@ function getRecentActivity(companyId) {
         let activities = [...services, ...maintenances, ...assignments]
 
         // Sort by date/created_at roughly (using date field here simplistically)
-        activities.sort((a, b) => new Date(b.date) - new Date(a.date))
+        // Sort by date/created_at roughly (using date field here simplistically)
+        activities.sort((a, b) => {
+            const dateA = new Date(a.date)
+            const dateB = new Date(b.date)
+            if (isNaN(dateA.getTime())) return 1
+            if (isNaN(dateB.getTime())) return -1
+            return dateB - dateA
+        })
 
         return { success: true, data: activities.slice(0, 5) }
     } catch (error) {
@@ -1065,7 +1086,7 @@ module.exports = {
     createMaintenance,
     updateMaintenance,
     deleteMaintenance,
-    getInspections,
+    getInspections: getInspectionsByVehicle,
     getAllInspections,
     createInspection,
     updateInspection,

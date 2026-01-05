@@ -25,8 +25,10 @@ export default function Reports() {
         inventory: true,
         maintenance: true,
         services: true,
+        services: true,
         insurance: true,
-        inspection: true
+        inspection: true,
+        periodicInspection: true
     })
 
     const [dateRange, setDateRange] = useState({
@@ -108,7 +110,8 @@ export default function Reports() {
                     vehicle: vehicle,
                     data: {
                         maintenances: maintenances.data || [],
-                        inspections: inspections.data || [],
+                        inspections: (inspections.data || []).filter(i => !i.type || i.type === 'traffic'),
+                        periodicInspections: (inspections.data || []).filter(i => i.type === 'periodic'),
                         insurances: insurances.data || [],
                         assignments: assignments.data || [],
                         services: services.data || []
@@ -171,7 +174,10 @@ export default function Reports() {
             maintenances: filterAndSort(report.data.maintenances, 'date'),
             services: filterAndSort(report.data.services, 'date'),
             insurances: filterAndSort(report.data.insurances, 'start_date'),
-            inspections: filterAndSort(report.data.inspections, 'inspection_date')
+            services: filterAndSort(report.data.services, 'date'),
+            insurances: filterAndSort(report.data.insurances, 'start_date'),
+            inspections: filterAndSort(report.data.inspections, 'inspection_date'),
+            periodicInspections: filterAndSort(report.data.periodicInspections, 'inspection_date')
         }))
     }
 
@@ -279,6 +285,10 @@ export default function Reports() {
                                     <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                                         <input type="checkbox" checked={config.inspection} onChange={e => setConfig({ ...config, inspection: e.target.checked })} />
                                         <span>Muayene Durumu</span>
+                                    </label>
+                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                        <input type="checkbox" checked={config.periodicInspection} onChange={e => setConfig({ ...config, periodicInspection: e.target.checked })} />
+                                        <span>Periyodik Kontroller</span>
                                     </label>
                                 </div>
                             </div>
@@ -581,6 +591,49 @@ export default function Reports() {
                                                                         <td colSpan={3} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
                                                                         <td style={{ padding: '6px', border: '1px solid #ddd' }}>
                                                                             {formatCurrency(report.inspections.reduce((sum, item) => sum + (item.cost || 0), 0))}
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        ) : (
+                                                            <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Kayıt yok.</div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {config.periodicInspection && (
+                                                    <div>
+                                                        <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
+                                                            PERİYODİK KONTROL BİLGİLERİ
+                                                        </h3>
+                                                        {report.periodicInspections.length > 0 ? (
+                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                                                                <thead>
+                                                                    <tr style={{ background: '#eee', textAlign: 'left' }}>
+                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TARİH</th>
+                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONUÇ</th>
+                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONRAKİ KONTROL</th>
+                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TUTAR</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {report.periodicInspections.slice(0, 10).map((item, i) => {
+                                                                        const resultDisplay = item.result === 'passed' ? 'Uygundur' :
+                                                                            item.result === 'failed' ? 'Uygun Değildir' :
+                                                                                item.result === 'conditional' ? 'Eksikler Var' : item.result;
+                                                                        return (
+                                                                            <tr key={i}>
+                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.inspection_date)}</td>
+                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{resultDisplay}</td>
+                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.next_inspection ? formatDate(item.next_inspection) : '-'}</td>
+                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatCurrency(item.cost)}</td>
+                                                                            </tr>
+                                                                        )
+                                                                    })}
+                                                                    <tr style={{ fontWeight: 'bold' }}>
+                                                                        <td colSpan={3} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
+                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                                                                            {formatCurrency(report.periodicInspections.reduce((sum, item) => sum + (item.cost || 0), 0))}
                                                                         </td>
                                                                     </tr>
                                                                 </tbody>

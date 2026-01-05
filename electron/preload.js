@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Inspections
     getInspectionsByVehicle: (vehicleId) => ipcRenderer.invoke('inspections:getByVehicle', vehicleId),
-    getAllInspections: (companyId) => ipcRenderer.invoke('inspections:getAll', companyId),
+    getAllInspections: (companyId, type) => ipcRenderer.invoke('inspections:getAll', companyId, type),
     createInspection: (data) => ipcRenderer.invoke('inspections:create', data),
     updateInspection: (data) => ipcRenderer.invoke('inspections:update', data),
     deleteInspection: (id) => ipcRenderer.invoke('inspections:delete', id),

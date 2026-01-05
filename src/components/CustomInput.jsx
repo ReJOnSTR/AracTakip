@@ -14,7 +14,10 @@ export default function CustomInput({
     icon: Icon,
 
     floatingLabel = true,
-    onClear
+    onClear,
+    multiline = false,
+    rows,
+    style
 }) {
     const [touched, setTouched] = useState(false)
     const [focused, setFocused] = useState(false)
@@ -23,10 +26,16 @@ export default function CustomInput({
         let val = e.target.value
         const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward' || e.nativeEvent.inputType === 'deleteContentForward'
 
-        if (format === 'uppercase') {
-            val = val.toUpperCase()
+        if (format === 'uppercase' || (!format && (type === 'text' || multiline))) {
+            val = val.toLocaleUpperCase('tr-TR')
         } else if (format === 'title') {
-            val = val.replace(/\b\w/g, c => c.toUpperCase())
+            // Title Case: Capitalize first letter of every word
+            val = val.replace(/(?:^|\s|["'([{])+\S/g, match => match.toLocaleUpperCase('tr-TR'))
+        } else if (format === 'sentence') {
+            // Sentence Case: Capitalize only the very first letter
+            if (val.length > 0) {
+                val = val.charAt(0).toLocaleUpperCase('tr-TR') + val.slice(1)
+            }
         } else if (format === 'phone') {
             // If deleting, just allow the value to be updated without forcing format immediately
             // This prevents "getting stuck" when deleting parenthesis/spaces
@@ -48,19 +57,11 @@ export default function CustomInput({
             // Remove leading zeros if followed by another digit (e.g. 05 -> 5, but 0.5 stays)
             val = val.replace(/^0+(?=\d)/, '')
         } else if (format === 'plate') {
-            // TR Plate: 34 AB 1234
-            val = val.toUpperCase().replace(/[^A-Z0-9\s]/g, '')
-            if (!val.includes(' ') && val.length > 2) {
-                if (!isNaN(val.slice(0, 2))) {
-                    val = `${val.slice(0, 2)} ${val.slice(2)}`
-                }
-            }
-            // Simple space logic for second part
-            const parts = val.split(' ')
-            if (parts.length === 2 && parts[1].length > 3 && isNaN(parts[1].slice(0, 1)) && !isNaN(parts[1].slice(-1))) {
-                // Heuristic: if middle part gets too long and ends with number, split (not perfect but helpful)
-                // Better approach: Let user type freely or strict regex. Keeping it simple flexible.
-            }
+            // Flexible Plate: Only allow Alphanumeric + Uppercase + Symbols + Turkish Chars
+            // User can format as they wish (e.g. 06 XXX 1234, IS MAKINA 01, 34-AB-123)
+            val = val.toLocaleUpperCase('tr-TR').replace(/[^A-Z0-9\s\-\.\/ÇĞİÖŞÜ]/g, '')
+            // Prevent double spaces
+            val = val.replace(/\s+/g, ' ')
         }
 
         onChange(val)
@@ -93,16 +94,29 @@ export default function CustomInput({
             <div className="input-wrapper">
                 {Icon && <Icon className="input-icon" size={18} />}
 
-                <input
-                    type={type}
-                    className={`form-input ${isInvalid ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
-                    value={value || ''}
-                    onChange={handleChange}
-                    onFocus={() => setFocused(true)}
-                    onBlur={handleBlur}
-                    placeholder={isFloating ? '' : placeholder}
-                    style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
-                />
+                {multiline ? (
+                    <textarea
+                        className={`form-input form-textarea ${isInvalid ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
+                        value={value || ''}
+                        onChange={handleChange}
+                        onFocus={() => setFocused(true)}
+                        onBlur={handleBlur}
+                        placeholder={isFloating ? '' : placeholder}
+                        style={{ ...style, ...(isInvalid ? { borderColor: 'var(--danger)' } : {}) }}
+                        rows={rows || 3}
+                    />
+                ) : (
+                    <input
+                        type={type}
+                        className={`form-input ${isInvalid ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
+                        value={value || ''}
+                        onChange={handleChange}
+                        onFocus={() => setFocused(true)}
+                        onBlur={handleBlur}
+                        placeholder={isFloating ? '' : placeholder}
+                        style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
+                    />
+                )}
 
                 {isFloating && label && (
                     <label className="form-label">

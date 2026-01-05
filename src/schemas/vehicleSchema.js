@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 export const vehicleSchema = z.object({
-    plate: z.string().min(1, 'Plaka zorunludur').regex(/^[0-9]{2}\s?[A-Z]{1,3}\s?[0-9]{2,5}$/, 'Geçersiz plaka formatı (Örn: 34 AB 123)'),
+    plate: z.string().min(2, 'Plaka en az 2 karakter olmalıdır'),
     brand: z.string().min(1, 'Marka zorunludur'),
     model: z.string().min(1, 'Model zorunludur'),
     type: z.enum(['automobile', 'crane', 'truck', 'van', 'pickup', 'forklift', 'excavator', 'other'], {

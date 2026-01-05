@@ -56,13 +56,9 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
 
     return (
         <form onSubmit={handleSubmit(onFormSubmit)}>
-            <div>
-                {/* Basic Info Section */}
-                <div style={{
-                    paddingBottom: '24px',
-                    marginBottom: '24px',
-                    borderBottom: '1px solid var(--border-color)'
-                }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                {/* LEFT COLUMN: Basic Info */}
+                <div>
                     <div style={{
                         fontSize: '13px',
                         fontWeight: 600,
@@ -78,40 +74,36 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                     </div>
 
                     <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Araç Türü</label>
-                            <Controller
-                                name="type"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        className="form-select-custom"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        options={vehicleTypes}
-                                        placeholder="Seçiniz"
-                                        error={errors.type?.message}
-                                    />
-                                )}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Durum</label>
-                            <Controller
-                                name="status"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        className="form-select-custom"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        options={vehicleStatuses}
-                                        placeholder="Seçiniz"
-                                        error={errors.status?.message}
-                                    />
-                                )}
-                            />
-                        </div>
+                        <Controller
+                            name="type"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Araç Türü"
+                                    className="form-select-custom"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    options={vehicleTypes}
+                                    placeholder="Seçiniz"
+                                    error={errors.type?.message}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Durum"
+                                    className="form-select-custom"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    options={vehicleStatuses}
+                                    placeholder="Seçiniz"
+                                    error={errors.status?.message}
+                                />
+                            )}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -131,23 +123,6 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                 />
                             )}
                         />
-                    </div>
-                </div>
-
-                {/* Details Section */}
-                <div>
-                    <div style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: 'var(--text-secondary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        marginBottom: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
-                        <Building2 size={15} /> Teknik Detaylar
                     </div>
 
                     <div className="form-row">
@@ -185,6 +160,23 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                 )}
                             />
                         </div>
+                    </div>
+                </div>
+
+                {/* RIGHT COLUMN: Details */}
+                <div>
+                    <div style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        marginBottom: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <Building2 size={15} /> Teknik Detaylar
                     </div>
 
                     <div className="form-row">
@@ -243,18 +235,18 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                     </div>
 
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Araç Notları</label>
                         <Controller
                             name="notes"
                             control={control}
                             render={({ field }) => (
-                                <textarea
-                                    className="form-textarea"
-                                    placeholder="Araç hakkında ek bilgiler..."
-                                    rows={3}
+                                <CustomInput
+                                    label="Araç Notları"
                                     value={field.value}
                                     onChange={field.onChange}
-                                    style={{ minHeight: '80px' }}
+                                    multiline={true}
+                                    rows={3}
+                                    floatingLabel={true}
+                                    placeholder="Araç hakkında ek bilgiler..."
                                 />
                             )}
                         />

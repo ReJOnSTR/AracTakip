@@ -105,11 +105,8 @@ export default function Dashboard() {
         )
     }
 
-    const allUpcoming = [
-        ...(upcoming?.inspections || []).map(i => ({ ...i, eventType: 'inspection', label: 'Muayene' })),
-        ...(upcoming?.insurances || []).map(i => ({ ...i, eventType: 'insurance', label: 'Sigorta' })),
-        ...(upcoming?.maintenances || []).map(i => ({ ...i, eventType: 'maintenance', label: 'Bakım' }))
-    ].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 5)
+    // Data is already processed and sorted by backend
+    const allUpcoming = upcoming || []
 
     // Calculate percentages for cost distribution
     const totalCost = stats?.monthlyCost || 0
@@ -264,8 +261,7 @@ export default function Dashboard() {
                     <div className="card">
                         <div className="card-header">
                             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Calendar size={18} className="text-warning" />
-                                Yaklaşanlar
+                                Yaklaşan & Gecikmiş İşlemler
                             </div>
                         </div>
 
@@ -289,8 +285,8 @@ export default function Dashboard() {
                                             border: '1px solid var(--border-color)'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' }}>{event.plate}</span>
-                                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>{event.label}</span>
+                                                <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' }}>{event.plate} - {event.brand} {event.model}</span>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>{event.type}</span>
                                             </div>
                                             <div style={{ fontSize: '12px', fontWeight: '500', color: colorMap[statusColor] }}>
                                                 {getDaysUntilText(event.date)}

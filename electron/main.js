@@ -296,8 +296,8 @@ ipcMain.handle('inspections:getByVehicle', async (event, vehicleId) => {
     return db.getInspections(vehicleId)
 })
 
-ipcMain.handle('inspections:getAll', async (event, companyId) => {
-    return db.getAllInspections(companyId)
+ipcMain.handle('inspections:getAll', async (event, companyId, type) => {
+    return db.getAllInspections(companyId, type)
 })
 
 ipcMain.handle('inspections:create', async (event, data) => {

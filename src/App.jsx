@@ -13,6 +13,7 @@ import Vehicles from './pages/Vehicles'
 import VehicleDetail from './pages/VehicleDetail'
 import Maintenance from './pages/Maintenance'
 import Inspections from './pages/Inspections'
+import PeriodicInspections from './pages/PeriodicInspections'
 import Insurance from './pages/Insurance'
 import Assignments from './pages/Assignments'
 import Settings from './pages/Settings'
@@ -139,6 +140,16 @@ function AppRoutes() {
                         <CompanyProvider>
                             <MainLayout>
                                 <Inspections />
+                            </MainLayout>
+                        </CompanyProvider>
+                    </ProtectedRoute>
+                } />
+
+                <Route path="/periodic-inspections" element={
+                    <ProtectedRoute>
+                        <CompanyProvider>
+                            <MainLayout>
+                                <PeriodicInspections />
                             </MainLayout>
                         </CompanyProvider>
                     </ProtectedRoute>

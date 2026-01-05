@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
@@ -27,6 +28,7 @@ export default function Assignments() {
     })
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     useEffect(() => {
         if (currentCompany) {
@@ -133,11 +135,37 @@ export default function Assignments() {
         }
     }
 
-    const handleDelete = async (assignment) => {
-        if (confirm('Bu zimmet kaydını silmek istediğinize emin misiniz?')) {
-            const result = await window.electronAPI.deleteAssignment(assignment.id)
-            if (result.success) loadData()
+    const handleDeleteClick = (assignment) => {
+        setConfirmModal({
+            type: 'single',
+            item: assignment,
+            title: 'Zimmet Silme',
+            message: 'Bu zimmet kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'
+        })
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids: ids,
+            title: 'Toplu Silme',
+            message: `${ids.length} zimmet kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        if (confirmModal.type === 'single') {
+            await window.electronAPI.deleteAssignment(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteAssignment(id)
+            }
         }
+
+        if (confirmModal.type === 'bulk' || confirmModal.type === 'single') loadData()
+        setConfirmModal(null)
     }
 
     const columns = [
@@ -213,18 +241,11 @@ export default function Assignments() {
                     showCheckboxes={true}
                     showDateFilter={true}
                     dateFilterKey="start_date"
-                    onBulkDelete={async (ids) => {
-                        if (confirm(`${ids.length} zimmet kaydını silmek istediğinize emin misiniz?`)) {
-                            for (const id of ids) {
-                                await window.electronAPI.deleteAssignment(id)
-                            }
-                            loadData()
-                        }
-                    }}
+                    onBulkDelete={handleBulkDeleteClick}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
-                            <button title="Sil" className="danger" onClick={() => handleDelete(item)}><Trash2 size={16} /></button>
+                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
                         </>
                     )}
                 />
@@ -244,16 +265,15 @@ export default function Assignments() {
                 }
             >
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label">Araç *</label>
-                        <CustomSelect
-                            className="form-select-custom"
-                            value={formData.vehicleId}
-                            onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                            options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                            placeholder="Araç seçin"
-                        />
-                    </div>
+                    <CustomSelect
+                        label="Araç"
+                        required={true}
+                        className="form-select-custom"
+                        value={formData.vehicleId}
+                        onChange={(value) => setFormData({ ...formData, vehicleId: value })}
+                        options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
+                        placeholder="Araç seçin"
+                    />
 
                     <div className="form-row">
                         <div className="form-group" style={{ flex: 2 }}>
@@ -294,18 +314,28 @@ export default function Assignments() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Notlar</label>
-                        <textarea
-                            className="form-textarea"
+                        <CustomInput
+                            label="Notlar"
                             placeholder="Ek notlar..."
                             value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, notes: value })}
+                            multiline={true}
+                            rows={3}
+                            floatingLabel={true}
                         />
                     </div>
 
                     {error && <div className="form-error">{error}</div>}
                 </form>
             </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
         </div>
     )
 }

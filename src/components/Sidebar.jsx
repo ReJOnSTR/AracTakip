@@ -11,7 +11,8 @@ import {
     ChevronRight,
     Truck,
     Settings,
-    FileText
+    FileText,
+    ClipboardList
 } from 'lucide-react'
 import logo from '../assets/logos/logo-chatgpt.png'
 
@@ -36,6 +37,7 @@ const menuGroups = [
         items: [
             { path: '/maintenance', icon: Wrench, label: 'Bakım' },
             { path: '/inspections', icon: ClipboardCheck, label: 'Muayene' },
+            { path: '/periodic-inspections', icon: ClipboardList, label: 'Periyodik Kontrol' },
             { path: '/insurance', icon: Shield, label: 'Sigorta' },
             { path: '/services', icon: Truck, label: 'Servis' }
         ]

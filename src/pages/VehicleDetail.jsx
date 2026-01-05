@@ -4,7 +4,9 @@ import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
+
 import CustomInput from '../components/CustomInput'
+import ConfirmModal from '../components/ConfirmModal'
 
 import {
     getVehicleTypeLabel,
@@ -54,7 +56,11 @@ export default function VehicleDetail() {
     const [editingItem, setEditingItem] = useState(null)
     const [formData, setFormData] = useState({})
     const [saving, setSaving] = useState(false)
+
     const [error, setError] = useState('')
+
+    // Confirm Modal state
+    const [confirmModal, setConfirmModal] = useState(null) // { type, item, title, message }
 
     useEffect(() => {
         if (id) {
@@ -167,6 +173,30 @@ export default function VehicleDetail() {
         setError('')
     }
 
+    const handleVehicleSave = async (data) => {
+        setSaving(true)
+        setError('')
+
+        try {
+            const result = await window.electronAPI.updateVehicle({
+                id: vehicle.id,
+                ...data,
+                year: data.year ? parseInt(data.year) : null
+            })
+
+            if (result.success) {
+                closeModal()
+                loadVehicleData()
+            } else {
+                setError(result.error)
+            }
+        } catch (err) {
+            console.error('Vehicle save error:', err)
+            setError('Bağlantı hatası')
+        }
+        setSaving(false)
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSaving(true)
@@ -230,21 +260,6 @@ export default function VehicleDetail() {
                 result = editingItem
                     ? await window.electronAPI.updateAssignment({ id: editingItem.id, ...data })
                     : await window.electronAPI.createAssignment(data)
-            } else if (modalType === 'vehicle') {
-                const data = {
-                    plate: formData.plate,
-                    brand: formData.brand,
-                    model: formData.model,
-                    year: formData.year ? parseInt(formData.year) : null,
-                    color: formData.color,
-                    type: formData.type,
-                    status: formData.status,
-                    notes: formData.notes
-                }
-                // Vehicle updates usually don't need create logic here as we are in detail view, 
-                // but if we were strictly reusing this for create (which we aren't here), we'd need it.
-                // We are only editing the current vehicle.
-                result = await window.electronAPI.updateVehicle({ id: vehicleId, ...data })
             }
 
             if (result?.success) {
@@ -260,15 +275,30 @@ export default function VehicleDetail() {
         setSaving(false)
     }
 
-    const handleDelete = async (type, item) => {
-        if (!confirm('Bu kaydı silmek istediğinize emin misiniz?')) return
+    const handleDeleteClick = (type, item) => {
+        let title = 'Silme Onayı'
+        let message = 'Bu kaydı silmek istediğinize emin misiniz?'
 
+        if (type === 'maintenance') message = 'Bu bakım kaydını silmek istediğinize emin misiniz?'
+        if (type === 'inspection') message = 'Bu muayene kaydını silmek istediğinize emin misiniz?'
+        if (type === 'insurance') message = 'Bu sigorta kaydını silmek istediğinize emin misiniz?'
+        if (type === 'assignment') message = 'Bu zimmet kaydını silmek istediğinize emin misiniz?'
+
+        setConfirmModal({ type, item, title, message })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        const { type, item } = confirmModal
         let result
+
         if (type === 'maintenance') result = await window.electronAPI.deleteMaintenance(item.id)
         else if (type === 'inspection') result = await window.electronAPI.deleteInspection(item.id)
         else if (type === 'insurance') result = await window.electronAPI.deleteInsurance(item.id)
         else if (type === 'assignment') result = await window.electronAPI.deleteAssignment(item.id)
 
+        setConfirmModal(null)
         if (result?.success) loadVehicleData()
     }
 
@@ -349,7 +379,7 @@ export default function VehicleDetail() {
                             <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>{vehicle.plate}</h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
                                 <span className={`badge badge-${statusInfo.color}`}>{statusInfo.label}</span>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '13px', textTransform: 'uppercase' }}>
                                     {vehicle.brand} {vehicle.model} • {vehicle.year || '-'}
                                 </span>
                             </div>
@@ -407,7 +437,7 @@ export default function VehicleDetail() {
                             <div style={{ fontSize: '18px', fontWeight: 600, color: upcomingInsurance ? 'var(--warning)' : 'var(--text-primary)' }}>
                                 {activeInsurance ? getDaysUntilText(activeInsurance.end_date) : 'Poliçe Yok'}
                             </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', textTransform: 'uppercase' }}>
                                 {activeInsurance ? activeInsurance.company : 'Kayıt bulunamadı'}
                             </div>
                         </div>
@@ -427,10 +457,10 @@ export default function VehicleDetail() {
                         </div>
                         <div>
                             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Zimmet Bilgisi</div>
-                            <div style={{ fontSize: '18px', fontWeight: 600 }}>
+                            <div style={{ fontSize: '18px', fontWeight: 600, textTransform: 'uppercase' }}>
                                 {currentAssignment ? currentAssignment.assigned_to : 'Boşta'}
                             </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', textTransform: 'uppercase' }}>
                                 {currentAssignment ? currentAssignment.department : 'Kullanıma hazır'}
                             </div>
                         </div>
@@ -451,15 +481,13 @@ export default function VehicleDetail() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
                                 <div>
                                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Araç Türü</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500 }}>
-                                        <Car size={16} style={{ color: 'var(--text-muted)' }} />
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>
                                         {getVehicleTypeLabel(vehicle.type)}
                                     </div>
                                 </div>
                                 <div>
                                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Yıl</div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500 }}>
-                                        <Calendar size={16} style={{ color: 'var(--text-muted)' }} />
                                         {vehicle.year || '-'}
                                     </div>
                                 </div>
@@ -467,11 +495,11 @@ export default function VehicleDetail() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
                                 <div>
                                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Marka</div>
-                                    <div style={{ fontSize: '14px', fontWeight: 500 }}>{vehicle.brand || '-'}</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>{vehicle.brand || '-'}</div>
                                 </div>
                                 <div>
                                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Model</div>
-                                    <div style={{ fontSize: '14px', fontWeight: 500 }}>{vehicle.model || '-'}</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>{vehicle.model || '-'}</div>
                                 </div>
                             </div>
                         </div>
@@ -480,14 +508,14 @@ export default function VehicleDetail() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Renk</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>
                                     <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'white', border: '1px solid var(--border-color)' }}></div>
                                     {vehicle.color || '-'}
                                 </div>
                             </div>
                             <div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Notlar</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', textTransform: 'uppercase' }}>
                                     {vehicle.notes || 'Not eklenmemiş.'}
                                 </div>
                             </div>
@@ -566,7 +594,7 @@ export default function VehicleDetail() {
                         actions={(item) => (
                             <>
                                 <button onClick={() => openEditModal('maintenance', item)}><Pencil size={16} /></button>
-                                <button className="danger" onClick={() => handleDelete('maintenance', item)}><Trash2 size={16} /></button>
+                                <button className="danger" onClick={() => handleDeleteClick('maintenance', item)}><Trash2 size={16} /></button>
                             </>
                         )}
                     />
@@ -585,7 +613,7 @@ export default function VehicleDetail() {
                         actions={(item) => (
                             <>
                                 <button onClick={() => openEditModal('inspection', item)}><Pencil size={16} /></button>
-                                <button className="danger" onClick={() => handleDelete('inspection', item)}><Trash2 size={16} /></button>
+                                <button className="danger" onClick={() => handleDeleteClick('inspection', item)}><Trash2 size={16} /></button>
                             </>
                         )}
                     />
@@ -605,7 +633,7 @@ export default function VehicleDetail() {
                         actions={(item) => (
                             <>
                                 <button onClick={() => openEditModal('insurance', item)}><Pencil size={16} /></button>
-                                <button className="danger" onClick={() => handleDelete('insurance', item)}><Trash2 size={16} /></button>
+                                <button className="danger" onClick={() => handleDeleteClick('insurance', item)}><Trash2 size={16} /></button>
                             </>
                         )}
                     />
@@ -625,7 +653,7 @@ export default function VehicleDetail() {
                         actions={(item) => (
                             <>
                                 <button onClick={() => openEditModal('assignment', item)}><Pencil size={16} /></button>
-                                <button className="danger" onClick={() => handleDelete('assignment', item)}><Trash2 size={16} /></button>
+                                <button className="danger" onClick={() => handleDeleteClick('assignment', item)}><Trash2 size={16} /></button>
                             </>
                         )}
                     />
@@ -637,7 +665,7 @@ export default function VehicleDetail() {
                 isOpen={!!modalType}
                 onClose={closeModal}
                 title={modalType === 'vehicle' ? 'Araç Düzenle' : `${editingItem ? 'Düzenle' : 'Yeni'} ${tabs.find(t => t.id === modalType)?.label || ''}`}
-                size="lg"
+                size={modalType === 'vehicle' ? 'xl' : 'lg'}
                 footer={modalType !== 'vehicle' ? (
                     <>
                         <button className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -650,7 +678,7 @@ export default function VehicleDetail() {
                 {modalType === 'vehicle' ? (
                     <VehicleForm
                         initialData={editingItem}
-                        onSubmit={handleSubmit}
+                        onSubmit={handleVehicleSave}
                         onCancel={closeModal}
                         loading={saving}
                     />
@@ -661,16 +689,14 @@ export default function VehicleDetail() {
                         {modalType === 'maintenance' && (
                             <>
                                 <div className="form-row">
-                                    <div className="form-group">
-                                        <label className="form-label">Bakım Türü</label>
-                                        <CustomSelect
-                                            className="form-select-custom"
-                                            value={formData.type}
-                                            onChange={(value) => setFormData({ ...formData, type: value })}
-                                            options={maintenanceTypes}
-                                            placeholder="Seçiniz"
-                                        />
-                                    </div>
+                                    <CustomSelect
+                                        label="Bakım Türü"
+                                        className="form-select-custom"
+                                        value={formData.type}
+                                        onChange={(value) => setFormData({ ...formData, type: value })}
+                                        options={maintenanceTypes}
+                                        placeholder="Seçiniz"
+                                    />
                                     <div className="form-group">
                                         <CustomInput label="Tarih" type="date" required={true} value={formData.date} onChange={(value) => setFormData({ ...formData, date: value })} />
                                     </div>
@@ -703,16 +729,14 @@ export default function VehicleDetail() {
                                     </div>
                                 </div>
                                 <div className="form-row">
-                                    <div className="form-group">
-                                        <label className="form-label">Sonuç</label>
-                                        <CustomSelect
-                                            className="form-select-custom"
-                                            value={formData.result}
-                                            onChange={(value) => setFormData({ ...formData, result: value })}
-                                            options={resultOptions}
-                                            placeholder="Seçiniz"
-                                        />
-                                    </div>
+                                    <CustomSelect
+                                        label="Sonuç"
+                                        className="form-select-custom"
+                                        value={formData.result}
+                                        onChange={(value) => setFormData({ ...formData, result: value })}
+                                        options={resultOptions}
+                                        placeholder="Seçiniz"
+                                    />
                                     <div className="form-group">
                                         <CustomInput label="Ücret (₺)" type="number" value={formData.cost} onChange={(value) => setFormData({ ...formData, cost: value })} placeholder="0.00" />
                                     </div>
@@ -726,16 +750,14 @@ export default function VehicleDetail() {
                                     <div className="form-group">
                                         <CustomInput label="Sigorta Şirketi" required={true} value={formData.company} onChange={(value) => setFormData({ ...formData, company: value })} format="title" />
                                     </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Sigorta Türü</label>
-                                        <CustomSelect
-                                            className="form-select-custom"
-                                            value={formData.type}
-                                            onChange={(value) => setFormData({ ...formData, type: value })}
-                                            options={insuranceTypes}
-                                            placeholder="Seçiniz"
-                                        />
-                                    </div>
+                                    <CustomSelect
+                                        label="Sigorta Türü"
+                                        className="form-select-custom"
+                                        value={formData.type}
+                                        onChange={(value) => setFormData({ ...formData, type: value })}
+                                        options={insuranceTypes}
+                                        placeholder="Seçiniz"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <CustomInput label="Poliçe No" value={formData.policyNo} onChange={(value) => setFormData({ ...formData, policyNo: value })} format="uppercase" />
@@ -784,14 +806,29 @@ export default function VehicleDetail() {
                         )}
 
                         <div className="form-group">
-                            <label className="form-label">Notlar</label>
-                            <textarea className="form-textarea" value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
+                            <CustomInput
+                                label="Notlar"
+                                value={formData.notes || ''}
+                                onChange={(value) => setFormData({ ...formData, notes: value })}
+                                multiline={true}
+                                rows={3}
+                                floatingLabel={true}
+                            />
                         </div>
 
                         {error && <div className="form-error" style={{ marginTop: '20px' }}>{error}</div>}
                     </form>
                 )}
+
             </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
         </div >
     )
 }

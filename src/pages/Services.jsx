@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
@@ -26,6 +27,7 @@ export default function Services() {
     })
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     const serviceTypes = [
         { value: 'Genel Bakım', label: 'Genel Bakım' },
@@ -145,11 +147,37 @@ export default function Services() {
         }
     }
 
-    const handleDelete = async (service) => {
-        if (confirm('Bu servis kaydını silmek istediğinize emin misiniz?')) {
-            const result = await window.electronAPI.deleteService(service.id)
-            if (result.success) loadData()
+    const handleDeleteClick = (service) => {
+        setConfirmModal({
+            type: 'single',
+            item: service,
+            title: 'Servis Silme',
+            message: 'Bu servis kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'
+        })
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids: ids,
+            title: 'Toplu Silme',
+            message: `${ids.length} servis kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        if (confirmModal.type === 'single') {
+            await window.electronAPI.deleteService(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteService(id)
+            }
         }
+
+        if (confirmModal.type === 'bulk' || confirmModal.type === 'single') loadData()
+        setConfirmModal(null)
     }
 
     const columns = [
@@ -232,18 +260,11 @@ export default function Services() {
                             options: serviceTypes
                         }
                     ]}
-                    onBulkDelete={async (ids) => {
-                        if (confirm(`${ids.length} kaydı silmek istediğinize emin misiniz?`)) {
-                            for (const id of ids) {
-                                await window.electronAPI.deleteService(id)
-                            }
-                            loadData()
-                        }
-                    }}
+                    onBulkDelete={handleBulkDeleteClick}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
-                            <button title="Sil" className="danger" onClick={() => handleDelete(item)}><Trash2 size={16} /></button>
+                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
                         </>
                     )}
                 />
@@ -263,27 +284,24 @@ export default function Services() {
                 }
             >
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label">Araç *</label>
-                        <CustomSelect
-                            className="form-select-custom"
-                            value={formData.vehicleId}
-                            onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                            options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                            placeholder="Araç seçin"
-                        />
-                    </div>
+                    <CustomSelect
+                        label="Araç"
+                        required={true}
+                        className="form-select-custom"
+                        value={formData.vehicleId}
+                        onChange={(value) => setFormData({ ...formData, vehicleId: value })}
+                        options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
+                        placeholder="Araç seçin"
+                    />
 
                     <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">İşlem Türü</label>
-                            <CustomSelect
-                                className="form-select-custom"
-                                value={formData.type}
-                                onChange={(value) => setFormData({ ...formData, type: value })}
-                                options={serviceTypes}
-                            />
-                        </div>
+                        <CustomSelect
+                            label="İşlem Türü"
+                            className="form-select-custom"
+                            value={formData.type}
+                            onChange={(value) => setFormData({ ...formData, type: value })}
+                            options={serviceTypes}
+                        />
                         <div className="form-group">
                             <CustomInput
                                 label="Tarih *"
@@ -333,18 +351,28 @@ export default function Services() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Detaylı Notlar</label>
-                        <textarea
-                            className="form-textarea"
+                        <CustomInput
+                            label="Detaylı Notlar"
                             placeholder="İşlem detayları..."
                             value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, notes: value })}
+                            multiline={true}
+                            rows={3}
+                            floatingLabel={true}
                         />
                     </div>
 
                     {error && <div className="form-error">{error}</div>}
                 </form>
             </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
         </div>
     )
 }

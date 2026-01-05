@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
@@ -22,7 +23,9 @@ export default function Vehicles() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingVehicle, setEditingVehicle] = useState(null)
     const [saving, setSaving] = useState(false)
+
     const [error, setError] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     useEffect(() => {
         if (currentCompany) {
@@ -100,22 +103,37 @@ export default function Vehicles() {
         }
     }
 
-    const handleDelete = async (vehicle) => {
-        if (confirm(`"${vehicle.plate}" plakalı aracı silmek istediğinize emin misiniz?`)) {
-            const result = await window.electronAPI.deleteVehicle(vehicle.id)
-            if (result.success) {
-                loadVehicles()
-            }
-        }
+    const handleDeleteClick = (vehicle) => {
+        setConfirmModal({
+            type: 'single',
+            item: vehicle,
+            title: 'Araç Silme',
+            message: `"${vehicle.plate}" plakalı aracı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
     }
 
-    const handleBulkDelete = async (ids) => {
-        if (confirm(`${ids.length} aracı silmek istediğinize emin misiniz?`)) {
-            for (const id of ids) {
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids: ids,
+            title: 'Toplu Silme',
+            message: `${ids.length} aracı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        if (confirmModal.type === 'single') {
+            await window.electronAPI.deleteVehicle(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
                 await window.electronAPI.deleteVehicle(id)
             }
-            loadVehicles()
         }
+
+        setConfirmModal(null)
+        loadVehicles()
     }
 
     // PC Context Menu Listener
@@ -130,7 +148,7 @@ export default function Vehicles() {
             if (type === 'edit') {
                 openEditModal(vehicle)
             } else if (type === 'delete') {
-                handleDelete(vehicle)
+                handleDeleteClick(vehicle)
             }
         }
 
@@ -259,14 +277,14 @@ export default function Vehicles() {
                         }
                     ]}
                     onRowClick={(vehicle) => navigate(`/vehicles/${vehicle.id}`)}
-                    onBulkDelete={handleBulkDelete}
+                    onBulkDelete={handleBulkDeleteClick}
                     onContextMenu={handleContextMenu}
                     actions={(vehicle) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(vehicle)}>
                                 <Pencil size={16} />
                             </button>
-                            <button title="Sil" className="danger" onClick={() => handleDelete(vehicle)}>
+                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(vehicle)}>
                                 <Trash2 size={16} />
                             </button>
                         </>
@@ -278,7 +296,7 @@ export default function Vehicles() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 title={editingVehicle ? 'Araç Düzenle' : 'Yeni Araç'}
-                size="lg"
+                size="xl"
                 footer={null}
             >
                 {error && (
@@ -295,6 +313,14 @@ export default function Vehicles() {
 
 
             </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
         </div>
     )
 }

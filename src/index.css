@@ -878,20 +878,30 @@ body {
 
 /* Floating Label */
 .floating-label-group .form-input,
-.floating-label-group .form-select {
-  height: 40px !important;
+.floating-label-group .form-select,
+.floating-label-group .form-textarea {
   padding-top: 16px !important;
-  padding-bottom: 4px !important;
   font-size: 14px;
   /* User requested adjustment */
   line-height: normal;
+}
+
+.floating-label-group .form-input,
+.floating-label-group .form-select {
+  height: 40px !important;
+  padding-bottom: 4px !important;
+}
+
+.floating-label-group .form-textarea {
+  min-height: 80px;
+  padding-bottom: 8px !important;
+  resize: vertical;
 }
 
 .floating-label-group .form-label {
   position: absolute;
   left: 12px;
   top: 50%;
-  /* Start centered */
   transform: translateY(-50%);
   font-size: 13px;
   /* Placeholder state size */
@@ -907,8 +917,15 @@ body {
   padding: 0 2px;
 }
 
+/* For textarea, anchor label to top because height varies */
+.floating-label-group .form-textarea~.form-label {
+  top: 20px;
+  /* Matches the 40px center point (40/2) */
+}
+
 .floating-label-group.has-value .form-label,
 .floating-label-group .form-input:focus~.form-label,
+.floating-label-group .form-textarea:focus~.form-label,
 .floating-label-group .form-select:focus~.form-label {
   top: 5px;
   /* Tweak top position */
@@ -1193,25 +1210,58 @@ body {
 }
 
 .custom-select.page-select-custom {
-  min-width: 70px;
+  min-width: 50px;
+  margin-bottom: 0;
+}
+
+.custom-select.page-select-custom .custom-select-trigger {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  height: 24px;
+  padding: 0 20px 0 6px;
+  /* Reduced left padding, explicit right padding for chevron */
+}
+
+.custom-select.page-select-custom .custom-select-trigger:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-light);
+}
+
+.custom-select.filter-select-custom {
+  min-width: 150px;
+  margin-bottom: 0;
+}
+
+.custom-select.filter-select-custom .custom-select-trigger {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 10px;
+  background-color: var(--bg-secondary);
+}
+
+.custom-select.filter-select-custom .custom-select-trigger:hover {
+  background-color: var(--bg-tertiary);
 }
 
 .custom-select-trigger {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  /* changed from space-between since arrow is absolute */
   gap: 8px;
   width: 100%;
-  padding: 10px 14px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 500;
+  /* Inherits form-input styles for padding, border, bg etc */
+  padding-right: 32px;
+  /* Space for absolute chevron */
   cursor: pointer;
-  transition: all 0.15s ease;
+  position: relative;
+  /* Ensure absolute child is relative to this */
 }
+
+/* Override padding for specific variants if needed - existing rules handle this via cascade if they are more specific, check page-select-custom below */
 
 .custom-select-trigger:hover {
   background: var(--bg-tertiary);
@@ -1230,10 +1280,15 @@ body {
 .custom-select-trigger .chevron {
   color: var(--text-muted);
   transition: transform 0.2s ease;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .custom-select-trigger .chevron.rotate {
-  transform: rotate(180deg);
+  transform: translateY(-50%) rotate(180deg);
+  /* Maintain centering while rotating */
 }
 
 .custom-select-dropdown {
@@ -1540,6 +1595,7 @@ body {
   color: var(--text-primary);
   font-size: 13px;
   border-top: 1px solid var(--border-color);
+  text-transform: uppercase;
 }
 
 .data-table tbody tr {
