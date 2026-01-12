@@ -254,7 +254,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                 </div>
             </div>
 
-            <div className="modal-footer" style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button type="button" className="btn btn-secondary" onClick={onCancel}>
                     İptal
                 </button>

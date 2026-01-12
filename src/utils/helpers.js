@@ -48,10 +48,10 @@ export function getDaysUntilText(dateString) {
 
 export function getStatusColor(days) {
     if (days === null) return 'neutral'
-    if (days < 0) return 'danger'
-    if (days <= 7) return 'danger'
-    if (days <= 30) return 'warning'
-    return 'success'
+    if (days < 0) return 'danger'      // Gecikmiş - kırmızı
+    if (days <= 7) return 'warning'    // 7 gün veya daha az - turuncu
+    if (days <= 30) return 'warning'   // 30 gün veya daha az - turuncu
+    return 'success'                   // 30 günden fazla - yeşil
 }
 
 export const vehicleTypes = [
@@ -87,6 +87,17 @@ export const insuranceTypes = [
     { value: 'kasko', label: 'Kasko' },
     { value: 'traffic', label: 'Trafik Sigortası' },
     { value: 'full', label: 'Tam Paket' },
+    { value: 'other', label: 'Diğer' }
+]
+
+export const serviceTypes = [
+    { value: 'maintenance', label: 'Periyodik Bakım' },
+    { value: 'repair', label: 'Mekanik Tamir' },
+    { value: 'tire', label: 'Lastik İşlemleri' },
+    { value: 'body', label: 'Kaporta/Boya' },
+    { value: 'electrical', label: 'Elektrik/Elektronik' },
+    { value: 'glass', label: 'Cam Değişimi' },
+    { value: 'ac', label: 'Klima Bakımı' },
     { value: 'other', label: 'Diğer' }
 ]
 

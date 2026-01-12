@@ -220,7 +220,7 @@ export default function Vehicles() {
         )
     }
 
-    if (loading) {
+    if (loading && vehicles.length === 0) {
         return (
             <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
                 <div className="loading-spinner"></div>
@@ -262,6 +262,7 @@ export default function Vehicles() {
                 <DataTable
                     columns={columns}
                     data={vehicles}
+                    showSearch={true}
                     showSearch={true}
                     showCheckboxes={true}
                     filters={[

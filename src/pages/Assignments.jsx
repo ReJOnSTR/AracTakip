@@ -7,7 +7,10 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 
 import { formatDate } from '../utils/helpers'
-import { Plus, Pencil, Trash2, UserCheck, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, UserCheck, Building2, Eye } from 'lucide-react'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
+import DocumentUploadModal from '../components/DocumentUploadModal'
+import AssignmentForm from '../components/forms/AssignmentForm'
 
 export default function Assignments() {
     const { currentCompany } = useCompany()
@@ -16,19 +19,19 @@ export default function Assignments() {
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingAssignment, setEditingAssignment] = useState(null)
-    const [formData, setFormData] = useState({
-        vehicleId: '',
-        itemName: '',
-        quantity: '1',
-        assignedTo: '',
-        department: '',
-        startDate: '',
-        endDate: '',
-        notes: ''
-    })
+    // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+
+    // Archive State
+    const [showArchived, setShowArchived] = useState(false)
+
+    // Document State
+    const [documents, setDocuments] = useState([])
+    const [previewDoc, setPreviewDoc] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [activeUploadId, setActiveUploadId] = useState(null)
 
     useEffect(() => {
         if (currentCompany) {
@@ -38,18 +41,20 @@ export default function Assignments() {
             setVehicles([])
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived]) // Reload on toggle
 
     const loadData = async () => {
         setLoading(true)
         try {
-            const [assignResult, vehiclesResult] = await Promise.all([
-                window.electronAPI.getAllAssignments(currentCompany.id),
-                window.electronAPI.getVehicles(currentCompany.id)
+            const [assignResult, vehiclesResult, documentsResult] = await Promise.all([
+                window.electronAPI.getAllAssignments(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getVehicles(currentCompany.id),
+                window.electronAPI.getAllDocuments(currentCompany.id)
             ])
 
             if (assignResult.success) setAssignments(assignResult.data)
             if (vehiclesResult.success) setVehicles(vehiclesResult.data)
+            if (documentsResult.success) setDocuments(documentsResult.data)
         } catch (error) {
             console.error('Failed to load data:', error)
         }
@@ -57,16 +62,6 @@ export default function Assignments() {
     }
 
     const resetForm = () => {
-        setFormData({
-            vehicleId: vehicles.length > 0 ? vehicles[0].id.toString() : '',
-            itemName: '',
-            quantity: '1',
-            assignedTo: '',
-            department: '',
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: '',
-            notes: ''
-        })
         setEditingAssignment(null)
         setError('')
     }
@@ -77,16 +72,6 @@ export default function Assignments() {
     }
 
     const openEditModal = (assignment) => {
-        setFormData({
-            vehicleId: assignment.vehicle_id.toString(),
-            itemName: assignment.item_name || '',
-            quantity: assignment.quantity?.toString() || '1',
-            assignedTo: assignment.assigned_to || '',
-            department: assignment.department || '',
-            startDate: assignment.start_date,
-            endDate: assignment.end_date || '',
-            notes: assignment.notes || ''
-        })
         setEditingAssignment(assignment)
         setIsModalOpen(true)
     }
@@ -96,33 +81,21 @@ export default function Assignments() {
         resetForm()
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
+    const handleFormSubmit = async (data) => {
         setError('')
-
-        if (!formData.vehicleId || !formData.itemName || !formData.startDate) {
-            setError('Araç, malzeme adı ve başlangıç tarihi zorunludur')
-            return
-        }
-
         setSaving(true)
 
-        const data = {
-            vehicleId: parseInt(formData.vehicleId),
-            itemName: formData.itemName,
-            quantity: parseInt(formData.quantity) || 1,
-            assignedTo: formData.assignedTo,
-            department: formData.department,
-            startDate: formData.startDate,
-            endDate: formData.endDate || null,
-            notes: formData.notes
+        const payload = {
+            ...data,
+            vehicleId: parseInt(data.vehicleId),
+            quantity: parseInt(data.quantity) || 1
         }
 
         let result
         if (editingAssignment) {
-            result = await window.electronAPI.updateAssignment({ id: editingAssignment.id, ...data })
+            result = await window.electronAPI.updateAssignment({ id: editingAssignment.id, ...payload })
         } else {
-            result = await window.electronAPI.createAssignment(data)
+            result = await window.electronAPI.createAssignment(payload)
         }
 
         setSaving(false)
@@ -168,22 +141,182 @@ export default function Assignments() {
         setConfirmModal(null)
     }
 
-    const columns = [
-        { key: 'vehicle_plate', label: 'Plaka' },
-        { key: 'item_name', label: 'Malzeme/Demirbaş' },
-        { key: 'quantity', label: 'Adet' },
-        { key: 'assigned_to', label: 'Sorumlu Kişi' },
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('assignments', id, newStatus)
+        }
+        loadData()
+    }
+
+    const activeColumns = [
+        { key: 'vehicle_plate', label: 'Araç Plaka' },
+        { key: 'model', label: 'Araç Model' },
+        { key: 'driver_name', label: 'Sürücü Adı' },
+        { key: 'driver_phone', label: 'Telefon' },
         {
             key: 'start_date',
-            label: 'Başlangıç',
+            label: 'Başlangıç Tarihi',
             render: (value) => formatDate(value)
         },
         {
             key: 'end_date',
-            label: 'Bitiş',
-            render: (value) => value ? formatDate(value) : <span className="badge badge-success">Aktif</span>
+            label: 'Bitiş Tarihi',
+            render: (value) => value ? formatDate(value) : '-'
+        },
+        {
+            key: 'notes',
+            label: 'Notlar',
+            render: (value) => value || '-'
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
         }
     ]
+
+    const archivedColumns = [
+        { key: 'vehicle_plate', label: 'Araç Plaka' },
+        { key: 'model', label: 'Araç Model' },
+        { key: 'driver_name', label: 'Sürücü Adı' },
+        {
+            key: 'start_date',
+            label: 'Başlangıç Tarihi',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'end_date',
+            label: 'Bitiş Tarihi',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'notes',
+            label: 'Notlar',
+            render: (value) => value || '-'
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
+        }
+    ]
+
+    const columns = showArchived ? archivedColumns : activeColumns
+
+    // Document Helpers
+    const getDocument = (assignId) => {
+        return documents.find(d => d.related_type === 'assignment' && d.related_id === assignId)
+    }
+
+    const renderDocumentCell = (row) => {
+        const doc = getDocument(row.id)
+        if (doc) {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <div
+                        onClick={(e) => { e.stopPropagation(); handleDocumentOpen(doc) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            padding: '4px 8px', borderRadius: '6px',
+                            background: 'var(--accent-subtle)', color: 'var(--accent-primary)',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer', border: '1px solid transparent',
+                            transition: 'all 0.2s', width: 'fit-content'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                        title={doc.file_name}
+                    >
+                        <Eye size={12} />
+                        <span>Gör</span>
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            border: '1px dashed var(--border-color)', background: 'transparent',
+                            padding: '4px 8px', borderRadius: '6px', cursor: 'pointer',
+                            color: 'var(--text-muted)', fontSize: '11px', width: 'fit-content', justifyContent: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                        title="Dosya Ekle"
+                    >
+                        <Plus size={12} />
+                        <span>Ekle</span>
+                    </button>
+                </div>
+            )
+        }
+    }
+
+    const handleDocumentOpen = async (doc) => {
+        if (!doc) return
+
+        const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
+        if (isImage) {
+            setPreviewDoc(doc)
+        } else {
+            const result = await window.electronAPI.openDocument(doc.file_path)
+            if (!result.success) {
+                alert('Dosya açılamadı: ' + result.error)
+            }
+        }
+    }
+
+    const handleOpenUpload = (id) => {
+        setActiveUploadId(id)
+        setUploadModalOpen(true)
+    }
+
+    const handleUploadConfirm = async (file) => {
+        if (!activeUploadId) return
+
+        const assignment = assignments.find(a => a.id === activeUploadId)
+        if (!assignment) return
+
+        const result = await window.electronAPI.addDocument({
+            vehicleId: assignment.vehicle_id,
+            relatedType: 'assignment',
+            relatedId: activeUploadId,
+            filePath: file.path
+        })
+
+        if (result.success) {
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            setUploadModalOpen(false)
+            setActiveUploadId(null)
+        } else {
+            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        }
+    }
+
+    const handleDocumentDelete = async () => {
+        if (!previewDoc) return
+        setConfirmModal({
+            title: 'Belgeyi Sil',
+            message: 'Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            confirmText: 'Sil',
+            type: 'danger',
+            onConfirm: async () => {
+                const result = await window.electronAPI.deleteDocument(previewDoc.id)
+                if (result.success) {
+                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+                    if (docsRes.success) setDocuments(docsRes.data)
+                    setPreviewDoc(null)
+                    setConfirmModal(null)
+                } else {
+                    alert('Silme hatası: ' + result.error)
+                }
+            }
+        })
+    }
 
     if (!currentCompany) {
         return (
@@ -195,7 +328,7 @@ export default function Assignments() {
         )
     }
 
-    if (loading) {
+    if (loading && assignments.length === 0) {
         return (
             <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
                 <div className="loading-spinner"></div>
@@ -208,8 +341,8 @@ export default function Assignments() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Araç Demirbaş / Zimmet</h1>
-                    <p style={{ marginTop: '5px', color: '#666' }}>Zimmet ve malzeme yönetimi.</p>
+                    <h1 className="page-title">Zimmet Yönetimi</h1>
+                    <p style={{ marginTop: '5px', color: '#666' }}>Araç sürücü zimmetleri.</p>
                 </div>
                 <div className="page-actions">
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
@@ -219,29 +352,32 @@ export default function Assignments() {
                 </div>
             </div>
 
-            {assignments.length === 0 ? (
+            {assignments.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><UserCheck /></div>
-                    <h2 className="empty-state-title">Demirbaş Kaydı Yok</h2>
-                    <p className="empty-state-desc">
-                        {vehicles.length === 0 ? 'Önce araç eklemeniz gerekiyor.' : 'Henüz zimmet kaydı eklenmemiş.'}
-                    </p>
-                    {vehicles.length > 0 && (
-                        <button className="btn btn-primary" onClick={openCreateModal}>
+                    <h2 className="empty-state-title">Zimmet Kaydı Yok</h2>
+                    <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
+                    <div style={{ marginTop: '16px' }}>
+                        <button className="btn btn-primary" onClick={() => window.location.href = '#/vehicles'}>
                             <Plus size={18} />
-                            Zimmet Ekle
+                            Araç Ekle
                         </button>
-                    )}
+                    </div>
                 </div>
             ) : (
                 <DataTable
+                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={assignments}
+                    persistenceKey={`assignments_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}
                     dateFilterKey="start_date"
                     onBulkDelete={handleBulkDeleteClick}
+                    onBulkArchive={handleBulkArchive}
+                    isArchiveView={showArchived}
+                    onToggleArchiveView={setShowArchived}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
@@ -255,78 +391,15 @@ export default function Assignments() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 title={editingAssignment ? 'Demirbaş Düzenle' : 'Yeni Demirbaş/Zimmet'}
-                footer={
-                    <>
-                        <button className="btn btn-secondary" onClick={closeModal}>İptal</button>
-                        <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
-                            {saving ? 'Kaydediliyor...' : 'Kaydet'}
-                        </button>
-                    </>
-                }
+                footer={null}
             >
-                <form onSubmit={handleSubmit}>
-                    <CustomSelect
-                        label="Araç"
-                        required={true}
-                        className="form-select-custom"
-                        value={formData.vehicleId}
-                        onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                        options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                        placeholder="Araç seçin"
-                    />
-
-                    <div className="form-row">
-                        <div className="form-group" style={{ flex: 2 }}>
-                            <CustomInput label="Malzeme/Demirbaş Adı *" required={true} value={formData.itemName} onChange={(value) => setFormData({ ...formData, itemName: value })} />
-                        </div>
-                        <div className="form-group" style={{ flex: 1 }}>
-                            <CustomInput label="Adet" type="number" value={formData.quantity} onChange={(value) => setFormData({ ...formData, quantity: value })} />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput label="Sorumlu Kişi (Opsiyonel)" value={formData.assignedTo} onChange={(value) => setFormData({ ...formData, assignedTo: value })} format="title" />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput label="Departman" value={formData.department} onChange={(value) => setFormData({ ...formData, department: value })} format="title" />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput
-                                label="Başlangıç Tarihi"
-                                type="date"
-                                required={true}
-                                value={formData.startDate}
-                                onChange={(value) => setFormData({ ...formData, startDate: value })}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput
-                                label="Bitiş Tarihi"
-                                type="date"
-                                value={formData.endDate}
-                                onChange={(value) => setFormData({ ...formData, endDate: value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <CustomInput
-                            label="Notlar"
-                            placeholder="Ek notlar..."
-                            value={formData.notes}
-                            onChange={(value) => setFormData({ ...formData, notes: value })}
-                            multiline={true}
-                            rows={3}
-                            floatingLabel={true}
-                        />
-                    </div>
-
-                    {error && <div className="form-error">{error}</div>}
-                </form>
+                <AssignmentForm
+                    initialData={editingAssignment}
+                    onSubmit={handleFormSubmit}
+                    onCancel={closeModal}
+                    vehicles={vehicles}
+                    loading={saving}
+                />
             </Modal>
 
             <ConfirmModal
@@ -335,6 +408,18 @@ export default function Assignments() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
+            />
+
+            <DocumentUploadModal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                onUpload={handleUploadConfirm}
+            />
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={handleDocumentDelete}
             />
         </div>
     )

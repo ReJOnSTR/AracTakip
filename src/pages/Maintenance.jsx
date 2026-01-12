@@ -5,6 +5,8 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
+// FileUploader removed
+import MaintenanceForm from '../components/forms/MaintenanceForm'
 import {
     maintenanceTypes,
     getMaintenanceTypeLabel,
@@ -13,7 +15,9 @@ import {
     getDaysUntilText,
     getStatusColor
 } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Wrench, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Wrench, Building2, Eye } from 'lucide-react'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
+import DocumentUploadModal from '../components/DocumentUploadModal'
 
 export default function Maintenance() {
     const { currentCompany } = useCompany()
@@ -22,19 +26,20 @@ export default function Maintenance() {
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingMaintenance, setEditingMaintenance] = useState(null)
-    const [formData, setFormData] = useState({
-        vehicleId: '',
-        type: 'general',
-        description: '',
-        date: '',
-        cost: '',
-        nextKm: '',
-        nextDate: '',
-        notes: ''
-    })
+    // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+
+    // Archive State
+    const [showArchived, setShowArchived] = useState(false)
+
+    // Document State
+    const [documents, setDocuments] = useState([])
+    const [previewDoc, setPreviewDoc] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [activeUploadId, setActiveUploadId] = useState(null)
 
     useEffect(() => {
         if (currentCompany) {
@@ -44,18 +49,20 @@ export default function Maintenance() {
             setVehicles([])
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived]) // Reload when archive toggle changes
 
     const loadData = async () => {
         setLoading(true)
         try {
-            const [maintResult, vehiclesResult] = await Promise.all([
-                window.electronAPI.getAllMaintenances(currentCompany.id),
-                window.electronAPI.getVehicles(currentCompany.id)
+            const [maintResult, vehiclesResult, documentsResult] = await Promise.all([
+                window.electronAPI.getAllMaintenances(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getVehicles(currentCompany.id),
+                window.electronAPI.getAllDocuments(currentCompany.id)
             ])
 
             if (maintResult.success) setMaintenances(maintResult.data)
             if (vehiclesResult.success) setVehicles(vehiclesResult.data)
+            if (documentsResult.success) setDocuments(documentsResult.data)
         } catch (error) {
             console.error('Failed to load data:', error)
         }
@@ -63,16 +70,6 @@ export default function Maintenance() {
     }
 
     const resetForm = () => {
-        setFormData({
-            vehicleId: vehicles.length > 0 ? vehicles[0].id.toString() : '',
-            type: 'general',
-            description: '',
-            date: new Date().toISOString().split('T')[0],
-            cost: '',
-            nextKm: '',
-            nextDate: '',
-            notes: ''
-        })
         setEditingMaintenance(null)
         setError('')
     }
@@ -83,16 +80,6 @@ export default function Maintenance() {
     }
 
     const openEditModal = (maintenance) => {
-        setFormData({
-            vehicleId: maintenance.vehicle_id.toString(),
-            type: maintenance.type,
-            description: maintenance.description || '',
-            date: maintenance.date,
-            cost: maintenance.cost?.toString() || '',
-            nextKm: maintenance.next_km?.toString() || '',
-            nextDate: maintenance.next_date || '',
-            notes: maintenance.notes || ''
-        })
         setEditingMaintenance(maintenance)
         setIsModalOpen(true)
     }
@@ -102,33 +89,23 @@ export default function Maintenance() {
         resetForm()
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
+    const handleFormSubmit = async (data) => {
         setError('')
-
-        if (!formData.vehicleId || !formData.date) {
-            setError('Araç ve tarih zorunludur')
-            return
-        }
-
         setSaving(true)
 
-        const data = {
-            vehicleId: parseInt(formData.vehicleId),
-            type: formData.type,
-            description: formData.description,
-            date: formData.date,
-            cost: formData.cost ? parseFloat(formData.cost) : 0,
-            nextKm: formData.nextKm ? parseInt(formData.nextKm) : null,
-            nextDate: formData.nextDate || null,
-            notes: formData.notes
+        // Ensure proper types
+        const payload = {
+            ...data,
+            vehicleId: parseInt(data.vehicleId),
+            cost: data.cost ? parseFloat(data.cost) : 0,
+            nextKm: data.nextKm ? parseInt(data.nextKm) : null
         }
 
         let result
         if (editingMaintenance) {
-            result = await window.electronAPI.updateMaintenance({ id: editingMaintenance.id, ...data })
+            result = await window.electronAPI.updateMaintenance({ id: editingMaintenance.id, ...payload })
         } else {
-            result = await window.electronAPI.createMaintenance(data)
+            result = await window.electronAPI.createMaintenance(payload)
         }
 
         setSaving(false)
@@ -174,25 +151,43 @@ export default function Maintenance() {
         setConfirmModal(null)
     }
 
-    const columns = [
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        // Calculate new archive status (toggle)
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('maintenances', id, newStatus)
+        }
+        loadData()
+    }
+
+    const activeColumns = [
         { key: 'vehicle_plate', label: 'Plaka' },
+        { key: 'model', label: 'Model' },
         {
             key: 'type',
             label: 'Bakım Türü',
             render: (value) => getMaintenanceTypeLabel(value)
         },
-        { key: 'description', label: 'Açıklama' },
         {
             key: 'date',
-            label: 'Tarih',
+            label: 'Bakım Tarihi',
             render: (value) => formatDate(value)
         },
         {
             key: 'next_date',
             label: 'Sonraki Bakım',
-            render: (value, row) => {
-                if (!value) return '-'
-                const color = getStatusColor(row.next_date ? new Date(row.next_date) - new Date() : null)
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'next_date_status',
+            label: 'Kalan Süre',
+            render: (_, item) => {
+                if (!item.next_date) return '-'
+                const value = item.next_date
+                const color = getStatusColor(value ? (new Date(value) - new Date()) / (1000 * 60 * 60 * 24) : null)
                 return <span className={`badge badge-${color}`}>{getDaysUntilText(value)}</span>
             }
         },
@@ -200,8 +195,157 @@ export default function Maintenance() {
             key: 'cost',
             label: 'Maliyet',
             render: (value) => formatCurrency(value)
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
         }
     ]
+
+    const archivedColumns = [
+        { key: 'vehicle_plate', label: 'Plaka' },
+        { key: 'model', label: 'Model' },
+        {
+            key: 'type',
+            label: 'Bakım Türü',
+            render: (value) => getMaintenanceTypeLabel(value)
+        },
+        {
+            key: 'date',
+            label: 'Bakım Tarihi',
+            render: (value) => formatDate(value)
+        },
+        // In archive, next_date is just historical info
+        {
+            key: 'next_date',
+            label: 'Planlanan Sonraki',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'cost',
+            label: 'Maliyet',
+            render: (value) => formatCurrency(value)
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
+        }
+    ]
+
+    const columns = showArchived ? archivedColumns : activeColumns
+
+    // Document Helpers
+    const getDocument = (maintId) => {
+        return documents.find(d => d.related_type === 'maintenance' && d.related_id === maintId)
+    }
+
+    const renderDocumentCell = (row) => {
+        const doc = getDocument(row.id)
+        if (doc) {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <div
+                        onClick={(e) => { e.stopPropagation(); handleDocumentOpen(doc) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            padding: '4px 8px', borderRadius: '6px',
+                            background: 'var(--accent-subtle)', color: 'var(--accent-primary)',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer', border: '1px solid transparent',
+                            transition: 'all 0.2s', width: 'fit-content'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                        title={doc.file_name}
+                    >
+                        <Eye size={12} />
+                        <span>Gör</span>
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            border: '1px dashed var(--border-color)', background: 'transparent',
+                            padding: '4px 8px', borderRadius: '6px', cursor: 'pointer',
+                            color: 'var(--text-muted)', fontSize: '11px', width: 'fit-content', justifyContent: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                        title="Dosya Ekle"
+                    >
+                        <Plus size={12} />
+                        <span>Ekle</span>
+                    </button>
+                </div>
+            )
+        }
+    }
+
+    const handleDocumentOpen = async (doc) => {
+        if (!doc) return
+
+        const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
+        if (isImage) {
+            setPreviewDoc(doc)
+        } else {
+            const result = await window.electronAPI.openDocument(doc.file_path)
+            if (!result.success) {
+                alert('Dosya açılamadı: ' + result.error)
+            }
+        }
+    }
+
+    const handleOpenUpload = (id) => {
+        setActiveUploadId(id)
+        setUploadModalOpen(true)
+    }
+
+    const handleUploadConfirm = async (file) => {
+        if (!activeUploadId) return
+
+        const maintenance = maintenances.find(m => m.id === activeUploadId)
+        if (!maintenance) return
+
+        const result = await window.electronAPI.addDocument({
+            vehicleId: maintenance.vehicle_id,
+            relatedType: 'maintenance',
+            relatedId: activeUploadId,
+            filePath: file.path
+        })
+
+        if (result.success) {
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            setUploadModalOpen(false)
+            setActiveUploadId(null)
+        } else {
+            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        }
+    }
+
+    const handleDocumentDelete = async () => {
+        if (!previewDoc) return
+        setConfirmModal({
+            title: 'Belgeyi Sil',
+            message: 'Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            confirmText: 'Sil',
+            type: 'danger',
+            onConfirm: async () => {
+                const result = await window.electronAPI.deleteDocument(previewDoc.id)
+                if (result.success) {
+                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+                    if (docsRes.success) setDocuments(docsRes.data)
+                    setPreviewDoc(null)
+                    setConfirmModal(null)
+                } else {
+                    alert('Silme hatası: ' + result.error)
+                }
+            }
+        })
+    }
 
     if (!currentCompany) {
         return (
@@ -213,7 +357,7 @@ export default function Maintenance() {
         )
     }
 
-    if (loading) {
+    if (loading && maintenances.length === 0) {
         return (
             <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
                 <div className="loading-spinner"></div>
@@ -226,8 +370,8 @@ export default function Maintenance() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Bakım Takibi</h1>
-                    <p style={{ marginTop: '5px', color: '#666' }}>Periyodik bakım ve onarım takibi.</p>
+                    <h1 className="page-title">Araç Bakımları</h1>
+                    <p style={{ marginTop: '5px', color: '#666' }}>Araç bakım ve onarım takibi.</p>
                 </div>
                 <div className="page-actions">
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
@@ -237,24 +381,24 @@ export default function Maintenance() {
                 </div>
             </div>
 
-            {maintenances.length === 0 ? (
+            {maintenances.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><Wrench /></div>
                     <h2 className="empty-state-title">Bakım Kaydı Yok</h2>
-                    <p className="empty-state-desc">
-                        {vehicles.length === 0 ? 'Önce araç eklemeniz gerekiyor.' : 'Henüz bakım kaydı eklenmemiş.'}
-                    </p>
-                    {vehicles.length > 0 && (
-                        <button className="btn btn-primary" onClick={openCreateModal}>
+                    <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
+                    <div style={{ marginTop: '16px' }}>
+                        <button className="btn btn-primary" onClick={() => window.location.href = '#/vehicles'}>
                             <Plus size={18} />
-                            Bakım Ekle
+                            Araç Ekle
                         </button>
-                    )}
+                    </div>
                 </div>
             ) : (
                 <DataTable
+                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={maintenances}
+                    persistenceKey={`maintenance_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}
@@ -267,6 +411,10 @@ export default function Maintenance() {
                         }
                     ]}
                     onBulkDelete={handleBulkDeleteClick}
+                    onBulkArchive={handleBulkArchive}
+                    isArchiveView={showArchived}
+                    onToggleArchiveView={setShowArchived}
+                    initialSort={{ key: 'next_maintenance', direction: 'asc' }}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
@@ -281,73 +429,15 @@ export default function Maintenance() {
                 onClose={closeModal}
                 title={editingMaintenance ? 'Bakım Düzenle' : 'Yeni Bakım'}
                 size="lg"
-                footer={
-                    <>
-                        <button className="btn btn-secondary" onClick={closeModal}>İptal</button>
-                        <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
-                            {saving ? 'Kaydediliyor...' : 'Kaydet'}
-                        </button>
-                    </>
-                }
+                footer={null}
             >
-                <form onSubmit={handleSubmit}>
-                    <div className="form-row">
-                        <CustomSelect
-                            label="Araç"
-                            required={true}
-                            className="form-select-custom"
-                            value={formData.vehicleId}
-                            onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                            options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                            placeholder="Araç seçin"
-                        />
-
-                        <CustomSelect
-                            label="Bakım Türü"
-                            className="form-select-custom"
-                            value={formData.type}
-                            onChange={(value) => setFormData({ ...formData, type: value })}
-                            options={maintenanceTypes}
-                            placeholder="Seçiniz"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <CustomInput label="Açıklama" value={formData.description} onChange={(value) => setFormData({ ...formData, description: value })} />
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput label="Tarih" type="date" required={true} value={formData.date} onChange={(value) => setFormData({ ...formData, date: value })} />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput label="Maliyet (₺)" type="number" value={formData.cost} onChange={(value) => setFormData({ ...formData, cost: value })} placeholder="0.00" />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput label="Sonraki Bakım KM" type="number" value={formData.nextKm} onChange={(value) => setFormData({ ...formData, nextKm: value })} placeholder="0" />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput label="Sonraki Bakım Tarihi" type="date" value={formData.nextDate} onChange={(value) => setFormData({ ...formData, nextDate: value })} />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <CustomInput
-                            label="Notlar"
-                            placeholder="Ek notlar..."
-                            value={formData.notes}
-                            onChange={(value) => setFormData({ ...formData, notes: value })}
-                            multiline={true}
-                            rows={3}
-                            floatingLabel={true}
-                        />
-                    </div>
-
-                    {error && <div className="form-error">{error}</div>}
-                </form>
+                <MaintenanceForm
+                    initialData={editingMaintenance}
+                    onSubmit={handleFormSubmit}
+                    onCancel={closeModal}
+                    vehicles={vehicles}
+                    loading={saving}
+                />
             </Modal>
 
             <ConfirmModal
@@ -356,6 +446,18 @@ export default function Maintenance() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
+            />
+
+            <DocumentUploadModal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                onUpload={handleUploadConfirm}
+            />
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={handleDocumentDelete}
             />
         </div>
     )

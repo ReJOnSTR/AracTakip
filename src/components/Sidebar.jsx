@@ -16,41 +16,48 @@ import {
 } from 'lucide-react'
 import logo from '../assets/logos/logo-chatgpt.png'
 
-const menuGroups = [
-    {
-        title: 'Genel',
-        items: [
-            { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-            { path: '/reports', label: 'Raporlar', icon: FileText }
-        ]
-    },
-    {
-        title: 'Filo Yönetimi',
-        items: [
-            { path: '/companies', icon: Building2, label: 'Şirketler' },
-            { path: '/vehicles', icon: Car, label: 'Araçlar' },
-            { path: '/assignments', icon: UserCheck, label: 'Zimmet' }
-        ]
-    },
-    {
-        title: 'Operasyon',
-        items: [
-            { path: '/maintenance', icon: Wrench, label: 'Bakım' },
-            { path: '/inspections', icon: ClipboardCheck, label: 'Muayene' },
-            { path: '/periodic-inspections', icon: ClipboardList, label: 'Periyodik Kontrol' },
-            { path: '/insurance', icon: Shield, label: 'Sigorta' },
-            { path: '/services', icon: Truck, label: 'Servis' }
-        ]
-    },
-    {
-        title: 'Sistem',
-        items: [
-            { path: '/settings', icon: Settings, label: 'Ayarlar' }
-        ]
-    }
-]
+
 
 export default function Sidebar({ collapsed, onToggle }) {
+    // Static menu definition
+    const menuGroups = [
+        {
+            title: 'Genel',
+            items: [
+                { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+                { path: '/reports', label: 'Raporlar', icon: FileText }
+            ]
+        },
+        {
+            title: 'Kurumsal',
+            items: [
+                { path: '/companies', icon: Building2, label: 'Şirketler' }
+            ]
+        },
+        {
+            title: 'Araç Yönetimi',
+            items: [
+                { path: '/vehicles', icon: Car, label: 'Araçlar' }
+            ]
+        },
+        {
+            title: 'Operasyon',
+            items: [
+                { path: '/maintenance', icon: Wrench, label: 'Bakım' },
+                { path: '/inspections', icon: ClipboardCheck, label: 'Muayene' },
+                { path: '/periodic-inspections', icon: ClipboardList, label: 'Periyodik Kontrol' },
+                { path: '/insurance', icon: Shield, label: 'Sigorta' },
+                { path: '/services', icon: Truck, label: 'Servis' }
+            ]
+        },
+        {
+            title: 'Sistem',
+            items: [
+                { path: '/settings', icon: Settings, label: 'Ayarlar' }
+            ]
+        }
+    ]
+
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''} `}>
             <div className="sidebar-header">
@@ -71,8 +78,10 @@ export default function Sidebar({ collapsed, onToggle }) {
                                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                                 title={collapsed ? item.label : ''}
                             >
-                                <item.icon size={20} />
-                                <span>{item.label}</span>
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                                    <item.icon size={20} />
+                                    <span>{item.label}</span>
+                                </div>
                             </NavLink>
                         ))}
                     </div>

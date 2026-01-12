@@ -43,6 +43,10 @@ function initializeDatabase() {
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               user_id INTEGER NOT NULL,
               name TEXT NOT NULL,
+              description TEXT,
+              km INTEGER,
+              cost REAL DEFAULT 0,
+              file_path TEXT,
               tax_number TEXT,
               address TEXT,
               phone TEXT,
@@ -75,6 +79,7 @@ function initializeDatabase() {
               next_km INTEGER,
               next_date DATE,
               notes TEXT,
+              file_path TEXT,
               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
             );`,
@@ -87,6 +92,7 @@ function initializeDatabase() {
               result TEXT,
               cost REAL DEFAULT 0,
               notes TEXT,
+              file_path TEXT,
               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
             );`,
@@ -100,6 +106,7 @@ function initializeDatabase() {
               end_date DATE NOT NULL,
               premium REAL DEFAULT 0,
               notes TEXT,
+              file_path TEXT,
               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
             );`,
@@ -126,6 +133,18 @@ function initializeDatabase() {
               km INTEGER,
               cost REAL DEFAULT 0,
               notes TEXT,
+              file_path TEXT,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+            );`,
+            `CREATE TABLE IF NOT EXISTS documents (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              vehicle_id INTEGER NOT NULL,
+              related_type TEXT,
+              related_id INTEGER,
+              file_name TEXT NOT NULL,
+              file_path TEXT NOT NULL,
+              file_type TEXT,
               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
             );`
@@ -179,6 +198,14 @@ function migrateDatabase() {
         }
     }
 
+    // Add is_archived column to operation tables
+    const tables = ['maintenances', 'inspections', 'insurances', 'assignments', 'services']
+    tables.forEach(table => {
+        addColumn(table, 'is_archived', 'INTEGER DEFAULT 0')
+    })
+
+    // Other migrations...
+
     // Assignments Migrations
     addColumn('assignments', 'item_name', 'TEXT')
     // Update old records if any
@@ -193,6 +220,12 @@ function migrateDatabase() {
     addColumn('services', 'description', 'TEXT')
     addColumn('services', 'km', 'INTEGER')
     addColumn('services', 'cost', 'REAL DEFAULT 0')
+    addColumn('services', 'file_path', 'TEXT')
+
+    // Document Management Migrations
+    addColumn('maintenances', 'file_path', 'TEXT')
+    addColumn('insurances', 'file_path', 'TEXT')
+    addColumn('inspections', 'file_path', 'TEXT')
 
     // Vehicles Migrations
     addColumn('vehicles', 'km', 'INTEGER DEFAULT 0')
@@ -401,26 +434,26 @@ function getMaintenances(vehicleId) {
     }
 }
 
-function getAllMaintenances(companyId) {
+function getAllMaintenances(companyId, isArchived = 0) {
     try {
         const data = runQuery(`
       SELECT m.*, v.plate as vehicle_plate, v.brand, v.model
       FROM maintenances m 
       JOIN vehicles v ON m.vehicle_id = v.id 
-      WHERE v.company_id = ? 
+      WHERE v.company_id = ? AND (m.is_archived = ? OR m.is_archived IS NULL)
       ORDER BY m.date DESC
-    `, [companyId])
+    `, [companyId, isArchived])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
     }
 }
 
-function createMaintenance({ vehicleId, type, description, date, cost, nextKm, nextDate, notes }) {
+function createMaintenance({ vehicleId, type, description, date, cost, nextKm, nextDate, notes, filePath }) {
     try {
         const info = runExec(
-            'INSERT INTO maintenances (vehicle_id, type, description, date, cost, next_km, next_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [vehicleId, type, description, date, cost, nextKm, nextDate, notes]
+            'INSERT INTO maintenances (vehicle_id, type, description, date, cost, next_km, next_date, notes, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [vehicleId, type, description, date, cost, nextKm, nextDate, notes, filePath]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -428,11 +461,11 @@ function createMaintenance({ vehicleId, type, description, date, cost, nextKm, n
     }
 }
 
-function updateMaintenance({ id, type, description, date, cost, nextKm, nextDate, notes }) {
+function updateMaintenance({ id, type, description, date, cost, nextKm, nextDate, notes, filePath }) {
     try {
         runExec(
-            'UPDATE maintenances SET type = ?, description = ?, date = ?, cost = ?, next_km = ?, next_date = ?, notes = ? WHERE id = ?',
-            [type, description, date, cost, nextKm, nextDate, notes, id]
+            'UPDATE maintenances SET type = ?, description = ?, date = ?, cost = ?, next_km = ?, next_date = ?, notes = ?, file_path = ? WHERE id = ?',
+            [type, description, date, cost, nextKm, nextDate, notes, filePath, id]
         )
         return { success: true }
     } catch (error) {
@@ -460,15 +493,15 @@ function getInspectionsByVehicle(vehicleId) {
     }
 }
 
-function getAllInspections(companyId, type = 'traffic') {
+function getAllInspections(companyId, type = 'traffic', isArchived = 0) {
     try {
         const data = runQuery(`
             SELECT i.*, v.plate as vehicle_plate, v.brand, v.model
             FROM inspections i
             JOIN vehicles v ON i.vehicle_id = v.id
-            WHERE v.company_id = ? AND (i.type = ? OR i.type IS NULL)
+            WHERE v.company_id = ? AND (i.type = ? OR i.type IS NULL) AND COALESCE(i.is_archived, 0) = ?
             ORDER BY i.inspection_date DESC
-        `, [companyId, type])
+        `, [companyId, type, isArchived])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -477,21 +510,51 @@ function getAllInspections(companyId, type = 'traffic') {
 
 function createInspection(data) {
     try {
+        const type = data.type || 'traffic';
+
+        // 1. Check if there is an active inspection and if it's too early to renew
+        const activeInspection = runQueryOne(
+            'SELECT next_inspection FROM inspections WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0 ORDER BY inspection_date DESC LIMIT 1',
+            [data.vehicleId, type]
+        );
+
+        if (activeInspection && activeInspection.next_inspection) {
+            const today = new Date();
+            const nextDate = new Date(activeInspection.next_inspection);
+            const diffTime = nextDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 15) {
+                return {
+                    success: false,
+                    error: `Mevcut muayenenin süresi henüz dolmadı. Bitime 15 gün kala (Kalan süre: ${diffDays} gün) yenileme yapabilirsiniz.`
+                };
+            }
+        }
+
+        // 2. Archive existing active inspections
+        runExec(
+            'UPDATE inspections SET is_archived = 1 WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0',
+            [data.vehicleId, type]
+        );
+
+        // 3. Insert new record
         const info = runExec(
-            'INSERT INTO inspections (vehicle_id, type, inspection_date, next_inspection, result, cost, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [data.vehicleId, data.type || 'traffic', data.inspectionDate, data.nextInspection, data.result, data.cost, data.notes]
+            'INSERT INTO inspections (vehicle_id, type, inspection_date, next_inspection, result, cost, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)',
+            [data.vehicleId, type, data.inspectionDate, data.nextInspection, data.result, data.cost, data.notes, data.filePath]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
+        console.error('createInspection error:', error);
         return { success: false, error: error.message }
     }
 }
 
-function updateInspection({ id, inspectionDate, nextInspection, result, cost, notes }) {
+function updateInspection({ id, inspectionDate, nextInspection, result, cost, notes, filePath }) {
     try {
         runExec(
-            'UPDATE inspections SET inspection_date = ?, next_inspection = ?, result = ?, cost = ?, notes = ? WHERE id = ?',
-            [inspectionDate, nextInspection, result, cost, notes, id]
+            'UPDATE inspections SET inspection_date = ?, next_inspection = ?, result = ?, cost = ?, notes = ?, file_path = ? WHERE id = ?',
+            [inspectionDate, nextInspection, result, cost, notes, filePath, id]
         )
         return { success: true }
     } catch (error) {
@@ -525,26 +588,53 @@ function getInsurances(vehicleId) {
     }
 }
 
-function getAllInsurances(companyId) {
+function getAllInsurances(companyId, isArchived = 0) {
     try {
         const data = runQuery(`
       SELECT ins.*, v.plate as vehicle_plate, v.brand, v.model
       FROM insurances ins 
       JOIN vehicles v ON ins.vehicle_id = v.id 
-      WHERE v.company_id = ?
+      WHERE v.company_id = ? AND (ins.is_archived = ? OR ins.is_archived IS NULL)
             ORDER BY ins.end_date ASC
-            `, [companyId])
+            `, [companyId, isArchived])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
     }
 }
 
-function createInsurance({ vehicleId, company, policyNo, type, startDate, endDate, premium, notes }) {
+function createInsurance({ vehicleId, company, policyNo, type, startDate, endDate, premium, notes, filePath }) {
     try {
+        // 1. Check if there is an active insurance and if it's too early to renew
+        const activeInsurance = runQueryOne(
+            'SELECT end_date FROM insurances WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0 ORDER BY end_date DESC LIMIT 1',
+            [vehicleId, type]
+        );
+
+        if (activeInsurance && activeInsurance.end_date) {
+            const today = new Date();
+            const endDateObj = new Date(activeInsurance.end_date);
+            const diffTime = endDateObj - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 15) {
+                return {
+                    success: false,
+                    error: `Mevcut sigortanın süresi henüz dolmadı. Bitime 15 gün kala (Kalan süre: ${diffDays} gün) yenileme yapabilirsiniz.`
+                };
+            }
+        }
+
+        // 2. Archive existing active insurances
+        runExec(
+            'UPDATE insurances SET is_archived = 1 WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0',
+            [vehicleId, type]
+        )
+
+        // 3. Insert new record
         const info = runExec(
-            'INSERT INTO insurances (vehicle_id, company, policy_no, type, start_date, end_date, premium, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [vehicleId, company, policyNo, type, startDate, endDate, premium, notes]
+            'INSERT INTO insurances (vehicle_id, company, policy_no, type, start_date, end_date, premium, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)',
+            [vehicleId, company, policyNo, type, startDate, endDate, premium, notes, filePath]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -552,11 +642,11 @@ function createInsurance({ vehicleId, company, policyNo, type, startDate, endDat
     }
 }
 
-function updateInsurance({ id, company, policyNo, type, startDate, endDate, premium, notes }) {
+function updateInsurance({ id, company, policyNo, type, startDate, endDate, premium, notes, filePath }) {
     try {
         runExec(
-            'UPDATE insurances SET company = ?, policy_no = ?, type = ?, start_date = ?, end_date = ?, premium = ?, notes = ? WHERE id = ?',
-            [company, policyNo, type, startDate, endDate, premium, notes, id]
+            'UPDATE insurances SET company = ?, policy_no = ?, type = ?, start_date = ?, end_date = ?, premium = ?, notes = ?, file_path = ? WHERE id = ?',
+            [company, policyNo, type, startDate, endDate, premium, notes, filePath, id]
         )
         return { success: true }
     } catch (error) {
@@ -590,15 +680,15 @@ function getAssignments(vehicleId) {
     }
 }
 
-function getAllAssignments(companyId) {
+function getAllAssignments(companyId, isArchived = 0) {
     try {
         const data = runQuery(`
       SELECT a.*, v.plate as vehicle_plate, v.brand, v.model
       FROM assignments a 
       JOIN vehicles v ON a.vehicle_id = v.id 
-      WHERE v.company_id = ?
+      WHERE v.company_id = ? AND (a.is_archived = ? OR a.is_archived IS NULL)
             ORDER BY a.start_date DESC
-            `, [companyId])
+            `, [companyId, isArchived])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
@@ -655,25 +745,25 @@ function getServices(vehicleId) {
     }
 }
 
-function getAllServices(companyId) {
+function getAllServices(companyId, isArchived = 0) {
     try {
         const data = runQuery(`
       SELECT s.*, v.plate as vehicle_plate, v.brand, v.model
       FROM services s 
       JOIN vehicles v ON s.vehicle_id = v.id 
-      WHERE v.company_id = ?
+      WHERE v.company_id = ? AND (s.is_archived = ? OR s.is_archived IS NULL)
             ORDER BY s.date DESC
-            `, [companyId])
+            `, [companyId, isArchived])
         return { success: true, data }
     } catch (error) {
         return { success: false, error: error.message }
     }
 }
 
-function createService({ vehicleId, type, serviceName, description, date, km, cost, notes }) {
+function createService({ vehicleId, type, serviceName, description, date, km, cost, notes, filePath }) {
     try {
         const info = runExec(
-            'INSERT INTO services (vehicle_id, type, service_name, description, date, km, cost, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO services (vehicle_id, type, service_name, description, date, km, cost, notes, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 vehicleId,
                 type,
@@ -682,7 +772,8 @@ function createService({ vehicleId, type, serviceName, description, date, km, co
                 date,
                 km || null,
                 cost || 0,
-                notes || null
+                notes || null,
+                filePath
             ]
         )
         return { success: true, id: info.lastInsertRowid }
@@ -691,10 +782,10 @@ function createService({ vehicleId, type, serviceName, description, date, km, co
     }
 }
 
-function updateService({ id, type, serviceName, description, date, km, cost, notes }) {
+function updateService({ id, type, serviceName, description, date, km, cost, notes, filePath }) {
     try {
         runExec(
-            'UPDATE services SET type = ?, service_name = ?, description = ?, date = ?, km = ?, cost = ?, notes = ? WHERE id = ?',
+            'UPDATE services SET type = ?, service_name = ?, description = ?, date = ?, km = ?, cost = ?, notes = ?, file_path = ? WHERE id = ?',
             [
                 type,
                 serviceName || null,
@@ -703,6 +794,7 @@ function updateService({ id, type, serviceName, description, date, km, cost, not
                 km || null,
                 cost || 0,
                 notes || null,
+                filePath,
                 id
             ]
         )
@@ -734,13 +826,17 @@ function getDashboardStats(companyId) {
         const upcomingInspections = runQueryOne(`
       SELECT COUNT(*) as count FROM inspections i
       JOIN vehicles v ON i.vehicle_id = v.id
-      WHERE v.company_id = ? AND i.next_inspection BETWEEN ? AND ?
+      WHERE v.company_id = ? 
+      AND i.next_inspection BETWEEN ? AND ?
+      AND COALESCE(i.is_archived, 0) = 0
             `, [companyId, today, thirtyDaysLater])
 
         const expiringInsurances = runQueryOne(`
       SELECT COUNT(*) as count FROM insurances ins
       JOIN vehicles v ON ins.vehicle_id = v.id
-      WHERE v.company_id = ? AND ins.end_date BETWEEN ? AND ?
+      WHERE v.company_id = ? 
+      AND ins.end_date BETWEEN ? AND ?
+      AND COALESCE(ins.is_archived, 0) = 0
             `, [companyId, today, thirtyDaysLater])
 
         const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
@@ -822,7 +918,10 @@ function getUpcomingEvents(companyId) {
             i.next_inspection as date
             FROM inspections i
             JOIN vehicles v ON i.vehicle_id = v.id
-            WHERE v.company_id = ? AND i.next_inspection IS NOT NULL AND i.next_inspection <= ?
+            WHERE v.company_id = ? 
+            AND i.next_inspection IS NOT NULL 
+            AND i.next_inspection <= ?
+            AND COALESCE(i.is_archived, 0) = 0
             ORDER BY i.next_inspection ASC
             LIMIT 20
             `, [companyId, maxDate])
@@ -837,7 +936,10 @@ function getUpcomingEvents(companyId) {
             ins.end_date as date
             FROM insurances ins
             JOIN vehicles v ON ins.vehicle_id = v.id
-            WHERE v.company_id = ? AND ins.end_date IS NOT NULL AND ins.end_date <= ?
+            WHERE v.company_id = ? 
+            AND ins.end_date IS NOT NULL 
+            AND ins.end_date <= ?
+            AND COALESCE(ins.is_archived, 0) = 0
             ORDER BY ins.end_date ASC
             LIMIT 20
             `, [companyId, maxDate])
@@ -944,7 +1046,7 @@ function getCompanyCompleteData(companyId) {
             return {
                 ...v,
                 maintenances: getMaintenances(v.id).data || [],
-                inspections: getInspections(v.id).data || [],
+                inspections: getInspectionsByVehicle(v.id).data || [],
                 insurances: getInsurances(v.id).data || [],
                 assignments: getAssignments(v.id).data || [],
                 services: getServices(v.id).data || []
@@ -1110,5 +1212,82 @@ module.exports = {
     getUpcomingEvents,
     getRecentActivity,
     getCompanyCompleteData,
-    importCompanyData
+    importCompanyData,
+
+    // Archive Management
+    archiveItem: (table, id, isArchived = 1) => {
+        try {
+            runExec(`UPDATE ${table} SET is_archived = ? WHERE id = ?`, [isArchived, id])
+            return { success: true }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    },
+
+    // Document Management
+    addDocument: (data) => {
+        try {
+            const result = runExec(
+                'INSERT INTO documents (vehicle_id, related_type, related_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?, ?, ?)',
+                [data.vehicleId, data.relatedType, data.relatedId, data.fileName, data.filePath, data.fileType]
+            )
+            return { success: true, id: result.lastInsertRowid }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    },
+
+    getDocument: (id) => {
+        try {
+            const doc = runQuery('SELECT * FROM documents WHERE id = ?', [id])
+            return { success: true, data: doc[0] }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    },
+
+    getDocumentsByVehicle: (vehicleId) => {
+        try {
+            const docs = runQuery(
+                'SELECT * FROM documents WHERE vehicle_id = ? ORDER BY created_at DESC',
+                [vehicleId]
+            )
+            return { success: true, data: docs }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    },
+
+    getDocumentsByCompany: (companyId) => {
+        try {
+            const docs = runQuery(
+                'SELECT d.* FROM documents d JOIN vehicles v ON d.vehicle_id = v.id WHERE v.company_id = ? ORDER BY d.created_at DESC',
+                [companyId]
+            )
+            return { success: true, data: docs }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    },
+
+    deleteDocument: (id) => {
+        try {
+            runExec('DELETE FROM documents WHERE id = ?', [id])
+            return { success: true }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    },
+
+    getDocumentsByRelatedId: (type, id) => {
+        try {
+            const docs = runQuery(
+                'SELECT * FROM documents WHERE related_type = ? AND related_id = ? ORDER BY created_at DESC',
+                [type, id]
+            )
+            return { success: true, data: docs }
+        } catch (error) {
+            return { success: false, error: error.message }
+        }
+    }
 }

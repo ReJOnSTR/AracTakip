@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu, nativeImage, globalShortcut } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, Menu, nativeImage, globalShortcut, shell } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const path = require('path')
 const fs = require('fs')
@@ -40,7 +40,8 @@ function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            plugins: true // Enable PDF viewer plugin
         },
 
         titleBarStyle: 'hidden',
@@ -275,8 +276,8 @@ ipcMain.handle('maintenances:getByVehicle', async (event, vehicleId) => {
     return db.getMaintenances(vehicleId)
 })
 
-ipcMain.handle('maintenances:getAll', async (event, companyId) => {
-    return db.getAllMaintenances(companyId)
+ipcMain.handle('maintenances:getAll', async (event, companyId, isArchived) => {
+    return db.getAllMaintenances(companyId, isArchived)
 })
 
 ipcMain.handle('maintenances:create', async (event, data) => {
@@ -296,8 +297,8 @@ ipcMain.handle('inspections:getByVehicle', async (event, vehicleId) => {
     return db.getInspections(vehicleId)
 })
 
-ipcMain.handle('inspections:getAll', async (event, companyId, type) => {
-    return db.getAllInspections(companyId, type)
+ipcMain.handle('inspections:getAll', async (event, companyId, type, isArchived) => {
+    return db.getAllInspections(companyId, type, isArchived)
 })
 
 ipcMain.handle('inspections:create', async (event, data) => {
@@ -317,8 +318,8 @@ ipcMain.handle('insurances:getByVehicle', async (event, vehicleId) => {
     return db.getInsurances(vehicleId)
 })
 
-ipcMain.handle('insurances:getAll', async (event, companyId) => {
-    return db.getAllInsurances(companyId)
+ipcMain.handle('insurances:getAll', async (event, companyId, isArchived) => {
+    return db.getAllInsurances(companyId, isArchived)
 })
 
 ipcMain.handle('insurances:create', async (event, data) => {
@@ -338,8 +339,8 @@ ipcMain.handle('assignments:getByVehicle', async (event, vehicleId) => {
     return db.getAssignments(vehicleId)
 })
 
-ipcMain.handle('assignments:getAll', async (event, companyId) => {
-    return db.getAllAssignments(companyId)
+ipcMain.handle('assignments:getAll', async (event, companyId, isArchived) => {
+    return db.getAllAssignments(companyId, isArchived)
 })
 
 ipcMain.handle('assignments:create', async (event, data) => {
@@ -359,8 +360,8 @@ ipcMain.handle('services:getByVehicle', async (event, vehicleId) => {
     return db.getServices(vehicleId)
 })
 
-ipcMain.handle('services:getAll', async (event, companyId) => {
-    return db.getAllServices(companyId)
+ipcMain.handle('services:getAll', async (event, companyId, isArchived) => {
+    return db.getAllServices(companyId, isArchived)
 })
 
 ipcMain.handle('services:create', async (event, data) => {
@@ -373,6 +374,11 @@ ipcMain.handle('services:update', async (event, data) => {
 
 ipcMain.handle('services:delete', async (event, id) => {
     return db.deleteService(id)
+})
+
+// Archive handler
+ipcMain.handle('archive:item', async (event, table, id, isArchived) => {
+    return db.archiveItem(table, id, isArchived)
 })
 
 // Dashboard stats
@@ -639,5 +645,157 @@ ipcMain.handle('app:getVersion', () => {
 
 ipcMain.on('app:openExternal', (event, url) => {
     require('electron').shell.openExternal(url)
+})
+
+// File handlers
+ipcMain.handle('files:select', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [
+            { name: 'Belgeler', extensions: ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx'] }
+        ]
+    })
+    return result
+})
+
+ipcMain.handle('files:save', async (event, sourcePath) => {
+    if (!sourcePath) return null
+    try {
+        const userDataPath = app.getPath('userData')
+        const filesDir = path.join(userDataPath, 'files')
+        if (!fs.existsSync(filesDir)) {
+            fs.mkdirSync(filesDir, { recursive: true })
+        }
+
+        const ext = path.extname(sourcePath)
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
+        const destPath = path.join(filesDir, fileName)
+
+        fs.copyFileSync(sourcePath, destPath)
+        return fileName
+    } catch (error) {
+        console.error('File save error:', error)
+        return null
+    }
+})
+
+ipcMain.handle('files:open', async (event, fileName) => {
+    if (!fileName) return
+    const userDataPath = app.getPath('userData')
+    const filePath = path.join(userDataPath, 'files', fileName)
+    if (fs.existsSync(filePath)) {
+        await shell.openPath(filePath)
+    }
+})
+
+// Document Management Handlers
+ipcMain.handle('documents:add', async (event, data) => {
+    try {
+        const userDataPath = app.getPath('userData')
+        const filesDir = path.join(userDataPath, 'files')
+
+        // Ensure directory exists
+        if (!fs.existsSync(filesDir)) {
+            fs.mkdirSync(filesDir, { recursive: true })
+        }
+
+        const sourcePath = data.filePath
+        const ext = path.extname(sourcePath)
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
+        const destPath = path.join(filesDir, fileName)
+
+        // Copy file
+        fs.copyFileSync(sourcePath, destPath)
+
+        // Add to DB
+        const result = db.addDocument({
+            vehicleId: data.vehicleId,
+            relatedType: data.relatedType,
+            relatedId: data.relatedId,
+            fileName: path.basename(sourcePath),
+            filePath: fileName, // Store relative path (filename only)
+            fileType: ext
+        })
+
+        return result
+    } catch (error) {
+        console.error('Document add error:', error)
+        return { success: false, error: error.message }
+    }
+})
+
+ipcMain.handle('documents:getByVehicle', (event, vehicleId) => {
+    return db.getDocumentsByVehicle(vehicleId)
+})
+
+ipcMain.handle('documents:getByCompany', (event, companyId) => {
+    return db.getDocumentsByCompany(companyId)
+})
+
+ipcMain.handle('documents:delete', (event, id) => {
+    try {
+        // 1. Get info to find file
+        const docResult = db.getDocument(id)
+        if (docResult.success && docResult.data) {
+            const fileName = docResult.data.file_path
+            const userDataPath = app.getPath('userData')
+            const filePath = path.join(userDataPath, 'files', fileName)
+
+            // 2. Delete physical file
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath)
+            }
+        }
+
+        // 3. Delete from DB
+        return db.deleteDocument(id)
+    } catch (error) {
+        console.error('Document delete error:', error)
+        return { success: false, error: error.message }
+    }
+})
+
+ipcMain.handle('documents:open', async (event, fileName) => {
+    if (!fileName) return 'No filename provided'
+    const userDataPath = app.getPath('userData')
+    const filePath = path.join(userDataPath, 'files', fileName)
+    if (fs.existsSync(filePath)) {
+        const error = await shell.openPath(filePath)
+        return error // Returns error string or empty string if success
+    }
+    return 'File not found at: ' + filePath
+})
+
+ipcMain.handle('documents:readData', async (event, fileName) => {
+    try {
+        if (!fileName) return { success: false, error: 'No filename' }
+        const userDataPath = app.getPath('userData')
+        const filePath = path.join(userDataPath, 'files', fileName)
+
+        if (!fs.existsSync(filePath)) {
+            return { success: false, error: 'File not found' }
+        }
+
+        const ext = path.extname(fileName).toLowerCase()
+        const mimeTypes = {
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.pdf': 'application/pdf'
+        }
+
+        const mimeType = mimeTypes[ext]
+        if (!mimeType) {
+            return { success: false, error: 'Preview not supported for this file type' }
+        }
+
+        const fileData = fs.readFileSync(filePath, { encoding: 'base64' })
+        return { success: true, data: `data:${mimeType};base64,${fileData}`, type: mimeType }
+    } catch (error) {
+        console.error('Read data error:', error)
+        return { success: false, error: error.message }
+    }
 })
 

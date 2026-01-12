@@ -171,6 +171,10 @@ body {
   flex-direction: column;
   margin-left: var(--sidebar-width);
   transition: margin-left var(--transition-normal);
+  min-width: 0;
+  /* CRITICAL: Prevent flex item from expanding beyond viewport */
+  width: 100%;
+  /* Ensure it tries to fill */
 }
 
 .sidebar-collapsed .main-content {
@@ -181,7 +185,12 @@ body {
   flex: 1;
   padding: 28px;
   overflow-y: auto;
+  overflow-x: hidden;
+  /* Prevent page-level horizontal scroll */
+  scrollbar-gutter: stable;
   animation: pageIn 0.35s var(--ease-out);
+  width: 100%;
+  /* Constraint */
 }
 
 @keyframes pageIn {
@@ -1079,17 +1088,26 @@ body {
    TABLES - Clean Minimal
    ============================================ */
 
+
 .table-wrapper {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   position: relative;
-  /* Overflow removed to allow dropdowns to show */
+  width: 100%;
+  /* Explicit width */
+  max-width: 100%;
+  /* Prevent growth beyond parent */
+  /* remove flex to avoid complex width behavior, rely on block flow */
 }
 
 .table-container {
   overflow-x: auto;
   width: 100%;
+  max-width: 100%;
+  /* Crucial for scrollbar */
+  flex: 1;
+  /* Take available space */
 }
 
 /* Toolbar */
@@ -1100,6 +1118,10 @@ body {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
   gap: 12px;
+  flex-shrink: 0;
+  /* Don't shrink */
+  flex-wrap: wrap;
+  /* Allow wrapping on small screens */
 }
 
 .toolbar-left {
@@ -1531,13 +1553,24 @@ body {
 }
 
 /* Table */
+/* Table */
 .table-container {
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  /* STRICT CONSTRAINT */
+  scrollbar-width: thin;
 }
 
 .data-table {
-  width: 100%;
-  border-collapse: collapse;
+  width: auto;
+  /* Allow table to grow based on column widths */
+  min-width: 100%;
+  /* But ensure it fills the container at minimum */
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  /* Respect column widths */
 }
 
 .data-table th {
@@ -1550,6 +1583,18 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
+  position: relative;
+  /* For resize handle positioning */
+  overflow: hidden;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border-color);
+  /* Separator Line */
+}
+
+/* Remove border from last header */
+.data-table th:last-child {
+  border-right: none;
 }
 
 .data-table th.sortable {
@@ -1563,17 +1608,33 @@ body {
 .th-content {
   display: flex;
   align-items: center;
+  width: 100%;
+  /* Ensure it fills the th */
   gap: 4px;
 }
 
 .sort-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  min-width: 20px;
+  /* Force rigid width */
+  height: 20px;
+  background: var(--accent-subtle);
   color: var(--accent-primary);
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 .th-checkbox,
 .td-checkbox {
   width: 40px;
+  min-width: 40px;
+  max-width: 40px;
   text-align: center;
+  vertical-align: middle;
+  padding: 0 !important;
 }
 
 .th-num,
@@ -1596,6 +1657,66 @@ body {
   font-size: 13px;
   border-top: 1px solid var(--border-color);
   text-transform: uppercase;
+
+  /* Truncation Logic */
+  white-space: nowrap;
+  overflow: hidden;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border-color);
+  /* Separator Line */
+}
+
+/* Remove border from last cell */
+.data-table td:last-child {
+  border-right: none;
+}
+
+/* Resize Handle */
+/* Resize Handle */
+.resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  /* Wider hit area for easier grabbing */
+  cursor: col-resize;
+  background: transparent;
+  z-index: 10;
+  transform: translateX(50%);
+  /* Center on the border */
+}
+
+/* The Visible Line */
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  /* Full height */
+  bottom: 0;
+  /* Full height */
+  width: 1px;
+  background: rgba(128, 128, 128, 0.5);
+  /* Much more visible gray */
+  transition: all 0.2s;
+  pointer-events: none;
+  /* Let clicks pass through to the handle div */
+}
+
+.resize-handle:hover::after,
+.resize-handle.active::after {
+  background: var(--accent-primary);
+  width: 2px;
+}
+
+.resize-handle:hover::after,
+.resize-handle.active::after {
+  background: var(--accent-primary);
+  top: 0;
+  bottom: 0;
+  width: 2px;
 }
 
 .data-table tbody tr {
@@ -2663,7 +2784,7 @@ body {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -2674,16 +2795,17 @@ body {
 .date-picker-trigger:hover {
   background: var(--bg-tertiary);
   border-color: var(--border-light);
+  color: var(--text-primary);
 }
 
 .date-picker-trigger.active {
   background: var(--accent-subtle);
   border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .date-picker-trigger svg {
-  color: var(--text-muted);
+  color: currentColor;
 }
 
 .date-picker-trigger.active svg {
@@ -2711,7 +2833,7 @@ body {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
@@ -2721,15 +2843,7 @@ body {
   animation: dropdownIn 0.15s ease;
 }
 
-.date-picker-popup::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-}
+
 
 .date-presets {
   display: grid;
@@ -2924,4 +3038,19 @@ body {
   .page-break {
     page-break-after: always;
   }
+}
+
+/* Utility: Spin Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
 }

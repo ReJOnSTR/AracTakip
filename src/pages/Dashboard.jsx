@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import { formatDate, getDaysUntil, getDaysUntilText, getStatusColor, formatCurrency } from '../utils/helpers'
 import {
@@ -17,9 +17,120 @@ import {
     Gauge
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
+import Modal from '../components/Modal'
+import { Settings, Save, GripVertical, ChevronUp, ChevronDown } from 'lucide-react'
+
+// Helper Component for Scrollable Lists with Buttons
+const ScrollableList = ({ children, height = '210px' }) => {
+    const scrollRef = useRef(null)
+    const [canScrollUp, setCanScrollUp] = useState(false)
+    const [canScrollDown, setCanScrollDown] = useState(false)
+
+    const checkScroll = () => {
+        if (scrollRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
+            setCanScrollUp(scrollTop > 0)
+            setCanScrollDown(scrollTop + clientHeight < scrollHeight - 1) // -1/tolerance for float issues
+        }
+    }
+
+    useEffect(() => {
+        checkScroll()
+        // Re-check on children change or resize
+        window.addEventListener('resize', checkScroll)
+        return () => window.removeEventListener('resize', checkScroll)
+    }, [children])
+
+    const scroll = (direction) => {
+        if (scrollRef.current) {
+            const scrollAmount = 70
+            scrollRef.current.scrollBy({
+                top: direction === 'up' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            })
+        }
+    }
+
+    return (
+        <div style={{ position: 'relative', width: '100%', height: height }}>
+            {/* Up Button */}
+            {canScrollUp && (
+                <button
+                    onClick={() => scroll('up')}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(to bottom, var(--bg-tertiary) 40%, transparent)',
+                        border: 'none',
+                        borderTopLeftRadius: '6px',
+                        borderTopRightRadius: '6px',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        zIndex: 20,
+                    }}
+                >
+                    <ChevronUp size={16} />
+                </button>
+            )}
+
+            {/* List Container */}
+            <div
+                ref={scrollRef}
+                onScroll={checkScroll}
+                className="hide-scrollbar"
+                style={{
+                    display: 'flex', flexDirection: 'column', gap: '8px',
+                    height: '100%', // Fill the relative container
+                    overflowY: 'auto',
+                    width: '100%',
+                    padding: '10px 2px',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                }}
+            >
+                <style>{`
+                    .hide-scrollbar::-webkit-scrollbar { display: none; }
+                `}</style>
+                {children}
+            </div>
+
+            {/* Down Button */}
+            {canScrollDown && (
+                <button
+                    onClick={() => scroll('down')}
+                    style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(to top, var(--bg-tertiary) 40%, transparent)',
+                        border: 'none',
+                        borderBottomLeftRadius: '6px',
+                        borderBottomRightRadius: '6px',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        zIndex: 20,
+                    }}
+                >
+                    <ChevronDown size={16} />
+                </button>
+            )}
+        </div>
+    )
+}
 
 export default function Dashboard() {
-    const { currentCompany, loading: companyLoading } = useCompany()
+    const { currentCompany, loading: companyLoading, upcomingEvents } = useCompany()
     const navigate = useNavigate()
 
     // PC Listeners
@@ -49,32 +160,135 @@ export default function Dashboard() {
     }, [navigate])
 
     const [stats, setStats] = useState(null)
-    const [upcoming, setUpcoming] = useState(null)
     const [recent, setRecent] = useState([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         if (currentCompany) {
             loadDashboardData()
+            loadActionPreferences()
         } else {
             setStats(null)
-            setUpcoming(null)
             setRecent([])
             setLoading(false)
         }
     }, [currentCompany])
 
+    // --- Quick Actions Logic ---
+    const allActions = [
+        { id: 'add-vehicle', label: 'Araç Ekle', path: '/vehicles', icon: 'Car', default: true },
+        { id: 'add-maintenance', label: 'Bakım Ekle', path: '/maintenance', icon: 'Wrench', default: true },
+        { id: 'add-service', label: 'Servis Ekle', path: '/services', icon: 'Hammer', default: true },
+        { id: 'get-report', label: 'Rapor Al', path: '/reports', icon: 'FileText', default: true },
+        { id: 'add-inspection', label: 'Muayene Ekle', path: '/inspections', icon: 'Clipboard', default: false },
+        { id: 'add-insurance', label: 'Sigorta Ekle', path: '/insurance', icon: 'Shield', default: false },
+        { id: 'periodic', label: 'Periyodik Kontrol', path: '/periodic-inspections', icon: 'Clock', default: false },
+    ]
+
+    const actionIconMap = {
+        'Car': <PlusCircle size={18} />,
+        'Wrench': <PlusCircle size={18} />,
+        'Hammer': <PlusCircle size={18} />,
+        'FileText': <ClipboardCheck size={18} />,
+        'Clipboard': <PlusCircle size={18} />,
+        'Shield': <Shield size={18} />,
+        'Clock': <Wrench size={18} />
+    }
+
+    const [visibleActions, setVisibleActions] = useState(allActions.filter(a => a.default))
+    const [showSettings, setShowSettings] = useState(false)
+    const [tempActions, setTempActions] = useState([])
+    const [draggedItemIndex, setDraggedItemIndex] = useState(null)
+
+    const loadActionPreferences = () => {
+        const saved = localStorage.getItem(`dashboard_actions_${currentCompany?.id}`)
+        if (saved) {
+            try {
+                const parsedIds = JSON.parse(saved)
+                // Filter allActions to find only valid IDs, then sort them based on the saved order
+                const restored = parsedIds
+                    .map(id => allActions.find(a => a.id === id))
+                    .filter(Boolean)
+
+                if (restored.length > 0) {
+                    setVisibleActions(restored)
+                } else {
+                    setVisibleActions(allActions.filter(a => a.default))
+                }
+            } catch (e) {
+                console.error("Failed to parse saved actions", e)
+                setVisibleActions(allActions.filter(a => a.default))
+            }
+        }
+    }
+
+    const handleOpenSettings = () => {
+        // Initialize temp state with currently visible items first (to keep their order), 
+        // then append the remaining items (inactive ones) at the end.
+        const visibleIds = new Set(visibleActions.map(a => a.id))
+
+        const orderedVisible = visibleActions.map(a => ({ ...a, active: true }))
+        const others = allActions.filter(a => !visibleIds.has(a.id)).map(a => ({ ...a, active: false }))
+
+        setTempActions([...orderedVisible, ...others])
+    }
+
+    // ... useEffect hook ...
+
+    const toggleAction = (id) => {
+        setTempActions(prev => prev.map(a =>
+            a.id === id ? { ...a, active: !a.active } : a
+        ))
+    }
+
+    const onDragStart = (e, index) => {
+        setDraggedItemIndex(index)
+        e.dataTransfer.effectAllowed = "move"
+        // Transparent drag image or minimal look could be set here
+    }
+
+    const onDragOver = (e, index) => {
+        e.preventDefault()
+        if (draggedItemIndex === null || draggedItemIndex === index) return
+
+        const newItems = [...tempActions]
+        const draggedItem = newItems[draggedItemIndex]
+        newItems.splice(draggedItemIndex, 1)
+        newItems.splice(index, 0, draggedItem)
+
+        setTempActions(newItems)
+        setDraggedItemIndex(index)
+    }
+
+    const onDragEnd = () => {
+        setDraggedItemIndex(null)
+    }
+
+    const saveSettings = () => {
+        const selected = tempActions.filter(a => a.active)
+        setVisibleActions(selected)
+        localStorage.setItem(`dashboard_actions_${currentCompany?.id}`, JSON.stringify(selected.map(a => a.id)))
+        setShowSettings(false)
+    }
+
+    // Call this when showSettings becomes true
+    useEffect(() => {
+        if (showSettings) {
+            handleOpenSettings()
+        }
+    }, [showSettings])
+
+
+
     const loadDashboardData = async () => {
         setLoading(true)
         try {
-            const [statsResult, upcomingResult, recentResult] = await Promise.all([
+            const [statsResult, recentResult] = await Promise.all([
                 window.electronAPI.getDashboardStats(currentCompany.id),
-                window.electronAPI.getUpcomingEvents(currentCompany.id),
                 window.electronAPI.getRecentActivity(currentCompany.id)
             ])
 
             if (statsResult.success) setStats(statsResult.data)
-            if (upcomingResult.success) setUpcoming(upcomingResult.data)
             if (recentResult.success) setRecent(recentResult.data)
         } catch (error) {
             console.error('Dashboard data error:', error)
@@ -106,7 +320,21 @@ export default function Dashboard() {
     }
 
     // Data is already processed and sorted by backend
-    const allUpcoming = upcoming || []
+    const allUpcoming = upcomingEvents || []
+
+    // Helper to get count by keywords
+    const getCount = (typeKeywords) => {
+        return allUpcoming.filter(e =>
+            typeKeywords.some(keyword => e.type?.toLowerCase().includes(keyword.toLowerCase()))
+        ).length
+    }
+
+    const counts = {
+        maintenance: getCount(['Bakım', 'Maintenance']),
+        inspection: getCount(['Muayene', 'Inspection', 'Tüvtürk']),
+        periodic: getCount(['Periyodik', 'Periodic']),
+        insurance: getCount(['Sigorta', 'Insurance', 'Kasko', 'Trafik'])
+    }
 
     // Calculate percentages for cost distribution
     const totalCost = stats?.monthlyCost || 0
@@ -128,22 +356,38 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '25px' }}>
-                <Link to="/vehicles" className="btn btn-secondary" style={{ justifyContent: 'center', height: '42px', gap: '8px' }}>
-                    <PlusCircle size={18} className="text-primary" /> Araç Ekle
-                </Link>
-                <Link to="/maintenance" className="btn btn-secondary" style={{ justifyContent: 'center', height: '42px', gap: '8px' }}>
-                    <PlusCircle size={18} className="text-warning" /> Bakım Ekle
-                </Link>
-                <Link to="/services" className="btn btn-secondary" style={{ justifyContent: 'center', height: '42px', gap: '8px' }}>
-                    <PlusCircle size={18} className="text-success" /> Tamir Ekle
-                </Link>
-                <Link to="/reports" className="btn btn-secondary" style={{ justifyContent: 'center', height: '42px', gap: '8px' }}>
-                    <ClipboardCheck size={18} className="text-info" /> Rapor Al
-                </Link>
+            {/* Quick Actions Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <h2 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Hızlı İşlemler</h2>
+                <button
+                    onClick={() => setShowSettings(true)}
+                    className="btn btn-secondary"
+                    style={{ height: '28px', padding: '0 10px', fontSize: '11px' }}
+                >
+                    <Settings size={14} /> Özelleştir
+                </button>
             </div>
 
+            {/* Quick Actions Grid */}
+            <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleActions.length, 4)}, 1fr)`, gap: '20px', marginBottom: '25px' }}>
+                {visibleActions.map(action => (
+                    <Link
+                        key={action.id}
+                        to={action.path}
+                        className="btn btn-secondary"
+                        style={{ justifyContent: 'center', height: '42px', gap: '8px' }}
+                    >
+                        {actionIconMap[action.icon]} {action.label}
+                    </Link>
+                ))}
+                {visibleActions.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        Görüntülenecek kısayol seçilmedi. Özelleştir butonundan ekleyebilirsiniz.
+                    </div>
+                )}
+            </div>
+
+            {/* Main Stats Grid */}
             {/* Main Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '25px' }}>
                 {/* Total Vehicles */}
@@ -168,7 +412,6 @@ export default function Dashboard() {
                     </div>
                     <div style={{ width: '100%' }}>
                         <div className="stat-value" style={{ fontSize: '22px' }}>{formatCurrency(stats?.monthlyCost || 0)}</div>
-
                         {/* Cost Distribution Bar */}
                         <div style={{ display: 'flex', height: '4px', borderRadius: '2px', overflow: 'hidden', marginTop: '10px', background: 'var(--bg-tertiary)' }}>
                             <div style={{ width: `${costPcts.service}%`, background: '#3b82f6' }} title="Servis"></div>
@@ -209,93 +452,110 @@ export default function Dashboard() {
                 {/* Left Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
 
-                    {/* Recent Activities */}
-                    <div className="card">
-                        <div className="card-header">
-                            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Activity size={18} className="text-primary" />
-                                Son Aktiviteler
-                            </div>
-                        </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                            {recent.length === 0 ? (
-                                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '30px', fontSize: '13px' }}>
-                                    Henüz aktivite yok
-                                </div>
-                            ) : (
-                                recent.map((item, i) => (
-                                    <div key={i} style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                        padding: '12px 0',
-                                        borderBottom: i < recent.length - 1 ? '1px solid var(--border-color)' : 'none'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{
-                                                width: '32px', height: '32px', borderRadius: '8px',
-                                                background: item.type === 'service' ? 'rgba(59, 130, 246, 0.1)' : item.type === 'maintenance' ? 'rgba(249, 115, 22, 0.1)' : item.type === 'inspection' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(168, 85, 247, 0.1)',
-                                                color: item.type === 'service' ? '#3b82f6' : item.type === 'maintenance' ? '#f97316' : item.type === 'inspection' ? '#22c55e' : '#a855f7',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                                            }}>
-                                                {item.type === 'service' && <Wrench size={16} />}
-                                                {item.type === 'maintenance' && <TrendingUp size={16} />}
-                                                {item.type === 'inspection' && <ClipboardCheck size={16} />}
-                                                {item.type === 'insurance' && <Shield size={16} />}
-                                            </div>
-                                            <div>
-                                                <div style={{ fontWeight: '500', fontSize: '13px', color: 'var(--text-primary)' }}>{item.plate}</div>
-                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{item.description}</div>
-                                            </div>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{item.cost ? formatCurrency(item.cost) : '-'}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{formatDate(item.date)}</div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
 
                     {/* Upcoming Alerts */}
                     <div className="card">
-                        <div className="card-header">
+                        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 Yaklaşan & Gecikmiş İşlemler
                             </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                    <Calendar size={14} />
+                                    Yaklaşan: {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                    <AlertTriangle size={14} />
+                                    Gecikmiş: {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length}
+                                </span>
+                            </div>
                         </div>
 
-                        {allUpcoming.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                                Yaklaşan işlem yok
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '20px' }}>
+                            {/* Overdue Column */}
+                            <div>
+                                <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--danger)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <AlertTriangle size={14} />
+                                    Geciken İşlemler
+                                </h3>
+                                {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length === 0 ? (
+                                    <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
+                                        Geciken işlem yok
+                                    </div>
+                                ) : (
+                                    <ScrollableList height="200px">
+                                        {allUpcoming.filter(e => getDaysUntil(e.date) < 0).map((event, index) => {
+                                            const days = getDaysUntil(event.date)
+                                            return (
+                                                <div key={`${event.eventType}-${event.id}-${index}`} style={{
+                                                    padding: '10px 12px',
+                                                    background: 'rgba(239, 68, 68, 0.05)',
+                                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                    borderRadius: '6px',
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
+                                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--danger)' }}>
+                                                            {Math.abs(days)} gün geçti
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                                                            {event.type}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </ScrollableList>
+                                )}
                             </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {allUpcoming.map((event, index) => {
-                                    const days = getDaysUntil(event.date)
-                                    const statusColor = getStatusColor(days) // danger, warning, success
-                                    const colorMap = { danger: 'var(--danger)', warning: 'var(--warning)', success: 'var(--success)' }
 
-                                    return (
-                                        <div key={`${event.eventType}-${event.id}-${index}`} style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                            padding: '10px 12px',
-                                            background: 'var(--bg-tertiary)',
-                                            borderRadius: '6px',
-                                            border: '1px solid var(--border-color)'
-                                        }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' }}>{event.plate} - {event.brand} {event.model}</span>
-                                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>{event.type}</span>
-                                            </div>
-                                            <div style={{ fontSize: '12px', fontWeight: '500', color: colorMap[statusColor] }}>
-                                                {getDaysUntilText(event.date)}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                            {/* Divider */}
+                            <div style={{ width: '1px', background: 'var(--border-color)' }}></div>
+
+                            {/* Upcoming Column */}
+                            <div>
+                                <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--warning)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Calendar size={14} />
+                                    Yaklaşan İşlemler
+                                </h3>
+                                {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length === 0 ? (
+                                    <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
+                                        Yaklaşan işlem yok
+                                    </div>
+                                ) : (
+                                    <ScrollableList height="200px">
+                                        {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).map((event, index) => {
+                                            const days = getDaysUntil(event.date)
+                                            return (
+                                                <div key={`${event.eventType}-${event.id}-${index}`} style={{
+                                                    padding: '10px 12px',
+                                                    background: 'var(--bg-tertiary)',
+                                                    border: '1px solid var(--border-color)',
+                                                    borderRadius: '6px',
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
+                                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--warning)' }}>
+                                                            {days === 0 ? 'Bugün' : `${days} gün kaldı`}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                                                            {event.type}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </ScrollableList>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                 </div>
@@ -333,45 +593,106 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    {/* Mileage Leaders */}
-                    <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                        <div className="card-header" style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', marginBottom: '0' }}>
-                            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Gauge size={18} className="text-secondary" />
-                                En Yüksek KM
-                            </div>
-                        </div>
-                        <div>
-                            {stats?.topVehicles?.length > 0 ? (
-                                stats.topVehicles.map((vehicle, i) => (
-                                    <div key={i} style={{
-                                        padding: '15px 20px',
-                                        borderBottom: i < stats.topVehicles.length - 1 ? '1px solid var(--border-color)' : 'none',
-                                        display: 'flex', alignItems: 'center', gap: '12px'
-                                    }}>
-                                        <div style={{
-                                            width: '24px', height: '24px', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', borderRadius: '50%',
-                                            fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)'
-                                        }}>
-                                            {i + 1}
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{vehicle.plate}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{vehicle.brand} {vehicle.model}</div>
-                                        </div>
-                                        <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                                            {(vehicle.km || 0).toLocaleString()} km
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>Veri yok</div>
-                            )}
-                        </div>
-                    </div>
+
 
                 </div>
             </div>
+
+            {/* Customization Modal */}
+            <Modal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
+                title="Hızlı İşlemler Ayarları"
+                size="default"
+                footer={
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', width: '100%' }}>
+                        <button className="btn btn-secondary" onClick={() => setShowSettings(false)}>İptal</button>
+                        <button className="btn btn-primary" onClick={saveSettings}>
+                            <Save size={16} /> Kaydet
+                        </button>
+                    </div>
+                }
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto', padding: '5px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                        Dashboard'da görmek istediğiniz kısayolları seçin. Sıralamak için sürükleyip bırakabilirsiniz.
+                    </p>
+                    {tempActions.map((action, index) => (
+                        <div
+                            key={action.id}
+                            draggable
+                            onDragStart={(e) => onDragStart(e, index)}
+                            onDragOver={(e) => onDragOver(e, index)}
+                            onDragEnd={onDragEnd}
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '10px 0',
+                                borderBottom: '1px solid var(--border-color)',
+                                cursor: 'grab',
+                                opacity: draggedItemIndex === index ? 0.3 : 1,
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    color: 'var(--text-muted)',
+                                    cursor: 'grab',
+                                    width: '24px',
+                                    display: 'flex',
+                                    justifyContent: 'center'
+                                }}>
+                                    <GripVertical size={16} />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {/* Single uniform icon for all list items */}
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        background: 'var(--bg-tertiary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'var(--text-secondary)'
+                                    }}>
+                                        <Settings size={16} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{action.label}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Custom Switch Toggle - Minimal */}
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation() // Prevent drag trigger
+                                    toggleAction(action.id)
+                                }}
+                                style={{
+                                    width: '36px',
+                                    height: '20px',
+                                    background: action.active ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                                    borderRadius: '99px',
+                                    padding: '2px',
+                                    transition: 'background 0.2s ease',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}>
+                                <div style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    background: '#fff',
+                                    borderRadius: '50%',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                    transform: action.active ? 'translateX(16px)' : 'translateX(0)',
+                                    transition: 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)'
+                                }}></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </Modal>
         </div>
     )
 }

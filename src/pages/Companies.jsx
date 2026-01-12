@@ -126,6 +126,35 @@ export default function Companies() {
         }
     ]
 
+    // We don't have separate loading state for initial load vs refresh in context probably, 
+    // but companies are usually cached in context. 
+    // Wait, useCompany exposes refreshCompanies.
+    // If we assume companies.length check is enough?
+    // Actually companies might be empty initially.
+
+    // Changing the logic slightly for companies since it comes from context
+    // If companies is non-empty, we likely don't want to show loading screen
+
+    // Wait, Companies.jsx doesn't have a 'loading' state for fetching, it's inside useCompany context generally.
+    // But lines 22 declare `const [loading, setLoading] = useState(false)`. This is for form submission!
+    // Ah, Companies.jsx gets data from `useCompany`. 
+    // `useCompany` likely handles the fetching.
+
+    // Let's check `useCompany`. If it provides a loading state for data fetch.
+    // If not, we can't easily do this optimization here without checking context implementation.
+    // However, existing code likely relies on `companies` array updates.
+
+    // Reviewing lines 1-13 again.
+    // It consumes `companies` from useCompany.
+
+    // It does NOT have a fetching useEffect locally.
+    // So there is NO local data loading state causing a reset.
+    // Therefore, Companies.jsx probably DOES NOT need this fix because it doesn't unmount on refresh,
+    // unless `useCompany` sets `companies` to [] before updating.
+
+    // I'll skip Companies.jsx for now as it uses Context, not local state fetching.
+    // Moving to VehicleDetail.jsx.
+
     return (
         <div>
             <div className="page-header">

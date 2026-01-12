@@ -14,7 +14,10 @@ import {
     getDaysUntilText,
     getStatusColor
 } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Shield, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Shield, Building2, Eye } from 'lucide-react'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
+import InsuranceForm from '../components/forms/InsuranceForm'
+import DocumentUploadModal from '../components/DocumentUploadModal'
 
 export default function Insurance() {
     const { currentCompany } = useCompany()
@@ -23,19 +26,19 @@ export default function Insurance() {
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingInsurance, setEditingInsurance] = useState(null)
-    const [formData, setFormData] = useState({
-        vehicleId: '',
-        company: '',
-        policyNo: '',
-        type: 'traffic',
-        startDate: '',
-        endDate: '',
-        premium: '',
-        notes: ''
-    })
+    // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+
+    // Archive State
+    const [showArchived, setShowArchived] = useState(false)
+
+    // Document State
+    const [documents, setDocuments] = useState([])
+    const [previewDoc, setPreviewDoc] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [activeUploadId, setActiveUploadId] = useState(null)
 
     useEffect(() => {
         if (currentCompany) {
@@ -45,18 +48,20 @@ export default function Insurance() {
             setVehicles([])
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived]) // Reload on toggle
 
     const loadData = async () => {
         setLoading(true)
         try {
-            const [insResult, vehiclesResult] = await Promise.all([
-                window.electronAPI.getAllInsurances(currentCompany.id),
-                window.electronAPI.getVehicles(currentCompany.id)
+            const [insResult, vehiclesResult, documentsResult] = await Promise.all([
+                window.electronAPI.getAllInsurances(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getVehicles(currentCompany.id),
+                window.electronAPI.getAllDocuments(currentCompany.id)
             ])
 
             if (insResult.success) setInsurances(insResult.data)
             if (vehiclesResult.success) setVehicles(vehiclesResult.data)
+            if (documentsResult.success) setDocuments(documentsResult.data)
         } catch (error) {
             console.error('Failed to load data:', error)
         }
@@ -64,19 +69,6 @@ export default function Insurance() {
     }
 
     const resetForm = () => {
-        const today = new Date().toISOString().split('T')[0]
-        const nextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-
-        setFormData({
-            vehicleId: vehicles.length > 0 ? vehicles[0].id.toString() : '',
-            company: '',
-            policyNo: '',
-            type: 'traffic',
-            startDate: today,
-            endDate: nextYear,
-            premium: '',
-            notes: ''
-        })
         setEditingInsurance(null)
         setError('')
     }
@@ -87,16 +79,6 @@ export default function Insurance() {
     }
 
     const openEditModal = (insurance) => {
-        setFormData({
-            vehicleId: insurance.vehicle_id.toString(),
-            company: insurance.company,
-            policyNo: insurance.policy_no || '',
-            type: insurance.type,
-            startDate: insurance.start_date,
-            endDate: insurance.end_date,
-            premium: insurance.premium?.toString() || '',
-            notes: insurance.notes || ''
-        })
         setEditingInsurance(insurance)
         setIsModalOpen(true)
     }
@@ -106,33 +88,21 @@ export default function Insurance() {
         resetForm()
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
+    const handleFormSubmit = async (data) => {
         setError('')
-
-        if (!formData.vehicleId || !formData.company || !formData.startDate || !formData.endDate) {
-            setError('Araç, sigorta şirketi ve tarihler zorunludur')
-            return
-        }
-
         setSaving(true)
 
-        const data = {
-            vehicleId: parseInt(formData.vehicleId),
-            company: formData.company,
-            policyNo: formData.policyNo,
-            type: formData.type,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            premium: formData.premium ? parseFloat(formData.premium) : 0,
-            notes: formData.notes
+        const payload = {
+            ...data,
+            vehicleId: parseInt(data.vehicleId),
+            premium: data.premium ? parseFloat(data.premium) : 0
         }
 
         let result
         if (editingInsurance) {
-            result = await window.electronAPI.updateInsurance({ id: editingInsurance.id, ...data })
+            result = await window.electronAPI.updateInsurance({ id: editingInsurance.id, ...payload })
         } else {
-            result = await window.electronAPI.createInsurance(data)
+            result = await window.electronAPI.createInsurance(payload)
         }
 
         setSaving(false)
@@ -178,8 +148,20 @@ export default function Insurance() {
         setConfirmModal(null)
     }
 
-    const columns = [
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('insurances', id, newStatus)
+        }
+        loadData()
+    }
+
+    const activeColumns = [
         { key: 'vehicle_plate', label: 'Plaka' },
+        { key: 'model', label: 'Model' },
         { key: 'company', label: 'Sigorta Şirketi' },
         {
             key: 'type',
@@ -193,8 +175,15 @@ export default function Insurance() {
         },
         {
             key: 'end_date',
-            label: 'Bitiş',
-            render: (value) => {
+            label: 'Bitiş Tarihi',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'end_date_status',
+            label: 'Kalan Süre',
+            render: (_, item) => {
+                if (!item.end_date) return '-'
+                const value = item.end_date
                 const color = getStatusColor(value ? (new Date(value) - new Date()) / (1000 * 60 * 60 * 24) : null)
                 return <span className={`badge badge-${color}`}>{getDaysUntilText(value)}</span>
             }
@@ -203,8 +192,160 @@ export default function Insurance() {
             key: 'premium',
             label: 'Prim',
             render: (value) => formatCurrency(value)
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
         }
     ]
+
+    const archivedColumns = [
+        { key: 'vehicle_plate', label: 'Plaka' },
+        { key: 'model', label: 'Model' },
+        { key: 'company', label: 'Sigorta Şirketi' },
+        {
+            key: 'type',
+            label: 'Tür',
+            render: (value) => getInsuranceTypeLabel(value)
+        },
+        {
+            key: 'start_date',
+            label: 'Başlangıç',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'end_date',
+            label: 'Bitiş Tarihi',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'premium',
+            label: 'Prim',
+            render: (value) => formatCurrency(value)
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
+        }
+    ]
+
+    const columns = showArchived ? archivedColumns : activeColumns
+
+    // Document Helpers
+    const getDocument = (insuranceId) => {
+        return documents.find(d => d.related_type === 'insurance' && d.related_id === insuranceId)
+    }
+
+    const renderDocumentCell = (row) => {
+        const doc = getDocument(row.id)
+        if (doc) {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <div
+                        onClick={(e) => { e.stopPropagation(); handleDocumentOpen(doc) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            padding: '4px 8px', borderRadius: '6px',
+                            background: 'var(--accent-subtle)', color: 'var(--accent-primary)',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer', border: '1px solid transparent',
+                            transition: 'all 0.2s', width: 'fit-content'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                        title={doc.file_name}
+                    >
+                        <Eye size={12} />
+                        <span>Gör</span>
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            border: '1px dashed var(--border-color)', background: 'transparent',
+                            padding: '4px 8px', borderRadius: '6px', cursor: 'pointer',
+                            color: 'var(--text-muted)', fontSize: '11px', width: 'fit-content', justifyContent: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                        title="Dosya Ekle"
+                    >
+                        <Plus size={12} />
+                        <span>Ekle</span>
+                    </button>
+                </div>
+            )
+        }
+    }
+
+    const handleDocumentOpen = async (doc) => {
+        if (!doc) return
+
+        const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
+        if (isImage) {
+            const result = await window.electronAPI.readDocumentData(doc.file_path)
+            if (result.success) {
+                setPreviewDoc({ ...doc, data: result.data })
+            } else {
+                alert('Dosya önizlemesi yüklenemedi: ' + result.error)
+            }
+        } else {
+            const error = await window.electronAPI.openDocument(doc.file_path)
+            if (error) alert('Dosya açılamadı: ' + error)
+        }
+    }
+
+    const handleOpenUpload = (id) => {
+        setActiveUploadId(id)
+        setUploadModalOpen(true)
+    }
+
+    const handleUploadConfirm = async (file) => {
+        if (!activeUploadId) return
+
+        const insurance = insurances.find(i => i.id === activeUploadId)
+        if (!insurance) return
+
+        const result = await window.electronAPI.addDocument({
+            vehicleId: insurance.vehicle_id,
+            relatedType: 'insurance',
+            relatedId: activeUploadId,
+            filePath: file.path
+        })
+
+        if (result.success) {
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            setUploadModalOpen(false)
+            setActiveUploadId(null)
+        } else {
+            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        }
+    }
+
+    const handleDocumentDelete = async () => {
+        if (!previewDoc) return
+        setConfirmModal({
+            title: 'Belgeyi Sil',
+            message: 'Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            confirmText: 'Sil',
+            type: 'danger',
+            onConfirm: async () => {
+                const result = await window.electronAPI.deleteDocument(previewDoc.id)
+                if (result.success) {
+                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+                    if (docsRes.success) setDocuments(docsRes.data)
+                    setPreviewDoc(null)
+                    setConfirmModal(null)
+                } else {
+                    alert('Silme hatası: ' + result.error)
+                }
+            }
+        })
+    }
 
     if (!currentCompany) {
         return (
@@ -216,7 +357,7 @@ export default function Insurance() {
         )
     }
 
-    if (loading) {
+    if (loading && insurances.length === 0) {
         return (
             <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
                 <div className="loading-spinner"></div>
@@ -240,24 +381,24 @@ export default function Insurance() {
                 </div>
             </div>
 
-            {insurances.length === 0 ? (
+            {insurances.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><Shield /></div>
                     <h2 className="empty-state-title">Sigorta Kaydı Yok</h2>
-                    <p className="empty-state-desc">
-                        {vehicles.length === 0 ? 'Önce araç eklemeniz gerekiyor.' : 'Henüz sigorta kaydı eklenmemiş.'}
-                    </p>
-                    {vehicles.length > 0 && (
-                        <button className="btn btn-primary" onClick={openCreateModal}>
+                    <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
+                    <div style={{ marginTop: '16px' }}>
+                        <button className="btn btn-primary" onClick={() => window.location.href = '#/vehicles'}>
                             <Plus size={18} />
-                            Sigorta Ekle
+                            Araç Ekle
                         </button>
-                    )}
+                    </div>
                 </div>
             ) : (
                 <DataTable
+                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={insurances}
+                    persistenceKey={`insurance_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}
@@ -270,6 +411,10 @@ export default function Insurance() {
                         }
                     ]}
                     onBulkDelete={handleBulkDeleteClick}
+                    onBulkArchive={handleBulkArchive}
+                    isArchiveView={showArchived}
+                    onToggleArchiveView={setShowArchived}
+                    initialSort={{ key: 'end_date', direction: 'asc' }}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
@@ -284,86 +429,15 @@ export default function Insurance() {
                 onClose={closeModal}
                 title={editingInsurance ? 'Sigorta Düzenle' : 'Yeni Sigorta'}
                 size="lg"
-                footer={
-                    <>
-                        <button className="btn btn-secondary" onClick={closeModal}>İptal</button>
-                        <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
-                            {saving ? 'Kaydediliyor...' : 'Kaydet'}
-                        </button>
-                    </>
-                }
+                footer={null}
             >
-                <form onSubmit={handleSubmit}>
-                    <div className="form-row">
-                        <CustomSelect
-                            label="Araç"
-                            required={true}
-                            className="form-select-custom"
-                            value={formData.vehicleId}
-                            onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                            options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                            placeholder="Araç seçin"
-                        />
-
-                        <CustomSelect
-                            label="Sigorta Türü"
-                            className="form-select-custom"
-                            value={formData.type}
-                            onChange={(value) => setFormData({ ...formData, type: value })}
-                            options={insuranceTypes}
-                            placeholder="Seçiniz"
-                        />
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput label="Sigorta Şirketi *" required={true} value={formData.company} onChange={(value) => setFormData({ ...formData, company: value })} format="title" />
-                        </div>
-
-                        <div className="form-group">
-                            <CustomInput label="Poliçe Numarası" value={formData.policyNo} onChange={(value) => setFormData({ ...formData, policyNo: value })} format="uppercase" />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput
-                                label="Başlangıç Tarihi"
-                                type="date"
-                                required={true}
-                                value={formData.startDate}
-                                onChange={(value) => setFormData({ ...formData, startDate: value })}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput
-                                label="Bitiş Tarihi"
-                                type="date"
-                                required={true}
-                                value={formData.endDate}
-                                onChange={(value) => setFormData({ ...formData, endDate: value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <CustomInput label="Prim Tutarı (₺)" type="number" value={formData.premium} onChange={(value) => setFormData({ ...formData, premium: value })} placeholder="0.00" />
-                    </div>
-
-                    <div className="form-group">
-                        <CustomInput
-                            label="Notlar"
-                            placeholder="Ek notlar..."
-                            value={formData.notes}
-                            onChange={(value) => setFormData({ ...formData, notes: value })}
-                            multiline={true}
-                            rows={3}
-                            floatingLabel={true}
-                        />
-                    </div>
-
-                    {error && <div className="form-error">{error}</div>}
-                </form>
+                <InsuranceForm
+                    initialData={editingInsurance}
+                    onSubmit={handleFormSubmit}
+                    onCancel={closeModal}
+                    vehicles={vehicles}
+                    error={error}
+                />
             </Modal>
 
             <ConfirmModal
@@ -372,6 +446,18 @@ export default function Insurance() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
+            />
+
+            <DocumentUploadModal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                onUpload={handleUploadConfirm}
+            />
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={handleDocumentDelete}
             />
         </div>
     )

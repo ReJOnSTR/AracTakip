@@ -6,7 +6,11 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import { formatDate, formatCurrency } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Wrench } from 'lucide-react'
+// FileUploader removed
+import { Plus, Pencil, Trash2, Wrench, Eye } from 'lucide-react'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
+import DocumentUploadModal from '../components/DocumentUploadModal'
+import ServiceForm from '../components/forms/ServiceForm'
 
 export default function Services() {
     const { currentCompany } = useCompany()
@@ -15,27 +19,24 @@ export default function Services() {
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingService, setEditingService] = useState(null)
-    const [formData, setFormData] = useState({
-        vehicleId: '',
-        type: 'Genel Bakım',
-        serviceName: '',
-        description: '',
-        date: '',
-        km: '',
-        cost: '',
-        notes: ''
-    })
+    // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+
+    // Archive State
+    const [showArchived, setShowArchived] = useState(false)
+
+    // Document State
+    const [documents, setDocuments] = useState([])
+    const [previewDoc, setPreviewDoc] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [activeUploadId, setActiveUploadId] = useState(null)
 
     const serviceTypes = [
         { value: 'Genel Bakım', label: 'Genel Bakım' },
         { value: 'Arıza', label: 'Arıza/Tamir' },
         { value: 'Lastik', label: 'Lastik Değişimi/Tamiri' },
-        { value: 'Kaporta', label: 'Kaporta/Boya' },
-        { value: 'Elektrik', label: 'Elektrik Aksamı' },
-        { value: 'Periyodik', label: 'Periyodik Bakım' },
         { value: 'Kaporta', label: 'Kaporta/Boya' },
         { value: 'Elektrik', label: 'Elektrik Aksamı' },
         { value: 'Periyodik', label: 'Periyodik Bakım' },
@@ -50,18 +51,20 @@ export default function Services() {
             setVehicles([])
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived]) // Reload on toggle
 
     const loadData = async () => {
         setLoading(true)
         try {
-            const [servicesResult, vehiclesResult] = await Promise.all([
-                window.electronAPI.getAllServices(currentCompany.id),
-                window.electronAPI.getVehicles(currentCompany.id)
+            const [servicesResult, vehiclesResult, documentsResult] = await Promise.all([
+                window.electronAPI.getAllServices(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getVehicles(currentCompany.id),
+                window.electronAPI.getAllDocuments(currentCompany.id)
             ])
 
             if (servicesResult.success) setServices(servicesResult.data)
             if (vehiclesResult.success) setVehicles(vehiclesResult.data)
+            if (documentsResult.success) setDocuments(documentsResult.data)
         } catch (error) {
             console.error('Failed to load data:', error)
         }
@@ -69,16 +72,6 @@ export default function Services() {
     }
 
     const resetForm = () => {
-        setFormData({
-            vehicleId: vehicles.length > 0 ? vehicles[0].id.toString() : '',
-            type: 'Genel Bakım',
-            serviceName: '',
-            description: '',
-            date: new Date().toISOString().split('T')[0],
-            km: '',
-            cost: '',
-            notes: ''
-        })
         setEditingService(null)
         setError('')
     }
@@ -89,16 +82,6 @@ export default function Services() {
     }
 
     const openEditModal = (service) => {
-        setFormData({
-            vehicleId: service.vehicle_id.toString(),
-            type: service.type,
-            serviceName: service.service_name || '',
-            description: service.description || '',
-            date: service.date,
-            km: service.km || '',
-            cost: service.cost || '',
-            notes: service.notes || ''
-        })
         setEditingService(service)
         setIsModalOpen(true)
     }
@@ -108,33 +91,22 @@ export default function Services() {
         resetForm()
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
+    const handleFormSubmit = async (data) => {
         setError('')
-
-        if (!formData.vehicleId || !formData.date) {
-            setError('Araç ve tarih zorunludur')
-            return
-        }
-
         setSaving(true)
 
-        const data = {
-            vehicleId: parseInt(formData.vehicleId),
-            type: formData.type,
-            serviceName: formData.serviceName,
-            description: formData.description,
-            date: formData.date,
-            km: formData.km ? parseInt(formData.km) : null,
-            cost: formData.cost ? parseFloat(formData.cost) : 0,
-            notes: formData.notes
+        const payload = {
+            ...data,
+            vehicleId: parseInt(data.vehicleId),
+            km: data.km ? parseInt(data.km) : null,
+            cost: data.cost ? parseFloat(data.cost) : 0
         }
 
         let result
         if (editingService) {
-            result = await window.electronAPI.updateService({ id: editingService.id, ...data })
+            result = await window.electronAPI.updateService({ id: editingService.id, ...payload })
         } else {
-            result = await window.electronAPI.createService(data)
+            result = await window.electronAPI.createService(payload)
         }
 
         setSaving(false)
@@ -180,35 +152,203 @@ export default function Services() {
         setConfirmModal(null)
     }
 
-    const columns = [
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('services', id, newStatus)
+        }
+        loadData()
+    }
+
+    const activeColumns = [
         { key: 'vehicle_plate', label: 'Plaka' },
-        { key: 'service_name', label: 'Servis Yeri' },
-        { key: 'type', label: 'İşlem Türü' },
-        { key: 'description', label: 'Yapılan İşlem' },
+        { key: 'model', label: 'Model' },
+        {
+            key: 'type',
+            label: 'Servis Türü',
+            render: (value) => serviceTypes.find(t => t.value === value)?.label || value
+        },
         {
             key: 'date',
-            label: 'Tarih',
+            label: 'İşlem Tarihi',
             render: (value) => formatDate(value)
         },
-        { key: 'km', label: 'KM' },
+        {
+            key: 'description',
+            label: 'Açıklama',
+            render: (value) => value || '-'
+        },
         {
             key: 'cost',
             label: 'Maliyet',
             render: (value) => formatCurrency(value)
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
         }
     ]
+
+    const archivedColumns = [
+        { key: 'vehicle_plate', label: 'Plaka' },
+        { key: 'model', label: 'Model' },
+        {
+            key: 'type',
+            label: 'Servis Türü',
+            render: (value) => serviceTypes.find(t => t.value === value)?.label || value
+        },
+        {
+            key: 'date',
+            label: 'İşlem Tarihi',
+            render: (value) => formatDate(value)
+        },
+        {
+            key: 'description',
+            label: 'Açıklama',
+            render: (value) => value || '-'
+        },
+        {
+            key: 'cost',
+            label: 'Maliyet',
+            render: (value) => formatCurrency(value)
+        },
+        {
+            key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell(row)
+        }
+    ]
+
+    const columns = showArchived ? archivedColumns : activeColumns
+
+    // Document Helpers
+    const getDocument = (serviceId) => {
+        return documents.find(d => d.related_type === 'service' && d.related_id === serviceId)
+    }
+
+    const renderDocumentCell = (row) => {
+        const doc = getDocument(row.id)
+        if (doc) {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <div
+                        onClick={(e) => { e.stopPropagation(); handleDocumentOpen(doc) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            padding: '4px 8px', borderRadius: '6px',
+                            background: 'var(--accent-subtle)', color: 'var(--accent-primary)',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer', border: '1px solid transparent',
+                            transition: 'all 0.2s', width: 'fit-content'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                        title={doc.file_name}
+                    >
+                        <Eye size={12} />
+                        <span>Gör</span>
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                            border: '1px dashed var(--border-color)', background: 'transparent',
+                            padding: '4px 8px', borderRadius: '6px', cursor: 'pointer',
+                            color: 'var(--text-muted)', fontSize: '11px', width: 'fit-content', justifyContent: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                        title="Dosya Ekle"
+                    >
+                        <Plus size={12} />
+                        <span>Ekle</span>
+                    </button>
+                </div>
+            )
+        }
+    }
+
+    const handleDocumentOpen = async (doc) => {
+        if (!doc) return
+
+        // If image, preview. If other, open external
+        const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
+        if (isImage) {
+            setPreviewDoc(doc)
+        } else {
+            const result = await window.electronAPI.openDocument(doc.file_path)
+            if (!result.success) {
+                alert('Dosya açılamadı: ' + result.error)
+            }
+        }
+    }
+
+    const handleOpenUpload = (id) => {
+        setActiveUploadId(id)
+        setUploadModalOpen(true)
+    }
+
+    const handleUploadConfirm = async (file) => {
+        if (!activeUploadId) return
+
+        const service = services.find(s => s.id === activeUploadId)
+        if (!service) return
+
+        const result = await window.electronAPI.addDocument({
+            vehicleId: service.vehicle_id,
+            relatedType: 'service',
+            relatedId: activeUploadId,
+            filePath: file.path
+        })
+
+        if (result.success) {
+            // Refresh documents
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            setUploadModalOpen(false)
+            setActiveUploadId(null)
+        } else {
+            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        }
+    }
+
+    const handleDocumentDelete = async () => {
+        if (!previewDoc) return
+        setConfirmModal({
+            title: 'Belgeyi Sil',
+            message: 'Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            confirmText: 'Sil',
+            type: 'danger',
+            onConfirm: async () => {
+                const result = await window.electronAPI.deleteDocument(previewDoc.id)
+                if (result.success) {
+                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+                    if (docsRes.success) setDocuments(docsRes.data)
+                    setPreviewDoc(null)
+                    setConfirmModal(null)
+                } else {
+                    alert('Silme hatası: ' + result.error)
+                }
+            }
+        })
+    }
 
     if (!currentCompany) {
         return (
             <div className="empty-state">
-                <div className="empty-state-icon"><Wrench /></div>
+                <div className="empty-state-icon"><Building2 /></div>
                 <h2 className="empty-state-title">Şirket Seçilmedi</h2>
                 <p className="empty-state-desc">Servis kayıtlarını görüntülemek için lütfen bir şirket seçin.</p>
             </div>
         )
     }
 
-    if (loading) {
+    if (loading && services.length === 0) {
         return (
             <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
                 <div className="loading-spinner"></div>
@@ -221,36 +361,37 @@ export default function Services() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Servis Takibi</h1>
-                    <p style={{ marginTop: '5px', color: '#666' }}>Araç bakım, tamir ve servis işlemleri.</p>
+                    <h1 className="page-title">Servis İşlemleri</h1>
+                    <p style={{ marginTop: '5px', color: '#666' }}>Araç servis ve tamir kayıtları.</p>
                 </div>
                 <div className="page-actions">
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
                         <Plus size={18} />
-                        Yeni İşlem
+                        Yeni Servis
                     </button>
                 </div>
             </div>
 
-            {services.length === 0 ? (
+            {services.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><Wrench /></div>
                     <h2 className="empty-state-title">Servis Kaydı Yok</h2>
-                    <p className="empty-state-desc">
-                        {vehicles.length === 0 ? 'Önce araç eklemeniz gerekiyor.' : 'Henüz servis veya tamir kaydı eklenmemiş.'}
-                    </p>
-                    {vehicles.length > 0 && (
-                        <button className="btn btn-primary" onClick={openCreateModal}>
+                    <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
+                    <div style={{ marginTop: '16px' }}>
+                        <button className="btn btn-primary" onClick={() => window.location.href = '#/vehicles'}>
                             <Plus size={18} />
-                            Servis Ekle
+                            Araç Ekle
                         </button>
-                    )}
+                    </div>
                 </div>
             ) : (
                 <DataTable
+                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={services}
+                    persistenceKey={`services_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
+                    showCheckboxes={true}
                     showDateFilter={true}
                     dateFilterKey="date"
                     filters={[
@@ -261,6 +402,9 @@ export default function Services() {
                         }
                     ]}
                     onBulkDelete={handleBulkDeleteClick}
+                    onBulkArchive={handleBulkArchive}
+                    isArchiveView={showArchived}
+                    onToggleArchiveView={setShowArchived}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
@@ -274,96 +418,15 @@ export default function Services() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 title={editingService ? 'Servis Kaydı Düzenle' : 'Yeni Servis Kaydı'}
-                footer={
-                    <>
-                        <button className="btn btn-secondary" onClick={closeModal}>İptal</button>
-                        <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
-                            {saving ? 'Kaydediliyor...' : 'Kaydet'}
-                        </button>
-                    </>
-                }
+                footer={null}
             >
-                <form onSubmit={handleSubmit}>
-                    <CustomSelect
-                        label="Araç"
-                        required={true}
-                        className="form-select-custom"
-                        value={formData.vehicleId}
-                        onChange={(value) => setFormData({ ...formData, vehicleId: value })}
-                        options={vehicles.map(v => ({ value: v.id, label: `${v.plate} - ${v.brand} ${v.model}` }))}
-                        placeholder="Araç seçin"
-                    />
-
-                    <div className="form-row">
-                        <CustomSelect
-                            label="İşlem Türü"
-                            className="form-select-custom"
-                            value={formData.type}
-                            onChange={(value) => setFormData({ ...formData, type: value })}
-                            options={serviceTypes}
-                        />
-                        <div className="form-group">
-                            <CustomInput
-                                label="Tarih *"
-                                type="date"
-                                value={formData.date}
-                                onChange={(value) => setFormData({ ...formData, date: value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput
-                                label="Servis Yeri / Firma"
-                                placeholder="Örn: Oto Koç, Sanayi..."
-                                value={formData.serviceName}
-                                onChange={(value) => setFormData({ ...formData, serviceName: value })}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput
-                                label="Maliyet (TL)"
-                                type="number"
-                                value={formData.cost}
-                                onChange={(value) => setFormData({ ...formData, cost: value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <CustomInput
-                                label="Araç KM"
-                                type="number"
-                                value={formData.km}
-                                onChange={(value) => setFormData({ ...formData, km: value })}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <CustomInput
-                                label="Yapılan İşlem Özeti"
-                                placeholder="Örn: Fren balatası değişimi"
-                                value={formData.description}
-                                onChange={(value) => setFormData({ ...formData, description: value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <CustomInput
-                            label="Detaylı Notlar"
-                            placeholder="İşlem detayları..."
-                            value={formData.notes}
-                            onChange={(value) => setFormData({ ...formData, notes: value })}
-                            multiline={true}
-                            rows={3}
-                            floatingLabel={true}
-                        />
-                    </div>
-
-                    {error && <div className="form-error">{error}</div>}
-                </form>
+                <ServiceForm
+                    initialData={editingService}
+                    onSubmit={handleFormSubmit}
+                    onCancel={closeModal}
+                    vehicles={vehicles}
+                    loading={saving}
+                />
             </Modal>
 
             <ConfirmModal
@@ -372,6 +435,18 @@ export default function Services() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
+            />
+
+            <DocumentUploadModal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                onUpload={handleUploadConfirm}
+            />
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={handleDocumentDelete}
             />
         </div>
     )

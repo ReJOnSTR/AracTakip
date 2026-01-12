@@ -8,6 +8,27 @@ export function CompanyProvider({ children }) {
     const [companies, setCompanies] = useState([])
     const [currentCompany, setCurrentCompany] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [upcomingEvents, setUpcomingEvents] = useState([])
+
+    useEffect(() => {
+        if (currentCompany) {
+            loadUpcomingEvents()
+        } else {
+            setUpcomingEvents([])
+        }
+    }, [currentCompany])
+
+    const loadUpcomingEvents = async () => {
+        if (!currentCompany) return
+        try {
+            const result = await window.electronAPI.getUpcomingEvents(currentCompany.id)
+            if (result.success) {
+                setUpcomingEvents(result.data)
+            }
+        } catch (error) {
+            console.error('Failed to load upcoming events:', error)
+        }
+    }
 
     useEffect(() => {
         if (user) {
@@ -106,7 +127,9 @@ export function CompanyProvider({ children }) {
             createCompany,
             updateCompany,
             deleteCompany,
-            refreshCompanies: loadCompanies
+            refreshCompanies: loadCompanies,
+            upcomingEvents,
+            loadUpcomingEvents
         }}>
             {children}
         </CompanyContext.Provider>

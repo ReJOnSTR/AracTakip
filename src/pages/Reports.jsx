@@ -5,6 +5,7 @@ import Modal from '../components/Modal'
 import { FileText, Printer, Building2, Download, Eye, Calendar, Layers } from 'lucide-react'
 import { formatDate, formatCurrency, getVehicleTypeLabel, getMaintenanceTypeLabel, getInsuranceTypeLabel } from '../utils/helpers'
 import { useReactToPrint } from 'react-to-print'
+import * as XLSX from 'xlsx'
 
 export default function Reports() {
     const { currentCompany } = useCompany()
@@ -24,7 +25,6 @@ export default function Reports() {
     const [config, setConfig] = useState({
         inventory: true,
         maintenance: true,
-        services: true,
         services: true,
         insurance: true,
         inspection: true,
@@ -47,6 +47,95 @@ export default function Reports() {
         }
         localStorage.setItem('printData', JSON.stringify(printData))
         window.open('#/print', '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
+    }
+
+    const handleExcelExport = () => {
+        const processedReportList = getProcessedReportList()
+        const wb = XLSX.utils.book_new()
+
+        // Helper to add sheet
+        const addSheet = (name, data, columns) => {
+            if (!data || data.length === 0) return
+            const wsData = [
+                columns.map(c => c.header),
+                ...data.map(item => columns.map(c => c.value(item)))
+            ]
+            const ws = XLSX.utils.aoa_to_sheet(wsData)
+            XLSX.utils.book_append_sheet(wb, ws, name)
+        }
+
+        // Aggregate data from all vehicles
+        if (config.inventory) {
+            const allAssignments = processedReportList.flatMap(r => r.assignments.map(i => ({ ...i, plate: r.vehicle.plate })))
+            addSheet('Envanter', allAssignments, [
+                { header: 'Plaka', value: i => i.plate },
+                { header: 'Malzeme', value: i => i.item_name },
+                { header: 'Adet', value: i => i.quantity },
+                { header: 'Sorumlu', value: i => i.assigned_to },
+                { header: 'Veriliş T.', value: i => formatDate(i.start_date) },
+                { header: 'Bitiş T.', value: i => formatDate(i.end_date) }
+            ])
+        }
+
+        if (config.maintenance) {
+            const allMaintenances = processedReportList.flatMap(r => r.maintenances.map(i => ({ ...i, plate: r.vehicle.plate })))
+            addSheet('Bakımlar', allMaintenances, [
+                { header: 'Plaka', value: i => i.plate },
+                { header: 'Tarih', value: i => formatDate(i.date) },
+                { header: 'Tür', value: i => getMaintenanceTypeLabel(i.type) },
+                { header: 'Açıklama', value: i => i.description },
+                { header: 'Maliyet', value: i => i.cost }
+            ])
+        }
+
+        if (config.services) {
+            const allServices = processedReportList.flatMap(r => r.services.map(i => ({ ...i, plate: r.vehicle.plate })))
+            addSheet('Servisler', allServices, [
+                { header: 'Plaka', value: i => i.plate },
+                { header: 'Tarih', value: i => formatDate(i.date) },
+                { header: 'Firma', value: i => i.service_name },
+                { header: 'Tür', value: i => i.type },
+                { header: 'Açıklama', value: i => i.description },
+                { header: 'KM', value: i => i.km },
+                { header: 'Maliyet', value: i => i.cost }
+            ])
+        }
+
+        if (config.insurance) {
+            const allInsurances = processedReportList.flatMap(r => r.insurances.map(i => ({ ...i, plate: r.vehicle.plate })))
+            addSheet('Sigortalar', allInsurances, [
+                { header: 'Plaka', value: i => i.plate },
+                { header: 'Sigorta Şirketi', value: i => i.company },
+                { header: 'Tür', value: i => getInsuranceTypeLabel(i.type) },
+                { header: 'Başlangıç', value: i => formatDate(i.start_date) },
+                { header: 'Bitiş', value: i => formatDate(i.end_date) },
+                { header: 'Tutar', value: i => i.premium }
+            ])
+        }
+
+        if (config.inspection) {
+            const allInspections = processedReportList.flatMap(r => r.inspections.map(i => ({ ...i, plate: r.vehicle.plate })))
+            addSheet('Muayeneler', allInspections, [
+                { header: 'Plaka', value: i => i.plate },
+                { header: 'Tarih', value: i => formatDate(i.inspection_date) },
+                { header: 'Sonuç', value: i => i.result },
+                { header: 'Sonraki Tarih', value: i => formatDate(i.next_inspection) },
+                { header: 'Tutar', value: i => i.cost }
+            ])
+        }
+
+        if (config.periodicInspection) {
+            const allPeriodic = processedReportList.flatMap(r => r.periodicInspections.map(i => ({ ...i, plate: r.vehicle.plate })))
+            addSheet('Periyodik Kontroller', allPeriodic, [
+                { header: 'Plaka', value: i => i.plate },
+                { header: 'Tarih', value: i => formatDate(i.inspection_date) },
+                { header: 'Sonuç', value: i => i.result },
+                { header: 'Sonraki Tarih', value: i => formatDate(i.next_inspection) },
+                { header: 'Tutar', value: i => i.cost }
+            ])
+        }
+
+        XLSX.writeFile(wb, `Arac_Raporu_${formatDate(new Date())}.xlsx`)
     }
 
     useEffect(() => {
@@ -174,8 +263,6 @@ export default function Reports() {
             maintenances: filterAndSort(report.data.maintenances, 'date'),
             services: filterAndSort(report.data.services, 'date'),
             insurances: filterAndSort(report.data.insurances, 'start_date'),
-            services: filterAndSort(report.data.services, 'date'),
-            insurances: filterAndSort(report.data.insurances, 'start_date'),
             inspections: filterAndSort(report.data.inspections, 'inspection_date'),
             periodicInspections: filterAndSort(report.data.periodicInspections, 'inspection_date')
         }))
@@ -219,7 +306,7 @@ export default function Reports() {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
 
-                {loading ? (
+                {loading && vehicles.length === 0 ? (
                     <div className="loading-screen" style={{ height: '200px' }}><div className="loading-spinner"></div></div>
                 ) : (
                     <DataTable
@@ -252,6 +339,9 @@ export default function Reports() {
                     footer={
                         <>
                             <button className="btn btn-secondary" onClick={closeModal}>Kapat</button>
+                            <button className="btn btn-success" onClick={handleExcelExport} style={{ marginRight: 'auto' }}>
+                                <Download size={16} /> Excel'e Aktar
+                            </button>
                             <button className="btn btn-primary" onClick={handlePrint}>
                                 <Printer size={16} /> Yazdır
                             </button>

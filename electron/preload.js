@@ -20,38 +20,41 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Maintenances
     getMaintenancesByVehicle: (vehicleId) => ipcRenderer.invoke('maintenances:getByVehicle', vehicleId),
-    getAllMaintenances: (companyId) => ipcRenderer.invoke('maintenances:getAll', companyId),
+    getAllMaintenances: (companyId, isArchived) => ipcRenderer.invoke('maintenances:getAll', companyId, isArchived),
     createMaintenance: (data) => ipcRenderer.invoke('maintenances:create', data),
     updateMaintenance: (data) => ipcRenderer.invoke('maintenances:update', data),
     deleteMaintenance: (id) => ipcRenderer.invoke('maintenances:delete', id),
 
     // Inspections
     getInspectionsByVehicle: (vehicleId) => ipcRenderer.invoke('inspections:getByVehicle', vehicleId),
-    getAllInspections: (companyId, type) => ipcRenderer.invoke('inspections:getAll', companyId, type),
+    getAllInspections: (companyId, type, isArchived) => ipcRenderer.invoke('inspections:getAll', companyId, type, isArchived),
     createInspection: (data) => ipcRenderer.invoke('inspections:create', data),
     updateInspection: (data) => ipcRenderer.invoke('inspections:update', data),
     deleteInspection: (id) => ipcRenderer.invoke('inspections:delete', id),
 
     // Insurances
     getInsurancesByVehicle: (vehicleId) => ipcRenderer.invoke('insurances:getByVehicle', vehicleId),
-    getAllInsurances: (companyId) => ipcRenderer.invoke('insurances:getAll', companyId),
+    getAllInsurances: (companyId, isArchived) => ipcRenderer.invoke('insurances:getAll', companyId, isArchived),
     createInsurance: (data) => ipcRenderer.invoke('insurances:create', data),
     updateInsurance: (data) => ipcRenderer.invoke('insurances:update', data),
     deleteInsurance: (id) => ipcRenderer.invoke('insurances:delete', id),
 
     // Assignments
     getAssignmentsByVehicle: (vehicleId) => ipcRenderer.invoke('assignments:getByVehicle', vehicleId),
-    getAllAssignments: (companyId) => ipcRenderer.invoke('assignments:getAll', companyId),
+    getAllAssignments: (companyId, isArchived) => ipcRenderer.invoke('assignments:getAll', companyId, isArchived),
     createAssignment: (data) => ipcRenderer.invoke('assignments:create', data),
     updateAssignment: (data) => ipcRenderer.invoke('assignments:update', data),
     deleteAssignment: (id) => ipcRenderer.invoke('assignments:delete', id),
 
     // Services
     getServicesByVehicle: (vehicleId) => ipcRenderer.invoke('services:getByVehicle', vehicleId),
-    getAllServices: (companyId) => ipcRenderer.invoke('services:getAll', companyId),
+    getAllServices: (companyId, isArchived) => ipcRenderer.invoke('services:getAll', companyId, isArchived),
     createService: (data) => ipcRenderer.invoke('services:create', data),
     updateService: (data) => ipcRenderer.invoke('services:update', data),
     deleteService: (id) => ipcRenderer.invoke('services:delete', id),
+
+    // Archive
+    archiveItem: (table, id, isArchived) => ipcRenderer.invoke('archive:item', table, id, isArchived),
 
     // Dashboard
     getDashboardStats: (companyId) => ipcRenderer.invoke('dashboard:getStats', companyId),
@@ -92,6 +95,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Notifications
     showNotification: (title, body) => ipcRenderer.invoke('notification:show', { title, body }),
+
+    // File Handlers
+    selectFile: () => ipcRenderer.invoke('files:select'),
+    saveFile: (sourcePath) => ipcRenderer.invoke('files:save', sourcePath),
+    openFile: (fileName) => ipcRenderer.invoke('files:open', fileName),
+
+    // Document Management
+    addDocument: (data) => ipcRenderer.invoke('documents:add', data),
+    getAllDocuments: (companyId) => ipcRenderer.invoke('documents:getByCompany', companyId),
+    getDocumentsByVehicle: (vehicleId) => ipcRenderer.invoke('documents:getByVehicle', vehicleId),
+    deleteDocument: (id) => ipcRenderer.invoke('documents:delete', id),
+    openDocument: (fileName) => ipcRenderer.invoke('documents:open', fileName),
+    readDocumentData: (fileName) => ipcRenderer.invoke('documents:readData', fileName),
 
     // Utils
     openExternal: (url) => ipcRenderer.send('app:openExternal', url)

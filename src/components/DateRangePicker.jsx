@@ -114,7 +114,7 @@ export default function DateRangePicker({
                         top: 'calc(100% + 4px)',
                         left: 0,
                         right: 0,
-                        backgroundColor: 'var(--bg-elevated)',
+                        backgroundColor: 'var(--bg-secondary)',
                         border: '1px solid var(--border-light)',
                         borderRadius: 'var(--radius-md)',
                         padding: '16px',
