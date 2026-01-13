@@ -62,7 +62,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getRecentActivity: (companyId) => ipcRenderer.invoke('dashboard:getRecentActivity', companyId),
 
     // Data Management
-    exportCompanyData: (companyId) => ipcRenderer.invoke('data:export', companyId),
+    exportCompanyData: (data) => ipcRenderer.invoke('data:export', data),
     importCompanyData: (userId) => ipcRenderer.invoke('data:import', userId),
 
     // Settings & Auto Backup

@@ -84,9 +84,9 @@ export default function VehicleDetail() {
     const [selectedFile, setSelectedFile] = useState(null)
 
     const [activeUploadContext, setActiveUploadContext] = useState(null) // { type, id }
+    const [showArchived, setShowArchived] = useState(false)
 
     const [saving, setSaving] = useState(false)
-
     const [error, setError] = useState('')
 
     // Confirm Modal state
@@ -137,6 +137,10 @@ export default function VehicleDetail() {
         }
         setLoading(false)
     }
+
+    useEffect(() => {
+        setShowArchived(false)
+    }, [activeTab])
 
     const openAddModal = (type) => {
         setModalType(type)
@@ -281,6 +285,32 @@ export default function VehicleDetail() {
         }
     }
 
+    const getTableName = (type) => {
+        switch (type) {
+            case 'maintenance': return 'maintenances'
+            case 'service': return 'services'
+            case 'inspection': return 'inspections'
+            case 'periodic_inspection': return 'inspections'
+            case 'insurance': return 'insurances'
+            case 'assignment': return 'assignments'
+            case 'vehicle': return 'vehicles'
+            default: return type + 's'
+        }
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        const tableName = getTableName(activeTab)
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem(tableName, id, newStatus)
+        }
+
+        loadVehicleData()
+    }
+
     const handleDeleteClick = (type, item, ids = null) => {
         let title = 'Silme Onayı'
         let message = 'Bu kaydı silmek istediğinize emin misiniz?'
@@ -409,7 +439,7 @@ export default function VehicleDetail() {
             const addRes = await window.electronAPI.addDocument({
                 vehicleId: parseInt(id),
                 relatedType: activeUploadContext?.type || 'vehicle',
-                relatedId: activeUploadContext?.id ? parseInt(activeUploadContext.id) : parseInt(id),
+                relatedId: (activeUploadContext?.id !== null && activeUploadContext?.id !== undefined) ? parseInt(activeUploadContext.id) : parseInt(id),
                 filePath: selectedUploadFile.path
             })
             if (addRes.success) {
@@ -477,7 +507,7 @@ export default function VehicleDetail() {
     const renderDocumentCell = (type, row) => {
         const doc = getDocument(type, row.id)
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                 {doc ? (
                     <div
                         onClick={(e) => { e.stopPropagation(); handleDocumentOpen(doc) }}
@@ -503,11 +533,14 @@ export default function VehicleDetail() {
                             border: '1px dashed var(--border-color)', background: 'transparent',
                             padding: '4px 8px', borderRadius: '6px', cursor: 'pointer',
                             color: 'var(--text-muted)', fontSize: '11px', width: 'fit-content', justifyContent: 'center',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            zIndex: 10,
+                            position: 'relative'
                         }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)' }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)' }}
                         title="Dosya Ekle"
+                        type="button"
                     >
                         <Plus size={12} />
                         <span>Ekle</span>
@@ -769,13 +802,15 @@ export default function VehicleDetail() {
             {/* Tab Content */}
             <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                         {tabs.find(t => t.id === activeTab)?.label} Kayıtları
                     </h3>
-                    <button className="btn btn-primary" onClick={() => activeTab === 'documents' ? handleOpenUpload('vehicle') : openAddModal(activeTab)}>
-                        <Plus size={18} />
-                        Ekle
-                    </button>
+                    {(!showArchived || activeTab === 'documents') && (
+                        <button className="btn btn-primary" onClick={() => activeTab === 'documents' ? handleOpenUpload('vehicle') : openAddModal(activeTab)}>
+                            <Plus size={18} />
+                            Ekle
+                        </button>
+                    )}
                 </div>
 
                 {activeTab === 'maintenance' && (
@@ -786,14 +821,19 @@ export default function VehicleDetail() {
                                 { key: 'description', label: 'Açıklama' },
                                 { key: 'date', label: 'Tarih', render: v => formatDate(v) },
                                 { key: 'cost', label: 'Maliyet', render: v => formatCurrency(v) },
-                                { key: 'next_date', label: 'Sonraki', render: v => v ? getDaysUntilText(v) : '-' },
+                                ...(showArchived ? [] : [
+                                    { key: 'next_date', label: 'Sonraki', render: v => v ? getDaysUntilText(v) : '-' }
+                                ]),
                                 {
                                     key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('maintenance', row)
                                 }
                             ]}
-                            data={maintenances}
-                            emptyMessage="Bakım kaydı yok"
+                            data={maintenances.filter(m => showArchived ? m.is_archived : !m.is_archived)}
+                            emptyMessage={showArchived ? "Arşivlenmiş bakım kaydı yok" : "Aktif bakım kaydı yok"}
                             onBulkDelete={(ids) => handleDeleteClick('maintenance', null, ids)}
+                            onBulkArchive={handleBulkArchive}
+                            isArchiveView={showArchived}
+                            onToggleArchiveView={setShowArchived}
                             actions={(item) => (
                                 <>
                                     <button onClick={() => openEditModal('maintenance', item)}><Pencil size={16} /></button>
@@ -817,9 +857,12 @@ export default function VehicleDetail() {
                                     key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('service', row)
                                 }
                             ]}
-                            data={services}
-                            emptyMessage="Servis kaydı yok"
+                            data={services.filter(s => showArchived ? s.is_archived : !s.is_archived)}
+                            emptyMessage={showArchived ? "Arşivlenmiş servis kaydı yok" : "Aktif servis kaydı yok"}
                             onBulkDelete={(ids) => handleDeleteClick('service', null, ids)}
+                            onBulkArchive={handleBulkArchive}
+                            isArchiveView={showArchived}
+                            onToggleArchiveView={setShowArchived}
                             actions={(item) => (
                                 <>
                                     <button onClick={() => openEditModal('service', item)}><Pencil size={16} /></button>
@@ -830,168 +873,198 @@ export default function VehicleDetail() {
                     </div>
                 )}
 
-                {activeTab === 'inspection' && (
-                    <div className="tab-pane">
-                        <DataTable
-                            columns={[
-                                { key: 'inspection_date', label: 'Tarih', render: v => formatDate(v) },
-                                { key: 'result', label: 'Sonuç', render: v => <span className={`badge badge-${v === 'passed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}`}>{resultOptions.find(r => r.value === v)?.label || v}</span> },
-                                { key: 'cost', label: 'Ücret', render: v => formatCurrency(v) },
-                                { key: 'next_inspection', label: 'Sonraki', render: v => v ? getDaysUntilText(v) : '-' },
-                                {
-                                    key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('inspection', row)
-                                }
-                            ]}
-                            data={trafficInspections}
-                            emptyMessage="Muayene kaydı yok"
-                            onBulkDelete={(ids) => handleDeleteClick('inspection', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('inspection', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('inspection', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
-                        />
-                    </div>
-                )}
 
-                {activeTab === 'periodic_inspection' && (
-                    <div className="tab-pane">
-                        <DataTable
-                            columns={[
-                                { key: 'inspection_date', label: 'Tarih', render: v => formatDate(v) },
-                                { key: 'result', label: 'Sonuç', render: v => <span className={`badge badge-${v === 'passed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}`}>{resultOptions.find(r => r.value === v)?.label || v}</span> },
-                                { key: 'cost', label: 'Ücret', render: v => formatCurrency(v) },
-                                { key: 'next_inspection', label: 'Sonraki', render: v => v ? getDaysUntilText(v) : '-' },
-                                {
-                                    key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('periodic_inspection', row)
-                                }
-                            ]}
-                            data={periodicInspections}
-                            emptyMessage="Periyodik kontrol kaydı yok"
-                            onBulkDelete={(ids) => handleDeleteClick('periodic_inspection', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('periodic_inspection', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('periodic_inspection', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
-                        />
-                    </div>
-                )}
-
-                {activeTab === 'insurance' && (
-                    <div className="tab-pane">
-                        <DataTable
-                            columns={[
-                                { key: 'company', label: 'Şirket' },
-                                { key: 'type', label: 'Tür', render: v => getInsuranceTypeLabel(v) },
-                                { key: 'start_date', label: 'Başlangıç', render: v => formatDate(v) },
-                                { key: 'end_date', label: 'Bitiş', render: v => getDaysUntilText(v) },
-                                { key: 'premium', label: 'Prim', render: v => formatCurrency(v) },
-                                {
-                                    key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('insurance', row)
-                                }
-                            ]}
-                            data={insurances}
-                            emptyMessage="Sigorta kaydı yok"
-                            onBulkDelete={(ids) => handleDeleteClick('insurance', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('insurance', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('insurance', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
-                        />
-                    </div>
-                )}
-
-                {activeTab === 'assignment' && (
-                    <div className="tab-pane">
-                        <DataTable
-                            columns={[
-                                { key: 'item_name', label: 'Malzeme' },
-                                { key: 'quantity', label: 'Adet' },
-                                { key: 'assigned_to', label: 'Sorumlu' },
-                                { key: 'start_date', label: 'Başlangıç', render: v => formatDate(v) },
-                                { key: 'end_date', label: 'Bitiş', render: v => v ? formatDate(v) : <span className="badge badge-success">Aktif</span> },
-                                {
-                                    key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('assignment', row)
-                                }
-                            ]}
-                            data={assignments}
-                            emptyMessage="Demirbaş kaydı yok"
-                            onBulkDelete={(ids) => handleDeleteClick('assignment', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('assignment', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('assignment', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
-                        />
-                    </div>
-                )}
-
-                {activeTab === 'documents' && (
-                    <div className="tab-pane">
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-                            {/* Override parent button if needed or just use the one in header */}
-                        </div>
-                        <DataTable
-                            columns={[
-                                { key: 'file_name', label: 'Dosya Adı' },
-                                {
-                                    key: 'related_info', label: 'İlgili Kayıt', width: '200px', render: (_, row) => {
-                                        if (row.related_type === 'vehicle') return <span className="badge badge-primary">Araç Geneli</span>;
-
-                                        let info = null;
-                                        if (row.related_type === 'maintenance') {
-                                            const item = maintenances.find(m => m.id === row.related_id);
-                                            if (item) info = `Bakım: ${getMaintenanceTypeLabel(item.type)} (${formatDate(item.date)})`;
-                                        } else if (row.related_type === 'service') {
-                                            const item = services.find(s => s.id === row.related_id);
-                                            if (item) info = `Servis: ${item.service_name} (${formatDate(item.date)})`;
-                                        } else if (row.related_type === 'inspection') {
-                                            const item = trafficInspections.find(i => i.id === row.related_id);
-                                            if (item) info = `Muayene: ${formatDate(item.inspection_date)}`;
-                                        } else if (row.related_type === 'periodic_inspection') {
-                                            const item = periodicInspections.find(i => i.id === row.related_id);
-                                            if (item) info = `Periyodik: ${formatDate(item.inspection_date)}`;
-                                        } else if (row.related_type === 'insurance') {
-                                            const item = insurances.find(i => i.id === row.related_id);
-                                            if (item) info = `Sigorta: ${insuranceTypes.find(t => t.value === item.type)?.label || item.type} (${item.company})`;
-                                        } else if (row.related_type === 'assignment') {
-                                            const item = assignments.find(a => a.id === row.related_id);
-                                            if (item) info = `Zimmet: ${item.item_name} (${item.assigned_to || '-'})`;
-                                        }
-
-                                        return info ? (
-                                            <span style={{ fontSize: '12px' }}>{info}</span>
-                                        ) : (
-                                            <span className="text-muted">{row.related_type}</span>
-                                        );
+                {
+                    activeTab === 'inspection' && (
+                        <div className="tab-pane">
+                            <DataTable
+                                columns={[
+                                    { key: 'inspection_date', label: 'Tarih', render: v => formatDate(v) },
+                                    { key: 'result', label: 'Sonuç', render: v => <span className={`badge badge-${v === 'passed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}`}>{resultOptions.find(r => r.value === v)?.label || v}</span> },
+                                    { key: 'cost', label: 'Ücret', render: v => formatCurrency(v) },
+                                    ...(showArchived ? [] : [
+                                        { key: 'next_inspection', label: 'Sonraki', render: v => v ? getDaysUntilText(v) : '-' }
+                                    ]),
+                                    {
+                                        key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('inspection', row)
                                     }
-                                },
-                                { key: 'created_at', label: 'Yükleme Tarihi', render: v => formatDate(v) },
-                                { key: 'file_type', label: 'Tür' }
-                            ]}
-                            data={documents}
-                            emptyMessage="Belge bulunamadı"
-                            onBulkDelete={(ids) => handleDeleteClick('documents', null, ids)}
-                            actions={(item) => (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item.file_path) }} title="Aç"><FileText size={16} /></button>
-                                    <button className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }}><Trash2 size={16} /></button>
-                                </div>
-                            )}
-                        />
-                    </div>
-                )}
-            </div>
+                                ]}
+                                data={trafficInspections.filter(i => showArchived ? i.is_archived : !i.is_archived)}
+                                emptyMessage={showArchived ? "Arşivlenmiş muayene kaydı yok" : "Aktif muayene kaydı yok"}
+                                onBulkDelete={(ids) => handleDeleteClick('inspection', null, ids)}
+                                onBulkArchive={handleBulkArchive}
+                                isArchiveView={showArchived}
+                                onToggleArchiveView={setShowArchived}
+                                actions={(item) => (
+                                    <>
+                                        <button onClick={() => openEditModal('inspection', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('inspection', item)}><Trash2 size={16} /></button>
+                                    </>
+                                )}
+                            />
+                        </div>
+                    )
+                }
+
+                {
+                    activeTab === 'periodic_inspection' && (
+                        <div className="tab-pane">
+                            <DataTable
+                                columns={[
+                                    { key: 'inspection_date', label: 'Tarih', render: v => formatDate(v) },
+                                    { key: 'result', label: 'Sonuç', render: v => <span className={`badge badge-${v === 'passed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}`}>{resultOptions.find(r => r.value === v)?.label || v}</span> },
+                                    { key: 'cost', label: 'Ücret', render: v => formatCurrency(v) },
+                                    ...(showArchived ? [] : [
+                                        { key: 'next_inspection', label: 'Sonraki', render: v => v ? getDaysUntilText(v) : '-' }
+                                    ]),
+                                    {
+                                        key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('periodic_inspection', row)
+                                    }
+                                ]}
+                                data={periodicInspections.filter(i => showArchived ? i.is_archived : !i.is_archived)}
+                                emptyMessage={showArchived ? "Arşivlenmiş periyodik kontrol kaydı yok" : "Aktif periyodik kontrol kaydı yok"}
+                                onBulkDelete={(ids) => handleDeleteClick('periodic_inspection', null, ids)}
+                                onBulkArchive={handleBulkArchive}
+                                isArchiveView={showArchived}
+                                onToggleArchiveView={setShowArchived}
+                                actions={(item) => (
+                                    <>
+                                        <button onClick={() => openEditModal('periodic_inspection', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('periodic_inspection', item)}><Trash2 size={16} /></button>
+                                    </>
+                                )}
+                            />
+                        </div>
+                    )
+                }
+
+                {
+                    activeTab === 'insurance' && (
+                        <div className="tab-pane">
+                            <DataTable
+                                columns={[
+                                    { key: 'company', label: 'Şirket' },
+                                    { key: 'type', label: 'Tür', render: v => getInsuranceTypeLabel(v) },
+                                    { key: 'start_date', label: 'Başlangıç', render: v => formatDate(v) },
+                                    ...(showArchived ? [
+                                        { key: 'end_date', label: 'Bitiş Tarihi', render: v => formatDate(v) }
+                                    ] : [
+                                        { key: 'end_date', label: 'Bitiş', render: v => getDaysUntilText(v) }
+                                    ]),
+                                    { key: 'premium', label: 'Prim', render: v => formatCurrency(v) },
+                                    {
+                                        key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('insurance', row)
+                                    }
+                                ]}
+                                data={insurances.filter(i => showArchived ? i.is_archived : !i.is_archived)}
+                                emptyMessage={showArchived ? "Arşivlenmiş sigorta kaydı yok" : "Aktif sigorta kaydı yok"}
+                                onBulkDelete={(ids) => handleDeleteClick('insurance', null, ids)}
+                                onBulkArchive={handleBulkArchive}
+                                isArchiveView={showArchived}
+                                onToggleArchiveView={setShowArchived}
+                                actions={(item) => (
+                                    <>
+                                        <button onClick={() => openEditModal('insurance', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('insurance', item)}><Trash2 size={16} /></button>
+                                    </>
+                                )}
+                            />
+                        </div>
+                    )
+                }
+
+                {
+                    activeTab === 'assignment' && (
+                        <div className="tab-pane">
+                            <DataTable
+                                columns={[
+                                    { key: 'item_name', label: 'Malzeme' },
+                                    { key: 'quantity', label: 'Adet' },
+                                    { key: 'assigned_to', label: 'Sorumlu' },
+                                    { key: 'start_date', label: 'Başlangıç', render: v => formatDate(v) },
+                                    { key: 'end_date', label: 'Bitiş', render: v => v ? formatDate(v) : <span className="badge badge-success">Aktif</span> },
+                                    {
+                                        key: 'has_file', label: 'Belge', width: '100px', align: 'center', render: (_, row) => renderDocumentCell('assignment', row)
+                                    }
+                                ]}
+                                data={assignments.filter(a => showArchived ? a.is_archived : !a.is_archived)}
+                                emptyMessage={showArchived ? "Arşivlenmiş zimmet kaydı yok" : "Aktif zimmet kaydı yok"}
+                                onBulkDelete={(ids) => handleDeleteClick('assignment', null, ids)}
+                                onBulkArchive={handleBulkArchive}
+                                isArchiveView={showArchived}
+                                onToggleArchiveView={setShowArchived}
+                                actions={(item) => (
+                                    <>
+                                        <button onClick={() => openEditModal('assignment', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('assignment', item)}><Trash2 size={16} /></button>
+                                    </>
+                                )}
+                            />
+                        </div>
+                    )
+                }
+
+                {
+                    activeTab === 'documents' && (
+                        <div className="tab-pane">
+
+                            <DataTable
+                                columns={[
+                                    { key: 'file_name', label: 'Dosya Adı' },
+                                    {
+                                        key: 'related_info', label: 'İlgili Kayıt', width: '200px', render: (_, row) => {
+                                            if (row.related_type === 'vehicle') return <span className="badge badge-primary">Araç Geneli</span>;
+
+                                            let info = null;
+                                            if (row.related_type === 'maintenance') {
+                                                const item = maintenances.find(m => m.id === row.related_id);
+                                                if (item) info = `Bakım: ${getMaintenanceTypeLabel(item.type)} (${formatDate(item.date)})`;
+                                            } else if (row.related_type === 'service') {
+                                                const item = services.find(s => s.id === row.related_id);
+                                                if (item) info = `Servis: ${item.service_name} (${formatDate(item.date)})`;
+                                            } else if (row.related_type === 'inspection') {
+                                                const item = trafficInspections.find(i => i.id === row.related_id);
+                                                if (item) info = `Muayene: ${formatDate(item.inspection_date)}`;
+                                            } else if (row.related_type === 'periodic_inspection') {
+                                                const item = periodicInspections.find(i => i.id === row.related_id);
+                                                if (item) info = `Periyodik: ${formatDate(item.inspection_date)}`;
+                                            } else if (row.related_type === 'insurance') {
+                                                const item = insurances.find(i => i.id === row.related_id);
+                                                if (item) info = `Sigorta: ${insuranceTypes.find(t => t.value === item.type)?.label || item.type} (${item.company})`;
+                                            } else if (row.related_type === 'assignment') {
+                                                const item = assignments.find(a => a.id === row.related_id);
+                                                if (item) info = `Zimmet: ${item.item_name} (${item.assigned_to || '-'})`;
+                                            }
+
+                                            return info ? (
+                                                <span style={{ fontSize: '12px' }}>{info}</span>
+                                            ) : (
+                                                <span className="text-muted">{row.related_type}</span>
+                                            );
+                                        }
+                                    },
+                                    { key: 'created_at', label: 'Yükleme Tarihi', render: v => formatDate(v) },
+                                    { key: 'file_type', label: 'Tür' }
+                                ]}
+                                data={documents}
+                                emptyMessage="Belge bulunamadı"
+                                onBulkDelete={(ids) => handleDeleteClick('documents', null, ids)}
+                                actions={(item) => (
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item.file_path) }} title="Aç"><FileText size={16} /></button>
+                                        <button className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }}><Trash2 size={16} /></button>
+                                    </div>
+                                )}
+                            />
+                        </div>
+                    )
+                }
+            </div >
 
             {/* Dynamic Modal */}
-            <Modal
-                isOpen={!!modalType}
+            < Modal
+                isOpen={!!modalType
+                }
                 onClose={closeModal}
                 title={modalType === 'vehicle' ? 'Araç Düzenle' : `${editingItem ? 'Düzenle' : 'Yeni'} ${tabs.find(t => t.id === modalType)?.label || ''}`}
                 size={modalType === 'vehicle' ? 'xl' : 'lg'}
@@ -1058,7 +1131,7 @@ export default function VehicleDetail() {
                         )}
                     </>
                 )}
-            </Modal>
+            </Modal >
 
             <ConfirmModal
                 isOpen={!!confirmModal}

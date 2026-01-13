@@ -22,6 +22,19 @@ export default function Settings() {
     const [updateInfo, setUpdateInfo] = useState(null)
     const [progress, setProgress] = useState(0)
     const [errorMsg, setErrorMsg] = useState('')
+    const [isBackupPathFocused, setIsBackupPathFocused] = useState(false)
+
+    const [notifications, setNotifications] = useState({
+        maintenance: localStorage.getItem('notify_maintenance') !== 'false',
+        inspection: localStorage.getItem('notify_inspection') !== 'false',
+        insurance: localStorage.getItem('notify_insurance') !== 'false'
+    })
+
+    const toggleNotification = (key) => {
+        const newVal = !notifications[key]
+        setNotifications(prev => ({ ...prev, [key]: newVal }))
+        localStorage.setItem(`notify_${key}`, newVal)
+    }
 
     useEffect(() => {
         loadSettings()
@@ -73,22 +86,71 @@ export default function Settings() {
     }
 
     const handleExport = async () => {
-        if (!currentCompany) return alert('Lütfen önce bir şirket seçiniz')
-        const result = await window.electronAPI.exportCompanyData(currentCompany.id)
+        if (!currentCompany) return
+
+        // Gather LocalStorage Data
+        const localStorageData = {}
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            localStorageData[key] = localStorage.getItem(key)
+        }
+
+        const result = await window.electronAPI.exportCompanyData({
+            companyId: currentCompany.id,
+            localStorageData
+        })
+
         if (result.success) {
-            alert(`Yedekleme başarılı: ${result.filePath}`)
+            window.electronAPI.showNotification('Başarılı', `Yedek alındı: ${result.filePath}`)
         } else {
-            if (result.error !== 'İşlem iptal edildi') alert('Hata: ' + result.error)
+            console.error(result.error)
+            setErrorMsg(result.error)
         }
     }
 
     const handleImport = async () => {
         const result = await window.electronAPI.importCompanyData(user.id)
+
         if (result.success) {
-            alert('Veriler başarıyla içe aktarıldı. Yeni şirket oluşturuldu.')
-            window.location.reload()
+            // Restore LocalStorage
+            if (result.localStorage) {
+                const { oldCompanyId, newCompanyId, localStorage: lsData } = result
+                try {
+                    const oldId = oldCompanyId ? oldCompanyId.toString() : ''
+                    const newId = newCompanyId ? newCompanyId.toString() : ''
+
+                    Object.entries(lsData).forEach(([key, value]) => {
+                        if (oldId && newId && key.includes(oldId)) {
+                            const newKey = key.replace(oldId, newId)
+                            localStorage.setItem(newKey, value)
+                        } else {
+                            localStorage.setItem(key, value)
+                        }
+                    })
+
+                    // Refresh notifications state
+                    setNotifications({
+                        maintenance: localStorage.getItem('notify_maintenance') !== 'false',
+                        inspection: localStorage.getItem('notify_inspection') !== 'false',
+                        insurance: localStorage.getItem('notify_insurance') !== 'false'
+                    })
+
+                    // Re-load settings
+                    const newSettings = await window.electronAPI.getSettings()
+                    setSettings(newSettings)
+
+                } catch (err) {
+                    console.error('LocalStorage restore error:', err)
+                }
+            }
+
+            window.electronAPI.showNotification('Başarılı', 'Yedek başarıyla geri yüklendi. Sayfa yenileniyor...')
+            setTimeout(() => window.location.reload(), 1500)
         } else {
-            if (result.error !== 'Dosya seçilmedi') alert('Hata: ' + result.error)
+            if (result.error !== 'Dosya seçilmedi' && result.error !== 'İşlem iptal edildi') {
+                console.error(result.error)
+                window.electronAPI.showNotification('Hata', result.error)
+            }
         }
     }
 
@@ -191,75 +253,76 @@ export default function Settings() {
                                 </div>
                                 <div className="settings-item-content">
                                     <div className="settings-item-label">Versiyon</div>
-                                    <div className="settings-item-desc" style={{ marginBottom: '8px' }}>Mevcut Sürüm: <span style={{ fontFamily: 'monospace', background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px' }}>v{appVersion}</span></div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                                        <span style={{
+                                            background: 'var(--bg-tertiary)',
+                                            padding: '2px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--border-color)'
+                                        }}>
+                                            v{appVersion}
+                                        </span>
 
-                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '12px', fontWeight: 500 }}>Sürümünüz güncel</span>}
+                                        {updateStatus === 'dev-mode' && <span className="text-warning" style={{ fontSize: '12px', fontWeight: 500 }}>Geliştirici modu</span>}
+                                        {updateStatus === 'checking' && <span className="text-muted" style={{ fontSize: '12px' }}>Kontrol ediliyor...</span>}
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                         {updateStatus === 'idle' || updateStatus === 'not-available' || updateStatus === 'error' || updateStatus === 'dev-mode' ? (
                                             <button className="btn btn-sm btn-secondary" onClick={checkForUpdates} disabled={updateStatus === 'checking'}>
-                                                {updateStatus === 'checking' ? 'Kontrol Ediliyor...' : 'Denetle'}
+                                                <RefreshCw size={14} /> Denetle
                                             </button>
                                         ) : null}
 
                                         {updateStatus === 'available' && (
                                             <button className="btn btn-sm btn-primary" onClick={downloadUpdate}>
-                                                <Download size={14} /> İndir
+                                                <Download size={14} /> İndir (v{updateInfo?.version})
                                             </button>
                                         )}
 
                                         {updateStatus === 'downloaded' && (
                                             <button className="btn btn-sm btn-success" onClick={quitAndInstall}>
-                                                <RefreshCw size={14} /> Yeniden Başlat
+                                                <RefreshCw size={14} /> Yeniden Başlat & Yükle
                                             </button>
                                         )}
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* Update Status Messages */}
-                            {updateStatus !== 'idle' && (
-                                <div style={{ padding: '0 15px 15px 15px' }}>
-                                    {updateStatus === 'checking' && <span className="text-muted" style={{ fontSize: '12px' }}>Güncellemeler kontrol ediliyor...</span>}
-                                    {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '12px' }}>Sürümünüz güncel.</span>}
-                                    {updateStatus === 'dev-mode' && <span className="text-warning" style={{ fontSize: '12px' }}>Geliştirici modundasınız.</span>}
+                                    {/* Error Message */}
                                     {updateStatus === 'error' && (
-                                        <div style={{ fontSize: '12px', background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', border: '1px solid var(--danger-bg)' }}>
-                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--danger)', fontWeight: '500', marginBottom: '8px' }}>
-                                                <span>⚠️ Hata: {errorMsg}</span>
+                                        <div style={{ marginTop: '12px', fontSize: '12px', background: 'var(--danger-bg-subtle)', padding: '12px', borderRadius: '8px', border: '1px solid var(--danger-border)' }}>
+                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--danger)', fontWeight: '600', marginBottom: '8px' }}>
+                                                <span>⚠️ Güncelleme Hatası</span>
                                             </div>
-
+                                            <p style={{ margin: 0, color: 'var(--text-primary)', marginBottom: '8px' }}>{errorMsg}</p>
                                             <button
-                                                className="btn btn-sm btn-outline-primary"
+                                                className="btn btn-sm btn-outline-danger"
                                                 style={{ width: '100%', justifyContent: 'center' }}
                                                 onClick={() => window.electronAPI.openExternal('https://github.com/ReJOnSTR/AracTakip/releases/latest')}
                                             >
-                                                <Download size={14} /> Elle İndir (GitHub)
+                                                <Download size={14} /> GitHub'dan İndir
                                             </button>
-                                            <p style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                                                Mac güvenlik ayarları nedeniyle otomatik güncelleme yapılamadı. Lütfen yukarıdaki butona tıklayıp son sürümü elle indirip kurun.
-                                            </p>
                                         </div>
                                     )}
 
-                                    {updateStatus === 'available' && (
-                                        <div style={{ fontSize: '12px' }}>
-                                            <div className="text-primary" style={{ fontWeight: '600' }}>Yeni sürüm mevcut: v{updateInfo?.version}</div>
-                                            <div style={{ marginTop: '5px' }}>Sürüm notları GitHub üzerinde mevcuttur.</div>
-                                        </div>
-                                    )}
-
+                                    {/* Progress Bar */}
                                     {updateStatus === 'downloading' && (
-                                        <div style={{ width: '100%' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                                        <div style={{ marginTop: '12px', width: '100%' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
                                                 <span>İndiriliyor...</span>
-                                                <span>%{Math.round(progress)}</span>
+                                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>%{Math.round(progress)}</span>
                                             </div>
-                                            <div style={{ width: '100%', height: '4px', background: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden' }}>
-                                                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s' }}></div>
+                                            <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s ease-out' }}></div>
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                            )}
+                            </div>
 
                             <div className="settings-item">
                                 <div className="settings-item-icon">
@@ -269,7 +332,7 @@ export default function Settings() {
                                     <div className="settings-item-label">Veritabanı</div>
                                     <div className="settings-item-desc">Yerel SQLite veritabanı</div>
                                 </div>
-                                <span className="settings-item-badge success">Aktif</span>
+                                <span className="badge badge-success" style={{ fontSize: '10px' }}>AKTİF</span>
                             </div>
 
                         </div>
@@ -291,7 +354,11 @@ export default function Settings() {
                                     <div className="settings-item-desc">Yaklaşan bakımlar için bildirim</div>
                                 </div>
                                 <label className="toggle-switch">
-                                    <input type="checkbox" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.maintenance}
+                                        onChange={() => toggleNotification('maintenance')}
+                                    />
                                     <span className="toggle-slider"></span>
                                 </label>
                             </div>
@@ -305,7 +372,11 @@ export default function Settings() {
                                     <div className="settings-item-desc">Muayene tarihi yaklaşınca uyar</div>
                                 </div>
                                 <label className="toggle-switch">
-                                    <input type="checkbox" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.inspection}
+                                        onChange={() => toggleNotification('inspection')}
+                                    />
                                     <span className="toggle-slider"></span>
                                 </label>
                             </div>
@@ -319,7 +390,11 @@ export default function Settings() {
                                     <div className="settings-item-desc">Sigorta bitiş tarihi hatırlatması</div>
                                 </div>
                                 <label className="toggle-switch">
-                                    <input type="checkbox" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.insurance}
+                                        onChange={() => toggleNotification('insurance')}
+                                    />
                                     <span className="toggle-slider"></span>
                                 </label>
                             </div>
@@ -329,7 +404,7 @@ export default function Settings() {
                     {/* Data Management Section */}
                     <div className="settings-section">
                         <h2 className="settings-section-title">Veri Yönetimi</h2>
-                        <div className="settings-list">
+                        <div className="settings-list" style={{ overflow: 'visible' }}>
                             <div className="settings-item" style={{ alignItems: 'flex-start' }}>
                                 <div className="settings-item-icon" style={{ marginTop: '4px' }}>
                                     <Database size={18} />
@@ -348,13 +423,13 @@ export default function Settings() {
                                 </div>
                             </div>
 
-                            <div className="settings-item">
+                            <div className="settings-item" style={{ borderBottom: 'none', paddingBottom: settings.autoBackup ? '12px' : '16px' }}>
                                 <div className="settings-item-icon">
                                     <RefreshCw size={18} />
                                 </div>
                                 <div className="settings-item-content">
                                     <div className="settings-item-label">Otomatik Yedekleme</div>
-                                    <div className="settings-item-desc">Periyodik olarak yedek al</div>
+                                    <div className="settings-item-desc">Verileri periyodik olarak yedekle</div>
                                 </div>
                                 <label className="toggle-switch">
                                     <input
@@ -366,39 +441,89 @@ export default function Settings() {
                                 </label>
                             </div>
 
+                            {/* Auto Backup Configuration Area */}
                             {settings.autoBackup && (
-                                <>
-                                    <div className="settings-item" style={{ borderTop: 'none', paddingTop: 0 }}>
-                                        <div className="settings-item-content" style={{ paddingLeft: '44px', width: '100%' }}>
-                                            <div className="settings-item-label" style={{ marginBottom: '8px' }}>Sıklık</div>
-                                            <CustomSelect
-                                                className="form-select-custom"
-                                                options={backupOptions}
-                                                value={settings.frequency}
-                                                onChange={(val) => handleSettingChange('frequency', val)}
-                                                placeholder="Seçiniz"
-                                            />
-                                        </div>
+                                <div style={{
+                                    margin: '0 16px 16px 16px',
+                                    background: 'var(--bg-tertiary)',
+                                    padding: '16px',
+                                    borderRadius: '8px',
+                                    border: '1px solid var(--border-color)',
+                                    animation: 'fadeIn 0.2s ease-out',
+                                    overflow: 'visible' // Allow dropdown to overflow
+                                }}>
+                                    <div style={{ marginBottom: '16px', position: 'relative', zIndex: 10 }}>
+                                        <CustomSelect
+                                            label="Sıklık"
+                                            options={backupOptions}
+                                            value={settings.frequency}
+                                            onChange={(val) => handleSettingChange('frequency', val)}
+                                        />
                                     </div>
 
-                                    <div className="settings-item" style={{ borderTop: 'none', paddingTop: 0 }}>
-                                        <div className="settings-item-content" style={{ paddingLeft: '44px', width: '100%' }}>
-                                            <div className="settings-item-label" style={{ marginBottom: '8px' }}>Yedekleme Konumu</div>
-                                            <div className="path-selector" style={{ display: 'flex', gap: '8px' }}>
+                                    <div style={{ position: 'relative', zIndex: 1 }}>
+                                        <div
+                                            className={`form-group floating-label-group has-value ${isBackupPathFocused ? 'focused' : ''}`}
+                                            style={{
+                                                marginBottom: 0,
+                                                border: isBackupPathFocused ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                                borderRadius: '8px',
+                                                overflow: 'hidden',
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: isBackupPathFocused ? '0 0 0 3px rgba(50, 200, 255, 0.25)' : 'none'
+                                            }}
+                                        >
+                                            <div className="input-wrapper" style={{ display: 'flex', alignItems: 'center' }}>
                                                 <input
                                                     type="text"
+                                                    id="backupPath"
                                                     className="form-input"
-                                                    style={{ fontSize: '12px', padding: '6px 10px' }}
+                                                    style={{
+                                                        border: 'none',
+                                                        borderRadius: 0,
+                                                        boxShadow: 'none',
+                                                        outline: 'none',
+                                                        textOverflow: 'ellipsis',
+                                                        paddingRight: '10px',
+                                                        flex: 1,
+                                                        background: 'transparent',
+                                                        height: '40px'
+                                                    }}
                                                     readOnly
-                                                    value={settings.backupPath || 'Seçilmedi'}
+                                                    value={settings.backupPath || 'Varsayılan (Belgelerim)'}
+                                                    onFocus={() => setIsBackupPathFocused(true)}
+                                                    onBlur={() => setIsBackupPathFocused(false)}
                                                 />
-                                                <button className="btn btn-secondary" style={{ padding: '0 10px' }} onClick={handleBackupPathSelect}>
-                                                    <Folder size={16} />
+                                                <label className="form-label" htmlFor="backupPath">
+                                                    Yedekleme Konumu
+                                                </label>
+
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    style={{
+                                                        borderRadius: 0,
+                                                        border: 'none',
+                                                        borderLeft: '1px solid var(--border-color)',
+                                                        padding: '0 12px',
+                                                        height: '42px',
+                                                        marginTop: '0',
+                                                        background: 'var(--bg-secondary)',
+                                                        outline: 'none'
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleBackupPathSelect();
+                                                    }}
+                                                    title="Klasör Seç"
+                                                    onFocus={() => setIsBackupPathFocused(true)}
+                                                    onBlur={() => setIsBackupPathFocused(false)}
+                                                >
+                                                    <Folder size={18} />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>

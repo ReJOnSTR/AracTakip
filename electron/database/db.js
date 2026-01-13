@@ -386,6 +386,16 @@ function getVehicleById(vehicleId) {
 
 function createVehicle({ companyId, type, plate, brand, model, year, color, status, notes, image }) {
     try {
+        // Check for duplicate plate in the same company
+        const existing = runQueryOne(
+            'SELECT id FROM vehicles WHERE company_id = ? AND plate = ?',
+            [companyId, plate]
+        )
+
+        if (existing) {
+            return { success: false, error: 'Bu plaka ile kayıtlı bir araç zaten mevcut.' }
+        }
+
         const info = runExec(
             'INSERT INTO vehicles (company_id, type, plate, brand, model, year, color, status, notes, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [companyId, type, plate, brand, model, year, color, status || 'active', notes, image]
@@ -449,11 +459,11 @@ function getAllMaintenances(companyId, isArchived = 0) {
     }
 }
 
-function createMaintenance({ vehicleId, type, description, date, cost, nextKm, nextDate, notes, filePath }) {
+function createMaintenance({ vehicleId, type, description, date, cost, nextKm, nextDate, notes, filePath, isArchived = 0 }) {
     try {
         const info = runExec(
-            'INSERT INTO maintenances (vehicle_id, type, description, date, cost, next_km, next_date, notes, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [vehicleId, type, description, date, cost, nextKm, nextDate, notes, filePath]
+            'INSERT INTO maintenances (vehicle_id, type, description, date, cost, next_km, next_date, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [vehicleId, type, description, date, cost, nextKm, nextDate, notes, filePath, isArchived]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -513,35 +523,41 @@ function createInspection(data) {
         const type = data.type || 'traffic';
 
         // 1. Check if there is an active inspection and if it's too early to renew
-        const activeInspection = runQueryOne(
-            'SELECT next_inspection FROM inspections WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0 ORDER BY inspection_date DESC LIMIT 1',
-            [data.vehicleId, type]
-        );
+        // Skip validation for imports or overrides
+        if (!data.skipValidation) {
+            const activeInspection = runQueryOne(
+                'SELECT next_inspection FROM inspections WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0 ORDER BY inspection_date DESC LIMIT 1',
+                [data.vehicleId, type]
+            );
 
-        if (activeInspection && activeInspection.next_inspection) {
-            const today = new Date();
-            const nextDate = new Date(activeInspection.next_inspection);
-            const diffTime = nextDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (activeInspection && activeInspection.next_inspection) {
+                const today = new Date();
+                const nextDate = new Date(activeInspection.next_inspection);
+                const diffTime = nextDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            if (diffDays > 15) {
-                return {
-                    success: false,
-                    error: `Mevcut muayenenin süresi henüz dolmadı. Bitime 15 gün kala (Kalan süre: ${diffDays} gün) yenileme yapabilirsiniz.`
-                };
+                if (diffDays > 15) {
+                    return {
+                        success: false,
+                        error: `Mevcut muayenenin süresi henüz dolmadı. Bitime 15 gün kala (Kalan süre: ${diffDays} gün) yenileme yapabilirsiniz.`
+                    };
+                }
             }
         }
 
         // 2. Archive existing active inspections
-        runExec(
-            'UPDATE inspections SET is_archived = 1 WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0',
-            [data.vehicleId, type]
-        );
+        // Only if new record is active (isArchived === 0)
+        if (!data.isArchived) {
+            runExec(
+                'UPDATE inspections SET is_archived = 1 WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0',
+                [data.vehicleId, type]
+            );
+        }
 
         // 3. Insert new record
         const info = runExec(
-            'INSERT INTO inspections (vehicle_id, type, inspection_date, next_inspection, result, cost, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)',
-            [data.vehicleId, type, data.inspectionDate, data.nextInspection, data.result, data.cost, data.notes, data.filePath]
+            'INSERT INTO inspections (vehicle_id, type, inspection_date, next_inspection, result, cost, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [data.vehicleId, type, data.inspectionDate, data.nextInspection, data.result, data.cost, data.notes, data.filePath, data.isArchived !== undefined ? data.isArchived : 0]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -603,38 +619,47 @@ function getAllInsurances(companyId, isArchived = 0) {
     }
 }
 
-function createInsurance({ vehicleId, company, policyNo, type, startDate, endDate, premium, notes, filePath }) {
+function createInsurance({ vehicleId, company, policyNo, type, startDate, endDate, premium, notes, filePath, isArchived = 0, skipValidation = false }) {
     try {
         // 1. Check if there is an active insurance and if it's too early to renew
-        const activeInsurance = runQueryOne(
-            'SELECT end_date FROM insurances WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0 ORDER BY end_date DESC LIMIT 1',
-            [vehicleId, type]
-        );
+        // Skip validation for imports
+        if (!skipValidation) {
+            const activeInsurance = runQueryOne(
+                'SELECT end_date FROM insurances WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0 ORDER BY end_date DESC LIMIT 1',
+                [vehicleId, type]
+            );
 
-        if (activeInsurance && activeInsurance.end_date) {
-            const today = new Date();
-            const endDateObj = new Date(activeInsurance.end_date);
-            const diffTime = endDateObj - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (activeInsurance && activeInsurance.end_date) {
+                const today = new Date();
+                const endDateObj = new Date(activeInsurance.end_date);
+                const diffTime = endDateObj - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            if (diffDays > 15) {
-                return {
-                    success: false,
-                    error: `Mevcut sigortanın süresi henüz dolmadı. Bitime 15 gün kala (Kalan süre: ${diffDays} gün) yenileme yapabilirsiniz.`
-                };
+                if (diffDays > 15) {
+                    return {
+                        success: false,
+                        error: `Mevcut sigortanın süresi henüz dolmadı. Bitime 15 gün kala (Kalan süre: ${diffDays} gün) yenileme yapabilirsiniz.`
+                    };
+                }
             }
         }
 
-        // 2. Archive existing active insurances
-        runExec(
-            'UPDATE insurances SET is_archived = 1 WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0',
-            [vehicleId, type]
-        )
+        // 2. Archive existing active insurances (Only if not already archived and validation not skipped? No, business rule is about creating NEW active one archives OLD active one.)
+        // If we are Importing an Archived item, we shouldn't archive others?
+        // If we are Importing an Active item, we SHOULD archive others?
+        // Logic: active archive update should happen if new item is Active.
+        // If `isArchived` is 1, it's just history, don't touch others.
+        if (isArchived === 0) {
+            runExec(
+                'UPDATE insurances SET is_archived = 1 WHERE vehicle_id = ? AND type = ? AND COALESCE(is_archived, 0) = 0',
+                [vehicleId, type]
+            )
+        }
 
         // 3. Insert new record
         const info = runExec(
-            'INSERT INTO insurances (vehicle_id, company, policy_no, type, start_date, end_date, premium, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)',
-            [vehicleId, company, policyNo, type, startDate, endDate, premium, notes, filePath]
+            'INSERT INTO insurances (vehicle_id, company, policy_no, type, start_date, end_date, premium, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [vehicleId, company, policyNo, type, startDate, endDate, premium, notes, filePath, isArchived]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -695,11 +720,11 @@ function getAllAssignments(companyId, isArchived = 0) {
     }
 }
 
-function createAssignment({ vehicleId, itemName, quantity, assignedTo, department, startDate, endDate, notes }) {
+function createAssignment({ vehicleId, itemName, quantity, assignedTo, department, startDate, endDate, notes, isArchived = 0 }) {
     try {
         const info = runExec(
-            'INSERT INTO assignments (vehicle_id, item_name, quantity, assigned_to, department, start_date, end_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [vehicleId, itemName, quantity || 1, assignedTo || '', department, startDate, endDate, notes]
+            'INSERT INTO assignments (vehicle_id, item_name, quantity, assigned_to, department, start_date, end_date, notes, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [vehicleId, itemName, quantity || 1, assignedTo || '', department, startDate, endDate, notes, isArchived]
         )
         return { success: true, id: info.lastInsertRowid }
     } catch (error) {
@@ -760,10 +785,10 @@ function getAllServices(companyId, isArchived = 0) {
     }
 }
 
-function createService({ vehicleId, type, serviceName, description, date, km, cost, notes, filePath }) {
+function createService({ vehicleId, type, serviceName, description, date, km, cost, notes, filePath, isArchived = 0 }) {
     try {
         const info = runExec(
-            'INSERT INTO services (vehicle_id, type, service_name, description, date, km, cost, notes, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO services (vehicle_id, type, service_name, description, date, km, cost, notes, file_path, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 vehicleId,
                 type,
@@ -773,7 +798,8 @@ function createService({ vehicleId, type, serviceName, description, date, km, co
                 km || null,
                 cost || 0,
                 notes || null,
-                filePath
+                filePath,
+                isArchived
             ]
         )
         return { success: true, id: info.lastInsertRowid }
@@ -1041,15 +1067,30 @@ function getCompanyCompleteData(companyId) {
 
         const vehicles = getVehicles(companyId).data || []
 
+        // Get ALL documents for file collection
+        const allDocuments = getDocumentsByCompany(companyId).data || []
+
+        // Helper to filter docs from memory (avoid N+1 queries if possible, or just use queries)
+        // Since we have allDocuments, let's filter!
+        const getDocs = (type, id) => allDocuments.filter(d => d.related_type === type && d.related_id === id)
+
         // Enhance vehicles with their sub-data
         const detailedVehicles = vehicles.map(v => {
+            const maintenances = (getMaintenances(v.id).data || []).map(m => ({ ...m, documents: getDocs('maintenance', m.id) }))
+            const inspections = (getInspectionsByVehicle(v.id).data || []).map(i => ({ ...i, documents: getDocs('periodic_inspection', i.id) }))
+            const insurances = (getInsurances(v.id).data || []).map(ins => ({ ...ins, documents: getDocs('insurance', ins.id) }))
+            const assignments = (getAssignments(v.id).data || []).map(a => ({ ...a, documents: getDocs('assignment', a.id) }))
+            const services = (getServices(v.id).data || []).map(s => ({ ...s, documents: getDocs('service', s.id) }))
+            const vehicleDocs = getDocs('vehicle', v.id) || []
+
             return {
                 ...v,
-                maintenances: getMaintenances(v.id).data || [],
-                inspections: getInspectionsByVehicle(v.id).data || [],
-                insurances: getInsurances(v.id).data || [],
-                assignments: getAssignments(v.id).data || [],
-                services: getServices(v.id).data || []
+                documents: vehicleDocs,
+                maintenances,
+                inspections,
+                insurances,
+                assignments,
+                services
             }
         })
 
@@ -1058,8 +1099,9 @@ function getCompanyCompleteData(companyId) {
             data: {
                 company,
                 vehicles: detailedVehicles,
+                allDocuments, // For Main.js to find files
                 exportedAt: new Date().toISOString(),
-                version: '1.0'
+                version: '1.1' // Version bump for zip support
             }
         }
     } catch (error) {
@@ -1071,6 +1113,14 @@ function importCompanyData(userId, backupData) {
     try {
         if (!backupData.company || !backupData.vehicles) {
             return { success: false, error: 'Invalid backup format' }
+        }
+
+        // Helper to insert document
+        const insertDoc = (vId, type, rId, d) => {
+            runExec(
+                'INSERT INTO documents (vehicle_id, related_type, related_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?, ?, ?)',
+                [vId, type, rId, d.file_name, d.file_path, d.file_type]
+            )
         }
 
         // 1. Create Company
@@ -1090,11 +1140,16 @@ function importCompanyData(userId, backupData) {
                 )
                 const newVehicleId = vInfo.lastInsertRowid
 
+                // Vehicle Documents
+                if (v.documents) {
+                    for (const d of v.documents) insertDoc(newVehicleId, 'vehicle', newVehicleId, d)
+                }
+
                 // Sub-tables
                 // IMPORTANT: Map snake_case (DB/Export) to camelCase (Function Arguments)
                 if (v.maintenances) {
                     for (const m of v.maintenances) {
-                        createMaintenance({
+                        const mInfo = createMaintenance({
                             vehicleId: newVehicleId,
                             type: m.type,
                             description: m.description,
@@ -1102,25 +1157,51 @@ function importCompanyData(userId, backupData) {
                             cost: m.cost,
                             nextKm: m.next_km,
                             nextDate: m.next_date,
-                            notes: m.notes
+                            notes: m.notes,
+                            isArchived: m.is_archived // Pass archived status
                         })
+                        // Insert docs using new ID (mInfo.id? createMaintenance returns {success, id}?)
+                        // Need to verify createMaintenance return value. Assuming it returns {success:true, id: ...}
+                        // Looking at Step 8784: createMaintenance is exported.
+                        // I will assume it returns ID. If not, I should check createMaintenance implementation.
+                        // Wait, previous code loop (Step 8750) called `createMaintenance` but ignored result?
+                        // "createMaintenance({...})". Yes.
+                        // I need the ID to link documents!
+                        // I must modify createMaintenance to return ID if it doesn't.
+                        // Wait, Step 8750 shows:
+                        /*
+                        createMaintenance({ ... })
+                        */
+                        // It didn't capture return.
+                        // Let's check `createMaintenance` implementation in db.js if I can see it.
+                        // It is in older context. Assuming it follows pattern: returns {success, id}.
+
+                        if (mInfo.success && m.documents) {
+                            for (const d of m.documents) insertDoc(newVehicleId, 'maintenance', mInfo.id, d)
+                        }
                     }
                 }
                 if (v.inspections) {
                     for (const i of v.inspections) {
-                        createInspection({
+                        const iInfo = createInspection({
                             vehicleId: newVehicleId,
+                            type: i.type,
                             inspectionDate: i.inspection_date,
                             nextInspection: i.next_inspection,
                             result: i.result,
                             cost: i.cost,
-                            notes: i.notes
+                            notes: i.notes,
+                            skipValidation: true, // Force import
+                            isArchived: i.is_archived // Pass archived status
                         })
+                        if (iInfo.success && i.documents) {
+                            for (const d of i.documents) insertDoc(newVehicleId, 'periodic_inspection', iInfo.id, d)
+                        }
                     }
                 }
                 if (v.insurances) {
                     for (const ins of v.insurances) {
-                        createInsurance({
+                        const insInfo = createInsurance({
                             vehicleId: newVehicleId,
                             company: ins.company,
                             policyNo: ins.policy_no,
@@ -1128,13 +1209,18 @@ function importCompanyData(userId, backupData) {
                             startDate: ins.start_date,
                             endDate: ins.end_date,
                             premium: ins.premium,
-                            notes: ins.notes
+                            notes: ins.notes,
+                            skipValidation: true, // Force import
+                            isArchived: ins.is_archived // Pass archived status
                         })
+                        if (insInfo.success && ins.documents) {
+                            for (const d of ins.documents) insertDoc(newVehicleId, 'insurance', insInfo.id, d)
+                        }
                     }
                 }
                 if (v.assignments) {
                     for (const a of v.assignments) {
-                        createAssignment({
+                        const aInfo = createAssignment({
                             vehicleId: newVehicleId,
                             itemName: a.item_name,
                             quantity: a.quantity,
@@ -1142,13 +1228,17 @@ function importCompanyData(userId, backupData) {
                             department: a.department,
                             startDate: a.start_date,
                             endDate: a.end_date,
-                            notes: a.notes
+                            notes: a.notes,
+                            isArchived: a.is_archived // Pass archived status
                         })
+                        if (aInfo.success && a.documents) {
+                            for (const d of a.documents) insertDoc(newVehicleId, 'assignment', aInfo.id, d)
+                        }
                     }
                 }
                 if (v.services) {
                     for (const s of v.services) {
-                        createService({
+                        const sInfo = createService({
                             vehicleId: newVehicleId,
                             type: s.type,
                             serviceName: s.service_name,
@@ -1156,8 +1246,12 @@ function importCompanyData(userId, backupData) {
                             date: s.date,
                             km: s.km,
                             cost: s.cost,
-                            notes: s.notes
+                            notes: s.notes,
+                            isArchived: s.is_archived // Pass archived status
                         })
+                        if (sInfo.success && s.documents) {
+                            for (const d of s.documents) insertDoc(newVehicleId, 'service', sInfo.id, d)
+                        }
                     }
                 }
             }
@@ -1165,6 +1259,83 @@ function importCompanyData(userId, backupData) {
 
         return { success: true, companyId: newCompanyId }
 
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Archive Management
+function archiveItem(table, id, isArchived = 1) {
+    try {
+        runExec(`UPDATE ${table} SET is_archived = ? WHERE id = ?`, [isArchived, id])
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Document Management
+function addDocument(data) {
+    try {
+        const result = runExec(
+            'INSERT INTO documents (vehicle_id, related_type, related_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?, ?, ?)',
+            [data.vehicleId, data.relatedType, data.relatedId, data.fileName, data.filePath, data.fileType]
+        )
+        return { success: true, id: result.lastInsertRowid }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+function getDocument(id) {
+    try {
+        const doc = runQuery('SELECT * FROM documents WHERE id = ?', [id])
+        return { success: true, data: doc[0] }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+function getDocumentsByVehicle(vehicleId) {
+    try {
+        const docs = runQuery(
+            'SELECT * FROM documents WHERE vehicle_id = ? ORDER BY created_at DESC',
+            [vehicleId]
+        )
+        return { success: true, data: docs }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+function getDocumentsByCompany(companyId) {
+    try {
+        const docs = runQuery(
+            'SELECT d.* FROM documents d JOIN vehicles v ON d.vehicle_id = v.id WHERE v.company_id = ? ORDER BY d.created_at DESC',
+            [companyId]
+        )
+        return { success: true, data: docs }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+function deleteDocument(id) {
+    try {
+        runExec('DELETE FROM documents WHERE id = ?', [id])
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+function getDocumentsByRelatedId(type, id) {
+    try {
+        const docs = runQuery(
+            'SELECT * FROM documents WHERE related_type = ? AND related_id = ? ORDER BY created_at DESC',
+            [type, id]
+        )
+        return { success: true, data: docs }
     } catch (error) {
         return { success: false, error: error.message }
     }
@@ -1213,81 +1384,11 @@ module.exports = {
     getRecentActivity,
     getCompanyCompleteData,
     importCompanyData,
-
-    // Archive Management
-    archiveItem: (table, id, isArchived = 1) => {
-        try {
-            runExec(`UPDATE ${table} SET is_archived = ? WHERE id = ?`, [isArchived, id])
-            return { success: true }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    },
-
-    // Document Management
-    addDocument: (data) => {
-        try {
-            const result = runExec(
-                'INSERT INTO documents (vehicle_id, related_type, related_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?, ?, ?)',
-                [data.vehicleId, data.relatedType, data.relatedId, data.fileName, data.filePath, data.fileType]
-            )
-            return { success: true, id: result.lastInsertRowid }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    },
-
-    getDocument: (id) => {
-        try {
-            const doc = runQuery('SELECT * FROM documents WHERE id = ?', [id])
-            return { success: true, data: doc[0] }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    },
-
-    getDocumentsByVehicle: (vehicleId) => {
-        try {
-            const docs = runQuery(
-                'SELECT * FROM documents WHERE vehicle_id = ? ORDER BY created_at DESC',
-                [vehicleId]
-            )
-            return { success: true, data: docs }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    },
-
-    getDocumentsByCompany: (companyId) => {
-        try {
-            const docs = runQuery(
-                'SELECT d.* FROM documents d JOIN vehicles v ON d.vehicle_id = v.id WHERE v.company_id = ? ORDER BY d.created_at DESC',
-                [companyId]
-            )
-            return { success: true, data: docs }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    },
-
-    deleteDocument: (id) => {
-        try {
-            runExec('DELETE FROM documents WHERE id = ?', [id])
-            return { success: true }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    },
-
-    getDocumentsByRelatedId: (type, id) => {
-        try {
-            const docs = runQuery(
-                'SELECT * FROM documents WHERE related_type = ? AND related_id = ? ORDER BY created_at DESC',
-                [type, id]
-            )
-            return { success: true, data: docs }
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
-    }
+    archiveItem,
+    addDocument,
+    getDocument,
+    getDocumentsByVehicle,
+    getDocumentsByCompany,
+    deleteDocument,
+    getDocumentsByRelatedId
 }

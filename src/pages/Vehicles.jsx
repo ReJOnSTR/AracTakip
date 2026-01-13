@@ -12,7 +12,7 @@ import {
     getVehicleTypeLabel,
     getVehicleStatusInfo
 } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Car, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Building2, AlertCircle } from 'lucide-react'
 import VehicleForm from '../components/VehicleForm'
 
 export default function Vehicles() {
@@ -263,7 +263,6 @@ export default function Vehicles() {
                     columns={columns}
                     data={vehicles}
                     showSearch={true}
-                    showSearch={true}
                     showCheckboxes={true}
                     filters={[
                         {
@@ -301,8 +300,20 @@ export default function Vehicles() {
                 footer={null}
             >
                 {error && (
-                    <div className="alert alert-danger" style={{ marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fee2e2', color: '#dc2626', borderRadius: '6px', fontSize: '14px' }}>
-                        {error}
+                    <div style={{
+                        backgroundColor: 'var(--danger-bg)',
+                        color: 'var(--danger)',
+                        border: '1px solid var(--danger)',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontSize: '14px',
+                        marginBottom: '20px'
+                    }}>
+                        <AlertCircle size={20} />
+                        <span>{error}</span>
                     </div>
                 )}
                 <VehicleForm

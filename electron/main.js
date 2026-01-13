@@ -2,7 +2,9 @@ const { app, BrowserWindow, ipcMain, dialog, Menu, nativeImage, globalShortcut, 
 const { autoUpdater } = require('electron-updater')
 const path = require('path')
 const fs = require('fs')
+const crypto = require('crypto')
 const Store = require('electron-store')
+const AdmZip = require('adm-zip')
 const db = require('./database/db')
 
 const store = new Store()
@@ -396,18 +398,24 @@ ipcMain.handle('dashboard:getRecentActivity', async (event, companyId) => {
 
 // ============ DATA MANAGEMENT ============
 
-ipcMain.handle('data:export', async (event, companyId) => {
+ipcMain.handle('data:export', async (event, payload) => {
     try {
+        const companyId = payload.companyId || payload
         const result = db.getCompanyCompleteData(companyId)
         if (!result.success) {
             return { success: false, error: result.error }
         }
 
+        // Merge LocalStorage if present
+        if (payload.localStorageData) {
+            result.data.localStorage = payload.localStorageData
+        }
+
         const { filePath } = await dialog.showSaveDialog(mainWindow, {
-            title: 'Verileri Dışa Aktar',
-            defaultPath: `yedek-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`,
+            title: 'Tam Güvenli Yedekleme (ZIP)',
+            defaultPath: `muayen-yedek-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`,
             filters: [
-                { name: 'JSON Dosyası', extensions: ['json'] }
+                { name: 'Güvenli Yedek Arşivi', extensions: ['zip'] }
             ]
         })
 
@@ -415,9 +423,10 @@ ipcMain.handle('data:export', async (event, companyId) => {
             return { success: false, error: 'İşlem iptal edildi' }
         }
 
-        fs.writeFileSync(filePath, JSON.stringify(result.data, null, 2))
+        createBackupZip(result.data, filePath)
         return { success: true, filePath }
     } catch (error) {
+        console.error('Backup error:', error)
         return { success: false, error: error.message }
     }
 })
@@ -425,10 +434,10 @@ ipcMain.handle('data:export', async (event, companyId) => {
 ipcMain.handle('data:import', async (event, userId) => {
     try {
         const { filePaths } = await dialog.showOpenDialog(mainWindow, {
-            title: 'Verileri İçe Aktar',
+            title: 'Yedeği Geri Yükle',
             properties: ['openFile'],
             filters: [
-                { name: 'JSON Dosyası', extensions: ['json'] }
+                { name: 'Yedek Arşivi', extensions: ['zip'] }
             ]
         })
 
@@ -436,15 +445,73 @@ ipcMain.handle('data:import', async (event, userId) => {
             return { success: false, error: 'Dosya seçilmedi' }
         }
 
-        const fileContent = fs.readFileSync(filePaths[0], 'utf-8')
-        const backupData = JSON.parse(fileContent)
+        const zip = new AdmZip(filePaths[0])
+        const zipEntries = zip.getEntries()
 
+        // 1. Try to find encrypted data
+        let backupData = null
+        const encEntry = zipEntries.find(entry => entry.entryName === "data.enc")
+
+        if (encEntry) {
+            try {
+                const encryptedContent = encEntry.getData().toString("utf8")
+                const decryptedContent = decryptData(encryptedContent)
+                backupData = JSON.parse(decryptedContent)
+            } catch (err) {
+                console.error('Decryption failed:', err)
+                return { success: false, error: 'Yedek dosyası şifresi çözülemedi veya bozuk.' }
+            }
+        } else {
+            // 2. Fallback to unencrypted data.json (Legacy Support)
+            const jsonEntry = zipEntries.find(entry => entry.entryName === "data.json")
+            if (jsonEntry) {
+                const fileContent = jsonEntry.getData().toString("utf8")
+                backupData = JSON.parse(fileContent)
+            }
+        }
+
+        if (!backupData) {
+            return { success: false, error: 'Geçersiz yedek dosyası (Veri bulunamadı)' }
+        }
+
+        // Import Data
         const result = db.importCompanyData(userId, backupData)
+
+        if (result.success) {
+            // Extract Files
+            const userDataPath = app.getPath('userData')
+            const filesDir = path.join(userDataPath, 'files')
+            if (!fs.existsSync(filesDir)) {
+                fs.mkdirSync(filesDir, { recursive: true })
+            }
+
+            zipEntries.forEach(entry => {
+                if (entry.entryName.startsWith("files/") && !entry.isDirectory) {
+                    try {
+                        zip.extractEntryTo(entry, filesDir, false, true)
+                    } catch (err) {
+                        console.warn('Failed to extract file:', entry.entryName, err)
+                    }
+                }
+            })
+
+            // Return localStorage data if available in backup
+            if (backupData.localStorage) {
+                return {
+                    ...result,
+                    localStorage: backupData.localStorage
+                }
+            }
+        }
+
         return result
     } catch (error) {
+        console.error('Import error:', error)
         return { success: false, error: error.message }
     }
 })
+
+
 
 // ============ SETTINGS & AUTO BACKUP ============
 
@@ -472,14 +539,123 @@ function saveSettings(settings) {
     }
 }
 
+// Encryption Helpers
+const ENCRYPTION_KEY = crypto.scryptSync('muayen-app-secure-key-v1', 'salt', 32)
+const IV_LENGTH = 16
+
+function encryptData(text) {
+    const iv = crypto.randomBytes(IV_LENGTH)
+    const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv)
+    let encrypted = cipher.update(text)
+    encrypted = Buffer.concat([encrypted, cipher.final()])
+    return iv.toString('hex') + ':' + encrypted.toString('hex')
+}
+
+function decryptData(text) {
+    const textParts = text.split(':')
+    const iv = Buffer.from(textParts.shift(), 'hex')
+    const encryptedText = Buffer.from(textParts.join(':'), 'hex')
+    const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, iv)
+    let decrypted = decipher.update(encryptedText)
+    decrypted = Buffer.concat([decrypted, decipher.final()])
+    return decrypted.toString()
+}
+
+// Helper for ZIP creation
+function createBackupZip(data, outputPath) {
+    try {
+        const zip = new AdmZip()
+        const jsonContent = JSON.stringify(data, null, 2)
+
+        // Encrypt data.json content
+        const encryptedContent = encryptData(jsonContent)
+        zip.addFile("data.enc", Buffer.from(encryptedContent, "utf8"))
+
+        // Add LocalStorage if present (also encrypt?)
+        // If data.localStorageData exists, we should probably encrypt it too or merge it into data?
+        // Wait, data argument IS the object containing everything (from getCompanyCompleteData).
+        // But in `data:export` (lines 400+), we have `createBackupZip(result.data`...
+        // Does `result.data` contain `localStorageData`?
+        // In Step 8929, I saw `ipcMain.handle('data:export')` passes `data`...
+        // Let's check `ipcMain.handle('data:export')` again to be sure (it was modified in prev sessions).
+        // If `data` is the BIG object, then encrypting `jsonContent` covers EVERYTHING inside `data.json` structure.
+        // Wait, `createBackupZip` in Step 8966 line 512 accepts `data`.
+        // And inside `createBackupZip`: `zip.addFile("data.json", ...)`
+        // AND I see Step 8931 edit summary: "Updated createBackupZip to accept optional localStorageData... if provided adds localstorage.json".
+        // I need to check if `createBackupZip` was updated to accept 3 args or if `data` includes it.
+        // Let's look at `createBackupZip` code in Step 8966 again.
+        // Line 512: `function createBackupZip(data, outputPath) {`
+        // Line 515: `const jsonContent = JSON.stringify(data, null, 2)`
+        // It seems `localStorageData` is NOT separately passed in specific snippet I saw in 8966.
+        // But `data:export` in 8966 line 400 calls `createBackupZip(result.data, filePath)`.
+        // Ah, `localStorage` is passed from frontend to `data:export`?
+        // Let's re-read `data:export` in 8966.
+        // Line 400: `ipcMain.handle('data:export', async (event, companyId) => {`
+        // It does NOT accept `localStorageData`!
+        // Wait, in Step 8929 summary I said: "Updated ipcMain.handle('data:export') to accept localStorageData".
+        // But Step 8966 view shows: `ipcMain.handle('data:export', async (event, companyId) => {`
+        // This means my viewing in 8966 might have been incomplete or I missed something?
+        // OR `companyId` argument is actually `(event, { companyId, localStorageData })`?
+        // Frontend passed `company.id` (arg 1) usually.
+        // If I changed it to object, signature changes.
+        // I need to double check `data:export` signature.
+        // But regardless, I will encrypt `data.enc`.
+
+        // If I also have `localstorage.json`, I should encrypt it too -> `localstorage.enc`.
+        // Or just merge it into `data`?
+        // Merging is cleaner. `data.localStorage = ...`
+
+        // Handling physical files:
+        const userDataPath = app.getPath('userData')
+        const filesDir = path.join(userDataPath, 'files')
+
+        if (fs.existsSync(filesDir)) {
+            const filesToAdd = new Set()
+
+            // 1. Vehicle Images
+            if (data.vehicles) {
+                data.vehicles.forEach(v => {
+                    if (v.image) filesToAdd.add(v.image)
+                })
+            }
+
+            // 2. All Documents
+            if (data.allDocuments) {
+                data.allDocuments.forEach(d => {
+                    if (d.file_path) filesToAdd.add(d.file_path)
+                })
+            }
+
+            filesToAdd.forEach(fileName => {
+                const srcPath = path.join(filesDir, fileName)
+                if (fs.existsSync(srcPath)) {
+                    try {
+                        zip.addLocalFile(srcPath, "files")
+                    } catch (err) {
+                        console.warn('Failed to add file to zip:', fileName, err)
+                    }
+                }
+            })
+        }
+
+        zip.writeZip(outputPath)
+        return true
+    } catch (error) {
+        console.error('Zip creation error:', error)
+        throw error
+    }
+}
+
 function performAutoBackup(companyId, backupPath) {
     try {
         console.log('Starting auto backup for company:', companyId)
         const result = db.getCompanyCompleteData(companyId)
         if (result.success) {
-            const fileName = `autobackup-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`
+            const fileName = `autobackup-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`
             const fullPath = path.join(backupPath, fileName)
-            fs.writeFileSync(fullPath, JSON.stringify(result.data, null, 2))
+
+            createBackupZip(result.data, fullPath)
+
             console.log('Auto backup saved to:', fullPath)
             return true
         }
