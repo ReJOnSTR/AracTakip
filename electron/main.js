@@ -178,7 +178,7 @@ function createMenu() {
 
 // Set App ID for Windows Notifications
 if (process.platform === 'win32') {
-    app.setAppUserModelId('com.aractakip.app') // Must match appId in package.json
+    app.setAppUserModelId('com.muayen.app') // Must match appId in package.json
 }
 
 
@@ -233,6 +233,10 @@ ipcMain.handle('auth:register', async (event, userData) => {
 
 ipcMain.handle('auth:login', async (event, credentials) => {
     return db.loginUser(credentials)
+})
+
+ipcMain.handle('auth:changePassword', async (event, data) => {
+    return db.changePassword(data)
 })
 
 // Company handlers

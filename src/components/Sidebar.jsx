@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import {
     LayoutDashboard,
-    Building2,
     Car,
     Wrench,
     ClipboardCheck,
@@ -26,12 +25,6 @@ export default function Sidebar({ collapsed, onToggle }) {
             items: [
                 { path: '/', label: 'Dashboard', icon: LayoutDashboard },
                 { path: '/reports', label: 'Raporlar', icon: FileText }
-            ]
-        },
-        {
-            title: 'Kurumsal',
-            items: [
-                { path: '/companies', icon: Building2, label: 'Şirketler' }
             ]
         },
         {
@@ -78,10 +71,8 @@ export default function Sidebar({ collapsed, onToggle }) {
                                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                                 title={collapsed ? item.label : ''}
                             >
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                                    <item.icon size={20} />
-                                    <span>{item.label}</span>
-                                </div>
+                                <item.icon size={20} />
+                                <span>{item.label}</span>
                             </NavLink>
                         ))}
                     </div>

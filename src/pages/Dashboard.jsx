@@ -17,6 +17,7 @@ import {
     Gauge
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
+import { DashboardSkeleton } from '../components/Skeleton'
 import Modal from '../components/Modal'
 import { Settings, Save, GripVertical, ChevronUp, ChevronDown } from 'lucide-react'
 
@@ -205,7 +206,6 @@ export default function Dashboard() {
         if (saved) {
             try {
                 const parsedIds = JSON.parse(saved)
-                // Filter allActions to find only valid IDs, then sort them based on the saved order
                 const restored = parsedIds
                     .map(id => allActions.find(a => a.id === id))
                     .filter(Boolean)
@@ -223,8 +223,6 @@ export default function Dashboard() {
     }
 
     const handleOpenSettings = () => {
-        // Initialize temp state with currently visible items first (to keep their order), 
-        // then append the remaining items (inactive ones) at the end.
         const visibleIds = new Set(visibleActions.map(a => a.id))
 
         const orderedVisible = visibleActions.map(a => ({ ...a, active: true }))
@@ -232,8 +230,6 @@ export default function Dashboard() {
 
         setTempActions([...orderedVisible, ...others])
     }
-
-    // ... useEffect hook ...
 
     const toggleAction = (id) => {
         setTempActions(prev => prev.map(a =>
@@ -244,7 +240,6 @@ export default function Dashboard() {
     const onDragStart = (e, index) => {
         setDraggedItemIndex(index)
         e.dataTransfer.effectAllowed = "move"
-        // Transparent drag image or minimal look could be set here
     }
 
     const onDragOver = (e, index) => {
@@ -271,7 +266,6 @@ export default function Dashboard() {
         setShowSettings(false)
     }
 
-    // Call this when showSettings becomes true
     useEffect(() => {
         if (showSettings) {
             handleOpenSettings()
@@ -297,12 +291,7 @@ export default function Dashboard() {
     }
 
     if (companyLoading || loading) {
-        return (
-            <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
-                <div className="loading-spinner"></div>
-                <p>Yükleniyor...</p>
-            </div>
-        )
+        return <DashboardSkeleton />
     }
 
     if (!currentCompany) {

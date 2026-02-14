@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Auth
     register: (userData) => ipcRenderer.invoke('auth:register', userData),
     login: (credentials) => ipcRenderer.invoke('auth:login', credentials),
+    changePassword: (data) => ipcRenderer.invoke('auth:changePassword', data),
 
     // Companies
     getCompanies: (userId) => ipcRenderer.invoke('companies:getAll', userId),

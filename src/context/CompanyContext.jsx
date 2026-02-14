@@ -106,9 +106,18 @@ export function CompanyProvider({ children }) {
         try {
             const result = await window.electronAPI.deleteCompany(id)
             if (result.success) {
-                await loadCompanies()
-                if (currentCompany?.id === id) {
-                    setCurrentCompany(companies.find(c => c.id !== id) || null)
+                const freshResult = await window.electronAPI.getCompanies(user.id)
+                if (freshResult.success) {
+                    setCompanies(freshResult.data)
+                    if (currentCompany?.id === id) {
+                        const nextCompany = freshResult.data.length > 0 ? freshResult.data[0] : null
+                        setCurrentCompany(nextCompany)
+                        if (nextCompany) {
+                            localStorage.setItem('aractakip_company', nextCompany.id)
+                        } else {
+                            localStorage.removeItem('aractakip_company')
+                        }
+                    }
                 }
                 return { success: true }
             }

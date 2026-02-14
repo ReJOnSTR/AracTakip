@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import {
@@ -26,6 +26,7 @@ export default function Header() {
     const location = useLocation()
     const { user, logout } = useAuth()
     const { companies, currentCompany, selectCompany } = useCompany()
+    const navigate = useNavigate()
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
 
@@ -84,6 +85,14 @@ export default function Header() {
                                         </div>
                                     ))
                                 )}
+                                <div
+                                    className="company-dropdown-item"
+                                    style={{ borderTop: '1px solid var(--border-color)', color: 'var(--accent-primary)', fontWeight: 500 }}
+                                    onClick={() => { navigate('/companies'); setShowCompanyDropdown(false) }}
+                                >
+                                    <Settings size={16} />
+                                    <span>Şirket Yönetimi</span>
+                                </div>
                             </div>
                         </>
                     )}

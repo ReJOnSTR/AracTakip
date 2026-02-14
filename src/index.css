@@ -289,25 +289,23 @@ body {
 
 .sidebar-nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 16px 0;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .nav-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   position: relative;
-  /* Context for the divider */
+  padding-bottom: 16px;
 }
 
-/* Divider Line - Absolute Positioned to prevent layout shift */
 .nav-section::after {
   content: '';
   position: absolute;
-  bottom: -12px;
-  /* Position in the middle of the margin gap */
-  left: 10px;
-  right: 10px;
+  bottom: -10px;
+  left: 14px;
+  right: 14px;
   height: 1px;
   background-color: var(--border-color);
   opacity: 0;
@@ -316,13 +314,14 @@ body {
 }
 
 .sidebar.collapsed .nav-section {
-  /* Keep generic margin comfortable */
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .sidebar.collapsed .nav-section::after {
   opacity: 1;
-  /* Fade in line only when collapsed */
+  left: 10px;
+  right: 10px;
+  bottom: -10px;
 }
 
 .sidebar.collapsed .nav-section:last-child::after {
@@ -332,11 +331,12 @@ body {
 .nav-section-title {
   font-size: 11px;
   font-weight: 700;
+  line-height: 1;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-muted);
-  padding: 0 10px;
-  margin-bottom: 6px;
+  padding: 0 14px;
+  margin-bottom: 5px;
   white-space: nowrap;
 
   /* Same staggered logic */
@@ -346,28 +346,31 @@ body {
 
 .sidebar.collapsed .nav-section-title {
   opacity: 0;
-  transition: opacity 0.05s ease 0s;
+  transition: opacity 0.1s ease 0s;
+  /* Keep height/margin to prevent vertical shift */
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 0;
   color: var(--text-secondary);
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 4px;
+  transition: background 0.15s ease, color 0.15s ease, gap 0.25s cubic-bezier(0.2, 0, 0, 1);
+  margin-bottom: 2px;
   position: relative;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-item:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  transform: translateX(4px);
 }
 
 .nav-item.active {
@@ -380,11 +383,10 @@ body {
   content: '';
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
   width: 3px;
-  height: 16px;
-  border-radius: 0 4px 4px 0;
+  height: 100%;
+  border-radius: 0;
   background: var(--accent-primary);
 }
 
@@ -405,11 +407,16 @@ body {
   transition: opacity 0.2s ease 0.15s, transform 0.2s ease 0.15s;
 }
 
+.sidebar.collapsed .nav-item {
+  gap: 0;
+}
+
 .sidebar.collapsed .nav-item span {
-  /* COLLAPSING: Immediate fade out */
+  /* COLLAPSING: Immediate fade out + collapse width */
   opacity: 0;
-  transform: translateX(-5px);
-  transition: opacity 0.05s ease 0s, transform 0.05s ease 0s;
+  width: 0;
+  overflow: hidden;
+  transition: opacity 0.1s ease 0s, width 0.1s ease 0s;
 }
 
 

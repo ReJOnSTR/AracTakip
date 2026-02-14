@@ -15,9 +15,14 @@ export const useNotification = () => {
             // Get notification settings
             const settings = await window.electronAPI.getSettings()
 
-            // Check if notifications are enabled in settings (default true implied if logic missing)
-            // Assuming settings structure has { notifications: { maintenance: true, insurance: true, inspection: true } }
-            // If settings structure doesn't match, we default to showing them.
+            // Check notification preferences (default to enabled if not set)
+            const notifSettings = settings?.notifications || {}
+            const maintenanceEnabled = notifSettings.maintenance !== false
+            const insuranceEnabled = notifSettings.insurance !== false
+            const inspectionEnabled = notifSettings.inspection !== false
+
+            // If all notifications are disabled, skip
+            if (!maintenanceEnabled && !insuranceEnabled && !inspectionEnabled) return
 
             try {
                 const upcoming = await window.electronAPI.getUpcomingEvents(currentCompany.id)
@@ -34,22 +39,22 @@ export const useNotification = () => {
                         }
                     })
 
-                    // Trigger logical notifications
-                    if (maintenanceCount > 0) {
+                    // Trigger logical notifications (respecting settings)
+                    if (maintenanceCount > 0 && maintenanceEnabled) {
                         window.electronAPI.showNotification(
                             'Bakım Hatırlatması',
                             `${maintenanceCount} aracın bakımı yaklaştı.`
                         )
                     }
 
-                    if (insuranceCount > 0) {
+                    if (insuranceCount > 0 && insuranceEnabled) {
                         window.electronAPI.showNotification(
                             'Sigorta Uyarısı',
                             `${insuranceCount} aracın sigorta süresi dolmak üzere.`
                         )
                     }
 
-                    if (inspectionCount > 0) {
+                    if (inspectionCount > 0 && inspectionEnabled) {
                         window.electronAPI.showNotification(
                             'Muayene Zamanı',
                             `${inspectionCount} aracın muayenesi yaklaştı.`

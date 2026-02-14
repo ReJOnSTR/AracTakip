@@ -1,29 +1,41 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CompanyProvider, useCompany } from './context/CompanyContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './context/ToastContext'
+import { useNotification } from './hooks/useNotification'
+import ErrorBoundary from './components/ErrorBoundary'
 import TitleBar from './components/TitleBar'
-
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import Companies from './pages/Companies'
-import Vehicles from './pages/Vehicles'
-import VehicleDetail from './pages/VehicleDetail'
-import Maintenance from './pages/Maintenance'
-import Inspections from './pages/Inspections'
-import PeriodicInspections from './pages/PeriodicInspections'
-import Insurance from './pages/Insurance'
-import Assignments from './pages/Assignments'
-import Settings from './pages/Settings'
-import Reports from './pages/Reports'
-
-import PrintPage from './pages/PrintPage'
-import Services from './pages/Services'
-
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+
+// Lazy-loaded pages (code splitting)
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Companies = lazy(() => import('./pages/Companies'))
+const Vehicles = lazy(() => import('./pages/Vehicles'))
+const VehicleDetail = lazy(() => import('./pages/VehicleDetail'))
+const Maintenance = lazy(() => import('./pages/Maintenance'))
+const Inspections = lazy(() => import('./pages/Inspections'))
+const PeriodicInspections = lazy(() => import('./pages/PeriodicInspections'))
+const Insurance = lazy(() => import('./pages/Insurance'))
+const Assignments = lazy(() => import('./pages/Assignments'))
+const Settings = lazy(() => import('./pages/Settings'))
+const Reports = lazy(() => import('./pages/Reports'))
+const PrintPage = lazy(() => import('./pages/PrintPage'))
+const Services = lazy(() => import('./pages/Services'))
+const ChangePassword = lazy(() => import('./pages/ChangePassword'))
+
+function PageLoader() {
+    return (
+        <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
+            <div className="loading-spinner"></div>
+            <p>Yükleniyor...</p>
+        </div>
+    )
+}
 
 function ProtectedRoute({ children }) {
     const { user, loading } = useAuth()
@@ -41,12 +53,15 @@ function ProtectedRoute({ children }) {
         return <Navigate to="/login" replace />
     }
 
+    // Force password change if required
+    if (user.mustChangePassword) {
+        return <Navigate to="/change-password" replace />
+    }
+
     return children
 }
 
-import { useNotification } from './hooks/useNotification'
-
-function MainLayout({ children }) {
+function MainLayout() {
     useNotification() // Activate notification system
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         return localStorage.getItem('sidebarCollapsed') === 'true'
@@ -67,7 +82,11 @@ function MainLayout({ children }) {
                 <div className="main-content">
                     <Header />
                     <div className="page-content">
-                        {children}
+                        <ErrorBoundary>
+                            <Suspense fallback={<PageLoader />}>
+                                <Outlet />
+                            </Suspense>
+                        </ErrorBoundary>
                     </div>
                 </div>
             </div>
@@ -81,134 +100,38 @@ function AppRoutes() {
     return (
         <>
             <TitleBar />
-            <Routes>
-                <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-                <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+                    <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+                    <Route path="/change-password" element={<ChangePassword />} />
 
-                <Route path="/" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Dashboard />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
+                    <Route element={
+                        <ProtectedRoute>
+                            <CompanyProvider>
+                                <MainLayout />
+                            </CompanyProvider>
+                        </ProtectedRoute>
+                    }>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/companies" element={<Companies />} />
+                        <Route path="/vehicles" element={<Vehicles />} />
+                        <Route path="/vehicles/:id" element={<VehicleDetail />} />
+                        <Route path="/maintenance" element={<Maintenance />} />
+                        <Route path="/inspections" element={<Inspections />} />
+                        <Route path="/periodic-inspections" element={<PeriodicInspections />} />
+                        <Route path="/insurance" element={<Insurance />} />
+                        <Route path="/services" element={<Services />} />
+                        <Route path="/assignments" element={<Assignments />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/reports" element={<Reports />} />
+                    </Route>
 
-                <Route path="/companies" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Companies />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
+                    <Route path="/print" element={<PrintPage />} />
 
-                <Route path="/vehicles" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Vehicles />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/vehicles/:id" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <VehicleDetail />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/maintenance" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Maintenance />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/inspections" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Inspections />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/periodic-inspections" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <PeriodicInspections />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/insurance" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Insurance />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/services" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Services />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/assignments" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Assignments />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/settings" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Settings />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/reports" element={
-                    <ProtectedRoute>
-                        <CompanyProvider>
-                            <MainLayout>
-                                <Reports />
-                            </MainLayout>
-                        </CompanyProvider>
-                    </ProtectedRoute>
-                } />
-
-                <Route path="/print" element={<PrintPage />} />
-
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Suspense>
         </>
     )
 }
@@ -217,9 +140,13 @@ function App() {
     return (
         <Router>
             <ThemeProvider>
-                <AuthProvider>
-                    <AppRoutes />
-                </AuthProvider>
+                <ToastProvider>
+                    <AuthProvider>
+                        <ErrorBoundary>
+                            <AppRoutes />
+                        </ErrorBoundary>
+                    </AuthProvider>
+                </ToastProvider>
             </ThemeProvider>
         </Router>
     )
