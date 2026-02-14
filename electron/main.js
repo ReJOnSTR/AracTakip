@@ -228,11 +228,21 @@ app.on('window-all-closed', () => {
 
 // Auth handlers
 ipcMain.handle('auth:register', async (event, userData) => {
-    return db.registerUser(userData)
+    const result = await db.registerUser(userData)
+    if (result.success && result.user) {
+        const hash = db.getUserPasswordHash(result.user.id)
+        if (hash) currentSessionKey = deriveKey(hash)
+    }
+    return result
 })
 
 ipcMain.handle('auth:login', async (event, credentials) => {
-    return db.loginUser(credentials)
+    const result = await db.loginUser(credentials)
+    if (result.success && result.user) {
+        const hash = db.getUserPasswordHash(result.user.id)
+        if (hash) currentSessionKey = deriveKey(hash)
+    }
+    return result
 })
 
 ipcMain.handle('auth:changePassword', async (event, data) => {
@@ -415,6 +425,18 @@ ipcMain.handle('data:export', async (event, payload) => {
             result.data.localStorage = payload.localStorageData
         }
 
+        // Determine Encryption Key
+        let key = currentSessionKey
+        if (!key && payload.userId) {
+            const hash = db.getUserPasswordHash(payload.userId)
+            if (hash) key = deriveKey(hash)
+        }
+        // Fallback to LEGACY_KEY if explicit user context missing (e.g. dev testing), but warn
+        if (!key) {
+            console.warn('Backup export: No user key available, using legacy key.')
+            key = LEGACY_KEY
+        }
+
         const { filePath } = await dialog.showSaveDialog(mainWindow, {
             title: 'Tam Güvenli Yedekleme (ZIP)',
             defaultPath: `muayen-yedek-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`,
@@ -427,7 +449,7 @@ ipcMain.handle('data:export', async (event, payload) => {
             return { success: false, error: 'İşlem iptal edildi' }
         }
 
-        createBackupZip(result.data, filePath)
+        createBackupZip(result.data, filePath, key)
         return { success: true, filePath }
     } catch (error) {
         console.error('Backup error:', error)
@@ -459,11 +481,27 @@ ipcMain.handle('data:import', async (event, userId) => {
         if (encEntry) {
             try {
                 const encryptedContent = encEntry.getData().toString("utf8")
-                const decryptedContent = decryptData(encryptedContent)
-                backupData = JSON.parse(decryptedContent)
+
+                // Determine Key
+                let key = currentSessionKey
+                if (!key && userId) {
+                    const hash = db.getUserPasswordHash(userId)
+                    if (hash) key = deriveKey(hash)
+                }
+
+                try {
+                    // Try with derived key
+                    const decryptedContent = decryptData(encryptedContent, key)
+                    backupData = JSON.parse(decryptedContent)
+                } catch (e) {
+                    // Fallback to LEGACY_KEY
+                    console.log('Decryption with user key failed, trying legacy key...')
+                    const decryptedContent = decryptData(encryptedContent, LEGACY_KEY)
+                    backupData = JSON.parse(decryptedContent)
+                }
             } catch (err) {
                 console.error('Decryption failed:', err)
-                return { success: false, error: 'Yedek dosyası şifresi çözülemedi veya bozuk.' }
+                return { success: false, error: 'Yedek dosyası şifresi çözülemedi veya bozuk. (Şifreniz değiştiyçe eski yedekleri açamayabilirsiniz)' }
             }
         } else {
             // 2. Fallback to unencrypted data.json (Legacy Support)
@@ -544,76 +582,53 @@ function saveSettings(settings) {
 }
 
 // Encryption Helpers
-const ENCRYPTION_KEY = crypto.scryptSync('muayen-app-secure-key-v1', 'salt', 32)
+// Encryption Helpers
+const LEGACY_KEY = crypto.scryptSync('muayen-app-secure-key-v1', 'salt', 32)
 const IV_LENGTH = 16
+let currentSessionKey = null
 
-function encryptData(text) {
+function deriveKey(passwordHash) {
+    return crypto.scryptSync(passwordHash, 'salt', 32)
+}
+
+function encryptData(text, key) {
+    const finalKey = key || LEGACY_KEY
     const iv = crypto.randomBytes(IV_LENGTH)
-    const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv)
+    const cipher = crypto.createCipheriv('aes-256-cbc', finalKey, iv)
     let encrypted = cipher.update(text)
     encrypted = Buffer.concat([encrypted, cipher.final()])
     return iv.toString('hex') + ':' + encrypted.toString('hex')
 }
 
-function decryptData(text) {
+function decryptData(text, key) {
+    const finalKey = key || LEGACY_KEY
     const textParts = text.split(':')
     const iv = Buffer.from(textParts.shift(), 'hex')
     const encryptedText = Buffer.from(textParts.join(':'), 'hex')
-    const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, iv)
+    const decipher = crypto.createDecipheriv('aes-256-cbc', finalKey, iv)
     let decrypted = decipher.update(encryptedText)
     decrypted = Buffer.concat([decrypted, decipher.final()])
     return decrypted.toString()
 }
 
 // Helper for ZIP creation
-function createBackupZip(data, outputPath) {
+function createBackupZip(data, outputPath, key) {
     try {
         const zip = new AdmZip()
         const jsonContent = JSON.stringify(data, null, 2)
 
         // Encrypt data.json content
-        const encryptedContent = encryptData(jsonContent)
+        const encryptedContent = encryptData(jsonContent, key)
         zip.addFile("data.enc", Buffer.from(encryptedContent, "utf8"))
 
-        // Add LocalStorage if present (also encrypt?)
-        // If data.localStorageData exists, we should probably encrypt it too or merge it into data?
-        // Wait, data argument IS the object containing everything (from getCompanyCompleteData).
-        // But in `data:export` (lines 400+), we have `createBackupZip(result.data`...
-        // Does `result.data` contain `localStorageData`?
-        // In Step 8929, I saw `ipcMain.handle('data:export')` passes `data`...
-        // Let's check `ipcMain.handle('data:export')` again to be sure (it was modified in prev sessions).
-        // If `data` is the BIG object, then encrypting `jsonContent` covers EVERYTHING inside `data.json` structure.
-        // Wait, `createBackupZip` in Step 8966 line 512 accepts `data`.
-        // And inside `createBackupZip`: `zip.addFile("data.json", ...)`
-        // AND I see Step 8931 edit summary: "Updated createBackupZip to accept optional localStorageData... if provided adds localstorage.json".
-        // I need to check if `createBackupZip` was updated to accept 3 args or if `data` includes it.
-        // Let's look at `createBackupZip` code in Step 8966 again.
-        // Line 512: `function createBackupZip(data, outputPath) {`
-        // Line 515: `const jsonContent = JSON.stringify(data, null, 2)`
-        // It seems `localStorageData` is NOT separately passed in specific snippet I saw in 8966.
-        // But `data:export` in 8966 line 400 calls `createBackupZip(result.data, filePath)`.
-        // Ah, `localStorage` is passed from frontend to `data:export`?
-        // Let's re-read `data:export` in 8966.
-        // Line 400: `ipcMain.handle('data:export', async (event, companyId) => {`
-        // It does NOT accept `localStorageData`!
-        // Wait, in Step 8929 summary I said: "Updated ipcMain.handle('data:export') to accept localStorageData".
-        // But Step 8966 view shows: `ipcMain.handle('data:export', async (event, companyId) => {`
-        // This means my viewing in 8966 might have been incomplete or I missed something?
-        // OR `companyId` argument is actually `(event, { companyId, localStorageData })`?
-        // Frontend passed `company.id` (arg 1) usually.
-        // If I changed it to object, signature changes.
-        // I need to double check `data:export` signature.
-        // But regardless, I will encrypt `data.enc`.
-
-        // If I also have `localstorage.json`, I should encrypt it too -> `localstorage.enc`.
-        // Or just merge it into `data`?
-        // Merging is cleaner. `data.localStorage = ...`
 
         // Handling physical files:
         const userDataPath = app.getPath('userData')
         const filesDir = path.join(userDataPath, 'files')
 
         if (fs.existsSync(filesDir)) {
+            // ...
+            // I'll copy the existing logic for files
             const filesToAdd = new Set()
 
             // 1. Vehicle Images
@@ -652,13 +667,18 @@ function createBackupZip(data, outputPath) {
 
 function performAutoBackup(companyId, backupPath) {
     try {
+        if (!currentSessionKey) {
+            console.log('Skipping auto backup: No active user session key.')
+            return false
+        }
+
         console.log('Starting auto backup for company:', companyId)
         const result = db.getCompanyCompleteData(companyId)
         if (result.success) {
             const fileName = `autobackup-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`
             const fullPath = path.join(backupPath, fileName)
 
-            createBackupZip(result.data, fullPath)
+            createBackupZip(result.data, fullPath, currentSessionKey)
 
             console.log('Auto backup saved to:', fullPath)
             return true

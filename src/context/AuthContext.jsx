@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { authService } from '../services'
 
 const AuthContext = createContext(null)
 
@@ -21,10 +22,7 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            if (!window.electronAPI) {
-                return { success: false, error: 'Bu uygulama Electron içinde çalıştırılmalıdır. Normal tarayıcıda açmayın.' }
-            }
-            const result = await window.electronAPI.login({ email, password })
+            const result = await authService.login({ email, password })
             if (result.success) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
@@ -39,10 +37,7 @@ export function AuthProvider({ children }) {
 
     const register = async (username, email, password) => {
         try {
-            if (!window.electronAPI) {
-                return { success: false, error: 'Bu uygulama Electron içinde çalıştırılmalıdır. Normal tarayıcıda açmayın.' }
-            }
-            const result = await window.electronAPI.register({ username, email, password })
+            const result = await authService.register({ username, email, password })
             if (result.success) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))

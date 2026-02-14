@@ -97,7 +97,8 @@ export default function Settings() {
 
         const result = await window.electronAPI.exportCompanyData({
             companyId: currentCompany.id,
-            localStorageData
+            localStorageData,
+            userId: user?.id
         })
 
         if (result.success) {

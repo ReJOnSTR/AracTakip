@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
+import { companyService, dashboardService } from '../services'
 
 const CompanyContext = createContext(null)
 
@@ -21,7 +22,7 @@ export function CompanyProvider({ children }) {
     const loadUpcomingEvents = async () => {
         if (!currentCompany) return
         try {
-            const result = await window.electronAPI.getUpcomingEvents(currentCompany.id)
+            const result = await dashboardService.getUpcomingEvents(currentCompany.id)
             if (result.success) {
                 setUpcomingEvents(result.data)
             }
@@ -43,7 +44,7 @@ export function CompanyProvider({ children }) {
     const loadCompanies = async () => {
         setLoading(true)
         try {
-            const result = await window.electronAPI.getCompanies(user.id)
+            const result = await companyService.getAll(user.id)
             if (result.success) {
                 setCompanies(result.data)
 
@@ -71,7 +72,7 @@ export function CompanyProvider({ children }) {
 
     const createCompany = async (data) => {
         try {
-            const result = await window.electronAPI.createCompany({
+            const result = await companyService.create({
                 userId: user.id,
                 name: data.name,
                 taxNumber: data.taxNumber,
@@ -91,7 +92,7 @@ export function CompanyProvider({ children }) {
 
     const updateCompany = async (data) => {
         try {
-            const result = await window.electronAPI.updateCompany(data)
+            const result = await companyService.update(data)
             if (result.success) {
                 await loadCompanies()
                 return { success: true }
@@ -104,9 +105,9 @@ export function CompanyProvider({ children }) {
 
     const deleteCompany = async (id) => {
         try {
-            const result = await window.electronAPI.deleteCompany(id)
+            const result = await companyService.delete(id)
             if (result.success) {
-                const freshResult = await window.electronAPI.getCompanies(user.id)
+                const freshResult = await companyService.getAll(user.id)
                 if (freshResult.success) {
                     setCompanies(freshResult.data)
                     if (currentCompany?.id === id) {

@@ -1,9 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 import { CompanyProvider, useCompany } from './context/CompanyContext'
-import { ThemeProvider } from './context/ThemeContext'
-import { ToastProvider } from './context/ToastContext'
+
 import { useNotification } from './hooks/useNotification'
 import ErrorBoundary from './components/ErrorBoundary'
 import TitleBar from './components/TitleBar'
@@ -138,17 +137,9 @@ function AppRoutes() {
 
 function App() {
     return (
-        <Router>
-            <ThemeProvider>
-                <ToastProvider>
-                    <AuthProvider>
-                        <ErrorBoundary>
-                            <AppRoutes />
-                        </ErrorBoundary>
-                    </AuthProvider>
-                </ToastProvider>
-            </ThemeProvider>
-        </Router>
+        <ErrorBoundary>
+            <AppRoutes />
+        </ErrorBoundary>
     )
 }
 

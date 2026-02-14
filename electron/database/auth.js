@@ -59,5 +59,15 @@ module.exports = function (helpers) {
         }
     }
 
-    return { registerUser, loginUser, changePassword }
+    function getUserPasswordHash(userId) {
+        try {
+            const user = runQueryOne('SELECT password_hash FROM users WHERE id = ?', [userId])
+            return user ? user.password_hash : null
+        } catch (error) {
+            console.error('getUserPasswordHash error:', error)
+            return null
+        }
+    }
+
+    return { registerUser, loginUser, changePassword, getUserPasswordHash }
 }
