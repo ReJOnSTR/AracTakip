@@ -1,6 +1,6 @@
 {
   "name": "muayen",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Muayen - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -76,8 +76,8 @@
       "icon": "resources/icon-win.png"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
