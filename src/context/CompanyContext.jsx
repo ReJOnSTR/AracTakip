@@ -19,6 +19,21 @@ export function CompanyProvider({ children }) {
         }
     }, [currentCompany])
 
+    // Auto-refresh: window focus (başka sayfadan dönünce) + 60 saniyelik polling
+    useEffect(() => {
+        if (!currentCompany) return
+
+        const handleFocus = () => loadUpcomingEvents()
+        window.addEventListener('focus', handleFocus)
+
+        const interval = setInterval(() => loadUpcomingEvents(), 60_000)
+
+        return () => {
+            window.removeEventListener('focus', handleFocus)
+            clearInterval(interval)
+        }
+    }, [currentCompany])
+
     const loadUpcomingEvents = async () => {
         if (!currentCompany) return
         try {

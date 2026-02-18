@@ -1,3 +1,4 @@
+import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
@@ -220,17 +221,10 @@ export default function Vehicles() {
         )
     }
 
-    if (loading && vehicles.length === 0) {
-        return (
-            <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
-                <div className="loading-spinner"></div>
-                <p>Yükleniyor...</p>
-            </div>
-        )
-    }
 
     return (
         <div>
+            <TopProgressBar loading={loading} />
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Araçlar</h1>

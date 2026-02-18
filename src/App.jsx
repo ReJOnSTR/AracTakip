@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import TitleBar from './components/TitleBar'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+import TopProgressBar from './components/TopProgressBar'
 
 // Lazy-loaded pages (code splitting)
 const Login = lazy(() => import('./pages/Login'))
@@ -27,37 +28,22 @@ const PrintPage = lazy(() => import('./pages/PrintPage'))
 const Services = lazy(() => import('./pages/Services'))
 const ChangePassword = lazy(() => import('./pages/ChangePassword'))
 
+// Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
-    return (
-        <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
-            <div className="loading-spinner"></div>
-            <p>Yükleniyor...</p>
-        </div>
-    )
+    return null
 }
 
 function ProtectedRoute({ children }) {
     const { user, loading } = useAuth()
 
-    if (loading) {
-        return (
-            <div className="loading-screen">
-                <div className="loading-spinner"></div>
-                <p>Yükleniyor...</p>
-            </div>
-        )
-    }
-
-    if (!user) {
-        return <Navigate to="/login" replace />
-    }
-
-    // Force password change if required
-    if (user.mustChangePassword) {
-        return <Navigate to="/change-password" replace />
-    }
-
-    return children
+    return (
+        <>
+            <TopProgressBar loading={loading} />
+            {!loading && !user && <Navigate to="/login" replace />}
+            {!loading && user?.mustChangePassword && <Navigate to="/change-password" replace />}
+            {!loading && user && !user.mustChangePassword && children}
+        </>
+    )
 }
 
 function MainLayout() {

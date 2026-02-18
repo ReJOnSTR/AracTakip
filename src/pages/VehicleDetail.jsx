@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import TopProgressBar from '../components/TopProgressBar'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
@@ -374,14 +375,6 @@ export default function VehicleDetail() {
         if (result?.success) loadVehicleData()
     }
 
-    if (loading && !vehicle) {
-        return (
-            <div className="loading-screen" style={{ height: 'auto', padding: '60px' }}>
-                <div className="loading-spinner"></div>
-                <p>Yükleniyor...</p>
-            </div>
-        )
-    }
 
     if (!vehicle) {
         return (
@@ -577,6 +570,7 @@ export default function VehicleDetail() {
 
     return (
         <div>
+            <TopProgressBar loading={loading} />
             {/* Header / Breadcrumb / Actions */}
             <div style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '12px' }}>

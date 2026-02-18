@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import TopProgressBar from '../components/TopProgressBar'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
     ArrowLeft,
@@ -887,8 +888,7 @@ export default function EmployeeDetail(props) {
         if (error) alert('Dosya açılamadı: ' + error)
     }
 
-    if (loading) return <div className="loading-screen"><div className="loading-spinner"></div></div>
-    if (!employee) return <div>Personel bulunamadı</div>
+    if (!employee && !loading) return <div>Personel bulunamadı</div>
 
     // Filtered Data
     // Date Filter Logic
@@ -929,6 +929,7 @@ export default function EmployeeDetail(props) {
 
     return (
         <div className="detail-page">
+            <TopProgressBar loading={loading} />
             {/* Header / Breadcrumb / Actions matching VehicleDetail */}
             {/* Keep existing header code but ensure we put our filter before/inside the tabs content */}
 

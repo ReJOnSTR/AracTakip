@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import TopProgressBar from '../components/TopProgressBar'
 import { useCompany } from '../context/CompanyContext'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import {
@@ -70,10 +71,9 @@ export default function PersonelDashboard() {
         }
     }
 
-    if (loading) return <div className="loading-screen"><div className="loading-spinner"></div></div>
-
     return (
         <div style={{ paddingBottom: '40px' }}>
+            <TopProgressBar loading={loading} />
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Personel Paneli</h1>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import TopProgressBar from '../components/TopProgressBar'
 import { useCompany } from '../context/CompanyContext'
 import { formatDate, getDaysUntil, getDaysUntilText, getStatusColor, formatCurrency } from '../utils/helpers'
 import {
@@ -175,6 +176,21 @@ export default function Dashboard() {
         }
     }, [currentCompany])
 
+    // Auto-refresh: window focus (başka sayfadan dönünce) + 60 saniyelik polling
+    useEffect(() => {
+        if (!currentCompany) return
+
+        const handleFocus = () => loadDashboardData()
+        window.addEventListener('focus', handleFocus)
+
+        const interval = setInterval(() => loadDashboardData(), 60_000)
+
+        return () => {
+            window.removeEventListener('focus', handleFocus)
+            clearInterval(interval)
+        }
+    }, [currentCompany])
+
     // --- Quick Actions Logic ---
     const allActions = [
         { id: 'add-vehicle', label: 'Araç Ekle', path: '/vehicles', icon: 'Car', default: true },
@@ -290,9 +306,6 @@ export default function Dashboard() {
         setLoading(false)
     }
 
-    if (companyLoading || loading) {
-        return <DashboardSkeleton />
-    }
 
     if (!currentCompany) {
         return (
@@ -338,350 +351,355 @@ export default function Dashboard() {
 
     return (
         <div style={{ paddingBottom: '40px' }}>
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">Gösterge Paneli</h1>
-                    <p style={{ marginTop: '5px', color: 'var(--text-muted)' }}>Filo durum özeti ve performans metrikleri.</p>
+            <TopProgressBar loading={companyLoading || loading} />
+            {(companyLoading || loading) && <DashboardSkeleton />}
+            {!(companyLoading || loading) && <div>
+                <div className="page-header">
+                    <div>
+                        <h1 className="page-title">Gösterge Paneli</h1>
+                        <p style={{ marginTop: '5px', color: 'var(--text-muted)' }}>Filo durum özeti ve performans metrikleri.</p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Quick Actions Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
-                <h2 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Hızlı İşlemler</h2>
-                <button
-                    onClick={() => setShowSettings(true)}
-                    className="btn btn-secondary"
-                    style={{ height: '28px', padding: '0 10px', fontSize: '11px' }}
-                >
-                    <Settings size={14} /> Özelleştir
-                </button>
-            </div>
-
-            {/* Quick Actions Grid */}
-            <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleActions.length, 4)}, 1fr)`, gap: '20px', marginBottom: '25px' }}>
-                {visibleActions.map(action => (
-                    <Link
-                        key={action.id}
-                        to={action.path}
+                {/* Quick Actions Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Hızlı İşlemler</h2>
+                    <button
+                        onClick={() => setShowSettings(true)}
                         className="btn btn-secondary"
-                        style={{ justifyContent: 'center', height: '42px', gap: '8px' }}
+                        style={{ height: '28px', padding: '0 10px', fontSize: '11px' }}
                     >
-                        {actionIconMap[action.icon]} {action.label}
-                    </Link>
-                ))}
-                {visibleActions.length === 0 && (
-                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                        Görüntülenecek kısayol seçilmedi. Özelleştir butonundan ekleyebilirsiniz.
-                    </div>
-                )}
-            </div>
-
-            {/* Main Stats Grid */}
-            {/* Main Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '25px' }}>
-                {/* Total Vehicles */}
-                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <div className="stat-label">TOPLAM ARAÇ</div>
-                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><Car size={16} /></div>
-                    </div>
-                    <div>
-                        <div className="stat-value">{stats?.totalVehicles || 0}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            <span className="text-success" style={{ fontWeight: '600' }}>{stats?.activeVehicles || 0}</span> Aktif
-                        </div>
-                    </div>
+                        <Settings size={14} /> Özelleştir
+                    </button>
                 </div>
 
-                {/* Monthly Cost */}
-                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <div className="stat-label">BU AY HARCAMA</div>
-                        <div className="stat-icon success" style={{ width: '32px', height: '32px' }}><Wallet size={16} /></div>
-                    </div>
-                    <div style={{ width: '100%' }}>
-                        <div className="stat-value" style={{ fontSize: '22px' }}>{formatCurrency(stats?.monthlyCost || 0)}</div>
-                        {/* Cost Distribution Bar */}
-                        <div style={{ display: 'flex', height: '4px', borderRadius: '2px', overflow: 'hidden', marginTop: '10px', background: 'var(--bg-tertiary)' }}>
-                            <div style={{ width: `${costPcts.service}%`, background: '#3b82f6' }} title="Servis"></div>
-                            <div style={{ width: `${costPcts.maintenance}%`, background: '#f59e0b' }} title="Bakım"></div>
-                            <div style={{ width: `${costPcts.inspection}%`, background: '#10b981' }} title="Muayene"></div>
-                            <div style={{ width: `${costPcts.insurance}%`, background: '#8b5cf6' }} title="Sigorta"></div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Alerts */}
-                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <div className="stat-label">YAKLAŞAN MUAYENE</div>
-                        <div className="stat-icon warning" style={{ width: '32px', height: '32px' }}><ClipboardCheck size={16} /></div>
-                    </div>
-                    <div>
-                        <div className="stat-value">{stats?.upcomingInspections || 0}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>30 gün içinde</div>
-                    </div>
-                </div>
-
-                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <div className="stat-label">BİTEN SİGORTA</div>
-                        <div className="stat-icon danger" style={{ width: '32px', height: '32px' }}><Shield size={16} /></div>
-                    </div>
-                    <div>
-                        <div className="stat-value">{stats?.expiringInsurances || 0}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>30 gün içinde</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Dashboard Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-
-                {/* Left Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-
-
-
-                    {/* Upcoming Alerts */}
-                    <div className="card">
-                        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                Yaklaşan & Gecikmiş İşlemler
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
-                                    <Calendar size={14} />
-                                    Yaklaşan: {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length}
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
-                                    <AlertTriangle size={14} />
-                                    Gecikmiş: {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '20px' }}>
-                            {/* Overdue Column */}
-                            <div>
-                                <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--danger)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <AlertTriangle size={14} />
-                                    Geciken İşlemler
-                                </h3>
-                                {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length === 0 ? (
-                                    <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
-                                        Geciken işlem yok
-                                    </div>
-                                ) : (
-                                    <ScrollableList height="200px">
-                                        {allUpcoming.filter(e => getDaysUntil(e.date) < 0).map((event, index) => {
-                                            const days = getDaysUntil(event.date)
-                                            return (
-                                                <div key={`${event.eventType}-${event.id}-${index}`} style={{
-                                                    padding: '10px 12px',
-                                                    background: 'rgba(239, 68, 68, 0.05)',
-                                                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                    borderRadius: '6px',
-                                                }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
-                                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--danger)' }}>
-                                                            {Math.abs(days)} gün geçti
-                                                        </span>
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
-                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                                                            {event.type}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </ScrollableList>
-                                )}
-                            </div>
-
-                            {/* Divider */}
-                            <div style={{ width: '1px', background: 'var(--border-color)' }}></div>
-
-                            {/* Upcoming Column */}
-                            <div>
-                                <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--warning)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Calendar size={14} />
-                                    Yaklaşan İşlemler
-                                </h3>
-                                {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length === 0 ? (
-                                    <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
-                                        Yaklaşan işlem yok
-                                    </div>
-                                ) : (
-                                    <ScrollableList height="200px">
-                                        {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).map((event, index) => {
-                                            const days = getDaysUntil(event.date)
-                                            return (
-                                                <div key={`${event.eventType}-${event.id}-${index}`} style={{
-                                                    padding: '10px 12px',
-                                                    background: 'var(--bg-tertiary)',
-                                                    border: '1px solid var(--border-color)',
-                                                    borderRadius: '6px',
-                                                }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
-                                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--warning)' }}>
-                                                            {days === 0 ? 'Bugün' : `${days} gün kaldı`}
-                                                        </span>
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
-                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                                                            {event.type}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </ScrollableList>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* Right Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-                    {/* Fleet Status Distribution */}
-                    <div className="card">
-                        <div className="card-header">
-                            <div className="card-title">Filo Durumu</div>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--success)' }}></div>
-                                    <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Aktif</span>
-                                </div>
-                                <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{stats?.statusBreakdown?.active || 0}</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--danger)' }}></div>
-                                    <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Pasif/Satıldı</span>
-                                </div>
-                                <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{stats?.statusBreakdown?.passive || 0}</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--warning)' }}></div>
-                                    <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Bakımda</span>
-                                </div>
-                                <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{stats?.statusBreakdown?.maintenance || 0}</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                </div>
-            </div>
-
-            {/* Customization Modal */}
-            <Modal
-                isOpen={showSettings}
-                onClose={() => setShowSettings(false)}
-                title="Hızlı İşlemler Ayarları"
-                size="default"
-                footer={
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', width: '100%' }}>
-                        <button className="btn btn-secondary" onClick={() => setShowSettings(false)}>İptal</button>
-                        <button className="btn btn-primary" onClick={saveSettings}>
-                            <Save size={16} /> Kaydet
-                        </button>
-                    </div>
-                }
-            >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto', padding: '5px' }}>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>
-                        Dashboard'da görmek istediğiniz kısayolları seçin. Sıralamak için sürükleyip bırakabilirsiniz.
-                    </p>
-                    {tempActions.map((action, index) => (
-                        <div
+                {/* Quick Actions Grid */}
+                <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleActions.length, 4)}, 1fr)`, gap: '20px', marginBottom: '25px' }}>
+                    {visibleActions.map(action => (
+                        <Link
                             key={action.id}
-                            draggable
-                            onDragStart={(e) => onDragStart(e, index)}
-                            onDragOver={(e) => onDragOver(e, index)}
-                            onDragEnd={onDragEnd}
-                            style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '10px 0',
-                                borderBottom: '1px solid var(--border-color)',
-                                cursor: 'grab',
-                                opacity: draggedItemIndex === index ? 0.3 : 1,
-                            }}
+                            to={action.path}
+                            className="btn btn-secondary"
+                            style={{ justifyContent: 'center', height: '42px', gap: '8px' }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    color: 'var(--text-muted)',
-                                    cursor: 'grab',
-                                    width: '24px',
-                                    display: 'flex',
-                                    justifyContent: 'center'
-                                }}>
-                                    <GripVertical size={16} />
+                            {actionIconMap[action.icon]} {action.label}
+                        </Link>
+                    ))}
+                    {visibleActions.length === 0 && (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                            Görüntülenecek kısayol seçilmedi. Özelleştir butonundan ekleyebilirsiniz.
+                        </div>
+                    )}
+                </div>
+
+                {/* Main Stats Grid */}
+                {/* Main Stats Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '25px' }}>
+                    {/* Total Vehicles */}
+                    <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div className="stat-label">TOPLAM ARAÇ</div>
+                            <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><Car size={16} /></div>
+                        </div>
+                        <div>
+                            <div className="stat-value">{stats?.totalVehicles || 0}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                <span className="text-success" style={{ fontWeight: '600' }}>{stats?.activeVehicles || 0}</span> Aktif
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Monthly Cost */}
+                    <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div className="stat-label">BU AY HARCAMA</div>
+                            <div className="stat-icon success" style={{ width: '32px', height: '32px' }}><Wallet size={16} /></div>
+                        </div>
+                        <div style={{ width: '100%' }}>
+                            <div className="stat-value" style={{ fontSize: '22px' }}>{formatCurrency(stats?.monthlyCost || 0)}</div>
+                            {/* Cost Distribution Bar */}
+                            <div style={{ display: 'flex', height: '4px', borderRadius: '2px', overflow: 'hidden', marginTop: '10px', background: 'var(--bg-tertiary)' }}>
+                                <div style={{ width: `${costPcts.service}%`, background: '#3b82f6' }} title="Servis"></div>
+                                <div style={{ width: `${costPcts.maintenance}%`, background: '#f59e0b' }} title="Bakım"></div>
+                                <div style={{ width: `${costPcts.inspection}%`, background: '#10b981' }} title="Muayene"></div>
+                                <div style={{ width: `${costPcts.insurance}%`, background: '#8b5cf6' }} title="Sigorta"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Alerts */}
+                    <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div className="stat-label">YAKLAŞAN MUAYENE</div>
+                            <div className="stat-icon warning" style={{ width: '32px', height: '32px' }}><ClipboardCheck size={16} /></div>
+                        </div>
+                        <div>
+                            <div className="stat-value">{stats?.upcomingInspections || 0}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>30 gün içinde</div>
+                        </div>
+                    </div>
+
+                    <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div className="stat-label">BİTEN SİGORTA</div>
+                            <div className="stat-icon danger" style={{ width: '32px', height: '32px' }}><Shield size={16} /></div>
+                        </div>
+                        <div>
+                            <div className="stat-value">{stats?.expiringInsurances || 0}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>30 gün içinde</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Dashboard Content Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+
+                    {/* Left Column */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+
+
+
+                        {/* Upcoming Alerts */}
+                        <div className="card">
+                            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Yaklaşan & Gecikmiş İşlemler
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    {/* Single uniform icon for all list items */}
-                                    <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '6px',
-                                        background: 'var(--bg-tertiary)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'var(--text-secondary)'
-                                    }}>
-                                        <Settings size={16} />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{action.label}</span>
-                                    </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                        <Calendar size={14} />
+                                        Yaklaşan: {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length}
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                        <AlertTriangle size={14} />
+                                        Gecikmiş: {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Custom Switch Toggle - Minimal */}
-                            <div
-                                onClick={(e) => {
-                                    e.stopPropagation() // Prevent drag trigger
-                                    toggleAction(action.id)
-                                }}
-                                style={{
-                                    width: '36px',
-                                    height: '20px',
-                                    background: action.active ? 'var(--accent-primary)' : 'var(--bg-elevated)',
-                                    borderRadius: '99px',
-                                    padding: '2px',
-                                    transition: 'background 0.2s ease',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center'
-                                }}>
-                                <div style={{
-                                    width: '16px',
-                                    height: '16px',
-                                    background: '#fff',
-                                    borderRadius: '50%',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                                    transform: action.active ? 'translateX(16px)' : 'translateX(0)',
-                                    transition: 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                                }}></div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '20px' }}>
+                                {/* Overdue Column */}
+                                <div>
+                                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--danger)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <AlertTriangle size={14} />
+                                        Geciken İşlemler
+                                    </h3>
+                                    {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length === 0 ? (
+                                        <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
+                                            Geciken işlem yok
+                                        </div>
+                                    ) : (
+                                        <ScrollableList height="200px">
+                                            {allUpcoming.filter(e => getDaysUntil(e.date) < 0).map((event, index) => {
+                                                const days = getDaysUntil(event.date)
+                                                return (
+                                                    <div key={`${event.eventType}-${event.id}-${index}`} style={{
+                                                        padding: '10px 12px',
+                                                        background: 'rgba(239, 68, 68, 0.05)',
+                                                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                        borderRadius: '6px',
+                                                    }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
+                                                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--danger)' }}>
+                                                                {Math.abs(days)} gün geçti
+                                                            </span>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
+                                                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                                                                {event.type}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </ScrollableList>
+                                    )}
+                                </div>
+
+                                {/* Divider */}
+                                <div style={{ width: '1px', background: 'var(--border-color)' }}></div>
+
+                                {/* Upcoming Column */}
+                                <div>
+                                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--warning)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Calendar size={14} />
+                                        Yaklaşan İşlemler
+                                    </h3>
+                                    {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length === 0 ? (
+                                        <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
+                                            Yaklaşan işlem yok
+                                        </div>
+                                    ) : (
+                                        <ScrollableList height="200px">
+                                            {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).map((event, index) => {
+                                                const days = getDaysUntil(event.date)
+                                                return (
+                                                    <div key={`${event.eventType}-${event.id}-${index}`} style={{
+                                                        padding: '10px 12px',
+                                                        background: 'var(--bg-tertiary)',
+                                                        border: '1px solid var(--border-color)',
+                                                        borderRadius: '6px',
+                                                    }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
+                                                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--warning)' }}>
+                                                                {days === 0 ? 'Bugün' : `${days} gün kaldı`}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
+                                                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                                                                {event.type}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </ScrollableList>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    ))}
+
+                    </div>
+
+                    {/* Right Column */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                        {/* Fleet Status Distribution */}
+                        <div className="card">
+                            <div className="card-header">
+                                <div className="card-title">Filo Durumu</div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--success)' }}></div>
+                                        <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Aktif</span>
+                                    </div>
+                                    <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{stats?.statusBreakdown?.active || 0}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--danger)' }}></div>
+                                        <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Pasif/Satıldı</span>
+                                    </div>
+                                    <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{stats?.statusBreakdown?.passive || 0}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--warning)' }}></div>
+                                        <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Bakımda</span>
+                                    </div>
+                                    <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{stats?.statusBreakdown?.maintenance || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
                 </div>
-            </Modal>
+
+                {/* Customization Modal */}
+                <Modal
+                    isOpen={showSettings}
+                    onClose={() => setShowSettings(false)}
+                    title="Hızlı İşlemler Ayarları"
+                    size="default"
+                    footer={
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', width: '100%' }}>
+                            <button className="btn btn-secondary" onClick={() => setShowSettings(false)}>İptal</button>
+                            <button className="btn btn-primary" onClick={saveSettings}>
+                                <Save size={16} /> Kaydet
+                            </button>
+                        </div>
+                    }
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto', padding: '5px' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                            Dashboard'da görmek istediğiniz kısayolları seçin. Sıralamak için sürükleyip bırakabilirsiniz.
+                        </p>
+                        {tempActions.map((action, index) => (
+                            <div
+                                key={action.id}
+                                draggable
+                                onDragStart={(e) => onDragStart(e, index)}
+                                onDragOver={(e) => onDragOver(e, index)}
+                                onDragEnd={onDragEnd}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '10px 0',
+                                    borderBottom: '1px solid var(--border-color)',
+                                    cursor: 'grab',
+                                    opacity: draggedItemIndex === index ? 0.3 : 1,
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        color: 'var(--text-muted)',
+                                        cursor: 'grab',
+                                        width: '24px',
+                                        display: 'flex',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <GripVertical size={16} />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        {/* Single uniform icon for all list items */}
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '6px',
+                                            background: 'var(--bg-tertiary)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: 'var(--text-secondary)'
+                                        }}>
+                                            <Settings size={16} />
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{action.label}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Custom Switch Toggle - Minimal */}
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation() // Prevent drag trigger
+                                        toggleAction(action.id)
+                                    }}
+                                    style={{
+                                        width: '36px',
+                                        height: '20px',
+                                        background: action.active ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                                        borderRadius: '99px',
+                                        padding: '2px',
+                                        transition: 'background 0.2s ease',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}>
+                                    <div style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        background: '#fff',
+                                        borderRadius: '50%',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                        transform: action.active ? 'translateX(16px)' : 'translateX(0)',
+                                        transition: 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)'
+                                    }}></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
+            </div>
+            }
         </div>
     )
 }

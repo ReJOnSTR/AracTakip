@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import TopProgressBar from '../components/TopProgressBar'
 import { useCompany } from '../context/CompanyContext'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
@@ -290,6 +291,7 @@ export default function Reports() {
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <TopProgressBar loading={loading} />
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Araç Raporları</h1>
@@ -306,9 +308,7 @@ export default function Reports() {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
 
-                {loading && vehicles.length === 0 ? (
-                    <div className="loading-screen" style={{ height: '200px' }}><div className="loading-spinner"></div></div>
-                ) : (
+                {!loading || vehicles.length > 0 ? (
                     <DataTable
                         columns={columns}
                         data={vehicles}
@@ -326,7 +326,7 @@ export default function Reports() {
                             </button>
                         )}
                     />
-                )}
+                ) : null}
             </div>
 
             {/* Preview & Print Modal */}
