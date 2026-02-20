@@ -418,12 +418,41 @@ export default function Dashboard() {
                         <div style={{ width: '100%' }}>
                             <div className="stat-value" style={{ fontSize: '22px' }}>{formatCurrency(stats?.monthlyCost || 0)}</div>
                             {/* Cost Distribution Bar */}
-                            <div style={{ display: 'flex', height: '4px', borderRadius: '2px', overflow: 'hidden', marginTop: '10px', background: 'var(--bg-tertiary)' }}>
-                                <div style={{ width: `${costPcts.service}%`, background: '#3b82f6' }} title="Servis"></div>
-                                <div style={{ width: `${costPcts.maintenance}%`, background: '#f59e0b' }} title="Bakım"></div>
-                                <div style={{ width: `${costPcts.inspection}%`, background: '#10b981' }} title="Muayene"></div>
-                                <div style={{ width: `${costPcts.insurance}%`, background: '#8b5cf6' }} title="Sigorta"></div>
+                            <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginTop: '10px', background: 'var(--bg-tertiary)', cursor: 'default' }}>
+                                <div
+                                    style={{ width: `${costPcts.service}%`, background: '#3b82f6' }}
+                                    title={`Servis: ${formatCurrency(stats?.costDistribution?.service || 0)} (%${Math.round(costPcts.service)})`}
+                                ></div>
+                                <div
+                                    style={{ width: `${costPcts.maintenance}%`, background: '#f59e0b' }}
+                                    title={`Bakım: ${formatCurrency(stats?.costDistribution?.maintenance || 0)} (%${Math.round(costPcts.maintenance)})`}
+                                ></div>
+                                <div
+                                    style={{ width: `${costPcts.inspection}%`, background: '#10b981' }}
+                                    title={`Muayene: ${formatCurrency(stats?.costDistribution?.inspection || 0)} (%${Math.round(costPcts.inspection)})`}
+                                ></div>
+                                <div
+                                    style={{ width: `${costPcts.insurance}%`, background: 'rgba(16, 185, 129, 0.4)' }}
+                                    title={`Sigorta: ${formatCurrency(stats?.costDistribution?.insurance || 0)} (%${Math.round(costPcts.insurance)})`}
+                                ></div>
                             </div>
+
+                            {/* Legend */}
+                            {totalCost > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                                    {[
+                                        { label: 'Servis', color: '#3b82f6', val: stats?.costDistribution?.service },
+                                        { label: 'Bakım', color: '#f59e0b', val: stats?.costDistribution?.maintenance },
+                                        { label: 'Muayene', color: '#10b981', val: stats?.costDistribution?.inspection },
+                                        { label: 'Sigorta', color: 'rgba(16, 185, 129, 0.4)', val: stats?.costDistribution?.insurance }
+                                    ].filter(item => item.val > 0).map(item => (
+                                        <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-secondary)' }}>
+                                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.color }}></div>
+                                            {item.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 

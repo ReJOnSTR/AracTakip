@@ -68,33 +68,47 @@
 /* Light Theme */
 /* Light Theme - High Contrast & Clear */
 [data-theme="light"] {
-  /* Crisp White & Light Gray Backgrounds */
-  --bg-primary: #f0f2f5;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f8fafc;
-  --bg-elevated: #ffffff;
+  /* 
+     PROFESSIONAL LIGHT THEME (Warm Stone / Zinc)
+     Optimized for eye comfort and reduced blue light.
+  */
+
+  /* Backgrounds - Neutral / Warm Gray */
+  --bg-primary: #f5f5f4;
+  /* Stone 100 - Main Canvas (Warm Gray) */
+  --bg-secondary: #fafaf9;
+  /* Stone 50  - Sidebars/nav (Off-White) */
+  --bg-tertiary: #e7e5e4;
+  /* Stone 200 - Inputs/Hovers */
+
+  /* Surfaces - Clean White focus areas */
   --bg-card: #ffffff;
-  --bg-card-hover: #f9fafb;
+  /* Pure White Cards */
+  --bg-card-hover: #fafaf9;
+  /* Stone 50 Hover */
+  --bg-elevated: #ffffff;
+  /* Modals/Dropdowns */
 
-  /* High Contrast Text */
-  --text-primary: #0f172a;
-  /* Slate 900 */
-  --text-secondary: #334155;
-  /* Slate 700 */
-  --text-muted: #64748b;
-  /* Slate 500 */
+  /* Text - High Contrast but Warm */
+  --text-primary: #1c1917;
+  /* Stone 900 - Warm Black */
+  --text-secondary: #57534e;
+  /* Stone 600 - Readable Gray */
+  --text-muted: #a8a29e;
+  /* Stone 400 - Subtle */
 
-  /* Stronger Borders for Better Definition */
-  --border-color: #e2e8f0;
-  /* Slate 200 */
-  --border-light: #cbd5e1;
-  /* Slate 300 */
+  /* Borders - Soft Definition */
+  --border-color: #d6d3d1;
+  /* Stone 300 - Visible Structure */
+  --border-light: #e7e5e4;
+  /* Stone 200 - Subtle Dividers */
 
-  /* More Visible Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.15);
+  /* Shadows - Warm Toned */
+  --shadow-sm: 0 1px 2px 0 rgba(28, 25, 23, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.1), 0 2px 4px -1px rgba(28, 25, 23, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.1), 0 4px 6px -2px rgba(28, 25, 23, 0.05);
+  --shadow-glow: 0 0 15px rgba(20, 184, 166, 0.15);
+  /* Keep brand glow */
 }
 
 /* Reset */
@@ -147,8 +161,10 @@ body {
 
 .app-layout {
   display: flex;
-  height: 100vh;
-  background: var(--bg-primary);
+  height: calc(100vh - 30px);
+  margin-top: 30px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Custom Title Bar Dragging */
@@ -473,7 +489,8 @@ body {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
+  /* Override legacy gap */
 }
 
 .company-selector {
@@ -493,6 +510,16 @@ body {
   transition: all var(--transition-fast);
   font-size: 12px;
   min-width: 160px;
+  justify-content: space-between;
+  /* Distribute items */
+}
+
+.company-selector-btn span {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .company-selector-btn:hover {
@@ -549,45 +576,40 @@ body {
   color: var(--accent-primary);
 }
 
+.company-dropdown-item.management-action {
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.company-dropdown-item.management-action:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
 .user-menu {
   position: relative;
 }
 
-.user-menu-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.user-menu-btn:hover {
-  background: var(--bg-tertiary);
-}
-
 .user-avatar {
-  width: 28px;
-  height: 28px;
-  background: var(--accent-gradient);
-  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
   font-size: 11px;
-  color: white;
+  font-weight: 600;
 }
 
 .user-dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 4px);
   right: 0;
-  min-width: 160px;
+  width: 220px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -1102,6 +1124,7 @@ body {
 
 .table-container {
   overflow-x: auto;
+  overflow-y: auto;
   width: 100%;
   max-width: 100%;
   /* Crucial for scrollbar */
@@ -1561,6 +1584,32 @@ body {
   scrollbar-width: thin;
 }
 
+/* Report Preview - A4 Responsive */
+.a4-page {
+  background: white;
+  width: 100%;
+  max-width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  color: black;
+  box-sizing: border-box;
+  position: relative;
+  page-break-after: always;
+  margin: 0 auto;
+  /* Center it */
+}
+
+@media print {
+  .a4-page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+  }
+}
+
 .data-table {
   width: auto;
   /* Allow table to grow based on column widths */
@@ -1644,10 +1693,36 @@ body {
   font-size: 12px;
 }
 
-.th-actions,
+.th-actions {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+  position: sticky !important;
+  right: 0;
+  background: var(--bg-secondary);
+  z-index: 22;
+  /* Clean separator instead of heavy shadow */
+  border-left: 1px solid var(--border-light);
+  box-shadow: -1px 0 2px rgba(0, 0, 0, 0.02);
+  /* Very subtle depth */
+}
+
 .td-actions {
   width: 100px;
+  min-width: 100px;
   text-align: center;
+  position: sticky !important;
+  right: 0;
+  background: var(--bg-card);
+  /* Match row background */
+  z-index: 21;
+  /* Clean separator */
+  border-left: 1px solid var(--border-light);
+}
+
+tr:hover .td-actions {
+  background: var(--bg-tertiary);
+  /* Match row hover */
 }
 
 .data-table td {
@@ -2674,6 +2749,65 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  border-left: 1px solid var(--border-color);
+  /* Separator from tabs */
+}
+
+.company-selector-btn,
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  /* Horizontal padding, height handles vertical */
+  height: 40px;
+  /* Match tab height */
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  /* Separator between them */
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  box-sizing: border-box;
+  margin-bottom: -1px;
+  /* Overlap border like tabs do */
+}
+
+/* Specific styling to ensure no gaps at edges */
+.user-menu-btn {
+  border-right: none;
+  /* Last item has no right border */
+}
+
+.user-avatar {
+  background: var(--accent-primary);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.company-selector-btn:hover,
+.user-menu-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+
+
 /* ============================================
    TABLE CHECKBOXES
    ============================================ */
@@ -3085,4 +3219,177 @@ body {
 
 .spin {
   animation: spin 1s linear infinite;
+}
+
+/* 
+   MODERN TECH THEME (Slate / Cool Gray) - OVERRIDE
+   Crisp, clean, and professional. Standard modern SaaS aesthetic.
+*/
+[data-theme="light"] {
+  /* Backgrounds - Cool & Fresh */
+  --bg-primary: #f8fafc;
+  /* Slate 50 */
+  --bg-secondary: #ffffff;
+  /* Pure White */
+  --bg-tertiary: #f1f5f9;
+  /* Slate 100 */
+
+  /* Surfaces */
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-elevated: #ffffff;
+
+  /* Text - Sharp & Defined */
+  --text-primary: #0f172a;
+  /* Slate 900 */
+  --text-secondary: #475569;
+  /* Slate 600 */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
+
+  /* Borders - Clean & Minimal */
+  --border-color: #e2e8f0;
+  /* Slate 200 */
+  /* Slate 100 */
+}
+
+/* ============================================
+   TAB BAR
+   ============================================ */
+.tab-bar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 4px 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 48px;
+  /* Increased from 38px to give more room for profile avatar */
+}
+
+.tab-bar-left {
+  display: flex;
+  height: 100%;
+  align-items: flex-end;
+  padding-left: 0;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab-bar-left::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-bar-right {
+  display: flex;
+  align-items: flex-end;
+  /* Match .tab-bar-left alignment */
+  height: 100%;
+  padding: 0;
+  flex-shrink: 0;
+  margin-bottom: 0px;
+}
+
+.tab-scroll-container {
+  display: flex;
+  gap: 0;
+  width: max-content;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  height: 40px;
+  /* Increased height */
+  background: transparent;
+  border-right: 1px solid var(--border-color);
+  border-top: 1px solid transparent;
+  /* Keeps height consistent when active gets a top border */
+  border-left: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  min-width: max-content;
+  max-width: 300px;
+  position: relative;
+  user-select: none;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  /* Prevent tabs from shrinking to hide text */
+
+  margin-bottom: -1px;
+  /* Overlap the bottom border of tab-bar */
+}
+
+.tab-item:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.tab-item.active {
+  background: var(--bg-primary);
+  color: var(--accent-primary);
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--bg-primary);
+  /* Overlaps and hides the tab-bar line */
+  z-index: 10;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.03);
+  /* Subtle lift */
+}
+
+/* First tab should have a left border to define it */
+.tab-item:first-child {
+  border-left: 1px solid var(--border-color);
+}
+
+.tab-item:first-child.active {
+  border-left: 1px solid var(--border-color);
+}
+
+.tab-icon {
+  opacity: 0.7;
+}
+
+.tab-item.active .tab-icon {
+  opacity: 1;
+  color: var(--accent-primary);
+}
+
+.tab-label {
+  white-space: nowrap;
+}
+
+.tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  /* Hidden by default */
+  transition: all 0.1s;
+}
+
+.tab-item:hover .tab-close,
+.tab-item.active .tab-close {
+  opacity: 1;
+}
+
+.tab-close:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
 }

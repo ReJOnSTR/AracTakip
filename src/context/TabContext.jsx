@@ -1,60 +1,80 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { getRouteInfo } from '../config/navigation'
 
 const TabContext = createContext()
 
-export const useTab = () => useContext(TabContext)
-
-export const TabProvider = ({ children }) => {
-    // Tab structure: { id, key (componentMap key), title, props }
+export function TabProvider({ children }) {
+    // Tabs: [{ id: '1', path: '/vehicles', label: 'Araçlar', icon: Icon }]
     const [tabs, setTabs] = useState([])
     const [activeTabId, setActiveTabId] = useState(null)
+    const location = useLocation()
+    const navigate = useNavigate()
 
-    const openTab = useCallback((key, customTitle = null, props = {}, forceNew = false) => {
-        setTabs(prev => {
-            if (!forceNew) {
-                // Check if a tab with this key and these specific props (like ID) already exists
-                // For detail pages, we want unique tabs per ID
-                const existingTab = prev.find(t => {
-                    if (t.key !== key) return false
-                    // If it's a detail page, match props.id or similar
-                    if (key === 'vehicle-detail' || key === 'employee-detail' || key === 'work-details') {
-                        // Check if params ID matches
-                        return t.props?.id === props?.id
-                    }
-                    return true // For list pages, only one instance allowed usually
-                })
-
-                if (existingTab) {
-                    setActiveTabId(existingTab.id)
-                    return prev
-                }
-            }
-
-            const newId = Date.now().toString()
+    // Initialize first tab or sync on load
+    useEffect(() => {
+        if (tabs.length === 0) {
+            const initialPath = location.pathname
+            const routeInfo = getRouteInfo(initialPath)
             const newTab = {
-                id: newId,
-                key,
-                title: customTitle, // Will fallback to componentMap title if null
-                props
+                id: crypto.randomUUID(),
+                path: initialPath,
+                label: routeInfo.label,
+                icon: routeInfo.icon
             }
+            setTabs([newTab])
+            setActiveTabId(newTab.id)
+        }
+    }, []) // Run once on mount
 
-            setActiveTabId(newId)
-            return [...prev, newTab]
-        })
-    }, [])
+    // Update active tab when location changes (if triggered by browser back/forward or manual URL entry)
+    useEffect(() => {
+        if (!activeTabId) return
 
-    const replaceTab = useCallback((tabId, key, customTitle = null, props = {}) => {
         setTabs(prev => {
-            return prev.map(t => {
-                if (t.id !== tabId) return t
-                return {
-                    ...t,
-                    key,
-                    title: customTitle,
-                    props
+            return prev.map(tab => {
+                if (tab.id === activeTabId && tab.path !== location.pathname) {
+                    const routeInfo = getRouteInfo(location.pathname)
+                    return { ...tab, path: location.pathname, label: routeInfo.label, icon: routeInfo.icon }
                 }
+                return tab
             })
         })
+    }, [location.pathname, activeTabId])
+
+
+    const openNewTab = useCallback((path) => {
+        const routeInfo = getRouteInfo(path)
+        const newTab = {
+            id: crypto.randomUUID(),
+            path,
+            label: routeInfo.label,
+            icon: routeInfo.icon
+        }
+        setTabs(prev => [...prev, newTab])
+        setActiveTabId(newTab.id)
+        navigate(path)
+    }, [navigate])
+
+    const activateTab = useCallback((tabId) => {
+        const tab = tabs.find(t => t.id === tabId)
+        if (tab) {
+            setActiveTabId(tabId)
+            navigate(tab.path)
+        }
+    }, [tabs, navigate])
+
+    const updateTabsOrder = useCallback((newTabs) => {
+        setTabs(newTabs)
+    }, [])
+
+    const updateTabInfo = useCallback((path, info) => {
+        setTabs(prev => prev.map(t => {
+            if (t.path === path) {
+                return { ...t, ...info }
+            }
+            return t
+        }))
     }, [])
 
     const closeTab = useCallback((tabId, e) => {
@@ -63,50 +83,62 @@ export const TabProvider = ({ children }) => {
         setTabs(prev => {
             const newTabs = prev.filter(t => t.id !== tabId)
 
-            // If we closed the active tab, modify active ID
+            // If we closed the active tab, we need to find a new one
             if (activeTabId === tabId) {
-                // Open the one to the right, or left if right doesn't exist
-                // Or simply the last one
-                if (newTabs.length > 0) {
-                    setActiveTabId(newTabs[newTabs.length - 1].id)
+                const closeIndex = prev.findIndex(t => t.id === tabId)
+                // Try to go to the left, or the right if left doesn't exist
+                const nextTab = newTabs[closeIndex - 1] || newTabs[closeIndex]
+
+                if (nextTab) {
+                    setActiveTabId(nextTab.id)
+                    navigate(nextTab.path)
                 } else {
-                    setActiveTabId(null)
+                    // Closed the last tab? Go to dashboard or empty state
+                    // For now let's enforce at least one tab or redirect to home if empty logic desired
+                    navigate('/')
+                    // Depending on requirement, we might just leave clean slate or auto-create home tab
                 }
             }
 
             return newTabs
         })
-    }, [activeTabId])
+    }, [activeTabId, navigate])
 
-    const closeAllTabs = useCallback(() => {
-        setTabs([])
-        setActiveTabId(null)
+    const closeOtherTabs = useCallback((tabId) => {
+        setTabs(prev => prev.filter(t => t.id === tabId))
+        setActiveTabId(tabId)
     }, [])
 
-    const reorderTabs = useCallback((startIndex, endIndex) => {
-        setTabs(prev => {
-            const result = Array.from(prev)
-            const [removed] = result.splice(startIndex, 1)
-            result.splice(endIndex, 0, removed)
-            return result
-        })
-    }, [])
-
-    const value = {
-        tabs,
-        activeTabId,
-        setActiveTabId,
-
-        openTab,
-        replaceTab,
-        closeTab,
-        closeAllTabs,
-        reorderTabs
-    }
+    const closeAll = useCallback(() => {
+        const routeInfo = getRouteInfo('/')
+        const homeTab = {
+            id: crypto.randomUUID(),
+            path: '/',
+            label: routeInfo.label,
+            icon: routeInfo.icon
+        }
+        setTabs([homeTab])
+        setActiveTabId(homeTab.id)
+        navigate('/')
+    }, [navigate])
 
     return (
-        <TabContext.Provider value={value}>
+        <TabContext.Provider value={{
+            tabs,
+            activeTabId,
+            openNewTab,
+            activateTab,
+            closeTab,
+            closeOtherTabs,
+            closeAll,
+            updateTabsOrder,
+            updateTabInfo
+        }}>
             {children}
         </TabContext.Provider>
     )
+}
+
+export function useTabs() {
+    return useContext(TabContext)
 }

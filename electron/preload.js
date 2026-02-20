@@ -111,5 +111,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     readDocumentData: (fileName) => ipcRenderer.invoke('documents:readData', fileName),
 
     // Utils
-    openExternal: (url) => ipcRenderer.send('app:openExternal', url)
+    openExternal: (url) => ipcRenderer.send('app:openExternal', url),
+
+    // Database Updates
+    onDbUpdate: (callback) => {
+        const subscription = (event, data) => callback(data)
+        ipcRenderer.on('db-update', subscription)
+        return () => ipcRenderer.removeListener('db-update', subscription)
+    }
 })

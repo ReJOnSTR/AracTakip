@@ -2,12 +2,14 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { CompanyProvider, useCompany } from './context/CompanyContext'
+import { TabProvider } from './context/TabContext' // Import TabProvider
 
 import { useNotification } from './hooks/useNotification'
 import ErrorBoundary from './components/ErrorBoundary'
 import TitleBar from './components/TitleBar'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+import TabBar from './components/TabBar' // Import TabBar
 import TopProgressBar from './components/TopProgressBar'
 
 // Lazy-loaded pages (code splitting)
@@ -62,10 +64,10 @@ function MainLayout() {
 
     return (
         <>
-            <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`} style={{ marginTop: '38px', height: 'calc(100vh - 38px)' }}>
+            <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
                 <div className="main-content">
-                    <Header />
+                    <TabBar />
                     <div className="page-content">
                         <ErrorBoundary>
                             <Suspense fallback={<PageLoader />}>
@@ -79,7 +81,10 @@ function MainLayout() {
     )
 }
 
+import { useDataListener } from './hooks/useDataListener'
+
 function AppRoutes() {
+    useDataListener() // Global real-time data listener
     const { user } = useAuth()
 
     return (
@@ -94,7 +99,9 @@ function AppRoutes() {
                     <Route element={
                         <ProtectedRoute>
                             <CompanyProvider>
-                                <MainLayout />
+                                <TabProvider>
+                                    <MainLayout />
+                                </TabProvider>
                             </CompanyProvider>
                         </ProtectedRoute>
                     }>
@@ -115,8 +122,8 @@ function AppRoutes() {
                     <Route path="/print" element={<PrintPage />} />
 
                     <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </Suspense>
+                </Routes >
+            </Suspense >
         </>
     )
 }

@@ -6,10 +6,20 @@ const crypto = require('crypto')
 const Store = require('electron-store')
 const AdmZip = require('adm-zip')
 const db = require('./database/db')
+const log = require('./logger') // Import logger
+
+// Optional: Override console to correct log file
+// console.log = log.log;
 
 const store = new Store()
 
 let mainWindow
+
+function notifyDbUpdate(changeType) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('db-update', changeType)
+    }
+}
 
 
 function createWindow() {
@@ -207,11 +217,23 @@ ipcMain.handle('notification:show', (event, { title, body }) => {
     return false
 })
 
-app.whenReady().then(async () => {
-    await db.initializeDatabase()
+app.whenReady().then(() => {
+    // Initialize Database
+    try {
+        db.initializeDatabase()
+        log.info('Database initialized')
+    } catch (err) {
+        log.error('Failed to initialize database:', err)
+        dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)
+        app.quit()
+        return
+    }
+
+    log.info('Application started')
     createWindow()
 
-    app.on('activate', () => {
+    // Global Shortcut for DevTools (F12)
+    globalShortcut.register('F12', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
         }
@@ -220,8 +242,13 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
+        log.info('Application quitting (window-all-closed)')
         app.quit()
     }
+})
+
+process.on('uncaughtException', (error) => {
+    log.error('Uncaught Exception:', error)
 })
 
 // ============ IPC HANDLERS ============
@@ -255,15 +282,21 @@ ipcMain.handle('companies:getAll', async (event, userId) => {
 })
 
 ipcMain.handle('companies:create', async (event, companyData) => {
-    return db.createCompany(companyData)
+    const result = await db.createCompany(companyData)
+    if (result.success) notifyDbUpdate({ table: 'companies', action: 'create' })
+    return result
 })
 
 ipcMain.handle('companies:update', async (event, companyData) => {
-    return db.updateCompany(companyData)
+    const result = await db.updateCompany(companyData)
+    if (result.success) notifyDbUpdate({ table: 'companies', action: 'update' })
+    return result
 })
 
 ipcMain.handle('companies:delete', async (event, companyId) => {
-    return db.deleteCompany(companyId)
+    const result = await db.deleteCompany(companyId)
+    if (result.success) notifyDbUpdate({ table: 'companies', action: 'delete' })
+    return result
 })
 
 // Vehicle handlers
@@ -276,15 +309,21 @@ ipcMain.handle('vehicles:getById', async (event, vehicleId) => {
 })
 
 ipcMain.handle('vehicles:create', async (event, vehicleData) => {
-    return db.createVehicle(vehicleData)
+    const result = await db.createVehicle(vehicleData)
+    if (result.success) notifyDbUpdate({ table: 'vehicles', action: 'create' })
+    return result
 })
 
 ipcMain.handle('vehicles:update', async (event, vehicleData) => {
-    return db.updateVehicle(vehicleData)
+    const result = await db.updateVehicle(vehicleData)
+    if (result.success) notifyDbUpdate({ table: 'vehicles', action: 'update' })
+    return result
 })
 
 ipcMain.handle('vehicles:delete', async (event, vehicleId) => {
-    return db.deleteVehicle(vehicleId)
+    const result = await db.deleteVehicle(vehicleId)
+    if (result.success) notifyDbUpdate({ table: 'vehicles', action: 'delete' })
+    return result
 })
 
 // Maintenance handlers
@@ -297,15 +336,21 @@ ipcMain.handle('maintenances:getAll', async (event, companyId, isArchived) => {
 })
 
 ipcMain.handle('maintenances:create', async (event, data) => {
-    return db.createMaintenance(data)
+    const result = await db.createMaintenance(data)
+    if (result.success) notifyDbUpdate({ table: 'maintenances', action: 'create' })
+    return result
 })
 
 ipcMain.handle('maintenances:update', async (event, data) => {
-    return db.updateMaintenance(data)
+    const result = await db.updateMaintenance(data)
+    if (result.success) notifyDbUpdate({ table: 'maintenances', action: 'update' })
+    return result
 })
 
 ipcMain.handle('maintenances:delete', async (event, id) => {
-    return db.deleteMaintenance(id)
+    const result = await db.deleteMaintenance(id)
+    if (result.success) notifyDbUpdate({ table: 'maintenances', action: 'delete' })
+    return result
 })
 
 // Inspection handlers
@@ -318,15 +363,21 @@ ipcMain.handle('inspections:getAll', async (event, companyId, type, isArchived) 
 })
 
 ipcMain.handle('inspections:create', async (event, data) => {
-    return db.createInspection(data)
+    const result = await db.createInspection(data)
+    if (result.success) notifyDbUpdate({ table: 'inspections', action: 'create' })
+    return result
 })
 
 ipcMain.handle('inspections:update', async (event, data) => {
-    return db.updateInspection(data)
+    const result = await db.updateInspection(data)
+    if (result.success) notifyDbUpdate({ table: 'inspections', action: 'update' })
+    return result
 })
 
 ipcMain.handle('inspections:delete', async (event, id) => {
-    return db.deleteInspection(id)
+    const result = await db.deleteInspection(id)
+    if (result.success) notifyDbUpdate({ table: 'inspections', action: 'delete' })
+    return result
 })
 
 // Insurance handlers
@@ -339,15 +390,21 @@ ipcMain.handle('insurances:getAll', async (event, companyId, isArchived) => {
 })
 
 ipcMain.handle('insurances:create', async (event, data) => {
-    return db.createInsurance(data)
+    const result = await db.createInsurance(data)
+    if (result.success) notifyDbUpdate({ table: 'insurances', action: 'create' })
+    return result
 })
 
 ipcMain.handle('insurances:update', async (event, data) => {
-    return db.updateInsurance(data)
+    const result = await db.updateInsurance(data)
+    if (result.success) notifyDbUpdate({ table: 'insurances', action: 'update' })
+    return result
 })
 
 ipcMain.handle('insurances:delete', async (event, id) => {
-    return db.deleteInsurance(id)
+    const result = await db.deleteInsurance(id)
+    if (result.success) notifyDbUpdate({ table: 'insurances', action: 'delete' })
+    return result
 })
 
 // Assignment handlers
@@ -360,15 +417,21 @@ ipcMain.handle('assignments:getAll', async (event, companyId, isArchived) => {
 })
 
 ipcMain.handle('assignments:create', async (event, data) => {
-    return db.createAssignment(data)
+    const result = await db.createAssignment(data)
+    if (result.success) notifyDbUpdate({ table: 'assignments', action: 'create' })
+    return result
 })
 
 ipcMain.handle('assignments:update', async (event, data) => {
-    return db.updateAssignment(data)
+    const result = await db.updateAssignment(data)
+    if (result.success) notifyDbUpdate({ table: 'assignments', action: 'update' })
+    return result
 })
 
 ipcMain.handle('assignments:delete', async (event, id) => {
-    return db.deleteAssignment(id)
+    const result = await db.deleteAssignment(id)
+    if (result.success) notifyDbUpdate({ table: 'assignments', action: 'delete' })
+    return result
 })
 
 // Service handlers
@@ -381,15 +444,21 @@ ipcMain.handle('services:getAll', async (event, companyId, isArchived) => {
 })
 
 ipcMain.handle('services:create', async (event, data) => {
-    return db.createService(data)
+    const result = await db.createService(data)
+    if (result.success) notifyDbUpdate({ table: 'services', action: 'create' })
+    return result
 })
 
 ipcMain.handle('services:update', async (event, data) => {
-    return db.updateService(data)
+    const result = await db.updateService(data)
+    if (result.success) notifyDbUpdate({ table: 'services', action: 'update' })
+    return result
 })
 
 ipcMain.handle('services:delete', async (event, id) => {
-    return db.deleteService(id)
+    const result = await db.deleteService(id)
+    if (result.success) notifyDbUpdate({ table: 'services', action: 'delete' })
+    return result
 })
 
 // Archive handler
@@ -520,6 +589,9 @@ ipcMain.handle('data:import', async (event, userId) => {
         const result = db.importCompanyData(userId, backupData)
 
         if (result.success) {
+            // Notify frontend
+            mainWindow.webContents.send('db-update', 'companies')
+
             // Extract Files
             const userDataPath = app.getPath('userData')
             const filesDir = path.join(userDataPath, 'files')

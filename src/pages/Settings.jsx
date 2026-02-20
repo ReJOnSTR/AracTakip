@@ -145,6 +145,14 @@ export default function Settings() {
                 }
             }
 
+            // FIX: Set the active company to the newly imported one
+            if (result.companyId) {
+                localStorage.setItem('aractakip_company', result.companyId)
+            }
+
+            // Force refresh companies before reload (optional but good practice)
+            // await window.electronAPI.getCompanies(user.id) // Not needed, reload will handle it
+
             window.electronAPI.showNotification('Başarılı', 'Yedek başarıyla geri yüklendi. Sayfa yenileniyor...')
             setTimeout(() => window.location.reload(), 1500)
         } else {

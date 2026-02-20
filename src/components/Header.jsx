@@ -86,8 +86,7 @@ export default function Header() {
                                     ))
                                 )}
                                 <div
-                                    className="company-dropdown-item"
-                                    style={{ borderTop: '1px solid var(--border-color)', color: 'var(--accent-primary)', fontWeight: 500 }}
+                                    className="company-dropdown-item management-action"
                                     onClick={() => { navigate('/companies'); setShowCompanyDropdown(false) }}
                                 >
                                     <Settings size={16} />

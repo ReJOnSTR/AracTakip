@@ -67,7 +67,7 @@ module.exports = function (helpers, entityModules) {
             const newCompanyId = compInfo.lastInsertRowid
 
             const db = getDb()
-            db.transaction(() => {
+            const executeImport = db.transaction(() => {
                 for (const v of backupData.vehicles) {
                     const vInfo = runExec(
                         'INSERT INTO vehicles (company_id, type, plate, brand, model, year, color, status, notes, km, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -141,7 +141,9 @@ module.exports = function (helpers, entityModules) {
                         }
                     }
                 }
-            })()
+            })
+
+            executeImport()
 
             return { success: true, companyId: newCompanyId }
         } catch (error) {

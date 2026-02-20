@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import TopProgressBar from '../components/TopProgressBar'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
+import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
@@ -54,6 +55,7 @@ export default function VehicleDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
     const { currentCompany } = useCompany()
+    const { updateTabInfo } = useTabs()
 
     const [vehicle, setVehicle] = useState(null)
     const [activeTab, setActiveTab] = useState('maintenance')
@@ -123,7 +125,11 @@ export default function VehicleDetail() {
                 window.electronAPI.getDocumentsByVehicle(parseInt(id))
             ])
 
-            if (vehicleRes.success) setVehicle(vehicleRes.data)
+            if (vehicleRes.success) {
+                const v = vehicleRes.data
+                setVehicle(v)
+                updateTabInfo(`/vehicles/${id}`, { label: `${v.plate} ${v.brand} ${v.model}` })
+            }
             if (maintRes.success) setMaintenances(maintRes.data)
             if (inspRes.success) setInspections(inspRes.data)
             if (insRes.success) setInsurances(insRes.data)

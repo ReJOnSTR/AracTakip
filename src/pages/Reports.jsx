@@ -305,7 +305,7 @@ export default function Reports() {
                 )}
             </div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
 
                 {!loading || vehicles.length > 0 ? (
@@ -437,17 +437,6 @@ export default function Reports() {
                                         <div
                                             key={report.vehicle.id}
                                             className="a4-page page-break"
-                                            style={{
-                                                background: 'white',
-                                                width: '210mm',
-                                                minHeight: '297mm',
-                                                padding: '20mm',
-                                                boxShadow: '0 0 10px rgba(0,0,0,0.3)',
-                                                color: 'black',
-                                                boxSizing: 'border-box',
-                                                position: 'relative',
-                                                pageBreakAfter: 'always'
-                                            }}
                                         >
                                             {/* Header */}
                                             <div style={{ borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -1,55 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import {
-    LayoutDashboard,
-    Car,
-    Wrench,
-    ClipboardCheck,
-    Shield,
-    UserCheck,
-    ChevronLeft,
-    ChevronRight,
-    Truck,
-    Settings,
-    FileText,
-    ClipboardList
-} from 'lucide-react'
+import { menuGroups } from '../config/navigation'
 import logo from '../assets/logos/logo-chatgpt.png'
-
+import { ChevronRight, ChevronLeft } from 'lucide-react'
+import { useTabs } from '../context/TabContext'
 
 
 export default function Sidebar({ collapsed, onToggle }) {
-    // Static menu definition
-    const menuGroups = [
-        {
-            title: 'Genel',
-            items: [
-                { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-                { path: '/reports', label: 'Raporlar', icon: FileText }
-            ]
-        },
-        {
-            title: 'Araç Yönetimi',
-            items: [
-                { path: '/vehicles', icon: Car, label: 'Araçlar' }
-            ]
-        },
-        {
-            title: 'Operasyon',
-            items: [
-                { path: '/maintenance', icon: Wrench, label: 'Bakım' },
-                { path: '/inspections', icon: ClipboardCheck, label: 'Muayene' },
-                { path: '/periodic-inspections', icon: ClipboardList, label: 'Periyodik Kontrol' },
-                { path: '/insurance', icon: Shield, label: 'Sigorta' },
-                { path: '/services', icon: Truck, label: 'Servis' }
-            ]
-        },
-        {
-            title: 'Sistem',
-            items: [
-                { path: '/settings', icon: Settings, label: 'Ayarlar' }
-            ]
-        }
-    ]
+    const { openNewTab } = useTabs()
+    // Static menu definition used to be here
+
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''} `}>
@@ -70,6 +29,12 @@ export default function Sidebar({ collapsed, onToggle }) {
                                 to={item.path}
                                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                                 title={collapsed ? item.label : ''}
+                                onClick={(e) => {
+                                    if (e.ctrlKey || e.metaKey) {
+                                        e.preventDefault()
+                                        openNewTab(item.path)
+                                    }
+                                }}
                             >
                                 <item.icon size={20} />
                                 <span>{item.label}</span>

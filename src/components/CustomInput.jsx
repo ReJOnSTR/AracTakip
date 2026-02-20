@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { X } from 'lucide-react'
 
 export default function CustomInput({
     label,
@@ -11,128 +10,114 @@ export default function CustomInput({
     type = 'text',
     className,
     error,
-    icon: Icon,
-
-    floatingLabel = true,
-    onClear,
-    multiline = false,
-    rows,
-    style
+    ...props
 }) {
     const [touched, setTouched] = useState(false)
-    const [focused, setFocused] = useState(false)
+    const [isFocused, setIsFocused] = useState(false)
 
     const handleChange = (e) => {
         let val = e.target.value
-        const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward' || e.nativeEvent.inputType === 'deleteContentForward'
 
-        if (format === 'uppercase' || (!format && (type === 'text' || multiline))) {
-            val = val.toLocaleUpperCase('tr-TR')
+        if (format === 'uppercase') {
+            val = val.toUpperCase()
         } else if (format === 'title') {
-            // Title Case: Capitalize first letter of every word
-            val = val.replace(/(?:^|\s|["'([{])+\S/g, match => match.toLocaleUpperCase('tr-TR'))
-        } else if (format === 'sentence') {
-            // Sentence Case: Capitalize only the very first letter
-            if (val.length > 0) {
-                val = val.charAt(0).toLocaleUpperCase('tr-TR') + val.slice(1)
-            }
+            // Capitalize first letter of each word
+            val = val.replace(/\b\w/g, c => c.toUpperCase())
         } else if (format === 'phone') {
-            // If deleting, just allow the value to be updated without forcing format immediately
-            // This prevents "getting stuck" when deleting parenthesis/spaces
-            if (!isDeleting) {
-                const clean = val.replace(/\D/g, '')
-                if (clean.length > 0) {
-                    if (clean.length <= 3) val = `(${clean}`
-                    else if (clean.length <= 6) val = `(${clean.slice(0, 3)}) ${clean.slice(3)}`
-                    else val = `(${clean.slice(0, 3)}) ${clean.slice(3, 6)} ${clean.slice(6, 10)}`
-                } else {
-                    val = ''
-                }
-            }
-            // Limit length even when deleting to avoid overflow artifacts
-            if (val.length > 15) val = val.slice(0, 15)
+            // Allow only numbers
+            val = val.replace(/\D/g, '')
+            // Limit to 10 digits (Turkish mobile usually without 0 prefix or 11 with 0)
+            if (val.length > 10) val = val.slice(0, 10)
 
+            // Format as (5XX) XXX XX XX
+            if (val.length > 6) {
+                val = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`
+            } else if (val.length > 3) {
+                val = `(${val.slice(0, 3)}) ${val.slice(3)}`
+            } else if (val.length > 0) {
+                val = `(${val}`
+            }
         } else if (format === 'currency') {
+            // Only allow digits and one dot/comma
             val = val.replace(/[^0-9.,]/g, '')
-            // Remove leading zeros if followed by another digit (e.g. 05 -> 5, but 0.5 stays)
-            val = val.replace(/^0+(?=\d)/, '')
-        } else if (format === 'plate') {
-            // Flexible Plate: Only allow Alphanumeric + Uppercase + Symbols + Turkish Chars
-            // User can format as they wish (e.g. 06 XXX 1234, IS MAKINA 01, 34-AB-123)
-            val = val.toLocaleUpperCase('tr-TR').replace(/[^A-Z0-9\s\-\.\/ÇĞİÖŞÜ]/g, '')
-            // Prevent double spaces
-            val = val.replace(/\s+/g, ' ')
         }
 
         onChange(val)
     }
 
-    const handleBlur = () => {
+    const handleFocus = (e) => {
+        setIsFocused(true)
+        if (props.onFocus) props.onFocus(e)
+    }
+
+    const handleBlur = (e) => {
+        setIsFocused(false)
         setTouched(true)
-        setFocused(false)
+        if (props.onBlur) props.onBlur(e)
     }
 
     // Validation check
     const isInvalid = (touched && required && !value) || error
 
-    // Floating label logic
-    const isFloating = floatingLabel
-    // Date/Time inputs have native placeholders (dd.mm.yyyy), so label MUST float to avoid overlap.
-    // Numbers might show spinners, helpful to keep label up.
-    const forceFloat = type === 'date' || type === 'datetime-local' || type === 'time' || type === 'month' || type === 'week'
-    const hasValue = (value && value.toString().length > 0) || forceFloat
-    const wrapperClass = isFloating ? `form-group floating-label-group ${hasValue ? 'has-value' : ''}` : 'form-group'
+    // Determine if we should use floating label style
+    const isFloating = true // Enforce floating label for consistency
+    // Date/Time inputs always show a mask/placeholder natively, so label must float to avoid overlap
+    const isDateType = ['date', 'time', 'datetime-local', 'month', 'week'].includes(type)
+
+    // Hide '0' when not focused to allow label to be inside
+    const shouldHideValue = !isFocused && (value === 0 || value === '0')
+    const displayValue = shouldHideValue ? '' : value
+
+    // Check if value exists (using displayValue logic)
+    const hasValue = (displayValue !== undefined && displayValue !== null && displayValue !== '') || isDateType
+
+    // Wrapper classes
+    const wrapperClass = `form-group ${isFloating ? 'floating-label-group' : ''} ${hasValue ? 'has-value' : ''} ${className || ''}`
 
     return (
-        <div className={`${wrapperClass} ${className || ''}`}>
-            {!isFloating && label && (
+        <div className={wrapperClass}>
+            {/* Input Element */}
+            {type === 'textarea' || (props.multiline) ? (
+                <textarea
+                    className={`form-textarea ${isInvalid ? 'input-error' : ''}`}
+                    value={displayValue}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    placeholder={isFloating ? '' : placeholder} // Hide placeholder if floating to avoid clash
+                    rows={props.rows || 3}
+                    style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
+                    {...props}
+                />
+            ) : (
+                <input
+                    type={type}
+                    className={`form-input ${isInvalid ? 'input-error' : ''}`}
+                    value={displayValue}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    placeholder={isFloating ? '' : placeholder}
+                    style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
+                    {...props}
+                />
+            )}
+
+            {/* Label (After input for CSS peer selector) */}
+            {label && (
                 <label className="form-label">
                     {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
                 </label>
             )}
 
-            <div className="input-wrapper">
-                {Icon && <Icon className="input-icon" size={18} />}
-
-                {multiline ? (
-                    <textarea
-                        className={`form-input form-textarea ${isInvalid ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
-                        value={value || ''}
-                        onChange={handleChange}
-                        onFocus={() => setFocused(true)}
-                        onBlur={handleBlur}
-                        placeholder={isFloating ? '' : placeholder}
-                        style={{ ...style, ...(isInvalid ? { borderColor: 'var(--danger)' } : {}) }}
-                        rows={rows || 3}
-                    />
-                ) : (
-                    <input
-                        type={type}
-                        className={`form-input ${isInvalid ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
-                        value={value || ''}
-                        onChange={handleChange}
-                        onFocus={() => setFocused(true)}
-                        onBlur={handleBlur}
-                        placeholder={isFloating ? '' : placeholder}
-                        style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
-                    />
-                )}
-
-                {isFloating && label && (
-                    <label className="form-label">
-                        {label} {required && <span>*</span>}
-                    </label>
-                )}
-
-                {onClear && value && (
-                    <button type="button" className="input-clear-btn" onClick={onClear}>
-                        <X size={14} />
-                    </button>
-                )}
-            </div>
-
+            {/* Error Message */}
             {isInvalid && (
-                <span className="input-error-text">
+                <span className="input-error-text" style={{
+                    color: 'var(--danger)',
+                    fontSize: '11px',
+                    marginTop: '4px',
+                    display: 'block'
+                }}>
                     {error || 'Bu alan zorunludur'}
                 </span>
             )}

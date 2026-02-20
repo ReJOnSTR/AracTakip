@@ -1,149 +1,189 @@
-import React from 'react'
-import { useTab } from '../context/TabContext'
-import { X, Plus } from 'lucide-react'
-import { componentMap } from '../utils/componentMap'
+import React, { useState } from 'react'
+import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useTabs } from '../context/TabContext'
+import { useAuth } from '../context/AuthContext'
+import { useCompany } from '../context/CompanyContext'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { arrayMove, SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
-export default function TabBar({ onNewTab }) {
-    const { tabs, activeTabId, setActiveTabId, closeTab, reorderTabs } = useTab()
-    const [dragOverIndex, setDragOverIndex] = React.useState(null)
+function SortableTab({ tab, isActive, activateTab, closeTab }) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: tab.id })
 
-    const handleDragStart = (e, index) => {
-        e.dataTransfer.setData('sourceIndex', index.toString())
-        e.dataTransfer.effectAllowed = 'move'
-        // Optional: set ghost image transparent or custom
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
     }
-
-    const handleDragOver = (e, index) => {
-        e.preventDefault()
-        if (dragOverIndex !== index) {
-            setDragOverIndex(index)
-        }
-    }
-
-    const handleDrop = (e, targetIndex) => {
-        e.preventDefault()
-        setDragOverIndex(null)
-        const sourceIndex = parseInt(e.dataTransfer.getData('sourceIndex'), 10)
-        if (!isNaN(sourceIndex) && sourceIndex !== targetIndex) {
-            reorderTabs(sourceIndex, targetIndex)
-        }
-    }
-
-    if (tabs.length === 0) return null
 
     return (
-        <div className="tab-bar-container" style={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'var(--bg-secondary)',
-            borderBottom: '1px solid var(--border-color)',
-            padding: '4px 4px 0 4px',
-            gap: '4px',
-            overflowX: 'auto',
-            height: '40px'
-        }}>
-            {tabs.map((tab, index) => {
-                const isActive = tab.id === activeTabId
-                const title = tab.title || componentMap[tab.key]?.title || 'Sekme'
-                const isDragOver = dragOverIndex === index
-
-                return (
-                    <div
-                        key={tab.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDragOver={(e) => handleDragOver(e, index)}
-                        onDrop={(e) => handleDrop(e, index)}
-                        onClick={() => setActiveTabId(tab.id)}
-                        className={`tab-item ${isActive ? 'active' : ''}`}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            minWidth: '120px',
-                            maxWidth: '200px',
-                            height: '36px',
-                            padding: '0 12px',
-                            fontSize: '13px',
-                            fontWeight: 400,
-                            color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            backgroundColor: isActive ? 'var(--bg-primary)' : (isDragOver ? 'rgba(20, 184, 166, 0.1)' : 'transparent'),
-                            borderTopLeftRadius: '8px',
-                            borderTopRightRadius: '8px',
-                            borderTop: isActive ? '1px solid var(--border-color)' : '1px solid transparent',
-                            borderLeft: isDragOver ? '2px solid var(--accent-primary)' : (isActive ? '1px solid var(--border-color)' : '1px solid transparent'),
-                            borderRight: isActive ? '1px solid var(--border-color)' : '1px solid transparent',
-                            borderBottom: isActive ? 'none' : '1px solid transparent',
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                            position: 'relative',
-                            top: isActive ? '1px' : '0' // Overlap bottom border
-                        }}
-                    >
-                        <span style={{
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            flex: 1
-                        }}>
-                            {title}
-                        </span>
-                        <button
-                            onClick={(e) => closeTab(tab.id, e)}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                padding: '2px',
-                                borderRadius: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                color: 'var(--text-secondary)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'
-                                e.currentTarget.style.color = 'var(--error)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent'
-                                e.currentTarget.style.color = 'var(--text-secondary)'
-                            }}
-                        >
-                            <X size={13} />
-                        </button>
-                    </div>
-                )
-            })}
-
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`tab-item ${isActive ? 'active' : ''}`}
+            onClick={() => activateTab(tab.id)}
+            {...attributes}
+            {...listeners}
+        >
+            {tab.icon && <tab.icon size={14} className="tab-icon" />}
+            <span className="tab-label">{tab.label}</span>
             <button
-                onClick={onNewTab}
-                title="Yeni Sekme"
-                style={{
-                    width: '28px',
-                    height: '28px',
-                    minWidth: '28px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: '4px'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'
-                    e.currentTarget.style.color = 'var(--text-primary)'
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.color = 'var(--text-secondary)'
-                }}
+                className="tab-close"
+                onClick={(e) => closeTab(tab.id, e)}
             >
-                <Plus size={16} />
+                <X size={12} />
             </button>
+        </div>
+    )
+}
+
+export default function TabBar() {
+    const { tabs, activeTabId, activateTab, closeTab, updateTabsOrder } = useTabs()
+    const { user, logout } = useAuth()
+    const { companies, currentCompany, selectCompany } = useCompany()
+    const navigate = useNavigate()
+    const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
+    const [showUserDropdown, setShowUserDropdown] = useState(false)
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        })
+    )
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event
+        if (active.id !== over.id) {
+            const oldIndex = tabs.findIndex((t) => t.id === active.id)
+            const newIndex = tabs.findIndex((t) => t.id === over.id)
+            updateTabsOrder(arrayMove(tabs, oldIndex, newIndex))
+        }
+    }
+
+    const handleCompanySelect = (company) => {
+        selectCompany(company)
+        setShowCompanyDropdown(false)
+    }
+
+    if (!tabs || tabs.length === 0) return null
+
+    return (
+        <div className="tab-bar">
+            {/* Left: Draggable Tabs */}
+            <div className="tab-bar-left">
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <div className="tab-scroll-container">
+                        <SortableContext
+                            items={tabs.map(t => t.id)}
+                            strategy={horizontalListSortingStrategy}
+                        >
+                            {tabs.map(tab => (
+                                <SortableTab
+                                    key={tab.id}
+                                    tab={tab}
+                                    isActive={tab.id === activeTabId}
+                                    activateTab={activateTab}
+                                    closeTab={closeTab}
+                                />
+                            ))}
+                        </SortableContext>
+                    </div>
+                </DndContext>
+            </div>
+
+            {/* Right: Header Actions */}
+            <div className="tab-bar-right">
+                <div className="header-right">
+                    {/* Company Selector */}
+                    <div className="company-selector">
+                        <button
+                            className="company-selector-btn"
+                            onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                        >
+                            <Building2 size={16} />
+                            <span>{currentCompany?.name || 'Şirket Seçin'}</span>
+                            <ChevronDown size={14} />
+                        </button>
+
+                        {showCompanyDropdown && (
+                            <>
+                                <div
+                                    className="dropdown-backdrop"
+                                    style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+                                    onClick={() => setShowCompanyDropdown(false)}
+                                />
+                                <div className="company-dropdown">
+                                    {companies.length === 0 ? (
+                                        <div className="company-dropdown-item">
+                                            <span style={{ color: 'var(--text-secondary)' }}>Henüz şirket eklenmemiş</span>
+                                        </div>
+                                    ) : (
+                                        companies.map((company) => (
+                                            <div
+                                                key={company.id}
+                                                className={`company-dropdown-item ${currentCompany?.id === company.id ? 'active' : ''}`}
+                                                onClick={() => handleCompanySelect(company)}
+                                            >
+                                                <Building2 size={18} />
+                                                <span>{company.name}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                    <div
+                                        className="company-dropdown-item management-action"
+                                        onClick={() => { navigate('/companies'); setShowCompanyDropdown(false) }}
+                                    >
+                                        <Settings size={16} />
+                                        <span>Şirket Yönetimi</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* User Menu */}
+                    <div className="user-menu">
+                        <button
+                            className="user-menu-btn"
+                            onClick={() => setShowUserDropdown(!showUserDropdown)}
+                        >
+                            <div className="user-avatar" style={{ width: '24px', height: '24px', fontSize: '10px' }}>
+                                {user?.username?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <ChevronDown size={14} />
+                        </button>
+
+                        {showUserDropdown && (
+                            <>
+                                <div
+                                    className="dropdown-backdrop"
+                                    style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+                                    onClick={() => setShowUserDropdown(false)}
+                                />
+                                <div className="user-dropdown">
+                                    <div className="user-dropdown-item" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                        <User size={16} />
+                                        <div>
+                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.username}</div>
+                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
+                                        </div>
+                                    </div>
+                                    <div className="user-dropdown-item danger" onClick={logout}>
+                                        <LogOut size={16} />
+                                        <span>Çıkış Yap</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

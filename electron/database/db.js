@@ -20,19 +20,27 @@ function getDbPath() {
 
 // ============ HELPERS ============
 
+function checkDb() {
+    if (!db) throw new Error('Database not initialized')
+}
+
 function runQuery(query, params = []) {
+    checkDb()
     return db.prepare(query).all(params)
 }
 
 function runQueryOne(query, params = []) {
+    checkDb()
     return db.prepare(query).get(params)
 }
 
 function runExec(query, params = []) {
+    checkDb()
     return db.prepare(query).run(params)
 }
 
 function getDb() {
+    checkDb()
     return db
 }
 
