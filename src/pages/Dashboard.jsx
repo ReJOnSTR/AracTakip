@@ -21,6 +21,11 @@ import { useNavigate, Link } from 'react-router-dom'
 import { DashboardSkeleton } from '../components/Skeleton'
 import Modal from '../components/Modal'
 import { Settings, Save, GripVertical, ChevronUp, ChevronDown } from 'lucide-react'
+import VehicleForm from '../components/VehicleForm'
+import MaintenanceForm from '../components/forms/MaintenanceForm'
+import ServiceForm from '../components/forms/ServiceForm'
+import InspectionForm from '../components/forms/InspectionForm'
+import InsuranceForm from '../components/forms/InsuranceForm'
 
 // Helper Component for Scrollable Lists with Buttons
 const ScrollableList = ({ children, height = '210px' }) => {
@@ -180,10 +185,10 @@ export default function Dashboard() {
     useEffect(() => {
         if (!currentCompany) return
 
-        const handleFocus = () => loadDashboardData()
+        const handleFocus = () => loadDashboardData(true)
         window.addEventListener('focus', handleFocus)
 
-        const interval = setInterval(() => loadDashboardData(), 60_000)
+        const interval = setInterval(() => loadDashboardData(true), 60_000)
 
         return () => {
             window.removeEventListener('focus', handleFocus)
@@ -216,6 +221,62 @@ export default function Dashboard() {
     const [showSettings, setShowSettings] = useState(false)
     const [tempActions, setTempActions] = useState([])
     const [draggedItemIndex, setDraggedItemIndex] = useState(null)
+
+    // Modal states for Quick Actions
+    const [activeModal, setActiveModal] = useState(null)
+    const [actionVehicles, setActionVehicles] = useState([])
+    const [actionLoading, setActionLoading] = useState(false)
+
+    const triggerAction = async (action) => {
+        if (action.id === 'get-report' || action.id === 'periodic') {
+            navigate(action.path)
+            return
+        }
+
+        // Fetch vehicles if needed for these actions
+        if (['add-maintenance', 'add-service', 'add-inspection', 'add-insurance'].includes(action.id)) {
+            if (actionVehicles.length === 0) {
+                const res = await window.electronAPI.getVehicles(currentCompany.id)
+                if (res?.success) setActionVehicles(res.data)
+            }
+        }
+        setActiveModal(action.id)
+    }
+
+    const handleActionSubmit = async (data) => {
+        setActionLoading(true)
+        let result = { success: false, error: 'Bilinmeyen işlem' }
+
+        try {
+            if (activeModal === 'add-vehicle') {
+                result = await window.electronAPI.createVehicle({
+                    companyId: currentCompany.id,
+                    ...data,
+                    year: data.year ? parseInt(data.year) : null
+                })
+            } else if (activeModal === 'add-maintenance') {
+                result = await window.electronAPI.addMaintenance(data)
+            } else if (activeModal === 'add-service') {
+                result = await window.electronAPI.addService(data)
+            } else if (activeModal === 'add-inspection') {
+                result = await window.electronAPI.addInspection(data)
+            } else if (activeModal === 'add-insurance') {
+                result = await window.electronAPI.addInsurance(data)
+            }
+        } catch (error) {
+            result = { success: false, error: error.message }
+        }
+
+        setActionLoading(false)
+
+        if (result?.success) {
+            setActiveModal(null)
+            loadDashboardData(true)
+        } else {
+            console.error(result?.error)
+            alert(result?.error || 'Bir hata oluştu')
+        }
+    }
 
     const loadActionPreferences = () => {
         const saved = localStorage.getItem(`dashboard_actions_${currentCompany?.id}`)
@@ -290,8 +351,8 @@ export default function Dashboard() {
 
 
 
-    const loadDashboardData = async () => {
-        setLoading(true)
+    const loadDashboardData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [statsResult, recentResult] = await Promise.all([
                 window.electronAPI.getDashboardStats(currentCompany.id),
@@ -303,7 +364,7 @@ export default function Dashboard() {
         } catch (error) {
             console.error('Dashboard data error:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
 
@@ -376,14 +437,14 @@ export default function Dashboard() {
                 {/* Quick Actions Grid */}
                 <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleActions.length, 4)}, 1fr)`, gap: '20px', marginBottom: '25px' }}>
                     {visibleActions.map(action => (
-                        <Link
+                        <div
                             key={action.id}
-                            to={action.path}
+                            style={{ cursor: 'pointer', justifyContent: 'center', height: '42px', gap: '8px' }}
+                            onClick={() => triggerAction(action)}
                             className="btn btn-secondary"
-                            style={{ justifyContent: 'center', height: '42px', gap: '8px' }}
                         >
                             {actionIconMap[action.icon]} {action.label}
-                        </Link>
+                        </div>
                     ))}
                     {visibleActions.length === 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
@@ -631,6 +692,23 @@ export default function Dashboard() {
 
                     </div>
                 </div>
+
+                {/* Quick Action Modals */}
+                <Modal isOpen={activeModal === 'add-vehicle'} onClose={() => setActiveModal(null)} title="Yeni Araç Ekle" size="xl">
+                    <VehicleForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} loading={actionLoading} />
+                </Modal>
+                <Modal isOpen={activeModal === 'add-maintenance'} onClose={() => setActiveModal(null)} title="Yeni Bakım Ekle" size="lg">
+                    <MaintenanceForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
+                </Modal>
+                <Modal isOpen={activeModal === 'add-service'} onClose={() => setActiveModal(null)} title="Yeni Servis Kaydı Ekle" size="lg">
+                    <ServiceForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
+                </Modal>
+                <Modal isOpen={activeModal === 'add-inspection'} onClose={() => setActiveModal(null)} title="Yeni Muayene Kaydı Ekle" size="lg">
+                    <InspectionForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
+                </Modal>
+                <Modal isOpen={activeModal === 'add-insurance'} onClose={() => setActiveModal(null)} title="Yeni Sigorta Poliçesi Ekle" size="lg">
+                    <InsuranceForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
+                </Modal>
 
                 {/* Customization Modal */}
                 <Modal

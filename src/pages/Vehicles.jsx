@@ -1,7 +1,8 @@
 import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
+import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
@@ -19,6 +20,7 @@ import VehicleForm from '../components/VehicleForm'
 export default function Vehicles() {
     const navigate = useNavigate()
     const { currentCompany } = useCompany()
+    const { openNewTab } = useTabs()
     const [vehicles, setVehicles] = useState([])
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -270,7 +272,13 @@ export default function Vehicles() {
                             options: vehicleStatuses
                         }
                     ]}
-                    onRowClick={(vehicle) => navigate(`/vehicles/${vehicle.id}`)}
+                    onRowClick={(vehicle, e) => {
+                        if (e.ctrlKey || e.metaKey) {
+                            openNewTab(`/vehicles/${vehicle.id}`, true, `${vehicle.plate} ${vehicle.brand} ${vehicle.model}`)
+                        } else {
+                            navigate(`/vehicles/${vehicle.id}`)
+                        }
+                    }}
                     onBulkDelete={handleBulkDeleteClick}
                     onContextMenu={handleContextMenu}
                     actions={(vehicle) => (

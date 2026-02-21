@@ -43,17 +43,19 @@ export function TabProvider({ children }) {
     }, [location.pathname, activeTabId])
 
 
-    const openNewTab = useCallback((path) => {
+    const openNewTab = useCallback((path, background = false, customLabel = null) => {
         const routeInfo = getRouteInfo(path)
         const newTab = {
             id: crypto.randomUUID(),
             path,
-            label: routeInfo.label,
+            label: customLabel || routeInfo.label,
             icon: routeInfo.icon
         }
         setTabs(prev => [...prev, newTab])
-        setActiveTabId(newTab.id)
-        navigate(path)
+        if (!background) {
+            setActiveTabId(newTab.id)
+            navigate(path)
+        }
     }, [navigate])
 
     const activateTab = useCallback((tabId) => {

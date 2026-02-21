@@ -14,6 +14,7 @@ export default function CustomSelect({
     icon: Icon
 }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [placement, setPlacement] = useState('bottom')
     const ref = useRef(null)
 
     const selectedOption = options.find(opt => opt.value === value)
@@ -32,6 +33,21 @@ export default function CustomSelect({
     const handleSelect = (optValue) => {
         onChange(optValue)
         setIsOpen(false)
+    }
+
+    const toggleOpen = () => {
+        if (!isOpen && ref.current) {
+            const rect = ref.current.getBoundingClientRect()
+            const spaceBelow = window.innerHeight - rect.bottom
+            const spaceAbove = rect.top
+            // If less than 250px below and we have more space above than below, open upwards
+            if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+                setPlacement('top')
+            } else {
+                setPlacement('bottom')
+            }
+        }
+        setIsOpen(!isOpen)
     }
 
     // Floating label logic
@@ -53,7 +69,7 @@ export default function CustomSelect({
                 <button
                     type="button"
                     className={`custom-select-trigger form-input ${isOpen ? 'open' : ''} ${error ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={toggleOpen}
                 >
                     <span className={selectedOption ? 'value-text' : 'placeholder'} style={{ opacity: isFloating && !selectedOption && !isOpen ? 0 : 1 }}>
                         {selectedOption ? selectedOption.label : (isFloating ? '' : placeholder)}
@@ -68,7 +84,7 @@ export default function CustomSelect({
                 )}
 
                 {isOpen && (
-                    <div className="custom-select-dropdown">
+                    <div className={`custom-select-dropdown placement-${placement}`}>
                         {!required && placeholder && (
                             <div
                                 className={`custom-select-option ${!value ? 'selected' : ''}`}

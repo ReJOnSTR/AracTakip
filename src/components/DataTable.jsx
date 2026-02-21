@@ -363,9 +363,9 @@ export default function DataTable({
 
     const hasActiveFilters = Object.values(activeFilters).some(v => v) || searchQuery || dateRange.start || dateRange.end
 
-    const handleRowClick = (row) => {
+    const handleRowClick = (row, e) => {
         if (onRowClick) {
-            onRowClick(row)
+            onRowClick(row, e)
         }
     }
 
@@ -674,7 +674,7 @@ export default function DataTable({
                                 <tr
                                     key={row.id || index}
                                     className={`${selectedRows.has(row.id) ? 'selected' : ''} ${onRowClick ? 'clickable' : ''}`}
-                                    onClick={() => handleRowClick(row)}
+                                    onClick={(e) => handleRowClick(row, e)}
                                     onContextMenu={(e) => {
                                         if (onContextMenu) {
                                             e.preventDefault()

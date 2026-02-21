@@ -12,7 +12,10 @@ function SortableTab({ tab, isActive, activateTab, closeTab }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: tab.id })
 
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: transform ? CSS.Transform.toString({
+            ...transform,
+            y: 0 // Prevent vertical dragging 
+        }) : undefined,
         transition,
     }
 

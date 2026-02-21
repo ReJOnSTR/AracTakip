@@ -23,10 +23,10 @@ export function CompanyProvider({ children }) {
     useEffect(() => {
         if (!currentCompany) return
 
-        const handleFocus = () => loadUpcomingEvents()
+        const handleFocus = () => loadUpcomingEvents(true)
         window.addEventListener('focus', handleFocus)
 
-        const interval = setInterval(() => loadUpcomingEvents(), 60_000)
+        const interval = setInterval(() => loadUpcomingEvents(true), 60_000)
 
         return () => {
             window.removeEventListener('focus', handleFocus)
@@ -34,8 +34,11 @@ export function CompanyProvider({ children }) {
         }
     }, [currentCompany])
 
-    const loadUpcomingEvents = async () => {
+    const loadUpcomingEvents = async (isBackground = false) => {
         if (!currentCompany) return
+
+        // Upcoming events don't set a global loading state in context anyway,
+        // but it's good practice. This logic is already silent.
         try {
             const result = await dashboardService.getUpcomingEvents(currentCompany.id)
             if (result.success) {

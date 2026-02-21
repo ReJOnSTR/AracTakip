@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useTab } from '../context/TabContext'
+import { useTabs } from '../context/TabContext'
+import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { Plus, Search, Users, Phone, Building2, Briefcase, Trash2, Pencil } from 'lucide-react'
 import DataTable from '../components/DataTable'
@@ -9,7 +10,8 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 
 export default function Employees() {
-    const { openTab, replaceTab, activeTabId } = useTab()
+    const { openNewTab } = useTabs()
+    const navigate = useNavigate()
     const { currentCompany } = useCompany()
     const [employees, setEmployees] = useState([])
     const [loading, setLoading] = useState(true)
@@ -217,12 +219,12 @@ export default function Employees() {
                 onToggleArchiveView={setIsArchiveView}
                 onRowClick={(row, e) => {
                     if (e.ctrlKey || e.metaKey) {
-                        openTab('employee-detail', `${row.name} ${row.surname} - Detay`, { id: row.id }, true)
+                        openNewTab(`/employees/${row.id}`, true, `${row.name} ${row.surname} - Detay`)
                     } else {
-                        replaceTab(activeTabId, 'employee-detail', `${row.name} ${row.surname} - Detay`, { id: row.id })
+                        navigate(`/employees/${row.id}`)
                     }
                 }}
-                onRowMiddleClick={(row) => openTab('employee-detail', `${row.name} ${row.surname} - Detay`, { id: row.id }, true)}
+                onRowMiddleClick={(row) => openNewTab(`/employees/${row.id}`, true, `${row.name} ${row.surname} - Detay`)}
                 onBulkDelete={handleBulkDelete}
                 actions={(row) => (
                     <div style={{ display: 'flex', gap: '8px' }}>

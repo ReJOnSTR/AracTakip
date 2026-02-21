@@ -1259,14 +1259,18 @@ body {
 }
 
 .custom-select.page-select-custom .custom-select-trigger {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   border-radius: 6px;
   background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  height: 24px;
-  padding: 0 20px 0 6px;
-  /* Reduced left padding, explicit right padding for chevron */
+  height: 28px;
+  padding: 0 24px 0 12px;
+  justify-content: center;
+}
+
+.custom-select.page-select-custom .custom-select-trigger .chevron {
+  right: 6px;
 }
 
 .custom-select.page-select-custom .custom-select-trigger:hover {
@@ -1350,10 +1354,28 @@ body {
   animation: dropdownIn 0.15s ease;
 }
 
+.custom-select-dropdown.placement-top {
+  top: auto;
+  bottom: calc(100% + 6px);
+  animation: dropdownUp 0.15s ease;
+}
+
 @keyframes dropdownIn {
   from {
     opacity: 0;
     transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dropdownUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 
   to {
@@ -1900,6 +1922,10 @@ tr:hover .td-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.footer-left .page-select-custom {
+  margin-bottom: 0 !important;
 }
 
 .page-select {
@@ -3264,7 +3290,10 @@ tr:hover .td-actions {
   justify-content: space-between;
   align-items: flex-end;
   height: 48px;
-  /* Increased from 38px to give more room for profile avatar */
+  min-height: 48px;
+  max-height: 48px;
+  overflow: visible;
+  /* Must be visible for dropdowns to escape, but children will restrict Y */
 }
 
 .tab-bar-left {
@@ -3274,6 +3303,8 @@ tr:hover .td-actions {
   padding-left: 0;
   flex: 1;
   overflow-x: auto;
+  overflow-y: hidden;
+  /* Strongly prevent vertical scroll */
   scrollbar-width: none;
 }
 
@@ -3284,7 +3315,6 @@ tr:hover .td-actions {
 .tab-bar-right {
   display: flex;
   align-items: flex-end;
-  /* Match .tab-bar-left alignment */
   height: 100%;
   padding: 0;
   flex-shrink: 0;
@@ -3295,6 +3325,9 @@ tr:hover .td-actions {
   display: flex;
   gap: 0;
   width: max-content;
+  height: 100%;
+  align-items: flex-end;
+  /* Keep tabs anchored to bottom during drag */
 }
 
 .tab-item {

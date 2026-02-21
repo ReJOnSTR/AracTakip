@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useCompany } from '../context/CompanyContext'
-import { useTab } from '../context/TabContext'
+import { useTabs } from '../context/TabContext'
+import { useNavigate } from 'react-router-dom'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -10,7 +11,8 @@ import { formatDate, formatCurrency, getWorkStatusLabel, getWorkStatusColor } fr
 
 export default function Works() {
     const { currentCompany } = useCompany()
-    const { openTab } = useTab()
+    const { openNewTab } = useTabs()
+    const navigate = useNavigate()
     const [works, setWorks] = useState([])
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -84,8 +86,12 @@ export default function Works() {
         setIsModalOpen(true)
     }
 
-    const handleRowClick = (row) => {
-        openTab('work-details', 'İş Detayı', { id: row.id })
+    const handleRowClick = (row, e) => {
+        if (e.ctrlKey || e.metaKey) {
+            openNewTab(`/works/${row.id}`, true, `İş: ${row.customer}`)
+        } else {
+            navigate(`/works/${row.id}`)
+        }
     }
 
     // Stats
