@@ -461,6 +461,91 @@ ipcMain.handle('services:delete', async (event, id) => {
     return result
 })
 
+// Finance handlers
+ipcMain.handle('finance:getAll', async (event, companyId) => {
+    return db.getTransactions(companyId)
+})
+
+ipcMain.handle('finance:getById', async (event, id) => {
+    return db.getTransactionById(id)
+})
+
+ipcMain.handle('finance:create', async (event, data) => {
+    const result = await db.addTransaction(data)
+    if (result.success) notifyDbUpdate({ table: 'transactions', action: 'create' })
+    return result
+})
+
+ipcMain.handle('finance:update', async (event, data) => {
+    const result = await db.updateTransaction(data)
+    if (result.success) notifyDbUpdate({ table: 'transactions', action: 'update' })
+    return result
+})
+
+ipcMain.handle('finance:delete', async (event, id) => {
+    const result = await db.deleteTransaction(id)
+    if (result.success) notifyDbUpdate({ table: 'transactions', action: 'delete' })
+    return result
+})
+
+ipcMain.handle('finance:getStats', async (event, companyId) => {
+    return db.getFinanceStats(companyId)
+})
+
+ipcMain.handle('finance:getChecks', async (event, companyId) => {
+    return db.getChecksAndNotes(companyId)
+})
+
+ipcMain.handle('finance:updateCheckStatus', async (event, payload) => {
+    const { id, status } = payload
+    const result = await db.updateCheckStatus(id, status)
+    if (result.success) notifyDbUpdate({ table: 'transactions', action: 'update' })
+    return result
+})
+
+
+// ============ MEAL TICKETS ============
+
+ipcMain.handle('mealTickets:getAll', async (event, companyId) => {
+    return db.getMealTickets(companyId)
+})
+
+ipcMain.handle('mealTickets:create', async (event, data) => {
+    const result = db.addMealTicket(data)
+    if (result.success) notifyDbUpdate({ table: 'meal_tickets', action: 'create' })
+    return result
+})
+
+ipcMain.handle('mealTickets:update', async (event, data) => {
+    const result = db.updateMealTicket(data)
+    if (result.success) notifyDbUpdate({ table: 'meal_tickets', action: 'update' })
+    return result
+})
+
+ipcMain.handle('mealTickets:delete', async (event, id) => {
+    const result = db.deleteMealTicket(id)
+    if (result.success) notifyDbUpdate({ table: 'meal_tickets', action: 'delete' })
+    return result
+})
+
+ipcMain.handle('mealTickets:getStats', async (event, companyId) => {
+    return db.getMealTicketStats(companyId)
+})
+
+ipcMain.handle('mealTickets:getPrice', async (event, companyId) => {
+    return db.getMealPrice(companyId)
+})
+
+ipcMain.handle('mealTickets:setPrice', async (event, data) => {
+    const result = db.setMealPrice(data)
+    if (result.success) notifyDbUpdate({ table: 'meal_settings', action: 'update' })
+    return result
+})
+
+ipcMain.handle('mealTickets:getReport', async (event, { companyId, month, year }) => {
+    return db.getMealTicketReport(companyId, month, year)
+})
+
 // Archive handler
 ipcMain.handle('archive:item', async (event, table, id, isArchived) => {
     return db.archiveItem(table, id, isArchived)

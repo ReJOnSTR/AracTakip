@@ -38,8 +38,23 @@ export default function CustomInput({
                 val = `(${val}`
             }
         } else if (format === 'currency') {
-            // Only allow digits and one dot/comma
-            val = val.replace(/[^0-9.,]/g, '')
+            // Remove existing dots (thousands separators)
+            let clean = val.replace(/\./g, '')
+            // Remove any char except numbers and comma
+            clean = clean.replace(/[^0-9,]/g, '')
+
+            const parts = clean.split(',')
+            if (parts.length > 2) {
+                clean = parts[0] + ',' + parts.slice(1).join('')
+            }
+            if (parts.length === 2 && parts[1].length > 2) {
+                clean = parts[0] + ',' + parts[1].substring(0, 2)
+            }
+
+            // Convert '1234,56' to standard float '1234.56' for the parent
+            const standardFloatVal = clean.replace(',', '.')
+            onChange(standardFloatVal === '' ? '' : standardFloatVal)
+            return // Skip normal onChange
         }
 
         onChange(val)
@@ -66,7 +81,20 @@ export default function CustomInput({
 
     // Hide '0' when not focused to allow label to be inside
     const shouldHideValue = !isFocused && (value === 0 || value === '0')
-    const displayValue = shouldHideValue ? '' : value
+
+    // Determine the display value
+    let displayValue = shouldHideValue ? '' : value
+
+    // If currency format, take the standard float value and format it for TR locale
+    if (format === 'currency' && displayValue !== '' && displayValue !== undefined && displayValue !== null) {
+        // value represents the standard float string from parent, e.g. '1234.56' or '1234'
+        let strVal = String(displayValue).replace('.', ',') // Convert parent dot to comma
+        const parts = strVal.split(',')
+        if (parts[0].length > 0) {
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+        }
+        displayValue = parts.join(',')
+    }
 
     // Check if value exists (using displayValue logic)
     const hasValue = (displayValue !== undefined && displayValue !== null && displayValue !== '') || isDateType
@@ -91,7 +119,7 @@ export default function CustomInput({
                 />
             ) : (
                 <input
-                    type={type}
+                    type={format === 'currency' ? 'text' : type}
                     className={`form-input ${isInvalid ? 'input-error' : ''}`}
                     value={displayValue}
                     onChange={handleChange}

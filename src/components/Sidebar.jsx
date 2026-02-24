@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom'
-import { menuGroups } from '../config/navigation'
+import { NavLink, useLocation } from 'react-router-dom'
+import { moduleMenus, getActiveModule } from '../config/navigation'
 import logo from '../assets/logos/logo-chatgpt.png'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { useTabs } from '../context/TabContext'
@@ -7,8 +7,11 @@ import { useTabs } from '../context/TabContext'
 
 export default function Sidebar({ collapsed, onToggle }) {
     const { openNewTab } = useTabs()
-    // Static menu definition used to be here
+    const location = useLocation()
 
+    // Determine the active module
+    const activeModule = getActiveModule(location.pathname, location.search)
+    const activeMenus = moduleMenus[activeModule] || []
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''} `}>
@@ -20,7 +23,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             </div>
 
             <nav className="sidebar-nav">
-                {menuGroups.map((group, index) => (
+                {activeMenus.map((group, index) => (
                     <div className="nav-section" key={index}>
                         <div className="nav-section-title">{group.title}</div>
                         {group.items.map((item) => (

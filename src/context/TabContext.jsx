@@ -95,10 +95,8 @@ export function TabProvider({ children }) {
                     setActiveTabId(nextTab.id)
                     navigate(nextTab.path)
                 } else {
-                    // Closed the last tab? Go to dashboard or empty state
-                    // For now let's enforce at least one tab or redirect to home if empty logic desired
-                    navigate('/')
-                    // Depending on requirement, we might just leave clean slate or auto-create home tab
+                    // Closed the last tab? Go to portal
+                    navigate('/portal')
                 }
             }
 
@@ -112,16 +110,16 @@ export function TabProvider({ children }) {
     }, [])
 
     const closeAll = useCallback(() => {
-        const routeInfo = getRouteInfo('/')
+        const routeInfo = getRouteInfo('/portal')
         const homeTab = {
             id: crypto.randomUUID(),
-            path: '/',
+            path: '/portal',
             label: routeInfo.label,
             icon: routeInfo.icon
         }
         setTabs([homeTab])
         setActiveTabId(homeTab.id)
-        navigate('/')
+        navigate('/portal')
     }, [navigate])
 
     return (

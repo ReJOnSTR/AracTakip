@@ -410,6 +410,7 @@ export default function Settings() {
                         </div>
                     </div>
 
+
                     {/* Data Management Section */}
                     <div className="settings-section">
                         <h2 className="settings-section-title">Veri Yönetimi</h2>

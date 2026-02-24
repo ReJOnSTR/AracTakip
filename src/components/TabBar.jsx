@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings } from 'lucide-react'
+import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
@@ -41,7 +41,7 @@ function SortableTab({ tab, isActive, activateTab, closeTab }) {
 }
 
 export default function TabBar() {
-    const { tabs, activeTabId, activateTab, closeTab, updateTabsOrder } = useTabs()
+    const { tabs, activeTabId, activateTab, closeTab, updateTabsOrder, openNewTab } = useTabs()
     const { user, logout } = useAuth()
     const { companies, currentCompany, selectCompany } = useCompany()
     const navigate = useNavigate()
@@ -96,6 +96,30 @@ export default function TabBar() {
                                 />
                             ))}
                         </SortableContext>
+                        <button
+                            className="tab-add-btn"
+                            onClick={() => openNewTab('/portal', false, 'Ana Portal')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                background: 'transparent',
+                                color: 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                marginLeft: '8px',
+                                marginBottom: '4px',
+                                flexShrink: 0
+                            }}
+                            title="Yeni Ana Portal Sekmesi Aç"
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <Plus size={18} />
+                        </button>
                     </div>
                 </DndContext>
             </div>

@@ -16,6 +16,10 @@ import TopProgressBar from './components/TopProgressBar'
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const MainPortal = lazy(() => import('./pages/MainPortal'))
+const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard'))
+const Finance = lazy(() => import('./pages/Finance'))
+const Checks = lazy(() => import('./pages/Checks'))
 const Companies = lazy(() => import('./pages/Companies'))
 const Vehicles = lazy(() => import('./pages/Vehicles'))
 const VehicleDetail = lazy(() => import('./pages/VehicleDetail'))
@@ -29,6 +33,9 @@ const Reports = lazy(() => import('./pages/Reports'))
 const PrintPage = lazy(() => import('./pages/PrintPage'))
 const Services = lazy(() => import('./pages/Services'))
 const ChangePassword = lazy(() => import('./pages/ChangePassword'))
+const MealTickets = lazy(() => import('./pages/MealTickets'))
+const MealTicketReport = lazy(() => import('./pages/MealTicketReport'))
+const MealTicketSettings = lazy(() => import('./pages/MealTicketSettings'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -105,7 +112,15 @@ function AppRoutes() {
                             </CompanyProvider>
                         </ProtectedRoute>
                     }>
-                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/" element={<Navigate to="/portal" replace />} />
+                        <Route path="/portal" element={<MainPortal />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/finance-dashboard" element={<FinanceDashboard />} />
+                        <Route path="/finance" element={<Finance />} />
+                        <Route path="/checks" element={<Checks />} />
+                        <Route path="/meal-tickets" element={<MealTickets />} />
+                        <Route path="/meal-ticket-report" element={<MealTicketReport />} />
+                        <Route path="/meal-ticket-settings" element={<MealTicketSettings />} />
                         <Route path="/companies" element={<Companies />} />
                         <Route path="/vehicles" element={<Vehicles />} />
                         <Route path="/vehicles/:id" element={<VehicleDetail />} />

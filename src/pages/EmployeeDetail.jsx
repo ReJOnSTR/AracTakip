@@ -1714,7 +1714,8 @@ export default function EmployeeDetail(props) {
 
                     <CustomInput
                         label="Tutar"
-                        type="number"
+                        type="text"
+                        format="currency"
                         value={movementForm.amount}
                         onChange={(val) => setMovementForm({ ...movementForm, amount: val })}
                         required
@@ -1960,7 +1961,8 @@ export default function EmployeeDetail(props) {
                         <div style={{ flex: 1 }}>
                             <CustomInput
                                 label="Yeni Maaş"
-                                type="number"
+                                type="text"
+                                format="currency"
                                 value={salaryForm.amount}
                                 onChange={(val) => setSalaryForm({ ...salaryForm, amount: val })}
                                 required
@@ -2108,7 +2110,8 @@ export default function EmployeeDetail(props) {
                         <div style={{ flex: 1 }}>
                             <CustomInput
                                 label="Maaş (TL)"
-                                type="number"
+                                type="text"
+                                format="currency"
                                 value={editForm.salary}
                                 disabled={true}
                             />

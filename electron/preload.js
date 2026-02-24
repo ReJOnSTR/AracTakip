@@ -113,6 +113,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Utils
     openExternal: (url) => ipcRenderer.send('app:openExternal', url),
 
+    // Finance API
+    getAllFinance: (companyId) => ipcRenderer.invoke('finance:getAll', companyId),
+    getFinanceById: (id) => ipcRenderer.invoke('finance:getById', id),
+    createFinance: (data) => ipcRenderer.invoke('finance:create', data),
+    updateFinance: (data) => ipcRenderer.invoke('finance:update', data),
+    deleteFinance: (id) => ipcRenderer.invoke('finance:delete', id),
+    getFinanceStats: (companyId) => ipcRenderer.invoke('finance:getStats', companyId),
+    getChecks: (companyId) => ipcRenderer.invoke('finance:getChecks', companyId),
+    updateCheckStatus: (data) => ipcRenderer.invoke('finance:updateCheckStatus', data),
+
+    // Meal Tickets API
+    getMealTickets: (companyId) => ipcRenderer.invoke('mealTickets:getAll', companyId),
+    createMealTicket: (data) => ipcRenderer.invoke('mealTickets:create', data),
+    updateMealTicket: (data) => ipcRenderer.invoke('mealTickets:update', data),
+    deleteMealTicket: (id) => ipcRenderer.invoke('mealTickets:delete', id),
+    getMealTicketStats: (companyId) => ipcRenderer.invoke('mealTickets:getStats', companyId),
+    getMealPrice: (companyId) => ipcRenderer.invoke('mealTickets:getPrice', companyId),
+    setMealPrice: (data) => ipcRenderer.invoke('mealTickets:setPrice', data),
+    getMealTicketReport: (data) => ipcRenderer.invoke('mealTickets:getReport', data),
+
     // Database Updates
     onDbUpdate: (callback) => {
         const subscription = (event, data) => callback(data)

@@ -174,6 +174,37 @@ const createTables = [
     `CREATE TABLE IF NOT EXISTS schema_migrations (
         version INTEGER PRIMARY KEY,
         applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );`,
+    `CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        method TEXT NOT NULL,
+        amount REAL NOT NULL,
+        currency TEXT DEFAULT 'TRY',
+        date DATE NOT NULL,
+        description TEXT,
+        check_number TEXT,
+        check_due_date DATE,
+        status TEXT DEFAULT 'COMPLETED',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+    );`,
+    `CREATE TABLE IF NOT EXISTS meal_tickets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        date DATE NOT NULL,
+        person_count INTEGER NOT NULL DEFAULT 1,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+    );`,
+    `CREATE TABLE IF NOT EXISTS meal_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL UNIQUE,
+        price_per_person REAL NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
     );`
 ]
 
@@ -279,6 +310,17 @@ const migrations = [
         run: () => {
             addColumn('users', 'must_change_password', 'INTEGER DEFAULT 0')
         }
+    },
+    {
+        version: 9,
+        description: 'Transactions: add method, check fields, status, currency',
+        run: () => {
+            addColumn('transactions', 'method', "TEXT DEFAULT 'CASH'")
+            addColumn('transactions', 'check_number', "TEXT")
+            addColumn('transactions', 'check_due_date', "DATE")
+            addColumn('transactions', 'status', "TEXT DEFAULT 'COMPLETED'")
+            addColumn('transactions', 'currency', "TEXT DEFAULT 'TRY'")
+        }
     }
 ]
 
@@ -317,7 +359,8 @@ function initializeDatabase() {
             `CREATE INDEX IF NOT EXISTS idx_inspections_vehicle ON inspections(vehicle_id)`,
             `CREATE INDEX IF NOT EXISTS idx_insurances_vehicle ON insurances(vehicle_id)`,
             `CREATE INDEX IF NOT EXISTS idx_assignments_vehicle ON assignments(vehicle_id)`,
-            `CREATE INDEX IF NOT EXISTS idx_services_vehicle ON services(vehicle_id)`
+            `CREATE INDEX IF NOT EXISTS idx_services_vehicle ON services(vehicle_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_transactions_company ON transactions(company_id)`
         ]
         indexes.forEach(sql => db.exec(sql))
 
@@ -352,6 +395,8 @@ const assignmentsMod = require('./assignments')(helpers)
 const servicesMod = require('./services')(helpers)
 const dashboardMod = require('./dashboard')(helpers)
 const documentsMod = require('./documents')(helpers)
+const financeMod = require('./finance')(helpers)
+const mealTicketsMod = require('./mealTickets')(helpers)
 
 const entityModules = {
     vehicles: vehiclesMod,
@@ -379,5 +424,7 @@ module.exports = {
     ...servicesMod,
     ...dashboardMod,
     ...documentsMod,
-    ...importExportMod
+    ...importExportMod,
+    ...financeMod,
+    ...mealTicketsMod
 }
