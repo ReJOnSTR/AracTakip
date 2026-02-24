@@ -13,6 +13,9 @@ module.exports = function (helpers, entityModules) {
             const allDocuments = documents.getDocumentsByCompany(companyId).data || []
             const getDocs = (type, id) => allDocuments.filter(d => d.related_type === type && d.related_id === id)
 
+            const allTransactions = runQuery('SELECT * FROM transactions WHERE company_id = ?', [companyId]) || []
+            const allMealTickets = runQuery('SELECT * FROM meal_tickets WHERE company_id = ?', [companyId]) || []
+
             const detailedVehicles = vehicleList.map(v => {
                 const mtnList = (maintenances.getMaintenances(v.id).data || []).map(m => ({ ...m, documents: getDocs('maintenance', m.id) }))
                 const inspList = (inspections.getInspections(v.id).data || []).map(i => ({ ...i, documents: getDocs('periodic_inspection', i.id) }))
@@ -37,9 +40,11 @@ module.exports = function (helpers, entityModules) {
                 data: {
                     company,
                     vehicles: detailedVehicles,
+                    transactions: allTransactions,
+                    mealTickets: allMealTickets,
                     allDocuments,
                     exportedAt: new Date().toISOString(),
-                    version: '1.1'
+                    version: '1.2'
                 }
             }
         } catch (error) {
@@ -61,8 +66,8 @@ module.exports = function (helpers, entityModules) {
             }
 
             const compInfo = runExec(
-                'INSERT INTO companies (user_id, name, tax_number, address, phone) VALUES (?, ?, ?, ?, ?)',
-                [userId, `${backupData.company.name} (Imported)`, backupData.company.tax_number, backupData.company.address, backupData.company.phone]
+                'INSERT INTO companies (user_id, name, tax_number, address, phone, meal_price_per_person) VALUES (?, ?, ?, ?, ?, ?)',
+                [userId, `${backupData.company.name} (Imported)`, backupData.company.tax_number, backupData.company.address, backupData.company.phone, backupData.company.meal_price_per_person || 0]
             )
             const newCompanyId = compInfo.lastInsertRowid
 
@@ -139,6 +144,24 @@ module.exports = function (helpers, entityModules) {
                                 for (const d of s.documents) insertDoc(newVehicleId, 'service', sInfo.id, d)
                             }
                         }
+                    }
+                }
+
+                if (backupData.transactions) {
+                    for (const tx of backupData.transactions) {
+                        runExec(
+                            'INSERT INTO transactions (company_id, type, method, amount, currency, date, description, check_number, check_due_date, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                            [newCompanyId, tx.type, tx.method, tx.amount, tx.currency, tx.date, tx.description, tx.check_number, tx.check_due_date, tx.status, tx.created_at || new Date().toISOString()]
+                        )
+                    }
+                }
+
+                if (backupData.mealTickets) {
+                    for (const mt of backupData.mealTickets) {
+                        runExec(
+                            'INSERT INTO meal_tickets (company_id, date, person_count, notes, created_at) VALUES (?, ?, ?, ?, ?)',
+                            [newCompanyId, mt.date, mt.person_count, mt.notes, mt.created_at || new Date().toISOString()]
+                        )
                     }
                 }
             })

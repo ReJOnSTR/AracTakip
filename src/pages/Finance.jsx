@@ -231,6 +231,7 @@ export default function Finance() {
             </div>
 
             <DataTable
+                storageKey="finance_table_cols"
                 columns={columns}
                 data={transactions}
                 loading={loading}

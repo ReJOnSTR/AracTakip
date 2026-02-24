@@ -405,7 +405,9 @@ const entityModules = {
     insurances: insurancesMod,
     assignments: assignmentsMod,
     services: servicesMod,
-    documents: documentsMod
+    documents: documentsMod,
+    finance: financeMod,
+    mealTickets: mealTicketsMod
 }
 
 const importExportMod = require('./import-export')(helpers, entityModules)

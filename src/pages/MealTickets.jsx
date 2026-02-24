@@ -256,6 +256,7 @@ export default function MealTickets() {
 
             {/* Table */}
             <DataTable
+                storageKey="meal_tickets_table_cols"
                 columns={columns}
                 data={tickets}
                 loading={loading}

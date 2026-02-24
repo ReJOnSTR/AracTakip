@@ -117,6 +117,7 @@ export default function MealTicketSettings() {
             </div>
 
             <DataTable
+                storageKey="meal_ticket_settings_table_cols"
                 columns={columns}
                 data={settingsData}
                 loading={loading}

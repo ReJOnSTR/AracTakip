@@ -280,6 +280,7 @@ export default function Checks() {
             </div>
 
             <DataTable
+                storageKey="checks_table_cols"
                 columns={columns}
                 data={checks}
                 loading={loading}
