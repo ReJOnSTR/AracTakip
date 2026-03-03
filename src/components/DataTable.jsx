@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Check, Search, X, Trash2, Download, Archive, ArchiveRestore, LayoutList } from 'lucide-react'
+import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Check, Search, X, Trash2, Download, Archive, ArchiveRestore, LayoutList, GripVertical } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import CustomSelect from './CustomSelect'
 import CustomDatePicker from './CustomDatePicker'
@@ -40,7 +40,13 @@ export default function DataTable({
         }
     }
 
-    const [sortConfig, setSortConfig] = useState(() => getInitialState('sort', initialSort || { key: null, direction: 'asc' }))
+    const [sortConfig, setSortConfig] = useState(() => {
+        const saved = getInitialState('sort', null)
+        // If there is a valid saved sorting state (key is not null), respect it.
+        // Otherwise, prioritize the `initialSort` prop over an empty cache.
+        if (saved && saved.key !== null) return saved
+        return initialSort || { key: null, direction: 'asc' }
+    })
     const [userSorted, setUserSorted] = useState(false)
     const [currentPage, setCurrentPage] = useState(() => getInitialState('page', 1))
     const [pageSize, setPageSize] = useState(() => getInitialState('pageSize', 10))
@@ -59,6 +65,38 @@ export default function DataTable({
     const [columnWidths, setColumnWidths] = useState(() => getInitialState('colWidths', {}))
     const resizingRef = useRef(null) // { key, startX, startWidth }
 
+    // Column Ordering State
+    const [columnOrder, setColumnOrder] = useState(() => {
+        const defaultOrder = columns.map(col => col.key)
+        return getInitialState('colOrder', defaultOrder)
+    })
+    const [draggedColumn, setDraggedColumn] = useState(null)
+
+    // Save column order
+    useEffect(() => {
+        if (!persistenceKey) return
+        localStorage.setItem(`${persistenceKey}_colOrder`, JSON.stringify(columnOrder))
+    }, [columnOrder, persistenceKey])
+
+    // Ensure new columns are added to order
+    useEffect(() => {
+        const currentKeys = new Set(columnOrder)
+        const newCols = columns.filter(col => !currentKeys.has(col.key)).map(col => col.key)
+        if (newCols.length > 0) {
+            setColumnOrder(prev => [...prev, ...newCols])
+        }
+    }, [columns])
+
+    // Sort original columns by columnOrder
+    const orderedColumns = useMemo(() => {
+        const orderMap = new Map(columnOrder.map((key, index) => [key, index]))
+        return [...columns].sort((a, b) => {
+            const indexA = orderMap.has(a.key) ? orderMap.get(a.key) : 999
+            const indexB = orderMap.has(b.key) ? orderMap.get(b.key) : 999
+            return indexA - indexB
+        })
+    }, [columns, columnOrder])
+
     // Ensure new columns are visible by default if not in saved state
     // But we need to handle Set vs Array conversion from localStorage
     useEffect(() => {
@@ -69,6 +107,8 @@ export default function DataTable({
     }, [])
 
     const [showColumnMenu, setShowColumnMenu] = useState(false)
+    const [dropdownPosition, setDropdownPosition] = useState('bottom')
+    const [hoveredColumn, setHoveredColumn] = useState(null)
     const columnMenuRef = useRef(null)
 
     // Save column visibility
@@ -124,11 +164,36 @@ export default function DataTable({
 
     const visibleColumnsList = useMemo(() => {
         // Always show columns in 'visibleColumns' set
-        // But map over original 'columns' array to preserve order
+        // But map over ordered 'columns' array to preserve customized order
         // If visibleColumns is an Array (initial render quirk), handle it
         const visibilitySet = visibleColumns instanceof Set ? visibleColumns : new Set(visibleColumns)
-        return columns.filter(col => visibilitySet.has(col.key))
-    }, [columns, visibleColumns])
+        return orderedColumns.filter(col => visibilitySet.has(col.key))
+    }, [orderedColumns, visibleColumns])
+
+    // Column Ordering Methods
+    const moveColumnUp = (colKey) => {
+        setColumnOrder(prevOrder => {
+            const index = prevOrder.indexOf(colKey)
+            if (index <= 0) return prevOrder
+
+            const newOrder = [...prevOrder]
+            newOrder[index] = newOrder[index - 1]
+            newOrder[index - 1] = colKey
+            return newOrder
+        })
+    }
+
+    const moveColumnDown = (colKey) => {
+        setColumnOrder(prevOrder => {
+            const index = prevOrder.indexOf(colKey)
+            if (index === -1 || index === prevOrder.length - 1) return prevOrder
+
+            const newOrder = [...prevOrder]
+            newOrder[index] = newOrder[index + 1]
+            newOrder[index + 1] = colKey
+            return newOrder
+        })
+    }
 
     // Resize Handlers
     const handleResizeStart = (e, key) => {
@@ -170,8 +235,13 @@ export default function DataTable({
         return data.filter(row => {
             // Check dropdown filters
             for (const [key, value] of Object.entries(activeFilters)) {
-                if (value && row[key] !== value) {
-                    return false
+                if (value) {
+                    const filterDef = filters?.find(f => f.key === key)
+                    if (filterDef && filterDef.filterFn) {
+                        if (!filterDef.filterFn(row, value)) return false
+                    } else if (row[key] !== value) {
+                        return false
+                    }
                 }
             }
 
@@ -215,6 +285,20 @@ export default function DataTable({
 
             if (typeof aVal === 'number' && typeof bVal === 'number') {
                 return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal
+            }
+
+            // Date Handling
+            const isDateString = (val) => typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)
+            const isDateObj = (val) => val instanceof Date
+
+            if ((isDateString(aVal) || isDateObj(aVal)) && (isDateString(bVal) || isDateObj(bVal))) {
+                const dateA = new Date(aVal)
+                const dateB = new Date(bVal)
+                if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                    return sortConfig.direction === 'asc'
+                        ? dateA.getTime() - dateB.getTime()
+                        : dateB.getTime() - dateA.getTime()
+                }
             }
 
             const aStr = String(aVal).toLowerCase()
@@ -516,38 +600,117 @@ export default function DataTable({
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                         {/* Column Toggle */}
                         <div className="filter-clear" style={{ position: 'relative', padding: '0', border: 'none', background: 'transparent' }} ref={columnMenuRef}>
-                            <button className="filter-clear" onClick={() => setShowColumnMenu(!showColumnMenu)} title="Sütunları Düzenle">
+                            <button
+                                className="filter-clear"
+                                onClick={(e) => {
+                                    if (!showColumnMenu) {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const spaceBelow = window.innerHeight - rect.bottom;
+                                        // Estimate max height of dropdown (around 300px with padding/title)
+                                        if (spaceBelow < 300 && rect.top > 300) {
+                                            setDropdownPosition('top');
+                                        } else {
+                                            setDropdownPosition('bottom');
+                                        }
+                                    }
+                                    setShowColumnMenu(!showColumnMenu)
+                                }}
+                                title="Sütunları Düzenle"
+                            >
                                 <Check size={14} />
                                 Sütunlar
                             </button>
                             {showColumnMenu && (
                                 <div style={{
                                     position: 'absolute',
-                                    top: '100%',
+                                    top: dropdownPosition === 'bottom' ? '100%' : 'auto',
+                                    bottom: dropdownPosition === 'top' ? '100%' : 'auto',
                                     right: 0,
-                                    background: 'var(--bg-secondary)',
+                                    background: 'var(--bg-elevated)',
                                     border: '1px solid var(--border-color)',
                                     borderRadius: '6px',
-                                    padding: '8px',
+                                    padding: '8px 10px',
                                     zIndex: 1000,
-                                    width: '200px',
-                                    marginTop: '4px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    width: '180px',
+                                    marginTop: dropdownPosition === 'bottom' ? '6px' : '0',
+                                    marginBottom: dropdownPosition === 'top' ? '6px' : '0',
+                                    boxShadow: 'var(--shadow-lg)',
+                                    animation: dropdownPosition === 'bottom' ? 'dropdownIn 0.15s ease' : 'dropdownUp 0.15s ease'
                                 }}>
-                                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', paddingBottom: '4px', borderBottom: '1px solid var(--border-color)' }}>
+                                    <div style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', paddingBottom: '4px', borderBottom: '1px solid var(--border-light)' }}>
                                         Görünür Sütunlar
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto' }}>
-                                        {columns.map(col => (
-                                            <label key={col.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', padding: '2px 0' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={visibleColumns instanceof Set ? visibleColumns.has(col.key) : new Set(visibleColumns).has(col.key)}
-                                                    onChange={() => toggleColumn(col.key)}
-                                                    style={{ accentColor: 'var(--primary)' }}
-                                                />
-                                                {col.label}
-                                            </label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '250px', overflowY: 'auto' }}>
+                                        {orderedColumns.map((col, index) => (
+                                            <div
+                                                key={col.key}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    gap: '8px',
+                                                    fontSize: '12px',
+                                                    padding: '6px 8px',
+                                                    borderRadius: hoveredColumn === col.key ? '4px' : '0px',
+                                                    background: hoveredColumn === col.key ? 'var(--bg-tertiary)' : 'transparent',
+                                                    borderBottom: index !== orderedColumns.length - 1 ? '1px solid var(--border-light)' : 'none',
+                                                    transition: 'background 0.2s',
+                                                }}
+                                                onMouseEnter={() => setHoveredColumn(col.key)}
+                                                onMouseLeave={() => setHoveredColumn(null)}
+                                            >
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, margin: 0, fontWeight: 500, userSelect: 'none' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={visibleColumns instanceof Set ? visibleColumns.has(col.key) : new Set(visibleColumns).has(col.key)}
+                                                        onChange={() => toggleColumn(col.key)}
+                                                        style={{ accentColor: 'var(--accent-primary)', width: '12px', height: '12px', cursor: 'pointer' }}
+                                                    />
+                                                    <span style={{ color: visibleColumns instanceof Set ? (visibleColumns.has(col.key) ? 'var(--text-primary)' : 'var(--text-muted)') : (new Set(visibleColumns).has(col.key) ? 'var(--text-primary)' : 'var(--text-muted)'), transition: 'color 0.2s' }}>
+                                                        {col.label}
+                                                    </span>
+                                                </label>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    gap: '2px',
+                                                    opacity: hoveredColumn === col.key ? 1 : 0,
+                                                    pointerEvents: hoveredColumn === col.key ? 'auto' : 'none',
+                                                    transition: 'opacity 0.2s',
+                                                    alignItems: 'center'
+                                                }}>
+                                                    <button
+                                                        className="filter-clear"
+                                                        style={{
+                                                            padding: '2px', border: 'none', background: 'transparent', borderRadius: '4px',
+                                                            opacity: index === 0 ? 0.2 : 0.8, cursor: index === 0 ? 'default' : 'pointer',
+                                                            transition: 'opacity 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => { if (index !== 0) e.currentTarget.style.opacity = '1' }}
+                                                        onMouseLeave={(e) => { if (index !== 0) e.currentTarget.style.opacity = '0.8' }}
+                                                        onClick={(e) => { e.stopPropagation(); moveColumnUp(col.key); }}
+                                                        disabled={index === 0}
+                                                        title="Yukarı Taşı"
+                                                    >
+                                                        <ArrowUp size={12} color="var(--text-primary)" />
+                                                    </button>
+                                                    <button
+                                                        className="filter-clear"
+                                                        style={{
+                                                            padding: '2px', border: 'none', background: 'transparent', borderRadius: '4px',
+                                                            opacity: index === orderedColumns.length - 1 ? 0.2 : 0.8, cursor: index === orderedColumns.length - 1 ? 'default' : 'pointer',
+                                                            transition: 'opacity 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => { if (index !== orderedColumns.length - 1) e.currentTarget.style.opacity = '1' }}
+                                                        onMouseLeave={(e) => { if (index !== orderedColumns.length - 1) e.currentTarget.style.opacity = '0.8' }}
+                                                        onClick={(e) => { e.stopPropagation(); moveColumnDown(col.key); }}
+                                                        disabled={index === orderedColumns.length - 1}
+                                                        title="Aşağı Taşı"
+                                                    >
+                                                        <ArrowDown size={12} color="var(--text-primary)" />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -626,25 +789,30 @@ export default function DataTable({
                                     style={{
                                         // Use state width if available, otherwise prop or default
                                         width: columnWidths[col.key] ? `${columnWidths[col.key]}px` : (col.width || '150px'),
-                                        textAlign: col.align || 'left'
+                                        textAlign: col.align || 'left',
+                                        cursor: col.sortable !== false ? 'pointer' : 'default',
+                                        userSelect: 'none'
                                     }}
                                     onClick={() => col.sortable !== false && handleSort(col.key)}
                                     className={col.sortable !== false ? 'sortable' : ''}
                                 >
-                                    <div className="th-content" style={{ justifyContent: col.align === 'center' ? 'center' : col.align === 'right' ? 'flex-end' : 'flex-start' }}>
+                                    <div className="th-content" style={{ justifyContent: col.align === 'center' ? 'center' : col.align === 'right' ? 'flex-end' : 'flex-start', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <span title={col.label}>{col.label}</span>
                                         {col.sortable !== false && (
                                             <span
                                                 className="sort-icon"
                                                 style={{
-                                                    opacity: (sortConfig.key === col.key && userSorted) ? 1 : 0,
-                                                    visibility: (sortConfig.key === col.key && userSorted) ? 'visible' : 'hidden'
+                                                    display: 'inline-flex',
+                                                    color: (sortConfig.key === col.key && userSorted) ? 'var(--text-primary)' : 'var(--text-muted)',
+                                                    opacity: (sortConfig.key === col.key && userSorted) ? 1 : 0.3,
+                                                    transition: 'all 0.2s ease',
+                                                    visibility: (sortConfig.key === col.key || col.sortable !== false) ? 'visible' : 'hidden'
                                                 }}
                                             >
                                                 {sortConfig.key === col.key ? (
-                                                    sortConfig.direction === 'asc' ? <ArrowUp size={12} strokeWidth={2.5} /> : <ArrowDown size={12} strokeWidth={2.5} />
+                                                    sortConfig.direction === 'asc' ? <ArrowUp size={14} strokeWidth={2.5} /> : <ArrowDown size={14} strokeWidth={2.5} />
                                                 ) : (
-                                                    <ArrowUp size={12} strokeWidth={2.5} />
+                                                    <ArrowUp size={14} strokeWidth={2.5} />
                                                 )}
                                             </span>
                                         )}
@@ -722,63 +890,65 @@ export default function DataTable({
             </div>
 
             {/* Footer */}
-            {sortedData.length > 0 && (
-                <div className="table-footer">
-                    <div className="footer-left">
-                        <CustomSelect
-                            value={pageSize}
-                            onChange={(value) => { setPageSize(Number(value)); setCurrentPage(1) }}
-                            options={pageSizeOptions}
-                            className="page-select-custom"
-                            placeholder=""
-                            floatingLabel={false}
-                        />
-                        <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length}</span>
-                    </div>
-
-                    <div className="pagination">
-                        <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                            <ChevronsLeft size={16} />
-                        </button>
-                        <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
-                            <ChevronLeft size={16} />
-                        </button>
-
-                        <div className="page-nums">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1
-                                } else if (currentPage <= 3) {
-                                    pageNum = i + 1
-                                } else if (currentPage >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i
-                                } else {
-                                    pageNum = currentPage - 2 + i
-                                }
-
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        className={currentPage === pageNum ? 'active' : ''}
-                                        onClick={() => setCurrentPage(pageNum)}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                )
-                            })}
+            {
+                sortedData.length > 0 && (
+                    <div className="table-footer">
+                        <div className="footer-left">
+                            <CustomSelect
+                                value={pageSize}
+                                onChange={(value) => { setPageSize(Number(value)); setCurrentPage(1) }}
+                                options={pageSizeOptions}
+                                className="page-select-custom"
+                                placeholder=""
+                                floatingLabel={false}
+                            />
+                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length}</span>
                         </div>
 
-                        <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>
-                            <ChevronRight size={16} />
-                        </button>
-                        <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
-                            <ChevronsRight size={16} />
-                        </button>
-                    </div>
+                        <div className="pagination">
+                            <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+                                <ChevronsLeft size={16} />
+                            </button>
+                            <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
+                                <ChevronLeft size={16} />
+                            </button>
 
-                </div>
-            )}
-        </div>
+                            <div className="page-nums">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    let pageNum
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i
+                                    } else {
+                                        pageNum = currentPage - 2 + i
+                                    }
+
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            className={currentPage === pageNum ? 'active' : ''}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+
+                            <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>
+                                <ChevronRight size={16} />
+                            </button>
+                            <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
+                                <ChevronsRight size={16} />
+                            </button>
+                        </div>
+
+                    </div>
+                )
+            }
+        </div >
     )
 }

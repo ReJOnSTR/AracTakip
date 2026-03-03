@@ -185,7 +185,7 @@ export default function Companies() {
                     </button>
                 </div>
             ) : (
-                <DataTable
+                <DataTable persistenceKey="Companies_table_0"
                     columns={columns}
                     data={companies}
                     showSearch={true}

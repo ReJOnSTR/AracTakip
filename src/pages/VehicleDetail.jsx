@@ -11,16 +11,9 @@ import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
 
 import {
-    getVehicleTypeLabel,
-    getVehicleStatusInfo,
-    maintenanceTypes,
-    getMaintenanceTypeLabel,
-    insuranceTypes,
-    getInsuranceTypeLabel,
-    formatDate,
-    formatCurrency,
-    getDaysUntilText,
-    getStatusColor
+    formatCurrency, formatDate, getDaysUntilText, getStatusColor,
+    getVehicleTypeLabel, getMaintenanceTypeLabel, getInsuranceTypeLabel,
+    insuranceTypes, maintenanceTypes, serviceTypes, getVehicleStatusInfo
 } from '../utils/helpers'
 import {
     ArrowLeft,
@@ -773,16 +766,6 @@ export default function VehicleDetail() {
                     >
                         <tab.icon size={16} />
                         {tab.label}
-                        <span style={{
-                            background: activeTab === tab.id ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                            color: activeTab === tab.id ? 'var(--accent-primary)' : 'var(--text-muted)',
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            fontSize: '11px',
-                            fontWeight: 600
-                        }}>
-                            {tab.count}
-                        </span>
                     </button>
                 ))}
 
@@ -815,7 +798,7 @@ export default function VehicleDetail() {
 
                 {activeTab === 'maintenance' && (
                     <div className="tab-pane">
-                        <DataTable
+                        <DataTable persistenceKey="VehicleDetail_table_0"
                             columns={[
                                 { key: 'type', label: 'Tür', render: v => getMaintenanceTypeLabel(v) },
                                 { key: 'description', label: 'Açıklama' },
@@ -830,6 +813,13 @@ export default function VehicleDetail() {
                             ]}
                             data={maintenances.filter(m => showArchived ? m.is_archived : !m.is_archived)}
                             emptyMessage={showArchived ? "Arşivlenmiş bakım kaydı yok" : "Aktif bakım kaydı yok"}
+                            filters={[
+                                {
+                                    key: 'type',
+                                    label: 'Bakım Türü',
+                                    options: maintenanceTypes
+                                }
+                            ]}
                             onBulkDelete={(ids) => handleDeleteClick('maintenance', null, ids)}
                             onBulkArchive={handleBulkArchive}
                             isArchiveView={showArchived}
@@ -846,7 +836,7 @@ export default function VehicleDetail() {
 
                 {activeTab === 'service' && (
                     <div className="tab-pane">
-                        <DataTable
+                        <DataTable persistenceKey="VehicleDetail_table_1"
                             columns={[
                                 { key: 'type', label: 'İşlem' },
                                 { key: 'service_name', label: 'Servis Yeri' },
@@ -859,6 +849,13 @@ export default function VehicleDetail() {
                             ]}
                             data={services.filter(s => showArchived ? s.is_archived : !s.is_archived)}
                             emptyMessage={showArchived ? "Arşivlenmiş servis kaydı yok" : "Aktif servis kaydı yok"}
+                            filters={[
+                                {
+                                    key: 'type',
+                                    label: 'Servis İşlemi',
+                                    options: serviceTypes
+                                }
+                            ]}
                             onBulkDelete={(ids) => handleDeleteClick('service', null, ids)}
                             onBulkArchive={handleBulkArchive}
                             isArchiveView={showArchived}
@@ -877,7 +874,7 @@ export default function VehicleDetail() {
                 {
                     activeTab === 'inspection' && (
                         <div className="tab-pane">
-                            <DataTable
+                            <DataTable persistenceKey="VehicleDetail_table_2"
                                 columns={[
                                     { key: 'inspection_date', label: 'Tarih', render: v => formatDate(v) },
                                     { key: 'result', label: 'Sonuç', render: v => <span className={`badge badge-${v === 'passed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}`}>{resultOptions.find(r => r.value === v)?.label || v}</span> },
@@ -891,6 +888,13 @@ export default function VehicleDetail() {
                                 ]}
                                 data={trafficInspections.filter(i => showArchived ? i.is_archived : !i.is_archived)}
                                 emptyMessage={showArchived ? "Arşivlenmiş muayene kaydı yok" : "Aktif muayene kaydı yok"}
+                                filters={[
+                                    {
+                                        key: 'result',
+                                        label: 'Sonuç',
+                                        options: resultOptions
+                                    }
+                                ]}
                                 onBulkDelete={(ids) => handleDeleteClick('inspection', null, ids)}
                                 onBulkArchive={handleBulkArchive}
                                 isArchiveView={showArchived}
@@ -909,7 +913,7 @@ export default function VehicleDetail() {
                 {
                     activeTab === 'periodic_inspection' && (
                         <div className="tab-pane">
-                            <DataTable
+                            <DataTable persistenceKey="VehicleDetail_table_3"
                                 columns={[
                                     { key: 'inspection_date', label: 'Tarih', render: v => formatDate(v) },
                                     { key: 'result', label: 'Sonuç', render: v => <span className={`badge badge-${v === 'passed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}`}>{resultOptions.find(r => r.value === v)?.label || v}</span> },
@@ -923,6 +927,13 @@ export default function VehicleDetail() {
                                 ]}
                                 data={periodicInspections.filter(i => showArchived ? i.is_archived : !i.is_archived)}
                                 emptyMessage={showArchived ? "Arşivlenmiş periyodik kontrol kaydı yok" : "Aktif periyodik kontrol kaydı yok"}
+                                filters={[
+                                    {
+                                        key: 'result',
+                                        label: 'Sonuç',
+                                        options: resultOptions
+                                    }
+                                ]}
                                 onBulkDelete={(ids) => handleDeleteClick('periodic_inspection', null, ids)}
                                 onBulkArchive={handleBulkArchive}
                                 isArchiveView={showArchived}
@@ -941,7 +952,7 @@ export default function VehicleDetail() {
                 {
                     activeTab === 'insurance' && (
                         <div className="tab-pane">
-                            <DataTable
+                            <DataTable persistenceKey="VehicleDetail_table_4"
                                 columns={[
                                     { key: 'company', label: 'Şirket' },
                                     { key: 'type', label: 'Tür', render: v => getInsuranceTypeLabel(v) },
@@ -958,6 +969,13 @@ export default function VehicleDetail() {
                                 ]}
                                 data={insurances.filter(i => showArchived ? i.is_archived : !i.is_archived)}
                                 emptyMessage={showArchived ? "Arşivlenmiş sigorta kaydı yok" : "Aktif sigorta kaydı yok"}
+                                filters={[
+                                    {
+                                        key: 'type',
+                                        label: 'Poliçe Türü',
+                                        options: insuranceTypes
+                                    }
+                                ]}
                                 onBulkDelete={(ids) => handleDeleteClick('insurance', null, ids)}
                                 onBulkArchive={handleBulkArchive}
                                 isArchiveView={showArchived}
@@ -976,7 +994,7 @@ export default function VehicleDetail() {
                 {
                     activeTab === 'assignment' && (
                         <div className="tab-pane">
-                            <DataTable
+                            <DataTable persistenceKey="VehicleDetail_table_5"
                                 columns={[
                                     { key: 'item_name', label: 'Malzeme' },
                                     { key: 'quantity', label: 'Adet' },
@@ -1008,7 +1026,7 @@ export default function VehicleDetail() {
                     activeTab === 'documents' && (
                         <div className="tab-pane">
 
-                            <DataTable
+                            <DataTable persistenceKey="VehicleDetail_table_6"
                                 columns={[
                                     { key: 'file_name', label: 'Dosya Adı' },
                                     {

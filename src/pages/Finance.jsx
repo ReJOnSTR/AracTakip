@@ -230,7 +230,7 @@ export default function Finance() {
                 </div>
             </div>
 
-            <DataTable
+            <DataTable persistenceKey="Finance_table_0"
                 storageKey="finance_table_cols"
                 columns={columns}
                 data={transactions}

@@ -54,6 +54,42 @@ contextBridge.exposeInMainWorld('electronAPI', {
     updateService: (data) => ipcRenderer.invoke('services:update', data),
     deleteService: (id) => ipcRenderer.invoke('services:delete', id),
 
+    // Employees
+    getEmployees: (companyId) => ipcRenderer.invoke('employees:getAll', companyId),
+    getEmployeeById: (id) => ipcRenderer.invoke('employees:getById', id),
+    createEmployee: (data) => ipcRenderer.invoke('employees:create', data),
+    updateEmployee: (data) => ipcRenderer.invoke('employees:update', data),
+    deleteEmployee: (id) => ipcRenderer.invoke('employees:delete', id),
+
+    // Salaries
+    getSalaries: (employeeId) => ipcRenderer.invoke('salaries:getAll', employeeId),
+    createSalary: (data) => ipcRenderer.invoke('salaries:create', data),
+    updateSalary: (data) => ipcRenderer.invoke('salaries:update', data),
+    deleteSalary: (id) => ipcRenderer.invoke('salaries:delete', id),
+
+    // Leaves
+    getLeaves: (employeeId) => ipcRenderer.invoke('leaves:getAll', employeeId),
+    createLeave: (data) => ipcRenderer.invoke('leaves:create', data),
+    updateLeave: (data) => ipcRenderer.invoke('leaves:update', data),
+    deleteLeave: (id) => ipcRenderer.invoke('leaves:delete', id),
+
+    // Overtimes
+    getOvertimes: (employeeId) => ipcRenderer.invoke('overtimes:getAll', employeeId),
+    createOvertime: (data) => ipcRenderer.invoke('overtimes:create', data),
+    updateOvertime: (data) => ipcRenderer.invoke('overtimes:update', data),
+    deleteOvertime: (id) => ipcRenderer.invoke('overtimes:delete', id),
+
+    // Employee Assignments
+    getEmployeeAssignments: (employeeId) => ipcRenderer.invoke('employeeAssignments:getAll', employeeId),
+    createEmployeeAssignment: (data) => ipcRenderer.invoke('employeeAssignments:create', data),
+    updateEmployeeAssignment: (data) => ipcRenderer.invoke('employeeAssignments:update', data),
+    deleteEmployeeAssignment: (id) => ipcRenderer.invoke('employeeAssignments:delete', id),
+
+    // Employee Documents
+    getEmployeeDocuments: (employeeId) => ipcRenderer.invoke('employeeDocuments:getAll', employeeId),
+    createEmployeeDocument: (data) => ipcRenderer.invoke('employeeDocuments:create', data),
+    deleteEmployeeDocument: (id) => ipcRenderer.invoke('employeeDocuments:delete', id),
+
     // Archive
     archiveItem: (table, id, isArchived) => ipcRenderer.invoke('archive:item', table, id, isArchived),
 

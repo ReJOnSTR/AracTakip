@@ -368,6 +368,17 @@ export default function Assignments() {
                     showCheckboxes={true}
                     showDateFilter={true}
                     dateFilterKey="start_date"
+                    searchKeys={['vehicle_plate', 'model', 'driver_name', 'driver_phone', 'notes']}
+                    filters={[
+                        {
+                            key: 'status',
+                            label: 'Durum',
+                            options: [
+                                { value: 'active', label: 'Aktif' },
+                                { value: 'returned', label: 'İade Edildi' }
+                            ]
+                        }
+                    ]}
                     onBulkDelete={handleBulkDeleteClick}
                     onBulkArchive={handleBulkArchive}
                     isArchiveView={showArchived}

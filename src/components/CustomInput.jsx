@@ -10,6 +10,7 @@ export default function CustomInput({
     type = 'text',
     className,
     error,
+    multiline,
     ...props
 }) {
     const [touched, setTouched] = useState(false)
@@ -105,7 +106,7 @@ export default function CustomInput({
     return (
         <div className={wrapperClass}>
             {/* Input Element */}
-            {type === 'textarea' || (props.multiline) ? (
+            {type === 'textarea' || multiline ? (
                 <textarea
                     className={`form-textarea ${isInvalid ? 'input-error' : ''}`}
                     value={displayValue}

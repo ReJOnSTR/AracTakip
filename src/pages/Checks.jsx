@@ -279,7 +279,7 @@ export default function Checks() {
                 </div>
             </div>
 
-            <DataTable
+            <DataTable persistenceKey="Checks_table_0"
                 storageKey="checks_table_cols"
                 columns={columns}
                 data={checks}

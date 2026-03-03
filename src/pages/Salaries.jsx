@@ -583,6 +583,24 @@ export default function Salaries() {
                         },
                     ]}
                     data={payrollData}
+                    filters={[
+                        {
+                            key: 'status',
+                            label: 'Durum',
+                            options: [
+                                { value: 'Tamamlandı', label: 'Tamamlandı' },
+                                { value: 'Kısmi Ödeme', label: 'Kısmi Ödeme' },
+                                { value: 'Ödenmedi', label: 'Ödenmedi' }
+                            ],
+                            // Custom filter function for the calculated status
+                            filterFn: (row, value) => {
+                                let statusStr = 'Ödenmedi';
+                                if (row.remaining <= 0) statusStr = 'Tamamlandı';
+                                else if (row.bankPaid > 0 || row.cashPaid > 0) statusStr = 'Kısmi Ödeme';
+                                return statusStr === value;
+                            }
+                        }
+                    ]}
                     actions={(r) => (
                         <div className="action-btns">
                             <button

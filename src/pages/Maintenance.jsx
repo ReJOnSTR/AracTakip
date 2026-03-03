@@ -397,18 +397,23 @@ export default function Maintenance() {
                     showCheckboxes={true}
                     showDateFilter={true}
                     dateFilterKey="date"
+                    searchKeys={['plate', 'vendor', 'type', 'status', 'description']}
                     filters={[
                         {
-                            key: 'type',
-                            label: 'Bakım Türü',
-                            options: maintenanceTypes
+                            key: 'status',
+                            label: 'Durum',
+                            options: [
+                                { value: 'completed', label: 'Tamamlandı' },
+                                { value: 'pending', label: 'Bekliyor' },
+                                { value: 'in_progress', label: 'Devam Ediyor' }
+                            ]
                         }
                     ]}
                     onBulkDelete={handleBulkDeleteClick}
                     onBulkArchive={handleBulkArchive}
                     isArchiveView={showArchived}
                     onToggleArchiveView={setShowArchived}
-                    initialSort={{ key: 'next_maintenance', direction: 'asc' }}
+                    initialSort={{ key: 'next_date', direction: 'asc' }}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>

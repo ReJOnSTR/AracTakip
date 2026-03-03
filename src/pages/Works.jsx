@@ -216,7 +216,7 @@ export default function Works() {
                 </div>
             </div>
 
-            <DataTable
+            <DataTable persistenceKey="Works_table_0"
                 key="works-table"
                 columns={columns}
                 data={works}

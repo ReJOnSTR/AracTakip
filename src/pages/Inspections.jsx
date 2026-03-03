@@ -412,6 +412,17 @@ export default function Inspections() {
                     isArchiveView={showArchived}
                     onToggleArchiveView={setShowArchived}
                     initialSort={{ key: 'next_inspection', direction: 'asc' }}
+                    filters={[
+                        {
+                            key: 'result',
+                            label: 'Sonuç',
+                            options: [
+                                { value: 'passed', label: 'Geçti' },
+                                { value: 'failed', label: 'Kaldı' },
+                                { value: 'conditional', label: 'Şartlı Geçti' }
+                            ]
+                        }
+                    ]}
                     actions={(item) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>

@@ -36,6 +36,8 @@ const ChangePassword = lazy(() => import('./pages/ChangePassword'))
 const MealTickets = lazy(() => import('./pages/MealTickets'))
 const MealTicketReport = lazy(() => import('./pages/MealTicketReport'))
 const MealTicketSettings = lazy(() => import('./pages/MealTicketSettings'))
+const Employees = lazy(() => import('./pages/Employees'))
+const EmployeeDetail = lazy(() => import('./pages/EmployeeDetail'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -130,6 +132,8 @@ function AppRoutes() {
                         <Route path="/insurance" element={<Insurance />} />
                         <Route path="/services" element={<Services />} />
                         <Route path="/assignments" element={<Assignments />} />
+                        <Route path="/employees" element={<Employees />} />
+                        <Route path="/employees/:id" element={<EmployeeDetail />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/reports" element={<Reports />} />
                     </Route>

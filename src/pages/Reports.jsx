@@ -309,7 +309,7 @@ export default function Reports() {
 
 
                 {!loading || vehicles.length > 0 ? (
-                    <DataTable
+                    <DataTable persistenceKey="Reports_table_0"
                         columns={columns}
                         data={vehicles}
                         showSearch={true}

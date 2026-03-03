@@ -1669,10 +1669,13 @@ body {
 
 .data-table th.sortable {
   cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
 }
 
 .data-table th.sortable:hover {
   color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .th-content {
@@ -1680,21 +1683,15 @@ body {
   align-items: center;
   width: 100%;
   /* Ensure it fills the th */
-  gap: 4px;
+  gap: 6px;
 }
 
 .sort-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  min-width: 20px;
-  /* Force rigid width */
-  height: 20px;
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
-  border-radius: 4px;
-  font-weight: bold;
+  transition: all 0.2s ease;
+  line-height: 0;
 }
 
 .th-checkbox,
@@ -1735,7 +1732,7 @@ body {
   text-align: center;
   position: sticky !important;
   right: 0;
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   /* Match row background */
   z-index: 21;
   /* Clean separator */
@@ -1745,6 +1742,15 @@ body {
 tr:hover .td-actions {
   background: var(--bg-tertiary);
   /* Match row hover */
+}
+
+.data-table tbody tr.clickable:hover .td-actions {
+  background: var(--bg-tertiary);
+  /* Or a solid version of accent-subtle, but tertiary is safe */
+}
+
+.data-table tbody tr.selected .td-actions {
+  background: var(--bg-tertiary);
 }
 
 .data-table td {

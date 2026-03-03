@@ -13,7 +13,9 @@ import {
     FileSignature,
     Banknote,
     UtensilsCrossed,
-    CircleDollarSign
+    CircleDollarSign,
+    Users,
+    UserCheck
 } from 'lucide-react'
 
 // Define menus per module
@@ -80,6 +82,20 @@ export const moduleMenus = {
                 { path: '/settings?module=meals', icon: Settings, label: 'Ayarlar' }
             ]
         }
+    ],
+    hr: [
+        {
+            title: 'Personel Yönetimi',
+            items: [
+                { path: '/employees', label: 'Personeller', icon: Users },
+            ]
+        },
+        {
+            title: 'Sistem',
+            items: [
+                { path: '/settings?module=hr', icon: Settings, label: 'Ayarlar' }
+            ]
+        }
     ]
 }
 
@@ -109,6 +125,7 @@ export const getRouteInfo = (path) => {
 
     // Fallback for detail pages
     if (path.startsWith('/vehicles/')) return { label: 'Araç Detay', icon: Car }
+    if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
 
     return { label: 'Sayfa', icon: FileText }
@@ -117,6 +134,7 @@ export const getRouteInfo = (path) => {
 export const getActiveModule = (pathname, search = '') => {
     if (search.includes('module=finance') || pathname.startsWith('/finance') || pathname.startsWith('/checks')) return 'finance'
     if (pathname.startsWith('/meal-ticket') || search.includes('module=meals')) return 'meals'
+    if (pathname.startsWith('/employee') || search.includes('module=hr')) return 'hr'
     if (pathname === '/portal' || pathname === '/') return 'portal'
     return 'fleet'
 }

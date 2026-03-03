@@ -264,7 +264,7 @@ export default function WorkDetails(props) {
                     </button>
                 </div>
 
-                <DataTable
+                <DataTable persistenceKey="WorkDetails_table_0"
                     columns={[
                         { label: 'Tarih', key: 'date', render: (val) => formatDate(val) },
                         { label: 'Araç', key: 'vehicle_id', render: (val, row) => row.plate || '-' },

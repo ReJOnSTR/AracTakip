@@ -172,15 +172,15 @@ export default function MainPortal() {
         {
             id: 'hr',
             title: 'Personel Yönetimi',
-            description: 'Çalışanlar, puantaj, avans ve hakediş.',
+            description: 'Personel kayıtları, maaş, izin ve mesai takibi.',
             icon: Users,
             gradient: 'linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(5,159,104,0.04) 100%)',
             hoverGradient: 'linear-gradient(145deg, rgba(16,185,129,0.14) 0%, rgba(5,159,104,0.08) 100%)',
             color: '#10b981',
             glowColor: '#10b981',
             path: '/employees',
-            active: false,
-            features: ['Personel kayıtları', 'Puantaj sistemi', 'Avans yönetimi', 'Hakediş hesaplama']
+            active: true,
+            features: ['Personel kayıtları', 'Maaş takibi', 'İzin yönetimi', 'Mesai & Zimmet']
         },
         {
             id: 'ops',

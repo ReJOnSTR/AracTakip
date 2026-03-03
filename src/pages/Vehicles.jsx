@@ -255,21 +255,22 @@ export default function Vehicles() {
                     </button>
                 </div>
             ) : (
-                <DataTable
+                <DataTable persistenceKey="Vehicles_table_0"
                     columns={columns}
                     data={vehicles}
                     showSearch={true}
                     showCheckboxes={true}
+                    searchPlaceholder="Plaka veya marka ara..."
+                    searchKeys={['plate', 'brand', 'model', 'year']}
                     filters={[
-                        {
-                            key: 'type',
-                            label: 'Tür',
-                            options: vehicleTypes
-                        },
                         {
                             key: 'status',
                             label: 'Durum',
-                            options: vehicleStatuses
+                            options: [
+                                { value: 'active', label: 'Aktif' },
+                                { value: 'maintenance', label: 'Bakımda' },
+                                { value: 'inactive', label: 'Pasif' }
+                            ]
                         }
                     ]}
                     onRowClick={(vehicle, e) => {

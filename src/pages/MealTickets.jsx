@@ -255,7 +255,7 @@ export default function MealTickets() {
             </div>
 
             {/* Table */}
-            <DataTable
+            <DataTable persistenceKey="MealTickets_table_0"
                 storageKey="meal_tickets_table_cols"
                 columns={columns}
                 data={tickets}

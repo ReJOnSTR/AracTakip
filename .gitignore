@@ -12,3 +12,5 @@ Thumbs.db
 debug_db.js
 reproduce_issue.js
 database.sqlite
+
+/src/generated/prisma

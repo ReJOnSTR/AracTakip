@@ -412,6 +412,17 @@ export default function PeriodicInspections() {
                     onBulkArchive={handleBulkArchive}
                     isArchiveView={showArchived}
                     onToggleArchiveView={setShowArchived}
+                    searchKeys={['plate', 'vendor', 'status', 'description']}
+                    filters={[
+                        {
+                            key: 'status',
+                            label: 'Durum',
+                            options: [
+                                { value: 'completed', label: 'Tamamlandı' },
+                                { value: 'pending', label: 'Bekliyor' }
+                            ]
+                        }
+                    ]}
                     initialSort={{ key: 'next_inspection', direction: 'asc' }}
                     actions={(item) => (
                         <>
