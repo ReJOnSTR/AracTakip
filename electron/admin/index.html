@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Veritabanı (Prisma Studio Alternatifi)</title>
+    <!-- Tailwind CSS with Dark Mode config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        prisma: {
+                            light: '#f8fafc',
+                            dark: '#121212',
+                            blue: '#3b82f6',
+                            border: '#e2e8f0',
+                            borderDark: '#2a2a2a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Minimalist Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #3f3f3f;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Excel-like Table Borders */
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .dark th,
+        .dark td {
+            border: 1px solid #2a2a2a;
+        }
+    </style>
+</head>
+
+<body class="antialiased text-slate-800 bg-white dark:bg-[#121212] dark:text-gray-300 transition-colors duration-200"
+    id="bodyRoot">
+    <div id="app" class="flex h-screen overflow-hidden" :class="{'dark': isDark}">
+
+        <!-- Sidebar -->
+        <aside
+            class="w-64 bg-slate-50 dark:bg-[#181818] border-r border-prisma-border dark:border-prisma-borderDark flex flex-col shrink-0 transition-colors duration-200">
+            <!-- Header -->
+            <div
+                class="h-14 flex items-center justify-between px-4 border-b border-prisma-border dark:border-prisma-borderDark shrink-0">
+                <div class="flex items-center gap-2 font-semibold text-slate-700 dark:text-gray-200">
+                    <svg class="w-5 h-5 text-prisma-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4">
+                        </path>
+                    </svg>
+                    <span>Studio</span>
+                </div>
+                <!-- Theme Toggle -->
+                <button @click="toggleTheme"
+                    class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-200 dark:hover:bg-[#2a2a2a] text-slate-500 dark:text-gray-400 transition-colors">
+                    <i class="fas" :class="isDark ? 'fa-sun' : 'fa-moon'"></i>
+                </button>
+            </div>
+
+            <!-- Table List -->
+            <div class="flex-1 overflow-y-auto py-3">
+                <div
+                    class="px-4 mb-2 text-[11px] font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-widest">
+                    Modeller
+                </div>
+
+                <div v-if="loadingTables" class="px-4 py-2 text-sm text-slate-500">Yükleniyor...</div>
+
+                <ul class="space-y-0.5">
+                    <li v-for="table in tables" :key="table">
+                        <button @click="selectTable(table)"
+                            class="w-full text-left px-4 py-1.5 text-[13px] font-medium transition-colors flex items-center justify-between group"
+                            :class="activeTable === table ? 
+                                'bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 
+                                'text-slate-600 dark:text-gray-400 hover:bg-slate-200/50 dark:hover:bg-[#2a2a2a]'">
+                            <span>{{ table }}</span>
+                            <span v-if="activeTable === table" class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content (Data Grid) -->
+        <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#121212] transition-colors duration-200">
+
+            <!-- Topbar -->
+            <header
+                class="h-14 border-b border-prisma-border dark:border-prisma-borderDark flex items-center justify-between px-4 shrink-0 bg-white dark:bg-[#121212]">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-200" v-if="activeTable">
+                        {{ activeTable }}
+                    </h2>
+                    <span v-if="activeTable && !loadingData"
+                        class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#222222] text-slate-500 dark:text-gray-400">
+                        {{ rows.length }} Kayıt
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2" v-if="activeTable">
+                    <button @click="fetchData"
+                        class="h-7 px-3 text-[12px] font-medium bg-slate-100 dark:bg-[#222222] hover:bg-slate-200 dark:hover:bg-[#2a2a2a] text-slate-700 dark:text-gray-300 rounded border border-slate-200 dark:border-[#333333] transition-colors flex items-center gap-1.5">
+                        <i class="fas fa-sync-alt text-[10px]" :class="{'fa-spin': loadingData}"></i> Yenile
+                    </button>
+                </div>
+            </header>
+
+            <!-- Grid Area -->
+            <div class="flex-1 overflow-auto relative bg-[#f8fafc] dark:bg-[#0c0c0c]">
+                <!-- Slightly different bg for table area to pop -->
+
+                <div v-if="!activeTable"
+                    class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-gray-600">
+                    <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                    <p class="text-sm font-medium">Verileri görüntülemek için bir model seçin</p>
+                </div>
+
+                <div v-else-if="loadingData" class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-circle-notch fa-spin text-2xl text-blue-500"></i>
+                </div>
+
+                <div v-else-if="rows.length === 0"
+                    class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-gray-500">
+                    <p class="text-sm font-medium">Bu modelde veri bulunmuyor</p>
+                </div>
+
+                <!-- Excel-like Table -->
+                <table v-else class="min-w-full text-left bg-white dark:bg-[#121212]">
+                    <thead
+                        class="sticky top-0 z-10 bg-slate-50 dark:bg-[#1a1a1a] shadow-sm border-b dark:border-prisma-borderDark">
+                        <tr>
+                            <th
+                                class="px-3 py-1.5 text-[11px] font-semibold text-slate-500 dark:text-gray-400 w-10 text-center select-none cursor-default">
+                                #
+                            </th>
+                            <th v-for="col in columns" :key="col"
+                                class="px-3 py-1.5 text-[12px] font-semibold text-slate-600 dark:text-gray-300">
+                                <div class="flex items-center gap-1.5">
+                                    {{ col }}
+                                    <span class="text-[9px] font-normal text-slate-400 dark:text-gray-500 uppercase">{{
+                                        getTypeHint(col) }}</span>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-[13px]">
+                        <tr v-for="(row, idx) in rows" :key="idx"
+                            class="group hover:bg-slate-50 dark:hover:bg-[#1e1e1e]">
+                            <!-- Action Column (Delete) -->
+                            <td
+                                class="px-2 py-1 text-center bg-slate-50 dark:bg-[#181818] group-hover:bg-red-50 dark:group-hover:bg-red-900/30 transition-colors">
+                                <button @click="deleteRecord(row.id)"
+                                    class="text-slate-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Sil">
+                                    <i class="fas fa-trash-alt text-[11px]"></i>
+                                </button>
+                                <span class="text-[10px] text-slate-400 group-hover:opacity-0 absolute -ml-2">{{ idx + 1
+                                    }}</span>
+                            </td>
+
+                            <!-- Data Columns -->
+                            <td v-for="col in columns" :key="col"
+                                class="px-3 py-1.5 max-w-[300px] truncate text-slate-700 dark:text-gray-300">
+
+                                <span v-if="row[col] === null"
+                                    class="text-slate-400 dark:text-gray-500 italic text-[12px]">null</span>
+
+                                <!-- Boolean -->
+                                <div v-else-if="typeof row[col] === 'boolean'" class="flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-sm border flex items-center justify-center"
+                                        :class="row[col] ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white dark:bg-[#222222] border-slate-300 dark:border-gray-600'">
+                                        <i v-if="row[col]" class="fas fa-check text-[8px]"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Standard Value -->
+                                <span v-else :title="String(row[col])">{{ formatValue(row[col]) }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <footer
+                class="h-8 border-t border-prisma-border dark:border-prisma-borderDark flex items-center px-4 bg-slate-50 dark:bg-[#181818] shrink-0 text-[11px] text-slate-500 dark:text-gray-500">
+                <span v-if="activeTable">Geliştirici Arayüzü &copy; Prisma UI Mimarisi / Salt Okunur ve Silme
+                    Akif</span>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed, watch } = Vue
+
+        createApp({
+            setup() {
+                // Theme Logic
+                const isDark = ref(localStorage.getItem('adminTheme') === 'dark' || false)
+
+                watch(isDark, (val) => {
+                    localStorage.setItem('adminTheme', val ? 'dark' : 'light')
+                    if (val) {
+                        document.documentElement.classList.add('dark')
+                        document.getElementById('bodyRoot').classList.add('dark')
+                    } else {
+                        document.documentElement.classList.remove('dark')
+                        document.getElementById('bodyRoot').classList.remove('dark')
+                    }
+                }, { immediate: true })
+
+                const toggleTheme = () => { isDark.value = !isDark.value }
+
+                // Data Logic
+                const tables = ref([])
+                const activeTable = ref(null)
+                const rows = ref([])
+
+                const loadingTables = ref(true)
+                const loadingData = ref(false)
+
+                const columns = computed(() => {
+                    if (rows.value.length === 0) return []
+                    return Object.keys(rows.value[0])
+                })
+
+                const getTypeHint = (col) => {
+                    if (col === 'id' || col.endsWith('_id')) return 'int'
+                    if (col.includes('date') || col.includes('created_at')) return 'datetime'
+                    return 'string'
+                }
+
+                const loadTables = async () => {
+                    try {
+                        const res = await fetch('/api/tables')
+                        const data = await res.json()
+                        if (data.success) tables.value = data.tables
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        loadingTables.value = false
+                    }
+                }
+
+                const selectTable = (table) => {
+                    activeTable.value = table
+                    fetchData()
+                }
+
+                const fetchData = async () => {
+                    if (!activeTable.value) return
+                    loadingData.value = true
+                    try {
+                        const res = await fetch(`/api/data/${activeTable.value}`)
+                        const data = await res.json()
+                        if (data.success) {
+                            rows.value = data.data
+                        }
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        loadingData.value = false
+                    }
+                }
+
+                const deleteRecord = async (id) => {
+                    if (!id) return
+                    if (!confirm(`${id} numaralı kaydı silmek istediğinize emin misiniz?`)) return
+
+                    try {
+                        const res = await fetch(`/api/data/${activeTable.value}/${id}`, { method: 'DELETE' })
+                        const data = await res.json()
+                        if (data.success) {
+                            rows.value = rows.value.filter(r => r.id !== id)
+                        } else {
+                            alert("Silinemedi: " + data.error)
+                        }
+                    } catch (e) {
+                        alert("Hata: " + e.message)
+                    }
+                }
+
+                const formatValue = (val) => {
+                    if (typeof val === 'object') return JSON.stringify(val)
+                    return String(val)
+                }
+
+                onMounted(() => {
+                    loadTables()
+                })
+
+                return {
+                    isDark, toggleTheme,
+                    tables, activeTable, rows, columns,
+                    loadingTables, loadingData,
+                    selectTable, fetchData, deleteRecord,
+                    getTypeHint, formatValue
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>

@@ -6,7 +6,9 @@ const crypto = require('crypto')
 const Store = require('electron-store')
 const AdmZip = require('adm-zip')
 const db = require('./prismaService')
+const { getPrismaClient } = require('./prismaClient')
 const log = require('./logger') // Import logger
+const { startAdminServer, stopAdminServer } = require('./adminServer')
 
 // Optional: Override console to correct log file
 // console.log = log.log;
@@ -222,6 +224,7 @@ app.whenReady().then(() => {
     try {
         if (db.initializeDatabase) db.initializeDatabase()
         log.info('Database initialized')
+        startAdminServer(getPrismaClient())
     } catch (err) {
         log.error('Failed to initialize database:', err)
         dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)
@@ -241,6 +244,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+    stopAdminServer()
     if (process.platform !== 'darwin') {
         log.info('Application quitting (window-all-closed)')
         app.quit()
@@ -686,32 +690,18 @@ ipcMain.handle('dashboard:getRecentActivity', async (event, companyId) => {
 
 ipcMain.handle('data:export', async (event, payload) => {
     try {
-        const companyId = payload.companyId || payload
-        const result = await db.getCompanyCompleteData(companyId)
-        if (!result.success) {
-            return { success: false, error: result.error }
-        }
+        const userId = payload.userId
 
-        // Merge LocalStorage if present
-        if (payload.localStorageData) {
-            result.data.localStorage = payload.localStorageData
-        }
+        // Fetch companies to get a relevant backup name
+        const companies = await db.getCompanies(userId)
+        const companyName = companies.length > 0 ? companies[0].name : "system"
 
-        // Determine Encryption Key
-        let key = currentSessionKey
-        if (!key && payload.userId) {
-            const hash = await db.getUserPasswordHash(payload.userId)
-            if (hash) key = deriveKey(hash)
-        }
-        // Fallback to LEGACY_KEY if explicit user context missing (e.g. dev testing), but warn
-        if (!key) {
-            console.warn('Backup export: No user key available, using legacy key.')
-            key = LEGACY_KEY
-        }
+        // Determine Encryption Key (Currently unused for raw zip, but can ZIP encrypt later)
+        let key = currentSessionKey || LEGACY_KEY
 
         const { filePath } = await dialog.showSaveDialog(mainWindow, {
             title: 'Tam Güvenli Yedekleme (ZIP)',
-            defaultPath: `muayen-yedek-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`,
+            defaultPath: `muayen-yedek-${companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`,
             filters: [
                 { name: 'Güvenli Yedek Arşivi', extensions: ['zip'] }
             ]
@@ -721,7 +711,9 @@ ipcMain.handle('data:export', async (event, payload) => {
             return { success: false, error: 'İşlem iptal edildi' }
         }
 
-        createBackupZip(result.data, filePath, key)
+        // We now bypass JSON serialization and just zip the pristine SQLite database file
+        createBackupZip(filePath)
+
         return { success: true, filePath }
     } catch (error) {
         console.error('Backup error:', error)
@@ -746,84 +738,73 @@ ipcMain.handle('data:import', async (event, userId) => {
         const zip = new AdmZip(filePaths[0])
         const zipEntries = zip.getEntries()
 
-        // 1. Try to find encrypted data
-        let backupData = null
-        const encEntry = zipEntries.find(entry => entry.entryName === "data.enc")
+        // Locate the database file within the zip (it should be at the root of the zip archive as 'aractakip.db')
+        const dbEntry = zipEntries.find(entry => entry.entryName === "aractakip.db" || entry.entryName.endsWith("aractakip.db"))
 
-        if (encEntry) {
-            try {
-                const encryptedContent = encEntry.getData().toString("utf8")
+        if (!dbEntry) {
+            // Check for legacy data.json just to reject gracefully
+            const legacyEntry = zipEntries.find(entry => entry.entryName === "data.json" || entry.entryName === "data.enc")
+            if (legacyEntry) {
+                return { success: false, error: 'Eski JSON formatlı yedekler Prisma mimarisi ile uyumlu değildir. Lütfen SQL yedeklerini kullanın.' }
+            }
+            return { success: false, error: 'Geçersiz yedek dosyası (Veritabanı bulunamadı)' }
+        }
 
-                // Determine Key
-                let key = currentSessionKey
-                if (!key && userId) {
-                    const hash = await db.getUserPasswordHash(userId)
-                    if (hash) key = deriveKey(hash)
-                }
+        const userDataPath = app.getPath('userData')
 
+        // 1. Disconnect Prisma to unlock the file
+        const prismaClient = getPrismaClient()
+        await prismaClient.$disconnect()
+        log.info('Prisma client disconnected for restore.')
+
+        // 2. Extract and Overwrite the Database File
+        const dataDir = path.join(userDataPath, 'data')
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true })
+        }
+
+        // Write the DB file directly
+        const newDbContent = dbEntry.getData()
+        const targetDbPath = path.join(dataDir, 'aractakip.db')
+        fs.writeFileSync(targetDbPath, newDbContent)
+        log.info('Database file successfully overwritten from backup.')
+
+        // 3. Extract Files (Images, Documents)
+        const filesDir = path.join(userDataPath, 'files')
+        if (!fs.existsSync(filesDir)) {
+            fs.mkdirSync(filesDir, { recursive: true })
+        }
+
+        zipEntries.forEach(entry => {
+            if (entry.entryName.startsWith("files/") && !entry.isDirectory) {
                 try {
-                    // Try with derived key
-                    const decryptedContent = decryptData(encryptedContent, key)
-                    backupData = JSON.parse(decryptedContent)
-                } catch (e) {
-                    // Fallback to LEGACY_KEY
-                    console.log('Decryption with user key failed, trying legacy key...')
-                    const decryptedContent = decryptData(encryptedContent, LEGACY_KEY)
-                    backupData = JSON.parse(decryptedContent)
-                }
-            } catch (err) {
-                console.error('Decryption failed:', err)
-                return { success: false, error: 'Yedek dosyası şifresi çözülemedi veya bozuk. (Şifreniz değiştiyçe eski yedekleri açamayabilirsiniz)' }
-            }
-        } else {
-            // 2. Fallback to unencrypted data.json (Legacy Support)
-            const jsonEntry = zipEntries.find(entry => entry.entryName === "data.json")
-            if (jsonEntry) {
-                const fileContent = jsonEntry.getData().toString("utf8")
-                backupData = JSON.parse(fileContent)
-            }
-        }
-
-        if (!backupData) {
-            return { success: false, error: 'Geçersiz yedek dosyası (Veri bulunamadı)' }
-        }
-
-        // Import Data
-        const result = await db.importCompanyData(userId, backupData)
-
-        if (result.success) {
-            // Notify frontend
-            mainWindow.webContents.send('db-update', 'companies')
-
-            // Extract Files
-            const userDataPath = app.getPath('userData')
-            const filesDir = path.join(userDataPath, 'files')
-            if (!fs.existsSync(filesDir)) {
-                fs.mkdirSync(filesDir, { recursive: true })
-            }
-
-            zipEntries.forEach(entry => {
-                if (entry.entryName.startsWith("files/") && !entry.isDirectory) {
-                    try {
-                        zip.extractEntryTo(entry, filesDir, false, true)
-                    } catch (err) {
-                        console.warn('Failed to extract file:', entry.entryName, err)
-                    }
-                }
-            })
-
-            // Return localStorage data if available in backup
-            if (backupData.localStorage) {
-                return {
-                    ...result,
-                    localStorage: backupData.localStorage
+                    zip.extractEntryTo(entry, filesDir, false, true)
+                } catch (err) {
+                    console.warn('Failed to extract file:', entry.entryName, err)
                 }
             }
-        }
+        })
 
-        return result
+        // Notify frontend to hard reload
+        mainWindow.webContents.send('db-update', 'companies')
+
+        // IMPORTANT: We must reload the app to reinitialize Prisma with the new DB safely.
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Geri Yükleme Başarılı',
+            message: 'Veritabanı başarıyla geri yüklendi. Değişikliklerin uygulanabilmesi için uygulama yeniden başlatılacak.',
+            buttons: ['Tamam']
+        }).then(() => {
+            app.relaunch()
+            app.quit()
+        })
+
+        return { success: true }
     } catch (error) {
         console.error('Import error:', error)
+        // Force app quit if it fails mid-restore to prevent db corruption state
+        app.relaunch()
+        app.quit()
         return { success: false, error: error.message }
     }
 })
@@ -887,49 +868,23 @@ function decryptData(text, key) {
 }
 
 // Helper for ZIP creation
-function createBackupZip(data, outputPath, key) {
+function createBackupZip(outputPath) {
     try {
         const zip = new AdmZip()
-        const jsonContent = JSON.stringify(data, null, 2)
-
-        // Encrypt data.json content
-        const encryptedContent = encryptData(jsonContent, key)
-        zip.addFile("data.enc", Buffer.from(encryptedContent, "utf8"))
-
-
-        // Handling physical files:
         const userDataPath = app.getPath('userData')
+
+        // 1. Add the Database file directly to the ZIP
+        const dbPath = path.join(userDataPath, 'data', 'aractakip.db')
+        if (fs.existsSync(dbPath)) {
+            zip.addLocalFile(dbPath)
+        } else {
+            console.warn('Backup: aractakip.db not found at', dbPath)
+        }
+
+        // 2. Add physical files (images/documents)
         const filesDir = path.join(userDataPath, 'files')
-
         if (fs.existsSync(filesDir)) {
-            // ...
-            // I'll copy the existing logic for files
-            const filesToAdd = new Set()
-
-            // 1. Vehicle Images
-            if (data.vehicles) {
-                data.vehicles.forEach(v => {
-                    if (v.image) filesToAdd.add(v.image)
-                })
-            }
-
-            // 2. All Documents
-            if (data.allDocuments) {
-                data.allDocuments.forEach(d => {
-                    if (d.file_path) filesToAdd.add(d.file_path)
-                })
-            }
-
-            filesToAdd.forEach(fileName => {
-                const srcPath = path.join(filesDir, fileName)
-                if (fs.existsSync(srcPath)) {
-                    try {
-                        zip.addLocalFile(srcPath, "files")
-                    } catch (err) {
-                        console.warn('Failed to add file to zip:', fileName, err)
-                    }
-                }
-            })
+            zip.addLocalFolder(filesDir, "files")
         }
 
         zip.writeZip(outputPath)
@@ -942,23 +897,16 @@ function createBackupZip(data, outputPath, key) {
 
 async function performAutoBackup(companyId, backupPath) {
     try {
-        if (!currentSessionKey) {
-            console.log('Skipping auto backup: No active user session key.')
-            return false
-        }
-
         console.log('Starting auto backup for company:', companyId)
-        const result = await db.getCompanyCompleteData(companyId)
-        if (result.success) {
-            const fileName = `autobackup-${result.data.company.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.zip`
-            const fullPath = path.join(backupPath, fileName)
 
-            createBackupZip(result.data, fullPath, currentSessionKey)
+        // Use a generic name if company is not fetched, or rely on active company ID
+        const fileName = `autobackup-system-${new Date().toISOString().split('T')[0]}.zip`
+        const fullPath = path.join(backupPath, fileName)
 
-            console.log('Auto backup saved to:', fullPath)
-            return true
-        }
-        return false
+        createBackupZip(fullPath)
+
+        console.log('Auto backup saved to:', fullPath)
+        return true
     } catch (error) {
         console.error('Auto backup failed:', error)
         return false
