@@ -6,7 +6,7 @@ const crypto = require('crypto')
 const Store = require('electron-store')
 const AdmZip = require('adm-zip')
 const db = require('./prismaService')
-const { getPrismaClient } = require('./prismaClient')
+const { getPrismaClient, runAutoMigrations } = require('./prismaClient')
 const log = require('./logger') // Import logger
 const { startAdminServer, stopAdminServer } = require('./adminServer')
 
@@ -219,11 +219,15 @@ ipcMain.handle('notification:show', (event, { title, body }) => {
     return false
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     // Initialize Database
     try {
         if (db.initializeDatabase) db.initializeDatabase()
         log.info('Database initialized')
+
+        // Run schema migrations (add missing columns to older DBs)
+        await runAutoMigrations()
+
         startAdminServer(getPrismaClient())
     } catch (err) {
         log.error('Failed to initialize database:', err)

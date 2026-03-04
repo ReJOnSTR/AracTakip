@@ -67,64 +67,70 @@ async function getUpcomingEvents(companyId) {
         const events = [];
 
         // 1. Get Inspections
-        const inspections = await prisma.inspections.findMany({
-            where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate } },
-            include: { vehicles: true }
-        });
-        inspections.forEach(i => {
-            if (i.next_inspection) {
-                events.push({
-                    id: i.id,
-                    eventType: 'inspection',
-                    type: i.type === 'traffic' ? 'Tüvtürk Muayene' : 'Periyodik Kontrol',
-                    date: i.next_inspection,
-                    vehicleId: i.vehicle_id,
-                    plate: i.vehicles?.plate,
-                    brand: i.vehicles?.brand,
-                    model: i.vehicles?.model
-                });
-            }
-        });
+        try {
+            const inspections = await prisma.inspections.findMany({
+                where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate } },
+                include: { vehicles: true }
+            });
+            inspections.forEach(i => {
+                if (i.next_inspection) {
+                    events.push({
+                        id: i.id,
+                        eventType: 'inspection',
+                        type: i.type === 'traffic' ? 'Tüvtürk Muayene' : 'Periyodik Kontrol',
+                        date: i.next_inspection,
+                        vehicleId: i.vehicle_id,
+                        plate: i.vehicles?.plate,
+                        brand: i.vehicles?.brand,
+                        model: i.vehicles?.model
+                    });
+                }
+            });
+        } catch (e) { console.error('getUpcomingEvents inspections error:', e.message); }
 
         // 2. Get Insurances
-        const insurances = await prisma.insurances.findMany({
-            where: { vehicles: { company_id: cid }, end_date: { lte: futureDate } },
-            include: { vehicles: true }
-        });
-        insurances.forEach(i => {
-            if (i.end_date) {
-                events.push({
-                    id: i.id,
-                    eventType: 'insurance',
-                    type: i.type === 'traffic' ? 'Trafik Sigortası' : 'Kasko',
-                    date: i.end_date,
-                    vehicleId: i.vehicle_id,
-                    plate: i.vehicles?.plate,
-                    brand: i.vehicles?.brand,
-                    model: i.vehicles?.model
-                });
-            }
-        });
+        try {
+            const insurances = await prisma.insurances.findMany({
+                where: { vehicles: { company_id: cid }, end_date: { lte: futureDate } },
+                include: { vehicles: true }
+            });
+            insurances.forEach(i => {
+                if (i.end_date) {
+                    events.push({
+                        id: i.id,
+                        eventType: 'insurance',
+                        type: i.type === 'traffic' ? 'Trafik Sigortası' : 'Kasko',
+                        date: i.end_date,
+                        vehicleId: i.vehicle_id,
+                        plate: i.vehicles?.plate,
+                        brand: i.vehicles?.brand,
+                        model: i.vehicles?.model
+                    });
+                }
+            });
+        } catch (e) { console.error('getUpcomingEvents insurances error:', e.message); }
 
         // 3. Get Maintenances
-        const maintenances = await prisma.maintenances.findMany({
-            where: { vehicles: { company_id: cid }, next_date: { lte: futureDate } },
-            include: { vehicles: true }
-        });
-        maintenances.forEach(m => {
-            if (m.next_date) {
-                events.push({
-                    id: m.id,
-                    eventType: 'maintenance',
-                    type: 'Araç Bakımı',
-                    date: m.next_date,
-                    vehicleId: m.vehicle_id,
-                    plate: m.vehicles?.plate,
-                    brand: m.vehicles?.brand,
-                    model: m.vehicles?.model
-                });
-            }
-        });
+        try {
+            const maintenances = await prisma.maintenances.findMany({
+                where: { vehicles: { company_id: cid }, next_date: { lte: futureDate } },
+                include: { vehicles: true }
+            });
+            maintenances.forEach(m => {
+                if (m.next_date) {
+                    events.push({
+                        id: m.id,
+                        eventType: 'maintenance',
+                        type: 'Araç Bakımı',
+                        date: m.next_date,
+                        vehicleId: m.vehicle_id,
+                        plate: m.vehicles?.plate,
+                        brand: m.vehicles?.brand,
+                        model: m.vehicles?.model
+                    });
+                }
+            });
+        } catch (e) { console.error('getUpcomingEvents maintenances error:', e.message); }
 
         // Sort by date ascending (closest first)
         events.sort((a, b) => new Date(a.date) - new Date(b.date));

@@ -29,10 +29,6 @@ function getPrismaClient() {
             log.info(`Initializing Prisma Client on DB: ${dbPath}`);
             process.env.DATABASE_URL = `file:${dbPath}?connection_limit=1`;
 
-            // Run auto-migrations BEFORE Prisma client starts,
-            // so the DB schema matches what Prisma expects.
-            runAutoMigrations(dbPath);
-
             // Edge client initialization with driver adapter for Vite/Electron bundler compatibility.
             // IMPORTANT: Do NOT pass ?connection_limit to the adapter URL, as better-sqlite3 creates a literal file!
             const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
@@ -53,33 +49,25 @@ function getPrismaClient() {
 }
 
 /**
- * Runs incremental ALTER TABLE migrations on the raw SQLite DB
- * to bring older databases up to date with the current Prisma schema.
- * Each migration is idempotent (checks if column exists before adding).
+ * Run DB schema migrations using Prisma's $executeRawUnsafe.
+ * Must be called AFTER getPrismaClient() and BEFORE any queries.
  */
-function runAutoMigrations(dbPath) {
+async function runAutoMigrations() {
+    const p = getPrismaClient();
     try {
-        const Database = require('better-sqlite3');
-        const db = new Database(dbPath);
-
-        // Helper: check if a column exists in a table
-        const columnExists = (table, column) => {
-            const cols = db.pragma(`table_info(${table})`);
-            return cols.some(c => c.name === column);
-        };
-
-        // Migration 1: Add is_archived to vehicles (added in v1.0.32)
-        if (!columnExists('vehicles', 'is_archived')) {
+        // Check if vehicles table has is_archived column
+        const cols = await p.$queryRawUnsafe("PRAGMA table_info('vehicles')");
+        const hasIsArchived = cols.some(c => c.name === 'is_archived');
+        if (!hasIsArchived) {
             log.info('Migration: Adding is_archived column to vehicles table');
-            db.exec('ALTER TABLE vehicles ADD COLUMN is_archived INTEGER DEFAULT 0');
+            await p.$executeRawUnsafe('ALTER TABLE vehicles ADD COLUMN is_archived INTEGER DEFAULT 0');
+            log.info('Migration: is_archived column added successfully');
+        } else {
+            log.info('Migration: vehicles.is_archived column already exists');
         }
-
-        db.close();
-        log.info('Auto-migrations completed successfully');
     } catch (error) {
-        log.error('Auto-migration error (non-fatal):', error.message);
-        // Non-fatal: if migrations fail, the app can still try to run
+        log.error('Auto-migration error:', error.message);
     }
 }
 
-module.exports = { getPrismaClient };
+module.exports = { getPrismaClient, runAutoMigrations };
