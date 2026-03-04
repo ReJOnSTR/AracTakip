@@ -137,7 +137,7 @@ const ScrollableList = ({ children, height = '210px' }) => {
 }
 
 export default function Dashboard() {
-    const { currentCompany, loading: companyLoading, upcomingEvents } = useCompany()
+    const { currentCompany, loading: companyLoading, upcomingEvents, loadUpcomingEvents } = useCompany()
     const navigate = useNavigate()
 
     // PC Listeners
@@ -174,6 +174,7 @@ export default function Dashboard() {
         if (currentCompany) {
             loadDashboardData()
             loadActionPreferences()
+            loadUpcomingEvents() // Refresh upcoming events when returning to Dashboard tab
         } else {
             setStats(null)
             setRecent([])
