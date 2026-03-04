@@ -6,7 +6,7 @@ async function getDashboardStats(companyId) {
         const cid = parseInt(companyId);
 
         // Count queries
-        const totalVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'active' } });
+        const totalVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'active', is_archived: 0 } });
         const totalEmployees = await prisma.employees.count({ where: { company_id: cid, status: 'active' } });
 
         // Current month bounds
@@ -19,7 +19,7 @@ async function getDashboardStats(companyId) {
         try {
             const maints = await prisma.maintenances.aggregate({
                 _sum: { cost: true },
-                where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
+                where: { vehicles: { company_id: cid }, date: { gte: startOfMonth }, is_archived: 0 }
             });
             maintenanceCost = maints._sum.cost || 0;
         } catch (e) { console.error('Dashboard maintenances aggregate error:', e.message); }
@@ -29,7 +29,7 @@ async function getDashboardStats(companyId) {
         try {
             const servs = await prisma.services.aggregate({
                 _sum: { cost: true },
-                where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
+                where: { vehicles: { company_id: cid }, date: { gte: startOfMonth }, is_archived: 0 }
             });
             serviceCost = servs._sum.cost || 0;
         } catch (e) { console.error('Dashboard services aggregate error:', e.message); }
@@ -39,7 +39,7 @@ async function getDashboardStats(companyId) {
         try {
             const insps = await prisma.inspections.aggregate({
                 _sum: { cost: true },
-                where: { vehicles: { company_id: cid }, inspection_date: { gte: startOfMonth } }
+                where: { vehicles: { company_id: cid }, inspection_date: { gte: startOfMonth }, is_archived: 0 }
             });
             inspectionCost = insps._sum.cost || 0;
         } catch (e) { console.error('Dashboard inspections aggregate error:', e.message); }
@@ -69,7 +69,7 @@ async function getUpcomingEvents(companyId) {
         // 1. Get Inspections
         try {
             const inspections = await prisma.inspections.findMany({
-                where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate } },
+                where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate }, is_archived: 0 },
                 include: { vehicles: true }
             });
             inspections.forEach(i => {
@@ -91,7 +91,7 @@ async function getUpcomingEvents(companyId) {
         // 2. Get Insurances
         try {
             const insurances = await prisma.insurances.findMany({
-                where: { vehicles: { company_id: cid }, end_date: { lte: futureDate } },
+                where: { vehicles: { company_id: cid }, end_date: { lte: futureDate }, is_archived: 0 },
                 include: { vehicles: true }
             });
             insurances.forEach(i => {
@@ -113,7 +113,7 @@ async function getUpcomingEvents(companyId) {
         // 3. Get Maintenances
         try {
             const maintenances = await prisma.maintenances.findMany({
-                where: { vehicles: { company_id: cid }, next_date: { lte: futureDate } },
+                where: { vehicles: { company_id: cid }, next_date: { lte: futureDate }, is_archived: 0 },
                 include: { vehicles: true }
             });
             maintenances.forEach(m => {
