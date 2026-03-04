@@ -11,6 +11,7 @@ export default function CustomInput({
     className,
     error,
     multiline,
+    floatingLabel, // Extract floatingLabel so it's not in ...props
     ...props
 }) {
     const [touched, setTouched] = useState(false)
