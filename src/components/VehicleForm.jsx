@@ -52,8 +52,6 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
         onSubmit(data)
     }
 
-    console.log('Form Errors:', errors)
-
     return (
         <form onSubmit={handleSubmit(onFormSubmit)}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
