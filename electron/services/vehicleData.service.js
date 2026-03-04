@@ -170,6 +170,9 @@ async function getAllAssignments(companyId, isArchived) {
         const mapped = data.map(d => ({
             ...d,
             plate: d.vehicles?.plate,
+            vehicle_plate: d.vehicles?.plate,
+            brand: d.vehicles?.brand,
+            model: d.vehicles?.model,
             employee_name: d.assigned_to || null
         }));
         return { success: true, data: mapped };
@@ -240,7 +243,13 @@ async function getAllServices(companyId, isArchived) {
             include: { vehicles: true },
             orderBy: { date: 'desc' }
         });
-        const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate }));
+        const mapped = data.map(d => ({
+            ...d,
+            plate: d.vehicles?.plate,
+            vehicle_plate: d.vehicles?.plate,
+            brand: d.vehicles?.brand,
+            model: d.vehicles?.model
+        }));
         return { success: true, data: mapped };
     } catch (error) { return { success: false, error: error.message }; }
 }
