@@ -360,6 +360,7 @@ model vehicles {
   image        String?
   notes        String?
   created_at   DateTime?      @default(now())
+  is_archived  Int?           @default(0)
   assignments  assignments[]
   documents    documents[]
   inspections  inspections[]

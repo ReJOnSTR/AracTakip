@@ -29286,6 +29286,7 @@ export namespace Prisma {
     company_id: number | null
     year: number | null
     km: number | null
+    is_archived: number | null
   }
 
   export type VehiclesSumAggregateOutputType = {
@@ -29293,6 +29294,7 @@ export namespace Prisma {
     company_id: number | null
     year: number | null
     km: number | null
+    is_archived: number | null
   }
 
   export type VehiclesMinAggregateOutputType = {
@@ -29309,6 +29311,7 @@ export namespace Prisma {
     image: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type VehiclesMaxAggregateOutputType = {
@@ -29325,6 +29328,7 @@ export namespace Prisma {
     image: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type VehiclesCountAggregateOutputType = {
@@ -29341,6 +29345,7 @@ export namespace Prisma {
     image: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -29350,6 +29355,7 @@ export namespace Prisma {
     company_id?: true
     year?: true
     km?: true
+    is_archived?: true
   }
 
   export type VehiclesSumAggregateInputType = {
@@ -29357,6 +29363,7 @@ export namespace Prisma {
     company_id?: true
     year?: true
     km?: true
+    is_archived?: true
   }
 
   export type VehiclesMinAggregateInputType = {
@@ -29373,6 +29380,7 @@ export namespace Prisma {
     image?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type VehiclesMaxAggregateInputType = {
@@ -29389,6 +29397,7 @@ export namespace Prisma {
     image?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type VehiclesCountAggregateInputType = {
@@ -29405,6 +29414,7 @@ export namespace Prisma {
     image?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -29508,6 +29518,7 @@ export namespace Prisma {
     image: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: VehiclesCountAggregateOutputType | null
     _avg: VehiclesAvgAggregateOutputType | null
     _sum: VehiclesSumAggregateOutputType | null
@@ -29543,6 +29554,7 @@ export namespace Prisma {
     image?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     assignments?: boolean | vehicles$assignmentsArgs<ExtArgs>
     documents?: boolean | vehicles$documentsArgs<ExtArgs>
     inspections?: boolean | vehicles$inspectionsArgs<ExtArgs>
@@ -29569,6 +29581,7 @@ export namespace Prisma {
     image?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["vehicles"]>
 
@@ -29586,6 +29599,7 @@ export namespace Prisma {
     image?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["vehicles"]>
 
@@ -29603,9 +29617,10 @@ export namespace Prisma {
     image?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type vehiclesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "type" | "plate" | "brand" | "model" | "year" | "color" | "status" | "km" | "image" | "notes" | "created_at", ExtArgs["result"]["vehicles"]>
+  export type vehiclesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "type" | "plate" | "brand" | "model" | "year" | "color" | "status" | "km" | "image" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["vehicles"]>
   export type vehiclesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignments?: boolean | vehicles$assignmentsArgs<ExtArgs>
     documents?: boolean | vehicles$documentsArgs<ExtArgs>
@@ -29652,6 +29667,7 @@ export namespace Prisma {
       image: string | null
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["vehicles"]>
     composites: {}
   }
@@ -30097,6 +30113,7 @@ export namespace Prisma {
     readonly image: FieldRef<"vehicles", 'String'>
     readonly notes: FieldRef<"vehicles", 'String'>
     readonly created_at: FieldRef<"vehicles", 'DateTime'>
+    readonly is_archived: FieldRef<"vehicles", 'Int'>
   }
     
 
@@ -33631,7 +33648,8 @@ export namespace Prisma {
     km: 'km',
     image: 'image',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type VehiclesScalarFieldEnum = (typeof VehiclesScalarFieldEnum)[keyof typeof VehiclesScalarFieldEnum]
@@ -35517,6 +35535,7 @@ export namespace Prisma {
     image?: StringNullableFilter<"vehicles"> | string | null
     notes?: StringNullableFilter<"vehicles"> | string | null
     created_at?: DateTimeNullableFilter<"vehicles"> | Date | string | null
+    is_archived?: IntNullableFilter<"vehicles"> | number | null
     assignments?: AssignmentsListRelationFilter
     documents?: DocumentsListRelationFilter
     inspections?: InspectionsListRelationFilter
@@ -35542,6 +35561,7 @@ export namespace Prisma {
     image?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     assignments?: assignmentsOrderByRelationAggregateInput
     documents?: documentsOrderByRelationAggregateInput
     inspections?: inspectionsOrderByRelationAggregateInput
@@ -35570,6 +35590,7 @@ export namespace Prisma {
     image?: StringNullableFilter<"vehicles"> | string | null
     notes?: StringNullableFilter<"vehicles"> | string | null
     created_at?: DateTimeNullableFilter<"vehicles"> | Date | string | null
+    is_archived?: IntNullableFilter<"vehicles"> | number | null
     assignments?: AssignmentsListRelationFilter
     documents?: DocumentsListRelationFilter
     inspections?: InspectionsListRelationFilter
@@ -35595,6 +35616,7 @@ export namespace Prisma {
     image?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: vehiclesCountOrderByAggregateInput
     _avg?: vehiclesAvgOrderByAggregateInput
     _max?: vehiclesMaxOrderByAggregateInput
@@ -35619,6 +35641,7 @@ export namespace Prisma {
     image?: StringNullableWithAggregatesFilter<"vehicles"> | string | null
     notes?: StringNullableWithAggregatesFilter<"vehicles"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"vehicles"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"vehicles"> | number | null
   }
 
   export type work_itemsWhereInput = {
@@ -37718,6 +37741,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -37743,6 +37767,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -37765,6 +37790,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -37790,6 +37816,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -37814,6 +37841,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type vehiclesUpdateManyMutationInput = {
@@ -37828,6 +37856,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type vehiclesUncheckedUpdateManyInput = {
@@ -37844,6 +37873,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsCreateInput = {
@@ -39648,6 +39678,7 @@ export namespace Prisma {
     image?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type vehiclesAvgOrderByAggregateInput = {
@@ -39655,6 +39686,7 @@ export namespace Prisma {
     company_id?: SortOrder
     year?: SortOrder
     km?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type vehiclesMaxOrderByAggregateInput = {
@@ -39671,6 +39703,7 @@ export namespace Prisma {
     image?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type vehiclesMinOrderByAggregateInput = {
@@ -39687,6 +39720,7 @@ export namespace Prisma {
     image?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type vehiclesSumOrderByAggregateInput = {
@@ -39694,6 +39728,7 @@ export namespace Prisma {
     company_id?: SortOrder
     year?: SortOrder
     km?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type EmployeesNullableScalarRelationFilter = {
@@ -41634,6 +41669,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
     insurances?: insurancesCreateNestedManyWithoutVehiclesInput
@@ -41658,6 +41694,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
     insurances?: insurancesUncheckedCreateNestedManyWithoutVehiclesInput
@@ -41695,6 +41732,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
     insurances?: insurancesUpdateManyWithoutVehiclesNestedInput
@@ -41719,6 +41757,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
     insurances?: insurancesUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -41944,6 +41983,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -41967,6 +42007,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -42246,6 +42287,7 @@ export namespace Prisma {
     image?: StringNullableFilter<"vehicles"> | string | null
     notes?: StringNullableFilter<"vehicles"> | string | null
     created_at?: DateTimeNullableFilter<"vehicles"> | Date | string | null
+    is_archived?: IntNullableFilter<"vehicles"> | number | null
   }
 
   export type worksUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -42295,6 +42337,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
     insurances?: insurancesCreateNestedManyWithoutVehiclesInput
@@ -42319,6 +42362,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
     insurances?: insurancesUncheckedCreateNestedManyWithoutVehiclesInput
@@ -42356,6 +42400,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
     insurances?: insurancesUpdateManyWithoutVehiclesNestedInput
@@ -42380,6 +42425,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
     insurances?: insurancesUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -43751,6 +43797,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     insurances?: insurancesCreateNestedManyWithoutVehiclesInput
@@ -43775,6 +43822,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     insurances?: insurancesUncheckedCreateNestedManyWithoutVehiclesInput
@@ -43812,6 +43860,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     insurances?: insurancesUpdateManyWithoutVehiclesNestedInput
@@ -43836,6 +43885,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     insurances?: insurancesUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -43857,6 +43907,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -43881,6 +43932,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -43918,6 +43970,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -43942,6 +43995,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -44097,6 +44151,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -44121,6 +44176,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -44158,6 +44214,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -44182,6 +44239,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -44705,6 +44763,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -44729,6 +44788,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -44766,6 +44826,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -44790,6 +44851,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -45621,6 +45683,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -45645,6 +45708,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -45788,6 +45852,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -45812,6 +45877,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -45977,6 +46043,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsCreateNestedManyWithoutVehiclesInput
     documents?: documentsCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsCreateNestedManyWithoutVehiclesInput
@@ -46001,6 +46068,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     assignments?: assignmentsUncheckedCreateNestedManyWithoutVehiclesInput
     documents?: documentsUncheckedCreateNestedManyWithoutVehiclesInput
     inspections?: inspectionsUncheckedCreateNestedManyWithoutVehiclesInput
@@ -46160,6 +46228,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -46184,6 +46253,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -46305,6 +46375,7 @@ export namespace Prisma {
     image?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type worksCreateManyCompaniesInput = {
@@ -46521,6 +46592,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUpdateManyWithoutVehiclesNestedInput
@@ -46544,6 +46616,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     assignments?: assignmentsUncheckedUpdateManyWithoutVehiclesNestedInput
     documents?: documentsUncheckedUpdateManyWithoutVehiclesNestedInput
     inspections?: inspectionsUncheckedUpdateManyWithoutVehiclesNestedInput
@@ -46567,6 +46640,7 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type worksUpdateWithoutCompaniesInput = {

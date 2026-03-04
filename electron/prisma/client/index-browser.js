@@ -400,7 +400,8 @@ exports.Prisma.VehiclesScalarFieldEnum = {
   km: 'km',
   image: 'image',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.Work_itemsScalarFieldEnum = {
