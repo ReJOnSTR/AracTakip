@@ -1,6 +1,6 @@
 {
   "name": "muayen",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "description": "Muayen - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -8,8 +8,8 @@
     "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
     "dev:electron": "wait-on http://localhost:5173 && electron .",
-    "build": "vite build && electron-builder",
-    "publish": "vite build && electron-builder --publish always",
+    "build": "npx prisma generate && vite build && electron-builder",
+    "publish": "npx prisma generate && vite build && electron-builder --publish always",
     "preview": "vite preview",
     "rebuild": "npx electron-rebuild -f -w better-sqlite3"
   },
@@ -69,13 +69,10 @@
     "files": [
       "electron/**/*",
       "dist/**/*",
-      "data/**/*",
-      "node_modules/.prisma/**/*"
+      "data/**/*"
     ],
     "asarUnpack": [
-      "**/*.node",
-      "node_modules/@prisma/client/**/*",
-      "node_modules/.prisma/**/*"
+      "**/*.node"
     ],
     "mac": {
       "target": [
