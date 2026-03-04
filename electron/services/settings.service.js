@@ -43,16 +43,16 @@ async function getDashboardStats(companyId) {
         // 3. Inspection Costs
         const insps = await prisma.inspections.aggregate({
             _sum: { cost: true },
-            where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
+            where: { vehicles: { company_id: cid }, inspection_date: { gte: startOfMonth } }
         });
         const inspCost = insps._sum.cost || 0;
 
         // 4. Insurance Costs
         const insurs = await prisma.insurances.aggregate({
-            _sum: { cost: true },
+            _sum: { premium: true },
             where: { vehicles: { company_id: cid }, start_date: { gte: startOfMonth } }
         });
-        const insurCost = insurs._sum.cost || 0;
+        const insurCost = insurs._sum.premium || 0;
 
         const totalMonthlyCost = maintCost + serviceCost + inspCost + insurCost;
 
