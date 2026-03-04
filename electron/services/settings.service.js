@@ -6,91 +6,55 @@ async function getDashboardStats(companyId) {
         const cid = parseInt(companyId);
 
         // Count queries
-        // Removed status: 'active' strict check because older DBs might have NULL or different case
-        const totalVehicles = await prisma.vehicles.count({ where: { company_id: cid } });
-        let activeVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'aktif' } }).catch(() => 0); // Try 'aktif'
-        if (activeVehicles === 0) {
-            // Fallback for English status
-            activeVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'active' } }).catch(() => 0);
-        }
-
-        const totalEmployees = await prisma.employees.count({ where: { company_id: cid } });
-
-        // Assignments (Active only, assuming return_date is null for active)
-        const activeAssignments = await prisma.assignments.count({
-            where: { vehicles: { company_id: cid }, return_date: null }
-        }).catch(() => 0); // Catch schema mismatch if return_date doesn't exist
+        const totalVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'active' } });
+        const totalEmployees = await prisma.employees.count({ where: { company_id: cid, status: 'active' } });
 
         // Current month bounds
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
 
-        // 1. Maintenance Costs
-        const maints = await prisma.maintenances.aggregate({
-            _sum: { cost: true },
-            where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
-        });
-        const maintCost = maints._sum.cost || 0;
+        // Maintenance cost this month
+        let maintenanceCost = 0;
+        try {
+            const maints = await prisma.maintenances.aggregate({
+                _sum: { cost: true },
+                where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
+            });
+            maintenanceCost = maints._sum.cost || 0;
+        } catch (e) { console.error('Dashboard maintenances aggregate error:', e.message); }
 
-        // 2. Service Costs
-        const servs = await prisma.services.aggregate({
-            _sum: { cost: true },
-            where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
-        });
-        const serviceCost = servs._sum.cost || 0;
+        // Service cost this month
+        let serviceCost = 0;
+        try {
+            const servs = await prisma.services.aggregate({
+                _sum: { cost: true },
+                where: { vehicles: { company_id: cid }, date: { gte: startOfMonth } }
+            });
+            serviceCost = servs._sum.cost || 0;
+        } catch (e) { console.error('Dashboard services aggregate error:', e.message); }
 
-        // 3. Inspection Costs
-        const insps = await prisma.inspections.aggregate({
-            _sum: { cost: true },
-            where: { vehicles: { company_id: cid }, inspection_date: { gte: startOfMonth } }
-        });
-        const inspCost = insps._sum.cost || 0;
+        // Inspection cost this month (field is inspection_date, NOT date)
+        let inspectionCost = 0;
+        try {
+            const insps = await prisma.inspections.aggregate({
+                _sum: { cost: true },
+                where: { vehicles: { company_id: cid }, inspection_date: { gte: startOfMonth } }
+            });
+            inspectionCost = insps._sum.cost || 0;
+        } catch (e) { console.error('Dashboard inspections aggregate error:', e.message); }
 
-        // 4. Insurance Costs
-        const insurs = await prisma.insurances.aggregate({
-            _sum: { premium: true },
-            where: { vehicles: { company_id: cid }, start_date: { gte: startOfMonth } }
-        });
-        const insurCost = insurs._sum.premium || 0;
-
-        const totalMonthlyCost = maintCost + serviceCost + inspCost + insurCost;
-
-        // Alerts (Next 30 Days)
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 30);
-        const today = new Date();
-
-        const upcomingInspections = await prisma.inspections.count({
-            where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate, gte: today } }
-        }).catch(() => 0);
-
-        const expiringInsurances = await prisma.insurances.count({
-            where: { vehicles: { company_id: cid }, end_date: { lte: futureDate, gte: today } }
-        }).catch(() => 0);
+        const currentMonthCost = maintenanceCost + serviceCost + inspectionCost;
 
         return {
-            success: true,
-            data: {
+            success: true, data: {
                 totalVehicles,
-                activeVehicles: activeVehicles || totalVehicles, // Fallback if status tracking isn't matching
-                activeAssignments,
+                activeAssignments: 0,
                 totalEmployees,
-                upcomingInspections,
-                expiringInsurances,
-                monthlyCost: totalMonthlyCost,
-                costDistribution: {
-                    service: serviceCost,
-                    maintenance: maintCost,
-                    inspection: inspCost,
-                    insurance: insurCost
-                }
+                monthlyCost: currentMonthCost
             }
         };
-    } catch (error) {
-        console.error("getDashboardStats Error:", error);
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function getUpcomingEvents(companyId) {
@@ -100,18 +64,11 @@ async function getUpcomingEvents(companyId) {
         const futureDate = new Date();
         futureDate.setDate(today.getDate() + 30); // Next 30 days
 
-        // Only get events from somewhat recently to future, ignore multi-year old past events
-        const pastDate = new Date();
-        pastDate.setDate(today.getDate() - 365); // Support delayed up to 1 year
-
         const events = [];
 
         // 1. Get Inspections
         const inspections = await prisma.inspections.findMany({
-            where: {
-                vehicles: { company_id: cid },
-                next_inspection: { lte: futureDate, gte: pastDate }
-            },
+            where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate } },
             include: { vehicles: true }
         });
         inspections.forEach(i => {
@@ -131,10 +88,7 @@ async function getUpcomingEvents(companyId) {
 
         // 2. Get Insurances
         const insurances = await prisma.insurances.findMany({
-            where: {
-                vehicles: { company_id: cid },
-                end_date: { lte: futureDate, gte: pastDate }
-            },
+            where: { vehicles: { company_id: cid }, end_date: { lte: futureDate } },
             include: { vehicles: true }
         });
         insurances.forEach(i => {
@@ -154,10 +108,7 @@ async function getUpcomingEvents(companyId) {
 
         // 3. Get Maintenances
         const maintenances = await prisma.maintenances.findMany({
-            where: {
-                vehicles: { company_id: cid },
-                next_date: { lte: futureDate, gte: pastDate }
-            },
+            where: { vehicles: { company_id: cid }, next_date: { lte: futureDate } },
             include: { vehicles: true }
         });
         maintenances.forEach(m => {
@@ -178,8 +129,7 @@ async function getUpcomingEvents(companyId) {
         // Sort by date ascending (closest first)
         events.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Limit to 20 to prevent dashboard overload
-        return { success: true, data: events.slice(0, 20) };
+        return { success: true, data: events };
     } catch (error) {
         console.error("Dashboard getUpcomingEvents error:", error);
         return { success: false, error: error.message };
