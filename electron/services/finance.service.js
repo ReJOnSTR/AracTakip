@@ -283,8 +283,19 @@ async function updateCheckStatus(id, newStatus) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+async function getTransactionById(id) {
+    try {
+        const tx = await prisma.transactions.findUnique({
+            where: { id: parseInt(id) }
+        });
+        return { success: true, data: tx };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
-    getTransactions, createTransaction, updateTransaction, deleteTransaction,
+    getTransactions, getTransactionById, createTransaction, updateTransaction, deleteTransaction,
     getMealTickets, addMealTicket, updateMealTicket, deleteMealTicket,
     getMealPrice, setMealPrice, getMealTicketStats, getMealTicketReport,
     getFinanceStats, getChecksAndNotes, updateCheckStatus

@@ -479,7 +479,7 @@ ipcMain.handle('finance:getById', async (event, id) => {
 })
 
 ipcMain.handle('finance:create', async (event, data) => {
-    const result = await db.addTransaction(data)
+    const result = await db.createTransaction(data)
     if (result.success) notifyDbUpdate({ table: 'transactions', action: 'create' })
     return result
 })
