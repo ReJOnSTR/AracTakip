@@ -1,6 +1,6 @@
 {
   "name": "muayen",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Muayen - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -69,7 +69,13 @@
     "files": [
       "electron/**/*",
       "dist/**/*",
-      "data/**/*"
+      "data/**/*",
+      "node_modules/.prisma/**/*"
+    ],
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/@prisma/client/**/*",
+      "node_modules/.prisma/**/*"
     ],
     "mac": {
       "target": [
