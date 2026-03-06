@@ -32,10 +32,6 @@ async function createCompany(data) {
             data: {
                 user_id: userId,
                 name: name,
-                description: rest.description || null,
-                km: rest.km ? parseInt(rest.km) : null,
-                cost: rest.cost ? parseFloat(rest.cost) : 0,
-                file_path: rest.filePath || null,
                 tax_number: rest.taxNumber || null,
                 address: rest.address || null,
                 phone: rest.phone || null
@@ -60,10 +56,6 @@ async function updateCompany(data) {
             where: { id: parseInt(id) },
             data: {
                 name: name,
-                description: rest.description || null,
-                km: rest.km ? parseInt(rest.km) : null,
-                cost: rest.cost ? parseFloat(rest.cost) : 0,
-                file_path: rest.filePath || null,
                 tax_number: rest.taxNumber || null,
                 address: rest.address || null,
                 phone: rest.phone || null

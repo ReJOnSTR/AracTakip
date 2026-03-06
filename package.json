@@ -5,7 +5,7 @@
   "author": "Halil Sak",
   "main": "electron/main.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev": "kill $(lsof -t -i:5173) 2>/dev/null; concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
     "dev:electron": "wait-on http://localhost:5173 && electron .",
     "build": "npx prisma generate && vite build && electron-builder",
@@ -29,6 +29,8 @@
     "electron-store": "^8.1.0",
     "electron-updater": "^6.6.2",
     "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.294.0",
     "pdfjs-dist": "^5.4.530",
     "react": "^18.2.0",
