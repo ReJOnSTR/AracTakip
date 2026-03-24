@@ -38,6 +38,11 @@ const MealTicketReport = lazy(() => import('./pages/MealTicketReport'))
 const MealTicketSettings = lazy(() => import('./pages/MealTicketSettings'))
 const Employees = lazy(() => import('./pages/Employees'))
 const EmployeeDetail = lazy(() => import('./pages/EmployeeDetail'))
+const Works = lazy(() => import('./pages/Works'))
+const WorkDetails = lazy(() => import('./pages/WorkDetails'))
+const WorkPdfReport = lazy(() => import('./pages/WorkPdfReport'))
+const Customers = lazy(() => import('./pages/Customers'))
+const CustomerDetail = lazy(() => import('./pages/CustomerDetail'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -134,12 +139,16 @@ function AppRoutes() {
                         <Route path="/assignments" element={<Assignments />} />
                         <Route path="/employees" element={<Employees />} />
                         <Route path="/employees/:id" element={<EmployeeDetail />} />
+                        <Route path="/works" element={<Works />} />
+                        <Route path="/works/:id" element={<WorkDetails />} />
+                        <Route path="/customers" element={<Customers />} />
+                        <Route path="/customers/:id" element={<CustomerDetail />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/reports" element={<Reports />} />
                     </Route>
 
                     <Route path="/print" element={<PrintPage />} />
-
+                    <Route path="/work-report/:id" element={<WorkPdfReport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes >
             </Suspense >

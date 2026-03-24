@@ -44,6 +44,37 @@ import InspectionForm from '../components/forms/InspectionForm'
 import InsuranceForm from '../components/forms/InsuranceForm'
 import AssignmentForm from '../components/forms/AssignmentForm'
 
+const StatCard = ({ label, value, valueColor }) => (
+    <div style={{ 
+        backgroundColor: 'var(--bg-secondary)', 
+        padding: '14px 16px', 
+        borderRadius: '12px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '4px',
+        border: '1px solid var(--border-color)'
+    }}>
+        <div style={{ 
+            fontSize: '11px', 
+            color: 'var(--text-muted)', 
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.3px'
+        }}>
+            {label}
+        </div>
+        <div style={{ 
+            fontSize: '18px', 
+            fontWeight: '600', 
+            color: valueColor || 'var(--text-primary)', 
+            lineHeight: 1.2,
+            letterSpacing: '-0.3px'
+        }}>
+            {value}
+        </div>
+    </div>
+)
+
 export default function VehicleDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -581,13 +612,24 @@ export default function VehicleDetail() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        {/* Icon removed */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <div className="employee-avatar" style={{ 
+                            width: '72px', height: '72px', fontSize: '28px', 
+                            borderRadius: '20px', backgroundColor: 'var(--bg-tertiary)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'var(--primary)', fontWeight: '600',
+                            border: '1px solid var(--border-color)',
+                            flexShrink: 0
+                        }}>
+                            <Car size={32} />
+                        </div>
                         <div>
-                            <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>{vehicle.plate}</h1>
+                            <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>
+                                {vehicle.plate}
+                            </h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
                                 <span className={`badge badge-${statusInfo.color}`}>{statusInfo.label}</span>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '13px', textTransform: 'uppercase' }}>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', textTransform: 'uppercase' }}>
                                     {vehicle.brand} {vehicle.model} • {vehicle.year || '-'}
                                 </span>
                             </div>
@@ -600,133 +642,57 @@ export default function VehicleDetail() {
                         </button>
                     </div>
                 </div>
-
-                {/* Quick Status Cards - Only Key Indicators */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '28px' }}>
-                    {/* Inspection Status */}
-                    <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: upcomingInspection ? 'var(--warning-bg)' : 'var(--success-bg)',
-                            color: upcomingInspection ? 'var(--warning)' : 'var(--success)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            <ClipboardCheck size={20} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Muayene Durumu</div>
-                            <div style={{ fontSize: '18px', fontWeight: 600, color: upcomingInspection ? 'var(--warning)' : 'var(--text-primary)' }}>
-                                {nextInspectionDate ? getDaysUntilText(nextInspectionDate) : 'Bilgi Yok'}
-                            </div>
-                            {nextInspectionDate && (
-                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                    {formatDate(nextInspectionDate)}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Insurance Status */}
-                    <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: upcomingInsurance ? 'var(--warning-bg)' : 'var(--info-bg)',
-                            color: upcomingInsurance ? 'var(--warning)' : 'var(--info)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            <Shield size={20} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sigorta Durumu</div>
-                            <div style={{ fontSize: '18px', fontWeight: 600, color: upcomingInsurance ? 'var(--warning)' : 'var(--text-primary)' }}>
-                                {activeInsurance ? getDaysUntilText(activeInsurance.end_date) : 'Poliçe Yok'}
-                            </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', textTransform: 'uppercase' }}>
-                                {activeInsurance ? activeInsurance.company : 'Kayıt bulunamadı'}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Assignment Status */}
-                    <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: currentAssignment ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                            color: currentAssignment ? 'var(--accent-primary)' : 'var(--text-muted)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            <UserCheck size={20} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Zimmet Bilgisi</div>
-                            <div style={{ fontSize: '18px', fontWeight: 600, textTransform: 'uppercase' }}>
-                                {currentAssignment ? currentAssignment.assigned_to : 'Boşta'}
-                            </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', textTransform: 'uppercase' }}>
-                                {currentAssignment ? currentAssignment.department : 'Kullanıma hazır'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            {/* Vehicle Info Card */}
-            <div className="card" style={{ marginBottom: '28px', padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Settings size={18} style={{ color: 'var(--accent-primary)' }} />
-                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Araç Detayları</h3>
-                </div>
-                <div style={{ padding: '24px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '32px' }}>
-                        {/* Left Column */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-                                <div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Araç Türü</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>
-                                        {getVehicleTypeLabel(vehicle.type)}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Yıl</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500 }}>
-                                        {vehicle.year || '-'}
-                                    </div>
-                                </div>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-                                <div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Marka</div>
-                                    <div style={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>{vehicle.brand || '-'}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Model</div>
-                                    <div style={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>{vehicle.model || '-'}</div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Right Column */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Renk</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'white', border: '1px solid var(--border-color)' }}></div>
-                                    {vehicle.color || '-'}
-                                </div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Notlar</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', textTransform: 'uppercase' }}>
-                                    {vehicle.notes || 'Not eklenmemiş.'}
-                                </div>
-                            </div>
+            {/* Vehicle Info Section - Minimal */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+                {/* Temel Araç Bilgileri */}
+                <div className="card" style={{ padding: '16px 20px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Settings size={13} /> Temel Bilgiler
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Araç Türü</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{getVehicleTypeLabel(vehicle.type)}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Yıl</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{vehicle.year || '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Marka</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{vehicle.brand || '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Model</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{vehicle.model || '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Renk</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{vehicle.color || '-'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Diğer Bilgiler */}
+                <div className="card" style={{ padding: '16px 20px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={13} /> Diğer Bilgiler
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Kilometre</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{vehicle.current_km ? vehicle.current_km.toLocaleString('tr-TR') + ' KM' : '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Yakıt Türü</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{vehicle.fuel_type || '-'}</div>
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Notlar</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{vehicle.notes || '-'}</div>
                         </div>
                     </div>
                 </div>

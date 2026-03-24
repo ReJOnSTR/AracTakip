@@ -63,6 +63,40 @@ const emptyForms = {
     assignment: { itemName: '', quantity: 1, assignedDate: '', returnDate: '', status: 'active', notes: '' }
 }
 
+const StatCard = ({ label, value, valueColor }) => (
+    <div style={{ 
+        backgroundColor: 'var(--bg-secondary)', 
+        padding: '14px 16px', 
+        borderRadius: '12px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '4px',
+        border: '1px solid var(--border-color)'
+    }}>
+        <div style={{ 
+            fontSize: '11px', 
+            color: 'var(--text-muted)', 
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.3px'
+        }}>
+            {label}
+        </div>
+        <div style={{ 
+            fontSize: '18px', 
+            fontWeight: '600', 
+            color: valueColor || 'var(--text-primary)', 
+            lineHeight: 1.2,
+            letterSpacing: '-0.3px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+        }}>
+            {value}
+        </div>
+    </div>
+)
+
 export default function EmployeeDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -340,7 +374,6 @@ export default function EmployeeDetail() {
         { id: 'salary', label: 'Ödeme', icon: CreditCard, count: salaries.length },
         { id: 'leave', label: 'İzin', icon: CalendarOff, count: leaves.length },
         { id: 'overtime', label: 'Mesai', icon: Clock, count: overtimes.length },
-        { id: 'assignment', label: 'Zimmet', icon: Package, count: assignments.length },
         { id: 'documents', label: 'Belgeler', icon: FileText, count: documents.length }
     ]
 
@@ -412,22 +445,26 @@ export default function EmployeeDetail() {
 
             {/* Header / Breadcrumb / Actions */}
             <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '12px' }}>
-                    <Link to="/employees" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <ArrowLeft size={14} /> Personeller
-                    </Link>
-                    <span>/</span>
-                    <span>{employee.first_name} {employee.last_name}</span>
-                </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <div className="employee-avatar" style={{ 
+                            width: '72px', height: '72px', fontSize: '28px', 
+                            borderRadius: '20px', backgroundColor: 'var(--bg-tertiary)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'var(--primary)', fontWeight: '600',
+                            border: '1px solid var(--border-color)',
+                            flexShrink: 0
+                        }}>
+                            {employee.first_name[0]}{employee.last_name[0]}
+                        </div>
                         <div>
-                            <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>{employee.first_name} {employee.last_name}</h1>
+                            <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>
+                                {employee.first_name} {employee.last_name}
+                            </h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
                                 <span className={`badge badge-${statusInfo.color}`}>{statusInfo.label}</span>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '13px', textTransform: 'uppercase' }}>
-                                    {employee.position || ''} {employee.department ? `• ${employee.department}` : ''}
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', textTransform: 'uppercase' }}>
+                                    {employee.position || 'POZİSYON BELİRTİLMEDİ'} {employee.department ? `• ${employee.department}` : ''}
                                 </span>
                             </div>
                         </div>
@@ -439,115 +476,100 @@ export default function EmployeeDetail() {
                         </button>
                     </div>
                 </div>
-
             </div>
 
-            {/* Employee Detail Cards Grouped */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '28px' }}>
+
+            {/* Employee Info Section - Minimal */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '28px' }}>
                 {/* Kişisel Bilgiler */}
-                <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-secondary)' }}>
-                        <User size={16} style={{ color: 'var(--accent-primary)' }} />
-                        <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Kişisel Bilgiler</h3>
+                <div className="card" style={{ padding: '16px 20px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <User size={13} /> Kişisel Bilgiler
                     </div>
-                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>TC Kimlik No</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500 }}>{employee.tc_no || '-'}</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Doğum Tarihi / Yaş</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500 }}>
-                                    {employee.birth_date ? (
-                                        `${formatDate(employee.birth_date)} (${Math.floor((new Date() - new Date(employee.birth_date)) / (1000 * 60 * 60 * 24 * 365.25))} yaş)`
-                                    ) : '-'}
-                                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>TC Kimlik No</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{employee.tc_no || '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Doğum Tarihi</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                {employee.birth_date ? (
+                                    `${formatDate(employee.birth_date)} (${Math.floor((new Date() - new Date(employee.birth_date)) / (1000 * 60 * 60 * 24 * 365.25))} yaş)`
+                                ) : '-'}
                             </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Telefon</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500 }}>{employee.phone || '-'}</div>
-                            </div>
-                            <div style={{ overflow: 'hidden' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>E-posta</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500, wordBreak: 'break-all' }}>{employee.email || '-'}</div>
-                            </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Telefon</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{employee.phone || '-'}</div>
+                        </div>
+                        <div style={{ overflow: 'hidden' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>E-posta</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', wordBreak: 'break-all' }}>{employee.email || '-'}</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Şirket Bilgileri */}
-                <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-secondary)' }}>
-                        <Briefcase size={16} style={{ color: 'var(--accent-primary)' }} />
-                        <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Şirket Bilgileri</h3>
+                <div className="card" style={{ padding: '16px 20px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Briefcase size={13} /> Şirket Bilgileri
                     </div>
-                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Departman</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>{employee.department || '-'}</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Pozisyon</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase' }}>{employee.position || '-'}</div>
-                            </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Departman</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{employee.department || '-'}</div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>İşe Başlama Tarihi</div>
-                                <div style={{ fontSize: '14px', fontWeight: 500 }}>{employee.start_date ? formatDate(employee.start_date) : '-'}</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Çalışma Süresi</div>
-                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--accent-primary)' }}>
-                                    {employee.start_date ? (() => {
-                                        const start = new Date(employee.start_date);
-                                        const now = new Date();
-                                        const totalMonths = (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth() - (now.getDate() < start.getDate() ? 1 : 0);
-                                        const years = Math.floor(totalMonths / 12);
-                                        const months = totalMonths % 12;
-                                        if (years === 0 && months === 0) return '1 Aydan Az';
-                                        let parts = [];
-                                        if (years > 0) parts.push(`${years} Yıl`);
-                                        if (months > 0) parts.push(`${months} Ay`);
-                                        return parts.join(', ');
-                                    })() : '-'}
-                                </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pozisyon</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{employee.position || '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>İşe Başlama</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{employee.start_date ? formatDate(employee.start_date) : '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Çalışma Süresi</div>
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-primary)' }}>
+                                {employee.start_date ? (() => {
+                                    const start = new Date(employee.start_date);
+                                    const now = new Date();
+                                    const totalMonths = (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth() - (now.getDate() < start.getDate() ? 1 : 0);
+                                    const years = Math.floor(totalMonths / 12);
+                                    const months = totalMonths % 12;
+                                    if (years === 0 && months === 0) return '1 Aydan Az';
+                                    let parts = [];
+                                    if (years > 0) parts.push(`${years} Yıl`);
+                                    if (months > 0) parts.push(`${months} Ay`);
+                                    return parts.join(', ');
+                                })() : '-'}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Finansal Bilgiler */}
-                <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-secondary)' }}>
-                        <Wallet size={16} style={{ color: 'var(--accent-primary)' }} />
-                        <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Finansal Bilgiler</h3>
+                <div className="card" style={{ padding: '16px 20px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Wallet size={13} /> Finansal Bilgiler
                     </div>
-                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Maaş (Net)</div>
-                            <div style={{ fontSize: '16px', fontWeight: 700 }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Maaş (Net)</div>
+                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', paddingTop: '16px', borderTop: '1px dashed var(--border-color)' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Hafta İçi (Saat)</div>
-                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday')) : '-'}</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Pazar (Günlük)</div>
-                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday')) : '-'}</div>
-                            </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hafta İçi Mesai</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday')) + ' / saat' : '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pazar Mesaisi</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday')) + ' / gün' : '-'}</div>
                         </div>
                         {employee.notes && (
-                            <div style={{ paddingTop: '16px', borderTop: '1px dashed var(--border-color)' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>Notlar</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.5' }}>
-                                    {employee.notes}
-                                </div>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Notlar</div>
+                                <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.5 }}>{employee.notes}</div>
                             </div>
                         )}
                     </div>

@@ -116,3 +116,18 @@ export function getMaintenanceTypeLabel(type) {
 export function getInsuranceTypeLabel(type) {
     return insuranceTypes.find(t => t.value === type)?.label || type
 }
+
+export const workStatuses = [
+    { value: 'pending', label: 'Bekliyor', color: 'neutral' },
+    { value: 'in_progress', label: 'Devam Ediyor', color: 'warning' },
+    { value: 'completed', label: 'Tamamlandı', color: 'success' },
+    { value: 'cancelled', label: 'İptal Edildi', color: 'danger' }
+]
+
+export function getWorkStatusLabel(status) {
+    return workStatuses.find(s => s.value === status)?.label || status
+}
+
+export function getWorkStatusColor(status) {
+    return workStatuses.find(s => s.value === status)?.color || 'neutral'
+}

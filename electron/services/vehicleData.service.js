@@ -6,7 +6,7 @@ async function getInspections(vehicleId) {
     try {
         const data = await prisma.inspections.findMany({
             where: { vehicle_id: vehicleId, is_archived: 0 },
-            orderBy: { inspection_date: 'desc' },
+            orderBy: [{ inspection_date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate, vehicle_plate: d.vehicles?.plate, model: d.vehicles?.model, brand: d.vehicles?.brand }));
@@ -21,7 +21,7 @@ async function getAllInspections(companyId, type, isArchived) {
         const data = await prisma.inspections.findMany({
             where,
             include: { vehicles: true },
-            orderBy: { inspection_date: 'desc' }
+            orderBy: [{ inspection_date: 'desc' }, { id: 'desc' }]
         });
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate, vehicle_plate: d.vehicles?.plate, model: d.vehicles?.model, brand: d.vehicles?.brand }));
         return { success: true, data: mapped };
@@ -77,7 +77,7 @@ async function getInsurances(vehicleId) {
     try {
         const data = await prisma.insurances.findMany({
             where: { vehicle_id: vehicleId, is_archived: 0 },
-            orderBy: { start_date: 'desc' },
+            orderBy: [{ start_date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate, vehicle_plate: d.vehicles?.plate, model: d.vehicles?.model, brand: d.vehicles?.brand }));
@@ -90,7 +90,7 @@ async function getAllInsurances(companyId, isArchived) {
         const data = await prisma.insurances.findMany({
             where: { vehicles: { company_id: parseInt(companyId) }, is_archived: isArchived ? 1 : 0 },
             include: { vehicles: true },
-            orderBy: { start_date: 'desc' }
+            orderBy: [{ start_date: 'desc' }, { id: 'desc' }]
         });
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate, vehicle_plate: d.vehicles?.plate, model: d.vehicles?.model, brand: d.vehicles?.brand }));
         return { success: true, data: mapped };
@@ -148,7 +148,7 @@ async function getAssignments(vehicleId) {
     try {
         const data = await prisma.assignments.findMany({
             where: { vehicle_id: vehicleId, is_archived: 0 },
-            orderBy: { start_date: 'desc' },
+            orderBy: [{ start_date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
         const mapped = data.map(d => ({
@@ -165,7 +165,7 @@ async function getAllAssignments(companyId, isArchived) {
         const data = await prisma.assignments.findMany({
             where: { vehicles: { company_id: parseInt(companyId) }, is_archived: isArchived ? 1 : 0 },
             include: { vehicles: true },
-            orderBy: { start_date: 'desc' }
+            orderBy: [{ start_date: 'desc' }, { id: 'desc' }]
         });
         const mapped = data.map(d => ({
             ...d,
@@ -228,7 +228,7 @@ async function getServices(vehicleId) {
     try {
         const data = await prisma.services.findMany({
             where: { vehicle_id: vehicleId, is_archived: 0 },
-            orderBy: { date: 'desc' },
+            orderBy: [{ date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate }));
@@ -241,7 +241,7 @@ async function getAllServices(companyId, isArchived) {
         const data = await prisma.services.findMany({
             where: { vehicles: { company_id: parseInt(companyId) }, is_archived: isArchived ? 1 : 0 },
             include: { vehicles: true },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         const mapped = data.map(d => ({
             ...d,

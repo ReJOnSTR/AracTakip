@@ -14,6 +14,7 @@ export default function Works() {
     const { openNewTab } = useTabs()
     const navigate = useNavigate()
     const [works, setWorks] = useState([])
+    const [customers, setCustomers] = useState([])
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingWork, setEditingWork] = useState(null)
@@ -29,8 +30,12 @@ export default function Works() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const worksRes = await window.electronAPI.getWorks(currentCompany.id)
+            const [worksRes, customersRes] = await Promise.all([
+                window.electronAPI.getWorks(currentCompany.id),
+                window.electronAPI.getCustomers(currentCompany.id)
+            ])
             if (worksRes.success) setWorks(worksRes.data)
+            if (customersRes.success) setCustomers(customersRes.data)
         } catch (error) {
             console.error('Veri yüklenirken hata:', error)
         }
@@ -129,13 +134,18 @@ export default function Works() {
                             <span>{formatDate(row.end_date)}</span>
                         </div>
                     )}
+                    {(row.total_days > 0) && (
+                        <div style={{ marginTop: '2px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                            {row.total_days} Gün
+                        </div>
+                    )}
                 </div>
             )
         },
         {
             key: 'customer',
             label: 'Müşteri',
-            render: (v) => <span style={{ fontWeight: 600 }}>{v}</span>
+            render: (_v, row) => <span style={{ fontWeight: 600 }}>{row.customer_name || row.customer}</span>
         },
         {
             key: 'title',
@@ -242,6 +252,7 @@ export default function Works() {
                     onSubmit={handleFormSubmit}
                     onCancel={() => setIsModalOpen(false)}
                     loading={saving}
+                    customers={customers}
                 />
             </Modal>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { LayoutDashboard, Users, Wallet, Briefcase, ChevronRight, UtensilsCrossed, Car, Banknote, Clock, ArrowUpRight, Sparkles } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, Briefcase, ChevronRight, UtensilsCrossed, Car, Banknote, Clock, ArrowUpRight, Sparkles, Building2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useAuth } from '../context/AuthContext'
@@ -192,8 +192,21 @@ export default function MainPortal() {
             color: '#8b5cf6',
             glowColor: '#8b5cf6',
             path: '/works',
-            active: false,
+            active: true,
             features: ['Proje yönetimi', 'Şantiye takibi', 'Görev atamaları', 'İş emirleri']
+        },
+        {
+            id: 'customers',
+            title: 'Cari & Müşteri',
+            description: 'Müşteri profilleri, cari hesaplar ve bakiyeler.',
+            icon: Building2,
+            gradient: 'linear-gradient(145deg, rgba(20,184,166,0.08) 0%, rgba(13,148,136,0.04) 100%)',
+            hoverGradient: 'linear-gradient(145deg, rgba(20,184,166,0.14) 0%, rgba(13,148,136,0.08) 100%)',
+            color: '#14b8a6',
+            glowColor: '#14b8a6',
+            path: '/customers',
+            active: true,
+            features: ['Müşteri profili', 'Açık bakiyeler', 'İletişim bilgileri', 'Geçmiş işler']
         }
     ]
 

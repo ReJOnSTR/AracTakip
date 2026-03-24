@@ -15,7 +15,9 @@ import {
     UtensilsCrossed,
     CircleDollarSign,
     Users,
-    UserCheck
+    UserCheck,
+    Briefcase,
+    Building2
 } from 'lucide-react'
 
 // Define menus per module
@@ -96,6 +98,22 @@ export const moduleMenus = {
                 { path: '/settings?module=hr', icon: Settings, label: 'Ayarlar' }
             ]
         }
+    ],
+    works: [
+        {
+            title: 'İş & Operasyon',
+            items: [
+                { path: '/works', label: 'İş Takibi', icon: Briefcase }
+            ]
+        }
+    ],
+    customers: [
+        {
+            title: 'Cari & Müşteri',
+            items: [
+                { path: '/customers', label: 'Müşteriler', icon: Building2 }
+            ]
+        }
     ]
 }
 
@@ -126,6 +144,8 @@ export const getRouteInfo = (path) => {
     // Fallback for detail pages
     if (path.startsWith('/vehicles/')) return { label: 'Araç Detay', icon: Car }
     if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
+    if (path.startsWith('/works/')) return { label: 'Puantaj (İş)', icon: Briefcase }
+    if (path.startsWith('/customers/')) return { label: 'Müşteri (Cari) Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
 
     return { label: 'Sayfa', icon: FileText }
@@ -135,6 +155,8 @@ export const getActiveModule = (pathname, search = '') => {
     if (search.includes('module=finance') || pathname.startsWith('/finance') || pathname.startsWith('/checks')) return 'finance'
     if (pathname.startsWith('/meal-ticket') || search.includes('module=meals')) return 'meals'
     if (pathname.startsWith('/employee') || search.includes('module=hr')) return 'hr'
+    if (pathname.startsWith('/works') || search.includes('module=works')) return 'works'
+    if (pathname.startsWith('/customers') || search.includes('module=customers')) return 'customers'
     if (pathname === '/portal' || pathname === '/') return 'portal'
     return 'fleet'
 }

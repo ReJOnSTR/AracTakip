@@ -169,6 +169,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setMealPrice: (data) => ipcRenderer.invoke('mealTickets:setPrice', data),
     getMealTicketReport: (data) => ipcRenderer.invoke('mealTickets:getReport', data),
 
+    // Works API
+    getWorks: (companyId) => ipcRenderer.invoke('works:getAll', companyId),
+    getWorkDetails: (id) => ipcRenderer.invoke('works:getDetails', id),
+    createWork: (data) => ipcRenderer.invoke('works:create', data),
+    updateWork: (data) => ipcRenderer.invoke('works:update', data),
+    deleteWork: (id) => ipcRenderer.invoke('works:delete', id),
+
+    // Customers API
+    getCustomers: (companyId) => ipcRenderer.invoke('customers:getAll', companyId),
+    getCustomerDetails: (id) => ipcRenderer.invoke('customers:getDetails', id),
+    createCustomer: (data) => ipcRenderer.invoke('customers:create', data),
+    updateCustomer: (data) => ipcRenderer.invoke('customers:update', data),
+    deleteCustomer: (id) => ipcRenderer.invoke('customers:delete', id),
+
+    addWorkItem: (data) => ipcRenderer.invoke('workItems:create', data),
+    addBulkWorkItems: (data) => ipcRenderer.invoke('workItems:bulkCreate', data),
+    updateWorkItem: (data) => ipcRenderer.invoke('workItems:update', data),
+    deleteWorkItem: (id) => ipcRenderer.invoke('workItems:delete', id),
+    deleteBulkWorkItems: (ids) => ipcRenderer.invoke('workItems:bulkDelete', ids),
+
     // Database Updates
     onDbUpdate: (callback) => {
         const subscription = (event, data) => callback(data)

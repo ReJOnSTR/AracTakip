@@ -106,7 +106,7 @@ async function getMaintenances(vehicleId) {
     try {
         const data = await prisma.maintenances.findMany({
             where: { vehicle_id: vehicleId, is_archived: 0 },
-            orderBy: { date: 'desc' },
+            orderBy: [{ date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
         // Shape formatting for legacy compatibility 
@@ -123,7 +123,7 @@ async function getAllMaintenances(companyId, isArchived) {
                 vehicles: { company_id: parseInt(companyId) }
             },
             include: { vehicles: true },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate, vehicle_plate: d.vehicles?.plate, model: d.vehicles?.model, brand: d.vehicles?.brand }));
         return { success: true, data: mapped };

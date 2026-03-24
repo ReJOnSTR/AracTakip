@@ -151,7 +151,7 @@ async function getRecentActivity(companyId) {
         const recentServices = await prisma.services.findMany({
             where: { vehicles: { company_id: cid } },
             include: { vehicles: true },
-            orderBy: { date: 'desc' },
+            orderBy: [{ date: 'desc' }, { id: 'desc' }],
             take: 10
         });
 

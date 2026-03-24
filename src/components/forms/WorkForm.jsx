@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { workHeaderSchema } from '../../schemas/workSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import SearchableSelect from '../SearchableSelect'
 
 const statusOptions = [
     { value: 'pending', label: 'Bekliyor' },
@@ -12,7 +13,7 @@ const statusOptions = [
     { value: 'cancelled', label: 'İptal Edildi' }
 ]
 
-export default function WorkForm({ initialData, onSubmit, onCancel, loading }) {
+export default function WorkForm({ initialData, onSubmit, onCancel, loading, customers = [] }) {
     const {
         control,
         handleSubmit,
@@ -22,6 +23,7 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading }) {
         resolver: zodResolver(workHeaderSchema),
         defaultValues: {
             title: '',
+            customerId: '',
             customer: '',
             description: '',
             status: 'pending',
@@ -33,6 +35,7 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading }) {
         if (initialData) {
             reset({
                 title: initialData.title || '',
+                customerId: initialData.customer_id || '',
                 customer: initialData.customer || '',
                 description: initialData.description || '',
                 status: initialData.status || 'pending',
@@ -41,6 +44,7 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading }) {
         } else {
             reset({
                 title: '',
+                customerId: '',
                 customer: '',
                 description: '',
                 status: 'pending',
@@ -70,16 +74,24 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading }) {
                 </div>
                 <div className="form-group">
                     <Controller
-                        name="customer"
+                        name="customerId"
                         control={control}
                         render={({ field }) => (
-                            <CustomInput
-                                label="Müşteri / Firma"
-                                required={true}
+                            <SearchableSelect
+                                label="Müşteri / Cari Seçimi"
+                                className="form-select-custom"
                                 value={field.value}
-                                onChange={field.onChange}
-                                error={errors.customer?.message}
-                                placeholder="Müşteri adı"
+                                onChange={(val) => {
+                                    field.onChange(val);
+                                    // Update the legacy customer text field to match the selected customer's name
+                                    const selectedCustomer = customers.find(c => String(c.id) === String(val))
+                                    if(selectedCustomer) {
+                                        reset(formValues => ({ ...formValues, customer: selectedCustomer.name }))
+                                    }
+                                }}
+                                options={customers.map(c => ({ value: c.id, label: c.name }))}
+                                placeholder="Arama yapın..."
+                                error={errors.customerId?.message}
                             />
                         )}
                     />

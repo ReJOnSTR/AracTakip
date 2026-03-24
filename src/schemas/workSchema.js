@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const workHeaderSchema = z.object({
     title: z.string().min(1, 'İş başlığı zorunludur'),
-    customer: z.string().min(1, 'Müşteri adı zorunludur'),
+    customerId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => (val === '' ? null : Number(val))),
+    customer: z.string().optional(),
     description: z.string().optional(),
     start_date: z.string().optional().nullable(),
     end_date: z.string().optional().nullable(),
@@ -12,6 +13,7 @@ export const workHeaderSchema = z.object({
 
 export const workItemSchema = z.object({
     date: z.string().min(1, 'Tarih zorunludur'),
+    receiptNo: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : ''),
     vehicleId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => (val === '' ? null : Number(val))),
     employeeId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => (val === '' ? null : Number(val))),
     startTime: z.string().optional(),

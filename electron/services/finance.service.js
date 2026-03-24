@@ -5,7 +5,7 @@ async function getTransactions(companyId) {
     try {
         const data = await prisma.transactions.findMany({
             where: { company_id: parseInt(companyId) },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         return { success: true, data: JSON.parse(JSON.stringify(data)) };
     } catch (error) { return { success: false, error: error.message }; }
@@ -65,7 +65,7 @@ async function getMealTickets(companyId) {
     try {
         const tickets = await prisma.meal_tickets.findMany({
             where: { company_id: parseInt(companyId) },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         const settings = await prisma.meal_settings.findUnique({
             where: { company_id: parseInt(companyId) }
@@ -85,10 +85,10 @@ async function addMealTicket(data) {
         const result = await prisma.meal_tickets.create({
             data: {
                 company_id: parseInt(data.companyId),
-                date: data.date,
+                date: new Date(data.date),
                 person_count: parseInt(data.personCount),
                 notes: data.notes || null,
-                created_at: new Date().toISOString()
+                created_at: new Date()
             }
         });
         return { success: true, id: result.id };
@@ -100,7 +100,7 @@ async function updateMealTicket(data) {
         await prisma.meal_tickets.update({
             where: { id: parseInt(data.id) },
             data: {
-                date: data.date,
+                date: new Date(data.date),
                 person_count: parseInt(data.personCount),
                 notes: data.notes || null
             }
@@ -163,7 +163,8 @@ async function getMealTicketStats(companyId) {
                 totalThisMonth += ticket.person_count;
                 ticketCountThisMonth++;
             }
-            if (ticket.date === todayStr) {
+            const dateStr = tDate.toISOString().split('T')[0];
+            if (dateStr === todayStr) {
                 todayCount += ticket.person_count;
             }
         });
@@ -185,7 +186,7 @@ async function getMealTicketReport(companyId, month, year) {
     try {
         const allTickets = await prisma.meal_tickets.findMany({
             where: { company_id: parseInt(companyId) },
-            orderBy: { date: 'asc' }
+            orderBy: [{ date: 'asc' }, { id: 'asc' }]
         });
         const settings = await prisma.meal_settings.findUnique({
             where: { company_id: parseInt(companyId) }
@@ -267,7 +268,7 @@ async function getChecksAndNotes(companyId) {
     try {
         const checks = await prisma.transactions.findMany({
             where: { company_id: parseInt(companyId), method: 'CHECK' },
-            orderBy: { check_due_date: 'asc' }
+            orderBy: [{ check_due_date: 'asc' }, { id: 'asc' }]
         });
         return { success: true, data: JSON.parse(JSON.stringify(checks)) };
     } catch (error) { return { success: false, error: error.message }; }

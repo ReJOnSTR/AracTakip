@@ -62,7 +62,7 @@ async function getLeavesByEmployee(employeeId) {
     try {
         const data = await prisma.leaves.findMany({
             where: { employee_id: parseInt(employeeId) },
-            orderBy: { start_date: 'desc' }
+            orderBy: [{ start_date: 'desc' }, { id: 'desc' }]
         });
         return { success: true, data };
     } catch (error) { return { success: false, error: error.message }; }
@@ -115,7 +115,7 @@ async function getOvertimes(employeeId) {
     try {
         const data = await prisma.overtimes.findMany({
             where: { employee_id: parseInt(employeeId) },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         return { success: true, data: JSON.parse(JSON.stringify(data)) };
     } catch (error) { return { success: false, error: error.message }; }
@@ -167,7 +167,7 @@ async function getEmployeeAssignments(employeeId) {
     try {
         const data = await prisma.employee_assignments.findMany({
             where: { employee_id: parseInt(employeeId) },
-            orderBy: { assign_date: 'desc' }
+            orderBy: [{ assign_date: 'desc' }, { id: 'desc' }]
         });
         return { success: true, data: JSON.parse(JSON.stringify(data)) };
     } catch (error) { return { success: false, error: error.message }; }

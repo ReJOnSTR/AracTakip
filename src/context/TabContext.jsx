@@ -94,9 +94,19 @@ export function TabProvider({ children }) {
                 if (nextTab) {
                     setActiveTabId(nextTab.id)
                     navigate(nextTab.path)
+                    return newTabs
                 } else {
-                    // Closed the last tab? Go to portal
+                    // Closed the last tab? Go to portal and create its tab
+                    const routeInfo = getRouteInfo('/portal')
+                    const homeTab = {
+                        id: crypto.randomUUID(),
+                        path: '/portal',
+                        label: routeInfo.label,
+                        icon: routeInfo.icon
+                    }
+                    setActiveTabId(homeTab.id)
                     navigate('/portal')
+                    return [homeTab]
                 }
             }
 

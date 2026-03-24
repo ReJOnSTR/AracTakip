@@ -677,6 +677,56 @@ ipcMain.handle('archive:item', async (event, table, id, isArchived) => {
     return await db.archiveItem(table, id, isArchived)
 })
 
+// Works & Timesheets
+ipcMain.handle('works:getAll', async (event, companyId) => {
+    return db.getWorks(companyId)
+})
+ipcMain.handle('works:getDetails', async (event, id) => {
+    return db.getWorkDetails(id)
+})
+ipcMain.handle('works:create', async (event, data) => {
+    return db.createWork(data)
+})
+ipcMain.handle('works:update', async (event, data) => {
+    return db.updateWork(data)
+})
+ipcMain.handle('works:delete', async (event, id) => {
+    return db.deleteWork(id)
+})
+
+// Customers
+ipcMain.handle('customers:getAll', async (event, companyId) => {
+    return db.getCustomers(companyId)
+})
+ipcMain.handle('customers:getDetails', async (event, id) => {
+    return db.getCustomerDetails(id)
+})
+ipcMain.handle('customers:create', async (event, data) => {
+    return db.createCustomer(data)
+})
+ipcMain.handle('customers:update', async (event, data) => {
+    return db.updateCustomer(data)
+})
+ipcMain.handle('customers:delete', async (event, id) => {
+    return db.deleteCustomer(id)
+})
+
+ipcMain.handle('workItems:create', async (event, data) => {
+    return db.addWorkItem(data)
+})
+ipcMain.handle('workItems:bulkCreate', async (event, data) => {
+    return db.addBulkWorkItems(data)
+})
+ipcMain.handle('workItems:update', async (event, data) => {
+    return db.updateWorkItem(data)
+})
+ipcMain.handle('workItems:delete', async (event, id) => {
+    return db.deleteWorkItem(id)
+})
+ipcMain.handle('workItems:bulkDelete', async (event, ids) => {
+    return db.deleteBulkWorkItems(ids)
+})
+
 // Dashboard stats
 ipcMain.handle('dashboard:getStats', async (event, companyId) => {
     return await db.getDashboardStats(companyId)

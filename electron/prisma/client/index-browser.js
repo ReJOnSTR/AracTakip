@@ -141,6 +141,19 @@ exports.Prisma.CompaniesScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.CustomersScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  phone: 'phone',
+  email: 'email',
+  address: 'address',
+  tax_number: 'tax_number',
+  tax_office: 'tax_office',
+  notes: 'notes',
+  created_at: 'created_at'
+};
+
 exports.Prisma.DocumentsScalarFieldEnum = {
   id: 'id',
   vehicle_id: 'vehicle_id',
@@ -408,6 +421,7 @@ exports.Prisma.Work_itemsScalarFieldEnum = {
   id: 'id',
   work_id: 'work_id',
   date: 'date',
+  receipt_no: 'receipt_no',
   vehicle_id: 'vehicle_id',
   employee_id: 'employee_id',
   start_time: 'start_time',
@@ -425,6 +439,7 @@ exports.Prisma.WorksScalarFieldEnum = {
   company_id: 'company_id',
   vehicle_id: 'vehicle_id',
   employee_id: 'employee_id',
+  customer_id: 'customer_id',
   customer: 'customer',
   title: 'title',
   description: 'description',
@@ -450,6 +465,7 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   assignments: 'assignments',
   companies: 'companies',
+  customers: 'customers',
   documents: 'documents',
   employee_assignments: 'employee_assignments',
   employee_attendance: 'employee_attendance',

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom' // Even though we use tabs, we might get ID from props
-import { useTab } from '../context/TabContext'
+import { useParams, useNavigate, Link } from 'react-router-dom' // Even though we use tabs, we might get ID from props
+import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
@@ -11,9 +11,10 @@ import { formatDate, formatCurrency } from '../utils/helpers'
 import { workItemSchema } from '../schemas/workSchema'
 
 export default function WorkDetails(props) {
-    // Props might come from tab system
-    const id = props.id
-    const { openTab, replaceTab, activeTabId } = useTab()
+    const { id: urlId } = useParams()
+    const id = props.id || urlId
+    const navigate = useNavigate()
+    const { openNewTab, replaceTab, activeTabId, closeTab } = useTabs()
     const [work, setWork] = useState(null)
     const [loading, setLoading] = useState(true)
     const [vehicles, setVehicles] = useState([])
@@ -21,8 +22,26 @@ export default function WorkDetails(props) {
 
     // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
     const [modalError, setModalError] = useState('')
+
+    // Bulk Form State
+    const [bulkFormData, setBulkFormData] = useState({
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
+        receiptNo: '',
+        vehicleId: '',
+        employeeId: '',
+        startTime: '',
+        endTime: '',
+        hours: 0,
+        overtimeHours: 0,
+        pricingType: 'daily',
+        monthlyPrice: 0,
+        unitPrice: 0,
+        description: ''
+    })
 
     // Confirm Delete State
     const [confirmModal, setConfirmModal] = useState(null)
@@ -30,12 +49,14 @@ export default function WorkDetails(props) {
     // Form State
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
+        receiptNo: '',
         vehicleId: '',
         employeeId: '',
         startTime: '',
         endTime: '',
         hours: 0,
         overtimeHours: 0,
+        pricingType: 'daily',
         unitPrice: 0,
         description: ''
     })
@@ -43,6 +64,112 @@ export default function WorkDetails(props) {
     useEffect(() => {
         loadData()
     }, [id])
+
+    // Auto-calculate hours for bulk form
+    useEffect(() => {
+        if (!isBulkModalOpen) return;
+
+        const { startTime, endTime } = bulkFormData;
+        if (startTime && endTime) {
+            const [startH, startM] = startTime.split(':').map(Number);
+            const [endH, endM] = endTime.split(':').map(Number);
+
+            let diffHours = endH - startH + (endM - startM) / 60;
+            if (diffHours < 0) diffHours += 24;
+
+            let calculatedHours = 1;
+            let calculatedOvertime = 0;
+
+            if (diffHours > 9) {
+                calculatedHours = 1;
+                calculatedOvertime = diffHours - 9;
+            } else if (diffHours < 9 && diffHours > 0) {
+                calculatedHours = parseFloat((diffHours / 9).toFixed(2));
+                calculatedOvertime = 0;
+            }
+
+            setBulkFormData(prev => ({
+                ...prev,
+                hours: calculatedHours,
+                overtimeHours: calculatedOvertime
+            }));
+        }
+    }, [bulkFormData.startTime, bulkFormData.endTime, isBulkModalOpen])
+
+    // Auto-calculate hours for single form
+    useEffect(() => {
+        if (!isModalOpen) return;
+
+        const { startTime, endTime, pricingType } = formData;
+        if (startTime && endTime && pricingType !== 'travel') {
+            const [startH, startM] = startTime.split(':').map(Number);
+            const [endH, endM] = endTime.split(':').map(Number);
+
+            let diffHours = endH - startH + (endM - startM) / 60;
+            if (diffHours < 0) diffHours += 24;
+
+            let calculatedHours = 1;
+            let calculatedOvertime = 0;
+
+            if (pricingType === 'hourly') {
+                calculatedHours = parseFloat(diffHours.toFixed(2));
+                calculatedOvertime = 0;
+            } else {
+                if (diffHours > 9) {
+                    calculatedHours = 1;
+                    calculatedOvertime = parseFloat((diffHours - 9).toFixed(2));
+                } else if (diffHours < 9 && diffHours > 0) {
+                    calculatedHours = parseFloat((diffHours / 9).toFixed(2));
+                    calculatedOvertime = 0;
+                }
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                hours: calculatedHours,
+                overtimeHours: calculatedOvertime
+            }));
+        } else if (pricingType === 'travel') {
+            setFormData(prev => ({ ...prev, hours: 1, overtimeHours: 0 }));
+        }
+    }, [formData.startTime, formData.endTime, formData.pricingType, isModalOpen])
+
+    useEffect(() => {
+        if (!isBulkModalOpen) return;
+
+        const { startTime, endTime, pricingType } = bulkFormData;
+        if (startTime && endTime && pricingType !== 'travel' && pricingType !== 'monthly') {
+            const [startH, startM] = startTime.split(':').map(Number);
+            const [endH, endM] = endTime.split(':').map(Number);
+
+            let diffHours = endH - startH + (endM - startM) / 60;
+            if (diffHours < 0) diffHours += 24;
+
+            let calculatedHours = 1;
+            let calculatedOvertime = 0;
+
+            if (pricingType === 'hourly') {
+                calculatedHours = parseFloat(diffHours.toFixed(2));
+                calculatedOvertime = 0;
+            } else {
+                if (diffHours > 9) {
+                    calculatedHours = 1;
+                    calculatedOvertime = parseFloat((diffHours - 9).toFixed(2));
+                } else if (diffHours < 9 && diffHours > 0) {
+                    calculatedHours = parseFloat((diffHours / 9).toFixed(2));
+                    calculatedOvertime = 0;
+                }
+            }
+
+            setBulkFormData(prev => ({
+                ...prev,
+                hours: calculatedHours,
+                overtimeHours: calculatedOvertime
+            }));
+        } else if (pricingType === 'travel') {
+            setBulkFormData(prev => ({ ...prev, hours: 1, overtimeHours: 0 }));
+        }
+    }, [bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType, isBulkModalOpen])
 
     const loadData = async () => {
         setLoading(true)
@@ -72,29 +199,45 @@ export default function WorkDetails(props) {
         setLoading(false)
     }
 
-    const handleBack = (e) => {
-        // Close current tab and go to works
-        // But for now, just open 'works' tab
-        if (e.ctrlKey || e.metaKey || e.button === 1) {
-            openTab('works')
-        } else {
-            // Maybe replace? No, just open works.
-            openTab('works')
-        }
+    const handleBack = () => {
+        // Go back to the works list in the same tab
+        navigate('/works')
     }
 
     // --- Modal Handlers ---
+
+    const openBulkAddModal = () => {
+        setBulkFormData({
+            startDate: work?.start_date ? new Date(work.start_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            endDate: work?.end_date ? new Date(work.end_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            receiptNo: '',
+            vehicleId: '',
+            employeeId: '',
+            startTime: '08:00',
+            endTime: '17:00',
+            hours: 1, // Default Normal Gün Sayısı
+            overtimeHours: 0,
+            pricingType: 'daily',
+            monthlyPrice: 0,
+            unitPrice: 0,
+            description: ''
+        })
+        setModalError('')
+        setIsBulkModalOpen(true)
+    }
 
     const openAddModal = () => {
         setEditingItem(null)
         setFormData({
             date: new Date().toISOString().split('T')[0],
+            receiptNo: '',
             vehicleId: '',
             employeeId: '',
-            startTime: '',
-            endTime: '',
-            hours: 0,
+            startTime: '08:00',
+            endTime: '17:00',
+            hours: 1, // Default Normal Gün Sayısı
             overtimeHours: 0,
+            pricingType: 'daily',
             unitPrice: 0,
             description: ''
         })
@@ -104,16 +247,29 @@ export default function WorkDetails(props) {
 
     const openEditModal = (item) => {
         setEditingItem(item)
+        let determinedPricingType = 'daily';
+        let desc = item.description || '';
+        
+        if (desc.startsWith('[SAATLİK] ')) {
+            determinedPricingType = 'hourly';
+            desc = desc.replace('[SAATLİK] ', '');
+        } else if (desc.startsWith('[YOL] ')) {
+            determinedPricingType = 'travel';
+            desc = desc.replace('[YOL] ', '');
+        }
+
         setFormData({
-            date: item.date,
+            date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            receiptNo: item.receipt_no || '',
             vehicleId: item.vehicle_id || '',
             employeeId: item.employee_id || '',
             startTime: item.start_time || '',
             endTime: item.end_time || '',
             hours: item.hours || 0,
             overtimeHours: item.overtime_hours || 0,
+            pricingType: determinedPricingType,
             unitPrice: item.unit_price || 0,
-            description: item.description || ''
+            description: desc
         })
         setModalError('')
         setIsModalOpen(true)
@@ -128,8 +284,16 @@ export default function WorkDetails(props) {
             const parsed = workItemSchema.parse(formData)
 
             // Prepare payload
+            let finalDesc = parsed.description || '';
+            if (formData.pricingType === 'hourly' && !finalDesc.startsWith('[SAATLİK]')) {
+                finalDesc = '[SAATLİK] ' + finalDesc;
+            } else if (formData.pricingType === 'travel' && !finalDesc.startsWith('[YOL]')) {
+                finalDesc = '[YOL] ' + finalDesc;
+            }
+
             const payload = {
                 ...parsed,
+                description: finalDesc,
                 workId: id
             }
 
@@ -155,6 +319,69 @@ export default function WorkDetails(props) {
         }
     }
 
+    const handleBulkSubmit = async (e) => {
+        e.preventDefault()
+        setModalError('')
+
+        try {
+            if (!bulkFormData.startDate || !bulkFormData.endDate) {
+                setModalError('Başlangıç ve bitiş tarihi zorunludur.')
+                return
+            }
+
+            const start = new Date(bulkFormData.startDate)
+            const end = new Date(bulkFormData.endDate)
+
+            if (start > end) {
+                setModalError('Bitiş tarihi başlangıç tarihinden küçük olamaz.')
+                return
+            }
+
+            const payloadList = []
+            let currentDate = new Date(start)
+
+            let daysCount = 0;
+            let tempDate = new Date(start);
+            while (tempDate <= end) {
+                daysCount++;
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+
+            let finalUnitPrice = bulkFormData.unitPrice ? parseFloat(bulkFormData.unitPrice) : 0;
+            if (bulkFormData.pricingType === 'monthly' && bulkFormData.monthlyPrice) {
+                finalUnitPrice = parseFloat(bulkFormData.monthlyPrice) / daysCount;
+            }
+
+            while (currentDate <= end) {
+                payloadList.push({
+                    workId: id,
+                    date: currentDate.toISOString().split('T')[0],
+                    receiptNo: bulkFormData.receiptNo,
+                    vehicleId: bulkFormData.vehicleId,
+                    employeeId: bulkFormData.employeeId,
+                    startTime: bulkFormData.startTime,
+                    endTime: bulkFormData.endTime,
+                    hours: bulkFormData.hours ? parseFloat(bulkFormData.hours) : 0,
+                    overtimeHours: bulkFormData.overtimeHours ? parseFloat(bulkFormData.overtimeHours) : 0,
+                    unitPrice: finalUnitPrice,
+                    description: bulkFormData.description
+                })
+                currentDate.setDate(currentDate.getDate() + 1)
+            }
+
+            const result = await window.electronAPI.addBulkWorkItems(payloadList)
+
+            if (result.success) {
+                setIsBulkModalOpen(false)
+                loadData()
+            } else {
+                setModalError(result.error)
+            }
+        } catch (err) {
+            setModalError(err.message)
+        }
+    }
+
     // --- Delete Handlers ---
 
     const handleDeleteClick = (item) => {
@@ -168,13 +395,32 @@ export default function WorkDetails(props) {
     const handleConfirmDelete = async () => {
         if (!confirmModal) return
 
-        const result = await window.electronAPI.deleteWorkItem(confirmModal.item.id)
-        if (result.success) {
-            setConfirmModal(null)
-            loadData()
+        if (confirmModal.isBulk) {
+            const result = await window.electronAPI.deleteBulkWorkItems(confirmModal.ids)
+            if (result.success) {
+                setConfirmModal(null)
+                loadData()
+            } else {
+                alert('Silme işlemi başarısız: ' + result.error)
+            }
         } else {
-            alert('Silme işlemi başarısız: ' + result.error)
+            const result = await window.electronAPI.deleteWorkItem(confirmModal.item.id)
+            if (result.success) {
+                setConfirmModal(null)
+                loadData()
+            } else {
+                alert('Silme işlemi başarısız: ' + result.error)
+            }
         }
+    }
+
+    const handleBulkDelete = (selectedIds) => {
+        setConfirmModal({
+            isBulk: true,
+            ids: selectedIds,
+            title: 'Seçili Kayıtları Sil',
+            message: `${selectedIds.length} adet iş detay kaydını silmek istediğinize emin misiniz?`
+        })
     }
 
     // --- Calculations ---
@@ -183,6 +429,19 @@ export default function WorkDetails(props) {
     const totalOvertime = work?.items?.reduce((sum, item) => sum + (item.overtime_hours || 0), 0) || 0
     const grandTotal = work?.items?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0
 
+    // Get dynamic date range from work items
+    const getDynamicDateRange = () => {
+        if (!work?.items || work.items.length === 0) {
+            return `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`;
+        }
+        const dates = work.items.filter(item => item.date).map(item => new Date(item.date).getTime());
+        if (dates.length === 0) return `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`;
+
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+        return `${formatDate(minDate)} - ${formatDate(maxDate)}`;
+    }
+
     if (loading) return <div className="p-8 text-center">Yükleniyor...</div>
     if (!work) return <div className="p-8 text-center">İş bulunamadı.</div>
 
@@ -190,9 +449,12 @@ export default function WorkDetails(props) {
         <div className="page-container">
             {/* Header */}
             <div className="page-header" style={{ display: 'block', marginBottom: '24px' }}>
-                <div onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '12px', cursor: 'pointer', width: 'fit-content' }}>
-                    <ArrowLeft size={16} />
-                    <span>İş Listesine Dön</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <Link to="/works" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none' }}>
+                        <ArrowLeft size={14} /> İş Takibi
+                    </Link>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 8px' }}>/</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>İş Detayı</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -200,10 +462,17 @@ export default function WorkDetails(props) {
                         <h1 className="page-title">{work.title}</h1>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <User size={14} /> {work.customer}
+                                <User size={14} /> 
+                                {work.customer_id ? (
+                                    <Link to={`/customers/${work.customer_id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+                                        {work.customer_name || work.customer}
+                                    </Link>
+                                ) : (
+                                    work.customer_name || work.customer
+                                )}
                             </span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Calendar size={14} /> {formatDate(work.start_date)} - {formatDate(work.end_date)}
+                                <Calendar size={14} /> {getDynamicDateRange()}
                             </span>
                             <span className={`badge badge-${getStatusColor(work.status)}`}>
                                 {work.status === 'pending' ? 'Bekliyor' :
@@ -255,54 +524,68 @@ export default function WorkDetails(props) {
                 </div>
             </div>
 
-            {/* Items Table */}
-            <div className="card">
-                <div className="card-header">
-                    <h3 className="card-title">Günlük Çalışma Kayıtları (Puantaj)</h3>
+            {/* Items Table Header */}
+            <div className="page-header" style={{ marginTop: '24px', marginBottom: '16px' }}>
+                <div>
+                    <h3 className="page-title">Günlük Çalışma Kayıtları (Puantaj)</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={openBulkAddModal} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                        <Calendar size={16} /> Hızlı Üretim (Toplu Ekle)
+                    </button>
+                    <button onClick={() => { 
+                        localStorage.setItem('workPdfData', JSON.stringify(work));
+                        window.open(`#/work-report/${id}`, '_blank', 'width=850,height=1000,menubar=no,toolbar=no,location=no,status=no,titlebar=no');
+                    }} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileText size={16} /> PDF Rapor
+                    </button>
                     <button onClick={openAddModal} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Plus size={16} /> Yeni Kayıt Ekle
+                        <Plus size={16} /> Yeni Kayıt
                     </button>
                 </div>
-
-                <DataTable persistenceKey="WorkDetails_table_0"
-                    columns={[
-                        { label: 'Tarih', key: 'date', render: (val) => formatDate(val) },
-                        { label: 'Araç', key: 'vehicle_id', render: (val, row) => row.plate || '-' },
-                        { label: 'Personel', key: 'employee_id', render: (val, row) => row.employee_name ? `${row.employee_name} ${row.employee_surname}` : '-' },
-                        {
-                            label: 'Saatler', key: 'start_time', render: (val, row) => (
-                                <div style={{ fontSize: '12px' }}>
-                                    {row.start_time && row.end_time ? `${row.start_time} - ${row.end_time}` : '-'}
-                                </div>
-                            )
-                        },
-                        {
-                            label: 'Süre/Mesai', key: 'hours', render: (val, row) => (
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <span>{row.hours} sa</span>
-                                    {row.overtime_hours > 0 && <span className="text-warning" style={{ fontSize: '12px' }}>+{row.overtime_hours} sa mesai</span>}
-                                </div>
-                            )
-                        },
-                        { label: 'Birim Fiyat', key: 'unit_price', render: (val) => formatCurrency(val) },
-                        { label: 'Toplam', key: 'total_price', render: (val) => <span className="text-success" style={{ fontWeight: 600 }}>{formatCurrency(val)}</span> },
-                        { label: 'Açıklama', key: 'description', render: (val) => <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', display: 'inline-block' }}>{val}</span> },
-                        {
-                            label: 'İşlemler',
-                            key: 'actions',
-                            render: (_, row) => (
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(row) }} className="btn-icon" title="Düzenle"><Pencil size={16} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(row) }} className="btn-icon danger" title="Sil"><Trash2 size={16} /></button>
-                                </div>
-                            )
-                        }
-                    ]}
-                    data={work.items || []}
-                    onRowClick={() => { }}
-                    showRowNumbers={true}
-                />
             </div>
+
+            <DataTable persistenceKey="WorkDetails_table_0"
+                columns={[
+                    { label: 'TARİH', key: 'date', render: (val) => formatDate(val) },
+                    { label: 'FİŞ NO', key: 'receipt_no' },
+                    { label: 'MAKİNA', key: 'vehicle_id', render: (val, row) => row.plate || '-' },
+                    { label: 'PERSONEL', key: 'employee_id', render: (val, row) => row.employee_name ? `${row.employee_name} ${row.employee_surname}` : '-' },
+                    {
+                        label: 'ÇALIŞMA SÜRESİ', key: 'start_time', render: (val, row) => (
+                            <div style={{ fontSize: '12px' }}>
+                                {row.start_time && row.end_time ? `${row.start_time} - ${row.end_time}` : '-'}
+                            </div>
+                        )
+                    },
+                    {
+                        label: 'GÜN SAYISI', key: 'hours', render: (val, row) => (
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span>{row.hours}</span>
+                            </div>
+                        )
+                    },
+                    {
+                        label: 'FAZLA MESAİ', key: 'overtime_hours', render: (val, row) => (
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {row.overtime_hours > 0 ? <span className="text-warning">{row.overtime_hours}</span> : '-'}
+                            </div>
+                        )
+                    },
+                    { label: 'FİYAT', key: 'unit_price', render: (val) => formatCurrency(val) },
+                    { label: 'AÇIKLAMA', key: 'description', render: (val) => <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', display: 'inline-block' }}>{val}</span> }
+                ]}
+                data={work.items || []}
+                onRowClick={() => { }}
+                showRowNumbers={true}
+                actions={(row) => (
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
+                        <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(row) }}><Pencil size={16} /></button>
+                        <button className="btn-icon danger" title="Sil" onClick={(e) => { e.stopPropagation(); handleDeleteClick(row) }}><Trash2 size={16} /></button>
+                    </div>
+                )}
+                onBulkDelete={handleBulkDelete}
+            />
 
             {/* Add/Edit Modal */}
             <Modal
@@ -313,13 +596,19 @@ export default function WorkDetails(props) {
                 <form onSubmit={handleModalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <CustomInput
                             label="Tarih"
                             type="date"
                             value={formData.date}
                             onChange={(val) => setFormData({ ...formData, date: val })}
                             required
+                        />
+                        <CustomInput
+                            label="Fiş No"
+                            type="text"
+                            value={formData.receiptNo}
+                            onChange={(val) => setFormData({ ...formData, receiptNo: val })}
                         />
                     </div>
 
@@ -339,48 +628,51 @@ export default function WorkDetails(props) {
                             onChange={(val) => setFormData({ ...formData, employeeId: val })}
                             options={[
                                 { value: '', label: 'Seçiniz' },
-                                ...employees.map(e => ({ value: e.id, label: `${e.name} ${e.surname}` }))
+                                ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
                             ]}
                         />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                        <CustomInput
-                            label="Başlangıç Saati"
-                            type="time"
-                            value={formData.startTime}
-                            onChange={(val) => setFormData({ ...formData, startTime: val })}
-                        />
-                        <CustomInput
-                            label="Bitiş Saati"
-                            type="time"
-                            value={formData.endTime}
-                            onChange={(val) => setFormData({ ...formData, endTime: val })}
-                        />
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                        <CustomInput
-                            label="Normal Saat"
-                            type="number"
-                            step="0.5"
-                            value={formData.hours}
-                            onChange={(val) => setFormData({ ...formData, hours: val })}
-                        />
-                        <CustomInput
-                            label="Mesai Saati"
-                            type="number"
-                            step="0.5"
-                            value={formData.overtimeHours}
-                            onChange={(val) => setFormData({ ...formData, overtimeHours: val })}
-                        />
-                        <CustomInput
-                            label="Birim Fiyat"
-                            type="number"
-                            step="0.01"
-                            value={formData.unitPrice}
-                            onChange={(val) => setFormData({ ...formData, unitPrice: val })}
-                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <CustomInput
+                                type="time"
+                                label="B. Saati"
+                                value={formData.startTime}
+                                onChange={(val) => setFormData({ ...formData, startTime: val })}
+                            />
+                            <CustomInput
+                                type="time"
+                                label="B. Saati"
+                                value={formData.endTime}
+                                onChange={(val) => setFormData({ ...formData, endTime: val })}
+                            />
+                        </div>
+                        {/* 
+                        <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Otomatik Gün Sayısı: <strong>{formData.hours}</strong></span>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Otomatik Mesai: <strong className={formData.overtimeHours > 0 ? 'text-warning' : ''}>{formData.overtimeHours}</strong></span>
+                        </div>
+                        */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <CustomSelect
+                                label="Fiyatlandırma"
+                                value={formData.pricingType}
+                                onChange={(val) => setFormData({ ...formData, pricingType: val })}
+                                options={[
+                                    { value: 'daily', label: 'Günlük' },
+                                    { value: 'hourly', label: 'Saatlik' },
+                                    { value: 'travel', label: 'Yol' }
+                                ]}
+                            />
+                            <CustomInput
+                                label="Birim Fiyat"
+                                type="number"
+                                step="0.01"
+                                value={formData.unitPrice}
+                                onChange={(val) => setFormData({ ...formData, unitPrice: val })}
+                            />
+                        </div>
                     </div>
 
                     <CustomInput
@@ -397,16 +689,156 @@ export default function WorkDetails(props) {
                 </form>
             </Modal>
 
+            {/* Bulk Add Modal */}
+            <Modal
+                isOpen={isBulkModalOpen}
+                onClose={() => setIsBulkModalOpen(false)}
+                title="Hızlı Üretim (Toplu Kayıt Ekle)"
+            >
+                <form onSubmit={handleBulkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
+
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        Seçtiğiniz <strong>Başlangıç</strong> ve <strong>Bitiş</strong> tarihi aralığındaki her bir gün için girdiğiniz bilgilerle (Araç, Personel, Gün/Saat vb.) ayrı bir kayıt listeye otomatik eklenecektir.<br />
+                        <em>Not: Hafta sonu, bayram tatili ayırmaz. İstemediğiniz günleri liste üzerinden tek tuşla kolayca silebilirsiniz.</em>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                        <CustomInput
+                            label="Başlangıç Tarihi"
+                            type="date"
+                            value={bulkFormData.startDate}
+                            onChange={(val) => {
+                                const updates = { startDate: val };
+                                if (bulkFormData.pricingType === 'monthly') {
+                                    const d = new Date(val);
+                                    d.setMonth(d.getMonth() + 1);
+                                    d.setDate(d.getDate() - 1);
+                                    updates.endDate = d.toISOString().split('T')[0];
+                                }
+                                setBulkFormData({ ...bulkFormData, ...updates });
+                            }}
+                            required
+                        />
+                        <CustomInput
+                            label="Bitiş Tarihi"
+                            type="date"
+                            value={bulkFormData.endDate}
+                            onChange={(val) => setBulkFormData({ ...bulkFormData, endDate: val })}
+                            required
+                        />
+                        <CustomInput
+                            label="Fiş No"
+                            type="text"
+                            value={bulkFormData.receiptNo}
+                            onChange={(val) => setBulkFormData({ ...bulkFormData, receiptNo: val })}
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <CustomSelect
+                            label="Araç"
+                            value={bulkFormData.vehicleId}
+                            onChange={(val) => setBulkFormData({ ...bulkFormData, vehicleId: val })}
+                            options={[
+                                { value: '', label: 'Seçiniz' },
+                                ...vehicles.map(v => ({ value: v.id, label: v.plate + ' - ' + v.brand }))
+                            ]}
+                        />
+                        <CustomSelect
+                            label="Personel"
+                            value={bulkFormData.employeeId}
+                            onChange={(val) => setBulkFormData({ ...bulkFormData, employeeId: val })}
+                            options={[
+                                { value: '', label: 'Seçiniz' },
+                                ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
+                            ]}
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <CustomInput
+                                type="time"
+                                label="B. Saati"
+                                value={bulkFormData.startTime}
+                                onChange={(val) => setBulkFormData({ ...bulkFormData, startTime: val })}
+                            />
+                            <CustomInput
+                                type="time"
+                                label="B. Saati"
+                                value={bulkFormData.endTime}
+                                onChange={(val) => setBulkFormData({ ...bulkFormData, endTime: val })}
+                            />
+                        </div>
+                        {/* 
+                        <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Otomatik Gün Sayısı: <strong>{bulkFormData.hours}</strong></span>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Otomatik Mesai: <strong className={bulkFormData.overtimeHours > 0 ? 'text-warning' : ''}>{bulkFormData.overtimeHours}</strong></span>
+                        </div>
+                        */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <CustomSelect
+                                label="Fiyatlandırma"
+                                value={bulkFormData.pricingType}
+                                onChange={(val) => {
+                                    const updates = { pricingType: val };
+                                    if (val === 'monthly') {
+                                        const d = new Date(bulkFormData.startDate);
+                                        d.setMonth(d.getMonth() + 1);
+                                        d.setDate(d.getDate() - 1);
+                                        updates.endDate = d.toISOString().split('T')[0];
+                                    }
+                                    setBulkFormData({ ...bulkFormData, ...updates });
+                                }}
+                                options={[
+                                    { value: 'daily', label: 'Günlük' },
+                                    { value: 'monthly', label: 'Aylık' }
+                                ]}
+                            />
+                            {bulkFormData.pricingType === 'monthly' ? (
+                                <CustomInput
+                                    label="Aylık Tutar"
+                                    type="number"
+                                    step="0.01"
+                                    value={bulkFormData.monthlyPrice}
+                                    onChange={(val) => setBulkFormData({ ...bulkFormData, monthlyPrice: val })}
+                                />
+                            ) : (
+                                <CustomInput
+                                    label="Birim Fiyat"
+                                    type="number"
+                                    step="0.01"
+                                    value={bulkFormData.unitPrice}
+                                    onChange={(val) => setBulkFormData({ ...bulkFormData, unitPrice: val })}
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <CustomInput
+                        label="Ortak Açıklama"
+                        type="textarea"
+                        value={bulkFormData.description}
+                        onChange={(val) => setBulkFormData({ ...bulkFormData, description: val })}
+                    />
+
+                    <div className="modal-footer">
+                        <button type="button" onClick={() => setIsBulkModalOpen(false)} className="btn btn-secondary">İptal</button>
+                        <button type="submit" className="btn btn-primary">Toplu Oluştur</button>
+                    </div>
+                </form>
+            </Modal>
+
             {/* Confirm Modal */}
-            {confirmModal && (
-                <ConfirmModal
-                    title={confirmModal.title}
-                    message={confirmModal.message}
-                    onConfirm={handleConfirmDelete}
-                    onCancel={() => setConfirmModal(null)}
-                    type="danger"
-                />
-            )}
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+                onConfirm={handleConfirmDelete}
+                onClose={() => setConfirmModal(null)}
+                type="danger"
+            />
         </div>
     )
 }

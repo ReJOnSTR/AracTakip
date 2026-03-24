@@ -34,5 +34,11 @@ module.exports = {
     ...documentService,
 
     // Backup & Restore
-    ...backupService
+    ...backupService,
+
+    // Works & Timesheets
+    ...require('./services/work.service'),
+    
+    // Customers (Cari)
+    ...require('./services/customer.service')
 };
