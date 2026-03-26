@@ -30,9 +30,25 @@ async function getAllInspections(companyId, type, isArchived) {
 
 async function createInspection(data) {
     try {
+        // Archive any existing active inspection of the same type for this vehicle
+        const existingRecord = await prisma.inspections.findFirst({
+            where: {
+                vehicle_id: parseInt(data.vehicleId),
+                type: data.type,
+                is_archived: 0
+            }
+        });
+
+        if (existingRecord) {
+            await prisma.inspections.update({
+                where: { id: existingRecord.id },
+                data: { is_archived: 1 }
+            });
+        }
+
         const result = await prisma.inspections.create({
             data: {
-                vehicle_id: data.vehicleId,
+                vehicle_id: parseInt(data.vehicleId),
                 type: data.type,
                 inspection_date: new Date(data.date || data.inspectionDate),
                 next_inspection: data.validUntil || data.nextInspection ? new Date(data.validUntil || data.nextInspection) : null,
@@ -99,9 +115,25 @@ async function getAllInsurances(companyId, isArchived) {
 
 async function createInsurance(data) {
     try {
+        // Archive any existing active insurance of the same type for this vehicle
+        const existingRecord = await prisma.insurances.findFirst({
+            where: {
+                vehicle_id: parseInt(data.vehicleId),
+                type: data.type,
+                is_archived: 0
+            }
+        });
+
+        if (existingRecord) {
+            await prisma.insurances.update({
+                where: { id: existingRecord.id },
+                data: { is_archived: 1 }
+            });
+        }
+
         const result = await prisma.insurances.create({
             data: {
-                vehicle_id: data.vehicleId,
+                vehicle_id: parseInt(data.vehicleId),
                 type: data.type,
                 policy_no: data.policyNo || null,
                 company: data.company || null,

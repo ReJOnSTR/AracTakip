@@ -155,7 +155,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                         render={({ field }) => (
                             <CustomInput
                                 label="Maliyet (₺)"
-                                type="number"
+                                format="currency"
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.cost?.message}

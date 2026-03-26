@@ -45,6 +45,9 @@ export default function CustomInput({
             // Remove any char except numbers and comma
             clean = clean.replace(/[^0-9,]/g, '')
 
+            // Strip leading zeros before any other digit (e.g. 060 -> 60)
+            clean = clean.replace(/^0+(?=\d)/, '')
+
             const parts = clean.split(',')
             if (parts.length > 2) {
                 clean = parts[0] + ',' + parts.slice(1).join('')
@@ -88,14 +91,19 @@ export default function CustomInput({
     let displayValue = shouldHideValue ? '' : value
 
     // If currency format, take the standard float value and format it for TR locale
-    if (format === 'currency' && displayValue !== '' && displayValue !== undefined && displayValue !== null) {
+    const isCurrency = format === 'currency';
+    if (isCurrency && displayValue !== '' && displayValue !== undefined && displayValue !== null) {
         // value represents the standard float string from parent, e.g. '1234.56' or '1234'
-        let strVal = String(displayValue).replace('.', ',') // Convert parent dot to comma
-        const parts = strVal.split(',')
-        if (parts[0].length > 0) {
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+        let strVal = String(displayValue);
+        // Sometimes parent passes number, sometimes string.
+        if (strVal.includes('.')) {
+            strVal = strVal.replace('.', ',');
         }
-        displayValue = parts.join(',')
+        const parts = strVal.split(',');
+        if (parts[0].length > 0) {
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        displayValue = parts.join(',');
     }
 
     // Check if value exists (using displayValue logic)
@@ -120,17 +128,34 @@ export default function CustomInput({
                     {...props}
                 />
             ) : (
-                <input
-                    type={format === 'currency' ? 'text' : type}
-                    className={`form-input ${isInvalid ? 'input-error' : ''}`}
-                    value={displayValue}
-                    onChange={handleChange}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    placeholder={isFloating ? '' : placeholder}
-                    style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
-                    {...props}
-                />
+                <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+                    <input
+                        type={isCurrency ? 'text' : type}
+                        className={`form-input ${isInvalid ? 'input-error' : ''} ${isCurrency ? 'has-currency' : ''}`}
+                        value={displayValue}
+                        onChange={handleChange}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
+                        placeholder={isFloating ? '' : placeholder}
+                        style={{
+                            ...(isInvalid ? { borderColor: 'var(--danger)' } : {}),
+                            ...(isCurrency ? { paddingRight: '28px' } : {}) // Make room for ₺ symbol
+                        }}
+                        {...props}
+                    />
+                    {isCurrency && (
+                        <span style={{
+                            position: 'absolute',
+                            right: '12px',
+                            color: 'var(--text-muted)',
+                            fontWeight: '500',
+                            pointerEvents: 'none',
+                            userSelect: 'none'
+                        }}>
+                            ₺
+                        </span>
+                    )}
+                </div>
             )}
 
             {/* Label (After input for CSS peer selector) */}

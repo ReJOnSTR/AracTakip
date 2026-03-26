@@ -122,11 +122,9 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                 />
                 <CustomInput
                     label="Maaş (₺)"
-                    type="number"
+                    format="currency"
                     value={form.salary}
                     onChange={(val) => handleChange('salary', val)}
-                    min={0}
-                    step="0.01"
                 />
                 <CustomInput
                     label="Geçmiş Kullanılan Yıllık İzin (Gün)"

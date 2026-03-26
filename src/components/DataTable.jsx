@@ -26,7 +26,8 @@ export default function DataTable({
     enableExport = false,
     exportFileName = 'Liste',
     initialSort = null,
-    persistenceKey = null
+    persistenceKey = null,
+    rowClassName = null
 }) {
     // Helper to get initial state from localStorage or default
     const getInitialState = (key, defaultVal) => {
@@ -841,7 +842,7 @@ export default function DataTable({
                             paginatedData.map((row, index) => (
                                 <tr
                                     key={row.id || index}
-                                    className={`${selectedRows.has(row.id) ? 'selected' : ''} ${onRowClick ? 'clickable' : ''}`}
+                                    className={`${selectedRows.has(row.id) ? 'selected' : ''} ${onRowClick ? 'clickable' : ''} ${rowClassName ? rowClassName(row) : ''}`}
                                     onClick={(e) => handleRowClick(row, e)}
                                     onContextMenu={(e) => {
                                         if (onContextMenu) {

@@ -124,7 +124,7 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                         render={({ field }) => (
                             <CustomInput
                                 label="Maliyet (₺)"
-                                type="number"
+                                format="currency"
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="0.00"

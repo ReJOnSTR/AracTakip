@@ -203,7 +203,7 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                     render={({ field }) => (
                         <CustomInput
                             label="Prim (₺)"
-                            type="number"
+                            format="currency"
                             value={field.value}
                             onChange={field.onChange}
                             placeholder="0.00"

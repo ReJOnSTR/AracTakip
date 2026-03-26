@@ -6,7 +6,7 @@ const prisma = getPrismaClient();
 async function getVehicles(companyId) {
     try {
         const vehicles = await prisma.vehicles.findMany({
-            where: { company_id: companyId },
+            where: { company_id: parseInt(companyId), is_archived: 0 },
             include: {
                 maintenances: true,
                 inspections: true,
@@ -44,9 +44,26 @@ async function getVehicleById(vehicleId) {
 async function createVehicle(data) {
     try {
         const { companyId, type, plate, ...rest } = data;
+
+        // Archive any existing active vehicle with the same plate
+        const existingVehicle = await prisma.vehicles.findFirst({
+            where: {
+                company_id: parseInt(companyId),
+                plate: plate,
+                is_archived: 0
+            }
+        });
+
+        if (existingVehicle) {
+            await prisma.vehicles.update({
+                where: { id: existingVehicle.id },
+                data: { is_archived: 1 }
+            });
+        }
+
         const vehicle = await prisma.vehicles.create({
             data: {
-                company_id: companyId,
+                company_id: parseInt(companyId),
                 type,
                 plate,
                 brand: rest.brand || null,

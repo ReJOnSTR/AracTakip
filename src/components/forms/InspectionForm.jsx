@@ -179,7 +179,7 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
                     render={({ field }) => (
                         <CustomInput
                             label="Maliyet (₺)"
-                            type="number"
+                            format="currency"
                             value={field.value}
                             onChange={field.onChange}
                             placeholder="0.00"

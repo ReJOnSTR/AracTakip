@@ -38,8 +38,8 @@ export default function WorkDetails(props) {
         hours: 0,
         overtimeHours: 0,
         pricingType: 'daily',
-        monthlyPrice: 0,
-        unitPrice: 0,
+        monthlyPrice: '',
+        unitPrice: '',
         description: ''
     })
 
@@ -57,7 +57,7 @@ export default function WorkDetails(props) {
         hours: 0,
         overtimeHours: 0,
         pricingType: 'daily',
-        unitPrice: 0,
+        unitPrice: '',
         description: ''
     })
 
@@ -218,8 +218,8 @@ export default function WorkDetails(props) {
             hours: 1, // Default Normal Gün Sayısı
             overtimeHours: 0,
             pricingType: 'daily',
-            monthlyPrice: 0,
-            unitPrice: 0,
+            monthlyPrice: '',
+            unitPrice: '',
             description: ''
         })
         setModalError('')
@@ -238,7 +238,7 @@ export default function WorkDetails(props) {
             hours: 1, // Default Normal Gün Sayısı
             overtimeHours: 0,
             pricingType: 'daily',
-            unitPrice: 0,
+            unitPrice: '',
             description: ''
         })
         setModalError('')
@@ -349,10 +349,18 @@ export default function WorkDetails(props) {
 
             let finalUnitPrice = bulkFormData.unitPrice ? parseFloat(bulkFormData.unitPrice) : 0;
             if (bulkFormData.pricingType === 'monthly' && bulkFormData.monthlyPrice) {
-                finalUnitPrice = parseFloat(bulkFormData.monthlyPrice) / daysCount;
+                // Aylar 26 gündür (Pazar hariç)
+                finalUnitPrice = parseFloat(bulkFormData.monthlyPrice) / 26;
             }
 
             while (currentDate <= end) {
+                let itemDesc = bulkFormData.description || '';
+                if (bulkFormData.pricingType === 'monthly') {
+                    if (!itemDesc.includes('[AYLIK]')) {
+                        itemDesc = itemDesc ? `[AYLIK] ${itemDesc}` : '[AYLIK]';
+                    }
+                }
+
                 payloadList.push({
                     workId: id,
                     date: currentDate.toISOString().split('T')[0],
@@ -364,7 +372,7 @@ export default function WorkDetails(props) {
                     hours: bulkFormData.hours ? parseFloat(bulkFormData.hours) : 0,
                     overtimeHours: bulkFormData.overtimeHours ? parseFloat(bulkFormData.overtimeHours) : 0,
                     unitPrice: finalUnitPrice,
-                    description: bulkFormData.description
+                    description: itemDesc || null
                 })
                 currentDate.setDate(currentDate.getDate() + 1)
             }
@@ -427,7 +435,49 @@ export default function WorkDetails(props) {
 
     const totalHours = work?.items?.reduce((sum, item) => sum + (item.hours || 0), 0) || 0
     const totalOvertime = work?.items?.reduce((sum, item) => sum + (item.overtime_hours || 0), 0) || 0
-    const grandTotal = work?.items?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0
+
+    // Replicate PDF calculation logic to guarantee "Toplam Tutar" matches exactly.
+    let grandTotal = 0;
+    if (work?.items) {
+        const groupedItems = {};
+        work.items.forEach(item => {
+            const key = item.vehicle_id || 'diger';
+            if (!groupedItems[key]) {
+                groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalYol: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false };
+            }
+            groupedItems[key].items.push(item);
+
+            const gunSayisi = Number(item.hours) || 0;
+            const descUpper = (item.description || '').toUpperCase();
+            const dateObj = new Date(item.date);
+            const isPazar = dateObj.getDay() === 0 || descUpper.includes('PAZAR');
+            const isYol = descUpper.includes('YOL') || descUpper.includes('[YOL]');
+            const isSaatlik = descUpper.includes('[SAATLİK]');
+            const isAylik = descUpper.includes('[AYLIK]');
+
+            if (isAylik) groupedItems[key].isAylik = true;
+
+            if (isPazar) groupedItems[key].totalPazar += gunSayisi;
+            else if (isYol) groupedItems[key].totalYol += gunSayisi;
+            else if (isSaatlik) groupedItems[key].totalSaatlik += gunSayisi;
+            else groupedItems[key].totalGun += gunSayisi;
+
+            groupedItems[key].totalMesai += (Number(item.overtime_hours) || 0);
+        });
+
+        Object.values(groupedItems).forEach(group => {
+            const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
+            const sampleYolPrice = group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price || 0;
+            const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
+            let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
+            if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5;
+            let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
+            if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
+
+            let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice);
+            grandTotal += cg + (group.totalPazar * samplePazarPrice) + (group.totalYol * sampleYolPrice) + (group.totalSaatlik * sampleSaatlikPrice) + (group.totalMesai * sampleMesaiPrice);
+        });
+    }
 
     // Get dynamic date range from work items
     const getDynamicDateRange = () => {
@@ -485,16 +535,7 @@ export default function WorkDetails(props) {
             </div>
 
             {/* Default Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                <div className="stat-card">
-                    <div className="stat-icon neutral">
-                        <Clock />
-                    </div>
-                    <div className="stat-content">
-                        <div className="stat-value">{totalHours} Saat</div>
-                        <div className="stat-label">Toplam Süre</div>
-                    </div>
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div className="stat-card">
                     <div className="stat-icon warning">
                         <Clock />
@@ -527,7 +568,7 @@ export default function WorkDetails(props) {
             {/* Items Table Header */}
             <div className="page-header" style={{ marginTop: '24px', marginBottom: '16px' }}>
                 <div>
-                    <h3 className="page-title">Günlük Çalışma Kayıtları (Puantaj)</h3>
+                    <h3 className="page-title">Puantaj Kayıtları</h3>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <button onClick={openBulkAddModal} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
@@ -547,7 +588,36 @@ export default function WorkDetails(props) {
 
             <DataTable persistenceKey="WorkDetails_table_0"
                 columns={[
-                    { label: 'TARİH', key: 'date', render: (val) => formatDate(val) },
+                    { 
+                        label: 'TARİH', 
+                        key: 'date', 
+                        render: (val) => {
+                            const isPazar = val ? new Date(val).getDay() === 0 : false;
+                            return (
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '8px',
+                                    color: isPazar ? 'var(--danger)' : 'inherit',
+                                    fontWeight: isPazar ? '600' : 'normal'
+                                }}>
+                                    <span>{formatDate(val)}</span>
+                                    {isPazar && (
+                                        <span style={{ 
+                                            fontSize: '10px', 
+                                            background: 'var(--danger-bg)', 
+                                            color: 'var(--danger)', 
+                                            padding: '2px 6px', 
+                                            borderRadius: '4px',
+                                            border: '1px solid rgba(239, 68, 68, 0.2)'
+                                        }}>
+                                            PAZAR
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        }
+                    },
                     { label: 'FİŞ NO', key: 'receipt_no' },
                     { label: 'MAKİNA', key: 'vehicle_id', render: (val, row) => row.plate || '-' },
                     { label: 'PERSONEL', key: 'employee_id', render: (val, row) => row.employee_name ? `${row.employee_name} ${row.employee_surname}` : '-' },
@@ -585,6 +655,7 @@ export default function WorkDetails(props) {
                     </div>
                 )}
                 onBulkDelete={handleBulkDelete}
+                rowClassName={(row) => row.date && new Date(row.date).getDay() === 0 ? 'pazar-row' : ''}
             />
 
             {/* Add/Edit Modal */}
@@ -619,7 +690,7 @@ export default function WorkDetails(props) {
                             onChange={(val) => setFormData({ ...formData, vehicleId: val })}
                             options={[
                                 { value: '', label: 'Seçiniz' },
-                                ...vehicles.map(v => ({ value: v.id, label: v.plate + ' - ' + v.brand }))
+                                ...vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))
                             ]}
                         />
                         <CustomSelect
@@ -667,8 +738,7 @@ export default function WorkDetails(props) {
                             />
                             <CustomInput
                                 label="Birim Fiyat"
-                                type="number"
-                                step="0.01"
+                                format="currency"
                                 value={formData.unitPrice}
                                 onChange={(val) => setFormData({ ...formData, unitPrice: val })}
                             />
@@ -712,8 +782,7 @@ export default function WorkDetails(props) {
                                 const updates = { startDate: val };
                                 if (bulkFormData.pricingType === 'monthly') {
                                     const d = new Date(val);
-                                    d.setMonth(d.getMonth() + 1);
-                                    d.setDate(d.getDate() - 1);
+                                    d.setDate(d.getDate() + 29);
                                     updates.endDate = d.toISOString().split('T')[0];
                                 }
                                 setBulkFormData({ ...bulkFormData, ...updates });
@@ -742,7 +811,7 @@ export default function WorkDetails(props) {
                             onChange={(val) => setBulkFormData({ ...bulkFormData, vehicleId: val })}
                             options={[
                                 { value: '', label: 'Seçiniz' },
-                                ...vehicles.map(v => ({ value: v.id, label: v.plate + ' - ' + v.brand }))
+                                ...vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))
                             ]}
                         />
                         <CustomSelect
@@ -785,8 +854,7 @@ export default function WorkDetails(props) {
                                     const updates = { pricingType: val };
                                     if (val === 'monthly') {
                                         const d = new Date(bulkFormData.startDate);
-                                        d.setMonth(d.getMonth() + 1);
-                                        d.setDate(d.getDate() - 1);
+                                        d.setDate(d.getDate() + 29);
                                         updates.endDate = d.toISOString().split('T')[0];
                                     }
                                     setBulkFormData({ ...bulkFormData, ...updates });
@@ -799,16 +867,14 @@ export default function WorkDetails(props) {
                             {bulkFormData.pricingType === 'monthly' ? (
                                 <CustomInput
                                     label="Aylık Tutar"
-                                    type="number"
-                                    step="0.01"
+                                    format="currency"
                                     value={bulkFormData.monthlyPrice}
                                     onChange={(val) => setBulkFormData({ ...bulkFormData, monthlyPrice: val })}
                                 />
                             ) : (
                                 <CustomInput
                                     label="Birim Fiyat"
-                                    type="number"
-                                    step="0.01"
+                                    format="currency"
                                     value={bulkFormData.unitPrice}
                                     onChange={(val) => setBulkFormData({ ...bulkFormData, unitPrice: val })}
                                 />

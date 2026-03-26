@@ -1841,6 +1841,92 @@ tr:hover .td-actions {
   background: var(--accent-subtle);
 }
 
+/* Pazar Row Highlighting */
+.data-table tbody tr.pazar-row td {
+  background: rgba(239, 68, 68, 0.05); /* Light red tint */
+}
+.data-table tbody tr.pazar-row:hover td,
+.data-table tbody tr.clickable.pazar-row:hover td {
+  background: rgba(239, 68, 68, 0.12); /* Slightly darker red on hover */
+}
+.data-table tbody tr.selected.pazar-row td {
+  background: rgba(239, 68, 68, 0.2); /* Even darker if selected */
+}
+
+/* Fix sticky Actions column transparency on Pazar Rows by using a solid color */
+.data-table tbody tr.pazar-row td.td-actions {
+  background: color-mix(in srgb, var(--danger) 5%, var(--bg-secondary));
+}
+.data-table tbody tr.pazar-row:hover td.td-actions,
+.data-table tbody tr.clickable.pazar-row:hover td.td-actions {
+  background: color-mix(in srgb, var(--danger) 12%, var(--bg-tertiary));
+}
+.data-table tbody tr.selected.pazar-row td.td-actions {
+  background: color-mix(in srgb, var(--danger) 20%, var(--bg-tertiary));
+}
+
+/* Vehicle Type Tabs - Matches VehicleDetail underline style */
+.vehicle-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 0;
+  scrollbar-width: none;
+}
+.vehicle-tabs::-webkit-scrollbar { display: none; }
+
+.vehicle-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.2s ease;
+  margin-bottom: 0;
+}
+.vehicle-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.vehicle-tab:hover {
+  color: var(--text-primary);
+}
+.vehicle-tab.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.vehicle-tab.active::after {
+  background: var(--accent-primary, var(--primary));
+}
+.vehicle-tab-count {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+.vehicle-tab.active .vehicle-tab-count {
+  background: var(--primary);
+  color: #fff;
+}
+
 /* Checkbox */
 .checkbox {
   width: 16px;

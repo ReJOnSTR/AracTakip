@@ -26,7 +26,7 @@ export default function Vehicles() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingVehicle, setEditingVehicle] = useState(null)
     const [saving, setSaving] = useState(false)
-
+    const [activeTab, setActiveTab] = useState('all')
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
@@ -240,6 +240,31 @@ export default function Vehicles() {
                 </div>
             </div>
 
+            {/* Dynamic Vehicle Type Tabs */}
+            {vehicles.length > 0 && (() => {
+                const existingTypes = [...new Set(vehicles.map(v => v.type).filter(Boolean))];
+                const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: vehicles.filter(v => v.type === t).length }));
+                return (
+                    <div className="vehicle-tabs">
+                        <button
+                            className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`}
+                            onClick={() => setActiveTab('all')}
+                        >
+                            Tümü <span className="vehicle-tab-count">{vehicles.length}</span>
+                        </button>
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.value}
+                                className={`vehicle-tab${activeTab === tab.value ? ' active' : ''}`}
+                                onClick={() => setActiveTab(tab.value)}
+                            >
+                                {tab.label} <span className="vehicle-tab-count">{tab.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                );
+            })()}
+
             {vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">
@@ -257,7 +282,7 @@ export default function Vehicles() {
             ) : (
                 <DataTable persistenceKey="Vehicles_table_0"
                     columns={columns}
-                    data={vehicles}
+                    data={activeTab === 'all' ? vehicles : vehicles.filter(v => v.type === activeTab)}
                     showSearch={true}
                     showCheckboxes={true}
                     searchPlaceholder="Plaka veya marka ara..."

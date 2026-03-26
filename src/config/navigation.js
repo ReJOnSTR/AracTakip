@@ -114,6 +114,14 @@ export const moduleMenus = {
                 { path: '/customers', label: 'Müşteriler', icon: Building2 }
             ]
         }
+    ],
+    portal: [
+        {
+            title: 'Sistem',
+            items: [
+                { path: '/settings?module=portal', icon: Settings, label: 'Genel Ayarlar' }
+            ]
+        }
     ]
 }
 
@@ -157,6 +165,6 @@ export const getActiveModule = (pathname, search = '') => {
     if (pathname.startsWith('/employee') || search.includes('module=hr')) return 'hr'
     if (pathname.startsWith('/works') || search.includes('module=works')) return 'works'
     if (pathname.startsWith('/customers') || search.includes('module=customers')) return 'customers'
-    if (pathname === '/portal' || pathname === '/') return 'portal'
+    if (pathname === '/portal' || pathname === '/' || search.includes('module=portal')) return 'portal'
     return 'fleet'
 }

@@ -159,10 +159,25 @@ function calculateItemTotalPrice(data) {
     const overtimeHours = parseFloat(data.overtimeHours || 0);
     const unitPrice = parseFloat(data.unitPrice || 0);
 
+    const isAylik = descUpper.includes('[AYLIK]');
+
     if (isSaatlik || isYol) {
         return unitPrice * hours;
     } else {
-        const gunRate = isPazar ? (unitPrice * 1.5) : unitPrice;
+        let gunRate = unitPrice;
+        
+        if (isAylik) {
+            // For monthly: base rate is always given. Sundays are EXTRA (+1.5x)
+            if (isPazar) {
+                gunRate = unitPrice + (unitPrice * 1.5);
+            }
+        } else {
+            // For daily: Sundays REPLACE the daily rate with 1.5x
+            if (isPazar) {
+                gunRate = unitPrice * 1.5;
+            }
+        }
+
         const mesaiRate = (unitPrice / 8) * 1.5;
         return (hours * gunRate) + (overtimeHours * mesaiRate);
     }

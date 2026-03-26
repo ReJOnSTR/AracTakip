@@ -147,12 +147,11 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                         render={({ field }) => (
                             <CustomInput
                                 label="Tutar (₺)"
-                                type="text"
                                 format="currency"
                                 required={true}
                                 value={field.value}
                                 onChange={field.onChange}
-                                placeholder="0,00"
+                                placeholder="0.00"
                                 error={errors.amount?.message}
                             />
                         )}

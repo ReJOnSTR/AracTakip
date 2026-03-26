@@ -98,6 +98,12 @@ export default function WorkPdfReport() {
         }
         // Saatlik kontrolü
         const isSaatlik = descUpper.includes('[SAATLİK]');
+        // Aylık kontrolü
+        const isAylik = descUpper.includes('[AYLIK]');
+
+        if (isAylik) {
+            groupedItems[key].isAylik = true;
+        }
 
         if (isPazar) {
             groupedItems[key].totalPazar += gunSayisi;
@@ -135,7 +141,14 @@ export default function WorkPdfReport() {
              sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
         }
 
-        const calculatedGun = group.totalGun * sampleGunPrice;
+        let calculatedGun = 0;
+        if (group.isAylik) {
+             // For monthly, the "1 AY" price is explicitly sampleGunPrice * 26 (Aylar 26 gün)
+             calculatedGun = 26 * sampleGunPrice;
+        } else {
+             calculatedGun = group.totalGun * sampleGunPrice;
+        }
+
         const calculatedPazar = group.totalPazar * samplePazarPrice;
         const calculatedYol = group.totalYol * sampleYolPrice;
         const calculatedSaatlik = group.totalSaatlik * sampleSaatlikPrice;
@@ -216,16 +229,19 @@ export default function WorkPdfReport() {
                             <table className="pdf-summary-table">
                                 <tbody>
                                     <tr className="bg-light-green">
-                                        <td className="bold center" style={{ width: '120px' }}>GÜN</td>
-                                        <td className="bold center" style={{ width: '150px' }}>{group.machineName.toUpperCase()}</td>
-                                        <td className="center" style={{ width: '80px' }}>{group.totalGun > 0 ? group.totalGun : ''}</td>
-                                        <td className="right" style={{ width: '100px' }}>{sampleGunPrice ? formatCurrency(sampleGunPrice) : ''}</td>
-                                        <td className="right bold green-text" style={{ width: '100px' }}>{group.totalGun > 0 && sampleGunPrice ? formatCurrency(group.totalGun * sampleGunPrice) : ''}</td>
+                                        <td colSpan="4" className="bold center" style={{ backgroundColor: '#e2f0e0', padding: '6px', fontSize: '12px', borderBottom: '1px solid #333' }}>
+                                            {group.machineName.toUpperCase()}
+                                        </td>
+                                    </tr>
+                                    <tr className="bg-light-green">
+                                        <td className="bold center" style={{ width: '120px' }}>{group.isAylik ? 'AY' : 'GÜN'}</td>
+                                        <td className="center" style={{ width: '100px' }}>{group.isAylik ? '1 AY' : (group.totalGun > 0 ? group.totalGun : '')}</td>
+                                        <td className="right" style={{ width: '140px' }}>{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
+                                        <td className="right bold green-text" style={{ width: '140px' }}>{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
                                     </tr>
                                     {group.totalSaatlik > 0 && (
                                         <tr className="bg-light-green">
                                             <td className="bold center">SAATLİK</td>
-                                            <td className="center"></td>
                                             <td className="center">{group.totalSaatlik} SAAT</td>
                                             <td className="right">{sampleSaatlikPrice ? formatCurrency(sampleSaatlikPrice) : ''}</td>
                                             <td className="right bold green-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
@@ -234,7 +250,6 @@ export default function WorkPdfReport() {
                                     {group.totalYol > 0 && (
                                         <tr className="bg-light-green">
                                             <td className="bold center">YOL</td>
-                                            <td className="center"></td>
                                             <td className="center">{group.totalYol} ADET</td>
                                             <td className="right">{sampleYolPrice ? formatCurrency(sampleYolPrice) : ''}</td>
                                             <td className="right bold green-text">{sampleYolPrice ? formatCurrency(group.totalYol * sampleYolPrice) : ''}</td>
@@ -243,7 +258,6 @@ export default function WorkPdfReport() {
                                     {group.totalPazar > 0 && (
                                         <tr className="bg-light-green">
                                             <td className="bold center">PAZAR</td>
-                                            <td className="center"></td>
                                             <td className="center">{group.totalPazar} GÜN</td>
                                             <td className="right">{samplePazarPrice ? formatCurrency(samplePazarPrice) : ''}</td>
                                             <td className="right bold green-text">{samplePazarPrice ? formatCurrency(group.totalPazar * samplePazarPrice) : ''}</td>
@@ -252,7 +266,6 @@ export default function WorkPdfReport() {
                                     {group.totalMesai > 0 && (
                                         <tr className="bg-light-green">
                                             <td className="bold center">MESAİ</td>
-                                            <td className="center"></td>
                                             <td className="center">{group.totalMesai} SAAT</td>
                                             <td className="right">{sampleMesaiPrice ? formatCurrency(sampleMesaiPrice) : ''}</td>
                                             <td className="right bold green-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
