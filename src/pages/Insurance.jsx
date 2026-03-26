@@ -13,7 +13,8 @@ import {
     formatDate,
     formatCurrency,
     getDaysUntilText,
-    getStatusColor
+    getStatusColor,
+    getVehicleTypeLabel
 } from '../utils/helpers'
 import { Plus, Pencil, Trash2, Shield, Building2, Eye } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
@@ -30,6 +31,7 @@ export default function Insurance() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [activeTab, setActiveTab] = useState('all')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     // Archive State
@@ -375,6 +377,25 @@ export default function Insurance() {
                 </div>
             </div>
 
+            {/* Dynamic Vehicle Type Tabs */}
+            {insurances.length > 0 && (() => {
+                const existingTypes = [...new Set(vehicles.filter(v => insurances.some(i => i.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
+                const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: insurances.filter(i => { const v = vehicles.find(vv => vv.id === i.vehicle_id); return v && v.type === t; }).length }));
+                if (tabs.length <= 1) return null;
+                return (
+                    <div className="vehicle-tabs">
+                        <button className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>
+                            Tümü <span className="vehicle-tab-count">{insurances.length}</span>
+                        </button>
+                        {tabs.map(tab => (
+                            <button key={tab.value} className={`vehicle-tab${activeTab === tab.value ? ' active' : ''}`} onClick={() => setActiveTab(tab.value)}>
+                                {tab.label} <span className="vehicle-tab-count">{tab.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                );
+            })()}
+
             {insurances.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><Shield /></div>
@@ -391,7 +412,7 @@ export default function Insurance() {
                 <DataTable
                     key={showArchived ? 'archived' : 'active'}
                     columns={columns}
-                    data={insurances}
+                    data={activeTab === 'all' ? insurances : insurances.filter(i => { const v = vehicles.find(vv => vv.id === i.vehicle_id); return v && v.type === activeTab; })}
                     persistenceKey={`insurance_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
                     showCheckboxes={true}

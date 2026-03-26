@@ -6,7 +6,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
-import { formatDate, formatCurrency } from '../utils/helpers'
+import { formatDate, formatCurrency, getVehicleTypeLabel } from '../utils/helpers'
 // FileUploader removed
 import { Plus, Pencil, Trash2, Wrench, Eye } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
@@ -23,6 +23,7 @@ export default function Services() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [activeTab, setActiveTab] = useState('all')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     // Archive State
@@ -366,6 +367,25 @@ export default function Services() {
                 </div>
             </div>
 
+            {/* Dynamic Vehicle Type Tabs */}
+            {services.length > 0 && (() => {
+                const existingTypes = [...new Set(vehicles.filter(v => services.some(s => s.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
+                const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: services.filter(s => { const v = vehicles.find(vv => vv.id === s.vehicle_id); return v && v.type === t; }).length }));
+                if (tabs.length <= 1) return null;
+                return (
+                    <div className="vehicle-tabs">
+                        <button className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>
+                            Tümü <span className="vehicle-tab-count">{services.length}</span>
+                        </button>
+                        {tabs.map(tab => (
+                            <button key={tab.value} className={`vehicle-tab${activeTab === tab.value ? ' active' : ''}`} onClick={() => setActiveTab(tab.value)}>
+                                {tab.label} <span className="vehicle-tab-count">{tab.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                );
+            })()}
+
             {services.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><Wrench /></div>
@@ -382,7 +402,7 @@ export default function Services() {
                 <DataTable
                     key={showArchived ? 'archived' : 'active'}
                     columns={columns}
-                    data={services}
+                    data={activeTab === 'all' ? services : services.filter(s => { const v = vehicles.find(vv => vv.id === s.vehicle_id); return v && v.type === activeTab; })}
                     persistenceKey={`services_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
                     showCheckboxes={true}

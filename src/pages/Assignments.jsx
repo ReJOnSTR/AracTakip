@@ -7,7 +7,7 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 
-import { formatDate } from '../utils/helpers'
+import { formatDate, getVehicleTypeLabel } from '../utils/helpers'
 import { Plus, Pencil, Trash2, UserCheck, Building2, Eye } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import DocumentUploadModal from '../components/DocumentUploadModal'
@@ -23,6 +23,7 @@ export default function Assignments() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [activeTab, setActiveTab] = useState('all')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     // Archive State
@@ -346,6 +347,25 @@ export default function Assignments() {
                 </div>
             </div>
 
+            {/* Dynamic Vehicle Type Tabs */}
+            {assignments.length > 0 && (() => {
+                const existingTypes = [...new Set(vehicles.filter(v => assignments.some(a => a.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
+                const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === t; }).length }));
+                if (tabs.length <= 1) return null;
+                return (
+                    <div className="vehicle-tabs">
+                        <button className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>
+                            Tümü <span className="vehicle-tab-count">{assignments.length}</span>
+                        </button>
+                        {tabs.map(tab => (
+                            <button key={tab.value} className={`vehicle-tab${activeTab === tab.value ? ' active' : ''}`} onClick={() => setActiveTab(tab.value)}>
+                                {tab.label} <span className="vehicle-tab-count">{tab.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                );
+            })()}
+
             {assignments.length === 0 && vehicles.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-state-icon"><UserCheck /></div>
@@ -362,7 +382,7 @@ export default function Assignments() {
                 <DataTable
                     key={showArchived ? 'archived' : 'active'}
                     columns={columns}
-                    data={assignments}
+                    data={activeTab === 'all' ? assignments : assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === activeTab; })}
                     persistenceKey={`assignments_table_${showArchived ? 'archived' : 'active'}`}
                     showSearch={true}
                     showCheckboxes={true}
