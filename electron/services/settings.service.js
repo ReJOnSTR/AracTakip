@@ -6,8 +6,13 @@ async function getDashboardStats(companyId) {
         const cid = parseInt(companyId);
 
         // Count queries
-        const totalVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'active', is_archived: 0 } });
+        const totalVehicles = await prisma.vehicles.count({ where: { company_id: cid, is_archived: 0 } });
+        const activeVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'active', is_archived: 0 } });
         const totalEmployees = await prisma.employees.count({ where: { company_id: cid, status: 'active' } });
+
+        // Status breakdown
+        const passiveVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: { in: ['passive', 'sold'] }, is_archived: 0 } });
+        const maintenanceVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'maintenance', is_archived: 0 } });
 
         // Current month bounds
         const startOfMonth = new Date();
@@ -44,14 +49,36 @@ async function getDashboardStats(companyId) {
             inspectionCost = insps._sum.cost || 0;
         } catch (e) { console.error('Dashboard inspections aggregate error:', e.message); }
 
-        const currentMonthCost = maintenanceCost + serviceCost + inspectionCost;
+        // Insurance premium this month
+        let insuranceCost = 0;
+        try {
+            const ins = await prisma.insurances.aggregate({
+                _sum: { premium: true },
+                where: { vehicles: { company_id: cid }, start_date: { gte: startOfMonth }, is_archived: 0 }
+            });
+            insuranceCost = ins._sum.premium || 0;
+        } catch (e) { console.error('Dashboard insurances aggregate error:', e.message); }
+
+        const currentMonthCost = maintenanceCost + serviceCost + inspectionCost + insuranceCost;
 
         return {
             success: true, data: {
                 totalVehicles,
+                activeVehicles,
                 activeAssignments: 0,
                 totalEmployees,
-                monthlyCost: currentMonthCost
+                monthlyCost: currentMonthCost,
+                statusBreakdown: {
+                    active: activeVehicles,
+                    passive: passiveVehicles,
+                    maintenance: maintenanceVehicles
+                },
+                costDistribution: {
+                    service: serviceCost,
+                    maintenance: maintenanceCost,
+                    inspection: inspectionCost,
+                    insurance: insuranceCost
+                }
             }
         };
     } catch (error) { return { success: false, error: error.message }; }

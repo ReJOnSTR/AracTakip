@@ -48,10 +48,10 @@ export function getDaysUntilText(dateString) {
 
 export function getStatusColor(days) {
     if (days === null) return 'neutral'
-    if (days < 0) return 'danger'      // Gecikmiş - kırmızı
-    if (days <= 7) return 'warning'    // 7 gün veya daha az - turuncu
-    if (days <= 30) return 'warning'   // 30 gün veya daha az - turuncu
-    return 'success'                   // 30 günden fazla - yeşil
+    if (days < 0) return 'danger'           // Gecikmiş - koyu kırmızı
+    if (days <= 3) return 'danger-light'    // 3 gün veya daha az - açık kırmızı
+    if (days <= 15) return 'warning'        // 15 gün veya daha az - turuncu
+    return 'success'                        // 15 günden fazla - yeşil
 }
 
 export const vehicleTypes = [

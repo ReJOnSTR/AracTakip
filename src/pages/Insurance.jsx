@@ -381,7 +381,7 @@ export default function Insurance() {
             {insurances.length > 0 && (() => {
                 const existingTypes = [...new Set(vehicles.filter(v => insurances.some(i => i.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
                 const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: insurances.filter(i => { const v = vehicles.find(vv => vv.id === i.vehicle_id); return v && v.type === t; }).length }));
-                if (tabs.length <= 1) return null;
+                
                 return (
                     <div className="vehicle-tabs">
                         <button className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>

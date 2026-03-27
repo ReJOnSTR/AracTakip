@@ -456,7 +456,7 @@ export default function Dashboard() {
 
                 {/* Main Stats Grid */}
                 {/* Main Stats Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '25px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '25px' }}>
                     {/* Total Vehicles */}
                     <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -515,29 +515,6 @@ export default function Dashboard() {
                                     ))}
                                 </div>
                             )}
-                        </div>
-                    </div>
-
-                    {/* Alerts */}
-                    <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                            <div className="stat-label">YAKLAŞAN MUAYENE</div>
-                            <div className="stat-icon warning" style={{ width: '32px', height: '32px' }}><ClipboardCheck size={16} /></div>
-                        </div>
-                        <div>
-                            <div className="stat-value">{stats?.upcomingInspections || 0}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>30 gün içinde</div>
-                        </div>
-                    </div>
-
-                    <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                            <div className="stat-label">BİTEN SİGORTA</div>
-                            <div className="stat-icon danger" style={{ width: '32px', height: '32px' }}><Shield size={16} /></div>
-                        </div>
-                        <div>
-                            <div className="stat-value">{stats?.expiringInsurances || 0}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>30 gün içinde</div>
                         </div>
                     </div>
                 </div>

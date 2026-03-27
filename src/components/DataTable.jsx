@@ -248,10 +248,14 @@ export default function DataTable({
 
             // Check date range
             if (showDateFilter && (dateRange.start || dateRange.end)) {
-                const rowDate = row[dateFilterKey]
-                if (rowDate) {
-                    if (dateRange.start && rowDate < dateRange.start) return false
-                    if (dateRange.end && rowDate > dateRange.end) return false
+                const rawDate = row[dateFilterKey]
+                if (rawDate) {
+                    // Normalize to YYYY-MM-DD for comparison (input type="date" gives YYYY-MM-DD)
+                    const d = new Date(rawDate)
+                    const rowDateStr = isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0]
+                    if (!rowDateStr) return false
+                    if (dateRange.start && rowDateStr < dateRange.start) return false
+                    if (dateRange.end && rowDateStr > dateRange.end) return false
                 }
             }
 

@@ -5,7 +5,7 @@ const prisma = getPrismaClient();
 async function getInspections(vehicleId) {
     try {
         const data = await prisma.inspections.findMany({
-            where: { vehicle_id: vehicleId, is_archived: 0 },
+            where: { vehicle_id: vehicleId },
             orderBy: [{ inspection_date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
@@ -92,7 +92,7 @@ async function deleteInspection(id) {
 async function getInsurances(vehicleId) {
     try {
         const data = await prisma.insurances.findMany({
-            where: { vehicle_id: vehicleId, is_archived: 0 },
+            where: { vehicle_id: vehicleId },
             orderBy: [{ start_date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
@@ -179,7 +179,7 @@ async function deleteInsurance(id) {
 async function getAssignments(vehicleId) {
     try {
         const data = await prisma.assignments.findMany({
-            where: { vehicle_id: vehicleId, is_archived: 0 },
+            where: { vehicle_id: vehicleId },
             orderBy: [{ start_date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
@@ -259,7 +259,7 @@ async function deleteAssignment(id) {
 async function getServices(vehicleId) {
     try {
         const data = await prisma.services.findMany({
-            where: { vehicle_id: vehicleId, is_archived: 0 },
+            where: { vehicle_id: vehicleId },
             orderBy: [{ date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });

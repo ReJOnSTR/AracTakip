@@ -157,6 +157,16 @@ function AppRoutes() {
 }
 
 function App() {
+    useEffect(() => {
+        // Detect platform for CSS adjustments (Windows title bar overlay)
+        const isWindows = navigator.userAgent.includes('Windows') || navigator.platform.startsWith('Win')
+        if (isWindows) {
+            document.body.setAttribute('data-platform', 'win32')
+        } else if (navigator.userAgent.includes('Mac')) {
+            document.body.setAttribute('data-platform', 'darwin')
+        }
+    }, [])
+
     return (
         <ErrorBoundary>
             <AppRoutes />

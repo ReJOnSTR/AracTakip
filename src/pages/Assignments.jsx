@@ -351,7 +351,7 @@ export default function Assignments() {
             {assignments.length > 0 && (() => {
                 const existingTypes = [...new Set(vehicles.filter(v => assignments.some(a => a.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
                 const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === t; }).length }));
-                if (tabs.length <= 1) return null;
+                
                 return (
                     <div className="vehicle-tabs">
                         <button className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>

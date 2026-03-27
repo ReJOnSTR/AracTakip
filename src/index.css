@@ -2238,6 +2238,11 @@ tr:hover .td-actions {
   color: var(--danger);
 }
 
+.badge-danger-light {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
 .badge-info {
   background: var(--info-bg);
   color: var(--info);
@@ -3411,6 +3416,11 @@ tr:hover .td-actions {
   padding: 0;
   flex-shrink: 0;
   margin-bottom: 0px;
+}
+
+/* Windows: add padding to avoid title bar overlay (close/min/max buttons) */
+body[data-platform="win32"] .tab-bar-right {
+  padding-right: 140px;
 }
 
 .tab-scroll-container {

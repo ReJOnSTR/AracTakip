@@ -122,7 +122,7 @@ async function deleteVehicle(id) {
 async function getMaintenances(vehicleId) {
     try {
         const data = await prisma.maintenances.findMany({
-            where: { vehicle_id: vehicleId, is_archived: 0 },
+            where: { vehicle_id: vehicleId },
             orderBy: [{ date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });

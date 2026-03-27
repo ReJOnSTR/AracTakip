@@ -32,6 +32,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                                 to={item.path}
                                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                                 title={collapsed ? item.label : ''}
+                                onAuxClick={(e) => e.preventDefault()}
                                 onClick={(e) => {
                                     if (e.ctrlKey || e.metaKey) {
                                         e.preventDefault()

@@ -31,11 +31,17 @@ export const useNotification = () => {
                     let insuranceCount = 0
                     let inspectionCount = 0
 
+                    const now = new Date()
+
                     upcoming.data.forEach(item => {
-                        if (item.days_left <= 3) {
-                            if (item.type === 'Bakım') maintenanceCount++
-                            if (item.type === 'Sigorta') insuranceCount++
-                            if (item.type === 'Muayene') inspectionCount++
+                        const eventDate = new Date(item.date)
+                        const diffMs = eventDate.getTime() - now.getTime()
+                        const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+                        if (daysLeft <= 15) {
+                            if (item.eventType === 'maintenance') maintenanceCount++
+                            if (item.eventType === 'insurance') insuranceCount++
+                            if (item.eventType === 'inspection') inspectionCount++
                         }
                     })
 

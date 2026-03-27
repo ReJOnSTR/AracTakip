@@ -227,6 +227,7 @@ async function runAutoMigrations() {
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "work_id" INTEGER NOT NULL,
                 "date" DATETIME NOT NULL,
+                "receipt_no" TEXT,
                 "vehicle_id" INTEGER,
                 "employee_id" INTEGER,
                 "start_time" TEXT,
@@ -240,11 +241,38 @@ async function runAutoMigrations() {
                 CONSTRAINT "work_items_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
                 CONSTRAINT "work_items_vehicle_id_fkey" FOREIGN KEY ("vehicle_id") REFERENCES "vehicles" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
                 CONSTRAINT "work_items_work_id_fkey" FOREIGN KEY ("work_id") REFERENCES "works" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+            )`,
+            `CREATE TABLE IF NOT EXISTS "customers" (
+                "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                "company_id" INTEGER NOT NULL,
+                "name" TEXT NOT NULL,
+                "phone" TEXT,
+                "email" TEXT,
+                "address" TEXT,
+                "tax_number" TEXT,
+                "tax_office" TEXT,
+                "notes" TEXT,
+                "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT "customers_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
             )`
         ];
 
         for (const sql of newTablesSQL) {
             await p.$executeRawUnsafe(sql);
+        }
+
+        // 4. Add customer_id to works (for existing DBs that already have works table)
+        const wCols = await p.$queryRawUnsafe("PRAGMA table_info('works')");
+        if (wCols.length > 0 && !wCols.some(c => c.name === 'customer_id')) {
+            await p.$executeRawUnsafe('ALTER TABLE works ADD COLUMN customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL');
+            log.info('Migration: Added customer_id to works');
+        }
+
+        // 5. Add receipt_no to work_items (for existing DBs)
+        const wiCols = await p.$queryRawUnsafe("PRAGMA table_info('work_items')");
+        if (wiCols.length > 0 && !wiCols.some(c => c.name === 'receipt_no')) {
+            await p.$executeRawUnsafe('ALTER TABLE work_items ADD COLUMN receipt_no TEXT');
+            log.info('Migration: Added receipt_no to work_items');
         }
 
         log.info('Auto-migrations loop completed.');
