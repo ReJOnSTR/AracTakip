@@ -3418,10 +3418,7 @@ tr:hover .td-actions {
   margin-bottom: 0px;
 }
 
-/* Windows: add padding to avoid title bar overlay (close/min/max buttons) */
-body[data-platform="win32"] .tab-bar-right {
-  padding-right: 140px;
-}
+/* Windows platform specific tab bar adjustments removed for edge-to-edge layout */
 
 .tab-scroll-container {
   display: flex;

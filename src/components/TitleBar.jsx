@@ -5,6 +5,7 @@ export default function TitleBar() {
     return (
         <div style={{
             height: '38px',
+            boxSizing: 'content-box',
             background: '#18181b', // var(--bg-secondary)
             borderBottom: '1px solid rgba(255,255,255,0.08)',
             display: 'flex',
