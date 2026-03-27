@@ -534,13 +534,16 @@ export default function Dashboard() {
                                     Yaklaşan & Gecikmiş İşlemler
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
-                                        <Calendar size={14} />
-                                        Yaklaşan: {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length}
-                                    </span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
                                         <AlertTriangle size={14} />
                                         Gecikmiş: {allUpcoming.filter(e => getDaysUntil(e.date) < 0).length}
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                        <Calendar size={14} />
+                                        Yaklaşan: {allUpcoming.filter(e => {
+                                            const d = getDaysUntil(e.date)
+                                            return d >= 0 && d <= 15
+                                        }).length}
                                     </span>
                                 </div>
                             </div>
@@ -595,24 +598,45 @@ export default function Dashboard() {
                                         <Calendar size={14} />
                                         Yaklaşan İşlemler
                                     </h3>
-                                    {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).length === 0 ? (
+                                    {allUpcoming.filter(e => {
+                                        const days = getDaysUntil(e.date)
+                                        return days >= 0 && days <= 15
+                                    }).length === 0 ? (
                                         <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', textAlign: 'center' }}>
                                             Yaklaşan işlem yok
                                         </div>
                                     ) : (
                                         <ScrollableList height="200px">
-                                            {allUpcoming.filter(e => getDaysUntil(e.date) >= 0).map((event, index) => {
+                                            {allUpcoming.filter(e => {
+                                                const days = getDaysUntil(e.date)
+                                                return days >= 0 && days <= 15
+                                            }).map((event, index) => {
                                                 const days = getDaysUntil(event.date)
+                                                
+                                                let statusColor = 'var(--success)' // > 15 days
+                                                let bgStyle = 'var(--bg-tertiary)'
+                                                let borderStyle = '1px solid var(--border-color)'
+                                                
+                                                if (days <= 3) {
+                                                    statusColor = '#f87171' // danger-light
+                                                    bgStyle = 'rgba(239, 68, 68, 0.05)'
+                                                    borderStyle = '1px solid rgba(239, 68, 68, 0.2)'
+                                                } else if (days <= 15) {
+                                                    statusColor = 'var(--warning)'
+                                                    bgStyle = 'rgba(245, 158, 11, 0.05)'
+                                                    borderStyle = '1px solid rgba(245, 158, 11, 0.2)'
+                                                }
+
                                                 return (
                                                     <div key={`${event.eventType}-${event.id}-${index}`} style={{
                                                         padding: '10px 12px',
-                                                        background: 'var(--bg-tertiary)',
-                                                        border: '1px solid var(--border-color)',
+                                                        background: bgStyle,
+                                                        border: borderStyle,
                                                         borderRadius: '6px',
                                                     }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                                                             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
-                                                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--warning)' }}>
+                                                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: statusColor }}>
                                                                 {days === 0 ? 'Bugün' : `${days} gün kaldı`}
                                                             </span>
                                                         </div>
