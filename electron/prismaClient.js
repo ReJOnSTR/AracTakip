@@ -58,39 +58,18 @@ async function runAutoMigrations() {
 
     // 1. Add `is_archived` to all relevant tables if missing
     try {
-        // New Step 4: Robustly handle legacy NULL records for archiving system
         const archivableTables = [
             'assignments', 'customers', 'employee_assignments', 'employees',
             'inspections', 'insurances', 'maintenances', 'meal_tickets',
             'services', 'transactions', 'vehicles', 'works'
         ];
 
-        let migrationCount = 0;
         for (const tableName of archivableTables) {
-            try {
-                // Ensure table exists before running the fix
-                const hasTable = await p.$queryRawUnsafe(`SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
-                if (hasTable && hasTable.length > 0) {
-                    const info = await p.$queryRawUnsafe(`PRAGMA table_info(${tableName})`);
-                    const hasCol = info.find(c => c.name === 'is_archived');
-                    
-                    if (hasCol) {
-                        const result = await p.$executeRawUnsafe(`UPDATE ${tableName} SET is_archived = 0 WHERE is_archived IS NULL`);
-                        if (result > 0) {
-                            migrationCount += result;
-                            log.info(`[Migration] Fixed ${result} legacy NULL records in ${tableName}`);
-                        }
-                    } else {
-                        await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
-                        log.info(`Migration: Added is_archived to ${tableName}`);
-                    }
-                }
-            } catch (innerErr) {
-                log.error(`[Migration] Failed to fix ${tableName}:`, innerErr);
+            const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
+            if (cols.length > 0 && !cols.some(c => c.name === 'is_archived')) {
+                await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
+                log.info(`Migration: Added is_archived to ${tableName}`);
             }
-        }
-        if (migrationCount > 0) {
-            log.info(`[Migration] Total records fixed: ${migrationCount}`);
         }
     } catch (error) {
         log.error('Migration step 1 (is_archived) error:', error.message);
