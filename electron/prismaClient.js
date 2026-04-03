@@ -66,9 +66,14 @@ async function runAutoMigrations() {
 
         for (const tableName of archivableTables) {
             const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
-            if (cols.length > 0 && !cols.some(c => c.name === 'is_archived')) {
-                await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
-                log.info(`Migration: Added is_archived to ${tableName}`);
+            if (cols.length > 0) {
+                if (!cols.some(c => c.name === 'is_archived')) {
+                    await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
+                    log.info(`Migration: Added is_archived to ${tableName}`);
+                }
+                // Important: Ensure existing rows from older versions that might have NULL get properly set to 0
+                // so they are not hidden when Prisma queries for `{ is_archived: 0 }`
+                await p.$executeRawUnsafe(`UPDATE ${tableName} SET is_archived = 0 WHERE is_archived IS NULL`);
             }
         }
     } catch (error) {
