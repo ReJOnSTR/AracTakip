@@ -300,7 +300,7 @@ export default function DataTable({
                     const filterDef = filters?.find(f => f.key === key)
                     if (filterDef && filterDef.filterFn) {
                         if (!filterDef.filterFn(row, value)) return false
-                    } else if (row[key] !== value) {
+                    } else if (row[key] != value) { // Use != instead of !== for type coercion
                         return false
                     }
                 }

@@ -679,7 +679,14 @@ ipcMain.handle('archive:item', async (event, table, id, isArchived) => {
 
 // Works & Timesheets
 ipcMain.handle('works:getAll', async (event, companyId, isArchived) => {
-    return db.getWorks(companyId, isArchived)
+    log.info(`[IPC] works:getAll - companyId: ${companyId}, isArchived: ${isArchived}`)
+    const result = await db.getWorks(companyId, isArchived)
+    if (result.success) {
+        log.info(`[IPC] works:getAll - success, found ${result.data.length} records`)
+    } else {
+        log.error(`[IPC] works:getAll - error: ${result.error}`)
+    }
+    return result
 })
 ipcMain.handle('works:getDetails', async (event, id) => {
     return db.getWorkDetails(id)
@@ -696,7 +703,14 @@ ipcMain.handle('works:delete', async (event, id) => {
 
 // Customers
 ipcMain.handle('customers:getAll', async (event, companyId, isArchived) => {
-    return db.getCustomers(companyId, isArchived)
+    log.info(`[IPC] customers:getAll - companyId: ${companyId}, isArchived: ${isArchived}`)
+    const result = await db.getCustomers(companyId, isArchived)
+    if (result.success) {
+        log.info(`[IPC] customers:getAll - success, found ${result.data.length} records`)
+    } else {
+        log.error(`[IPC] customers:getAll - error: ${result.error}`)
+    }
+    return result
 })
 ipcMain.handle('customers:getDetails', async (event, id) => {
     return db.getCustomerDetails(id)
