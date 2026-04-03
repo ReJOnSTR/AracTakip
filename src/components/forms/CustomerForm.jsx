@@ -1,21 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import CustomInput from '../CustomInput'
 import { User, Phone, Mail, MapPin, CreditCard, Building2, ClipboardList } from 'lucide-react'
 
 export default function CustomerForm({ initialData = null, onSubmit, onCancel, loading = false }) {
-    const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        address: '',
-        tax_number: '',
-        tax_office: '',
-        notes: ''
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm({
+        defaultValues: {
+            name: '',
+            phone: '',
+            email: '',
+            address: '',
+            tax_number: '',
+            tax_office: '',
+            notes: ''
+        }
     })
 
     useEffect(() => {
         if (initialData) {
-            setFormData({
+            reset({
                 name: initialData.name || '',
                 phone: initialData.phone || '',
                 email: initialData.email || '',
@@ -24,35 +32,26 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                 tax_office: initialData.tax_office || '',
                 notes: initialData.notes || ''
             })
+        } else {
+            reset({
+                name: '',
+                phone: '',
+                email: '',
+                address: '',
+                tax_number: '',
+                tax_office: '',
+                notes: ''
+            })
         }
-    }, [initialData])
+    }, [initialData, reset])
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        let finalValue = value;
-        
-        if (name === 'name' || name === 'tax_office') {
-            finalValue = value.toLocaleUpperCase('tr-TR');
-        }
-
-        setFormData(prev => ({
-            ...prev,
-            [name]: finalValue
-        }))
-    }
-
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        // Form validation
-        if (!formData.name.trim()) {
-            alert('Müşteri adı/ünvanı zorunludur.')
-            return
-        }
-        onSubmit(formData)
+    const onFormSubmit = (data) => {
+        // Form validation is handled by react-hook-form
+        onSubmit(data)
     }
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onFormSubmit)}>
             <div style={{ maxWidth: '600px', margin: '0 auto' }}>
                 {/* Section 1: Kimlik ve İletişim */}
                 <div style={{ marginBottom: '24px' }}>
@@ -71,39 +70,56 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                     </div>
 
                     <div className="form-group">
-                        <CustomInput
-                            label="Müşteri Adı / Firma Ünvanı"
-                            required={true}
+                        <Controller
                             name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="ÜNVAN GİRİNİZ"
-                            floatingLabel={true}
+                            control={control}
+                            rules={{ required: 'Müşteri adı/ünvanı zorunludur' }}
+                            render={({ field }) => (
+                                <CustomInput
+                                    label="Müşteri Adı / Firma Ünvanı"
+                                    required={true}
+                                    value={field.value}
+                                    onChange={(val) => field.onChange((val || '').toLocaleUpperCase('tr-TR'))}
+                                    placeholder="ÜNVAN GİRİNİZ"
+                                    floatingLabel={true}
+                                    error={errors.name?.message}
+                                />
+                            )}
                         />
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
-                            <CustomInput
-                                label="Telefon"
+                            <Controller
                                 name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                placeholder="05XX XXX XX XX"
-                                floatingLabel={true}
-                                icon={<Phone size={14} />}
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomInput
+                                        label="Telefon"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="05XX XXX XX XX"
+                                        floatingLabel={true}
+                                        icon={<Phone size={14} />}
+                                    />
+                                )}
                             />
                         </div>
                         <div className="form-group">
-                            <CustomInput
-                                label="E-Posta"
-                                type="email"
+                            <Controller
                                 name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="ornek@firma.com"
-                                floatingLabel={true}
-                                icon={<Mail size={14} />}
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomInput
+                                        label="E-Posta"
+                                        type="email"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="ornek@firma.com"
+                                        floatingLabel={true}
+                                        icon={<Mail size={14} />}
+                                    />
+                                )}
                             />
                         </div>
                     </div>
@@ -127,53 +143,73 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
 
                     <div className="form-row" style={{ gap: '16px' }}>
                         <div className="form-group">
-                            <CustomInput
-                                label="Vergi Numarası"
+                            <Controller
                                 name="tax_number"
-                                value={formData.tax_number}
-                                onChange={handleChange}
-                                placeholder="TCKN veya Vergi No"
-                                floatingLabel={true}
-                                icon={<CreditCard size={14} />}
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomInput
+                                        label="Vergi Numarası"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="TCKN veya Vergi No"
+                                        floatingLabel={true}
+                                        icon={<CreditCard size={14} />}
+                                    />
+                                )}
                             />
                         </div>
                         <div className="form-group">
-                            <CustomInput
-                                label="Vergi Dairesi"
+                            <Controller
                                 name="tax_office"
-                                value={formData.tax_office}
-                                onChange={handleChange}
-                                placeholder="Vergi Dairesi"
-                                floatingLabel={true}
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomInput
+                                        label="Vergi Dairesi"
+                                        value={field.value}
+                                        onChange={(val) => field.onChange((val || '').toLocaleUpperCase('tr-TR'))}
+                                        placeholder="Vergi Dairesi"
+                                        floatingLabel={true}
+                                    />
+                                )}
                             />
                         </div>
                     </div>
 
                     <div className="form-group">
-                        <CustomInput
-                            label="Açık Adres"
+                        <Controller
                             name="address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            multiline={true}
-                            rows={2}
-                            placeholder="Adres detayları..."
-                            floatingLabel={true}
-                            icon={<MapPin size={14} />}
+                            control={control}
+                            render={({ field }) => (
+                                <CustomInput
+                                    label="Açık Adres"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    multiline={true}
+                                    rows={2}
+                                    placeholder="Adres detayları..."
+                                    floatingLabel={true}
+                                    icon={<MapPin size={14} />}
+                                />
+                            )}
                         />
                     </div>
 
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                        <CustomInput
-                            label="Özel Notlar"
+                        <Controller
                             name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            multiline={true}
-                            rows={2}
-                            placeholder="Müşteri hakkında ek notlar..."
-                            floatingLabel={true}
-                            icon={<ClipboardList size={14} />}
+                            control={control}
+                            render={({ field }) => (
+                                <CustomInput
+                                    label="Özel Notlar"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    multiline={true}
+                                    rows={2}
+                                    placeholder="Müşteri hakkında ek notlar..."
+                                    floatingLabel={true}
+                                    icon={<ClipboardList size={14} />}
+                                />
+                            )}
                         />
                     </div>
                 </div>

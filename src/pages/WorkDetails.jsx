@@ -525,13 +525,21 @@ export default function WorkDetails(props) {
         });
 
         Object.values(groupedItems).forEach(group => {
-            const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-            const sampleYolPrice = group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price || 0;
-            const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-            let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
+            const sampleGunPrice = Number(group.items.find(i => {
+                const desc = (i.description || '').toUpperCase();
+                return !desc.includes('PAZAR') && !desc.includes('YOL') && !desc.includes('[SAATLİK]');
+            })?.unit_price) || 0;
+
+            const sampleYolPrice = Number(group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price) || 0;
+            const sampleSaatlikPrice = Number(group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price) || 0;
+            
+            let samplePazarPrice = Number(group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price) || 0;
             if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5;
-            let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
-            if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
+            
+            let sampleMesaiPrice = Number(group.items.find(i => (Number(i.overtime_hours) || 0) > 0)?.unit_price) || 0;
+            if (sampleMesaiPrice <= (sampleGunPrice / 8) && sampleGunPrice > 0) {
+                 sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
+            }
 
             let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice);
             
