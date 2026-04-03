@@ -89,7 +89,7 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                         reset(formValues => ({ ...formValues, customer: selectedCustomer.name }))
                                     }
                                 }}
-                                options={customers.map(c => ({ value: c.id, label: c.name }))}
+                                options={customers.map(c => ({ value: c.id, label: (c.name || '').toLocaleUpperCase('tr-TR') }))}
                                 placeholder="Arama yapın..."
                                 error={errors.customerId?.message}
                             />

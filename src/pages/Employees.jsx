@@ -37,6 +37,7 @@ export default function Employees() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null)
+    const [showArchived, setShowArchived] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -45,12 +46,12 @@ export default function Employees() {
             setEmployees([])
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived])
 
     const loadEmployees = async () => {
         setLoading(true)
         try {
-            const result = await window.electronAPI.getEmployees(currentCompany.id)
+            const result = await window.electronAPI.getEmployees(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) setEmployees(result.data || [])
         } catch (err) {
             console.error('Failed to load employees:', err)
@@ -118,6 +119,15 @@ export default function Employees() {
             message: `${ids.length} personeli silmek istediğinize emin misiniz?`,
             ids
         })
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+        const newStatus = showArchived ? 0 : 1
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('employees', id, newStatus)
+        }
+        loadEmployees()
     }
 
     const handleConfirmDelete = async () => {
@@ -195,7 +205,7 @@ export default function Employees() {
                 </div>
             </div>
 
-            {employees.length === 0 && !loading ? (
+            {employees.length === 0 && !loading && !showArchived ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">
                         <Users />
@@ -238,6 +248,9 @@ export default function Employees() {
                         }
                     }}
                     onBulkDelete={handleBulkDeleteClick}
+                    onBulkArchive={handleBulkArchive}
+                    isArchiveView={showArchived}
+                    onToggleArchiveView={setShowArchived}
                     actions={(employee) => (
                         <>
                             <button title="Düzenle" onClick={() => openEditModal(employee)}>

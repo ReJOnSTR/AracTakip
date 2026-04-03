@@ -19,17 +19,18 @@ export default function Customers() {
     const [editingCustomer, setEditingCustomer] = useState(null)
     const [saving, setSaving] = useState(false)
     const [confirmModal, setConfirmModal] = useState(null)
+    const [showArchived, setShowArchived] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
             loadCustomers()
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived])
 
     const loadCustomers = async () => {
         setLoading(true)
         try {
-            const result = await window.electronAPI.getCustomers(currentCompany.id)
+            const result = await window.electronAPI.getCustomers(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) {
                 setCustomers(result.data)
             }
@@ -85,14 +86,38 @@ export default function Customers() {
         })
     }
 
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            title: 'Toplu Silme',
+            message: `${ids.length} müşteriyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+            ids
+        })
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+        const newStatus = showArchived ? 0 : 1
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('customers', id, newStatus)
+        }
+        loadCustomers()
+    }
+
     const handleConfirmDelete = async () => {
         if (!confirmModal) return
         try {
-            const result = await window.electronAPI.deleteCustomer(confirmModal.item.id)
-            if (result.success) {
+            if (confirmModal.ids) {
+                for (const id of confirmModal.ids) {
+                    await window.electronAPI.deleteCustomer(id)
+                }
                 loadCustomers()
             } else {
-                alert('Silme işlemi başarısız: ' + result.error)
+                const result = await window.electronAPI.deleteCustomer(confirmModal.item.id)
+                if (result.success) {
+                    loadCustomers()
+                } else {
+                    alert('Silme işlemi başarısız: ' + result.error)
+                }
             }
         } catch (error) {
             console.error('Delete failed:', error)
@@ -202,6 +227,11 @@ export default function Customers() {
                         navigate(`/customers/${customer.id}`)
                     }
                 }}
+                showCheckboxes={true}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
                 actions={(item) => (
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
                         <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(item) }}><Pencil size={16} /></button>

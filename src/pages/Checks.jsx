@@ -17,6 +17,7 @@ export default function Checks() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingTx, setEditingTx] = useState(null)
     const [saving, setSaving] = useState(false)
+    const [showArchived, setShowArchived] = useState(false)
     const [stats, setStats] = useState({
         approaching: 0,
         unpaid: 0,
@@ -27,7 +28,7 @@ export default function Checks() {
         if (!currentCompany) return
         setLoading(true)
         try {
-            const data = await window.electronAPI.getChecks(currentCompany.id)
+            const data = await window.electronAPI.getChecks(currentCompany.id, showArchived ? 1 : 0)
             if (data.success) {
                 setChecks(data.data)
 
@@ -78,7 +79,7 @@ export default function Checks() {
         })
 
         return cleanup
-    }, [currentCompany])
+    }, [currentCompany, showArchived])
 
     const handleStatusUpgrade = async (item) => {
         setConfirmModal({
@@ -105,10 +106,32 @@ export default function Checks() {
             await window.electronAPI.deleteFinance(confirmModal.item.id)
         } else if (confirmModal.type === 'status') {
             await window.electronAPI.updateCheckStatus({ id: confirmModal.item.id, status: 'COMPLETED' })
+        } else if (confirmModal.type === 'bulk_delete') {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteFinance(id)
+            }
         }
 
         loadData()
         setConfirmModal(null)
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk_delete',
+            ids,
+            title: 'Toplu Çek Silme',
+            message: `${ids.length} adet çeki silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+        const newStatus = showArchived ? 0 : 1
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('transactions', id, newStatus)
+        }
+        loadData()
     }
 
     const openAddModal = () => {
@@ -287,6 +310,12 @@ export default function Checks() {
                 searchPlaceholder="Çek no veya açıklama ile ara..."
                 searchKeys={['description', 'check_number']}
                 emptyMessage="Sistemde henüz bir çek bulunmuyor."
+                showSearch={true}
+                showCheckboxes={true}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
                 showDateFilter={true}
                 dateFilterKey="check_due_date"
                 filters={[

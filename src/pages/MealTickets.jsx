@@ -18,6 +18,7 @@ export default function MealTickets() {
 
     // Delete confirm
     const [confirmModal, setConfirmModal] = useState(null)
+    const [showArchived, setShowArchived] = useState(false)
 
     // Form state
     const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0])
@@ -29,7 +30,7 @@ export default function MealTickets() {
         setLoading(true)
         try {
             const [ticketRes, statsRes] = await Promise.all([
-                window.electronAPI.getMealTickets(currentCompany.id),
+                window.electronAPI.getMealTickets(currentCompany.id, showArchived ? 1 : 0),
                 window.electronAPI.getMealTicketStats(currentCompany.id)
             ])
             if (ticketRes.success) setTickets(ticketRes.data)
@@ -55,7 +56,7 @@ export default function MealTickets() {
             if (change?.table === 'meal_tickets' || change?.table === 'meal_settings') loadData()
         })
         return () => { if (unsub) unsub() }
-    }, [loadData])
+    }, [loadData, showArchived])
 
     const openCreateModal = () => {
         setEditingTicket(null)
@@ -127,9 +128,32 @@ export default function MealTickets() {
 
     const handleConfirmDelete = async () => {
         if (!confirmModal) return
-        await window.electronAPI.deleteMealTicket(confirmModal.item.id)
+        if (confirmModal.ids) {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteMealTicket(id)
+            }
+        } else {
+            await window.electronAPI.deleteMealTicket(confirmModal.item.id)
+        }
         loadData()
         setConfirmModal(null)
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            title: 'Toplu Silme',
+            ids,
+            message: `${ids.length} adet yemek fişini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+        const newStatus = showArchived ? 0 : 1
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('meal_tickets', id, newStatus)
+        }
+        loadData()
     }
 
     const formatDate = (dateStr) => {
@@ -263,6 +287,12 @@ export default function MealTickets() {
                 searchPlaceholder="Tarih veya not ile ara..."
                 searchKeys={['date', 'notes']}
                 emptyMessage={currentCompany ? "Henüz yemek fişi bulunmuyor." : "Lütfen bir şirket seçin."}
+                showSearch={true}
+                showCheckboxes={true}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
                 showDateFilter={true}
                 dateFilterKey="date"
                 actions={(item) => (

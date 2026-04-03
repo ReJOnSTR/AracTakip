@@ -41,6 +41,18 @@ export default function DataTable({
         }
     }
 
+    const [isTransitioning, setIsTransitioning] = useState(false)
+    const prevDataRef = useRef(data)
+
+    useEffect(() => {
+        if (data !== prevDataRef.current) {
+            setIsTransitioning(true)
+            const timer = setTimeout(() => setIsTransitioning(false), 250)
+            prevDataRef.current = data
+            return () => clearTimeout(timer)
+        }
+    }, [data])
+
     const [sortConfig, setSortConfig] = useState(() => {
         const saved = getInitialState('sort', null)
         // If there is a valid saved sorting state (key is not null), respect it.
@@ -162,6 +174,49 @@ export default function DataTable({
         if (!persistenceKey || Object.keys(columnWidths).length === 0) return
         localStorage.setItem(`${persistenceKey}_colWidths`, JSON.stringify(columnWidths))
     }, [columnWidths, persistenceKey])
+
+    // Save other states
+    useEffect(() => {
+        if (!persistenceKey) return
+        localStorage.setItem(`${persistenceKey}_sort`, JSON.stringify(sortConfig))
+        localStorage.setItem(`${persistenceKey}_page`, JSON.stringify(currentPage))
+        localStorage.setItem(`${persistenceKey}_pageSize`, JSON.stringify(pageSize))
+        localStorage.setItem(`${persistenceKey}_search`, JSON.stringify(searchQuery))
+        localStorage.setItem(`${persistenceKey}_filters`, JSON.stringify(activeFilters))
+        localStorage.setItem(`${persistenceKey}_dateRange`, JSON.stringify(dateRange))
+    }, [sortConfig, currentPage, pageSize, searchQuery, activeFilters, dateRange, persistenceKey])
+
+    // Reload states when persistenceKey changes (e.g. tab switch)
+    useEffect(() => {
+        if (!persistenceKey) return
+        
+        const loadState = (key, defaultVal) => {
+            try {
+                const saved = localStorage.getItem(`${persistenceKey}_${key}`)
+                return saved ? JSON.parse(saved) : defaultVal
+            } catch (e) {
+                return defaultVal
+            }
+        }
+
+        const savedSort = loadState('sort', null)
+        setSortConfig(savedSort && savedSort.key !== null ? savedSort : (initialSort || { key: null, direction: 'asc' }))
+        setCurrentPage(loadState('page', 1))
+        setPageSize(loadState('pageSize', 10))
+        setSearchQuery(loadState('search', ''))
+        setActiveFilters(loadState('filters', {}))
+        setDateRange(loadState('dateRange', { start: '', end: '' }))
+        
+        const savedColOrder = loadState('colOrder', null)
+        if (savedColOrder) setColumnOrder(savedColOrder)
+        
+        const savedVisible = loadState('visibleCols', null)
+        if (savedVisible) setVisibleColumns(new Set(savedVisible))
+        
+        const savedWidths = loadState('colWidths', null)
+        if (savedWidths) setColumnWidths(prev => ({ ...prev, ...savedWidths }))
+
+    }, [persistenceKey])
 
     const visibleColumnsList = useMemo(() => {
         // Always show columns in 'visibleColumns' set
@@ -766,7 +821,7 @@ export default function DataTable({
 
 
             {/* Table */}
-            <div className="table-container">
+            <div className={`table-container ${isTransitioning ? 'data-transitioning' : ''}`}>
                 <table
                     className="data-table"
                     style={{
@@ -826,10 +881,15 @@ export default function DataTable({
                                         className="resize-handle"
                                         onMouseDown={(e) => handleResizeStart(e, col.key)}
                                         onClick={(e) => e.stopPropagation()}
+                                        onDoubleClick={(e) => {
+                                            e.stopPropagation()
+                                            resetColumnWidth(col.key)
+                                        }}
+                                        title="Sütun genişliğini ayarla"
                                     />
                                 </th>
                             ))}
-                            {actions && <th className="th-actions">İşlemler</th>}
+                            {(actions || onRowClick) && <th className="th-actions">İşlemler</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -880,10 +940,19 @@ export default function DataTable({
                                             </td>
                                         )
                                     })}
-                                    {actions && (
+                                    {(actions || onRowClick) && (
                                         <td className="td-actions" onClick={(e) => e.stopPropagation()}>
                                             <div className="action-btns">
-                                                {actions(row)}
+                                                {actions && actions(row)}
+                                                {onRowClick && (
+                                                    <button 
+                                                        className="btn-icon row-details-btn" 
+                                                        onClick={(e) => handleRowClick(row, e)}
+                                                        title="Detaya Git"
+                                                    >
+                                                        <ChevronRight size={18} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     )}

@@ -23,6 +23,7 @@ export default function Finance() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null)
+    const [showArchived, setShowArchived] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -32,13 +33,13 @@ export default function Finance() {
             setStats({ totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 })
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived])
 
     const loadData = async () => {
         setLoading(true)
         try {
             const [txRes, statsRes] = await Promise.all([
-                window.electronAPI.getAllFinance(currentCompany.id),
+                window.electronAPI.getAllFinance(currentCompany.id, showArchived ? 1 : 0),
                 window.electronAPI.getFinanceStats(currentCompany.id)
             ])
 
@@ -110,10 +111,32 @@ export default function Finance() {
 
         if (confirmModal.type === 'single') {
             await window.electronAPI.deleteFinance(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteFinance(id)
+            }
         }
 
         loadData()
         setConfirmModal(null)
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids,
+            title: 'Toplu İşlem Silme',
+            message: `${ids.length} adet işlemi silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve bakiyenizi etkileyecektir.`
+        })
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+        const newStatus = showArchived ? 0 : 1
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('transactions', id, newStatus)
+        }
+        loadData()
     }
 
     // Prepare table columns
@@ -238,6 +261,12 @@ export default function Finance() {
                 searchPlaceholder="Açıklama, tutar veya yöntem ile ara..."
                 searchKeys={['description', 'amount', 'method', 'check_number']}
                 emptyMessage={currentCompany ? "Henüz işlem bulunmuyor." : "Lütfen bir şirket seçin."}
+                showSearch={true}
+                showCheckboxes={true}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
                 showDateFilter={true}
                 dateFilterKey="date"
                 filters={[

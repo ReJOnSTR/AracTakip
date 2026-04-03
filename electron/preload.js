@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteCompany: (id) => ipcRenderer.invoke('companies:delete', id),
 
     // Vehicles
-    getVehicles: (companyId) => ipcRenderer.invoke('vehicles:getAll', companyId),
+    getVehicles: (companyId, isArchived) => ipcRenderer.invoke('vehicles:getAll', companyId, isArchived),
     getVehicleById: (id) => ipcRenderer.invoke('vehicles:getById', id),
     createVehicle: (data) => ipcRenderer.invoke('vehicles:create', data),
     updateVehicle: (data) => ipcRenderer.invoke('vehicles:update', data),
@@ -55,7 +55,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteService: (id) => ipcRenderer.invoke('services:delete', id),
 
     // Employees
-    getEmployees: (companyId) => ipcRenderer.invoke('employees:getAll', companyId),
+    getEmployees: (companyId, isArchived) => ipcRenderer.invoke('employees:getAll', companyId, isArchived),
     getEmployeeById: (id) => ipcRenderer.invoke('employees:getById', id),
     createEmployee: (data) => ipcRenderer.invoke('employees:create', data),
     updateEmployee: (data) => ipcRenderer.invoke('employees:update', data),
@@ -150,17 +150,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openExternal: (url) => ipcRenderer.send('app:openExternal', url),
 
     // Finance API
-    getAllFinance: (companyId) => ipcRenderer.invoke('finance:getAll', companyId),
+    getAllFinance: (companyId, isArchived) => ipcRenderer.invoke('finance:getAll', companyId, isArchived),
     getFinanceById: (id) => ipcRenderer.invoke('finance:getById', id),
     createFinance: (data) => ipcRenderer.invoke('finance:create', data),
     updateFinance: (data) => ipcRenderer.invoke('finance:update', data),
     deleteFinance: (id) => ipcRenderer.invoke('finance:delete', id),
     getFinanceStats: (companyId) => ipcRenderer.invoke('finance:getStats', companyId),
-    getChecks: (companyId) => ipcRenderer.invoke('finance:getChecks', companyId),
+    getChecks: (companyId, isArchived) => ipcRenderer.invoke('finance:getChecks', companyId, isArchived),
     updateCheckStatus: (data) => ipcRenderer.invoke('finance:updateCheckStatus', data),
 
     // Meal Tickets API
-    getMealTickets: (companyId) => ipcRenderer.invoke('mealTickets:getAll', companyId),
+    getMealTickets: (companyId, isArchived) => ipcRenderer.invoke('mealTickets:getAll', companyId, isArchived),
     createMealTicket: (data) => ipcRenderer.invoke('mealTickets:create', data),
     updateMealTicket: (data) => ipcRenderer.invoke('mealTickets:update', data),
     deleteMealTicket: (id) => ipcRenderer.invoke('mealTickets:delete', id),
@@ -170,14 +170,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getMealTicketReport: (data) => ipcRenderer.invoke('mealTickets:getReport', data),
 
     // Works API
-    getWorks: (companyId) => ipcRenderer.invoke('works:getAll', companyId),
+    getWorks: (companyId, isArchived) => ipcRenderer.invoke('works:getAll', companyId, isArchived),
     getWorkDetails: (id) => ipcRenderer.invoke('works:getDetails', id),
     createWork: (data) => ipcRenderer.invoke('works:create', data),
     updateWork: (data) => ipcRenderer.invoke('works:update', data),
     deleteWork: (id) => ipcRenderer.invoke('works:delete', id),
 
     // Customers API
-    getCustomers: (companyId) => ipcRenderer.invoke('customers:getAll', companyId),
+    getCustomers: (companyId, isArchived) => ipcRenderer.invoke('customers:getAll', companyId, isArchived),
     getCustomerDetails: (id) => ipcRenderer.invoke('customers:getDetails', id),
     createCustomer: (data) => ipcRenderer.invoke('customers:create', data),
     updateCustomer: (data) => ipcRenderer.invoke('customers:update', data),

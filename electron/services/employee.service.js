@@ -1,10 +1,17 @@
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
-async function getEmployees(companyId) {
+async function getEmployees(companyId, isArchived = 0) {
     try {
+        const whereClause = { company_id: parseInt(companyId) };
+        if (isArchived === 1) {
+            whereClause.status = { not: 'active' };
+        } else {
+            whereClause.status = 'active';
+        }
+
         const data = await prisma.employees.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: whereClause,
             include: {
                 salaries: { where: { status: 'pending' } },
                 leaves: { where: { status: 'pending' } }

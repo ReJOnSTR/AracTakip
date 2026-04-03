@@ -6,6 +6,8 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
+import { usePersistentTab } from '../hooks/usePersistentTab'
+import InsuranceForm from '../components/forms/InsuranceForm'
 
 import {
     insuranceTypes,
@@ -18,7 +20,6 @@ import {
 } from '../utils/helpers'
 import { Plus, Pencil, Trash2, Shield, Building2, Eye } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
-import InsuranceForm from '../components/forms/InsuranceForm'
 import DocumentUploadModal from '../components/DocumentUploadModal'
 
 export default function Insurance() {
@@ -30,8 +31,8 @@ export default function Insurance() {
     const [editingInsurance, setEditingInsurance] = useState(null)
     // formData removed
     const [saving, setSaving] = useState(false)
+    const [activeTab, setActiveTab] = usePersistentTab('Insurance', 'all')
     const [error, setError] = useState('')
-    const [activeTab, setActiveTab] = useState('all')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     // Archive State
@@ -410,10 +411,9 @@ export default function Insurance() {
                 </div>
             ) : (
                 <DataTable
-                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={activeTab === 'all' ? insurances : insurances.filter(i => { const v = vehicles.find(vv => vv.id === i.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`insurance_table_${showArchived ? 'archived' : 'active'}`}
+                    persistenceKey={`insurance_table_${activeTab}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}

@@ -151,7 +151,8 @@ exports.Prisma.CustomersScalarFieldEnum = {
   tax_number: 'tax_number',
   tax_office: 'tax_office',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.DocumentsScalarFieldEnum = {
@@ -281,7 +282,8 @@ exports.Prisma.LeavesScalarFieldEnum = {
   days: 'days',
   status: 'status',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.MaintenancesScalarFieldEnum = {
@@ -303,7 +305,8 @@ exports.Prisma.Meal_settingsScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   price_per_person: 'price_per_person',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.Meal_ticketsScalarFieldEnum = {
@@ -312,7 +315,8 @@ exports.Prisma.Meal_ticketsScalarFieldEnum = {
   date: 'date',
   person_count: 'person_count',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.OvertimesScalarFieldEnum = {
@@ -323,7 +327,8 @@ exports.Prisma.OvertimesScalarFieldEnum = {
   rate: 'rate',
   amount: 'amount',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.Recurring_transactionsScalarFieldEnum = {
@@ -337,7 +342,8 @@ exports.Prisma.Recurring_transactionsScalarFieldEnum = {
   frequency: 'frequency',
   next_run_date: 'next_run_date',
   is_active: 'is_active',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.SalariesScalarFieldEnum = {
@@ -351,7 +357,8 @@ exports.Prisma.SalariesScalarFieldEnum = {
   payment_date: 'payment_date',
   status: 'status',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.Schema_migrationsScalarFieldEnum = {
@@ -388,7 +395,8 @@ exports.Prisma.TransactionsScalarFieldEnum = {
   check_number: 'check_number',
   check_due_date: 'check_due_date',
   status: 'status',
-  currency: 'currency'
+  currency: 'currency',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.UsersScalarFieldEnum = {
@@ -429,9 +437,11 @@ exports.Prisma.Work_itemsScalarFieldEnum = {
   hours: 'hours',
   overtime_hours: 'overtime_hours',
   unit_price: 'unit_price',
+  travel_price: 'travel_price',
   total_price: 'total_price',
   description: 'description',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.WorksScalarFieldEnum = {
@@ -448,7 +458,8 @@ exports.Prisma.WorksScalarFieldEnum = {
   location: 'location',
   created_at: 'created_at',
   start_date: 'start_date',
-  end_date: 'end_date'
+  end_date: 'end_date',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.SortOrder = {

@@ -40,6 +40,8 @@ export default function WorkDetails(props) {
         pricingType: 'daily',
         monthlyPrice: '',
         unitPrice: '',
+        travelEnabled: false,
+        travelPrice: '',
         description: ''
     })
 
@@ -58,6 +60,8 @@ export default function WorkDetails(props) {
         overtimeHours: 0,
         pricingType: 'daily',
         unitPrice: '',
+        travelEnabled: false,
+        travelPrice: '',
         description: ''
     })
 
@@ -101,7 +105,7 @@ export default function WorkDetails(props) {
         if (!isModalOpen) return;
 
         const { startTime, endTime, pricingType } = formData;
-        if (startTime && endTime && pricingType !== 'travel') {
+        if (startTime && endTime) {
             const [startH, startM] = startTime.split(':').map(Number);
             const [endH, endM] = endTime.split(':').map(Number);
 
@@ -129,8 +133,6 @@ export default function WorkDetails(props) {
                 hours: calculatedHours,
                 overtimeHours: calculatedOvertime
             }));
-        } else if (pricingType === 'travel') {
-            setFormData(prev => ({ ...prev, hours: 1, overtimeHours: 0 }));
         }
     }, [formData.startTime, formData.endTime, formData.pricingType, isModalOpen])
 
@@ -138,7 +140,7 @@ export default function WorkDetails(props) {
         if (!isBulkModalOpen) return;
 
         const { startTime, endTime, pricingType } = bulkFormData;
-        if (startTime && endTime && pricingType !== 'travel' && pricingType !== 'monthly') {
+        if (startTime && endTime && pricingType !== 'monthly') {
             const [startH, startM] = startTime.split(':').map(Number);
             const [endH, endM] = endTime.split(':').map(Number);
 
@@ -166,8 +168,6 @@ export default function WorkDetails(props) {
                 hours: calculatedHours,
                 overtimeHours: calculatedOvertime
             }));
-        } else if (pricingType === 'travel') {
-            setBulkFormData(prev => ({ ...prev, hours: 1, overtimeHours: 0 }));
         }
     }, [bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType, isBulkModalOpen])
 
@@ -220,6 +220,8 @@ export default function WorkDetails(props) {
             pricingType: 'daily',
             monthlyPrice: '',
             unitPrice: '',
+            travelEnabled: false,
+            travelPrice: '',
             description: ''
         })
         setModalError('')
@@ -239,6 +241,8 @@ export default function WorkDetails(props) {
             overtimeHours: 0,
             pricingType: 'daily',
             unitPrice: '',
+            travelEnabled: false,
+            travelPrice: '',
             description: ''
         })
         setModalError('')
@@ -253,10 +257,12 @@ export default function WorkDetails(props) {
         if (desc.startsWith('[SAATLİK] ')) {
             determinedPricingType = 'hourly';
             desc = desc.replace('[SAATLİK] ', '');
-        } else if (desc.startsWith('[YOL] ')) {
-            determinedPricingType = 'travel';
-            desc = desc.replace('[YOL] ', '');
+        } else if (desc.startsWith('[AYLIK] ')) {
+            determinedPricingType = 'monthly';
+            desc = desc.replace('[AYLIK] ', '');
         }
+
+        const hasTravelPrice = (item.travel_price || 0) > 0;
 
         setFormData({
             date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -269,6 +275,8 @@ export default function WorkDetails(props) {
             overtimeHours: item.overtime_hours || 0,
             pricingType: determinedPricingType,
             unitPrice: item.unit_price || 0,
+            travelEnabled: hasTravelPrice,
+            travelPrice: hasTravelPrice ? item.travel_price : '',
             description: desc
         })
         setModalError('')
@@ -280,27 +288,63 @@ export default function WorkDetails(props) {
         setModalError('')
 
         try {
-            // Validation
             const parsed = workItemSchema.parse(formData)
 
-            // Prepare payload
             let finalDesc = parsed.description || '';
             if (formData.pricingType === 'hourly' && !finalDesc.startsWith('[SAATLİK]')) {
                 finalDesc = '[SAATLİK] ' + finalDesc;
-            } else if (formData.pricingType === 'travel' && !finalDesc.startsWith('[YOL]')) {
-                finalDesc = '[YOL] ' + finalDesc;
+            } else if (formData.pricingType === 'monthly' && !finalDesc.startsWith('[AYLIK]')) {
+                finalDesc = '[AYLIK] ' + finalDesc;
             }
 
             const payload = {
                 ...parsed,
                 description: finalDesc,
+                travelPrice: formData.travelEnabled ? (parseFloat(formData.travelPrice) || 0) : 0,
                 workId: id
             }
 
             let result
             if (editingItem) {
+                // Single item update
                 result = await window.electronAPI.updateWorkItem({ ...payload, id: editingItem.id })
+            } else if (formData.pricingType === 'monthly') {
+                // Auto-generate 26 work days (skipping Sundays)
+                const payloadList = []
+                let currentDate = new Date(parsed.date)
+                const monthlyTotal = parsed.unitPrice || 0
+                const dailyPrice = monthlyTotal / 26
+                let workDaysAdded = 0
+
+                while (workDaysAdded < 26) {
+                    const isSunday = currentDate.getDay() === 0
+                    let itemDesc = parsed.description || ''
+                    
+                    if (isSunday) {
+                        if (!itemDesc.startsWith('[PAZAR]')) {
+                            itemDesc = '[PAZAR] ' + itemDesc
+                        }
+                    } else {
+                        workDaysAdded++
+                        if (!itemDesc.startsWith('[AYLIK]')) {
+                            itemDesc = '[AYLIK] ' + itemDesc
+                        }
+                    }
+
+                    payloadList.push({
+                        ...parsed,
+                        date: currentDate.toISOString().split('T')[0],
+                        unitPrice: isSunday ? 0 : dailyPrice,
+                        description: itemDesc,
+                        travelPrice: formData.travelEnabled ? (parseFloat(formData.travelPrice) || 0) : 0,
+                        workId: id
+                    })
+                    
+                    currentDate.setDate(currentDate.getDate() + 1)
+                }
+                result = await window.electronAPI.addBulkWorkItems(payloadList)
             } else {
+                // Standard single item add
                 result = await window.electronAPI.addWorkItem(payload)
             }
 
@@ -372,8 +416,10 @@ export default function WorkDetails(props) {
                     hours: bulkFormData.hours ? parseFloat(bulkFormData.hours) : 0,
                     overtimeHours: bulkFormData.overtimeHours ? parseFloat(bulkFormData.overtimeHours) : 0,
                     unitPrice: finalUnitPrice,
+                    travelPrice: bulkFormData.travelEnabled ? (parseFloat(bulkFormData.travelPrice) || 0) : 0,
                     description: itemDesc || null
                 })
+
                 currentDate.setDate(currentDate.getDate() + 1)
             }
 
@@ -438,9 +484,22 @@ export default function WorkDetails(props) {
 
     // Replicate PDF calculation logic to guarantee "Toplam Tutar" matches exactly.
     let grandTotal = 0;
+    let totalMesaiPriceAmount = 0;
+    let totalPazarPriceAmount = 0;
+    let totalPazarDayCount = 0;
+    let totalGunTutar = 0;
+    let totalYolTutar = 0;
+    let totalSaatlikTutar = 0;
+
+    const uniqueVehicles = new Set();
+    const uniqueEmployees = new Set();
+
     if (work?.items) {
         const groupedItems = {};
         work.items.forEach(item => {
+            if (item.vehicle_id) uniqueVehicles.add(item.vehicle_id);
+            if (item.employee_id) uniqueEmployees.add(item.employee_id);
+
             const key = item.vehicle_id || 'diger';
             if (!groupedItems[key]) {
                 groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalYol: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false };
@@ -475,7 +534,20 @@ export default function WorkDetails(props) {
             if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
 
             let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice);
-            grandTotal += cg + (group.totalPazar * samplePazarPrice) + (group.totalYol * sampleYolPrice) + (group.totalSaatlik * sampleSaatlikPrice) + (group.totalMesai * sampleMesaiPrice);
+            
+            const mesaiTutar = group.totalMesai * sampleMesaiPrice;
+            const pazarTutar = group.totalPazar * samplePazarPrice;
+            const yolTutar = group.totalYol * sampleYolPrice;
+            const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice;
+            
+            totalMesaiPriceAmount += mesaiTutar;
+            totalPazarPriceAmount += pazarTutar;
+            totalPazarDayCount += group.totalPazar;
+            totalGunTutar += cg;
+            totalYolTutar += yolTutar;
+            totalSaatlikTutar += saatlikTutar;
+
+            grandTotal += cg + pazarTutar + yolTutar + saatlikTutar + mesaiTutar;
         });
     }
 
@@ -499,13 +571,7 @@ export default function WorkDetails(props) {
         <div className="page-container">
             {/* Header */}
             <div className="page-header" style={{ display: 'block', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <Link to="/works" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none' }}>
-                        <ArrowLeft size={14} /> İş Takibi
-                    </Link>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 8px' }}>/</span>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>İş Detayı</span>
-                </div>
+
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
@@ -536,31 +602,82 @@ export default function WorkDetails(props) {
 
             {/* Default Stats Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                {/* Mesai Kartı */}
                 <div className="stat-card">
                     <div className="stat-icon warning">
                         <Clock />
                     </div>
-                    <div className="stat-content">
-                        <div className="stat-value text-warning">{totalOvertime} Saat</div>
-                        <div className="stat-label">Toplam Mesai</div>
+                    <div className="stat-content" style={{ width: '100%' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{totalOvertime} Saat</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Normal Mesai</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{totalPazarDayCount} Gün</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Pazar Mesai</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>{formatCurrency(totalMesaiPriceAmount)}</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Mesai Tutar</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>{formatCurrency(totalPazarPriceAmount)}</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Pazar Tutar</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {/* Kayıt Bilgileri Kartı */}
                 <div className="stat-card">
                     <div className="stat-icon info">
                         <FileText />
                     </div>
-                    <div className="stat-content">
-                        <div className="stat-value text-info">{work.items.length}</div>
-                        <div className="stat-label">Kayıt Sayısı</div>
+                    <div className="stat-content" style={{ width: '100%' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{work.items.length} Adet</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Toplam Kayıt</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{uniqueVehicles.size} Adet</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Aktif Araç</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--info)' }}>{uniqueEmployees.size} Kişi</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Personel</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--info)' }}>{totalHours} Gün</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Toplam Gün</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {/* Finansal Özet Kartı */}
                 <div className="stat-card">
                     <div className="stat-icon success">
                         <DollarSign />
                     </div>
-                    <div className="stat-content">
-                        <div className="stat-value text-success">{formatCurrency(grandTotal)}</div>
-                        <div className="stat-label">Toplam Tutar</div>
+                    <div className="stat-content" style={{ width: '100%' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px', height: '100%', justifyContent: 'center' }}>
+                            <div>
+                                <div style={{ fontSize: '22px', fontWeight: '900', color: 'var(--success)', lineHeight: 1.1 }}>{formatCurrency(grandTotal)}</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.05em' }}>Genel Toplam (KDV hariç)</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '16px', marginTop: '4px', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{formatCurrency(grandTotal * 0.2)}</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>KDV (%20)</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--success)' }}>{formatCurrency(grandTotal * 1.2)}</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>KDV Dahil</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -646,7 +763,9 @@ export default function WorkDetails(props) {
                     { label: 'AÇIKLAMA', key: 'description', render: (val) => <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', display: 'inline-block' }}>{val}</span> }
                 ]}
                 data={work.items || []}
-                onRowClick={() => { }}
+                showSearch={true}
+                showDateFilter={true}
+                dateFilterKey="date"
                 showRowNumbers={true}
                 actions={(row) => (
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
@@ -688,19 +807,13 @@ export default function WorkDetails(props) {
                             label="Araç"
                             value={formData.vehicleId}
                             onChange={(val) => setFormData({ ...formData, vehicleId: val })}
-                            options={[
-                                { value: '', label: 'Seçiniz' },
-                                ...vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))
-                            ]}
+                            options={vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))}
                         />
                         <CustomSelect
                             label="Personel"
                             value={formData.employeeId}
                             onChange={(val) => setFormData({ ...formData, employeeId: val })}
-                            options={[
-                                { value: '', label: 'Seçiniz' },
-                                ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
-                            ]}
+                            options={employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))}
                         />
                     </div>
 
@@ -731,18 +844,59 @@ export default function WorkDetails(props) {
                                 value={formData.pricingType}
                                 onChange={(val) => setFormData({ ...formData, pricingType: val })}
                                 options={[
-                                    { value: 'daily', label: 'Günlük' },
-                                    { value: 'hourly', label: 'Saatlik' },
-                                    { value: 'travel', label: 'Yol' }
+                                { value: 'daily', label: 'Günlük' },
+                                { value: 'hourly', label: 'Saatlik' },
+                                { value: 'monthly', label: 'Aylık' }
                                 ]}
                             />
                             <CustomInput
-                                label="Birim Fiyat"
+                                label={formData.pricingType === 'monthly' ? "Aylık Toplam Fiyat" : "Birim Fiyat"}
                                 format="currency"
                                 value={formData.unitPrice}
                                 onChange={(val) => setFormData({ ...formData, unitPrice: val })}
                             />
                         </div>
+                    </div>
+
+                    {/* Yol (Travel) Add-on */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        padding: '12px 14px',
+                        background: formData.travelEnabled ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                        border: `1px solid ${formData.travelEnabled ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        transition: 'background 0.15s ease, border-color 0.15s ease'
+                    }}>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                            <input
+                                type="checkbox"
+                                checked={formData.travelEnabled}
+                                onChange={(e) => setFormData({ ...formData, travelEnabled: e.target.checked })}
+                            />
+                            <span className="toggle-slider"></span>
+                        </label>
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Yol Ekle</span>
+                        {formData.travelEnabled && (
+                            <div style={{ marginLeft: 'auto', width: '160px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Yol Fiyatı ₺"
+                                    value={formData.travelPrice ? String(formData.travelPrice).replace('.', ',') : ''}
+                                    onChange={(e) => {
+                                        let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
+                                        const parts = clean.split(',');
+                                        if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
+                                        if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
+                                        const floatVal = clean.replace(',', '.');
+                                        setFormData({ ...formData, travelPrice: floatVal === '' ? '' : floatVal });
+                                    }}
+                                    style={{ height: '32px', textAlign: 'right' }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <CustomInput
@@ -809,19 +963,13 @@ export default function WorkDetails(props) {
                             label="Araç"
                             value={bulkFormData.vehicleId}
                             onChange={(val) => setBulkFormData({ ...bulkFormData, vehicleId: val })}
-                            options={[
-                                { value: '', label: 'Seçiniz' },
-                                ...vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))
-                            ]}
+                            options={vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))}
                         />
                         <CustomSelect
                             label="Personel"
                             value={bulkFormData.employeeId}
                             onChange={(val) => setBulkFormData({ ...bulkFormData, employeeId: val })}
-                            options={[
-                                { value: '', label: 'Seçiniz' },
-                                ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
-                            ]}
+                            options={employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))}
                         />
                     </div>
 
@@ -880,6 +1028,47 @@ export default function WorkDetails(props) {
                                 />
                             )}
                         </div>
+                    </div>
+
+                    {/* Yol (Travel) Add-on */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        padding: '12px 14px',
+                        background: bulkFormData.travelEnabled ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                        border: `1px solid ${bulkFormData.travelEnabled ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        transition: 'background 0.15s ease, border-color 0.15s ease'
+                    }}>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                            <input
+                                type="checkbox"
+                                checked={bulkFormData.travelEnabled}
+                                onChange={(e) => setBulkFormData({ ...bulkFormData, travelEnabled: e.target.checked })}
+                            />
+                            <span className="toggle-slider"></span>
+                        </label>
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Yol Ekle</span>
+                        {bulkFormData.travelEnabled && (
+                            <div style={{ marginLeft: 'auto', width: '160px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Yol Fiyatı ₺"
+                                    value={bulkFormData.travelPrice ? String(bulkFormData.travelPrice).replace('.', ',') : ''}
+                                    onChange={(e) => {
+                                        let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
+                                        const parts = clean.split(',');
+                                        if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
+                                        if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
+                                        const floatVal = clean.replace(',', '.');
+                                        setBulkFormData({ ...bulkFormData, travelPrice: floatVal === '' ? '' : floatVal });
+                                    }}
+                                    style={{ height: '32px', textAlign: 'right' }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <CustomInput

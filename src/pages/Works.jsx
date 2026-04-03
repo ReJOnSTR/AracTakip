@@ -20,18 +20,19 @@ export default function Works() {
     const [editingWork, setEditingWork] = useState(null)
     const [saving, setSaving] = useState(false)
     const [confirmModal, setConfirmModal] = useState(null)
+    const [showArchived, setShowArchived] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
             loadData()
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived])
 
     const loadData = async () => {
         setLoading(true)
         try {
             const [worksRes, customersRes] = await Promise.all([
-                window.electronAPI.getWorks(currentCompany.id),
+                window.electronAPI.getWorks(currentCompany.id, showArchived ? 1 : 0),
                 window.electronAPI.getCustomers(currentCompany.id)
             ])
             if (worksRes.success) setWorks(worksRes.data)
@@ -81,6 +82,29 @@ export default function Works() {
         })
     }
 
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            title: 'Toplu Silme',
+            message: `${ids.length} iş kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+            onConfirm: async () => {
+                for (const id of ids) {
+                    await window.electronAPI.deleteWork(id)
+                }
+                loadData()
+                setConfirmModal(null)
+            }
+        })
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+        const newStatus = showArchived ? 0 : 1
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('works', id, newStatus)
+        }
+        loadData()
+    }
+
     const openCreateModal = () => {
         setEditingWork(null)
         setIsModalOpen(true)
@@ -122,20 +146,29 @@ export default function Works() {
         {
             key: 'date_range',
             label: 'Tarih Aralığı',
+            width: '120px',
             render: (_, row) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '13px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={12} className="text-muted" />
-                        <span>{formatDate(row.start_date)}</span>
-                    </div>
-                    {row.start_date !== row.end_date && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                            <ArrowRight size={12} />
-                            <span>{formatDate(row.end_date)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '12px' }}>
+                        {/* Vertical Timeline Indicator */}
+                        <div style={{ position: 'absolute', left: 0, top: '6px', bottom: row.start_date !== row.end_date ? '6px' : 'auto', height: row.start_date === row.end_date ? '0px' : 'auto', width: '2px', background: 'var(--border-color)', borderRadius: '2px' }}>
+                            <div style={{ position: 'absolute', left: '-2px', top: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--accent-primary)', background: 'var(--bg-primary)' }} />
+                            {row.start_date !== row.end_date && (
+                               <div style={{ position: 'absolute', left: '-2px', bottom: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--text-muted)', background: 'var(--bg-primary)' }} />
+                            )}
                         </div>
-                    )}
+                        
+                        <span style={{ fontSize: '11.5px', color: 'var(--text-primary)', fontWeight: 600, lineHeight: '1.3' }}>
+                            {formatDate(row.start_date)}
+                        </span>
+                        {row.start_date !== row.end_date && (
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.3', marginTop: '2px' }}>
+                                {formatDate(row.end_date)}
+                            </span>
+                        )}
+                    </div>
                     {(row.total_days > 0) && (
-                        <div style={{ marginTop: '2px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                        <div style={{ marginLeft: 'auto', padding: '4px 6px', background: 'var(--accent-subtle)', color: 'var(--accent-primary)', borderRadius: '6px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                             {row.total_days} Gün
                         </div>
                     )}
@@ -163,9 +196,9 @@ export default function Works() {
             render: (v) => <span className="badge badge-neutral">{v || 0} Adet</span>
         },
         {
-            key: 'total_hours',
-            label: 'Toplam Saat',
-            render: (v) => v ? `${v} sa` : '-'
+            key: 'total_days',
+            label: 'Toplam Gün',
+            render: (v) => v ? `${v} Gün` : '-'
         },
         {
             key: 'total_price',
@@ -230,9 +263,29 @@ export default function Works() {
                 key="works-table"
                 columns={columns}
                 data={works}
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'Durum Filtresi',
+                        options: [
+                            { value: 'pending', label: 'Bekliyor' },
+                            { value: 'in_progress', label: 'Devam Ediyor' },
+                            { value: 'completed', label: 'Tamamlandı' },
+                            { value: 'paid', label: 'Ödendi / Tahsil Edildi' },
+                            { value: 'cancelled', label: 'İptal' }
+                        ]
+                    }
+                ]}
                 emptyMessage="Henüz iş kaydı bulunamadı"
                 showSearch={true}
+                showCheckboxes={true}
+                showDateFilter={true}
+                dateFilterKey="start_date"
                 onRowClick={handleRowClick}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
                 actions={(item) => (
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
                         <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(item) }}><Pencil size={16} /></button>

@@ -46,18 +46,19 @@ model companies {
 }
 
 model customers {
-  id         Int       @id @default(autoincrement())
-  company_id Int
-  name       String
-  phone      String?
-  email      String?
-  address    String?
-  tax_number String?
-  tax_office String?
-  notes      String?
-  created_at DateTime? @default(now())
-  companies  companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  works      works[]
+  id          Int       @id @default(autoincrement())
+  company_id  Int
+  name        String
+  phone       String?
+  email       String?
+  address     String?
+  tax_number  String?
+  tax_office  String?
+  notes       String?
+  created_at  DateTime? @default(now())
+  is_archived Int?      @default(0)
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  works       works[]
 
   @@index([company_id], map: "idx_customers_company")
 }
@@ -223,6 +224,7 @@ model leaves {
   status      String?   @default("approved")
   notes       String?
   created_at  DateTime? @default(now())
+  is_archived Int?      @default(0)
   employees   employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_leaves_employee")
@@ -251,6 +253,7 @@ model meal_settings {
   company_id       Int       @unique(map: "sqlite_autoindex_meal_settings_1")
   price_per_person Float     @default(0)
   created_at       DateTime? @default(now())
+  is_archived      Int?      @default(0)
   companies        companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
@@ -261,6 +264,7 @@ model meal_tickets {
   person_count Int       @default(1)
   notes        String?
   created_at   DateTime? @default(now())
+  is_archived  Int?      @default(0)
   companies    companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
@@ -273,6 +277,7 @@ model overtimes {
   amount      Float?    @default(0)
   notes       String?
   created_at  DateTime? @default(now())
+  is_archived Int?      @default(0)
   employees   employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_overtimes_employee")
@@ -290,6 +295,7 @@ model recurring_transactions {
   next_run_date DateTime
   is_active     Int?      @default(1)
   created_at    DateTime? @default(now())
+  is_archived   Int?      @default(0)
   companies     companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
@@ -305,6 +311,7 @@ model salaries {
   status       String?   @default("pending")
   notes        String?
   created_at   DateTime? @default(now())
+  is_archived  Int?      @default(0)
   employees    employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_salaries_employee")
@@ -348,6 +355,7 @@ model transactions {
   check_due_date DateTime?
   status         String?   @default("COMPLETED")
   currency       String?   @default("TRY")
+  is_archived    Int?      @default(0)
   companies      companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([date], map: "idx_transactions_date")
@@ -404,9 +412,11 @@ model work_items {
   hours          Float?     @default(0)
   overtime_hours Float?     @default(0)
   unit_price     Float?     @default(0)
+  travel_price   Float?     @default(0)
   total_price    Float?     @default(0)
   description    String?
   created_at     DateTime?  @default(now())
+  is_archived    Int?       @default(0)
   employees      employees? @relation(fields: [employee_id], references: [id], onUpdate: NoAction)
   vehicles       vehicles?  @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction)
   works          works      @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -430,6 +440,7 @@ model works {
   created_at  DateTime?    @default(now())
   start_date  DateTime?
   end_date    DateTime?
+  is_archived Int?         @default(0)
   work_items  work_items[]
   employees   employees?   @relation(fields: [employee_id], references: [id], onUpdate: NoAction)
   vehicles    vehicles?    @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction)

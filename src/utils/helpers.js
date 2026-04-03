@@ -120,7 +120,8 @@ export function getInsuranceTypeLabel(type) {
 export const workStatuses = [
     { value: 'pending', label: 'Bekliyor', color: 'neutral' },
     { value: 'in_progress', label: 'Devam Ediyor', color: 'warning' },
-    { value: 'completed', label: 'Tamamlandı', color: 'success' },
+    { value: 'completed', label: 'Tamamlandı', color: 'info' },
+    { value: 'paid', label: 'Ödendi / Tahsil Edildi', color: 'success' },
     { value: 'cancelled', label: 'İptal Edildi', color: 'danger' }
 ]
 

@@ -1127,9 +1127,22 @@ body {
   overflow-y: auto;
   width: 100%;
   max-width: 100%;
-  /* Crucial for scrollbar */
   flex: 1;
-  /* Take available space */
+}
+
+.data-transitioning {
+  animation: dataFade 0.25s ease-out;
+}
+
+@keyframes dataFade {
+  0% {
+    opacity: 0.3;
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Toolbar */
@@ -1835,6 +1848,22 @@ tr:hover .td-actions {
 
 .data-table tbody tr.clickable:hover td {
   background: var(--accent-subtle);
+}
+
+.row-details-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-muted);
+  box-shadow: none !important;
+  transition: all 0.2s;
+  opacity: 0;
+  transform: translateX(-5px);
+}
+
+.data-table tbody tr.clickable:hover .row-details-btn {
+  color: var(--accent-primary);
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .data-table tbody tr.selected td {
@@ -3427,6 +3456,31 @@ tr:hover .td-actions {
   height: 100%;
   align-items: flex-end;
   /* Keep tabs anchored to bottom during drag */
+}
+
+/* Minimal Back/Forward buttons */
+.tab-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-right: 1px solid var(--border-color);
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  margin-bottom: -1px;
+}
+
+.tab-nav-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .tab-item {

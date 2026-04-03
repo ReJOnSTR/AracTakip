@@ -6079,11 +6079,13 @@ export namespace Prisma {
   export type CustomersAvgAggregateOutputType = {
     id: number | null
     company_id: number | null
+    is_archived: number | null
   }
 
   export type CustomersSumAggregateOutputType = {
     id: number | null
     company_id: number | null
+    is_archived: number | null
   }
 
   export type CustomersMinAggregateOutputType = {
@@ -6097,6 +6099,7 @@ export namespace Prisma {
     tax_office: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type CustomersMaxAggregateOutputType = {
@@ -6110,6 +6113,7 @@ export namespace Prisma {
     tax_office: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type CustomersCountAggregateOutputType = {
@@ -6123,6 +6127,7 @@ export namespace Prisma {
     tax_office: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -6130,11 +6135,13 @@ export namespace Prisma {
   export type CustomersAvgAggregateInputType = {
     id?: true
     company_id?: true
+    is_archived?: true
   }
 
   export type CustomersSumAggregateInputType = {
     id?: true
     company_id?: true
+    is_archived?: true
   }
 
   export type CustomersMinAggregateInputType = {
@@ -6148,6 +6155,7 @@ export namespace Prisma {
     tax_office?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type CustomersMaxAggregateInputType = {
@@ -6161,6 +6169,7 @@ export namespace Prisma {
     tax_office?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type CustomersCountAggregateInputType = {
@@ -6174,6 +6183,7 @@ export namespace Prisma {
     tax_office?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -6274,6 +6284,7 @@ export namespace Prisma {
     tax_office: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: CustomersCountAggregateOutputType | null
     _avg: CustomersAvgAggregateOutputType | null
     _sum: CustomersSumAggregateOutputType | null
@@ -6306,6 +6317,7 @@ export namespace Prisma {
     tax_office?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
     works?: boolean | customers$worksArgs<ExtArgs>
     _count?: boolean | CustomersCountOutputTypeDefaultArgs<ExtArgs>
@@ -6322,6 +6334,7 @@ export namespace Prisma {
     tax_office?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customers"]>
 
@@ -6336,6 +6349,7 @@ export namespace Prisma {
     tax_office?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customers"]>
 
@@ -6350,9 +6364,10 @@ export namespace Prisma {
     tax_office?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type customersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "phone" | "email" | "address" | "tax_number" | "tax_office" | "notes" | "created_at", ExtArgs["result"]["customers"]>
+  export type customersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "phone" | "email" | "address" | "tax_number" | "tax_office" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["customers"]>
   export type customersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
     works?: boolean | customers$worksArgs<ExtArgs>
@@ -6382,6 +6397,7 @@ export namespace Prisma {
       tax_office: string | null
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["customers"]>
     composites: {}
   }
@@ -6817,6 +6833,7 @@ export namespace Prisma {
     readonly tax_office: FieldRef<"customers", 'String'>
     readonly notes: FieldRef<"customers", 'String'>
     readonly created_at: FieldRef<"customers", 'DateTime'>
+    readonly is_archived: FieldRef<"customers", 'Int'>
   }
     
 
@@ -18058,12 +18075,14 @@ export namespace Prisma {
     id: number | null
     employee_id: number | null
     days: number | null
+    is_archived: number | null
   }
 
   export type LeavesSumAggregateOutputType = {
     id: number | null
     employee_id: number | null
     days: number | null
+    is_archived: number | null
   }
 
   export type LeavesMinAggregateOutputType = {
@@ -18076,6 +18095,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type LeavesMaxAggregateOutputType = {
@@ -18088,6 +18108,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type LeavesCountAggregateOutputType = {
@@ -18100,6 +18121,7 @@ export namespace Prisma {
     status: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -18108,12 +18130,14 @@ export namespace Prisma {
     id?: true
     employee_id?: true
     days?: true
+    is_archived?: true
   }
 
   export type LeavesSumAggregateInputType = {
     id?: true
     employee_id?: true
     days?: true
+    is_archived?: true
   }
 
   export type LeavesMinAggregateInputType = {
@@ -18126,6 +18150,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type LeavesMaxAggregateInputType = {
@@ -18138,6 +18163,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type LeavesCountAggregateInputType = {
@@ -18150,6 +18176,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -18249,6 +18276,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: LeavesCountAggregateOutputType | null
     _avg: LeavesAvgAggregateOutputType | null
     _sum: LeavesSumAggregateOutputType | null
@@ -18280,6 +18308,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["leaves"]>
 
@@ -18293,6 +18322,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["leaves"]>
 
@@ -18306,6 +18336,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["leaves"]>
 
@@ -18319,9 +18350,10 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type leavesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "type" | "start_date" | "end_date" | "days" | "status" | "notes" | "created_at", ExtArgs["result"]["leaves"]>
+  export type leavesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "type" | "start_date" | "end_date" | "days" | "status" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["leaves"]>
   export type leavesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -18347,6 +18379,7 @@ export namespace Prisma {
       status: string | null
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["leaves"]>
     composites: {}
   }
@@ -18780,6 +18813,7 @@ export namespace Prisma {
     readonly status: FieldRef<"leaves", 'String'>
     readonly notes: FieldRef<"leaves", 'String'>
     readonly created_at: FieldRef<"leaves", 'DateTime'>
+    readonly is_archived: FieldRef<"leaves", 'Int'>
   }
     
 
@@ -20405,12 +20439,14 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     price_per_person: number | null
+    is_archived: number | null
   }
 
   export type Meal_settingsSumAggregateOutputType = {
     id: number | null
     company_id: number | null
     price_per_person: number | null
+    is_archived: number | null
   }
 
   export type Meal_settingsMinAggregateOutputType = {
@@ -20418,6 +20454,7 @@ export namespace Prisma {
     company_id: number | null
     price_per_person: number | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Meal_settingsMaxAggregateOutputType = {
@@ -20425,6 +20462,7 @@ export namespace Prisma {
     company_id: number | null
     price_per_person: number | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Meal_settingsCountAggregateOutputType = {
@@ -20432,6 +20470,7 @@ export namespace Prisma {
     company_id: number
     price_per_person: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -20440,12 +20479,14 @@ export namespace Prisma {
     id?: true
     company_id?: true
     price_per_person?: true
+    is_archived?: true
   }
 
   export type Meal_settingsSumAggregateInputType = {
     id?: true
     company_id?: true
     price_per_person?: true
+    is_archived?: true
   }
 
   export type Meal_settingsMinAggregateInputType = {
@@ -20453,6 +20494,7 @@ export namespace Prisma {
     company_id?: true
     price_per_person?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Meal_settingsMaxAggregateInputType = {
@@ -20460,6 +20502,7 @@ export namespace Prisma {
     company_id?: true
     price_per_person?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Meal_settingsCountAggregateInputType = {
@@ -20467,6 +20510,7 @@ export namespace Prisma {
     company_id?: true
     price_per_person?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -20561,6 +20605,7 @@ export namespace Prisma {
     company_id: number
     price_per_person: number
     created_at: Date | null
+    is_archived: number | null
     _count: Meal_settingsCountAggregateOutputType | null
     _avg: Meal_settingsAvgAggregateOutputType | null
     _sum: Meal_settingsSumAggregateOutputType | null
@@ -20587,6 +20632,7 @@ export namespace Prisma {
     company_id?: boolean
     price_per_person?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["meal_settings"]>
 
@@ -20595,6 +20641,7 @@ export namespace Prisma {
     company_id?: boolean
     price_per_person?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["meal_settings"]>
 
@@ -20603,6 +20650,7 @@ export namespace Prisma {
     company_id?: boolean
     price_per_person?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["meal_settings"]>
 
@@ -20611,9 +20659,10 @@ export namespace Prisma {
     company_id?: boolean
     price_per_person?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type meal_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "price_per_person" | "created_at", ExtArgs["result"]["meal_settings"]>
+  export type meal_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "price_per_person" | "created_at" | "is_archived", ExtArgs["result"]["meal_settings"]>
   export type meal_settingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -20634,6 +20683,7 @@ export namespace Prisma {
       company_id: number
       price_per_person: number
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["meal_settings"]>
     composites: {}
   }
@@ -21062,6 +21112,7 @@ export namespace Prisma {
     readonly company_id: FieldRef<"meal_settings", 'Int'>
     readonly price_per_person: FieldRef<"meal_settings", 'Float'>
     readonly created_at: FieldRef<"meal_settings", 'DateTime'>
+    readonly is_archived: FieldRef<"meal_settings", 'Int'>
   }
     
 
@@ -21490,12 +21541,14 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     person_count: number | null
+    is_archived: number | null
   }
 
   export type Meal_ticketsSumAggregateOutputType = {
     id: number | null
     company_id: number | null
     person_count: number | null
+    is_archived: number | null
   }
 
   export type Meal_ticketsMinAggregateOutputType = {
@@ -21505,6 +21558,7 @@ export namespace Prisma {
     person_count: number | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Meal_ticketsMaxAggregateOutputType = {
@@ -21514,6 +21568,7 @@ export namespace Prisma {
     person_count: number | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Meal_ticketsCountAggregateOutputType = {
@@ -21523,6 +21578,7 @@ export namespace Prisma {
     person_count: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -21531,12 +21587,14 @@ export namespace Prisma {
     id?: true
     company_id?: true
     person_count?: true
+    is_archived?: true
   }
 
   export type Meal_ticketsSumAggregateInputType = {
     id?: true
     company_id?: true
     person_count?: true
+    is_archived?: true
   }
 
   export type Meal_ticketsMinAggregateInputType = {
@@ -21546,6 +21604,7 @@ export namespace Prisma {
     person_count?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Meal_ticketsMaxAggregateInputType = {
@@ -21555,6 +21614,7 @@ export namespace Prisma {
     person_count?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Meal_ticketsCountAggregateInputType = {
@@ -21564,6 +21624,7 @@ export namespace Prisma {
     person_count?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -21660,6 +21721,7 @@ export namespace Prisma {
     person_count: number
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: Meal_ticketsCountAggregateOutputType | null
     _avg: Meal_ticketsAvgAggregateOutputType | null
     _sum: Meal_ticketsSumAggregateOutputType | null
@@ -21688,6 +21750,7 @@ export namespace Prisma {
     person_count?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["meal_tickets"]>
 
@@ -21698,6 +21761,7 @@ export namespace Prisma {
     person_count?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["meal_tickets"]>
 
@@ -21708,6 +21772,7 @@ export namespace Prisma {
     person_count?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["meal_tickets"]>
 
@@ -21718,9 +21783,10 @@ export namespace Prisma {
     person_count?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type meal_ticketsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "person_count" | "notes" | "created_at", ExtArgs["result"]["meal_tickets"]>
+  export type meal_ticketsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "person_count" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["meal_tickets"]>
   export type meal_ticketsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -21743,6 +21809,7 @@ export namespace Prisma {
       person_count: number
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["meal_tickets"]>
     composites: {}
   }
@@ -22173,6 +22240,7 @@ export namespace Prisma {
     readonly person_count: FieldRef<"meal_tickets", 'Int'>
     readonly notes: FieldRef<"meal_tickets", 'String'>
     readonly created_at: FieldRef<"meal_tickets", 'DateTime'>
+    readonly is_archived: FieldRef<"meal_tickets", 'Int'>
   }
     
 
@@ -22603,6 +22671,7 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
+    is_archived: number | null
   }
 
   export type OvertimesSumAggregateOutputType = {
@@ -22611,6 +22680,7 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
+    is_archived: number | null
   }
 
   export type OvertimesMinAggregateOutputType = {
@@ -22622,6 +22692,7 @@ export namespace Prisma {
     amount: number | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type OvertimesMaxAggregateOutputType = {
@@ -22633,6 +22704,7 @@ export namespace Prisma {
     amount: number | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type OvertimesCountAggregateOutputType = {
@@ -22644,6 +22716,7 @@ export namespace Prisma {
     amount: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -22654,6 +22727,7 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
+    is_archived?: true
   }
 
   export type OvertimesSumAggregateInputType = {
@@ -22662,6 +22736,7 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
+    is_archived?: true
   }
 
   export type OvertimesMinAggregateInputType = {
@@ -22673,6 +22748,7 @@ export namespace Prisma {
     amount?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type OvertimesMaxAggregateInputType = {
@@ -22684,6 +22760,7 @@ export namespace Prisma {
     amount?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type OvertimesCountAggregateInputType = {
@@ -22695,6 +22772,7 @@ export namespace Prisma {
     amount?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -22793,6 +22871,7 @@ export namespace Prisma {
     amount: number | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: OvertimesCountAggregateOutputType | null
     _avg: OvertimesAvgAggregateOutputType | null
     _sum: OvertimesSumAggregateOutputType | null
@@ -22823,6 +22902,7 @@ export namespace Prisma {
     amount?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["overtimes"]>
 
@@ -22835,6 +22915,7 @@ export namespace Prisma {
     amount?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["overtimes"]>
 
@@ -22847,6 +22928,7 @@ export namespace Prisma {
     amount?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["overtimes"]>
 
@@ -22859,9 +22941,10 @@ export namespace Prisma {
     amount?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type overtimesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "date" | "hours" | "rate" | "amount" | "notes" | "created_at", ExtArgs["result"]["overtimes"]>
+  export type overtimesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "date" | "hours" | "rate" | "amount" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["overtimes"]>
   export type overtimesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -22886,6 +22969,7 @@ export namespace Prisma {
       amount: number | null
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["overtimes"]>
     composites: {}
   }
@@ -23318,6 +23402,7 @@ export namespace Prisma {
     readonly amount: FieldRef<"overtimes", 'Float'>
     readonly notes: FieldRef<"overtimes", 'String'>
     readonly created_at: FieldRef<"overtimes", 'DateTime'>
+    readonly is_archived: FieldRef<"overtimes", 'Int'>
   }
     
 
@@ -23747,6 +23832,7 @@ export namespace Prisma {
     company_id: number | null
     amount: number | null
     is_active: number | null
+    is_archived: number | null
   }
 
   export type Recurring_transactionsSumAggregateOutputType = {
@@ -23754,6 +23840,7 @@ export namespace Prisma {
     company_id: number | null
     amount: number | null
     is_active: number | null
+    is_archived: number | null
   }
 
   export type Recurring_transactionsMinAggregateOutputType = {
@@ -23768,6 +23855,7 @@ export namespace Prisma {
     next_run_date: Date | null
     is_active: number | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Recurring_transactionsMaxAggregateOutputType = {
@@ -23782,6 +23870,7 @@ export namespace Prisma {
     next_run_date: Date | null
     is_active: number | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Recurring_transactionsCountAggregateOutputType = {
@@ -23796,6 +23885,7 @@ export namespace Prisma {
     next_run_date: number
     is_active: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -23805,6 +23895,7 @@ export namespace Prisma {
     company_id?: true
     amount?: true
     is_active?: true
+    is_archived?: true
   }
 
   export type Recurring_transactionsSumAggregateInputType = {
@@ -23812,6 +23903,7 @@ export namespace Prisma {
     company_id?: true
     amount?: true
     is_active?: true
+    is_archived?: true
   }
 
   export type Recurring_transactionsMinAggregateInputType = {
@@ -23826,6 +23918,7 @@ export namespace Prisma {
     next_run_date?: true
     is_active?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Recurring_transactionsMaxAggregateInputType = {
@@ -23840,6 +23933,7 @@ export namespace Prisma {
     next_run_date?: true
     is_active?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Recurring_transactionsCountAggregateInputType = {
@@ -23854,6 +23948,7 @@ export namespace Prisma {
     next_run_date?: true
     is_active?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -23955,6 +24050,7 @@ export namespace Prisma {
     next_run_date: Date
     is_active: number | null
     created_at: Date | null
+    is_archived: number | null
     _count: Recurring_transactionsCountAggregateOutputType | null
     _avg: Recurring_transactionsAvgAggregateOutputType | null
     _sum: Recurring_transactionsSumAggregateOutputType | null
@@ -23988,6 +24084,7 @@ export namespace Prisma {
     next_run_date?: boolean
     is_active?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurring_transactions"]>
 
@@ -24003,6 +24100,7 @@ export namespace Prisma {
     next_run_date?: boolean
     is_active?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurring_transactions"]>
 
@@ -24018,6 +24116,7 @@ export namespace Prisma {
     next_run_date?: boolean
     is_active?: boolean
     created_at?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurring_transactions"]>
 
@@ -24033,9 +24132,10 @@ export namespace Prisma {
     next_run_date?: boolean
     is_active?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type recurring_transactionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "type" | "method" | "amount" | "category" | "description" | "frequency" | "next_run_date" | "is_active" | "created_at", ExtArgs["result"]["recurring_transactions"]>
+  export type recurring_transactionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "type" | "method" | "amount" | "category" | "description" | "frequency" | "next_run_date" | "is_active" | "created_at" | "is_archived", ExtArgs["result"]["recurring_transactions"]>
   export type recurring_transactionsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -24063,6 +24163,7 @@ export namespace Prisma {
       next_run_date: Date
       is_active: number | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["recurring_transactions"]>
     composites: {}
   }
@@ -24498,6 +24599,7 @@ export namespace Prisma {
     readonly next_run_date: FieldRef<"recurring_transactions", 'DateTime'>
     readonly is_active: FieldRef<"recurring_transactions", 'Int'>
     readonly created_at: FieldRef<"recurring_transactions", 'DateTime'>
+    readonly is_archived: FieldRef<"recurring_transactions", 'Int'>
   }
     
 
@@ -24929,6 +25031,7 @@ export namespace Prisma {
     bonus: number | null
     deduction: number | null
     net_salary: number | null
+    is_archived: number | null
   }
 
   export type SalariesSumAggregateOutputType = {
@@ -24938,6 +25041,7 @@ export namespace Prisma {
     bonus: number | null
     deduction: number | null
     net_salary: number | null
+    is_archived: number | null
   }
 
   export type SalariesMinAggregateOutputType = {
@@ -24952,6 +25056,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type SalariesMaxAggregateOutputType = {
@@ -24966,6 +25071,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type SalariesCountAggregateOutputType = {
@@ -24980,6 +25086,7 @@ export namespace Prisma {
     status: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -24991,6 +25098,7 @@ export namespace Prisma {
     bonus?: true
     deduction?: true
     net_salary?: true
+    is_archived?: true
   }
 
   export type SalariesSumAggregateInputType = {
@@ -25000,6 +25108,7 @@ export namespace Prisma {
     bonus?: true
     deduction?: true
     net_salary?: true
+    is_archived?: true
   }
 
   export type SalariesMinAggregateInputType = {
@@ -25014,6 +25123,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type SalariesMaxAggregateInputType = {
@@ -25028,6 +25138,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type SalariesCountAggregateInputType = {
@@ -25042,6 +25153,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -25143,6 +25255,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: SalariesCountAggregateOutputType | null
     _avg: SalariesAvgAggregateOutputType | null
     _sum: SalariesSumAggregateOutputType | null
@@ -25176,6 +25289,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["salaries"]>
 
@@ -25191,6 +25305,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["salaries"]>
 
@@ -25206,6 +25321,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["salaries"]>
 
@@ -25221,9 +25337,10 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type salariesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "period" | "base_salary" | "bonus" | "deduction" | "net_salary" | "payment_date" | "status" | "notes" | "created_at", ExtArgs["result"]["salaries"]>
+  export type salariesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "period" | "base_salary" | "bonus" | "deduction" | "net_salary" | "payment_date" | "status" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["salaries"]>
   export type salariesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -25251,6 +25368,7 @@ export namespace Prisma {
       status: string | null
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["salaries"]>
     composites: {}
   }
@@ -25686,6 +25804,7 @@ export namespace Prisma {
     readonly status: FieldRef<"salaries", 'String'>
     readonly notes: FieldRef<"salaries", 'String'>
     readonly created_at: FieldRef<"salaries", 'DateTime'>
+    readonly is_archived: FieldRef<"salaries", 'Int'>
   }
     
 
@@ -28299,12 +28418,14 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     amount: number | null
+    is_archived: number | null
   }
 
   export type TransactionsSumAggregateOutputType = {
     id: number | null
     company_id: number | null
     amount: number | null
+    is_archived: number | null
   }
 
   export type TransactionsMinAggregateOutputType = {
@@ -28322,6 +28443,7 @@ export namespace Prisma {
     check_due_date: Date | null
     status: string | null
     currency: string | null
+    is_archived: number | null
   }
 
   export type TransactionsMaxAggregateOutputType = {
@@ -28339,6 +28461,7 @@ export namespace Prisma {
     check_due_date: Date | null
     status: string | null
     currency: string | null
+    is_archived: number | null
   }
 
   export type TransactionsCountAggregateOutputType = {
@@ -28356,6 +28479,7 @@ export namespace Prisma {
     check_due_date: number
     status: number
     currency: number
+    is_archived: number
     _all: number
   }
 
@@ -28364,12 +28488,14 @@ export namespace Prisma {
     id?: true
     company_id?: true
     amount?: true
+    is_archived?: true
   }
 
   export type TransactionsSumAggregateInputType = {
     id?: true
     company_id?: true
     amount?: true
+    is_archived?: true
   }
 
   export type TransactionsMinAggregateInputType = {
@@ -28387,6 +28513,7 @@ export namespace Prisma {
     check_due_date?: true
     status?: true
     currency?: true
+    is_archived?: true
   }
 
   export type TransactionsMaxAggregateInputType = {
@@ -28404,6 +28531,7 @@ export namespace Prisma {
     check_due_date?: true
     status?: true
     currency?: true
+    is_archived?: true
   }
 
   export type TransactionsCountAggregateInputType = {
@@ -28421,6 +28549,7 @@ export namespace Prisma {
     check_due_date?: true
     status?: true
     currency?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -28525,6 +28654,7 @@ export namespace Prisma {
     check_due_date: Date | null
     status: string | null
     currency: string | null
+    is_archived: number | null
     _count: TransactionsCountAggregateOutputType | null
     _avg: TransactionsAvgAggregateOutputType | null
     _sum: TransactionsSumAggregateOutputType | null
@@ -28561,6 +28691,7 @@ export namespace Prisma {
     check_due_date?: boolean
     status?: boolean
     currency?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transactions"]>
 
@@ -28579,6 +28710,7 @@ export namespace Prisma {
     check_due_date?: boolean
     status?: boolean
     currency?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transactions"]>
 
@@ -28597,6 +28729,7 @@ export namespace Prisma {
     check_due_date?: boolean
     status?: boolean
     currency?: boolean
+    is_archived?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transactions"]>
 
@@ -28615,9 +28748,10 @@ export namespace Prisma {
     check_due_date?: boolean
     status?: boolean
     currency?: boolean
+    is_archived?: boolean
   }
 
-  export type transactionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "type" | "category" | "amount" | "description" | "payment_method" | "created_at" | "method" | "check_number" | "check_due_date" | "status" | "currency", ExtArgs["result"]["transactions"]>
+  export type transactionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "type" | "category" | "amount" | "description" | "payment_method" | "created_at" | "method" | "check_number" | "check_due_date" | "status" | "currency" | "is_archived", ExtArgs["result"]["transactions"]>
   export type transactionsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -28648,6 +28782,7 @@ export namespace Prisma {
       check_due_date: Date | null
       status: string | null
       currency: string | null
+      is_archived: number | null
     }, ExtArgs["result"]["transactions"]>
     composites: {}
   }
@@ -29086,6 +29221,7 @@ export namespace Prisma {
     readonly check_due_date: FieldRef<"transactions", 'DateTime'>
     readonly status: FieldRef<"transactions", 'String'>
     readonly currency: FieldRef<"transactions", 'String'>
+    readonly is_archived: FieldRef<"transactions", 'Int'>
   }
     
 
@@ -32086,7 +32222,9 @@ export namespace Prisma {
     hours: number | null
     overtime_hours: number | null
     unit_price: number | null
+    travel_price: number | null
     total_price: number | null
+    is_archived: number | null
   }
 
   export type Work_itemsSumAggregateOutputType = {
@@ -32097,7 +32235,9 @@ export namespace Prisma {
     hours: number | null
     overtime_hours: number | null
     unit_price: number | null
+    travel_price: number | null
     total_price: number | null
+    is_archived: number | null
   }
 
   export type Work_itemsMinAggregateOutputType = {
@@ -32112,9 +32252,11 @@ export namespace Prisma {
     hours: number | null
     overtime_hours: number | null
     unit_price: number | null
+    travel_price: number | null
     total_price: number | null
     description: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Work_itemsMaxAggregateOutputType = {
@@ -32129,9 +32271,11 @@ export namespace Prisma {
     hours: number | null
     overtime_hours: number | null
     unit_price: number | null
+    travel_price: number | null
     total_price: number | null
     description: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Work_itemsCountAggregateOutputType = {
@@ -32146,9 +32290,11 @@ export namespace Prisma {
     hours: number
     overtime_hours: number
     unit_price: number
+    travel_price: number
     total_price: number
     description: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -32161,7 +32307,9 @@ export namespace Prisma {
     hours?: true
     overtime_hours?: true
     unit_price?: true
+    travel_price?: true
     total_price?: true
+    is_archived?: true
   }
 
   export type Work_itemsSumAggregateInputType = {
@@ -32172,7 +32320,9 @@ export namespace Prisma {
     hours?: true
     overtime_hours?: true
     unit_price?: true
+    travel_price?: true
     total_price?: true
+    is_archived?: true
   }
 
   export type Work_itemsMinAggregateInputType = {
@@ -32187,9 +32337,11 @@ export namespace Prisma {
     hours?: true
     overtime_hours?: true
     unit_price?: true
+    travel_price?: true
     total_price?: true
     description?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Work_itemsMaxAggregateInputType = {
@@ -32204,9 +32356,11 @@ export namespace Prisma {
     hours?: true
     overtime_hours?: true
     unit_price?: true
+    travel_price?: true
     total_price?: true
     description?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Work_itemsCountAggregateInputType = {
@@ -32221,9 +32375,11 @@ export namespace Prisma {
     hours?: true
     overtime_hours?: true
     unit_price?: true
+    travel_price?: true
     total_price?: true
     description?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -32325,9 +32481,11 @@ export namespace Prisma {
     hours: number | null
     overtime_hours: number | null
     unit_price: number | null
+    travel_price: number | null
     total_price: number | null
     description: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: Work_itemsCountAggregateOutputType | null
     _avg: Work_itemsAvgAggregateOutputType | null
     _sum: Work_itemsSumAggregateOutputType | null
@@ -32361,9 +32519,11 @@ export namespace Prisma {
     hours?: boolean
     overtime_hours?: boolean
     unit_price?: boolean
+    travel_price?: boolean
     total_price?: boolean
     description?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | work_items$employeesArgs<ExtArgs>
     vehicles?: boolean | work_items$vehiclesArgs<ExtArgs>
     works?: boolean | worksDefaultArgs<ExtArgs>
@@ -32381,9 +32541,11 @@ export namespace Prisma {
     hours?: boolean
     overtime_hours?: boolean
     unit_price?: boolean
+    travel_price?: boolean
     total_price?: boolean
     description?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | work_items$employeesArgs<ExtArgs>
     vehicles?: boolean | work_items$vehiclesArgs<ExtArgs>
     works?: boolean | worksDefaultArgs<ExtArgs>
@@ -32401,9 +32563,11 @@ export namespace Prisma {
     hours?: boolean
     overtime_hours?: boolean
     unit_price?: boolean
+    travel_price?: boolean
     total_price?: boolean
     description?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | work_items$employeesArgs<ExtArgs>
     vehicles?: boolean | work_items$vehiclesArgs<ExtArgs>
     works?: boolean | worksDefaultArgs<ExtArgs>
@@ -32421,12 +32585,14 @@ export namespace Prisma {
     hours?: boolean
     overtime_hours?: boolean
     unit_price?: boolean
+    travel_price?: boolean
     total_price?: boolean
     description?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type work_itemsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "work_id" | "date" | "receipt_no" | "vehicle_id" | "employee_id" | "start_time" | "end_time" | "hours" | "overtime_hours" | "unit_price" | "total_price" | "description" | "created_at", ExtArgs["result"]["work_items"]>
+  export type work_itemsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "work_id" | "date" | "receipt_no" | "vehicle_id" | "employee_id" | "start_time" | "end_time" | "hours" | "overtime_hours" | "unit_price" | "travel_price" | "total_price" | "description" | "created_at" | "is_archived", ExtArgs["result"]["work_items"]>
   export type work_itemsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | work_items$employeesArgs<ExtArgs>
     vehicles?: boolean | work_items$vehiclesArgs<ExtArgs>
@@ -32462,9 +32628,11 @@ export namespace Prisma {
       hours: number | null
       overtime_hours: number | null
       unit_price: number | null
+      travel_price: number | null
       total_price: number | null
       description: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["work_items"]>
     composites: {}
   }
@@ -32902,9 +33070,11 @@ export namespace Prisma {
     readonly hours: FieldRef<"work_items", 'Float'>
     readonly overtime_hours: FieldRef<"work_items", 'Float'>
     readonly unit_price: FieldRef<"work_items", 'Float'>
+    readonly travel_price: FieldRef<"work_items", 'Float'>
     readonly total_price: FieldRef<"work_items", 'Float'>
     readonly description: FieldRef<"work_items", 'String'>
     readonly created_at: FieldRef<"work_items", 'DateTime'>
+    readonly is_archived: FieldRef<"work_items", 'Int'>
   }
     
 
@@ -33374,6 +33544,7 @@ export namespace Prisma {
     employee_id: number | null
     customer_id: number | null
     price: number | null
+    is_archived: number | null
   }
 
   export type WorksSumAggregateOutputType = {
@@ -33383,6 +33554,7 @@ export namespace Prisma {
     employee_id: number | null
     customer_id: number | null
     price: number | null
+    is_archived: number | null
   }
 
   export type WorksMinAggregateOutputType = {
@@ -33400,6 +33572,7 @@ export namespace Prisma {
     created_at: Date | null
     start_date: Date | null
     end_date: Date | null
+    is_archived: number | null
   }
 
   export type WorksMaxAggregateOutputType = {
@@ -33417,6 +33590,7 @@ export namespace Prisma {
     created_at: Date | null
     start_date: Date | null
     end_date: Date | null
+    is_archived: number | null
   }
 
   export type WorksCountAggregateOutputType = {
@@ -33434,6 +33608,7 @@ export namespace Prisma {
     created_at: number
     start_date: number
     end_date: number
+    is_archived: number
     _all: number
   }
 
@@ -33445,6 +33620,7 @@ export namespace Prisma {
     employee_id?: true
     customer_id?: true
     price?: true
+    is_archived?: true
   }
 
   export type WorksSumAggregateInputType = {
@@ -33454,6 +33630,7 @@ export namespace Prisma {
     employee_id?: true
     customer_id?: true
     price?: true
+    is_archived?: true
   }
 
   export type WorksMinAggregateInputType = {
@@ -33471,6 +33648,7 @@ export namespace Prisma {
     created_at?: true
     start_date?: true
     end_date?: true
+    is_archived?: true
   }
 
   export type WorksMaxAggregateInputType = {
@@ -33488,6 +33666,7 @@ export namespace Prisma {
     created_at?: true
     start_date?: true
     end_date?: true
+    is_archived?: true
   }
 
   export type WorksCountAggregateInputType = {
@@ -33505,6 +33684,7 @@ export namespace Prisma {
     created_at?: true
     start_date?: true
     end_date?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -33609,6 +33789,7 @@ export namespace Prisma {
     created_at: Date | null
     start_date: Date | null
     end_date: Date | null
+    is_archived: number | null
     _count: WorksCountAggregateOutputType | null
     _avg: WorksAvgAggregateOutputType | null
     _sum: WorksSumAggregateOutputType | null
@@ -33645,6 +33826,7 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    is_archived?: boolean
     work_items?: boolean | works$work_itemsArgs<ExtArgs>
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
@@ -33668,6 +33850,7 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    is_archived?: boolean
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -33689,6 +33872,7 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    is_archived?: boolean
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -33710,9 +33894,10 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    is_archived?: boolean
   }
 
-  export type worksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "vehicle_id" | "employee_id" | "customer_id" | "customer" | "title" | "description" | "status" | "price" | "location" | "created_at" | "start_date" | "end_date", ExtArgs["result"]["works"]>
+  export type worksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "vehicle_id" | "employee_id" | "customer_id" | "customer" | "title" | "description" | "status" | "price" | "location" | "created_at" | "start_date" | "end_date" | "is_archived", ExtArgs["result"]["works"]>
   export type worksInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     work_items?: boolean | works$work_itemsArgs<ExtArgs>
     employees?: boolean | works$employeesArgs<ExtArgs>
@@ -33758,6 +33943,7 @@ export namespace Prisma {
       created_at: Date | null
       start_date: Date | null
       end_date: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["works"]>
     composites: {}
   }
@@ -34200,6 +34386,7 @@ export namespace Prisma {
     readonly created_at: FieldRef<"works", 'DateTime'>
     readonly start_date: FieldRef<"works", 'DateTime'>
     readonly end_date: FieldRef<"works", 'DateTime'>
+    readonly is_archived: FieldRef<"works", 'Int'>
   }
     
 
@@ -34744,7 +34931,8 @@ export namespace Prisma {
     tax_number: 'tax_number',
     tax_office: 'tax_office',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type CustomersScalarFieldEnum = (typeof CustomersScalarFieldEnum)[keyof typeof CustomersScalarFieldEnum]
@@ -34904,7 +35092,8 @@ export namespace Prisma {
     days: 'days',
     status: 'status',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type LeavesScalarFieldEnum = (typeof LeavesScalarFieldEnum)[keyof typeof LeavesScalarFieldEnum]
@@ -34932,7 +35121,8 @@ export namespace Prisma {
     id: 'id',
     company_id: 'company_id',
     price_per_person: 'price_per_person',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type Meal_settingsScalarFieldEnum = (typeof Meal_settingsScalarFieldEnum)[keyof typeof Meal_settingsScalarFieldEnum]
@@ -34944,7 +35134,8 @@ export namespace Prisma {
     date: 'date',
     person_count: 'person_count',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type Meal_ticketsScalarFieldEnum = (typeof Meal_ticketsScalarFieldEnum)[keyof typeof Meal_ticketsScalarFieldEnum]
@@ -34958,7 +35149,8 @@ export namespace Prisma {
     rate: 'rate',
     amount: 'amount',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type OvertimesScalarFieldEnum = (typeof OvertimesScalarFieldEnum)[keyof typeof OvertimesScalarFieldEnum]
@@ -34975,7 +35167,8 @@ export namespace Prisma {
     frequency: 'frequency',
     next_run_date: 'next_run_date',
     is_active: 'is_active',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type Recurring_transactionsScalarFieldEnum = (typeof Recurring_transactionsScalarFieldEnum)[keyof typeof Recurring_transactionsScalarFieldEnum]
@@ -34992,7 +35185,8 @@ export namespace Prisma {
     payment_date: 'payment_date',
     status: 'status',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type SalariesScalarFieldEnum = (typeof SalariesScalarFieldEnum)[keyof typeof SalariesScalarFieldEnum]
@@ -35038,7 +35232,8 @@ export namespace Prisma {
     check_number: 'check_number',
     check_due_date: 'check_due_date',
     status: 'status',
-    currency: 'currency'
+    currency: 'currency',
+    is_archived: 'is_archived'
   };
 
   export type TransactionsScalarFieldEnum = (typeof TransactionsScalarFieldEnum)[keyof typeof TransactionsScalarFieldEnum]
@@ -35088,9 +35283,11 @@ export namespace Prisma {
     hours: 'hours',
     overtime_hours: 'overtime_hours',
     unit_price: 'unit_price',
+    travel_price: 'travel_price',
     total_price: 'total_price',
     description: 'description',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type Work_itemsScalarFieldEnum = (typeof Work_itemsScalarFieldEnum)[keyof typeof Work_itemsScalarFieldEnum]
@@ -35110,7 +35307,8 @@ export namespace Prisma {
     location: 'location',
     created_at: 'created_at',
     start_date: 'start_date',
-    end_date: 'end_date'
+    end_date: 'end_date',
+    is_archived: 'is_archived'
   };
 
   export type WorksScalarFieldEnum = (typeof WorksScalarFieldEnum)[keyof typeof WorksScalarFieldEnum]
@@ -35360,6 +35558,7 @@ export namespace Prisma {
     tax_office?: StringNullableFilter<"customers"> | string | null
     notes?: StringNullableFilter<"customers"> | string | null
     created_at?: DateTimeNullableFilter<"customers"> | Date | string | null
+    is_archived?: IntNullableFilter<"customers"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
     works?: WorksListRelationFilter
   }
@@ -35375,6 +35574,7 @@ export namespace Prisma {
     tax_office?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
     works?: worksOrderByRelationAggregateInput
   }
@@ -35393,6 +35593,7 @@ export namespace Prisma {
     tax_office?: StringNullableFilter<"customers"> | string | null
     notes?: StringNullableFilter<"customers"> | string | null
     created_at?: DateTimeNullableFilter<"customers"> | Date | string | null
+    is_archived?: IntNullableFilter<"customers"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
     works?: WorksListRelationFilter
   }, "id">
@@ -35408,6 +35609,7 @@ export namespace Prisma {
     tax_office?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: customersCountOrderByAggregateInput
     _avg?: customersAvgOrderByAggregateInput
     _max?: customersMaxOrderByAggregateInput
@@ -35429,6 +35631,7 @@ export namespace Prisma {
     tax_office?: StringNullableWithAggregatesFilter<"customers"> | string | null
     notes?: StringNullableWithAggregatesFilter<"customers"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"customers"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"customers"> | number | null
   }
 
   export type documentsWhereInput = {
@@ -36218,6 +36421,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"leaves"> | string | null
     notes?: StringNullableFilter<"leaves"> | string | null
     created_at?: DateTimeNullableFilter<"leaves"> | Date | string | null
+    is_archived?: IntNullableFilter<"leaves"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }
 
@@ -36231,6 +36435,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
   }
 
@@ -36247,6 +36452,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"leaves"> | string | null
     notes?: StringNullableFilter<"leaves"> | string | null
     created_at?: DateTimeNullableFilter<"leaves"> | Date | string | null
+    is_archived?: IntNullableFilter<"leaves"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }, "id">
 
@@ -36260,6 +36466,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: leavesCountOrderByAggregateInput
     _avg?: leavesAvgOrderByAggregateInput
     _max?: leavesMaxOrderByAggregateInput
@@ -36280,6 +36487,7 @@ export namespace Prisma {
     status?: StringNullableWithAggregatesFilter<"leaves"> | string | null
     notes?: StringNullableWithAggregatesFilter<"leaves"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"leaves"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"leaves"> | number | null
   }
 
   export type maintenancesWhereInput = {
@@ -36382,6 +36590,7 @@ export namespace Prisma {
     company_id?: IntFilter<"meal_settings"> | number
     price_per_person?: FloatFilter<"meal_settings"> | number
     created_at?: DateTimeNullableFilter<"meal_settings"> | Date | string | null
+    is_archived?: IntNullableFilter<"meal_settings"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
 
@@ -36390,6 +36599,7 @@ export namespace Prisma {
     company_id?: SortOrder
     price_per_person?: SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
 
@@ -36401,6 +36611,7 @@ export namespace Prisma {
     NOT?: meal_settingsWhereInput | meal_settingsWhereInput[]
     price_per_person?: FloatFilter<"meal_settings"> | number
     created_at?: DateTimeNullableFilter<"meal_settings"> | Date | string | null
+    is_archived?: IntNullableFilter<"meal_settings"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id" | "company_id">
 
@@ -36409,6 +36620,7 @@ export namespace Prisma {
     company_id?: SortOrder
     price_per_person?: SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: meal_settingsCountOrderByAggregateInput
     _avg?: meal_settingsAvgOrderByAggregateInput
     _max?: meal_settingsMaxOrderByAggregateInput
@@ -36424,6 +36636,7 @@ export namespace Prisma {
     company_id?: IntWithAggregatesFilter<"meal_settings"> | number
     price_per_person?: FloatWithAggregatesFilter<"meal_settings"> | number
     created_at?: DateTimeNullableWithAggregatesFilter<"meal_settings"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"meal_settings"> | number | null
   }
 
   export type meal_ticketsWhereInput = {
@@ -36436,6 +36649,7 @@ export namespace Prisma {
     person_count?: IntFilter<"meal_tickets"> | number
     notes?: StringNullableFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableFilter<"meal_tickets"> | Date | string | null
+    is_archived?: IntNullableFilter<"meal_tickets"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
 
@@ -36446,6 +36660,7 @@ export namespace Prisma {
     person_count?: SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
 
@@ -36459,6 +36674,7 @@ export namespace Prisma {
     person_count?: IntFilter<"meal_tickets"> | number
     notes?: StringNullableFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableFilter<"meal_tickets"> | Date | string | null
+    is_archived?: IntNullableFilter<"meal_tickets"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
 
@@ -36469,6 +36685,7 @@ export namespace Prisma {
     person_count?: SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: meal_ticketsCountOrderByAggregateInput
     _avg?: meal_ticketsAvgOrderByAggregateInput
     _max?: meal_ticketsMaxOrderByAggregateInput
@@ -36486,6 +36703,7 @@ export namespace Prisma {
     person_count?: IntWithAggregatesFilter<"meal_tickets"> | number
     notes?: StringNullableWithAggregatesFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"meal_tickets"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"meal_tickets"> | number | null
   }
 
   export type overtimesWhereInput = {
@@ -36500,6 +36718,7 @@ export namespace Prisma {
     amount?: FloatNullableFilter<"overtimes"> | number | null
     notes?: StringNullableFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableFilter<"overtimes"> | Date | string | null
+    is_archived?: IntNullableFilter<"overtimes"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }
 
@@ -36512,6 +36731,7 @@ export namespace Prisma {
     amount?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
   }
 
@@ -36527,6 +36747,7 @@ export namespace Prisma {
     amount?: FloatNullableFilter<"overtimes"> | number | null
     notes?: StringNullableFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableFilter<"overtimes"> | Date | string | null
+    is_archived?: IntNullableFilter<"overtimes"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }, "id">
 
@@ -36539,6 +36760,7 @@ export namespace Prisma {
     amount?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: overtimesCountOrderByAggregateInput
     _avg?: overtimesAvgOrderByAggregateInput
     _max?: overtimesMaxOrderByAggregateInput
@@ -36558,6 +36780,7 @@ export namespace Prisma {
     amount?: FloatNullableWithAggregatesFilter<"overtimes"> | number | null
     notes?: StringNullableWithAggregatesFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"overtimes"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"overtimes"> | number | null
   }
 
   export type recurring_transactionsWhereInput = {
@@ -36575,6 +36798,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFilter<"recurring_transactions"> | Date | string
     is_active?: IntNullableFilter<"recurring_transactions"> | number | null
     created_at?: DateTimeNullableFilter<"recurring_transactions"> | Date | string | null
+    is_archived?: IntNullableFilter<"recurring_transactions"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
 
@@ -36590,6 +36814,7 @@ export namespace Prisma {
     next_run_date?: SortOrder
     is_active?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
 
@@ -36608,6 +36833,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFilter<"recurring_transactions"> | Date | string
     is_active?: IntNullableFilter<"recurring_transactions"> | number | null
     created_at?: DateTimeNullableFilter<"recurring_transactions"> | Date | string | null
+    is_archived?: IntNullableFilter<"recurring_transactions"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
 
@@ -36623,6 +36849,7 @@ export namespace Prisma {
     next_run_date?: SortOrder
     is_active?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: recurring_transactionsCountOrderByAggregateInput
     _avg?: recurring_transactionsAvgOrderByAggregateInput
     _max?: recurring_transactionsMaxOrderByAggregateInput
@@ -36645,6 +36872,7 @@ export namespace Prisma {
     next_run_date?: DateTimeWithAggregatesFilter<"recurring_transactions"> | Date | string
     is_active?: IntNullableWithAggregatesFilter<"recurring_transactions"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"recurring_transactions"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"recurring_transactions"> | number | null
   }
 
   export type salariesWhereInput = {
@@ -36662,6 +36890,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"salaries"> | string | null
     notes?: StringNullableFilter<"salaries"> | string | null
     created_at?: DateTimeNullableFilter<"salaries"> | Date | string | null
+    is_archived?: IntNullableFilter<"salaries"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }
 
@@ -36677,6 +36906,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
   }
 
@@ -36695,6 +36925,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"salaries"> | string | null
     notes?: StringNullableFilter<"salaries"> | string | null
     created_at?: DateTimeNullableFilter<"salaries"> | Date | string | null
+    is_archived?: IntNullableFilter<"salaries"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }, "id">
 
@@ -36710,6 +36941,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: salariesCountOrderByAggregateInput
     _avg?: salariesAvgOrderByAggregateInput
     _max?: salariesMaxOrderByAggregateInput
@@ -36732,6 +36964,7 @@ export namespace Prisma {
     status?: StringNullableWithAggregatesFilter<"salaries"> | string | null
     notes?: StringNullableWithAggregatesFilter<"salaries"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"salaries"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"salaries"> | number | null
   }
 
   export type schema_migrationsWhereInput = {
@@ -36883,6 +37116,7 @@ export namespace Prisma {
     check_due_date?: DateTimeNullableFilter<"transactions"> | Date | string | null
     status?: StringNullableFilter<"transactions"> | string | null
     currency?: StringNullableFilter<"transactions"> | string | null
+    is_archived?: IntNullableFilter<"transactions"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
 
@@ -36901,6 +37135,7 @@ export namespace Prisma {
     check_due_date?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     currency?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
 
@@ -36922,6 +37157,7 @@ export namespace Prisma {
     check_due_date?: DateTimeNullableFilter<"transactions"> | Date | string | null
     status?: StringNullableFilter<"transactions"> | string | null
     currency?: StringNullableFilter<"transactions"> | string | null
+    is_archived?: IntNullableFilter<"transactions"> | number | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
 
@@ -36940,6 +37176,7 @@ export namespace Prisma {
     check_due_date?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     currency?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: transactionsCountOrderByAggregateInput
     _avg?: transactionsAvgOrderByAggregateInput
     _max?: transactionsMaxOrderByAggregateInput
@@ -36965,6 +37202,7 @@ export namespace Prisma {
     check_due_date?: DateTimeNullableWithAggregatesFilter<"transactions"> | Date | string | null
     status?: StringNullableWithAggregatesFilter<"transactions"> | string | null
     currency?: StringNullableWithAggregatesFilter<"transactions"> | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"transactions"> | number | null
   }
 
   export type usersWhereInput = {
@@ -37170,9 +37408,11 @@ export namespace Prisma {
     hours?: FloatNullableFilter<"work_items"> | number | null
     overtime_hours?: FloatNullableFilter<"work_items"> | number | null
     unit_price?: FloatNullableFilter<"work_items"> | number | null
+    travel_price?: FloatNullableFilter<"work_items"> | number | null
     total_price?: FloatNullableFilter<"work_items"> | number | null
     description?: StringNullableFilter<"work_items"> | string | null
     created_at?: DateTimeNullableFilter<"work_items"> | Date | string | null
+    is_archived?: IntNullableFilter<"work_items"> | number | null
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
     works?: XOR<WorksScalarRelationFilter, worksWhereInput>
@@ -37190,9 +37430,11 @@ export namespace Prisma {
     hours?: SortOrderInput | SortOrder
     overtime_hours?: SortOrderInput | SortOrder
     unit_price?: SortOrderInput | SortOrder
+    travel_price?: SortOrderInput | SortOrder
     total_price?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
     vehicles?: vehiclesOrderByWithRelationInput
     works?: worksOrderByWithRelationInput
@@ -37213,9 +37455,11 @@ export namespace Prisma {
     hours?: FloatNullableFilter<"work_items"> | number | null
     overtime_hours?: FloatNullableFilter<"work_items"> | number | null
     unit_price?: FloatNullableFilter<"work_items"> | number | null
+    travel_price?: FloatNullableFilter<"work_items"> | number | null
     total_price?: FloatNullableFilter<"work_items"> | number | null
     description?: StringNullableFilter<"work_items"> | string | null
     created_at?: DateTimeNullableFilter<"work_items"> | Date | string | null
+    is_archived?: IntNullableFilter<"work_items"> | number | null
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
     works?: XOR<WorksScalarRelationFilter, worksWhereInput>
@@ -37233,9 +37477,11 @@ export namespace Prisma {
     hours?: SortOrderInput | SortOrder
     overtime_hours?: SortOrderInput | SortOrder
     unit_price?: SortOrderInput | SortOrder
+    travel_price?: SortOrderInput | SortOrder
     total_price?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: work_itemsCountOrderByAggregateInput
     _avg?: work_itemsAvgOrderByAggregateInput
     _max?: work_itemsMaxOrderByAggregateInput
@@ -37258,9 +37504,11 @@ export namespace Prisma {
     hours?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
     overtime_hours?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
     unit_price?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
+    travel_price?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
     total_price?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
     description?: StringNullableWithAggregatesFilter<"work_items"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"work_items"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"work_items"> | number | null
   }
 
   export type worksWhereInput = {
@@ -37281,6 +37529,7 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableFilter<"works"> | Date | string | null
+    is_archived?: IntNullableFilter<"works"> | number | null
     work_items?: Work_itemsListRelationFilter
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
@@ -37303,6 +37552,7 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     work_items?: work_itemsOrderByRelationAggregateInput
     employees?: employeesOrderByWithRelationInput
     vehicles?: vehiclesOrderByWithRelationInput
@@ -37328,6 +37578,7 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableFilter<"works"> | Date | string | null
+    is_archived?: IntNullableFilter<"works"> | number | null
     work_items?: Work_itemsListRelationFilter
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
@@ -37350,6 +37601,7 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: worksCountOrderByAggregateInput
     _avg?: worksAvgOrderByAggregateInput
     _max?: worksMaxOrderByAggregateInput
@@ -37375,6 +37627,7 @@ export namespace Prisma {
     created_at?: DateTimeNullableWithAggregatesFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableWithAggregatesFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableWithAggregatesFilter<"works"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"works"> | number | null
   }
 
   export type assignmentsCreateInput = {
@@ -37578,6 +37831,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     companies: companiesCreateNestedOneWithoutCustomersInput
     works?: worksCreateNestedManyWithoutCustomersInput
   }
@@ -37593,6 +37847,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     works?: worksUncheckedCreateNestedManyWithoutCustomersInput
   }
 
@@ -37605,6 +37860,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateOneRequiredWithoutCustomersNestedInput
     works?: worksUpdateManyWithoutCustomersNestedInput
   }
@@ -37620,6 +37876,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     works?: worksUncheckedUpdateManyWithoutCustomersNestedInput
   }
 
@@ -37634,6 +37891,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type customersUpdateManyMutationInput = {
@@ -37645,6 +37903,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type customersUncheckedUpdateManyInput = {
@@ -37658,6 +37917,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type documentsCreateInput = {
@@ -38498,6 +38758,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees: employeesCreateNestedOneWithoutLeavesInput
   }
 
@@ -38511,6 +38772,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type leavesUpdateInput = {
@@ -38521,6 +38783,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneRequiredWithoutLeavesNestedInput
   }
 
@@ -38534,6 +38797,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type leavesCreateManyInput = {
@@ -38546,6 +38810,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type leavesUpdateManyMutationInput = {
@@ -38556,6 +38821,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type leavesUncheckedUpdateManyInput = {
@@ -38568,6 +38834,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type maintenancesCreateInput = {
@@ -38674,6 +38941,7 @@ export namespace Prisma {
   export type meal_settingsCreateInput = {
     price_per_person?: number
     created_at?: Date | string | null
+    is_archived?: number | null
     companies: companiesCreateNestedOneWithoutMeal_settingsInput
   }
 
@@ -38682,11 +38950,13 @@ export namespace Prisma {
     company_id: number
     price_per_person?: number
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_settingsUpdateInput = {
     price_per_person?: FloatFieldUpdateOperationsInput | number
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateOneRequiredWithoutMeal_settingsNestedInput
   }
 
@@ -38695,6 +38965,7 @@ export namespace Prisma {
     company_id?: IntFieldUpdateOperationsInput | number
     price_per_person?: FloatFieldUpdateOperationsInput | number
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_settingsCreateManyInput = {
@@ -38702,11 +38973,13 @@ export namespace Prisma {
     company_id: number
     price_per_person?: number
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_settingsUpdateManyMutationInput = {
     price_per_person?: FloatFieldUpdateOperationsInput | number
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_settingsUncheckedUpdateManyInput = {
@@ -38714,6 +38987,7 @@ export namespace Prisma {
     company_id?: IntFieldUpdateOperationsInput | number
     price_per_person?: FloatFieldUpdateOperationsInput | number
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsCreateInput = {
@@ -38721,6 +38995,7 @@ export namespace Prisma {
     person_count?: number
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     companies: companiesCreateNestedOneWithoutMeal_ticketsInput
   }
 
@@ -38731,6 +39006,7 @@ export namespace Prisma {
     person_count?: number
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_ticketsUpdateInput = {
@@ -38738,6 +39014,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateOneRequiredWithoutMeal_ticketsNestedInput
   }
 
@@ -38748,6 +39025,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsCreateManyInput = {
@@ -38757,6 +39035,7 @@ export namespace Prisma {
     person_count?: number
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_ticketsUpdateManyMutationInput = {
@@ -38764,6 +39043,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsUncheckedUpdateManyInput = {
@@ -38773,6 +39053,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type overtimesCreateInput = {
@@ -38782,6 +39063,7 @@ export namespace Prisma {
     amount?: number | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees: employeesCreateNestedOneWithoutOvertimesInput
   }
 
@@ -38794,6 +39076,7 @@ export namespace Prisma {
     amount?: number | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type overtimesUpdateInput = {
@@ -38803,6 +39086,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneRequiredWithoutOvertimesNestedInput
   }
 
@@ -38815,6 +39099,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type overtimesCreateManyInput = {
@@ -38826,6 +39111,7 @@ export namespace Prisma {
     amount?: number | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type overtimesUpdateManyMutationInput = {
@@ -38835,6 +39121,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type overtimesUncheckedUpdateManyInput = {
@@ -38846,6 +39133,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type recurring_transactionsCreateInput = {
@@ -38858,6 +39146,7 @@ export namespace Prisma {
     next_run_date: Date | string
     is_active?: number | null
     created_at?: Date | string | null
+    is_archived?: number | null
     companies: companiesCreateNestedOneWithoutRecurring_transactionsInput
   }
 
@@ -38873,6 +39162,7 @@ export namespace Prisma {
     next_run_date: Date | string
     is_active?: number | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type recurring_transactionsUpdateInput = {
@@ -38885,6 +39175,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateOneRequiredWithoutRecurring_transactionsNestedInput
   }
 
@@ -38900,6 +39191,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type recurring_transactionsCreateManyInput = {
@@ -38914,6 +39206,7 @@ export namespace Prisma {
     next_run_date: Date | string
     is_active?: number | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type recurring_transactionsUpdateManyMutationInput = {
@@ -38926,6 +39219,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type recurring_transactionsUncheckedUpdateManyInput = {
@@ -38940,6 +39234,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type salariesCreateInput = {
@@ -38952,6 +39247,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees: employeesCreateNestedOneWithoutSalariesInput
   }
 
@@ -38967,6 +39263,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type salariesUpdateInput = {
@@ -38979,6 +39276,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneRequiredWithoutSalariesNestedInput
   }
 
@@ -38994,6 +39292,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type salariesCreateManyInput = {
@@ -39008,6 +39307,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type salariesUpdateManyMutationInput = {
@@ -39020,6 +39320,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type salariesUncheckedUpdateManyInput = {
@@ -39034,6 +39335,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type schema_migrationsCreateInput = {
@@ -39182,6 +39484,7 @@ export namespace Prisma {
     check_due_date?: Date | string | null
     status?: string | null
     currency?: string | null
+    is_archived?: number | null
     companies: companiesCreateNestedOneWithoutTransactionsInput
   }
 
@@ -39200,6 +39503,7 @@ export namespace Prisma {
     check_due_date?: Date | string | null
     status?: string | null
     currency?: string | null
+    is_archived?: number | null
   }
 
   export type transactionsUpdateInput = {
@@ -39215,6 +39519,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateOneRequiredWithoutTransactionsNestedInput
   }
 
@@ -39233,6 +39538,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type transactionsCreateManyInput = {
@@ -39250,6 +39556,7 @@ export namespace Prisma {
     check_due_date?: Date | string | null
     status?: string | null
     currency?: string | null
+    is_archived?: number | null
   }
 
   export type transactionsUpdateManyMutationInput = {
@@ -39265,6 +39572,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type transactionsUncheckedUpdateManyInput = {
@@ -39282,6 +39590,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type usersCreateInput = {
@@ -39503,9 +39812,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWork_itemsInput
     vehicles?: vehiclesCreateNestedOneWithoutWork_itemsInput
     works: worksCreateNestedOneWithoutWork_itemsInput
@@ -39523,9 +39834,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsUpdateInput = {
@@ -39536,9 +39849,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWork_itemsNestedInput
     vehicles?: vehiclesUpdateOneWithoutWork_itemsNestedInput
     works?: worksUpdateOneRequiredWithoutWork_itemsNestedInput
@@ -39556,9 +39871,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsCreateManyInput = {
@@ -39573,9 +39890,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsUpdateManyMutationInput = {
@@ -39586,9 +39905,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsUncheckedUpdateManyInput = {
@@ -39603,9 +39924,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type worksCreateInput = {
@@ -39618,6 +39941,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -39640,6 +39964,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -39653,6 +39978,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -39675,6 +40001,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -39693,6 +40020,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
   }
 
   export type worksUpdateManyMutationInput = {
@@ -39705,6 +40033,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type worksUncheckedUpdateManyInput = {
@@ -39722,6 +40051,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -40092,11 +40422,13 @@ export namespace Prisma {
     tax_office?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type customersAvgOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type customersMaxOrderByAggregateInput = {
@@ -40110,6 +40442,7 @@ export namespace Prisma {
     tax_office?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type customersMinOrderByAggregateInput = {
@@ -40123,11 +40456,13 @@ export namespace Prisma {
     tax_office?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type customersSumOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type documentsCountOrderByAggregateInput = {
@@ -40738,12 +41073,14 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type leavesAvgOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
     days?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type leavesMaxOrderByAggregateInput = {
@@ -40756,6 +41093,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type leavesMinOrderByAggregateInput = {
@@ -40768,12 +41106,14 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type leavesSumOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
     days?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type maintenancesCountOrderByAggregateInput = {
@@ -40853,12 +41193,14 @@ export namespace Prisma {
     company_id?: SortOrder
     price_per_person?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_settingsAvgOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     price_per_person?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_settingsMaxOrderByAggregateInput = {
@@ -40866,6 +41208,7 @@ export namespace Prisma {
     company_id?: SortOrder
     price_per_person?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_settingsMinOrderByAggregateInput = {
@@ -40873,12 +41216,14 @@ export namespace Prisma {
     company_id?: SortOrder
     price_per_person?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_settingsSumOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     price_per_person?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -40904,12 +41249,14 @@ export namespace Prisma {
     person_count?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_ticketsAvgOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     person_count?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_ticketsMaxOrderByAggregateInput = {
@@ -40919,6 +41266,7 @@ export namespace Prisma {
     person_count?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_ticketsMinOrderByAggregateInput = {
@@ -40928,12 +41276,14 @@ export namespace Prisma {
     person_count?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type meal_ticketsSumOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     person_count?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type overtimesCountOrderByAggregateInput = {
@@ -40945,6 +41295,7 @@ export namespace Prisma {
     amount?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type overtimesAvgOrderByAggregateInput = {
@@ -40953,6 +41304,7 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type overtimesMaxOrderByAggregateInput = {
@@ -40964,6 +41316,7 @@ export namespace Prisma {
     amount?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type overtimesMinOrderByAggregateInput = {
@@ -40975,6 +41328,7 @@ export namespace Prisma {
     amount?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type overtimesSumOrderByAggregateInput = {
@@ -40983,6 +41337,7 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type recurring_transactionsCountOrderByAggregateInput = {
@@ -40997,6 +41352,7 @@ export namespace Prisma {
     next_run_date?: SortOrder
     is_active?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type recurring_transactionsAvgOrderByAggregateInput = {
@@ -41004,6 +41360,7 @@ export namespace Prisma {
     company_id?: SortOrder
     amount?: SortOrder
     is_active?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type recurring_transactionsMaxOrderByAggregateInput = {
@@ -41018,6 +41375,7 @@ export namespace Prisma {
     next_run_date?: SortOrder
     is_active?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type recurring_transactionsMinOrderByAggregateInput = {
@@ -41032,6 +41390,7 @@ export namespace Prisma {
     next_run_date?: SortOrder
     is_active?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type recurring_transactionsSumOrderByAggregateInput = {
@@ -41039,6 +41398,7 @@ export namespace Prisma {
     company_id?: SortOrder
     amount?: SortOrder
     is_active?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type salariesCountOrderByAggregateInput = {
@@ -41053,6 +41413,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type salariesAvgOrderByAggregateInput = {
@@ -41062,6 +41423,7 @@ export namespace Prisma {
     bonus?: SortOrder
     deduction?: SortOrder
     net_salary?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type salariesMaxOrderByAggregateInput = {
@@ -41076,6 +41438,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type salariesMinOrderByAggregateInput = {
@@ -41090,6 +41453,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type salariesSumOrderByAggregateInput = {
@@ -41099,6 +41463,7 @@ export namespace Prisma {
     bonus?: SortOrder
     deduction?: SortOrder
     net_salary?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type schema_migrationsCountOrderByAggregateInput = {
@@ -41200,12 +41565,14 @@ export namespace Prisma {
     check_due_date?: SortOrder
     status?: SortOrder
     currency?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type transactionsAvgOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     amount?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type transactionsMaxOrderByAggregateInput = {
@@ -41223,6 +41590,7 @@ export namespace Prisma {
     check_due_date?: SortOrder
     status?: SortOrder
     currency?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type transactionsMinOrderByAggregateInput = {
@@ -41240,12 +41608,14 @@ export namespace Prisma {
     check_due_date?: SortOrder
     status?: SortOrder
     currency?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type transactionsSumOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     amount?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type CompaniesListRelationFilter = {
@@ -41444,9 +41814,11 @@ export namespace Prisma {
     hours?: SortOrder
     overtime_hours?: SortOrder
     unit_price?: SortOrder
+    travel_price?: SortOrder
     total_price?: SortOrder
     description?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type work_itemsAvgOrderByAggregateInput = {
@@ -41457,7 +41829,9 @@ export namespace Prisma {
     hours?: SortOrder
     overtime_hours?: SortOrder
     unit_price?: SortOrder
+    travel_price?: SortOrder
     total_price?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type work_itemsMaxOrderByAggregateInput = {
@@ -41472,9 +41846,11 @@ export namespace Prisma {
     hours?: SortOrder
     overtime_hours?: SortOrder
     unit_price?: SortOrder
+    travel_price?: SortOrder
     total_price?: SortOrder
     description?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type work_itemsMinOrderByAggregateInput = {
@@ -41489,9 +41865,11 @@ export namespace Prisma {
     hours?: SortOrder
     overtime_hours?: SortOrder
     unit_price?: SortOrder
+    travel_price?: SortOrder
     total_price?: SortOrder
     description?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type work_itemsSumOrderByAggregateInput = {
@@ -41502,7 +41880,9 @@ export namespace Prisma {
     hours?: SortOrder
     overtime_hours?: SortOrder
     unit_price?: SortOrder
+    travel_price?: SortOrder
     total_price?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type CustomersNullableScalarRelationFilter = {
@@ -41525,6 +41905,7 @@ export namespace Prisma {
     created_at?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type worksAvgOrderByAggregateInput = {
@@ -41534,6 +41915,7 @@ export namespace Prisma {
     employee_id?: SortOrder
     customer_id?: SortOrder
     price?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type worksMaxOrderByAggregateInput = {
@@ -41551,6 +41933,7 @@ export namespace Prisma {
     created_at?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type worksMinOrderByAggregateInput = {
@@ -41568,6 +41951,7 @@ export namespace Prisma {
     created_at?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type worksSumOrderByAggregateInput = {
@@ -41577,6 +41961,7 @@ export namespace Prisma {
     employee_id?: SortOrder
     customer_id?: SortOrder
     price?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {
@@ -43678,12 +44063,14 @@ export namespace Prisma {
   export type meal_settingsCreateWithoutCompaniesInput = {
     price_per_person?: number
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_settingsUncheckedCreateWithoutCompaniesInput = {
     id?: number
     price_per_person?: number
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_settingsCreateOrConnectWithoutCompaniesInput = {
@@ -43696,6 +44083,7 @@ export namespace Prisma {
     person_count?: number
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_ticketsUncheckedCreateWithoutCompaniesInput = {
@@ -43704,6 +44092,7 @@ export namespace Prisma {
     person_count?: number
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type meal_ticketsCreateOrConnectWithoutCompaniesInput = {
@@ -43725,6 +44114,7 @@ export namespace Prisma {
     next_run_date: Date | string
     is_active?: number | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type recurring_transactionsUncheckedCreateWithoutCompaniesInput = {
@@ -43738,6 +44128,7 @@ export namespace Prisma {
     next_run_date: Date | string
     is_active?: number | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type recurring_transactionsCreateOrConnectWithoutCompaniesInput = {
@@ -43762,6 +44153,7 @@ export namespace Prisma {
     check_due_date?: Date | string | null
     status?: string | null
     currency?: string | null
+    is_archived?: number | null
   }
 
   export type transactionsUncheckedCreateWithoutCompaniesInput = {
@@ -43778,6 +44170,7 @@ export namespace Prisma {
     check_due_date?: Date | string | null
     status?: string | null
     currency?: string | null
+    is_archived?: number | null
   }
 
   export type transactionsCreateOrConnectWithoutCompaniesInput = {
@@ -43855,6 +44248,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -43875,6 +44269,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -43896,6 +44291,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     works?: worksCreateNestedManyWithoutCustomersInput
   }
 
@@ -43909,6 +44305,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     works?: worksUncheckedCreateNestedManyWithoutCustomersInput
   }
 
@@ -44003,12 +44400,14 @@ export namespace Prisma {
   export type meal_settingsUpdateWithoutCompaniesInput = {
     price_per_person?: FloatFieldUpdateOperationsInput | number
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_settingsUncheckedUpdateWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     price_per_person?: FloatFieldUpdateOperationsInput | number
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -44037,6 +44436,7 @@ export namespace Prisma {
     person_count?: IntFilter<"meal_tickets"> | number
     notes?: StringNullableFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableFilter<"meal_tickets"> | Date | string | null
+    is_archived?: IntNullableFilter<"meal_tickets"> | number | null
   }
 
   export type recurring_transactionsUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -44070,6 +44470,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFilter<"recurring_transactions"> | Date | string
     is_active?: IntNullableFilter<"recurring_transactions"> | number | null
     created_at?: DateTimeNullableFilter<"recurring_transactions"> | Date | string | null
+    is_archived?: IntNullableFilter<"recurring_transactions"> | number | null
   }
 
   export type transactionsUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -44106,6 +44507,7 @@ export namespace Prisma {
     check_due_date?: DateTimeNullableFilter<"transactions"> | Date | string | null
     status?: StringNullableFilter<"transactions"> | string | null
     currency?: StringNullableFilter<"transactions"> | string | null
+    is_archived?: IntNullableFilter<"transactions"> | number | null
   }
 
   export type vehiclesUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -44178,6 +44580,7 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableFilter<"works"> | Date | string | null
+    is_archived?: IntNullableFilter<"works"> | number | null
   }
 
   export type customersUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -44210,6 +44613,7 @@ export namespace Prisma {
     tax_office?: StringNullableFilter<"customers"> | string | null
     notes?: StringNullableFilter<"customers"> | string | null
     created_at?: DateTimeNullableFilter<"customers"> | Date | string | null
+    is_archived?: IntNullableFilter<"customers"> | number | null
   }
 
   export type companiesCreateWithoutCustomersInput = {
@@ -44260,6 +44664,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -44280,6 +44685,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -45316,6 +45722,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type leavesUncheckedCreateWithoutEmployeesInput = {
@@ -45327,6 +45734,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type leavesCreateOrConnectWithoutEmployeesInput = {
@@ -45345,6 +45753,7 @@ export namespace Prisma {
     amount?: number | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type overtimesUncheckedCreateWithoutEmployeesInput = {
@@ -45355,6 +45764,7 @@ export namespace Prisma {
     amount?: number | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type overtimesCreateOrConnectWithoutEmployeesInput = {
@@ -45376,6 +45786,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type salariesUncheckedCreateWithoutEmployeesInput = {
@@ -45389,6 +45800,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type salariesCreateOrConnectWithoutEmployeesInput = {
@@ -45408,9 +45820,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     vehicles?: vehiclesCreateNestedOneWithoutWork_itemsInput
     works: worksCreateNestedOneWithoutWork_itemsInput
   }
@@ -45426,9 +45840,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsCreateOrConnectWithoutEmployeesInput = {
@@ -45450,6 +45866,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
     companies: companiesCreateNestedOneWithoutWorksInput
@@ -45470,6 +45887,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -45704,6 +46122,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"leaves"> | string | null
     notes?: StringNullableFilter<"leaves"> | string | null
     created_at?: DateTimeNullableFilter<"leaves"> | Date | string | null
+    is_archived?: IntNullableFilter<"leaves"> | number | null
   }
 
   export type overtimesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -45734,6 +46153,7 @@ export namespace Prisma {
     amount?: FloatNullableFilter<"overtimes"> | number | null
     notes?: StringNullableFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableFilter<"overtimes"> | Date | string | null
+    is_archived?: IntNullableFilter<"overtimes"> | number | null
   }
 
   export type salariesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -45767,6 +46187,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"salaries"> | string | null
     notes?: StringNullableFilter<"salaries"> | string | null
     created_at?: DateTimeNullableFilter<"salaries"> | Date | string | null
+    is_archived?: IntNullableFilter<"salaries"> | number | null
   }
 
   export type work_itemsUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -45800,9 +46221,11 @@ export namespace Prisma {
     hours?: FloatNullableFilter<"work_items"> | number | null
     overtime_hours?: FloatNullableFilter<"work_items"> | number | null
     unit_price?: FloatNullableFilter<"work_items"> | number | null
+    travel_price?: FloatNullableFilter<"work_items"> | number | null
     total_price?: FloatNullableFilter<"work_items"> | number | null
     description?: StringNullableFilter<"work_items"> | string | null
     created_at?: DateTimeNullableFilter<"work_items"> | Date | string | null
+    is_archived?: IntNullableFilter<"work_items"> | number | null
   }
 
   export type worksUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -47318,9 +47741,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWork_itemsInput
     works: worksCreateNestedOneWithoutWork_itemsInput
   }
@@ -47336,9 +47761,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsCreateOrConnectWithoutVehiclesInput = {
@@ -47360,6 +47787,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     companies: companiesCreateNestedOneWithoutWorksInput
@@ -47380,6 +47808,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -47795,6 +48224,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
     companies: companiesCreateNestedOneWithoutWorksInput
@@ -47816,6 +48246,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
   }
 
   export type worksCreateOrConnectWithoutWork_itemsInput = {
@@ -47972,6 +48403,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
     companies?: companiesUpdateOneRequiredWithoutWorksNestedInput
@@ -47993,6 +48425,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsCreateWithoutWorksInput = {
@@ -48003,9 +48436,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWork_itemsInput
     vehicles?: vehiclesCreateNestedOneWithoutWork_itemsInput
   }
@@ -48021,9 +48456,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsCreateOrConnectWithoutWorksInput = {
@@ -48198,6 +48635,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     companies: companiesCreateNestedOneWithoutCustomersInput
   }
 
@@ -48212,6 +48650,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type customersCreateOrConnectWithoutWorksInput = {
@@ -48427,6 +48866,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateOneRequiredWithoutCustomersNestedInput
   }
 
@@ -48441,6 +48881,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employeesCreateManyCompaniesInput = {
@@ -48469,6 +48910,7 @@ export namespace Prisma {
     person_count?: number
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type recurring_transactionsCreateManyCompaniesInput = {
@@ -48482,6 +48924,7 @@ export namespace Prisma {
     next_run_date: Date | string
     is_active?: number | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type transactionsCreateManyCompaniesInput = {
@@ -48498,6 +48941,7 @@ export namespace Prisma {
     check_due_date?: Date | string | null
     status?: string | null
     currency?: string | null
+    is_archived?: number | null
   }
 
   export type vehiclesCreateManyCompaniesInput = {
@@ -48530,6 +48974,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
   }
 
   export type customersCreateManyCompaniesInput = {
@@ -48542,6 +48987,7 @@ export namespace Prisma {
     tax_office?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employeesUpdateWithoutCompaniesInput = {
@@ -48628,6 +49074,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsUncheckedUpdateWithoutCompaniesInput = {
@@ -48636,6 +49083,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsUncheckedUpdateManyWithoutCompaniesInput = {
@@ -48644,6 +49092,7 @@ export namespace Prisma {
     person_count?: IntFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type recurring_transactionsUpdateWithoutCompaniesInput = {
@@ -48656,6 +49105,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type recurring_transactionsUncheckedUpdateWithoutCompaniesInput = {
@@ -48669,6 +49119,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type recurring_transactionsUncheckedUpdateManyWithoutCompaniesInput = {
@@ -48682,6 +49133,7 @@ export namespace Prisma {
     next_run_date?: DateTimeFieldUpdateOperationsInput | Date | string
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type transactionsUpdateWithoutCompaniesInput = {
@@ -48697,6 +49149,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type transactionsUncheckedUpdateWithoutCompaniesInput = {
@@ -48713,6 +49166,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type transactionsUncheckedUpdateManyWithoutCompaniesInput = {
@@ -48729,6 +49183,7 @@ export namespace Prisma {
     check_due_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type vehiclesUpdateWithoutCompaniesInput = {
@@ -48804,6 +49259,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -48824,6 +49280,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -48841,6 +49298,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type customersUpdateWithoutCompaniesInput = {
@@ -48852,6 +49310,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     works?: worksUpdateManyWithoutCustomersNestedInput
   }
 
@@ -48865,6 +49324,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     works?: worksUncheckedUpdateManyWithoutCustomersNestedInput
   }
 
@@ -48878,6 +49338,7 @@ export namespace Prisma {
     tax_office?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type worksCreateManyCustomersInput = {
@@ -48894,6 +49355,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
   }
 
   export type worksUpdateWithoutCustomersInput = {
@@ -48906,6 +49368,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -48926,6 +49389,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -48943,6 +49407,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsCreateManyEmployeesInput = {
@@ -49003,6 +49468,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type overtimesCreateManyEmployeesInput = {
@@ -49013,6 +49479,7 @@ export namespace Prisma {
     amount?: number | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type salariesCreateManyEmployeesInput = {
@@ -49026,6 +49493,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsCreateManyEmployeesInput = {
@@ -49039,9 +49507,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type worksCreateManyEmployeesInput = {
@@ -49058,6 +49528,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employee_assignmentsUpdateWithoutEmployeesInput = {
@@ -49210,6 +49681,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type leavesUncheckedUpdateWithoutEmployeesInput = {
@@ -49221,6 +49693,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type leavesUncheckedUpdateManyWithoutEmployeesInput = {
@@ -49232,6 +49705,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type overtimesUpdateWithoutEmployeesInput = {
@@ -49241,6 +49715,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type overtimesUncheckedUpdateWithoutEmployeesInput = {
@@ -49251,6 +49726,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type overtimesUncheckedUpdateManyWithoutEmployeesInput = {
@@ -49261,6 +49737,7 @@ export namespace Prisma {
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type salariesUpdateWithoutEmployeesInput = {
@@ -49273,6 +49750,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type salariesUncheckedUpdateWithoutEmployeesInput = {
@@ -49286,6 +49764,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type salariesUncheckedUpdateManyWithoutEmployeesInput = {
@@ -49299,6 +49778,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsUpdateWithoutEmployeesInput = {
@@ -49309,9 +49789,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     vehicles?: vehiclesUpdateOneWithoutWork_itemsNestedInput
     works?: worksUpdateOneRequiredWithoutWork_itemsNestedInput
   }
@@ -49327,9 +49809,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsUncheckedUpdateManyWithoutEmployeesInput = {
@@ -49343,9 +49827,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type worksUpdateWithoutEmployeesInput = {
@@ -49358,6 +49844,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
     companies?: companiesUpdateOneRequiredWithoutWorksNestedInput
@@ -49378,6 +49865,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -49395,6 +49883,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type companiesCreateManyUsersInput = {
@@ -49540,9 +50029,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type worksCreateManyVehiclesInput = {
@@ -49559,6 +50050,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    is_archived?: number | null
   }
 
   export type assignmentsUpdateWithoutVehiclesInput = {
@@ -49806,9 +50298,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWork_itemsNestedInput
     works?: worksUpdateOneRequiredWithoutWork_itemsNestedInput
   }
@@ -49824,9 +50318,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsUncheckedUpdateManyWithoutVehiclesInput = {
@@ -49840,9 +50336,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type worksUpdateWithoutVehiclesInput = {
@@ -49855,6 +50353,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     companies?: companiesUpdateOneRequiredWithoutWorksNestedInput
@@ -49875,6 +50374,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -49892,6 +50392,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsCreateManyWorksInput = {
@@ -49905,9 +50406,11 @@ export namespace Prisma {
     hours?: number | null
     overtime_hours?: number | null
     unit_price?: number | null
+    travel_price?: number | null
     total_price?: number | null
     description?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type work_itemsUpdateWithoutWorksInput = {
@@ -49918,9 +50421,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWork_itemsNestedInput
     vehicles?: vehiclesUpdateOneWithoutWork_itemsNestedInput
   }
@@ -49936,9 +50441,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsUncheckedUpdateManyWithoutWorksInput = {
@@ -49952,9 +50459,11 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     overtime_hours?: NullableFloatFieldUpdateOperationsInput | number | null
     unit_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
 

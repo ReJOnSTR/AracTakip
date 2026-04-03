@@ -10,6 +10,14 @@ async function archiveItem(table, id, isArchived = 1) {
             return { success: false, error: 'Invalid table for archiving' };
         }
 
+        if (mappedModel === 'employees') {
+            await prisma.employees.update({
+                where: { id: parseInt(id) },
+                data: { status: isArchived ? 'passive' : 'active' }
+            });
+            return { success: true };
+        }
+
         await prisma[mappedModel].update({
             where: { id: parseInt(id) },
             data: { is_archived: isArchived }

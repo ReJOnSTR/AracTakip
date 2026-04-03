@@ -3,10 +3,10 @@ const prisma = getPrismaClient();
 
 // ========== VEHICLES ==========
 
-async function getVehicles(companyId) {
+async function getVehicles(companyId, isArchived = 0) {
     try {
         const vehicles = await prisma.vehicles.findMany({
-            where: { company_id: parseInt(companyId), is_archived: 0 },
+            where: { company_id: parseInt(companyId), is_archived: isArchived ? 1 : 0 },
             include: {
                 maintenances: true,
                 inspections: true,

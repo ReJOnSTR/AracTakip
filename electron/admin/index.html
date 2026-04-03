@@ -289,16 +289,22 @@
                         <tbody class="text-[13px]">
                             <tr v-for="(row, idx) in rows" :key="idx"
                                 class="group hover:bg-slate-50 dark:hover:bg-[#1e1e1e]">
-                                <!-- Action Column (Delete) -->
+                                <!-- Action Column (Edit & Delete) -->
                                 <td
-                                    class="px-2 py-1 text-center bg-slate-50 dark:bg-[#181818] group-hover:bg-red-50 dark:group-hover:bg-red-900/30 transition-colors">
-                                    <button @click="deleteRecord(row.id)"
-                                        class="text-slate-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                        title="Sil">
-                                        <i class="fas fa-trash-alt text-[11px]"></i>
-                                    </button>
-                                    <span class="text-[10px] text-slate-400 group-hover:opacity-0 absolute -ml-2">{{ idx
-                                        + 1 }}</span>
+                                    class="px-2 py-1 text-center bg-slate-50 dark:bg-[#181818] transition-colors relative">
+                                    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button @click="openEditModal(row)"
+                                            class="text-slate-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                                            title="Düzenle">
+                                            <i class="fas fa-edit text-[11px]"></i>
+                                        </button>
+                                        <button @click="deleteRecord(row.id)"
+                                            class="text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                                            title="Sil">
+                                            <i class="fas fa-trash-alt text-[11px]"></i>
+                                        </button>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 group-hover:opacity-0 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">{{ idx + 1 }}</span>
                                 </td>
 
                                 <!-- Data Columns -->
@@ -342,8 +348,8 @@
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-[#333]">
                     <h3 class="text-sm font-semibold text-slate-800 dark:text-gray-200">
-                        <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
-                        <span>{{ tableLabels[activeTable] || activeTable }}</span> — Yeni Kayıt
+                        <i :class="editingId ? 'fas fa-edit text-orange-500' : 'fas fa-plus-circle text-blue-500'" class="mr-2"></i>
+                        <span>{{ tableLabels[activeTable] || activeTable }}</span> — {{ editingId ? 'Kaydı Düzenle' : 'Yeni Kayıt' }}
                     </h3>
                     <button @click="closeCreateModal"
                         class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
@@ -517,15 +523,22 @@
                     'recurring_transactions': 'Düzenli Ödemeler',
                     'meal_tickets': 'Yemek Fişleri',
                     'meal_settings': 'Yemek Ayarları',
-                    'works': 'Yapılan İşler'
+                    'works': 'Yapılan İşler',
+                    'work_items': 'İş Ek Kalemleri',
+                    'customers': 'Müşteriler',
+                    'employee_attendance': 'Personel Puantaj',
+                    'employee_movements': 'Personel Hareketleri',
+                    'employee_salary_history': 'Maaş Geçmişi'
                 };
 
                 const groupDefinitions = {
-                    'TEMEL BİLGİLER': ['users', 'companies'],
+                    'TEMEL BİLGİLER': ['users', 'companies', 'customers'],
                     'ARAÇ YÖNETİMİ': ['vehicles', 'assignments', 'documents'],
-                    'ARAÇ İŞLEMLERİ': ['maintenances', 'services', 'inspections', 'periodic_inspections', 'insurances'],
-                    'PERSONEL YÖNETİMİ': ['employees', 'employee_assignments', 'employee_documents', 'leaves', 'overtimes', 'salaries'],
-                    'FİNANS VE GİDERLER': ['transactions', 'recurring_transactions', 'works'],
+                    'ARAÇ İŞLEMLERİ': ['maintenances', 'services', 'inspections', 'insurances'],
+                    'PERSONEL YÖNETİMİ': ['employees', 'employee_attendance', 'employee_assignments', 'employee_documents', 'leaves'],
+                    'PERSONEL FİNANS': ['salaries', 'employee_salary_history', 'overtimes', 'employee_movements'],
+                    'MÜŞTERİ & İŞ YÖNETİMİ': ['works', 'work_items'],
+                    'FİNANS VE GİDERLER': ['transactions', 'recurring_transactions'],
                     'YEMEK İŞLEMLERİ': ['meal_tickets', 'meal_settings']
                 };
 
@@ -658,9 +671,19 @@
                     return []
                 })
 
+                const editingId = ref(null)
+
                 const openCreateModal = () => {
                     newRecord.value = {}
                     createError.value = ''
+                    editingId.value = null
+                    showCreateModal.value = true
+                }
+
+                const openEditModal = (row) => {
+                    newRecord.value = { ...row }
+                    createError.value = ''
+                    editingId.value = row.id || null
                     showCreateModal.value = true
                 }
 
@@ -686,8 +709,14 @@
                             payload.company_id = parseInt(selectedCompanyId.value)
                         }
 
-                        const res = await fetchWithAuth(`/api/data/${activeTable.value}`, {
-                            method: 'POST',
+                        const method = editingId.value ? 'PUT' : 'POST'
+                        const urlParams = selectedCompanyId.value ? `?companyId=${selectedCompanyId.value}` : ''
+                        const url = editingId.value
+                            ? `/api/data/${activeTable.value}/${editingId.value}${urlParams}`
+                            : `/api/data/${activeTable.value}${urlParams}`
+
+                        const res = await fetchWithAuth(url, {
+                            method: method,
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         })
@@ -721,8 +750,8 @@
                     loadingTables, loadingData,
                     selectTable, fetchData, deleteRecord,
                     getTypeHint, formatValue,
-                    showCreateModal, newRecord, savingRecord, createError, createFormCols,
-                    openCreateModal, closeCreateModal, saveRecord
+                    showCreateModal, newRecord, savingRecord, createError, createFormCols, editingId,
+                    openCreateModal, openEditModal, closeCreateModal, saveRecord
                 }
             }
         }).mount('#app')

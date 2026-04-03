@@ -1,24 +1,33 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive } from 'lucide-react'
 import DataTable from '../components/DataTable'
 import TopProgressBar from '../components/TopProgressBar'
 import { formatDate, formatCurrency } from '../utils/helpers'
 
 import Modal from '../components/Modal'
 import CustomerForm from '../components/forms/CustomerForm'
+import TransactionForm from '../components/forms/TransactionForm'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 
 export default function CustomerDetail() {
     const { id } = useParams()
+    const navigate = useNavigate()
     const [customer, setCustomer] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState('works')
+    const [activeTab, setActiveTab] = usePersistentTab('CustomerDetail', 'works')
     const [tabsRef] = useState({})
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
     
     // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [saving, setSaving] = useState(false)
+
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+    const [paymentWork, setPaymentWork] = useState(null)
+
+    // Filter states
+    const [showArchived, setShowArchived] = useState(false)
 
     useEffect(() => {
         loadCustomer()
@@ -64,6 +73,33 @@ export default function CustomerDetail() {
         setSaving(false)
     }
 
+    const handleBulkArchive = async (ids) => {
+        try {
+            const result = await window.electronAPI.archiveWorks(ids, !showArchived);
+            if (result.success) {
+                loadCustomer();
+            } else {
+                alert(result.error || 'Arşivleme işlemi başarısız oldu');
+            }
+        } catch (error) {
+            console.error('Error archiving works:', error)
+        }
+    }
+
+    const handleBulkDelete = async (ids) => {
+        if (!window.confirm(`${ids.length} adet iş kalıcı olarak silinecektir. Emin misiniz?`)) return;
+        try {
+            const result = await window.electronAPI.deleteWorks(ids);
+            if (result.success) {
+                loadCustomer();
+            } else {
+                alert(result.error || 'Silme işlemi başarısız oldu');
+            }
+        } catch (error) {
+            console.error('Error deleting works:', error)
+        }
+    }
+
     const workColumns = [
         {
             key: 'status',
@@ -73,13 +109,15 @@ export default function CustomerDetail() {
                 const colors = {
                     pending: 'neutral',
                     in_progress: 'warning',
-                    completed: 'success',
+                    completed: 'info',
+                    paid: 'success',
                     cancelled: 'danger'
                 }
                 const labels = {
                     pending: 'Bekliyor',
                     in_progress: 'Devam Ediyor',
                     completed: 'Tamamlandı',
+                    paid: 'Ödendi / Tahsil Edildi',
                     cancelled: 'İptal'
                 }
                 return <span className={`badge badge-${colors[v] || 'neutral'}`}>{labels[v] || v}</span>
@@ -87,21 +125,30 @@ export default function CustomerDetail() {
         },
         {
             key: 'date_range',
-            label: 'Tarih Aralığı / Toplam Gün',
+            label: 'Tarih Aralığı',
+            width: '120px',
             render: (_, row) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '13px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={12} className="text-muted" />
-                        <span>{formatDate(row.start_date)}</span>
-                    </div>
-                    {row.start_date !== row.end_date && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                            <ArrowRight size={12} />
-                            <span>{formatDate(row.end_date)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '12px' }}>
+                        {/* Vertical Timeline Indicator */}
+                        <div style={{ position: 'absolute', left: 0, top: '6px', bottom: row.start_date !== row.end_date ? '6px' : 'auto', height: row.start_date === row.end_date ? '0px' : 'auto', width: '2px', background: 'var(--border-color)', borderRadius: '2px' }}>
+                            <div style={{ position: 'absolute', left: '-2px', top: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--accent-primary)', background: 'var(--bg-primary)' }} />
+                            {row.start_date !== row.end_date && (
+                               <div style={{ position: 'absolute', left: '-2px', bottom: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--text-muted)', background: 'var(--bg-primary)' }} />
+                            )}
                         </div>
-                    )}
+                        
+                        <span style={{ fontSize: '11.5px', color: 'var(--text-primary)', fontWeight: 600, lineHeight: '1.3' }}>
+                            {formatDate(row.start_date)}
+                        </span>
+                        {row.start_date !== row.end_date && (
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.3', marginTop: '2px' }}>
+                                {formatDate(row.end_date)}
+                            </span>
+                        )}
+                    </div>
                     {(row.total_days > 0) && (
-                        <div style={{ marginTop: '2px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                        <div style={{ marginLeft: 'auto', padding: '4px 6px', background: 'var(--accent-subtle)', color: 'var(--accent-primary)', borderRadius: '6px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                             {row.total_days} Gün
                         </div>
                     )}
@@ -135,6 +182,16 @@ export default function CustomerDetail() {
         }
     ]
 
+    const filteredWorks = useMemo(() => {
+        if (!customer || !customer.works) return [];
+        return customer.works.filter(w => {
+            const isArchived = w.is_archived === 1;
+            if (showArchived && !isArchived) return false;
+            if (!showArchived && isArchived) return false;
+            return true;
+        });
+    }, [customer, showArchived]);
+
     if (loading) return <div><TopProgressBar loading={loading} /></div>
     if (!customer) return <div className="empty-state"><h2 className="empty-state-title">Müşteri Bulunamadı</h2><Link className="btn btn-primary" to="/customers">Müşterilere Dön</Link></div>
 
@@ -142,8 +199,8 @@ export default function CustomerDetail() {
         { id: 'works', label: 'İş ve Projeler', icon: Briefcase }
     ]
 
-    const completedWorks = customer.works?.filter(w => w.status === 'completed') || []
-    const pendingWorks = customer.works?.filter(w => w.status !== 'completed' && w.status !== 'cancelled') || []
+    const completedWorks = customer.works?.filter(w => w.status === 'completed' && w.is_archived !== 1) || []
+    const pendingWorks = customer.works?.filter(w => w.status !== 'completed' && w.status !== 'cancelled' && w.status !== 'paid' && w.is_archived !== 1) || []
     const totalEarnings = customer.works?.reduce((sum, w) => sum + (w.total_price || 0), 0) || 0
 
     return (
@@ -152,13 +209,7 @@ export default function CustomerDetail() {
 
             {/* Header / Breadcrumb / Actions */}
             <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '12px' }}>
-                    <Link to="/customers" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <ArrowLeft size={14} /> Müşteriler
-                    </Link>
-                    <span>/</span>
-                    <span>{customer.name}</span>
-                </div>
+
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -316,14 +367,54 @@ export default function CustomerDetail() {
                             <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                                 İşler ve Projeler
                             </h3>
-                            <Link to="/works" className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                                Yeni İş Ekle
-                            </Link>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <Link to={`/works/new?customer=${customer.id}`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                                    <Briefcase size={18} /> Yeni İş Ekle
+                                </Link>
+                            </div>
                         </div>
 
-                        <DataTable persistenceKey="Customer_Works_0"
+                        <DataTable persistenceKey={`Customer_Works_${activeTab}`}
                             columns={workColumns}
-                            data={customer.works || []}
+                            data={filteredWorks}
+                            showSearch={true}
+                            showDateFilter={true}
+                            showCheckboxes={true}
+                            dateFilterKey="start_date"
+                            isArchiveView={showArchived}
+                            onToggleArchiveView={setShowArchived}
+                            onBulkArchive={handleBulkArchive}
+                            onBulkDelete={handleBulkDelete}
+                            filters={[
+                                {
+                                    key: 'status',
+                                    label: 'Durum Filtresi',
+                                    options: [
+                                        { value: 'pending', label: 'Bekliyor' },
+                                        { value: 'in_progress', label: 'Devam Ediyor' },
+                                        { value: 'completed', label: 'Tamamlandı' },
+                                        { value: 'paid', label: 'Ödendi / Tahsil Edildi' },
+                                        { value: 'cancelled', label: 'İptal' }
+                                    ]
+                                }
+                            ]}
+                            onRowClick={(row) => navigate(`/works/${row.id}`)}
+                            actions={(row) => (
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                    <button className="icon-btn info" onClick={(e) => { e.stopPropagation(); navigate(`/works/${row.id}`) }} title="İş Detayı">
+                                        <Eye size={16} />
+                                    </button>
+                                    <button className="icon-btn success" style={{ background: row.status === 'paid' ? 'var(--success-subtle)' : 'var(--bg-secondary)', color: row.status === 'paid' ? 'var(--success)' : 'var(--text-secondary)' }} onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        if(row.status !== 'paid') {
+                                            setPaymentWork(row); 
+                                            setPaymentModalOpen(true);
+                                        }
+                                    }} title={row.status === 'paid' ? "Tahsilat Alındı" : "Tahsilat Ekle"}>
+                                        {row.status === 'paid' ? <CheckCircle2 size={16} /> : <Banknote size={16} />}
+                                    </button>
+                                </div>
+                            )}
                         />
                     </div>
                 )}
@@ -340,6 +431,49 @@ export default function CustomerDetail() {
                     onSubmit={handleEditSubmit}
                     onCancel={() => setIsEditModalOpen(false)}
                     loading={saving}
+                />
+            </Modal>
+
+            {/* Payment Modal */}
+            <Modal
+                isOpen={paymentModalOpen}
+                onClose={() => setPaymentModalOpen(false)}
+                title={`${paymentWork?.title || 'İş'} İçin Tahsilat Al`}
+            >
+                <TransactionForm
+                    initialData={{
+                        type: 'IN',
+                        method: 'CASH',
+                        amount: paymentWork?.total_price || 0,
+                        description: `[TAHSİLAT] İş: ${paymentWork?.title} - Müşteri: ${customer.name}`,
+                        date: new Date().toISOString().split('T')[0]
+                    }}
+                    onSubmit={async (data) => {
+                        setSaving(true)
+                        try {
+                            // 1. İş tablosunda konumu paid olarak güncelle
+                            await window.electronAPI.updateWork({
+                                id: paymentWork.id,
+                                status: 'paid'
+                            });
+                            // 2. Bir gelir işlemi oluştur (finans)
+                            await window.electronAPI.createFinance({
+                                ...data,
+                                category: `WORK_PAYMENT_${paymentWork.id}`,
+                                companyId: customer.company_id
+                            });
+                            
+                            setPaymentModalOpen(false);
+                            loadCustomer(); // Yenile
+                        } catch (err) {
+                            console.error('Payment error', err);
+                        } finally {
+                            setSaving(false);
+                        }
+                    }}
+                    onCancel={() => setPaymentModalOpen(false)}
+                    loading={saving}
+                    hideCheck={false}
                 />
             </Modal>
         </div>

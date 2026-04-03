@@ -6,6 +6,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 // FileUploader removed
 import MaintenanceForm from '../components/forms/MaintenanceForm'
 import {
@@ -31,7 +32,7 @@ export default function Maintenance() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [activeTab, setActiveTab] = useState('all')
+    const [activeTab, setActiveTab] = usePersistentTab('Maintenance', 'all')
 
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
@@ -410,10 +411,9 @@ export default function Maintenance() {
                 </div>
             ) : (
                 <DataTable
-                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={activeTab === 'all' ? maintenances : maintenances.filter(m => { const v = vehicles.find(vv => vv.id === m.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`maintenance_table_${showArchived ? 'archived' : 'active'}`}
+                    persistenceKey={`maintenance_table_${activeTab}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}

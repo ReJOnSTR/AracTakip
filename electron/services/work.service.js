@@ -1,10 +1,10 @@
 const { getPrismaClient } = require('../prismaClient')
 
-async function getWorks(companyId) {
+async function getWorks(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
         const works = await prisma.works.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             include: {
                 work_items: true,
                 customers: true
@@ -114,14 +114,14 @@ async function updateWork(data) {
         const updated = await prisma.works.update({
             where: { id: parseInt(data.id) },
             data: {
-                title: data.title,
-                customer_id: data.customerId ? parseInt(data.customerId) : null,
-                customer: data.customer,
-                description: data.description,
-                status: data.status,
-                location: data.location,
-                start_date: data.startDate ? new Date(data.startDate) : null,
-                end_date: data.endDate ? new Date(data.endDate) : null
+                title: data.title !== undefined ? data.title : undefined,
+                customer_id: data.customerId !== undefined ? (data.customerId ? parseInt(data.customerId) : null) : undefined,
+                customer: data.customer !== undefined ? data.customer : undefined,
+                description: data.description !== undefined ? data.description : undefined,
+                status: data.status !== undefined ? data.status : undefined,
+                location: data.location !== undefined ? data.location : undefined,
+                start_date: data.startDate !== undefined ? (data.startDate ? new Date(data.startDate) : null) : undefined,
+                end_date: data.endDate !== undefined ? (data.endDate ? new Date(data.endDate) : null) : undefined
             }
         })
         return { success: true, data: updated }
@@ -147,7 +147,6 @@ async function deleteWork(id) {
 function calculateItemTotalPrice(data) {
     const descUpper = (data.description || '').toUpperCase();
     const isSaatlik = descUpper.includes('[SAATLİK]');
-    const isYol = descUpper.includes('YOL') || descUpper.includes('[YOL]');
     
     let isPazar = descUpper.includes('PAZAR');
     if (data.date) {
@@ -158,29 +157,32 @@ function calculateItemTotalPrice(data) {
     const hours = parseFloat(data.hours || 0);
     const overtimeHours = parseFloat(data.overtimeHours || 0);
     const unitPrice = parseFloat(data.unitPrice || 0);
+    const travelPrice = parseFloat(data.travelPrice || 0);
 
     const isAylik = descUpper.includes('[AYLIK]');
 
-    if (isSaatlik || isYol) {
-        return unitPrice * hours;
+    let baseTotal = 0;
+    if (isSaatlik) {
+        baseTotal = unitPrice * hours;
     } else {
         let gunRate = unitPrice;
         
         if (isAylik) {
-            // For monthly: base rate is always given. Sundays are EXTRA (+1.5x)
             if (isPazar) {
                 gunRate = unitPrice + (unitPrice * 1.5);
             }
         } else {
-            // For daily: Sundays REPLACE the daily rate with 1.5x
             if (isPazar) {
                 gunRate = unitPrice * 1.5;
             }
         }
 
         const mesaiRate = (unitPrice / 8) * 1.5;
-        return (hours * gunRate) + (overtimeHours * mesaiRate);
+        baseTotal = (hours * gunRate) + (overtimeHours * mesaiRate);
     }
+
+    // Add travel price (flat per entry)
+    return baseTotal + travelPrice;
 }
 
 async function addWorkItem(data) {
@@ -201,6 +203,7 @@ async function addWorkItem(data) {
                 hours: parseFloat(data.hours || 0),
                 overtime_hours: parseFloat(data.overtimeHours || 0),
                 unit_price: parseFloat(data.unitPrice || 0),
+                travel_price: parseFloat(data.travelPrice || 0),
                 total_price: totalPrice,
                 description: data.description || null
             }
@@ -229,6 +232,7 @@ async function addBulkWorkItems(itemsData) {
                 hours: parseFloat(data.hours || 0),
                 overtime_hours: parseFloat(data.overtimeHours || 0),
                 unit_price: parseFloat(data.unitPrice || 0),
+                travel_price: parseFloat(data.travelPrice || 0),
                 total_price: totalPrice,
                 description: data.description || null
             }
@@ -262,6 +266,7 @@ async function updateWorkItem(data) {
                 hours: parseFloat(data.hours || 0),
                 overtime_hours: parseFloat(data.overtimeHours || 0),
                 unit_price: parseFloat(data.unitPrice || 0),
+                travel_price: parseFloat(data.travelPrice || 0),
                 total_price: totalPrice,
                 description: data.description || null
             }

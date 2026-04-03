@@ -8,7 +8,8 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 
 import { formatDate, getVehicleTypeLabel } from '../utils/helpers'
-import { Plus, Pencil, Trash2, UserCheck, Building2, Eye } from 'lucide-react'
+import { Plus, Check, Truck, Pencil, Trash2, Calendar, FileText, LayoutList } from 'lucide-react'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import DocumentUploadModal from '../components/DocumentUploadModal'
 import AssignmentForm from '../components/forms/AssignmentForm'
@@ -23,7 +24,7 @@ export default function Assignments() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [activeTab, setActiveTab] = useState('all')
+    const [activeTab, setActiveTab] = usePersistentTab('Assignments', 'all')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     // Archive State
@@ -380,10 +381,9 @@ export default function Assignments() {
                 </div>
             ) : (
                 <DataTable
-                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={activeTab === 'all' ? assignments : assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`assignments_table_${showArchived ? 'archived' : 'active'}`}
+                    persistenceKey={`assignments_table_${activeTab}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}

@@ -1,10 +1,10 @@
 const { getPrismaClient } = require('../prismaClient')
 
-async function getCustomers(companyId) {
+async function getCustomers(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
         const customersList = await prisma.customers.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             include: {
                 works: {
                     include: {
@@ -21,6 +21,7 @@ async function getCustomers(companyId) {
         // Actually, we can sum the work_items total_price for balances right now.
         const formatted = customersList.map(c => {
             const totalWorkReceivable = c.works.reduce((sum, w) => {
+                if (w.status === 'paid' || w.status === 'cancelled') return sum;
                 const workTotal = w.work_items.reduce((wSum, item) => wSum + (item.total_price || 0), 0)
                 return sum + workTotal
             }, 0)
@@ -59,6 +60,7 @@ async function getCustomerDetails(id) {
         if (!customer) return { success: false, error: 'Müşteri bulunamadı' }
 
         const totalWorkReceivable = customer.works.reduce((sum, w) => {
+            if (w.status === 'paid' || w.status === 'cancelled') return sum;
             const workTotal = w.work_items.reduce((wSum, item) => wSum + (item.total_price || 0), 0)
             return sum + workTotal
         }, 0)
@@ -89,6 +91,13 @@ async function getCustomerDetails(id) {
                 total_price: w.work_items.reduce((sum, i) => sum + (i.total_price || 0), 0)
             }
         })
+
+        // Sort enhanced works by start_date descending
+        enhancedWorks.sort((a, b) => {
+            const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+            const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
+            return dateB - dateA;
+        });
 
         return {
             success: true,

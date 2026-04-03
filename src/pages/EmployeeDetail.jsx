@@ -9,6 +9,8 @@ import ConfirmModal from '../components/ConfirmModal'
 import CustomInput from '../components/CustomInput'
 import CustomSelect from '../components/CustomSelect'
 import EmployeeForm from '../components/forms/EmployeeForm'
+import AssignmentForm from '../components/forms/AssignmentForm'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import { formatCurrency, formatDate } from '../utils/helpers'
 import {
     ArrowLeft, Pencil, Trash2, Plus, AlertCircle, Users,
@@ -104,7 +106,7 @@ export default function EmployeeDetail() {
     const { updateTabInfo } = useTabs()
 
     const [employee, setEmployee] = useState(null)
-    const [activeTab, setActiveTab] = useState('salary')
+    const [activeTab, setActiveTab] = usePersistentTab('EmployeeDetail', 'salary')
     const [tabsRef] = useState({})
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
     const [loading, setLoading] = useState(true)

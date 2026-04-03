@@ -11,11 +11,10 @@ let serverInstance = null;
 
 // Hardcoded tables based on prisma/schema.prisma
 const TABLES = [
-    'assignments', 'companies', 'documents', 'employees', 'employee_documents',
-    'employee_assignments', 'inspections', 'insurances',
-    'leaves', 'maintenances', 'meal_settings', 'meal_tickets', 'overtimes',
-    'periodic_inspections', 'recurring_transactions', 'salaries', 'services',
-    'transactions', 'users', 'vehicles', 'works'
+    'assignments', 'companies', 'customers', 'documents', 'employees', 'employee_documents',
+    'employee_assignments', 'employee_attendance', 'employee_movements', 'employee_salary_history',
+    'inspections', 'insurances', 'leaves', 'maintenances', 'meal_settings', 'meal_tickets', 'overtimes',
+    'recurring_transactions', 'salaries', 'services', 'transactions', 'users', 'vehicles', 'works', 'work_items'
 ];
 
 function startAdminServer(prisma) {
@@ -53,9 +52,10 @@ function startAdminServer(prisma) {
             companyIds = [reqId]; // Filter strictly to this one company
         }
 
-        const tablesWithCompanyId = ['employees', 'meal_settings', 'meal_tickets', 'recurring_transactions', 'transactions', 'vehicles', 'works'];
-        const tablesWithVehicleId = ['assignments', 'documents', 'inspections', 'insurances', 'maintenances', 'periodic_inspections', 'services'];
+        const tablesWithCompanyId = ['customers', 'employees', 'meal_settings', 'meal_tickets', 'recurring_transactions', 'transactions', 'vehicles', 'works'];
+        const tablesWithVehicleId = ['assignments', 'documents', 'inspections', 'insurances', 'maintenances', 'services'];
         const tablesWithEmployeeId = ['employee_documents', 'employee_assignments', 'leaves', 'overtimes', 'employee_attendance', 'employee_movements', 'employee_salary_history', 'salaries'];
+        const tablesWithWorkId = ['work_items'];
 
         if (tablesWithCompanyId.includes(table)) {
             return { company_id: { in: companyIds } };
@@ -65,6 +65,9 @@ function startAdminServer(prisma) {
         } else if (tablesWithEmployeeId.includes(table)) {
             const employees = await prisma.employees.findMany({ where: { company_id: { in: companyIds } }, select: { id: true } });
             return { employee_id: { in: employees.map(e => e.id) } };
+        } else if (tablesWithWorkId.includes(table)) {
+            const works = await prisma.works.findMany({ where: { company_id: { in: companyIds } }, select: { id: true } });
+            return { work_id: { in: works.map(w => w.id) } };
         }
 
         return { id: -1 }; // Fallback to safe state (return nothing) if relation mapping is missed
@@ -201,6 +204,43 @@ function startAdminServer(prisma) {
     });
 
     // Additional CRUD can be added here (Update, Create).
+    // API: Update Record
+    app.put('/api/data/:table/:id', async (req, res) => {
+        const table = req.params.table;
+        const id = parseInt(req.params.id);
+        const companyId = req.query.companyId || null;
+
+        if (!TABLES.includes(table)) return res.status(400).json({ error: 'Invalid table' });
+
+        try {
+            // Check ownership
+            const isolateWhere = await buildIsolationWhere(table, req.user.id, companyId);
+            const record = await prisma[table].findFirst({
+                where: { id: id, ...isolateWhere }
+            });
+
+            if (!record) {
+                return res.status(403).json({ error: 'Forbidden: Record not found or you do not have permission to update it.' });
+            }
+
+            const payload = { ...req.body };
+            delete payload.id; // never update ID
+            
+            // Remove foreign keys if empty string
+            for (const key in payload) {
+                if (payload[key] === '') payload[key] = null;
+            }
+
+            const updatedRecord = await prisma[table].update({
+                where: { id },
+                data: payload
+            });
+            res.json({ success: true, data: updatedRecord });
+        } catch (error) {
+            log.error(`Admin panel error updating ${table}:`, error);
+            res.status(500).json({ error: 'Güncelleme başarısız: ' + error.message });
+        }
+    });
 
     const PORT = 9999;
     serverInstance = app.listen(PORT, 'localhost', () => {

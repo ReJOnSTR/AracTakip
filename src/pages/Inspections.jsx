@@ -6,6 +6,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import {
     formatDate,
     formatCurrency,
@@ -29,7 +30,7 @@ export default function Inspections() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [activeTab, setActiveTab] = useState('all')
+    const [activeTab, setActiveTab] = usePersistentTab('Inspections', 'all')
 
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
@@ -420,10 +421,9 @@ export default function Inspections() {
                 </div>
             ) : (
                 <DataTable
-                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={activeTab === 'all' ? inspections : inspections.filter(i => { const v = vehicles.find(vv => vv.id === i.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`inspections_table_${showArchived ? 'archived' : 'active'}`}
+                    persistenceKey={`inspections_table_${activeTab}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}

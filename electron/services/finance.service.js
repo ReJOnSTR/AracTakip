@@ -1,10 +1,10 @@
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
-async function getTransactions(companyId) {
+async function getTransactions(companyId, isArchived = 0) {
     try {
         const data = await prisma.transactions.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         return { success: true, data: JSON.parse(JSON.stringify(data)) };
@@ -55,16 +55,27 @@ async function updateTransaction(data) {
 
 async function deleteTransaction(id) {
     try {
+        const tx = await prisma.transactions.findUnique({ where: { id: parseInt(id) } });
+        
         await prisma.transactions.delete({ where: { id: parseInt(id) } });
+        
+        // If this was a tahsilat payment linked to a work, revert the work status
+        if (tx && tx.category && tx.category.startsWith('WORK_PAYMENT_')) {
+            const workId = parseInt(tx.category.replace('WORK_PAYMENT_', ''));
+            if (!isNaN(workId)) {
+                await prisma.works.update({ where: { id: workId }, data: { status: 'completed' } });
+            }
+        }
+
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 // ========== MEAL TICKETS ==========
-async function getMealTickets(companyId) {
+async function getMealTickets(companyId, isArchived = 0) {
     try {
         const tickets = await prisma.meal_tickets.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
         const settings = await prisma.meal_settings.findUnique({
@@ -264,10 +275,10 @@ async function getFinanceStats(companyId) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
-async function getChecksAndNotes(companyId) {
+async function getChecksAndNotes(companyId, isArchived = 0) {
     try {
         const checks = await prisma.transactions.findMany({
-            where: { company_id: parseInt(companyId), method: 'CHECK' },
+            where: { company_id: parseInt(companyId), method: 'CHECK', is_archived: isArchived },
             orderBy: [{ check_due_date: 'asc' }, { id: 'asc' }]
         });
         return { success: true, data: JSON.parse(JSON.stringify(checks)) };

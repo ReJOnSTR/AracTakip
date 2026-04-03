@@ -42,6 +42,7 @@ import MaintenanceForm from '../components/forms/MaintenanceForm'
 import ServiceForm from '../components/forms/ServiceForm'
 import InspectionForm from '../components/forms/InspectionForm'
 import InsuranceForm from '../components/forms/InsuranceForm'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import AssignmentForm from '../components/forms/AssignmentForm'
 
 const StatCard = ({ label, value, valueColor }) => (
@@ -82,7 +83,7 @@ export default function VehicleDetail() {
     const { updateTabInfo } = useTabs()
 
     const [vehicle, setVehicle] = useState(null)
-    const [activeTab, setActiveTab] = useState('maintenance')
+    const [activeTab, setActiveTab] = usePersistentTab('VehicleDetail', 'maintenance')
     const [tabsRef] = useState({})
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
     const [loading, setLoading] = useState(true)
@@ -603,13 +604,7 @@ export default function VehicleDetail() {
             <TopProgressBar loading={loading} />
             {/* Header / Breadcrumb / Actions */}
             <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '12px' }}>
-                    <Link to="/vehicles" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <ArrowLeft size={14} /> Araçlar
-                    </Link>
-                    <span>/</span>
-                    <span>{vehicle.plate}</span>
-                </div>
+
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

@@ -7,7 +7,8 @@ import {
     ChevronDown,
     User,
     LogOut,
-    Settings
+    Settings,
+    ArrowLeft
 } from 'lucide-react'
 
 const pageTitles = {
@@ -39,7 +40,23 @@ export default function Header() {
 
     return (
         <header className="header">
-            <div className="header-left">
+            <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {location.pathname !== '/' && (
+                    <button 
+                        onClick={() => navigate(-1)}
+                        className="btn btn-secondary"
+                        style={{ 
+                            padding: '6px 12px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            height: '32px' 
+                        }}
+                        title="Geri Dön"
+                    >
+                        <ArrowLeft size={16} /> Geri
+                    </button>
+                )}
                 <h1 className="header-title">{pageTitle}</h1>
             </div>
 

@@ -78,9 +78,10 @@ export default function WorkPdfReport() {
 
         groupedItems[key].items.push(item);
 
-        // Fiyat ve Tür Hesaplamaları (Görseldeki mantık)
+        // Fiyat ve Tür Hesaplamaları
         const gunSayisi = Number(item.hours) || 0;
         const mesaiSayisi = Number(item.overtime_hours) || 0;
+        const travelPrice = Number(item.travel_price) || 0;
         const descUpper = (item.description || '').toUpperCase();
 
         const dateObj = new Date(item.date);
@@ -88,8 +89,6 @@ export default function WorkPdfReport() {
 
         // Pazar kontrolü
         const isPazar = isSunday || descUpper.includes('PAZAR');
-        // Yol kontrolü
-        const isYol = descUpper.includes('YOL') || descUpper.includes('[YOL]');
         
         // Enhance description for Sundays automatically
         item.isPazar = isPazar;
@@ -105,10 +104,13 @@ export default function WorkPdfReport() {
             groupedItems[key].isAylik = true;
         }
 
+        // Yol is now from travel_price field, accumulate travel count
+        if (travelPrice > 0) {
+            groupedItems[key].totalYol += 1;
+        }
+
         if (isPazar) {
             groupedItems[key].totalPazar += gunSayisi;
-        } else if (isYol) {
-            groupedItems[key].totalYol += gunSayisi;
         } else if (isSaatlik) {
             groupedItems[key].totalSaatlik += gunSayisi;
         } else {
@@ -125,11 +127,11 @@ export default function WorkPdfReport() {
     let grandTotalPrice = 0;
 
     const groups = Object.values(groupedItems).map(group => {
-        const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-        const sampleYolPrice = group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price || 0;
+        const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
+        const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
         const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
         
-        // Pazar is 50% more than daily. If manual price wasn't overridden to a custom one, calculate 1.5x
+        // Pazar is 50% more than daily
         let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
              samplePazarPrice = sampleGunPrice * 1.5;
@@ -143,14 +145,14 @@ export default function WorkPdfReport() {
 
         let calculatedGun = 0;
         if (group.isAylik) {
-             // For monthly, the "1 AY" price is explicitly sampleGunPrice * 26 (Aylar 26 gün)
              calculatedGun = 26 * sampleGunPrice;
         } else {
              calculatedGun = group.totalGun * sampleGunPrice;
         }
 
         const calculatedPazar = group.totalPazar * samplePazarPrice;
-        const calculatedYol = group.totalYol * sampleYolPrice;
+        // Yol total = sum of all travel_price values in the group
+        const calculatedYol = group.items.reduce((sum, i) => sum + (Number(i.travel_price) || 0), 0);
         const calculatedSaatlik = group.totalSaatlik * sampleSaatlikPrice;
         const calculatedMesai = group.totalMesai * sampleMesaiPrice;
 
@@ -216,7 +218,7 @@ export default function WorkPdfReport() {
                                             <td className="center">{item.hours || 0}</td>
                                             <td className="center">{item.overtime_hours > 0 ? item.overtime_hours : ''}</td>
                                             <td className="center">{group.machineName}</td>
-                                            <td>{item.description || ''}</td>
+                                            <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '')}</td>
                                             <td className="right">{item.unit_price ? formatCurrency(item.unit_price) : ''}</td>
                                         </tr>
                                     );
@@ -226,22 +228,30 @@ export default function WorkPdfReport() {
 
                         {/* Summary Block */}
                         <div className="pdf-summary-block">
-                            <table className="pdf-summary-table">
+                            <table className="pdf-summary-table" style={{ width: '550px' }}>
+                                <colgroup>
+                                    <col style={{ width: '125px' }} />
+                                    <col style={{ width: '125px' }} />
+                                    <col style={{ width: '150px' }} />
+                                    <col style={{ width: '150px' }} />
+                                </colgroup>
                                 <tbody>
                                     <tr className="bg-light-green">
-                                        <td colSpan="4" className="bold center" style={{ backgroundColor: '#e2f0e0', padding: '6px', fontSize: '12px', borderBottom: '1px solid #333' }}>
+                                        <td colSpan="4" className="bold center" style={{ backgroundColor: '#e2f0e0', padding: '4px', fontSize: '11px', borderBottom: '1px solid #333' }}>
                                             {group.machineName.toUpperCase()}
                                         </td>
                                     </tr>
-                                    <tr className="bg-light-green">
-                                        <td className="bold center" style={{ width: '120px' }}>{group.isAylik ? 'AY' : 'GÜN'}</td>
-                                        <td className="center" style={{ width: '100px' }}>{group.isAylik ? '1 AY' : (group.totalGun > 0 ? group.totalGun : '')}</td>
-                                        <td className="right" style={{ width: '140px' }}>{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
-                                        <td className="right bold green-text" style={{ width: '140px' }}>{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
-                                    </tr>
+                                    {(group.totalGun > 0 || group.isAylik) && (
+                                        <tr className="bg-light-green">
+                                            <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
+                                            <td className="center">{group.isAylik ? '1 AY' : (group.totalGun > 0 ? `${group.totalGun} GÜN` : '')}</td>
+                                            <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
+                                            <td className="right bold green-text">{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
+                                        </tr>
+                                    )}
                                     {group.totalSaatlik > 0 && (
                                         <tr className="bg-light-green">
-                                            <td className="bold center">SAATLİK</td>
+                                            <td className="bold center">SAAT</td>
                                             <td className="center">{group.totalSaatlik} SAAT</td>
                                             <td className="right">{sampleSaatlikPrice ? formatCurrency(sampleSaatlikPrice) : ''}</td>
                                             <td className="right bold green-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
@@ -280,11 +290,15 @@ export default function WorkPdfReport() {
 
             {/* General Grand Total Summary */}
             <div className="pdf-grand-total">
-                <table className="pdf-summary-table" style={{ width: '250px', marginLeft: 'auto', marginTop: '20px' }}>
+                <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: (groups.length > 0 ? '20px' : '0') }}>
+                    <colgroup>
+                        <col style={{ width: '170px' }} />
+                        <col style={{ width: '180px' }} />
+                    </colgroup>
                     <tbody>
                         <tr>
-                            <td className="bold center bg-light-blue" style={{ width: '120px' }}>TOPLAM</td>
-                            <td className="right bold green-text" style={{ width: '130px', backgroundColor: '#e2f0e0' }}>{formatCurrency(grandTotalPrice)}</td>
+                            <td className="bold center bg-light-blue">TOPLAM</td>
+                            <td className="right bold green-text" style={{ backgroundColor: '#e2f0e0' }}>{formatCurrency(grandTotalPrice)}</td>
                         </tr>
                     </tbody>
                 </table>

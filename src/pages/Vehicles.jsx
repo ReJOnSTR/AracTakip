@@ -16,6 +16,7 @@ import {
 } from '../utils/helpers'
 import { Plus, Pencil, Trash2, Car, Building2, AlertCircle } from 'lucide-react'
 import VehicleForm from '../components/VehicleForm'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 
 export default function Vehicles() {
     const navigate = useNavigate()
@@ -26,9 +27,15 @@ export default function Vehicles() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingVehicle, setEditingVehicle] = useState(null)
     const [saving, setSaving] = useState(false)
-    const [activeTab, setActiveTab] = useState('all')
+    const [activeTab, setActiveTab] = usePersistentTab('Vehicles', 'all')
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+    
+    // Seen Vehicle Types for Tabs History
+    const [seenTypes, setSeenTypes] = useState(new Set())
+
+    // Archive State
+    const [showArchived, setShowArchived] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -37,14 +44,25 @@ export default function Vehicles() {
             setVehicles([])
             setLoading(false)
         }
-    }, [currentCompany])
+    }, [currentCompany, showArchived])
 
     const loadVehicles = async () => {
         setLoading(true)
         try {
-            const result = await window.electronAPI.getVehicles(currentCompany.id)
+            const result = await window.electronAPI.getVehicles(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) {
                 setVehicles(result.data)
+                
+                // Track newly seen vehicle types from the result data to persist tabs
+                if (result.data.length > 0) {
+                    setSeenTypes(prev => {
+                        const next = new Set(prev)
+                        result.data.forEach(v => {
+                            if (v.type) next.add(v.type)
+                        })
+                        return next
+                    })
+                }
             }
         } catch (error) {
             console.error('Failed to load vehicles:', error)
@@ -136,6 +154,17 @@ export default function Vehicles() {
         }
 
         setConfirmModal(null)
+        loadVehicles()
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('vehicles', id, newStatus)
+        }
         loadVehicles()
     }
 
@@ -241,8 +270,8 @@ export default function Vehicles() {
             </div>
 
             {/* Dynamic Vehicle Type Tabs */}
-            {vehicles.length > 0 && (() => {
-                const existingTypes = [...new Set(vehicles.map(v => v.type).filter(Boolean))];
+            {seenTypes.size > 0 && (() => {
+                const existingTypes = Array.from(seenTypes)
                 const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: vehicles.filter(v => v.type === t).length }));
                 return (
                     <div className="vehicle-tabs">
@@ -265,7 +294,7 @@ export default function Vehicles() {
                 );
             })()}
 
-            {vehicles.length === 0 ? (
+            {vehicles.length === 0 && !loading && !showArchived ? (
                 <div className="empty-state">
                     <div className="empty-state-icon">
                         <Car />
@@ -280,11 +309,14 @@ export default function Vehicles() {
                     </button>
                 </div>
             ) : (
-                <DataTable persistenceKey="Vehicles_table_0"
+                <DataTable persistenceKey={`Vehicles_table_${activeTab}`}
                     columns={columns}
                     data={activeTab === 'all' ? vehicles : vehicles.filter(v => v.type === activeTab)}
                     showSearch={true}
                     showCheckboxes={true}
+                    onBulkArchive={handleBulkArchive}
+                    isArchiveView={showArchived}
+                    onToggleArchiveView={setShowArchived}
                     searchPlaceholder="Plaka veya marka ara..."
                     searchKeys={['plate', 'brand', 'model', 'year']}
                     filters={[

@@ -308,8 +308,8 @@ ipcMain.handle('companies:delete', async (event, companyId) => {
 })
 
 // Vehicle handlers
-ipcMain.handle('vehicles:getAll', async (event, companyId) => {
-    return await db.getVehicles(companyId)
+ipcMain.handle('vehicles:getAll', async (event, companyId, isArchived) => {
+    return await db.getVehicles(companyId, isArchived)
 })
 
 ipcMain.handle('vehicles:getById', async (event, vehicleId) => {
@@ -470,8 +470,8 @@ ipcMain.handle('services:delete', async (event, id) => {
 })
 
 // Finance handlers
-ipcMain.handle('finance:getAll', async (event, companyId) => {
-    return db.getTransactions(companyId)
+ipcMain.handle('finance:getAll', async (event, companyId, isArchived) => {
+    return db.getTransactions(companyId, isArchived)
 })
 
 ipcMain.handle('finance:getById', async (event, id) => {
@@ -500,8 +500,8 @@ ipcMain.handle('finance:getStats', async (event, companyId) => {
     return db.getFinanceStats(companyId)
 })
 
-ipcMain.handle('finance:getChecks', async (event, companyId) => {
-    return db.getChecksAndNotes(companyId)
+ipcMain.handle('finance:getChecks', async (event, companyId, isArchived) => {
+    return db.getChecksAndNotes(companyId, isArchived)
 })
 
 ipcMain.handle('finance:updateCheckStatus', async (event, payload) => {
@@ -514,8 +514,8 @@ ipcMain.handle('finance:updateCheckStatus', async (event, payload) => {
 
 // ============ MEAL TICKETS ============
 
-ipcMain.handle('mealTickets:getAll', async (event, companyId) => {
-    return await db.getMealTickets(companyId)
+ipcMain.handle('mealTickets:getAll', async (event, companyId, isArchived) => {
+    return db.getMealTickets(companyId, isArchived)
 })
 
 ipcMain.handle('mealTickets:create', async (event, data) => {
@@ -555,8 +555,8 @@ ipcMain.handle('mealTickets:getReport', async (event, { companyId, month, year }
 })
 
 // ============ EMPLOYEES ============
-ipcMain.handle('employees:getAll', async (event, companyId) => {
-    return await db.getEmployees(companyId)
+ipcMain.handle('employees:getAll', async (event, companyId, isArchived) => {
+    return db.getEmployees(companyId, isArchived)
 })
 ipcMain.handle('employees:getById', async (event, id) => {
     return await db.getEmployeeById(id)
@@ -678,8 +678,8 @@ ipcMain.handle('archive:item', async (event, table, id, isArchived) => {
 })
 
 // Works & Timesheets
-ipcMain.handle('works:getAll', async (event, companyId) => {
-    return db.getWorks(companyId)
+ipcMain.handle('works:getAll', async (event, companyId, isArchived) => {
+    return db.getWorks(companyId, isArchived)
 })
 ipcMain.handle('works:getDetails', async (event, id) => {
     return db.getWorkDetails(id)
@@ -695,8 +695,8 @@ ipcMain.handle('works:delete', async (event, id) => {
 })
 
 // Customers
-ipcMain.handle('customers:getAll', async (event, companyId) => {
-    return db.getCustomers(companyId)
+ipcMain.handle('customers:getAll', async (event, companyId, isArchived) => {
+    return db.getCustomers(companyId, isArchived)
 })
 ipcMain.handle('customers:getDetails', async (event, id) => {
     return db.getCustomerDetails(id)

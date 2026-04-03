@@ -4,6 +4,7 @@ import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import {
@@ -29,7 +30,7 @@ export default function PeriodicInspections() {
     // formData removed
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [activeTab, setActiveTab] = useState('all')
+    const [activeTab, setActiveTab] = usePersistentTab('PeriodicInspections', 'all')
 
     const [confirmModal, setConfirmModal] = useState(null)
 
@@ -421,10 +422,9 @@ export default function PeriodicInspections() {
                 </div>
             ) : (
                 <DataTable
-                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={activeTab === 'all' ? inspections : inspections.filter(i => { const v = vehicles.find(vv => vv.id === i.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`periodic_inspections_table_${showArchived ? 'archived' : 'active'}`}
+                    persistenceKey={`PeriodicInspections_table_${activeTab}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}

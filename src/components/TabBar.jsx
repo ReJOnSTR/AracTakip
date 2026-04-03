@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus, ArrowLeft, ArrowRight } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
@@ -45,6 +45,7 @@ export default function TabBar() {
     const { user, logout } = useAuth()
     const { companies, currentCompany, selectCompany } = useCompany()
     const navigate = useNavigate()
+    const location = useLocation()
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
 
@@ -76,6 +77,24 @@ export default function TabBar() {
         <div className="tab-bar">
             {/* Left: Draggable Tabs */}
             <div className="tab-bar-left">
+                {location.pathname !== '/portal' && (
+                    <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: '-1px' }}>
+                        <button
+                            className="tab-nav-btn"
+                            onClick={() => navigate(-1)}
+                            title="Geri Dön"
+                        >
+                            <ArrowLeft size={16} />
+                        </button>
+                        <button
+                            className="tab-nav-btn forward-btn"
+                            onClick={() => navigate(1)}
+                            title="İleri Git"
+                        >
+                            <ArrowRight size={16} />
+                        </button>
+                    </div>
+                )}
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}

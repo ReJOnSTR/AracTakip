@@ -4,6 +4,7 @@ import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import { formatDate, formatCurrency, getVehicleTypeLabel } from '../utils/helpers'
@@ -22,8 +23,8 @@ export default function Services() {
     const [editingService, setEditingService] = useState(null)
     // formData removed
     const [saving, setSaving] = useState(false)
+    const [activeTab, setActiveTab] = usePersistentTab('Services', 'all')
     const [error, setError] = useState('')
-    const [activeTab, setActiveTab] = useState('all')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     // Archive State
@@ -400,10 +401,9 @@ export default function Services() {
                 </div>
             ) : (
                 <DataTable
-                    key={showArchived ? 'archived' : 'active'}
                     columns={columns}
                     data={activeTab === 'all' ? services : services.filter(s => { const v = vehicles.find(vv => vv.id === s.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`services_table_${showArchived ? 'archived' : 'active'}`}
+                    persistenceKey={`services_table_${activeTab}`}
                     showSearch={true}
                     showCheckboxes={true}
                     showDateFilter={true}
