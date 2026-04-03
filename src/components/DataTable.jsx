@@ -288,10 +288,15 @@ export default function DataTable({
     const customFilteredData = useMemo(() => {
         if (!data) return []
 
+        const validFilterKeys = new Set(filters.map(f => f.key))
+
         return data.filter(row => {
             // Check dropdown filters
             for (const [key, value] of Object.entries(activeFilters)) {
                 if (value) {
+                    // Only apply filter if it's currently defined for this table
+                    if (!validFilterKeys.has(key)) continue
+
                     const filterDef = filters?.find(f => f.key === key)
                     if (filterDef && filterDef.filterFn) {
                         if (!filterDef.filterFn(row, value)) return false
@@ -316,7 +321,7 @@ export default function DataTable({
 
             return true
         })
-    }, [data, activeFilters, dateRange, showDateFilter, dateFilterKey])
+    }, [data, activeFilters, filters, showDateFilter, dateFilterKey, dateRange])
 
     // Filter by search
     const filteredData = useMemo(() => {
@@ -539,11 +544,10 @@ export default function DataTable({
                             marginRight: '12px',
                             border: '1px solid var(--border-color)',
                             position: 'relative',
-                            width: '180px', // Fixed width for smooth sliding
+                            width: '180px',
                             height: '36px',
                             alignItems: 'center'
                         }}>
-                            {/* Sliding Pill Background */}
                             <div style={{
                                 position: 'absolute',
                                 left: '4px',
@@ -606,7 +610,6 @@ export default function DataTable({
                             </button>
                         </div>
                     )}
-                    {/* Search */}
                     {showSearch && (
                         <div className="search-box">
                             <Search size={16} />
@@ -624,7 +627,6 @@ export default function DataTable({
                         </div>
                     )}
 
-                    {/* Filters */}
                     {filters.length > 0 && (
                         <div className="filter-group">
                             {filters.map(filter => (
@@ -641,7 +643,6 @@ export default function DataTable({
                         </div>
                     )}
 
-                    {/* Date Range */}
                     {showDateFilter && (
                         <CustomDatePicker
                             startDate={dateRange.start}
@@ -658,7 +659,6 @@ export default function DataTable({
                     )}
 
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-                        {/* Column Toggle */}
                         <div className="filter-clear" style={{ position: 'relative', padding: '0', border: 'none', background: 'transparent' }} ref={columnMenuRef}>
                             <button
                                 className="filter-clear"
@@ -666,7 +666,6 @@ export default function DataTable({
                                     if (!showColumnMenu) {
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         const spaceBelow = window.innerHeight - rect.bottom;
-                                        // Estimate max height of dropdown (around 300px with padding/title)
                                         if (spaceBelow < 300 && rect.top > 300) {
                                             setDropdownPosition('top');
                                         } else {
@@ -726,48 +725,22 @@ export default function DataTable({
                                                         onChange={() => toggleColumn(col.key)}
                                                         style={{ accentColor: 'var(--accent-primary)', width: '12px', height: '12px', cursor: 'pointer' }}
                                                     />
-                                                    <span style={{ color: visibleColumns instanceof Set ? (visibleColumns.has(col.key) ? 'var(--text-primary)' : 'var(--text-muted)') : (new Set(visibleColumns).has(col.key) ? 'var(--text-primary)' : 'var(--text-muted)'), transition: 'color 0.2s' }}>
+                                                    <span style={{ color: (visibleColumns instanceof Set ? visibleColumns.has(col.key) : new Set(visibleColumns).has(col.key)) ? 'var(--text-primary)' : 'var(--text-muted)', transition: 'color 0.2s' }}>
                                                         {col.label}
                                                     </span>
                                                 </label>
-
                                                 <div style={{
                                                     display: 'flex',
                                                     gap: '2px',
                                                     opacity: hoveredColumn === col.key ? 1 : 0,
-                                                    pointerEvents: hoveredColumn === col.key ? 'auto' : 'none',
                                                     transition: 'opacity 0.2s',
                                                     alignItems: 'center'
                                                 }}>
-                                                    <button
-                                                        className="filter-clear"
-                                                        style={{
-                                                            padding: '2px', border: 'none', background: 'transparent', borderRadius: '4px',
-                                                            opacity: index === 0 ? 0.2 : 0.8, cursor: index === 0 ? 'default' : 'pointer',
-                                                            transition: 'opacity 0.2s'
-                                                        }}
-                                                        onMouseEnter={(e) => { if (index !== 0) e.currentTarget.style.opacity = '1' }}
-                                                        onMouseLeave={(e) => { if (index !== 0) e.currentTarget.style.opacity = '0.8' }}
-                                                        onClick={(e) => { e.stopPropagation(); moveColumnUp(col.key); }}
-                                                        disabled={index === 0}
-                                                        title="Yukarı Taşı"
-                                                    >
-                                                        <ArrowUp size={12} color="var(--text-primary)" />
+                                                    <button className="filter-clear" style={{ padding: '2px', border: 'none', background: 'transparent', opacity: index === 0 ? 0.2 : 0.8, cursor: index === 0 ? 'default' : 'pointer' }} onClick={(e) => { e.stopPropagation(); moveColumnUp(col.key); }} disabled={index === 0}>
+                                                        <ArrowUp size={12} />
                                                     </button>
-                                                    <button
-                                                        className="filter-clear"
-                                                        style={{
-                                                            padding: '2px', border: 'none', background: 'transparent', borderRadius: '4px',
-                                                            opacity: index === orderedColumns.length - 1 ? 0.2 : 0.8, cursor: index === orderedColumns.length - 1 ? 'default' : 'pointer',
-                                                            transition: 'opacity 0.2s'
-                                                        }}
-                                                        onMouseEnter={(e) => { if (index !== orderedColumns.length - 1) e.currentTarget.style.opacity = '1' }}
-                                                        onMouseLeave={(e) => { if (index !== orderedColumns.length - 1) e.currentTarget.style.opacity = '0.8' }}
-                                                        onClick={(e) => { e.stopPropagation(); moveColumnDown(col.key); }}
-                                                        disabled={index === orderedColumns.length - 1}
-                                                        title="Aşağı Taşı"
-                                                    >
-                                                        <ArrowDown size={12} color="var(--text-primary)" />
+                                                    <button className="filter-clear" style={{ padding: '2px', border: 'none', background: 'transparent', opacity: index === orderedColumns.length - 1 ? 0.2 : 0.8, cursor: index === orderedColumns.length - 1 ? 'default' : 'pointer' }} onClick={(e) => { e.stopPropagation(); moveColumnDown(col.key); }} disabled={index === orderedColumns.length - 1}>
+                                                        <ArrowDown size={12} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -893,13 +866,30 @@ export default function DataTable({
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedData.length === 0 ? (
+                        {filteredData.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={visibleColumnsList.length + (actions ? 1 : 0) + (showRowNumbers ? 1 : 0) + (showCheckboxes ? 1 : 0)}
+                                    colSpan={visibleColumnsList.length + (actions || onRowClick ? 1 : 0) + (showRowNumbers ? 1 : 0) + (showCheckboxes ? 1 : 0)}
                                     className="empty-cell"
                                 >
-                                    {hasActiveFilters ? 'Filtre sonucu bulunamadı' : emptyMessage}
+                                    <div className="table-empty" style={{ padding: '40px 20px', textAlign: 'center' }}>
+                                        <div className="empty-icon" style={{ marginBottom: '16px', opacity: 0.5 }}>
+                                            {hasActiveFilters ? <Search size={48} /> : <div style={{ fontSize: '48px' }}>📋</div>}
+                                        </div>
+                                        <div className="empty-text">
+                                            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                                                {hasActiveFilters ? 'Eşleşen sonuç bulunamadı' : emptyMessage}
+                                            </h3>
+                                            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                                                {hasActiveFilters ? 'Lütfen arama teriminizi veya filtrelerinizi değiştirin.' : 'Henüz herhangi bir kayıt eklenmemiş olabilir.'}
+                                            </p>
+                                        </div>
+                                        {(hasActiveFilters || (data && data.length > 0)) && (
+                                            <button className="btn btn-secondary" onClick={clearFilters} style={{ margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <X size={16} /> Tüm Filtreleri Temizle
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
