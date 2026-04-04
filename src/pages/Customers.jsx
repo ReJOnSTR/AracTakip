@@ -31,14 +31,11 @@ export default function Customers() {
         setLoading(true)
         try {
             const result = await window.electronAPI.getCustomers(currentCompany.id, showArchived ? 1 : 0)
-            if (result && result.success) {
-                setCustomers(Array.isArray(result.data) ? result.data : [])
-            } else {
-                setCustomers([])
+            if (result.success) {
+                setCustomers(result.data)
             }
         } catch (error) {
             console.error('Failed to load customers:', error)
-            setCustomers([])
         }
         setLoading(false)
     }
@@ -129,9 +126,9 @@ export default function Customers() {
     }
 
     // Stats
-    const stats = (customers || []).reduce((acc, c) => {
-        acc.totalReceivables += Number(c?.total_receivable) || 0;
-        acc.totalWorks += Number(c?.work_count) || 0;
+    const stats = customers.reduce((acc, c) => {
+        acc.totalReceivables += c.total_receivable || 0;
+        acc.totalWorks += c.work_count || 0;
         return acc;
     }, { totalReceivables: 0, totalWorks: 0 })
 

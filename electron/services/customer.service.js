@@ -4,13 +4,7 @@ async function getCustomers(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
         const customersList = await prisma.customers.findMany({
-            where: { 
-                company_id: parseInt(companyId),
-                OR: [
-                    { is_archived: isArchived },
-                    { is_archived: null }
-                ]
-            },
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             include: {
                 works: {
                     include: {
@@ -26,16 +20,16 @@ async function getCustomers(companyId, isArchived = 0) {
         // We might need to add customer_id to transactions later, or just calculate total work price for now and a basic collection from works if we had one.
         // Actually, we can sum the work_items total_price for balances right now.
         const formatted = customersList.map(c => {
-            const totalWorkReceivable = (c.works || []).reduce((sum, w) => {
+            const totalWorkReceivable = c.works.reduce((sum, w) => {
                 if (w.status === 'paid' || w.status === 'cancelled') return sum;
-                const workTotal = (w.work_items || []).reduce((wSum, item) => wSum + (item.total_price || 0), 0)
+                const workTotal = w.work_items.reduce((wSum, item) => wSum + (item.total_price || 0), 0)
                 return sum + workTotal
             }, 0)
 
             return {
                 ...c,
                 total_receivable: totalWorkReceivable,
-                work_count: (c.works || []).length
+                work_count: c.works.length
             }
         })
 
@@ -65,15 +59,15 @@ async function getCustomerDetails(id) {
 
         if (!customer) return { success: false, error: 'Müşteri bulunamadı' }
 
-        const totalWorkReceivable = (customer.works || []).reduce((sum, w) => {
+        const totalWorkReceivable = customer.works.reduce((sum, w) => {
             if (w.status === 'paid' || w.status === 'cancelled') return sum;
-            const workTotal = (w.work_items || []).reduce((wSum, item) => wSum + (item.total_price || 0), 0)
+            const workTotal = w.work_items.reduce((wSum, item) => wSum + (item.total_price || 0), 0)
             return sum + workTotal
         }, 0)
 
         // Enhance work details for display
-        const enhancedWorks = (customer.works || []).map(w => {
-            const itemDates = (w.work_items || []).filter(i => i.date).map(i => new Date(i.date).getTime());
+        const enhancedWorks = customer.works.map(w => {
+            const itemDates = w.work_items.filter(i => i.date).map(i => new Date(i.date).getTime());
             let dynamicStart = w.start_date;
             let dynamicEnd = w.end_date;
 
@@ -82,7 +76,7 @@ async function getCustomerDetails(id) {
                 dynamicEnd = new Date(Math.max(...itemDates));
             }
 
-            const uniqueDays = new Set((w.work_items || []).filter(i => i.date).map(i => {
+            const uniqueDays = new Set(w.work_items.filter(i => i.date).map(i => {
                 const d = new Date(i.date)
                 return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
             })).size;
@@ -92,9 +86,9 @@ async function getCustomerDetails(id) {
                 start_date: dynamicStart,
                 end_date: dynamicEnd,
                 total_days: uniqueDays > 0 ? uniqueDays : 0,
-                item_count: (w.work_items || []).length,
-                total_hours: (w.work_items || []).reduce((sum, i) => sum + (i.hours || 0), 0),
-                total_price: (w.work_items || []).reduce((sum, i) => sum + (i.total_price || 0), 0)
+                item_count: w.work_items.length,
+                total_hours: w.work_items.reduce((sum, i) => sum + (i.hours || 0), 0),
+                total_price: w.work_items.reduce((sum, i) => sum + (i.total_price || 0), 0)
             }
         })
 

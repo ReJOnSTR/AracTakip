@@ -4,13 +4,7 @@ async function getWorks(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
         const works = await prisma.works.findMany({
-            where: { 
-                company_id: parseInt(companyId),
-                OR: [
-                    { is_archived: isArchived },
-                    { is_archived: null }
-                ]
-            },
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             include: {
                 work_items: true,
                 customers: true
@@ -20,7 +14,7 @@ async function getWorks(companyId, isArchived = 0) {
 
         // Format to include item_count and totals
         const formatted = works.map(w => {
-            const itemDates = (w.work_items || []).filter(i => i.date).map(i => new Date(i.date).getTime());
+            const itemDates = w.work_items.filter(i => i.date).map(i => new Date(i.date).getTime());
             let dynamicStart = w.start_date;
             let dynamicEnd = w.end_date;
 
@@ -29,7 +23,7 @@ async function getWorks(companyId, isArchived = 0) {
                 dynamicEnd = new Date(Math.max(...itemDates));
             }
 
-            const uniqueDays = new Set((w.work_items || []).filter(i => i.date).map(i => {
+            const uniqueDays = new Set(w.work_items.filter(i => i.date).map(i => {
                 const d = new Date(i.date)
                 return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
             })).size;
@@ -40,9 +34,9 @@ async function getWorks(companyId, isArchived = 0) {
                 start_date: dynamicStart,
                 end_date: dynamicEnd,
                 total_days: uniqueDays > 0 ? uniqueDays : 0,
-                item_count: (w.work_items || []).length,
-                total_hours: (w.work_items || []).reduce((sum, i) => sum + (i.hours || 0), 0),
-                total_price: (w.work_items || []).reduce((sum, i) => sum + (i.total_price || 0), 0)
+                item_count: w.work_items.length,
+                total_hours: w.work_items.reduce((sum, i) => sum + (i.hours || 0), 0),
+                total_price: w.work_items.reduce((sum, i) => sum + (i.total_price || 0), 0)
             };
         })
 
@@ -76,7 +70,7 @@ async function getWorkDetails(id) {
         const formatted = {
             ...work,
             customer_name: work.customers?.name || work.customer,
-            items: (work.work_items || []).map(item => ({
+            items: work.work_items.map(item => ({
                 ...item,
                 plate: item.vehicles?.plate || '',
                 brand: item.vehicles?.brand || '',

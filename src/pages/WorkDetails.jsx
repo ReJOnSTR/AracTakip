@@ -525,21 +525,13 @@ export default function WorkDetails(props) {
         });
 
         Object.values(groupedItems).forEach(group => {
-            const sampleGunPrice = Number(group.items.find(i => {
-                const desc = (i.description || '').toUpperCase();
-                return !desc.includes('PAZAR') && !desc.includes('YOL') && !desc.includes('[SAATLİK]');
-            })?.unit_price) || 0;
-
-            const sampleYolPrice = Number(group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price) || 0;
-            const sampleSaatlikPrice = Number(group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price) || 0;
-            
-            let samplePazarPrice = Number(group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price) || 0;
+            const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
+            const sampleYolPrice = group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price || 0;
+            const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
+            let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
             if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5;
-            
-            let sampleMesaiPrice = Number(group.items.find(i => (Number(i.overtime_hours) || 0) > 0)?.unit_price) || 0;
-            if (sampleMesaiPrice <= (sampleGunPrice / 8) && sampleGunPrice > 0) {
-                 sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
-            }
+            let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
+            if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
 
             let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice);
             
@@ -670,21 +662,11 @@ export default function WorkDetails(props) {
                         <DollarSign />
                     </div>
                     <div className="stat-content" style={{ width: '100%' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px', height: '100%', justifyContent: 'center' }}>
-                            <div>
-                                <div style={{ fontSize: '22px', fontWeight: '900', color: 'var(--success)', lineHeight: 1.1 }}>{formatCurrency(grandTotal)}</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.05em' }}>Genel Toplam (KDV hariç)</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', overflow: 'hidden' }}>
+                            <div style={{ fontSize: '17px', fontWeight: '800', color: 'var(--success)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={formatCurrency(grandTotal)}>
+                                {formatCurrency(grandTotal)}
                             </div>
-                            <div style={{ display: 'flex', gap: '16px', marginTop: '4px', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
-                                <div>
-                                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{formatCurrency(grandTotal * 0.2)}</div>
-                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>KDV (%20)</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--success)' }}>{formatCurrency(grandTotal * 1.2)}</div>
-                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>KDV Dahil</div>
-                                </div>
-                            </div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.02em', marginTop: '2px' }}>Genel Toplam</div>
                         </div>
                     </div>
                 </div>

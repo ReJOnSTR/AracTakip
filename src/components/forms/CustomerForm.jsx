@@ -1,29 +1,19 @@
-import { useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import CustomInput from '../CustomInput'
-import { User, Phone, Mail, MapPin, CreditCard, Building2, ClipboardList } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 export default function CustomerForm({ initialData = null, onSubmit, onCancel, loading = false }) {
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors }
-    } = useForm({
-        defaultValues: {
-            name: '',
-            phone: '',
-            email: '',
-            address: '',
-            tax_number: '',
-            tax_office: '',
-            notes: ''
-        }
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        tax_number: '',
+        tax_office: '',
+        notes: ''
     })
 
     useEffect(() => {
         if (initialData) {
-            reset({
+            setFormData({
                 name: initialData.name || '',
                 phone: initialData.phone || '',
                 email: initialData.email || '',
@@ -32,190 +22,117 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                 tax_office: initialData.tax_office || '',
                 notes: initialData.notes || ''
             })
-        } else {
-            reset({
-                name: '',
-                phone: '',
-                email: '',
-                address: '',
-                tax_number: '',
-                tax_office: '',
-                notes: ''
-            })
         }
-    }, [initialData, reset])
+    }, [initialData])
 
-    const onFormSubmit = (data) => {
-        // Form validation is handled by react-hook-form
-        onSubmit(data)
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }))
+    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        // Form validation
+        if (!formData.name.trim()) {
+            alert('Müşteri adı/ünvanı zorunludur.')
+            return
+        }
+        onSubmit(formData)
     }
 
     return (
-        <form onSubmit={handleSubmit(onFormSubmit)}>
-            <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-                {/* Section 1: Kimlik ve İletişim */}
-                <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: 'var(--text-secondary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        marginBottom: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
-                        <User size={15} /> Kimlik ve İletişim
-                    </div>
+        <form onSubmit={handleSubmit} className="form-layout">
+            <div className="form-group">
+                <label className="form-label">Müşteri Adı / Ünvanı <span className="text-danger">*</span></label>
+                <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="form-input"
+                    placeholder="Müşteri Adı veya Firma Ünvanı"
+                    required
+                />
+            </div>
 
-                    <div className="form-group">
-                        <Controller
-                            name="name"
-                            control={control}
-                            rules={{ required: 'Müşteri adı/ünvanı zorunludur' }}
-                            render={({ field }) => (
-                                <CustomInput
-                                    label="Müşteri Adı / Firma Ünvanı"
-                                    required={true}
-                                    value={field.value}
-                                    onChange={(val) => field.onChange((val || '').toLocaleUpperCase('tr-TR'))}
-                                    placeholder="ÜNVAN GİRİNİZ"
-                                    floatingLabel={true}
-                                    error={errors.name?.message}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <Controller
-                                name="phone"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomInput
-                                        label="Telefon"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        placeholder="05XX XXX XX XX"
-                                        floatingLabel={true}
-                                        icon={<Phone size={14} />}
-                                    />
-                                )}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <Controller
-                                name="email"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomInput
-                                        label="E-Posta"
-                                        type="email"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        placeholder="ornek@firma.com"
-                                        floatingLabel={true}
-                                        icon={<Mail size={14} />}
-                                    />
-                                )}
-                            />
-                        </div>
-                    </div>
+            <div className="form-row">
+                <div className="form-group">
+                    <label className="form-label">Telefon</label>
+                    <input
+                        type="text"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="05XX XXX XX XX"
+                    />
                 </div>
-
-                {/* Section 2: Ticari ve Adres Bilgileri */}
-                <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: 'var(--text-secondary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        marginBottom: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
-                        <Building2 size={15} /> Ticari ve Adres Bilgileri
-                    </div>
-
-                    <div className="form-row" style={{ gap: '16px' }}>
-                        <div className="form-group">
-                            <Controller
-                                name="tax_number"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomInput
-                                        label="Vergi Numarası"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        placeholder="TCKN veya Vergi No"
-                                        floatingLabel={true}
-                                        icon={<CreditCard size={14} />}
-                                    />
-                                )}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <Controller
-                                name="tax_office"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomInput
-                                        label="Vergi Dairesi"
-                                        value={field.value}
-                                        onChange={(val) => field.onChange((val || '').toLocaleUpperCase('tr-TR'))}
-                                        placeholder="Vergi Dairesi"
-                                        floatingLabel={true}
-                                    />
-                                )}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <Controller
-                            name="address"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomInput
-                                    label="Açık Adres"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    multiline={true}
-                                    rows={2}
-                                    placeholder="Adres detayları..."
-                                    floatingLabel={true}
-                                    icon={<MapPin size={14} />}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                        <Controller
-                            name="notes"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomInput
-                                    label="Özel Notlar"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    multiline={true}
-                                    rows={2}
-                                    placeholder="Müşteri hakkında ek notlar..."
-                                    floatingLabel={true}
-                                    icon={<ClipboardList size={14} />}
-                                />
-                            )}
-                        />
-                    </div>
+                <div className="form-group">
+                    <label className="form-label">E-Posta</label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="ornek@firma.com"
+                    />
                 </div>
             </div>
 
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+            <div className="form-row">
+                <div className="form-group">
+                    <label className="form-label">Vergi Numarası / T.C. Kimlik</label>
+                    <input
+                        type="text"
+                        name="tax_number"
+                        value={formData.tax_number}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="Vergi No veya TCKN"
+                    />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Vergi Dairesi</label>
+                    <input
+                        type="text"
+                        name="tax_office"
+                        value={formData.tax_office}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="Vergi Dairesi"
+                    />
+                </div>
+            </div>
+
+            <div className="form-group">
+                <label className="form-label">Açık Adres</label>
+                <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="form-input"
+                    rows="2"
+                    placeholder="Müşteri açık adresi..."
+                />
+            </div>
+
+            <div className="form-group">
+                <label className="form-label">Notlar</label>
+                <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    className="form-input"
+                    rows="3"
+                    placeholder="Özel notlar..."
+                />
+            </div>
+
+            <div className="form-actions">
                 <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={loading}>
                     İptal
                 </button>
