@@ -3,8 +3,16 @@ const { getPrismaClient } = require('../prismaClient')
 async function getWorks(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
+        const whereClause = {
+            company_id: parseInt(companyId),
+            ...(isArchived === 0 
+                ? { OR: [{ is_archived: 0 }, { is_archived: null }] }
+                : { is_archived: 1 }
+            )
+        }
+
         const works = await prisma.works.findMany({
-            where: { company_id: parseInt(companyId), is_archived: isArchived },
+            where: whereClause,
             include: {
                 work_items: true,
                 customers: true
