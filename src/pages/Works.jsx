@@ -36,9 +36,13 @@ export default function Works() {
                 window.electronAPI.getCustomers(currentCompany.id)
             ])
             if (worksRes.success) setWorks(worksRes.data)
+            else alert('İş verileri yüklenirken hata oluştu: ' + worksRes.error)
+            
             if (customersRes.success) setCustomers(customersRes.data)
+            else console.error(customersRes.error)
         } catch (error) {
             console.error('Veri yüklenirken hata:', error)
+            alert('İş modülü çok kritik bir hata verdi: ' + error.message)
         }
         setLoading(false)
     }
