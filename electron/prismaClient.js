@@ -57,7 +57,6 @@ async function runAutoMigrations() {
     log.info('Running auto-migrations for missing tables and columns...');
 
     // 1. Add `is_archived` to all relevant tables if missing
-    try {
         const archivableTables = [
             'assignments', 'customers', 'employee_assignments', 'employees',
             'inspections', 'insurances', 'maintenances', 'meal_tickets',
@@ -65,15 +64,16 @@ async function runAutoMigrations() {
         ];
 
         for (const tableName of archivableTables) {
-            const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
-            if (cols.length > 0 && !cols.some(c => c.name === 'is_archived')) {
-                await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
-                log.info(`Migration: Added is_archived to ${tableName}`);
+            try {
+                const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
+                if (cols.length > 0 && !cols.some(c => c.name === 'is_archived')) {
+                    await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
+                    log.info(`Migration: Added is_archived to ${tableName}`);
+                }
+            } catch (error) {
+                log.error(`Migration step 1 (is_archived) error for ${tableName}:`, error.message);
             }
         }
-    } catch (error) {
-        log.error('Migration step 1 (is_archived) error:', error.message);
-    }
 
     // 2. Transactions: category, payment_method (missing in older versions)
     try {
