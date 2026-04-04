@@ -110,11 +110,35 @@ async function runAutoMigrations() {
     try {
         const wCols = await p.$queryRawUnsafe("PRAGMA table_info('works')");
         if (wCols.length > 0 && !wCols.some(c => c.name === 'customer_id')) {
-            await p.$executeRawUnsafe('ALTER TABLE works ADD COLUMN customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL');
+            // Added without REFERENCES to avoid PRAGMA foreign_keys=ON crash on populated Windows DBs
+            await p.$executeRawUnsafe('ALTER TABLE works ADD COLUMN customer_id INTEGER');
             log.info('Migration: Added customer_id to works');
         }
     } catch (error) {
         log.error('Migration step 4 (customer_id) error:', error.message);
+    }
+
+    // Ensure all newer customers columns exist
+    try {
+        const cCols = await p.$queryRawUnsafe("PRAGMA table_info('customers')");
+        if (cCols.length > 0) {
+            const missingCustomersCols = [
+                { name: 'phone', type: 'TEXT' },
+                { name: 'email', type: 'TEXT' },
+                { name: 'address', type: 'TEXT' },
+                { name: 'tax_number', type: 'TEXT' },
+                { name: 'tax_office', type: 'TEXT' },
+                { name: 'notes', type: 'TEXT' }
+            ];
+            for (const col of missingCustomersCols) {
+                if (!cCols.some(c => c.name === col.name)) {
+                    await p.$executeRawUnsafe(`ALTER TABLE customers ADD COLUMN ${col.name} ${col.type}`);
+                    log.info(`Migration: Added ${col.name} to customers`);
+                }
+            }
+        }
+    } catch (e) {
+        log.error('Migration customers table columns error:', e.message);
     }
 
     // 5. Add receipt_no to work_items (for existing DBs)
