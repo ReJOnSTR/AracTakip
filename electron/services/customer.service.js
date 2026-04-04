@@ -4,7 +4,13 @@ async function getCustomers(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
         const customersList = await prisma.customers.findMany({
-            where: { company_id: parseInt(companyId), is_archived: isArchived },
+            where: { 
+                company_id: parseInt(companyId),
+                OR: [
+                    { is_archived: isArchived },
+                    { is_archived: null }
+                ]
+            },
             include: {
                 works: {
                     include: {
