@@ -59,8 +59,8 @@ async function runAutoMigrations() {
     // 1. Add `is_archived` to all relevant tables if missing
         const archivableTables = [
             'assignments', 'customers', 'employee_assignments', 'employees',
-            'inspections', 'insurances', 'maintenances', 'meal_tickets',
-            'services', 'transactions', 'vehicles', 'works'
+            'inspections', 'insurances', 'maintenances', 'meal_tickets', 'meal_settings',
+            'services', 'transactions', 'vehicles', 'works', 'work_items', 'overtimes', 'salaries', 'leaves', 'recurring_transactions'
         ];
 
         for (const tableName of archivableTables) {
