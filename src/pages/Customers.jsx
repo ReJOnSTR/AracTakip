@@ -33,12 +33,9 @@ export default function Customers() {
             const result = await window.electronAPI.getCustomers(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) {
                 setCustomers(result.data)
-            } else {
-                alert('Müşteri verileri yüklenirken hata oluştu: ' + result.error)
             }
         } catch (error) {
             console.error('Failed to load customers:', error)
-            alert('Müşteri modülü çok kritik bir hata verdi: ' + error.message)
         }
         setLoading(false)
     }

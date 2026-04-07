@@ -3,13 +3,8 @@ const { getPrismaClient } = require('../prismaClient')
 async function getWorks(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
-        const whereClause = {
-            company_id: parseInt(companyId),
-            is_archived: isArchived === 1 ? 1 : 0
-        }
-
         const works = await prisma.works.findMany({
-            where: whereClause,
+            where: { company_id: parseInt(companyId), is_archived: isArchived },
             include: {
                 work_items: true,
                 customers: true
@@ -79,6 +74,7 @@ async function getWorkDetails(id) {
                 ...item,
                 plate: item.vehicles?.plate || '',
                 brand: item.vehicles?.brand || '',
+                model: item.vehicles?.model || '',
                 employee_name: item.employees?.first_name || '',
                 employee_surname: item.employees?.last_name || ''
             }))
@@ -152,7 +148,7 @@ async function deleteWork(id) {
 function calculateItemTotalPrice(data) {
     const descUpper = (data.description || '').toUpperCase();
     const isSaatlik = descUpper.includes('[SAATLİK]');
-    
+
     let isPazar = descUpper.includes('PAZAR');
     if (data.date) {
         const d = new Date(data.date);
@@ -171,7 +167,7 @@ function calculateItemTotalPrice(data) {
         baseTotal = unitPrice * hours;
     } else {
         let gunRate = unitPrice;
-        
+
         if (isAylik) {
             if (isPazar) {
                 gunRate = unitPrice + (unitPrice * 1.5);

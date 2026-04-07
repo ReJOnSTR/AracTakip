@@ -8,14 +8,16 @@ import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import CustomInput from '../components/CustomInput'
 import CustomSelect from '../components/CustomSelect'
+import MonthFilter from '../components/MonthFilter'
 import EmployeeForm from '../components/forms/EmployeeForm'
 import AssignmentForm from '../components/forms/AssignmentForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary } from '../utils/helpers'
 import {
     ArrowLeft, Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
-    UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet
+    UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet,
+    Upload, X, ExternalLink
 } from 'lucide-react'
 
 const paymentTypes = [
@@ -46,6 +48,12 @@ const paymentStatuses = [
     { value: 'pending', label: 'Bekliyor' }
 ]
 
+const paymentMethods = [
+    { value: 'nakit', label: 'Nakit' },
+    { value: 'kasa', label: 'Kasa' },
+    { value: 'bank', label: 'Banka' }
+]
+
 const assignmentStatuses = [
     { value: 'active', label: 'Aktif' },
     { value: 'returned', label: 'İade Edildi' }
@@ -59,7 +67,7 @@ const overtimeTypes = [
 const today = () => new Date().toISOString().split('T')[0]
 
 const emptyForms = {
-    salary: { paymentType: 'salary', amount: '', paymentDate: '', status: 'pending', notes: '' },
+    salary: { paymentType: 'salary', amount: '', paymentDate: '', status: 'pending', paymentMethod: 'nakit', notes: '' },
     leave: { type: 'annual', status: 'approved', startDate: '', endDate: '', days: 1, notes: '' },
     overtime: { overtimeType: 'weekday', date: '', hours: '', rate: 0, amount: '', notes: '' },
     assignment: { itemName: '', quantity: 1, assignedDate: '', returnDate: '', status: 'active', notes: '' }
@@ -107,6 +115,7 @@ export default function EmployeeDetail() {
 
     const [employee, setEmployee] = useState(null)
     const [activeTab, setActiveTab] = usePersistentTab('EmployeeDetail', 'salary')
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
     const [tabsRef] = useState({})
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
     const [loading, setLoading] = useState(true)
@@ -123,6 +132,9 @@ export default function EmployeeDetail() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [selectedUploadFile, setSelectedUploadFile] = useState(null)
+    const [previewDoc, setPreviewDoc] = useState(null)
 
     useEffect(() => {
         if (currentCompany) loadEmployeeData()
@@ -134,6 +146,16 @@ export default function EmployeeDetail() {
             setIndicatorStyle({ left: activeElement.offsetLeft, width: activeElement.offsetWidth })
         }
     }, [activeTab, tabsRef, salaries, leaves, overtimes, assignments, documents])
+
+    // Ensure selectedMonth is not before employee start_date
+    useEffect(() => {
+        if (employee?.start_date) {
+            const hireMonth = new Date(employee.start_date).toISOString().slice(0, 7)
+            if (selectedMonth < hireMonth) {
+                setSelectedMonth(hireMonth)
+            }
+        }
+    }, [employee, selectedMonth])
 
     const loadEmployeeData = async () => {
         setLoading(true)
@@ -163,13 +185,19 @@ export default function EmployeeDetail() {
 
     const getDefaultAmount = (paymentType) => {
         if (!employee) return ''
-        if (paymentType === 'salary') return employee.salary || ''
+        if (paymentType === 'salary') return getHistoricalBaseSalary(employee, selectedMonth)
+        if (paymentType === 'overtime_pay') {
+            const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
+            return monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
+        }
         return ''
     }
 
     const calcOvertimeRate = (type) => {
-        if (!employee || !employee.salary) return 0
-        const dailyRate = employee.salary / 30
+        if (!employee) return 0
+        const activeSalary = getHistoricalBaseSalary(employee, selectedMonth)
+        if (!activeSalary) return 0
+        const dailyRate = activeSalary / 30
         const hourlyRate = dailyRate / 10
         if (type === 'weekday') return Math.round(hourlyRate * 1.5 * 100) / 100
         if (type === 'sunday') return Math.round(dailyRate * 1.5 * 100) / 100
@@ -180,7 +208,7 @@ export default function EmployeeDetail() {
         setModalType(type)
         setEditingItem(null)
         if (type === 'salary') {
-            setFormData({ paymentType: 'salary', amount: getDefaultAmount('salary'), paymentDate: today(), status: 'pending', notes: '' })
+            setFormData({ paymentType: 'salary', amount: getDefaultAmount('salary'), paymentDate: today(), status: 'pending', paymentMethod: 'nakit', notes: '' })
         } else if (type === 'overtime') {
             const rate = calcOvertimeRate('weekday')
             setFormData({ overtimeType: 'weekday', date: today(), hours: '', rate, amount: '', notes: '' })
@@ -197,11 +225,12 @@ export default function EmployeeDetail() {
         setEditingItem(item)
         setError('')
         if (type === 'salary') {
-            setFormData({ paymentType: item.period || 'salary', amount: item.net_salary || '', paymentDate: item.payment_date || '', status: item.status || 'pending', notes: item.notes || '' })
+            setFormData({ paymentType: item.period || 'salary', amount: item.net_salary || '', paymentDate: item.payment_date ? new Date(item.payment_date).toISOString().split('T')[0] : '', status: item.status || 'pending', paymentMethod: item.payment_method || 'nakit', notes: item.notes || '' })
         } else if (type === 'leave') {
             setFormData({ type: item.type || 'annual', status: item.status || 'approved', startDate: item.start_date || '', endDate: item.end_date || '', days: item.days || 1, notes: item.notes || '' })
         } else if (type === 'overtime') {
-            const otType = item.rate && employee?.salary ? (Math.abs(item.rate - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday') : 'weekday'
+            const activeSalary = getHistoricalBaseSalary(employee, selectedMonth)
+            const otType = item.rate && activeSalary ? (Math.abs(item.rate - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday') : 'weekday'
             setFormData({ overtimeType: otType, date: item.date || '', hours: item.hours || '', rate: item.rate || 0, amount: item.amount || '', notes: item.notes || '' })
         } else if (type === 'assignment') {
             setFormData({ itemName: item.item_name || '', quantity: item.quantity || 1, assignedDate: item.assigned_date || '', returnDate: item.return_date || '', status: item.status || 'active', notes: item.notes || '' })
@@ -304,7 +333,7 @@ export default function EmployeeDetail() {
     const handleSalarySubmit = async (e) => {
         e.preventDefault()
         setSaving(true); setError('')
-        const data = { employeeId: parseInt(id), period: formData.paymentType || 'salary', baseSalary: 0, bonus: 0, deduction: 0, netSalary: parseFloat(formData.amount) || 0, paymentDate: formData.paymentDate || null, status: formData.status || 'pending', notes: formData.notes || null }
+        const data = { employeeId: parseInt(id), period: formData.paymentType || 'salary', baseSalary: 0, bonus: 0, deduction: 0, netSalary: parseFloat(formData.amount) || 0, paymentDate: formData.paymentDate || null, status: formData.status || 'pending', paymentMethod: formData.paymentMethod || 'nakit', notes: formData.notes || null }
         try {
             const result = editingItem ? await window.electronAPI.updateSalary({ id: editingItem.id, ...data }) : await window.electronAPI.createSalary(data)
             if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
@@ -345,27 +374,77 @@ export default function EmployeeDetail() {
         setSaving(false)
     }
 
-    const handleDocumentUpload = async () => {
+    const handleOpenUpload = () => {
+        setSelectedUploadFile(null)
+        setUploadModalOpen(true)
+    }
+
+    const handleSelectUploadFile = async () => {
         try {
             const result = await window.electronAPI.selectFile()
-            if (!result || (result.canceled) || (Array.isArray(result) && result.length === 0)) return
+            if (!result || result.canceled || (Array.isArray(result) && result.length === 0)) return
             const filePath = Array.isArray(result) ? result[0] : result.filePaths?.[0]
             if (!filePath) return
             const fileName = filePath.split('/').pop().split('\\').pop()
-            const ext = fileName.split('.').pop().toLowerCase()
-            const res = await window.electronAPI.createEmployeeDocument({ employeeId: parseInt(id), fileName, filePath, fileType: ext, category: null })
-            if (res.success) loadEmployeeData()
-        } catch (err) { console.error('Document upload failed:', err) }
+            setSelectedUploadFile({ path: filePath, name: fileName })
+        } catch (err) { console.error('Failed to select file:', err) }
+    }
+
+    const handleUploadConfirm = async () => {
+        if (!selectedUploadFile) return
+        try {
+            const ext = selectedUploadFile.name.split('.').pop().toLowerCase()
+            const res = await window.electronAPI.createEmployeeDocument({
+                employeeId: parseInt(id),
+                fileName: selectedUploadFile.name,
+                filePath: selectedUploadFile.path,
+                fileType: ext,
+                category: null
+            })
+            if (res.success) {
+                setUploadModalOpen(false)
+                loadEmployeeData()
+            } else {
+                console.error('Upload error:', res.error)
+            }
+        } catch (err) { console.error('Upload failed:', err) }
     }
 
     const handleDocumentOpen = async (doc) => {
-        try { await window.electronAPI.openFile(doc.file_path) } catch (err) { console.error('Failed to open document:', err) }
+        const ext = doc.file_type?.toLowerCase() || doc.file_path.split('.').pop()?.toLowerCase()
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif']
+        if (imageExtensions.includes(ext)) {
+            try {
+                const dataUrl = await window.electronAPI.readImageFile(doc.file_path)
+                if (dataUrl) {
+                    setPreviewDoc({ data: dataUrl, name: doc.file_name, path: doc.file_path, doc })
+                } else {
+                    await window.electronAPI.openFile(doc.file_path)
+                }
+            } catch (error) {
+                console.error('Failed to preview image:', error)
+                await window.electronAPI.openFile(doc.file_path)
+            }
+        } else {
+            await window.electronAPI.openFile(doc.file_path)
+        }
     }
 
     // ========== COMPUTED VALUES ==========
 
-    const totalPayments = salaries.filter(s => s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-    const pendingPaymentCount = salaries.filter(s => s.status === 'pending').length
+    const monthlySalaries = salaries.filter(s => {
+        if (!s.payment_date && !s.created_at) return false
+        try {
+            const d = s.payment_date || s.created_at
+            const dStr = typeof d === 'string' ? d : new Date(d).toISOString()
+            return dStr.startsWith(selectedMonth)
+        } catch (e) {
+            return false
+        }
+    })
+
+    const totalPayments = monthlySalaries.filter(s => s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+    const pendingPaymentCount = monthlySalaries.filter(s => s.status === 'pending').length
     const totalLeaveDays = leaves.filter(l => l.status === 'approved').reduce((sum, l) => sum + (l.days || 0), 0)
     const totalOvertimeHours = overtimes.reduce((sum, o) => sum + (o.hours || 0), 0)
     const activeAssignments = assignments.filter(a => a.status === 'active')
@@ -384,6 +463,7 @@ export default function EmployeeDetail() {
         { key: 'net_salary', label: 'Tutar', render: (v) => formatCurrency(v) },
         { key: 'payment_date', label: 'Ödeme Tarihi', render: (v) => v ? formatDate(v) : '-' },
         { key: 'status', label: 'Durum', render: (v) => <span className={`badge badge-${v === 'paid' ? 'success' : 'warning'}`}>{v === 'paid' ? 'Ödendi' : 'Bekliyor'}</span> },
+        { key: 'payment_method', label: 'Ödeme Yöntemi', render: (v) => paymentMethods.find(t => t.value === v)?.label || (v === 'bank' ? 'Banka' : (v === 'kasa' ? 'Kasa' : 'Nakit')) },
         { key: 'notes', label: 'Not' }
     ]
 
@@ -399,7 +479,7 @@ export default function EmployeeDetail() {
     const overtimeColumns = [
         {
             key: 'rate', label: 'Tür', render: (v, row) => {
-                if (!employee?.salary) return '-'
+                if (!getHistoricalBaseSalary(employee, selectedMonth)) return '-'
                 const weekdayRate = calcOvertimeRate('weekday')
                 return Math.abs(v - weekdayRate) < 1 ? 'Hafta İçi' : 'Pazar'
             }
@@ -557,16 +637,16 @@ export default function EmployeeDetail() {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                         <div style={{ gridColumn: '1 / -1' }}>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Maaş (Net)</div>
-                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Maaş (Net, {selectedMonth} itibariyle)</div>
+                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{getHistoricalBaseSalary(employee, selectedMonth) ? formatCurrency(getHistoricalBaseSalary(employee, selectedMonth)) : '-'}</div>
                         </div>
                         <div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hafta İçi Mesai</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday')) + ' / saat' : '-'}</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{getHistoricalBaseSalary(employee, selectedMonth) ? formatCurrency(calcOvertimeRate('weekday')) + ' / saat' : '-'}</div>
                         </div>
                         <div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pazar Mesaisi</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday')) + ' / gün' : '-'}</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{getHistoricalBaseSalary(employee, selectedMonth) ? formatCurrency(calcOvertimeRate('sunday')) + ' / gün' : '-'}</div>
                         </div>
                         {employee.notes && (
                             <div style={{ gridColumn: '1 / -1' }}>
@@ -634,32 +714,97 @@ export default function EmployeeDetail() {
                     <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                         {tabs.find(t => t.id === activeTab)?.label} Kayıtları
                     </h3>
-                    <button className="btn btn-primary" onClick={() => activeTab === 'documents' ? handleDocumentUpload() : openAddModal(activeTab)}>
-                        <Plus size={18} />
-                        Ekle
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {activeTab === 'salary' && (
+                            <div style={{ width: '180px' }}>
+                                <MonthFilter 
+                                    value={selectedMonth} 
+                                    onChange={setSelectedMonth} 
+                                    minDate={employee?.start_date ? new Date(employee.start_date).toISOString().slice(0, 7) : null}
+                                />
+                            </div>
+                        )}
+                        <button className="btn btn-primary" onClick={() => activeTab === 'documents' ? handleOpenUpload() : openAddModal(activeTab)}>
+                            <Plus size={18} />
+                            Ekle
+                        </button>
+                    </div>
                 </div>
 
                 {activeTab === 'salary' && (
                     <div className="tab-pane">
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Toplam Ödeme</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>{formatCurrency(salaries.reduce((s, i) => s + (i.net_salary || 0), 0))}</div>
-                            </div>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>{formatCurrency(totalPayments)}</div>
-                            </div>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bekleyen</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: pendingPaymentCount > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>{pendingPaymentCount} kayıt</div>
-                            </div>
+                            {(() => {
+                                const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
+                                const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
+                                const baseSalaryTarget = getHistoricalBaseSalary(employee, selectedMonth) || 0
+                                const netTarget = baseSalaryTarget + totalOtTarget
+
+                                const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                                const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                                const totalPaid = paidSalary + paidOt
+
+                                const remainingSalary = baseSalaryTarget - paidSalary
+                                const remainingOt = totalOtTarget - paidOt
+                                const netRemaining = remainingSalary + remainingOt
+
+                                const lastPaidDate = (() => {
+                                    const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
+                                    if (paidRecords.length === 0) return null
+                                    return new Date(Math.max(...paidRecords.map(r => new Date(r.payment_date || r.created_at))))
+                                })()
+
+                                const pendingCount = monthlySalaries.filter(s => s.status === 'pending').length
+                                const progress = netTarget > 0 ? Math.round((totalPaid / netTarget) * 100) : 0
+
+                                return (
+                                    <>
+                                        {/* Ödenecek Tutar - Kaynak bilgisini koruyoruz */}
+                                        <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai)</div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
+                                                {formatCurrency(netTarget)}
+                                            </div>
+                                            <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                                <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(baseSalaryTarget)}
+                                                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                                <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(totalOtTarget)}
+                                            </div>
+                                        </div>
+
+                                        {/* Ödenen - İşlem bilgisi ekliyoruz */}
+                                        <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen</div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>
+                                                {formatCurrency(totalPaid)}
+                                            </div>
+                                            <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                                <span>{monthlySalaries.filter(s => s.status === 'paid').length} İşlem</span>
+                                                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                                <span>{lastPaidDate ? `Son: ${formatDate(lastPaidDate)}` : 'Ödeme Yok'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Kalan Bakiye - Ödeme durumu ve bekleyen kayıt bilgisi */}
+                                        <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Bakiye</div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--warning)' }}>
+                                                {formatCurrency(netRemaining)}
+                                            </div>
+                                            <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                                <span style={{ color: progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{progress} Ödendi</span>
+                                                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                                <span>{pendingCount} Kayıt Bekliyor</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )
+                            })()}
                         </div>
                         <DataTable persistenceKey="EmployeeDetail_table_0"
                             storageKey="emp_salary_cols"
                             columns={salaryColumns}
-                            data={salaries}
+                            data={monthlySalaries}
                             emptyMessage="Henüz ödeme kaydı bulunmuyor."
                             filters={[
                                 { key: 'period', label: 'Ödeme Türü', options: paymentTypes },
@@ -866,9 +1011,27 @@ export default function EmployeeDetail() {
                                     <CustomSelect label="Ödeme Türü *" value={formData.paymentType || 'salary'} options={paymentTypes} onChange={(val) => updateField('paymentType', val)} />
                                     <CustomInput label="Tutar (₺) *" type="number" value={formData.amount || ''} onChange={(val) => updateField('amount', val)} step="0.01" required />
                                     <CustomInput label="Ödeme Tarihi" type="date" value={formData.paymentDate || ''} onChange={(val) => updateField('paymentDate', val)} />
-                                    <CustomSelect label="Durum" value={formData.status || 'pending'} options={paymentStatuses} onChange={(val) => updateField('status', val)} />
+                                    <CustomSelect label="Ödeme Kanalı" value={formData.paymentMethod || 'nakit'} options={paymentMethods} onChange={(val) => updateField('paymentMethod', val)} />
                                 </div>
-                                <div style={{ marginTop: '12px' }}>
+
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',
+                                    background: formData.status === 'paid' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                    border: `1px solid ${formData.status === 'paid' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                }} onClick={() => updateField('status', formData.status === 'paid' ? 'pending' : 'paid')}>
+                                    <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                                        <input type="checkbox" checked={formData.status === 'paid'} onChange={(e) => updateField('status', e.target.checked ? 'paid' : 'pending')} />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ödeme Durumu</span>
+                                        <span style={{ fontSize: '14px', fontWeight: 600, color: formData.status === 'paid' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                            {formData.status === 'paid' ? 'Ödendi' : 'Bekliyor'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '16px' }}>
                                     <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
@@ -882,12 +1045,29 @@ export default function EmployeeDetail() {
                             <form onSubmit={handleLeaveSubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <CustomSelect label="İzin Türü *" value={formData.type || 'annual'} options={leaveTypes} onChange={(val) => updateField('type', val)} />
-                                    <CustomSelect label="Durum" value={formData.status || 'approved'} options={leaveStatuses} onChange={(val) => updateField('status', val)} />
+                                    <CustomInput label="Gün Sayısı" type="number" value={formData.days || 1} onChange={(val) => updateField('days', val)} min={1} />
                                     <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
                                     <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
-                                    <CustomInput label="Gün Sayısı" type="number" value={formData.days || 1} onChange={(val) => updateField('days', val)} min={1} />
                                 </div>
-                                <div style={{ marginTop: '12px' }}>
+
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',
+                                    background: formData.status === 'approved' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                    border: `1px solid ${formData.status === 'approved' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                }} onClick={() => updateField('status', formData.status === 'approved' ? 'pending' : 'approved')}>
+                                    <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                                        <input type="checkbox" checked={formData.status === 'approved'} onChange={(e) => updateField('status', e.target.checked ? 'approved' : 'pending')} />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İzin Durumu</span>
+                                        <span style={{ fontSize: '14px', fontWeight: 600, color: formData.status === 'approved' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                            {formData.status === 'approved' ? 'Onaylandı' : 'Bekliyor'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '16px' }}>
                                     <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
@@ -933,10 +1113,26 @@ export default function EmployeeDetail() {
                                     <CustomInput label="Teslim Tarihi" type="date" value={formData.assignedDate || ''} onChange={(val) => updateField('assignedDate', val)} />
                                     <CustomInput label="İade Tarihi" type="date" value={formData.returnDate || ''} onChange={(val) => updateField('returnDate', val)} />
                                 </div>
-                                <div style={{ marginTop: '12px' }}>
-                                    <CustomSelect label="Durum" value={formData.status || 'active'} options={assignmentStatuses} onChange={(val) => updateField('status', val)} />
+
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',
+                                    background: formData.status === 'active' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                    border: `1px solid ${formData.status === 'active' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                }} onClick={() => updateField('status', formData.status === 'active' ? 'returned' : 'active')}>
+                                    <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                                        <input type="checkbox" checked={formData.status === 'active'} onChange={(e) => updateField('status', e.target.checked ? 'active' : 'returned')} />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Demirbaş Durumu</span>
+                                        <span style={{ fontSize: '14px', fontWeight: 600, color: formData.status === 'active' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                            {formData.status === 'active' ? 'Aktif' : 'İade Edildi'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div style={{ marginTop: '12px' }}>
+
+                                <div style={{ marginTop: '16px' }}>
                                     <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
@@ -950,6 +1146,127 @@ export default function EmployeeDetail() {
             </Modal>
 
             <ConfirmModal isOpen={!!confirmModal} onClose={() => setConfirmModal(null)} onConfirm={handleConfirmDelete} title={confirmModal?.title} message={confirmModal?.message} />
+
+            {/* Preview Modal */}
+            {previewDoc && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', animation: 'fadeIn 0.2s ease-out'
+                }} onClick={() => setPreviewDoc(null)}>
+                    <div className="modal-content" style={{
+                        width: '100%', maxWidth: '900px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-elevated)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{
+                            padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-secondary)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <FileText size={20} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Belge Önizleme</h3>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{previewDoc.name}</span>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={() => setPreviewDoc(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-primary)' }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            flex: 1, overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a1a1a', backgroundImage: 'linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px', padding: '32px', minHeight: '300px'
+                        }}>
+                            <img src={previewDoc.data} alt={previewDoc.name} style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '4px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }} />
+                        </div>
+
+                        <div style={{
+                            padding: '16px 24px', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
+                        }}>
+                            <div>
+                                {previewDoc.doc && (
+                                    <button onClick={(e) => { e.stopPropagation(); setPreviewDoc(null); handleDeleteClick('documents', previewDoc.doc) }} style={{
+                                        display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: '1px solid var(--error)', borderRadius: '8px', padding: '0 12px', height: '36px', color: 'var(--error)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s'
+                                    }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--error-bg)' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+                                        <Trash2 size={16} /> Sil
+                                    </button>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button className="btn btn-secondary" onClick={() => setPreviewDoc(null)}>Kapat</button>
+                                <button className="btn btn-primary" onClick={async () => {
+                                    const error = await window.electronAPI.openDocument(previewDoc.path)
+                                    // if (error) alert('Dosya açılamadı: ' + error)
+                                }}>
+                                    <ExternalLink size={16} /> Dışarıda Aç
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Upload Modal */}
+            {uploadModalOpen && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', animation: 'fadeIn 0.2s ease-out'
+                }} onClick={() => setUploadModalOpen(false)}>
+                    <div className="modal-content" style={{
+                        width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-elevated)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }} onClick={e => e.stopPropagation()}>
+
+                        <div style={{
+                            padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-secondary)'
+                        }}>
+                            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Belge Yükle</h3>
+                            <button onClick={() => setUploadModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{ padding: '24px' }}>
+                            {!selectedUploadFile ? (
+                                <div onClick={handleSelectUploadFile} style={{
+                                    border: '2px dashed var(--border-color)', borderRadius: '12px', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: 'var(--bg-secondary)'
+                                }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.backgroundColor = 'var(--accent-subtle)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.backgroundColor = 'var(--bg-secondary)' }}>
+                                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                                        <Upload size={32} />
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Dosya Seçmek İçin Tıklayın</div>
+                                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>veya buraya sürükleyin</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', backgroundColor: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <FileText size={24} />
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '2px' }}>Yüklemeye hazır</div>
+                                    </div>
+                                    <button onClick={() => setSelectedUploadFile(null)} style={{ background: 'transparent', border: 'none', color: 'var(--error)', cursor: 'pointer', padding: '8px' }}>
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            )}
+
+                            <div style={{ marginTop: '20px', display: 'flex', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                <div style={{ minWidth: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor', marginTop: '6px' }} />
+                                Desteklenen formatlar: Resimler (PNG, JPG), PDF ve diğer belgeler.
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                            <button className="btn btn-secondary" onClick={() => setUploadModalOpen(false)}>İptal</button>
+                            <button className="btn btn-primary" disabled={!selectedUploadFile} onClick={handleUploadConfirm} style={{ opacity: !selectedUploadFile ? 0.5 : 1 }}>
+                                <Upload size={16} /> Yükle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import DataTable from '../components/DataTable'
 import { useCompany } from '../context/CompanyContext'
-import { formatCurrency, formatDate } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary } from '../utils/helpers'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import MonthFilter from '../components/MonthFilter'
@@ -342,8 +342,8 @@ export default function Salaries() {
             // Find Salary Movement (Accrual)
             const salaryRecord = monthlyMovements.find(m => m.employee_id === emp.id && m.type === 'salary')
 
-            // Base Salary Logic: Priority to Movement, fallback to Employee Profile
-            const baseSalary = salaryRecord ? salaryRecord.amount : (emp.salary || 0)
+            // Base Salary Logic: Priority to Movement, fallback to Historical Salary
+            const baseSalary = salaryRecord ? salaryRecord.amount : getHistoricalBaseSalary(emp, selectedMonth)
 
             // Helper to add to correct bucket
             let bankPaid = 0

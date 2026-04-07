@@ -3,22 +3,30 @@ import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport() {
-    const { id } = useParams();
-    const [work, setWork] = useState(null);
-    const [loading, setLoading] = useState(true);
+export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
+    const params = useParams();
+    const id = propId || params.id;
+    const [work, setWork] = useState(propWork || null);
+    const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
+    const [savingPdf, setSavingPdf] = useState(false);
 
     useEffect(() => {
+        if (propWork) {
+            setWork(propWork);
+            setLoading(false);
+            return;
+        }
+
         const stored = localStorage.getItem('workPdfData');
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
                 // Also verify it matches the ID just in case
                 if (parsed.id === Number(id)) {
-                   setWork(parsed);
-                   setLoading(false);
-                   return;
+                    setWork(parsed);
+                    setLoading(false);
+                    return;
                 }
             } catch (err) {
                 console.error("PDF data parse error", err);
@@ -46,15 +54,6 @@ export default function WorkPdfReport() {
         loadData();
     }, [id]);
 
-    useEffect(() => {
-        if (!loading && work) {
-            // Biraz bekleyip yazdır
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        }
-    }, [loading, work]);
-
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
@@ -65,7 +64,7 @@ export default function WorkPdfReport() {
         const key = item.vehicle_id || 'diger';
         if (!groupedItems[key]) {
             groupedItems[key] = {
-                machineName: item.plate ? `${item.plate} ${item.brand || ''} ${item.model || ''}`.trim() : 'Belirtilmemiş',
+                machineName: item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş',
                 items: [],
                 totalGun: 0,
                 totalYol: 0,
@@ -89,7 +88,7 @@ export default function WorkPdfReport() {
 
         // Pazar kontrolü
         const isPazar = isSunday || descUpper.includes('PAZAR');
-        
+
         // Enhance description for Sundays automatically
         item.isPazar = isPazar;
         if (isSunday && !descUpper.includes('PAZAR')) {
@@ -130,24 +129,24 @@ export default function WorkPdfReport() {
         const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
         const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
         const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-        
+
         // Pazar is 50% more than daily
         let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
-             samplePazarPrice = sampleGunPrice * 1.5;
+            samplePazarPrice = sampleGunPrice * 1.5;
         }
 
         // Mesai is 50% more than hourly wage (hourly wage = daily / 8)
         let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-             sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
+            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
         }
 
         let calculatedGun = 0;
         if (group.isAylik) {
-             calculatedGun = 26 * sampleGunPrice;
+            calculatedGun = 26 * sampleGunPrice;
         } else {
-             calculatedGun = group.totalGun * sampleGunPrice;
+            calculatedGun = group.totalGun * sampleGunPrice;
         }
 
         const calculatedPazar = group.totalPazar * samplePazarPrice;
@@ -170,9 +169,49 @@ export default function WorkPdfReport() {
         };
     });
 
+    const handleSavePdf = async () => {
+        if (!window.electronAPI?.saveAsPdf) {
+            alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.');
+            return;
+        }
+
+        setSavingPdf(true);
+        // Wait for state to apply hide-for-pdf classes
+        setTimeout(async () => {
+            const res = await window.electronAPI.saveAsPdf();
+            setSavingPdf(false);
+            if (res && res.success) {
+                // We can add a notification here or let OS handle it
+            } else if (res && !res.canceled) {
+                alert('PDF Kaydedilirken Hata: ' + res.error);
+            }
+        }, 100);
+    };
+
     return (
-        <div className="pdf-report-container">
-            {/* Header */}
+        <div className={`pdf-viewer-layout ${savingPdf ? 'is-generating-pdf' : ''}`}>
+            {/* Viewer Action Bar */}
+            {!noHeader && (
+                <div className="pdf-actions-bar">
+                    <button className="pdf-btn close" onClick={() => window.close()} disabled={savingPdf}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        Pencereyi Kapat
+                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button className="pdf-btn print" onClick={() => window.print()} disabled={savingPdf}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+                            Yazıcıdan Çıktı Al
+                        </button>
+                        <button className="pdf-btn save" onClick={handleSavePdf} disabled={savingPdf}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z"/><path d="M18 21v-8a2 2 0 0 0-2-2h-1.5"/></svg>
+                            Bilgisayara PDF Kaydet
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <div className="pdf-report-container">
+                {/* Header */}
             <div className="pdf-header">
                 <h2>Sak Vinç Puantaj Cetveli</h2>
                 <div className="pdf-date-right">
@@ -215,7 +254,9 @@ export default function WorkPdfReport() {
                                             <td className="center">{item.receipt_no || '-'}</td>
                                             <td className="center">{item.start_time || '-'}</td>
                                             <td className="center">{item.end_time || '-'}</td>
-                                            <td className="center">{item.hours || 0}</td>
+                                            <td className="center">
+                                                {item.hours || 0} {((item.description || '').toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
+                                            </td>
                                             <td className="center">{item.overtime_hours > 0 ? item.overtime_hours : ''}</td>
                                             <td className="center">{group.machineName}</td>
                                             <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '')}</td>
@@ -309,6 +350,7 @@ export default function WorkPdfReport() {
                 <div style={{ marginLeft: '20px', display: 'inline-block' }}>Oluşturma Tarihi: {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR')} - {(work.customer_name || '').toUpperCase()} PUANTAJ CETVELİ</div>
             </div>
 
+        </div>
         </div>
     );
 }

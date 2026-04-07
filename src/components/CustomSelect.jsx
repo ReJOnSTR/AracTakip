@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown, Check } from 'lucide-react'
 
 export default function CustomSelect({
@@ -15,14 +16,54 @@ export default function CustomSelect({
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [placement, setPlacement] = useState('bottom')
+    const [dropdownStyle, setDropdownStyle] = useState({})
     const ref = useRef(null)
 
     const selectedOption = options.find(opt => opt.value === value)
 
+    const updatePosition = () => {
+        if (!isOpen || !ref.current) return
+        const rect = ref.current.getBoundingClientRect()
+        const spaceBelow = window.innerHeight - rect.bottom
+        const spaceAbove = rect.top
+        
+        let newPlacement = 'bottom'
+        if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+            newPlacement = 'top'
+        }
+        setPlacement(newPlacement)
+
+        setDropdownStyle({
+            position: 'fixed',
+            top: newPlacement === 'bottom' ? rect.bottom + 6 : 'auto',
+            bottom: newPlacement === 'top' ? (window.innerHeight - rect.top) + 6 : 'auto',
+            left: rect.left,
+            width: rect.width,
+            zIndex: 99999
+        })
+    }
+
+    useEffect(() => {
+        if (isOpen) {
+            updatePosition()
+            window.addEventListener('resize', updatePosition)
+            window.addEventListener('scroll', updatePosition, true)
+            return () => {
+                window.removeEventListener('resize', updatePosition)
+                window.removeEventListener('scroll', updatePosition, true)
+            }
+        }
+    }, [isOpen])
+
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (ref.current && !ref.current.contains(e.target)) {
-                setIsOpen(false)
+                // To avoid closing when clicking inside the portal, we should check if they clicked inside the portal
+                // But the easiest hack is to check if it's an option click, which triggers handleSelect anyway
+                const isDropdownClick = e.target.closest('.custom-select-dropdown')
+                if (!isDropdownClick) {
+                    setIsOpen(false)
+                }
             }
         }
 
@@ -36,17 +77,6 @@ export default function CustomSelect({
     }
 
     const toggleOpen = () => {
-        if (!isOpen && ref.current) {
-            const rect = ref.current.getBoundingClientRect()
-            const spaceBelow = window.innerHeight - rect.bottom
-            const spaceAbove = rect.top
-            // If less than 250px below and we have more space above than below, open upwards
-            if (spaceBelow < 250 && spaceAbove > spaceBelow) {
-                setPlacement('top')
-            } else {
-                setPlacement('bottom')
-            }
-        }
         setIsOpen(!isOpen)
     }
 
@@ -83,8 +113,8 @@ export default function CustomSelect({
                     </label>
                 )}
 
-                {isOpen && (
-                    <div className={`custom-select-dropdown placement-${placement}`}>
+                {isOpen && createPortal(
+                    <div className={`custom-select-dropdown placement-${placement}`} style={dropdownStyle}>
                         {!required && placeholder && (
                             <div
                                 className={`custom-select-option ${!value ? 'selected' : ''}`}
@@ -103,7 +133,8 @@ export default function CustomSelect({
                                 {value === opt.value && <Check size={14} />}
                             </div>
                         ))}
-                    </div>
+                    </div>,
+                    document.body
                 )}
             </div>
 

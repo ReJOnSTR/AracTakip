@@ -14,7 +14,8 @@ async function getEmployees(companyId, isArchived = 0) {
             where: whereClause,
             include: {
                 salaries: { where: { status: 'pending' } },
-                leaves: { where: { status: 'pending' } }
+                leaves: { where: { status: 'pending' } },
+                employee_salary_history: { orderBy: { start_date: 'asc' } }
             },
             orderBy: { first_name: 'asc' }
         });
@@ -33,7 +34,8 @@ async function getEmployees(companyId, isArchived = 0) {
 async function getEmployeeById(id) {
     try {
         const data = await prisma.employees.findUnique({
-            where: { id: parseInt(id) }
+            where: { id: parseInt(id) },
+            include: { employee_salary_history: { orderBy: { start_date: 'asc' } } }
         });
         return { success: true, data };
     } catch (error) { return { success: false, error: error.message }; }
@@ -58,7 +60,14 @@ async function addEmployee(data) {
                 notes: data.notes || null,
                 image: data.image || null,
                 past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : 0,
-                birth_date: data.birthDate ? new Date(data.birthDate) : null
+                birth_date: data.birthDate ? new Date(data.birthDate) : null,
+                employee_salary_history: {
+                    create: {
+                        amount: data.salary ? parseFloat(data.salary) : 0,
+                        start_date: data.effectiveDate ? new Date(data.effectiveDate) : new Date(data.startDate || new Date()),
+                        type: 'initial'
+                    }
+                }
             }
         });
         return { success: true, data: emp };
@@ -67,8 +76,39 @@ async function addEmployee(data) {
 
 async function updateEmployee(data) {
     try {
+        const empId = parseInt(data.id);
+        const currentEmp = await prisma.employees.findUnique({
+            where: { id: empId },
+            include: { employee_salary_history: { orderBy: { start_date: 'desc' }, take: 1 } }
+        });
+
+        const newSalary = data.salary ? parseFloat(data.salary) : 0;
+        const oldSalary = currentEmp.salary || 0;
+        const effectiveDate = data.effectiveDate ? new Date(data.effectiveDate) : new Date();
+
+        let salaryHistoryOp = undefined;
+        if (newSalary !== oldSalary) {
+            // End the existing latest history
+            if (currentEmp.employee_salary_history.length > 0) {
+                const latestHistory = currentEmp.employee_salary_history[0];
+                await prisma.employee_salary_history.update({
+                    where: { id: latestHistory.id },
+                    data: { end_date: effectiveDate }
+                });
+            }
+
+            // Create new period
+            salaryHistoryOp = {
+                create: {
+                    amount: newSalary,
+                    start_date: effectiveDate,
+                    type: 'raise'
+                }
+            };
+        }
+
         const emp = await prisma.employees.update({
-            where: { id: parseInt(data.id) },
+            where: { id: empId },
             data: {
                 first_name: data.firstName,
                 last_name: data.lastName,
@@ -79,12 +119,13 @@ async function updateEmployee(data) {
                 department: data.department || null,
                 start_date: data.startDate ? new Date(data.startDate) : null,
                 end_date: data.endDate ? new Date(data.endDate) : null,
-                salary: data.salary ? parseFloat(data.salary) : 0,
+                salary: newSalary,
                 status: data.status || 'active',
                 notes: data.notes || null,
                 image: data.image || null,
                 past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : 0,
-                birth_date: data.birthDate ? new Date(data.birthDate) : null
+                birth_date: data.birthDate ? new Date(data.birthDate) : null,
+                employee_salary_history: salaryHistoryOp ? salaryHistoryOp : undefined
             }
         });
         return { success: true, data: emp };

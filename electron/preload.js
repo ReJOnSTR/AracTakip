@@ -194,5 +194,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         const subscription = (event, data) => callback(data)
         ipcRenderer.on('db-update', subscription)
         return () => ipcRenderer.removeListener('db-update', subscription)
-    }
+    },
+
+    // System actions
+    saveAsPdf: () => ipcRenderer.invoke('save-pdf')
 })

@@ -1,11 +1,11 @@
 {
   "name": "muayen",
-  "version": "1.0.56",
+  "version": "1.0.53",
   "description": "Muayen - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
   "scripts": {
-    "dev": "npx prisma generate && kill $(lsof -t -i:5173) 2>/dev/null; concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev": "kill $(lsof -t -i:5173) 2>/dev/null; concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
     "dev:electron": "wait-on http://localhost:5173 && electron .",
     "build": "npx prisma generate && vite build && electron-builder",

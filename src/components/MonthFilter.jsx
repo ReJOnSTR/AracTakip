@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Calendar, ChevronDown } from 'lucide-react'
 
-const MonthFilter = ({ value, onChange }) => {
+const MonthFilter = ({ value, onChange, minDate }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [viewYear, setViewYear] = useState(new Date().getFullYear())
     const containerRef = useRef(null)
+
+    const minYear = minDate ? parseInt(minDate.split('-')[0]) : null
+    const minMonth = minDate ? parseInt(minDate.split('-')[1]) : null
 
     // Parse current value to sync viewYear when opening
     useEffect(() => {
@@ -25,13 +28,17 @@ const MonthFilter = ({ value, onChange }) => {
     }, [])
 
     const handleYearChange = (delta) => {
-        setViewYear(prev => prev + delta)
+        const nextYear = viewYear + delta
+        if (minYear && nextYear < minYear) return
+        setViewYear(nextYear)
     }
 
     const handleMonthSelect = (monthIndex) => {
         // monthIndex is 0-11
-        // Value format: YYYY-MM
-        const monthStr = (monthIndex + 1).toString().padStart(2, '0')
+        const monthNum = monthIndex + 1
+        if (minYear && viewYear === minYear && monthNum < minMonth) return
+
+        const monthStr = monthNum.toString().padStart(2, '0')
         onChange(`${viewYear}-${monthStr}`)
         setIsOpen(false)
     }
@@ -90,9 +97,23 @@ const MonthFilter = ({ value, onChange }) => {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                         <button
                             onClick={() => handleYearChange(-1)}
-                            style={{ background: 'transparent', border: 'none', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            disabled={minYear && viewYear <= minYear}
+                            style={{ 
+                                background: 'transparent', 
+                                border: 'none', 
+                                borderRadius: '6px', 
+                                color: (minYear && viewYear <= minYear) ? 'var(--text-muted)' : 'var(--text-secondary)', 
+                                cursor: (minYear && viewYear <= minYear) ? 'default' : 'pointer', 
+                                width: '28px', 
+                                height: '28px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                transition: 'background 0.2s',
+                                opacity: (minYear && viewYear <= minYear) ? 0.4 : 1
+                            }}
+                            onMouseEnter={(e) => { if (!(minYear && viewYear <= minYear)) e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)' }}
+                            onMouseLeave={(e) => { if (!(minYear && viewYear <= minYear)) e.currentTarget.style.backgroundColor = 'transparent' }}
                         >
                             <ChevronDown size={18} style={{ transform: 'rotate(90deg)' }} />
                         </button>
@@ -112,33 +133,36 @@ const MonthFilter = ({ value, onChange }) => {
                         {months.map((m, idx) => {
                             const isSelected = viewYear === currentYear && idx === currentMonthIndex
                             const isCurrentMonth = viewYear === new Date().getFullYear() && idx === new Date().getMonth()
+                            const isDisabled = minYear && (viewYear < minYear || (viewYear === minYear && (idx + 1) < minMonth))
 
                             return (
                                 <button
                                     key={m}
-                                    onClick={() => handleMonthSelect(idx)}
+                                    onClick={() => !isDisabled && handleMonthSelect(idx)}
+                                    disabled={isDisabled}
                                     style={{
                                         height: '32px',
                                         fontSize: '12px',
                                         fontWeight: isSelected ? 600 : 500,
                                         borderRadius: '8px',
                                         background: isSelected ? 'var(--accent-primary)' : 'transparent',
-                                        color: isSelected ? 'white' : 'var(--text-secondary)',
+                                        color: isSelected ? 'white' : (isDisabled ? 'var(--text-muted)' : 'var(--text-secondary)'),
                                         border: isCurrentMonth && !isSelected ? '1px solid var(--accent-primary)' : '1px solid transparent',
-                                        cursor: 'pointer',
+                                        cursor: isDisabled ? 'default' : 'pointer',
                                         transition: 'all 0.1s',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        opacity: isDisabled ? 0.3 : 1
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (!isSelected) {
+                                        if (!isSelected && !isDisabled) {
                                             e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'
                                             e.currentTarget.style.color = 'var(--text-primary)'
                                         }
                                     }}
                                     onMouseLeave={(e) => {
-                                        if (!isSelected) {
+                                        if (!isSelected && !isDisabled) {
                                             e.currentTarget.style.backgroundColor = 'transparent'
                                             e.currentTarget.style.color = 'var(--text-secondary)'
                                         }

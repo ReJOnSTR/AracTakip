@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function CustomDatePicker({
@@ -9,9 +10,34 @@ export default function CustomDatePicker({
     const [isOpen, setIsOpen] = useState(false)
     const [internalStart, setInternalStart] = useState(startDate || '')
     const [internalEnd, setInternalEnd] = useState(endDate || '')
+    const [popupStyle, setPopupStyle] = useState({})
     const ref = useRef(null)
 
+    const updatePosition = () => {
+        if (!isOpen || !ref.current) return
+        const rect = ref.current.getBoundingClientRect()
+        setPopupStyle({
+            position: 'fixed',
+            top: rect.bottom + 6,
+            left: rect.left,
+            zIndex: 99999
+        })
+    }
+
     useEffect(() => {
+        if (isOpen) {
+            updatePosition()
+            window.addEventListener('resize', updatePosition)
+            window.addEventListener('scroll', updatePosition, true)
+            return () => {
+                window.removeEventListener('resize', updatePosition)
+                window.removeEventListener('scroll', updatePosition, true)
+            }
+        }
+    }, [isOpen])
+
+    useEffect(() => {
+
         setInternalStart(startDate || '')
         setInternalEnd(endDate || '')
     }, [startDate, endDate])
@@ -85,8 +111,8 @@ export default function CustomDatePicker({
                 )}
             </button>
 
-            {isOpen && (
-                <div className="date-picker-popup">
+            {isOpen && createPortal(
+                <div className="date-picker-popup" style={popupStyle} onMouseDown={(e) => e.stopPropagation()}>
                     <div className="date-presets">
                         {presets.map((preset, index) => (
                             <button
@@ -135,7 +161,8 @@ export default function CustomDatePicker({
                             Uygula
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

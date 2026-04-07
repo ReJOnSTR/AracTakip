@@ -36,13 +36,9 @@ export default function Works() {
                 window.electronAPI.getCustomers(currentCompany.id)
             ])
             if (worksRes.success) setWorks(worksRes.data)
-            else alert('İş verileri yüklenirken hata oluştu: ' + worksRes.error)
-            
             if (customersRes.success) setCustomers(customersRes.data)
-            else console.error(customersRes.error)
         } catch (error) {
             console.error('Veri yüklenirken hata:', error)
-            alert('İş modülü çok kritik bir hata verdi: ' + error.message)
         }
         setLoading(false)
     }
@@ -158,10 +154,10 @@ export default function Works() {
                         <div style={{ position: 'absolute', left: 0, top: '6px', bottom: row.start_date !== row.end_date ? '6px' : 'auto', height: row.start_date === row.end_date ? '0px' : 'auto', width: '2px', background: 'var(--border-color)', borderRadius: '2px' }}>
                             <div style={{ position: 'absolute', left: '-2px', top: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--accent-primary)', background: 'var(--bg-primary)' }} />
                             {row.start_date !== row.end_date && (
-                               <div style={{ position: 'absolute', left: '-2px', bottom: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--text-muted)', background: 'var(--bg-primary)' }} />
+                                <div style={{ position: 'absolute', left: '-2px', bottom: '-2px', width: '6px', height: '6px', borderRadius: '50%', border: '1.5px solid var(--text-muted)', background: 'var(--bg-primary)' }} />
                             )}
                         </div>
-                        
+
                         <span style={{ fontSize: '11.5px', color: 'var(--text-primary)', fontWeight: 600, lineHeight: '1.3' }}>
                             {formatDate(row.start_date)}
                         </span>

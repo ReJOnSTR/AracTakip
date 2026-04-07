@@ -1,6 +1,54 @@
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
+async function syncFinanceTransaction(salaryId, action, employeeId, paymentMethod, netSalary, paymentDate, period, status) {
+    try {
+        const emp = await prisma.employees.findUnique({ where: { id: parseInt(employeeId) } });
+        if (!emp) return;
+
+        const categoryCode = `SALARY_PAYMENT_${salaryId}`;
+        
+        if (action === 'delete') {
+            await prisma.transactions.deleteMany({ where: { category: categoryCode } });
+            return;
+        }
+
+        if (status === 'paid' && (paymentMethod === 'kasa' || paymentMethod === 'bank')) {
+            const methodCode = paymentMethod === 'bank' ? 'BANK' : 'CASH';
+            const amount = parseFloat(netSalary) || 0;
+            const date = paymentDate ? new Date(paymentDate) : new Date();
+            const desc = `${emp.first_name} ${emp.last_name} Ödeme (${period})`;
+
+            const existingTx = await prisma.transactions.findFirst({ where: { category: categoryCode } });
+
+            if (existingTx) {
+                await prisma.transactions.update({
+                    where: { id: existingTx.id },
+                    data: { method: methodCode, amount: amount, date: date, description: desc }
+                });
+            } else {
+                await prisma.transactions.create({
+                    data: {
+                        company_id: emp.company_id,
+                        type: 'OUT',
+                        method: methodCode,
+                        amount: amount,
+                        currency: 'TRY',
+                        date: date,
+                        category: categoryCode,
+                        description: desc,
+                        status: 'COMPLETED'
+                    }
+                });
+            }
+        } else {
+             await prisma.transactions.deleteMany({ where: { category: categoryCode } });
+        }
+    } catch (err) {
+        console.error("Finance sync error for salary:", err);
+    }
+}
+
 // ========== SALARIES ==========
 async function getSalariesByEmployee(employeeId) {
     try {
@@ -24,9 +72,13 @@ async function createSalary(data) {
                 net_salary: data.netSalary ? parseFloat(data.netSalary) : 0,
                 payment_date: data.paymentDate ? new Date(data.paymentDate) : null,
                 status: data.status || 'pending',
+                payment_method: data.paymentMethod || 'cash',
                 notes: data.notes || null
             }
         });
+        
+        await syncFinanceTransaction(result.id, 'create', data.employeeId, data.paymentMethod || 'nakit', data.netSalary, data.paymentDate, data.period, data.status || 'pending');
+        
         return { success: true, data: result };
     } catch (error) { return { success: false, error: error.message }; }
 }
@@ -43,15 +95,21 @@ async function updateSalary(data) {
                 net_salary: data.netSalary ? parseFloat(data.netSalary) : 0,
                 payment_date: data.paymentDate ? new Date(data.paymentDate) : null,
                 status: data.status,
+                payment_method: data.paymentMethod,
                 notes: data.notes || null
             }
         });
+        
+        const currentData = await prisma.salaries.findUnique({ where: { id: parseInt(data.id) } });
+        await syncFinanceTransaction(data.id, 'update', currentData.employee_id, data.paymentMethod, data.netSalary, data.paymentDate, data.period, data.status);
+
         return { success: true, data: result };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function deleteSalary(id) {
     try {
+        await syncFinanceTransaction(parseInt(id), 'delete');
         await prisma.salaries.delete({ where: { id: parseInt(id) } });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
@@ -130,7 +188,6 @@ async function addOvertime(data) {
                 hours: parseFloat(data.hours),
                 rate: data.rate ? parseFloat(data.rate) : 1.5,
                 amount: parseFloat(data.amount),
-                status: data.status || 'approved',
                 notes: data.notes || null
             }
         });
@@ -147,7 +204,6 @@ async function updateOvertime(data) {
                 hours: parseFloat(data.hours),
                 rate: data.rate ? parseFloat(data.rate) : 1.5,
                 amount: parseFloat(data.amount),
-                status: data.status,
                 notes: data.notes || null
             }
         });
@@ -233,7 +289,7 @@ async function addEmployeeDocument(data) {
                 file_name: data.fileName,
                 file_path: data.filePath,
                 file_type: data.fileType || null,
-                related_type: data.relatedType || null
+                category: data.category || null
             }
         });
         return { success: true, id: result.id };

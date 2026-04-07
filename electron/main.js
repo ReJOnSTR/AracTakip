@@ -1277,3 +1277,32 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
     }
 })
 
+// Add PDF Save Handler
+ipcMain.handle('save-pdf', async (event) => {
+    try {
+        const win = BrowserWindow.fromWebContents(event.sender)
+        
+        const { canceled, filePath } = await dialog.showSaveDialog(win, {
+            title: 'PDF Olarak Kaydet',
+            defaultPath: `Rapor-${Date.now()}.pdf`,
+            filters: [
+                { name: 'PDF Belgeleri', extensions: ['pdf'] }
+            ]
+        });
+
+        if (canceled || !filePath) return { success: false, canceled: true };
+
+        const pdfData = await win.webContents.printToPDF({
+            printBackground: true,
+            pageSize: 'A4',
+            margins: { marginType: 'printableArea' } // Allow default margins but capture perfectly
+        });
+
+        fs.writeFileSync(filePath, pdfData);
+        return { success: true, filePath };
+    } catch (err) {
+        console.error('Save PDF Error:', err);
+        return { success: false, error: err.message };
+    }
+})
+

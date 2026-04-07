@@ -6,9 +6,10 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { workItemSchema } from '../schemas/workSchema'
+import WorkPdfReport from './WorkPdfReport'
 
 export default function WorkDetails(props) {
     const { id: urlId } = useParams()
@@ -19,6 +20,8 @@ export default function WorkDetails(props) {
     const [loading, setLoading] = useState(true)
     const [vehicles, setVehicles] = useState([])
     const [employees, setEmployees] = useState([])
+    const [isPdfModalOpen, setPdfModalOpen] = useState(false)
+    const [savingPdf, setSavingPdf] = useState(false)
 
     // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -683,7 +686,7 @@ export default function WorkDetails(props) {
                     </button>
                     <button onClick={() => { 
                         localStorage.setItem('workPdfData', JSON.stringify(work));
-                        window.open(`#/work-report/${id}`, '_blank', 'width=850,height=1000,menubar=no,toolbar=no,location=no,status=no,titlebar=no');
+                        window.open(`#/work-report/${id}`, '_blank', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no,titlebar=no');
                     }} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <FileText size={16} /> PDF Rapor
                     </button>

@@ -132,3 +132,45 @@ export function getWorkStatusLabel(status) {
 export function getWorkStatusColor(status) {
     return workStatuses.find(s => s.value === status)?.color || 'neutral'
 }
+
+/**
+ * Calculates the active base salary for a given month by evaluating the employee_salary_history timeline.
+ * @param {Object} employee - Employee object containing `salary` and `employee_salary_history`
+ * @param {String} targetMonth - The target month string (e.g. "2026-04" or "2026-04-15")
+ * @returns {Number} Active base salary
+ */
+export function getHistoricalBaseSalary(employee, targetMonth) {
+    if (!employee) return 0
+    // If no history exists, fallback to standard salary field
+    if (!employee.employee_salary_history || employee.employee_salary_history.length === 0) {
+        return employee.salary || 0
+    }
+
+    const tMonth = new Date(targetMonth)
+    // Find the record valid in this month.
+    // Validity: start_date is before or ON the target month's end, and end_date is after or null.
+    // If we only have "YYYY-MM", we compare to the end of the month.
+    const year = tMonth.getFullYear()
+    const month = tMonth.getMonth()
+    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59)
+
+    // Sort history by start date descending to find the closest match going backwards
+    const sortedHistory = [...employee.employee_salary_history].sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+
+    for (const record of sortedHistory) {
+        const start = new Date(record.start_date)
+        const end = record.end_date ? new Date(record.end_date) : null
+
+        // This record was active during this month if:
+        // - start date is before or equal to the end of the month
+        // - end date is null OR after the START of the month
+        const startOfMonth = new Date(year, month, 1, 0, 0, 0)
+        
+        if (start <= endOfMonth && (!end || end >= startOfMonth)) {
+            return record.amount || 0
+        }
+    }
+
+    // Default fallback if no valid record covers the month but history exists
+    return employee.salary || 0
+}

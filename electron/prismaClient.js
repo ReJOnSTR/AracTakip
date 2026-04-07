@@ -57,23 +57,23 @@ async function runAutoMigrations() {
     log.info('Running auto-migrations for missing tables and columns...');
 
     // 1. Add `is_archived` to all relevant tables if missing
+    try {
         const archivableTables = [
             'assignments', 'customers', 'employee_assignments', 'employees',
-            'inspections', 'insurances', 'maintenances', 'meal_tickets', 'meal_settings',
-            'services', 'transactions', 'vehicles', 'works', 'work_items', 'overtimes', 'salaries', 'leaves', 'recurring_transactions'
+            'inspections', 'insurances', 'maintenances', 'meal_tickets',
+            'services', 'transactions', 'vehicles', 'works'
         ];
 
         for (const tableName of archivableTables) {
-            try {
-                const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
-                if (cols.length > 0 && !cols.some(c => c.name === 'is_archived')) {
-                    await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
-                    log.info(`Migration: Added is_archived to ${tableName}`);
-                }
-            } catch (error) {
-                log.error(`Migration step 1 (is_archived) error for ${tableName}:`, error.message);
+            const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
+            if (cols.length > 0 && !cols.some(c => c.name === 'is_archived')) {
+                await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN is_archived INTEGER DEFAULT 0`);
+                log.info(`Migration: Added is_archived to ${tableName}`);
             }
         }
+    } catch (error) {
+        log.error('Migration step 1 (is_archived) error:', error.message);
+    }
 
     // 2. Transactions: category, payment_method (missing in older versions)
     try {
@@ -137,6 +137,17 @@ async function runAutoMigrations() {
         }
     } catch (error) {
         log.error('Migration step 6 (travel_price) error:', error.message);
+    }
+
+    // 7. Add payment_method to salaries
+    try {
+        const salCols = await p.$queryRawUnsafe("PRAGMA table_info('salaries')");
+        if (salCols.length > 0 && !salCols.some(c => c.name === 'payment_method')) {
+            await p.$executeRawUnsafe("ALTER TABLE salaries ADD COLUMN payment_method TEXT DEFAULT 'cash'");
+            log.info('Migration: Added payment_method to salaries');
+        }
+    } catch (error) {
+        log.error('Migration step 7 (payment_method) error:', error.message);
     }
 
     log.info('Auto-migrations loop completed.');

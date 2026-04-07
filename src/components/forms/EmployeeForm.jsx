@@ -30,10 +30,13 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
         startDate: '',
         birthDate: '',
         salary: '',
+        effectiveDate: new Date().toISOString().split('T')[0],
         pastUsedLeaves: '',
         status: 'active',
         notes: ''
     })
+
+    const [salaryChanged, setSalaryChanged] = useState(false)
 
     useEffect(() => {
         if (initialData) {
@@ -45,18 +48,26 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                 email: initialData.email || '',
                 position: initialData.position || '',
                 department: initialData.department || '',
-                startDate: initialData.start_date || '',
-                birthDate: initialData.birth_date || '',
+                startDate: initialData.start_date ? (typeof initialData.start_date === 'string' ? initialData.start_date : new Date(initialData.start_date).toISOString()).split('T')[0] : '',
+                birthDate: initialData.birth_date ? (typeof initialData.birth_date === 'string' ? initialData.birth_date : new Date(initialData.birth_date).toISOString()).split('T')[0] : '',
                 salary: initialData.salary || '',
+                effectiveDate: new Date().toISOString().split('T')[0],
                 pastUsedLeaves: initialData.past_used_leaves || '',
                 status: initialData.status || 'active',
                 notes: initialData.notes || ''
             })
+            setSalaryChanged(false)
         }
     }, [initialData])
 
     const handleChange = (key, value) => {
-        setForm(prev => ({ ...prev, [key]: value }))
+        setForm(prev => {
+            const next = { ...prev, [key]: value }
+            if (key === 'salary' && initialData) {
+                setSalaryChanged(parseFloat(value || 0) !== parseFloat(initialData.salary || 0))
+            }
+            return next
+        })
     }
 
     const handleSubmit = (e) => {
@@ -126,6 +137,15 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                     value={form.salary}
                     onChange={(val) => handleChange('salary', val)}
                 />
+                {salaryChanged && (
+                    <CustomInput
+                        label="Maaş Zammı Geçerlilik Tarihi (Hangi Günden İtibaren)"
+                        type="date"
+                        value={form.effectiveDate}
+                        onChange={(val) => handleChange('effectiveDate', val)}
+                        required
+                    />
+                )}
                 <CustomInput
                     label="Geçmiş Kullanılan Yıllık İzin (Gün)"
                     type="number"

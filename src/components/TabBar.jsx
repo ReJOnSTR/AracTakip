@@ -49,6 +49,31 @@ export default function TabBar() {
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
 
+    const [canGoBack, setCanGoBack] = useState(false)
+    const [canGoForward, setCanGoForward] = useState(false)
+
+    React.useEffect(() => {
+        const checkNavigation = () => {
+            if (location.pathname === '/portal') {
+                setCanGoBack(false);
+                setCanGoForward(false);
+                return;
+            }
+
+            const state = window.history.state;
+            if (state && typeof state.idx === 'number') {
+                setCanGoBack(state.idx > 0);
+                // In electron, the initial history length can sometimes be slightly off from RR's idx calculation
+                // but generally state.idx < window.history.length - 1 is correct for standard react-router.
+                setCanGoForward(state.idx < window.history.length - 1 && window.history.length > 1);
+            } else {
+                setCanGoBack(location.key !== 'default')
+                setCanGoForward(false)
+            }
+        }
+        setTimeout(checkNavigation, 0)
+    }, [location])
+
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
@@ -77,24 +102,26 @@ export default function TabBar() {
         <div className="tab-bar">
             {/* Left: Draggable Tabs */}
             <div className="tab-bar-left">
-                {location.pathname !== '/portal' && (
-                    <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: '-1px' }}>
-                        <button
-                            className="tab-nav-btn"
-                            onClick={() => navigate(-1)}
-                            title="Geri Dön"
-                        >
-                            <ArrowLeft size={16} />
-                        </button>
-                        <button
-                            className="tab-nav-btn forward-btn"
-                            onClick={() => navigate(1)}
-                            title="İleri Git"
-                        >
-                            <ArrowRight size={16} />
-                        </button>
-                    </div>
-                )}
+                <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: '-1px' }}>
+                    <button
+                        className="tab-nav-btn"
+                        onClick={() => canGoBack && navigate(-1)}
+                        title="Geri Dön"
+                        style={{ opacity: canGoBack ? 1 : 0.3, cursor: canGoBack ? 'pointer' : 'default' }}
+                        disabled={!canGoBack}
+                    >
+                        <ArrowLeft size={16} />
+                    </button>
+                    <button
+                        className="tab-nav-btn forward-btn"
+                        onClick={() => canGoForward && navigate(1)}
+                        title="İleri Git"
+                        style={{ opacity: canGoForward ? 1 : 0.3, cursor: canGoForward ? 'pointer' : 'default' }}
+                        disabled={!canGoForward}
+                    >
+                        <ArrowRight size={16} />
+                    </button>
+                </div>
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
