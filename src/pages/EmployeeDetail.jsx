@@ -868,7 +868,8 @@ export default function EmployeeDetail() {
                                         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
                                         const usedThisMonth = leaves.filter(l =>
                                             l.status === 'approved' &&
-                                            (l.start_date.startsWith(currentMonth) || l.end_date.startsWith(currentMonth))
+                                            ((l.start_date && (typeof l.start_date === 'string' ? l.start_date : new Date(l.start_date).toISOString()).startsWith(currentMonth)) || 
+                                             (l.end_date && (typeof l.end_date === 'string' ? l.end_date : new Date(l.end_date).toISOString()).startsWith(currentMonth)))
                                         ).reduce((acc, l) => acc + (l.days || 1), 0)
                                         return usedThisMonth + ' gün'
                                     })()}
