@@ -3516,12 +3516,10 @@ tr:hover .td-actions {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0s;
-  /* Specifically prevent width/padding from ever transitioning */
-  transition-property: background, color, border-color, box-shadow;
   min-width: max-content;
   max-width: 300px;
   position: relative;
+  opacity: 0.8;
   user-select: none;
   box-sizing: border-box;
   flex-shrink: 0;
