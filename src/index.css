@@ -167,6 +167,21 @@ body {
   color: var(--text-primary);
 }
 
+.top-progress-bar {
+  position: fixed;
+  top: 38px;
+  left: var(--sidebar-width);
+  right: 0;
+  height: 2px;
+  z-index: 9998;
+  pointer-events: none;
+  transition: opacity 0.2s ease, left 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.sidebar-collapsed .top-progress-bar {
+  left: var(--sidebar-collapsed-width);
+}
+
 /* Custom Title Bar Dragging */
 .sidebar-header,
 .header {

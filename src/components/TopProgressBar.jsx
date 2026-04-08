@@ -1,20 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const style = `
-.top-progress-bar {
-    position: fixed;
-    top: 38px;
-    left: var(--sidebar-width);
-    right: 0;
-    height: 2px;
-    z-index: 9998;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-.sidebar-collapsed .top-progress-bar {
-    left: var(--sidebar-collapsed-width);
-}
-`
+
 
 export default function TopProgressBar({ loading }) {
     const [progress, setProgress] = useState(0)
@@ -65,7 +51,6 @@ export default function TopProgressBar({ loading }) {
 
     return (
         <>
-            <style>{style}</style>
             <div
                 className="top-progress-bar"
                 style={{ opacity: fading ? 0 : 0.4 }}
