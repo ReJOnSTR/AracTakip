@@ -3500,7 +3500,6 @@ tr:hover .td-actions {
 .tab-item {
   display: flex;
   align-items: center;
-  gap: 8px;
   padding: 0 12px;
   height: 34px;
   background: transparent;
@@ -3510,14 +3509,16 @@ tr:hover .td-actions {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  min-width: max-content;
-  max-width: 250px;
+  
+  /* Flexbox explicit sizing instead of max-content to prevent sub-pixel width jumping */
+  flex: 1 1 150px;
+  min-width: 100px;
+  max-width: 200px;
+  
   position: relative;
   opacity: 0.8;
   user-select: none;
   box-sizing: border-box;
-  flex-shrink: 0;
-  flex-grow: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   backface-visibility: hidden;
@@ -3574,8 +3575,11 @@ tr:hover .td-actions {
 
 .tab-label {
   white-space: nowrap;
-  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
   display: block;
+  margin: 0 8px; /* Replacement for gap */
 }
 
 .tab-close {
