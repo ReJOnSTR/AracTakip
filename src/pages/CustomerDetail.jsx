@@ -9,10 +9,12 @@ import Modal from '../components/Modal'
 import CustomerForm from '../components/forms/CustomerForm'
 import TransactionForm from '../components/forms/TransactionForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
+import { useTabs } from '../context/TabContext'
 
 export default function CustomerDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const { updateTabInfo } = useTabs()
     const [customer, setCustomer] = useState(null)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = usePersistentTab('CustomerDetail', 'works')
@@ -46,6 +48,7 @@ export default function CustomerDetail() {
             const result = await window.electronAPI.getCustomerDetails(id)
             if (result.success) {
                 setCustomer(result.data)
+                updateTabInfo(`/customers/${id}`, { label: result.data.name })
             }
         } catch (error) {
             console.error('Failed to load customer details:', error)

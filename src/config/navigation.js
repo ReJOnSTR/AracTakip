@@ -45,12 +45,6 @@ export const moduleMenus = {
                 { path: '/insurance', icon: Shield, label: 'Sigorta' },
                 { path: '/services', icon: Truck, label: 'Servis' }
             ]
-        },
-        {
-            title: 'Sistem',
-            items: [
-                { path: '/settings', icon: Settings, label: 'Ayarlar' }
-            ]
         }
     ],
     finance: [
@@ -60,12 +54,6 @@ export const moduleMenus = {
                 { path: '/finance-dashboard', label: 'Finans Dashboard', icon: Wallet },
                 { path: '/finance', label: 'Kasa & Banka Cüzdanı', icon: Banknote },
                 { path: '/checks', label: 'Çek & Senetler', icon: FileSignature }
-            ]
-        },
-        {
-            title: 'Sistem',
-            items: [
-                { path: '/settings?module=finance', icon: Settings, label: 'Ayarlar' }
             ]
         }
     ],
@@ -77,12 +65,6 @@ export const moduleMenus = {
                 { path: '/meal-ticket-report', label: 'Fiş Raporu', icon: ClipboardList },
                 { path: '/meal-ticket-settings', label: 'Ücret Ayarları', icon: CircleDollarSign }
             ]
-        },
-        {
-            title: 'Sistem',
-            items: [
-                { path: '/settings?module=meals', icon: Settings, label: 'Ayarlar' }
-            ]
         }
     ],
     hr: [
@@ -90,12 +72,6 @@ export const moduleMenus = {
             title: 'Personel Yönetimi',
             items: [
                 { path: '/employees', label: 'Personeller', icon: Users },
-            ]
-        },
-        {
-            title: 'Sistem',
-            items: [
-                { path: '/settings?module=hr', icon: Settings, label: 'Ayarlar' }
             ]
         }
     ],
@@ -115,14 +91,7 @@ export const moduleMenus = {
             ]
         }
     ],
-    portal: [
-        {
-            title: 'Sistem',
-            items: [
-                { path: '/settings?module=portal', icon: Settings, label: 'Genel Ayarlar' }
-            ]
-        }
-    ]
+    portal: []
 }
 
 // Keep the old menuGroups reference pointing to fleet for backwards compatibility
@@ -149,22 +118,34 @@ export const getRouteInfo = (path) => {
     const item = allItems.find(i => i.path === path)
     if (item) return item
 
+    // Fallback for settings
+    if (path.startsWith('/settings')) return { label: 'Ayarlar', icon: Settings }
+
     // Fallback for detail pages
     if (path.startsWith('/vehicles/')) return { label: 'Araç Detay', icon: Car }
     if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
-    if (path.startsWith('/works/')) return { label: 'Puantaj (İş)', icon: Briefcase }
-    if (path.startsWith('/customers/')) return { label: 'Müşteri (Cari) Detay', icon: Building2 }
+    if (path.startsWith('/works/')) return { label: 'İş Detayı', icon: Briefcase }
+    if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
 
     return { label: 'Sayfa', icon: FileText }
 }
 
 export const getActiveModule = (pathname, search = '') => {
-    if (search.includes('module=finance') || pathname.startsWith('/finance') || pathname.startsWith('/checks')) return 'finance'
-    if (pathname.startsWith('/meal-ticket') || search.includes('module=meals')) return 'meals'
-    if (pathname.startsWith('/employee') || search.includes('module=hr')) return 'hr'
-    if (pathname.startsWith('/works') || search.includes('module=works')) return 'works'
-    if (pathname.startsWith('/customers') || search.includes('module=customers')) return 'customers'
-    if (pathname === '/portal' || pathname === '/' || search.includes('module=portal')) return 'portal'
+    // 1. Prioritize module parameter from search string
+    if (search) {
+        const params = new URLSearchParams(search)
+        const moduleParam = params.get('module')
+        if (moduleParam && moduleMenus[moduleParam]) return moduleParam
+    }
+
+    // 2. Fallback to pathname-based detection
+    if (pathname.startsWith('/finance') || pathname.startsWith('/checks')) return 'finance'
+    if (pathname.startsWith('/meal-ticket')) return 'meals'
+    if (pathname.startsWith('/employee')) return 'hr'
+    if (pathname.startsWith('/works')) return 'works'
+    if (pathname.startsWith('/customers')) return 'customers'
+    if (pathname === '/portal' || pathname === '/') return 'portal'
+    
     return 'fleet'
 }

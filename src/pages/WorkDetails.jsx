@@ -181,6 +181,7 @@ export default function WorkDetails(props) {
             const workRes = await window.electronAPI.getWorkDetails(id)
             if (workRes.success) {
                 setWork(workRes.data)
+                updateTabInfo(`/works/${id}`, { label: workRes.data.title || 'İş Detayı' })
 
                 // Load Resources for Dropdowns using companyId
                 if (workRes.data.company_id) {

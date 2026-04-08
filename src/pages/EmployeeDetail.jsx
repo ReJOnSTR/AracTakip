@@ -170,7 +170,7 @@ export default function EmployeeDetail() {
             ])
             if (empRes.success) {
                 setEmployee(empRes.data)
-                updateTabInfo(`/employees/${id}`, `${empRes.data.first_name} ${empRes.data.last_name}`)
+                updateTabInfo(`/employees/${id}`, { label: `${empRes.data.first_name} ${empRes.data.last_name}` })
             }
             if (salRes.success) setSalaries(salRes.data || [])
             if (leaveRes.success) setLeaves(leaveRes.data || [])

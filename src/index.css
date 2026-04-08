@@ -252,14 +252,14 @@ body {
   align-items: center;
   padding: 0 14px;
   border-bottom: 1px solid var(--border-color);
-  height: 52px;
+  height: 40px;
   position: relative;
   white-space: nowrap;
 }
 
 .sidebar-logo {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   background: var(--accent-gradient);
   border-radius: 8px;
   display: flex;
@@ -276,7 +276,7 @@ body {
 }
 
 .sidebar-title {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -3501,14 +3501,20 @@ tr:hover .td-actions {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0s;
+  /* Specifically prevent width/padding from ever transitioning */
+  transition-property: background, color, border-color, box-shadow;
   min-width: max-content;
   max-width: 300px;
   position: relative;
   user-select: none;
   box-sizing: border-box;
   flex-shrink: 0;
-  /* Prevent tabs from shrinking to hide text */
+  flex-grow: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 
   margin-bottom: -1px;
   /* Overlap the bottom border of tab-bar */
@@ -3517,6 +3523,33 @@ tr:hover .td-actions {
 .tab-item:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
+  opacity: 1;
+}
+
+.tab-item.active {
+  opacity: 1;
+}
+
+.tab-item.dragging {
+  opacity: 0.1 !important;
+  /* Ghost placeholder in the list */
+}
+
+.tab-item.overlay {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary);
+  border: none !important;
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+  cursor: grabbing;
+  opacity: 1 !important;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.tab-item.overlay.active {
+  background: var(--bg-primary) !important;
+  color: var(--accent-primary);
 }
 
 .tab-item.active {

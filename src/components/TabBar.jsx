@@ -4,26 +4,28 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { arrayMove, SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 function SortableTab({ tab, isActive, activateTab, closeTab }) {
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: tab.id })
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id })
 
     const style = {
         transform: transform ? CSS.Transform.toString({
             ...transform,
-            y: 0 // Prevent vertical dragging 
-        }) : undefined,
-        transition,
+            y: 0 
+        }) : 'translateZ(0)',
+        transition: transform ? transition : undefined,
+        zIndex: isDragging ? 200 : (isActive ? 10 : 1),
+        opacity: isDragging ? 0.9 : (isActive ? 1 : 0.8),
     }
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className={`tab-item ${isActive ? 'active' : ''}`}
+            className={`tab-item ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''}`}
             onClick={() => activateTab(tab.id)}
             {...attributes}
             {...listeners}
@@ -82,13 +84,21 @@ export default function TabBar() {
         })
     )
 
+    const [activeId, setActiveId] = useState(null)
+    const activeTab = tabs.find(t => t.id === activeId)
+
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id)
+    }
+
     const handleDragEnd = (event) => {
         const { active, over } = event
-        if (active.id !== over.id) {
+        if (over && active.id !== over.id) {
             const oldIndex = tabs.findIndex((t) => t.id === active.id)
             const newIndex = tabs.findIndex((t) => t.id === over.id)
             updateTabsOrder(arrayMove(tabs, oldIndex, newIndex))
         }
+        setActiveId(null)
     }
 
     const handleCompanySelect = (company) => {
@@ -97,6 +107,13 @@ export default function TabBar() {
     }
 
     if (!tabs || tabs.length === 0) return null
+
+    const restrictToHorizontalAxis = ({ transform }) => {
+        return {
+            ...transform,
+            y: 0,
+        };
+    };
 
     return (
         <div className="tab-bar">
@@ -125,7 +142,10 @@ export default function TabBar() {
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
+                    onDragCancel={() => setActiveId(null)}
+                    modifiers={[restrictToHorizontalAxis]}
                 >
                     <div className="tab-scroll-container">
                         <SortableContext
@@ -167,6 +187,18 @@ export default function TabBar() {
                             <Plus size={18} />
                         </button>
                     </div>
+
+                    <DragOverlay dropAnimation={null}>
+                        {activeId && activeTab ? (
+                            <div className={`tab-item overlay ${activeId === activeTabId ? 'active' : ''}`}>
+                                {activeTab.icon && <activeTab.icon size={14} className="tab-icon" />}
+                                <span className="tab-label">{activeTab.label}</span>
+                                <div className="tab-close" style={{ opacity: 1 }}>
+                                    <X size={12} />
+                                </div>
+                            </div>
+                        ) : null}
+                    </DragOverlay>
                 </DndContext>
             </div>
 
@@ -246,6 +278,10 @@ export default function TabBar() {
                                             <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.username}</div>
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
                                         </div>
+                                    </div>
+                                    <div className="user-dropdown-item" onClick={() => { openNewTab('/settings?module=portal', false, 'Ayarlar'); setShowUserDropdown(false) }}>
+                                        <Settings size={16} />
+                                        <span>Genel Ayarlar</span>
                                     </div>
                                     <div className="user-dropdown-item danger" onClick={logout}>
                                         <LogOut size={16} />

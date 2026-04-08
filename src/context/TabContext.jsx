@@ -31,16 +31,28 @@ export function TabProvider({ children }) {
     useEffect(() => {
         if (!activeTabId) return
 
+        const fullPath = location.pathname + location.search
         setTabs(prev => {
             return prev.map(tab => {
-                if (tab.id === activeTabId && tab.path !== location.pathname) {
+                if (tab.id === activeTabId && tab.path !== fullPath) {
                     const routeInfo = getRouteInfo(location.pathname)
-                    return { ...tab, path: location.pathname, label: routeInfo.label, icon: routeInfo.icon }
+                    
+                    // Only update label if the base pathname has changed
+                    // This prevents flickering when detail pages set specific titles
+                    const prevPathname = tab.path.split('?')[0]
+                    const hasPathnameChanged = prevPathname !== location.pathname
+                    
+                    return { 
+                        ...tab, 
+                        path: fullPath, 
+                        label: hasPathnameChanged ? routeInfo.label : tab.label, 
+                        icon: routeInfo.icon 
+                    }
                 }
                 return tab
             })
         })
-    }, [location.pathname, activeTabId])
+    }, [location.pathname, location.search, activeTabId])
 
 
     const openNewTab = useCallback((path, background = false, customLabel = null) => {
