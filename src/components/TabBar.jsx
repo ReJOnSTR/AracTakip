@@ -17,7 +17,6 @@ function SortableTab({ tab, isActive, activateTab, closeTab }) {
             y: 0 
         }) : 'translateZ(0)',
         transition: transform ? transition : undefined,
-        zIndex: isDragging ? 200 : (isActive ? 10 : 1),
     }
 
     return (

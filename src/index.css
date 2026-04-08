@@ -3426,10 +3426,9 @@ tr:hover .td-actions {
 .tab-bar {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  padding: 4px 0 0 0;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   height: 48px;
   min-height: 48px;
   max-height: 48px;
@@ -3440,7 +3439,7 @@ tr:hover .td-actions {
 .tab-bar-left {
   display: flex;
   height: 100%;
-  align-items: flex-end;
+  align-items: center;
   padding-left: 0;
   flex: 1;
   overflow-x: auto;
@@ -3455,7 +3454,7 @@ tr:hover .td-actions {
 
 .tab-bar-right {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   height: 100%;
   padding: 0;
   flex-shrink: 0;
@@ -3466,11 +3465,11 @@ tr:hover .td-actions {
 
 .tab-scroll-container {
   display: flex;
-  gap: 0;
+  gap: 6px;
   width: max-content;
   height: 100%;
-  align-items: flex-end;
-  /* Keep tabs anchored to bottom during drag */
+  align-items: center;
+  padding: 0 8px;
 }
 
 /* Minimal Back/Forward buttons */
@@ -3502,22 +3501,17 @@ tr:hover .td-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  height: 40px;
-  /* Increased height */
+  padding: 0 12px;
+  height: 34px;
   background: transparent;
-  border-right: 1px solid var(--border-color);
-  border-top: 1px solid transparent;
-  /* Keeps height consistent when active gets a top border */
-  border-left: 1px solid transparent;
-  border-bottom: 1px solid transparent;
-  border-radius: 6px 6px 0 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   min-width: max-content;
-  max-width: 300px;
+  max-width: 250px;
   position: relative;
   opacity: 0.8;
   user-select: none;
@@ -3528,9 +3522,6 @@ tr:hover .td-actions {
   -moz-osx-font-smoothing: grayscale;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-
-  margin-bottom: -1px;
-  /* Overlap the bottom border of tab-bar */
 }
 
 .tab-item:hover {
@@ -3541,18 +3532,21 @@ tr:hover .td-actions {
 
 .tab-item.active {
   opacity: 1;
+  background: var(--bg-primary);
+  color: var(--accent-primary);
+  border-color: var(--border-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  z-index: 10;
 }
 
 .tab-item.dragging {
   opacity: 0.1 !important;
-  /* Ghost placeholder in the list */
 }
 
 .tab-item.overlay {
   background: var(--bg-tertiary) !important;
   color: var(--text-primary);
-  border: none !important;
-  border-radius: 6px;
+  border-color: var(--border-color) !important;
   box-shadow: var(--shadow-lg);
   cursor: grabbing;
   opacity: 1 !important;
@@ -3563,28 +3557,6 @@ tr:hover .td-actions {
 .tab-item.overlay.active {
   background: var(--bg-primary) !important;
   color: var(--accent-primary);
-}
-
-.tab-item.active {
-  background: var(--bg-primary);
-  color: var(--accent-primary);
-  border-top: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--bg-primary);
-  /* Overlaps and hides the tab-bar line */
-  z-index: 10;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.03);
-  /* Subtle lift */
-}
-
-/* First tab should have a left border to define it */
-.tab-item:first-child {
-  border-left: 1px solid var(--border-color);
-}
-
-.tab-item:first-child.active {
-  border-left: 1px solid var(--border-color);
 }
 
 .tab-icon {
