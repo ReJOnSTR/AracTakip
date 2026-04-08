@@ -687,7 +687,11 @@ export default function EmployeeDetail() {
                             marginBottom: '0',
                             whiteSpace: 'nowrap',
                             position: 'relative',
-                            zIndex: 1
+                            zIndex: 1,
+                            WebkitFontSmoothing: 'antialiased',
+                            MozOsxFontSmoothing: 'grayscale',
+                            transform: 'translateZ(0)',
+                            backfaceVisibility: 'hidden'
                         }}
                     >
                         <tab.icon size={16} />
