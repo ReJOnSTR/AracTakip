@@ -15,8 +15,10 @@ function SortableTab({ tab, isActive, activateTab, closeTab }) {
         transform: transform ? CSS.Transform.toString({
             ...transform,
             y: 0 
-        }) : 'translateZ(0)',
+        }) : undefined,
         transition: transform ? transition : undefined,
+        zIndex: isDragging ? 200 : (isActive ? 10 : 1),
+        opacity: isDragging ? 0.9 : (isActive ? 1 : 0.8),
     }
 
     return (
@@ -77,7 +79,7 @@ export default function TabBar() {
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 10,
+                distance: 5,
             },
         })
     )

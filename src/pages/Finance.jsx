@@ -6,7 +6,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import TransactionForm from '../components/forms/TransactionForm'
 import { formatCurrency, formatDate } from '../utils/helpers'
-import { Plus, Wallet, Banknote, FileSignature, ArrowDownRight, Trash2, Pencil } from 'lucide-react'
+import { Plus, Wallet, Banknote, FileSignature, ArrowDownRight, Trash2, Pencil, Check } from 'lucide-react'
 
 export default function Finance() {
     const { currentCompany } = useCompany()
@@ -24,6 +24,23 @@ export default function Finance() {
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
+    const [filteredTransactions, setFilteredTransactions] = useState([])
+    const [selectedIds, setSelectedIds] = useState([])
+
+    const filteredTotal = useMemo(() => {
+        return filteredTransactions.reduce((sum, tx) => {
+            return sum + (tx.type === 'IN' ? tx.amount : -tx.amount)
+        }, 0)
+    }, [filteredTransactions])
+
+    const selectedTotal = useMemo(() => {
+        const selectedTxs = transactions.filter(tx => selectedIds.includes(tx.id))
+        return selectedTxs.reduce((sum, tx) => {
+            return sum + (tx.type === 'IN' ? tx.amount : -tx.amount)
+        }, 0)
+    }, [selectedIds, transactions])
+
+    const isFiltered = filteredTransactions.length > 0 && filteredTransactions.length < transactions.length
 
     useEffect(() => {
         if (currentCompany) {
@@ -251,12 +268,63 @@ export default function Finance() {
                         </div>
                     </div>
                 </div>
+
+                {/* Filtered Total Card */}
+                {isFiltered && (
+                    <div className="stat-card fade-in" style={{ 
+                        width: '300px', 
+                        flexDirection: 'column', 
+                        alignItems: 'flex-start', 
+                        gap: '10px'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div className="stat-label">FİLTRELENMİŞ TOPLAM</div>
+                            <div className={`stat-icon ${filteredTotal >= 0 ? 'success' : 'danger'}`} style={{ width: '32px', height: '32px' }}>
+                                <ArrowDownRight size={16} />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="stat-value" style={{ color: filteredTotal >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                                {formatCurrency(filteredTotal)}
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                {filteredTransactions.length} işlem baz alındı
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* Selected Total Card */}
+                {selectedIds.length > 0 && (
+                    <div className="stat-card fade-in" style={{ 
+                        width: '300px', 
+                        flexDirection: 'column', 
+                        alignItems: 'flex-start', 
+                        gap: '10px'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div className="stat-label" style={{ color: 'var(--warning)', opacity: 0.9 }}>SEÇİLEN TOPLAM</div>
+                            <div className="stat-icon warning" style={{ width: '32px', height: '32px' }}>
+                                <Check size={16} />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="stat-value" style={{ color: 'var(--warning)' }}>
+                                {formatCurrency(selectedTotal)}
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                {selectedIds.length} öğe seçildi
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <DataTable persistenceKey="Finance_table_0"
                 storageKey="finance_table_cols"
                 columns={columns}
                 data={transactions}
+                onFilteredDataChange={setFilteredTransactions}
+                onSelectionChange={setSelectedIds}
                 loading={loading}
                 searchPlaceholder="Açıklama, tutar veya yöntem ile ara..."
                 searchKeys={['description', 'amount', 'method', 'check_number']}

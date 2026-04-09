@@ -27,7 +27,8 @@ export default function DataTable({
     exportFileName = 'Liste',
     initialSort = null,
     persistenceKey = null,
-    rowClassName = null
+    rowClassName = null,
+    onFilteredDataChange = null
 }) {
     // Helper to get initial state from localStorage or default
     const getInitialState = (key, defaultVal) => {
@@ -331,6 +332,13 @@ export default function DataTable({
             })
         })
     }, [customFilteredData, searchQuery, visibleColumnsList])
+
+    // Expose filtered data to parent
+    useEffect(() => {
+        if (onFilteredDataChange) {
+            onFilteredDataChange(filteredData)
+        }
+    }, [filteredData, onFilteredDataChange])
 
     // Sort data
     const sortedData = useMemo(() => {
