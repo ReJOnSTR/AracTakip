@@ -3,9 +3,6 @@ const prisma = getPrismaClient();
 
 async function syncFinanceTransaction(salaryId, action, employeeId, paymentMethod, netSalary, paymentDate, period, status) {
     try {
-        const emp = await prisma.employees.findUnique({ where: { id: parseInt(employeeId) } });
-        if (!emp) return;
-
         const categoryCode = `SALARY_PAYMENT_${salaryId}`;
         
         if (action === 'delete') {
@@ -13,8 +10,14 @@ async function syncFinanceTransaction(salaryId, action, employeeId, paymentMetho
             return;
         }
 
-        if (status === 'paid' && (paymentMethod === 'kasa' || paymentMethod === 'bank')) {
-            const methodCode = paymentMethod === 'bank' ? 'BANK' : 'CASH';
+        const emp = await prisma.employees.findUnique({ where: { id: parseInt(employeeId) } });
+        if (!emp) return;
+
+        const cashMethods = ['kasa', 'KASA'];
+        const isValidMethod = cashMethods.includes(paymentMethod);
+
+        if (status === 'paid' && isValidMethod) {
+            const methodCode = 'CASH';
             const amount = parseFloat(netSalary) || 0;
             const date = paymentDate ? new Date(paymentDate) : new Date();
             const desc = `${emp.first_name} ${emp.last_name} Ödeme (${period})`;
@@ -71,6 +74,7 @@ async function createSalary(data) {
                 deduction: data.deduction ? parseFloat(data.deduction) : 0,
                 net_salary: data.netSalary ? parseFloat(data.netSalary) : 0,
                 payment_date: data.paymentDate ? new Date(data.paymentDate) : null,
+                salary_month: data.salaryMonth || null,
                 status: data.status || 'pending',
                 payment_method: data.paymentMethod || 'cash',
                 notes: data.notes || null
@@ -94,6 +98,7 @@ async function updateSalary(data) {
                 deduction: data.deduction ? parseFloat(data.deduction) : 0,
                 net_salary: data.netSalary ? parseFloat(data.netSalary) : 0,
                 payment_date: data.paymentDate ? new Date(data.paymentDate) : null,
+                salary_month: data.salaryMonth || null,
                 status: data.status,
                 payment_method: data.paymentMethod,
                 notes: data.notes || null

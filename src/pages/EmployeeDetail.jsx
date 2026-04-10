@@ -208,7 +208,7 @@ export default function EmployeeDetail() {
         setModalType(type)
         setEditingItem(null)
         if (type === 'salary') {
-            setFormData({ paymentType: 'salary', amount: getDefaultAmount('salary'), paymentDate: today(), status: 'pending', paymentMethod: 'nakit', notes: '' })
+            setFormData({ paymentType: 'salary', amount: getDefaultAmount('salary'), paymentDate: today(), salaryMonth: selectedMonth, status: 'paid', paymentMethod: 'nakit', notes: '' })
         } else if (type === 'overtime') {
             const rate = calcOvertimeRate('weekday')
             setFormData({ overtimeType: 'weekday', date: today(), hours: '', rate, amount: '', notes: '' })
@@ -225,7 +225,7 @@ export default function EmployeeDetail() {
         setEditingItem(item)
         setError('')
         if (type === 'salary') {
-            setFormData({ paymentType: item.period || 'salary', amount: item.net_salary || '', paymentDate: item.payment_date ? new Date(item.payment_date).toISOString().split('T')[0] : '', status: item.status || 'pending', paymentMethod: item.payment_method || 'nakit', notes: item.notes || '' })
+            setFormData({ paymentType: item.period || 'salary', amount: item.net_salary || '', paymentDate: item.payment_date ? new Date(item.payment_date).toISOString().split('T')[0] : '', salaryMonth: item.salary_month || selectedMonth, status: item.status || 'pending', paymentMethod: item.payment_method || 'nakit', notes: item.notes || '' })
         } else if (type === 'leave') {
             setFormData({ type: item.type || 'annual', status: item.status || 'approved', startDate: item.start_date || '', endDate: item.end_date || '', days: item.days || 1, notes: item.notes || '' })
         } else if (type === 'overtime') {
@@ -333,7 +333,7 @@ export default function EmployeeDetail() {
     const handleSalarySubmit = async (e) => {
         e.preventDefault()
         setSaving(true); setError('')
-        const data = { employeeId: parseInt(id), period: formData.paymentType || 'salary', baseSalary: 0, bonus: 0, deduction: 0, netSalary: parseFloat(formData.amount) || 0, paymentDate: formData.paymentDate || null, status: formData.status || 'pending', paymentMethod: formData.paymentMethod || 'nakit', notes: formData.notes || null }
+        const data = { employeeId: parseInt(id), period: formData.paymentType || 'salary', baseSalary: 0, bonus: 0, deduction: 0, netSalary: parseFloat(formData.amount) || 0, paymentDate: formData.paymentDate || null, salaryMonth: formData.salaryMonth || selectedMonth, status: formData.status || 'pending', paymentMethod: formData.paymentMethod || 'nakit', notes: formData.notes || null }
         try {
             const result = editingItem ? await window.electronAPI.updateSalary({ id: editingItem.id, ...data }) : await window.electronAPI.createSalary(data)
             if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
@@ -433,6 +433,10 @@ export default function EmployeeDetail() {
     // ========== COMPUTED VALUES ==========
 
     const monthlySalaries = salaries.filter(s => {
+        // Use salary_month if available, otherwise fall back to payment_date
+        if (s.salary_month) {
+            return s.salary_month === selectedMonth
+        }
         if (!s.payment_date && !s.created_at) return false
         try {
             const d = s.payment_date || s.created_at
@@ -462,6 +466,12 @@ export default function EmployeeDetail() {
         { key: 'period', label: 'Ödeme Türü', render: (v) => paymentTypes.find(t => t.value === v)?.label || v },
         { key: 'net_salary', label: 'Tutar', render: (v) => formatCurrency(v) },
         { key: 'payment_date', label: 'Ödeme Tarihi', render: (v) => v ? formatDate(v) : '-' },
+        { key: 'salary_month', label: 'Ait Olduğu Ay', render: (v) => {
+            if (!v) return '-'
+            const [y, m] = v.split('-')
+            const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+            return `${monthNames[parseInt(m) - 1]} ${y}`
+        }},
         { key: 'status', label: 'Durum', render: (v) => <span className={`badge badge-${v === 'paid' ? 'success' : 'warning'}`}>{v === 'paid' ? 'Ödendi' : 'Bekliyor'}</span> },
         { key: 'payment_method', label: 'Ödeme Yöntemi', render: (v) => paymentMethods.find(t => t.value === v)?.label || (v === 'bank' ? 'Banka' : (v === 'kasa' ? 'Kasa' : 'Nakit')) },
         { key: 'notes', label: 'Not' }
@@ -1010,8 +1020,9 @@ export default function EmployeeDetail() {
                             <form onSubmit={handleSalarySubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <CustomSelect label="Ödeme Türü *" value={formData.paymentType || 'salary'} options={paymentTypes} onChange={(val) => updateField('paymentType', val)} />
-                                    <CustomInput label="Tutar (₺) *" type="number" value={formData.amount || ''} onChange={(val) => updateField('amount', val)} step="0.01" required />
+                                    <CustomInput label="Tutar (₺) *" format="currency" value={formData.amount || ''} onChange={(val) => updateField('amount', val)} required />
                                     <CustomInput label="Ödeme Tarihi" type="date" value={formData.paymentDate || ''} onChange={(val) => updateField('paymentDate', val)} />
+                                    <CustomInput label="Ait Olduğu Ay" type="month" value={formData.salaryMonth || selectedMonth} onChange={(val) => updateField('salaryMonth', val)} />
                                     <CustomSelect label="Ödeme Kanalı" value={formData.paymentMethod || 'nakit'} options={paymentMethods} onChange={(val) => updateField('paymentMethod', val)} />
                                 </div>
 

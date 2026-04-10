@@ -858,18 +858,25 @@ export default function Salaries() {
                             <label className="input-label">Ödeme Yöntemi</label>
                             <div className="toggle-container">
                                 <button
-                                    className={`toggle-btn ${paymentModal.method === 'cash' ? 'active' : ''}`}
-                                    onClick={() => setPaymentModal({ ...paymentModal, method: 'cash' })}
+                                    className={`toggle-btn ${paymentModal.method === 'nakit' ? 'active' : ''}`}
+                                    onClick={() => setPaymentModal({ ...paymentModal, method: 'nakit' })}
                                 >
                                     <Wallet size={18} />
-                                    <span>Elden / Nakit</span>
+                                    <span>Nakit</span>
+                                </button>
+                                <button
+                                    className={`toggle-btn ${paymentModal.method === 'kasa' ? 'active' : ''}`}
+                                    onClick={() => setPaymentModal({ ...paymentModal, method: 'kasa' })}
+                                >
+                                    <Wallet size={18} />
+                                    <span>Kasa</span>
                                 </button>
                                 <button
                                     className={`toggle-btn ${paymentModal.method === 'bank' ? 'active' : ''}`}
                                     onClick={() => setPaymentModal({ ...paymentModal, method: 'bank' })}
                                 >
                                     <CreditCard size={18} />
-                                    <span>Banka Havalesi</span>
+                                    <span>Banka</span>
                                 </button>
                             </div>
                         </div>

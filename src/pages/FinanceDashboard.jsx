@@ -170,7 +170,10 @@ export default function FinanceDashboard() {
                 window.electronAPI.getAllFinance(currentCompany.id),
                 window.electronAPI.getChecks(currentCompany.id)
             ])
-            if (txRes.success) setTransactions(txRes.data || [])
+            if (txRes.success) {
+                const cashOnly = (txRes.data || []).filter(tx => tx.method === 'CASH')
+                setTransactions(cashOnly)
+            }
             if (checksRes.success) setChecks(checksRes.data || [])
         } catch (error) {
             console.error('Failed to load finance data:', error)
@@ -306,13 +309,13 @@ export default function FinanceDashboard() {
                 {/* Total Balance */}
                 <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <div className="stat-label">TOPLAM BAKİYE</div>
+                        <div className="stat-label">KASA BAKİYE</div>
                         <div className={`stat-icon ${computedStats.totalBalance >= 0 ? "success" : "danger"}`} style={{ width: '32px', height: '32px' }}><Wallet size={16} /></div>
                     </div>
                     <div>
                         <div className="stat-value">{formatCurrency(computedStats.totalBalance)}</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            Genel bakiye
+                            Kasa bakiyesi
                         </div>
                     </div>
                 </div>

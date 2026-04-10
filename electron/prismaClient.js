@@ -150,6 +150,17 @@ async function runAutoMigrations() {
         log.error('Migration step 7 (payment_method) error:', error.message);
     }
 
+    // 8. Add salary_month to salaries (for tracking which month a payment belongs to)
+    try {
+        const salCols2 = await p.$queryRawUnsafe("PRAGMA table_info('salaries')");
+        if (salCols2.length > 0 && !salCols2.some(c => c.name === 'salary_month')) {
+            await p.$executeRawUnsafe("ALTER TABLE salaries ADD COLUMN salary_month TEXT");
+            log.info('Migration: Added salary_month to salaries');
+        }
+    } catch (error) {
+        log.error('Migration step 8 (salary_month) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

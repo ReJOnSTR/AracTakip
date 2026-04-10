@@ -6,7 +6,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'defaul
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div
-                className={`modal ${size === 'lg' ? 'modal-lg' : size === 'xl' ? 'modal-xl' : ''}`}
+                className={`modal ${size === 'lg' ? 'modal-lg' : size === 'xl' ? 'modal-xl' : size === 'fullscreen' ? 'modal-fullscreen' : ''}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="modal-header">

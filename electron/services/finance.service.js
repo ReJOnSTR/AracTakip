@@ -3,10 +3,20 @@ const prisma = getPrismaClient();
 
 async function getTransactions(companyId, isArchived = 0) {
     try {
-        const data = await prisma.transactions.findMany({
+        let data = await prisma.transactions.findMany({
             where: { company_id: parseInt(companyId), is_archived: isArchived },
             orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
+        
+        // Filter out personnel payments that are not CASH
+        data = data.filter(tx => {
+            const isPersonnel = tx.category && tx.category.startsWith('SALARY_PAYMENT_');
+            if (isPersonnel && tx.method !== 'CASH') {
+                return false;
+            }
+            return true;
+        });
+
         return { success: true, data: JSON.parse(JSON.stringify(data)) };
     } catch (error) { return { success: false, error: error.message }; }
 }
@@ -64,6 +74,14 @@ async function deleteTransaction(id) {
             const workId = parseInt(tx.category.replace('WORK_PAYMENT_', ''));
             if (!isNaN(workId)) {
                 await prisma.works.update({ where: { id: workId }, data: { status: 'completed' } });
+            }
+        }
+
+        // If this was a salary payment, delete it from salaries to keep them synced
+        if (tx && tx.category && tx.category.startsWith('SALARY_PAYMENT_')) {
+            const salaryId = parseInt(tx.category.replace('SALARY_PAYMENT_', ''));
+            if (!isNaN(salaryId)) {
+                await prisma.salaries.delete({ where: { id: salaryId } }).catch(e => console.log('Salary might already be deleted'));
             }
         }
 
@@ -244,6 +262,9 @@ async function getFinanceStats(companyId) {
         const currentYear = now.getFullYear();
 
         allTxs.forEach(tx => {
+            const isPersonnel = tx.category && tx.category.startsWith('SALARY_PAYMENT_');
+            if (isPersonnel && tx.method !== 'CASH') return;
+
             const isIncome = tx.type === 'IN';
             const val = isIncome ? Number(tx.amount) : -Number(tx.amount);
 

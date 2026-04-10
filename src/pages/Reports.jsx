@@ -3,9 +3,11 @@ import TopProgressBar from '../components/TopProgressBar'
 import { useCompany } from '../context/CompanyContext'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
-import { FileText, Printer, Building2, Download, Eye, Calendar, Layers } from 'lucide-react'
-import { formatDate, formatCurrency, getVehicleTypeLabel, getMaintenanceTypeLabel, getInsuranceTypeLabel } from '../utils/helpers'
+import ReportRenderer from '../components/ReportRenderer'
+import { FileText, Printer, Building2, Download, Eye, Calendar, Layers, Settings, List, Filter, FileDown } from 'lucide-react'
+import { formatDate, formatCurrency, getVehicleTypeLabel, getMaintenanceTypeLabel, getInsuranceTypeLabel, vehicleTypes } from '../utils/helpers'
 import { useReactToPrint } from 'react-to-print'
+import { usePersistentTab } from '../hooks/usePersistentTab'
 import * as XLSX from 'xlsx'
 
 export default function Reports() {
@@ -21,6 +23,9 @@ export default function Reports() {
     const [reportDataList, setReportDataList] = useState([]) // Array of { vehicle, data }
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [loadingReport, setLoadingReport] = useState(false)
+    const [reportType, setReportType] = useState('detail') // 'detail' or 'list'
+    const [activeTab, setActiveTab] = usePersistentTab('Reports', 'all')
+    const [seenTypes, setSeenTypes] = useState(new Set())
 
     // Report Configuration
     const [config, setConfig] = useState({
@@ -30,6 +35,16 @@ export default function Reports() {
         insurance: true,
         inspection: true,
         periodicInspection: true
+    })
+
+    const [listConfig, setListConfig] = useState({
+        plate: true,
+        type: true,
+        brand: true,
+        model: true,
+        year: true,
+        km: true,
+        status: true
     })
 
     const [dateRange, setDateRange] = useState({
@@ -43,11 +58,38 @@ export default function Reports() {
         const printData = {
             reports: processedReportList,
             config: config,
+            listConfig: listConfig,
             dateRange: dateRange,
-            companyName: currentCompany.name
+            companyName: currentCompany.name,
+            reportType: reportType
         }
         localStorage.setItem('printData', JSON.stringify(printData))
         window.open('#/print', '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
+    }
+
+    // Handle PDF download - no extra window
+    const handlePdfDownload = async () => {
+        const processedReportList = getProcessedReportList()
+        const printData = {
+            reports: processedReportList,
+            config: config,
+            listConfig: listConfig,
+            dateRange: dateRange,
+            companyName: currentCompany.name,
+            reportType: reportType
+        }
+        localStorage.setItem('printData', JSON.stringify(printData))
+        
+        if (window.electronAPI && window.electronAPI.saveReportPdf) {
+            try {
+                const result = await window.electronAPI.saveReportPdf()
+                if (result && result.success) {
+                    console.log('PDF saved:', result.filePath)
+                }
+            } catch (e) {
+                console.warn('PDF save failed:', e)
+            }
+        }
     }
 
     const handleExcelExport = () => {
@@ -159,6 +201,17 @@ export default function Reports() {
             const result = await window.electronAPI.getVehicles(currentCompany.id)
             if (result.success) {
                 setVehicles(result.data)
+                
+                // Track seen types for tabs
+                if (result.data.length > 0) {
+                    setSeenTypes(prev => {
+                        const next = new Set(prev)
+                        result.data.forEach(v => {
+                            if (v.type) next.add(v.type)
+                        })
+                        return next
+                    })
+                }
             }
         } catch (error) {
             console.error('Error loading vehicles:', error)
@@ -297,6 +350,7 @@ export default function Reports() {
                     <h1 className="page-title">Araç Raporları</h1>
                     <p style={{ marginTop: '5px', color: '#666' }}>Detaylı raporlama ve çıktılar.</p>
                 </div>
+
                 {selectedIds.length > 0 && (
                     <button className="btn btn-primary" onClick={handleBulkReport}>
                         <Layers size={16} />
@@ -305,13 +359,37 @@ export default function Reports() {
                 )}
             </div>
 
+            {seenTypes.size > 0 && (
+                <div className="vehicle-tabs">
+                    <button
+                        className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`}
+                        onClick={() => setActiveTab('all')}
+                    >
+                        Tümü <span className="vehicle-tab-count">{vehicles.length}</span>
+                    </button>
+                    {vehicleTypes.map(type => {
+                        if (!seenTypes.has(type.value)) return null
+                        const count = vehicles.filter(v => v.type === type.value).length
+                        if (count === 0) return null
+                        
+                        return (
+                            <button 
+                                key={type.value}
+                                className={`vehicle-tab${activeTab === type.value ? ' active' : ''}`}
+                                onClick={() => setActiveTab(type.value)}
+                            >
+                                {type.label} <span className="vehicle-tab-count">{count}</span>
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-
-
                 {!loading || vehicles.length > 0 ? (
-                    <DataTable persistenceKey="Reports_table_0"
+                    <DataTable persistenceKey={`Reports_table_${activeTab}`}
                         columns={columns}
-                        data={vehicles}
+                        data={activeTab === 'all' ? vehicles : vehicles.filter(v => v.type === activeTab)}
                         showSearch={true}
                         selectable={true}
                         onSelectionChange={setSelectedIds}
@@ -335,400 +413,163 @@ export default function Reports() {
                     isOpen={true}
                     onClose={closeModal}
                     title={selectedVehicles.length > 1 ? `${selectedVehicles.length} Araç İçin Toplu Rapor` : `Rapor: ${selectedVehicles[0].plate}`}
-                    size="xl"
+                    size="fullscreen"
                     footer={
                         <>
                             <button className="btn btn-secondary" onClick={closeModal}>Kapat</button>
                             <button className="btn btn-success" onClick={handleExcelExport} style={{ marginRight: 'auto' }}>
                                 <Download size={16} /> Excel'e Aktar
                             </button>
-                            <button className="btn btn-primary" onClick={handlePrint}>
+                            <button className="btn btn-primary" onClick={handlePdfDownload} style={{ gap: '6px' }}>
+                                <FileDown size={16} /> PDF İndir
+                            </button>
+                            <button className="btn btn-primary" onClick={handlePrint} style={{ gap: '6px' }}>
                                 <Printer size={16} /> Yazdır
                             </button>
                         </>
                     }
                 >
-                    <div style={{ display: 'flex', gap: '24px', height: '65vh' }}>
-                        {/* Left: Configuration */}
-                        <div style={{ width: '280px', borderRight: '1px solid var(--border-color)', paddingRight: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', gap: '0', height: '100%', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+                        {/* Left: Configuration - Sticky Sidebar */}
+                        <div style={{ width: '280px', minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '0', flexShrink: 0, overflowY: 'auto', background: 'var(--bg-secondary)', borderRight: '1px solid var(--border-color)' }}>
+
+                            {/* Report Type */}
+                            <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Türü</h4>
+                                </div>
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 10px', borderRadius: '8px', background: reportType === 'list' ? 'var(--accent-subtle)' : 'transparent', border: reportType === 'list' ? '1px solid var(--accent-primary)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                                        <input type="radio" name="reportType" checked={reportType === 'list'} onChange={() => setReportType('list')} style={{ display: 'none' }} />
+                                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: reportType === 'list' ? '5px solid var(--accent-primary)' : '2px solid var(--border-light)', background: 'var(--bg-primary)', transition: 'all 0.15s', flexShrink: 0 }} />
+                                        <span style={{ fontSize: '13px', fontWeight: reportType === 'list' ? 600 : 400, color: reportType === 'list' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Araç Listesi (Özet)</span>
+                                    </label>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 10px', borderRadius: '8px', background: reportType === 'detail' ? 'var(--accent-subtle)' : 'transparent', border: reportType === 'detail' ? '1px solid var(--accent-primary)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                                        <input type="radio" name="reportType" checked={reportType === 'detail'} onChange={() => setReportType('detail')} style={{ display: 'none' }} />
+                                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: reportType === 'detail' ? '5px solid var(--accent-primary)' : '2px solid var(--border-light)', background: 'var(--bg-primary)', transition: 'all 0.15s', flexShrink: 0 }} />
+                                        <span style={{ fontSize: '13px', fontWeight: reportType === 'detail' ? 600 : 400, color: reportType === 'detail' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Detaylı Araç Raporu</span>
+                                    </label>
+                                </div>
+                            </div>
 
                             {/* Content Toggles */}
-                            <div>
-                                <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>İçerik Seçimi</h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={config.inventory} onChange={e => setConfig({ ...config, inventory: e.target.checked })} />
-                                        <span>Demirbaş / Envanter</span>
-                                    </label>
-                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={config.maintenance} onChange={e => setConfig({ ...config, maintenance: e.target.checked })} />
-                                        <span>Bakım Geçmişi</span>
-                                    </label>
-                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={config.services} onChange={e => setConfig({ ...config, services: e.target.checked })} />
-                                        <span>Servis / Tamir</span>
-                                    </label>
-                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={config.insurance} onChange={e => setConfig({ ...config, insurance: e.target.checked })} />
-                                        <span>Sigorta Durumu</span>
-                                    </label>
-                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={config.inspection} onChange={e => setConfig({ ...config, inspection: e.target.checked })} />
-                                        <span>Muayene Durumu</span>
-                                    </label>
-                                    <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={config.periodicInspection} onChange={e => setConfig({ ...config, periodicInspection: e.target.checked })} />
-                                        <span>Periyodik Kontroller</span>
-                                    </label>
+                            <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <List size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İçerik Seçimi</h4>
+                                </div>
+                                <div style={{ padding: '12px 16px' }}>
+                                    {reportType === 'detail' ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            {[
+                                                { key: 'inventory', label: 'Demirbaş / Envanter' },
+                                                { key: 'maintenance', label: 'Bakım Geçmişi' },
+                                                { key: 'services', label: 'Servis / Tamir' },
+                                                { key: 'insurance', label: 'Sigorta Durumu' },
+                                                { key: 'inspection', label: 'Muayene Durumu' },
+                                                { key: 'periodicInspection', label: 'Periyodik Kontroller' }
+                                            ].map(item => (
+                                                <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s' }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    <span style={{ fontSize: '13px', color: config[item.key] ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: config[item.key] ? 500 : 400, transition: 'all 0.15s' }}>{item.label}</span>
+                                                    <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                                        <input type="checkbox" checked={config[item.key]} onChange={e => setConfig({ ...config, [item.key]: e.target.checked })} />
+                                                        <span className="toggle-slider"></span>
+                                                    </label>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            {[
+                                                { key: 'plate', label: 'Plaka' },
+                                                { key: 'type', label: 'Tür' },
+                                                { key: 'brand', label: 'Marka' },
+                                                { key: 'model', label: 'Model' },
+                                                { key: 'year', label: 'Yıl' },
+                                                { key: 'km', label: 'KM' },
+                                                { key: 'status', label: 'Durum' }
+                                            ].map(item => (
+                                                <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s' }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    <span style={{ fontSize: '13px', color: listConfig[item.key] ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: listConfig[item.key] ? 500 : 400, transition: 'all 0.15s' }}>{item.label}</span>
+                                                    <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                                        <input type="checkbox" checked={listConfig[item.key]} onChange={e => setListConfig({ ...listConfig, [item.key]: e.target.checked })} />
+                                                        <span className="toggle-slider"></span>
+                                                    </label>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Date Filter */}
                             <div>
-                                <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Calendar size={14} /> Tarih Aralığı
-                                </h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: '12px', marginBottom: '4px', display: 'block' }}>Başlangıç</label>
+                                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Filter size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tarih Filtresi</h4>
+                                </div>
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div style={{ marginBottom: 0 }}>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Başlangıç Tarihi</label>
                                         <input
                                             type="date"
                                             className="form-input"
                                             value={dateRange.start}
                                             onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
-                                            style={{ padding: '6px' }}
+                                            style={{ fontSize: '12px', padding: '6px 10px' }}
                                         />
                                     </div>
-                                    <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: '12px', marginBottom: '4px', display: 'block' }}>Bitiş</label>
+                                    <div style={{ marginBottom: 0 }}>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Bitiş Tarihi</label>
                                         <input
                                             type="date"
                                             className="form-input"
                                             value={dateRange.end}
                                             onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
-                                            style={{ padding: '6px' }}
+                                            style={{ fontSize: '12px', padding: '6px 10px' }}
                                         />
                                     </div>
                                     {(dateRange.start || dateRange.end) && (
                                         <button
                                             className="btn btn-secondary btn-sm"
                                             onClick={() => setDateRange({ start: '', end: '' })}
-                                            style={{ marginTop: '5px' }}
+                                            style={{ width: '100%', justifyContent: 'center', fontSize: '12px' }}
                                         >
-                                            Temizle
+                                            Filtreyi Temizle
                                         </button>
                                     )}
+                                    <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+                                        * Filtre tüm araçlara uygulanır.
+                                    </div>
                                 </div>
                             </div>
-
-                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: 'auto' }}>
-                                * Tarih filtreleri tüm araçlar için geçerlidir.
-                            </div>
-
                         </div>
 
                         {/* Right: Live Preview */}
-                        <div style={{ flex: 1, overflowY: 'auto', background: '#525659', padding: '20px', borderRadius: '4px' }}>
+                        <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-tertiary)', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.03)' }}>
                             {loadingReport ? (
-                                <div style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Raporlar hazırlanıyor...</div>
+                                <div style={{ color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
+                                    <div className="spinner"></div> {/* Assuming a spinner class exists, if not it just won't show anything besides text */}
+                                    <div>Raporlar hazırlanıyor...</div>
+                                </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20mm', alignItems: 'center' }}>
-                                    {processedReportList.map((report, index) => (
-                                        <div
-                                            key={report.vehicle.id}
-                                            className="a4-page page-break"
-                                        >
-                                            {/* Header */}
-                                            <div style={{ borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div>
-                                                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 5px 0' }}>ARAÇ RAPORU</h1>
-                                                    <div style={{ fontSize: '14px', color: '#666' }}>{currentCompany.name}</div>
-                                                    {(dateRange.start || dateRange.end) && (
-                                                        <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-                                                            Tarih Aralığı: {dateRange.start ? formatDate(dateRange.start) : 'Başlangıç'} - {dateRange.end ? formatDate(dateRange.end) : 'Bugün'}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div style={{ textAlign: 'right' }}>
-                                                    <div style={{ fontSize: '12px', color: '#666' }}>Rapor Tarihi</div>
-                                                    <div style={{ fontWeight: 'bold' }}>{new Date().toLocaleDateString('tr-TR')}</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Vehicle Information */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
-                                                <div>
-                                                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>PLAKA</div>
-                                                    <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{report.vehicle.plate}</div>
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>MARKA/MODEL</div>
-                                                    <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{report.vehicle.brand} {report.vehicle.model}</div>
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>MODEL YILI</div>
-                                                    <div style={{ fontSize: '14px' }}>{report.vehicle.year}</div>
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>KM</div>
-                                                    <div style={{ fontSize: '14px' }}>{report.vehicle.kilometers ? `${report.vehicle.kilometers} km` : '-'}</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Inventory Section */}
-                                            {config.inventory && (
-                                                <div style={{ marginBottom: '25px' }}>
-                                                    <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
-                                                        DEMİRBAŞ / ENVANTER
-                                                    </h3>
-                                                    {report.assignments.length > 0 ? (
-                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                                            <thead>
-                                                                <tr style={{ background: '#eee', textAlign: 'left' }}>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>MALZEME</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>ADET</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>SORUMLU</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>VERİLİŞ T.</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>BİTİŞ T.</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {report.assignments.map((item, i) => (
-                                                                    <tr key={i}>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.item_name}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.quantity}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.assigned_to || '-'}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.start_date)}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.end_date ? formatDate(item.end_date) : 'Aktif'}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    ) : (
-                                                        <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Bu tarih aralığında kayıt bulunamadı.</div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Maintenance Section */}
-                                            {config.maintenance && (
-                                                <div style={{ marginBottom: '25px' }}>
-                                                    <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
-                                                        BAKIM GEÇMİŞİ
-                                                    </h3>
-                                                    {report.maintenances.length > 0 ? (
-                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                                            <thead>
-                                                                <tr style={{ background: '#eee', textAlign: 'left' }}>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>TARİH</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>TÜR</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>AÇIKLAMA</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONRAKİ BAKIM</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>MALİYET</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {report.maintenances.slice(0, 50).map((item, i) => (
-                                                                    <tr key={i}>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.date)}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{getMaintenanceTypeLabel(item.type)}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.description}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.next_date ? formatDate(item.next_date) : '-'}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatCurrency(item.cost)}</td>
-                                                                    </tr>
-                                                                ))}
-                                                                {/* Total Row */}
-                                                                <tr style={{ fontWeight: 'bold' }}>
-                                                                    <td colSpan={4} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
-                                                                    <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                                                        {formatCurrency(report.maintenances.reduce((sum, item) => sum + (item.cost || 0), 0))}
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    ) : (
-                                                        <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Bu tarih aralığında kayıt bulunamadı.</div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Services Section */}
-                                            {config.services && (
-                                                <div style={{ marginBottom: '25px' }}>
-                                                    <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
-                                                        SERVİS / TAMİR GEÇMİŞİ
-                                                    </h3>
-                                                    {report.services && report.services.length > 0 ? (
-                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                                            <thead>
-                                                                <tr style={{ background: '#eee', textAlign: 'left' }}>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>TARİH</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>FİRMA</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>TÜR</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>AÇIKLAMA</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>KM</th>
-                                                                    <th style={{ padding: '6px', border: '1px solid #ddd' }}>MALİYET</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {report.services.slice(0, 50).map((item, i) => (
-                                                                    <tr key={i}>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.date)}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.service_name}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.type}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.description}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.km}</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatCurrency(item.cost)}</td>
-                                                                    </tr>
-                                                                ))}
-                                                                <tr style={{ fontWeight: 'bold' }}>
-                                                                    <td colSpan={5} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
-                                                                    <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                                                        {formatCurrency(report.services.reduce((sum, item) => sum + (item.cost || 0), 0))}
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    ) : (
-                                                        <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Bu tarih aralığında kayıt bulunamadı.</div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Insurance & Inspection Stacked */}
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-                                                {config.insurance && (
-                                                    <div>
-                                                        <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
-                                                            SİGORTA BİLGİLERİ
-                                                        </h3>
-                                                        {report.insurances.length > 0 ? (
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                                                <thead>
-                                                                    <tr style={{ background: '#eee', textAlign: 'left' }}>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>ŞİRKET</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TÜR</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>BAŞLANGIÇ</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>BİTİŞ</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TUTAR</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {report.insurances.slice(0, 10).map((item, i) => (
-                                                                        <tr key={i}>
-                                                                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.company}</td>
-                                                                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>{getInsuranceTypeLabel(item.type)}</td>
-                                                                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.start_date)}</td>
-                                                                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.end_date)}</td>
-                                                                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatCurrency(item.premium)}</td>
-                                                                        </tr>
-                                                                    ))}
-                                                                    <tr style={{ fontWeight: 'bold' }}>
-                                                                        <td colSpan={4} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                                                            {formatCurrency(report.insurances.reduce((sum, item) => sum + (item.premium || 0), 0))}
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        ) : (
-                                                            <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Kayıt yok.</div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {config.inspection && (
-                                                    <div>
-                                                        <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
-                                                            MUAYENE BİLGİLERİ
-                                                        </h3>
-                                                        {report.inspections.length > 0 ? (
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                                                <thead>
-                                                                    <tr style={{ background: '#eee', textAlign: 'left' }}>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TARİH</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONUÇ</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONRAKİ MUAYENE</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TUTAR</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {report.inspections.slice(0, 10).map((item, i) => {
-                                                                        const resultDisplay = item.result === 'passed' ? 'Geçti' :
-                                                                            item.result === 'failed' ? 'Kaldı' :
-                                                                                item.result === 'conditional' ? 'Şartlı Geçti' : item.result;
-                                                                        return (
-                                                                            <tr key={i}>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.inspection_date)}</td>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{resultDisplay}</td>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.next_inspection ? formatDate(item.next_inspection) : '-'}</td>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatCurrency(item.cost)}</td>
-                                                                            </tr>
-                                                                        )
-                                                                    })}
-                                                                    <tr style={{ fontWeight: 'bold' }}>
-                                                                        <td colSpan={3} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                                                            {formatCurrency(report.inspections.reduce((sum, item) => sum + (item.cost || 0), 0))}
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        ) : (
-                                                            <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Kayıt yok.</div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {config.periodicInspection && (
-                                                    <div>
-                                                        <h3 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginBottom: '10px' }}>
-                                                            PERİYODİK KONTROL BİLGİLERİ
-                                                        </h3>
-                                                        {report.periodicInspections.length > 0 ? (
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                                                <thead>
-                                                                    <tr style={{ background: '#eee', textAlign: 'left' }}>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TARİH</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONUÇ</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>SONRAKİ KONTROL</th>
-                                                                        <th style={{ padding: '6px', border: '1px solid #ddd' }}>TUTAR</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {report.periodicInspections.slice(0, 10).map((item, i) => {
-                                                                        const resultDisplay = item.result === 'passed' ? 'Uygundur' :
-                                                                            item.result === 'failed' ? 'Uygun Değildir' :
-                                                                                item.result === 'conditional' ? 'Eksikler Var' : item.result;
-                                                                        return (
-                                                                            <tr key={i}>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(item.inspection_date)}</td>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{resultDisplay}</td>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{item.next_inspection ? formatDate(item.next_inspection) : '-'}</td>
-                                                                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatCurrency(item.cost)}</td>
-                                                                            </tr>
-                                                                        )
-                                                                    })}
-                                                                    <tr style={{ fontWeight: 'bold' }}>
-                                                                        <td colSpan={3} style={{ padding: '6px', border: '1px solid #ddd', textAlign: 'right' }}>TOPLAM:</td>
-                                                                        <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                                                            {formatCurrency(report.periodicInspections.reduce((sum, item) => sum + (item.cost || 0), 0))}
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        ) : (
-                                                            <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#666' }}>Kayıt yok.</div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div style={{ position: 'absolute', bottom: '20mm', left: '20mm', right: '20mm', borderTop: '1px solid #ddd', paddingTop: '10px', fontSize: '10px', color: '#999', textAlign: 'center' }}>
-                                                Raporlar
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20mm', alignItems: 'center', width: '100%' }}>
+                                    <ReportRenderer
+                                        reports={processedReportList}
+                                        config={config}
+                                        listConfig={listConfig}
+                                        dateRange={dateRange}
+                                        companyName={currentCompany.name}
+                                        reportType={reportType}
+                                        isPreview={true}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -738,3 +579,4 @@ export default function Reports() {
         </div>
     )
 }
+

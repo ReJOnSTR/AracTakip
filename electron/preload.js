@@ -197,5 +197,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // System actions
-    saveAsPdf: () => ipcRenderer.invoke('save-pdf')
+    saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
+    saveReportPdf: () => ipcRenderer.invoke('save-report-pdf')
 })

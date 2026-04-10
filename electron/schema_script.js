@@ -237,10 +237,12 @@ const allTablesSQL = [
     "deduction" REAL DEFAULT 0,
     "net_salary" REAL DEFAULT 0,
     "payment_date" DATETIME,
+    "salary_month" TEXT,
     "status" TEXT DEFAULT 'pending',
     "notes" TEXT,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "is_archived" INTEGER DEFAULT 0,
+    "payment_method" TEXT DEFAULT 'nakit',
     CONSTRAINT "salaries_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE TABLE IF NOT EXISTS "schema_migrations" (

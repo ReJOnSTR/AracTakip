@@ -2196,6 +2196,13 @@ tr:hover .td-actions {
   max-width: 1100px;
 }
 
+.modal-fullscreen {
+  max-width: calc(100vw - 140px);
+  max-height: calc(100vh - 100px);
+  width: calc(100vw - 140px);
+  height: calc(100vh - 100px);
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -2228,6 +2235,12 @@ tr:hover .td-actions {
 .modal-body {
   padding: 24px;
   overflow-y: auto;
+}
+
+.modal-fullscreen .modal-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
 }
 
 .modal-footer {
@@ -3269,7 +3282,7 @@ tr:hover .td-actions {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 100px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  z-index: 2000;
+  z-index: 900;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   transition: left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   /* Smoothly animate position change */
@@ -3346,11 +3359,60 @@ tr:hover .td-actions {
 @media print {
   @page {
     margin: 0;
-    size: auto;
+    size: A4;
   }
 
+  /* Hide everything by default */
   body {
     margin: 0;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide app chrome */
+  .titlebar,
+  .sidebar,
+  .tab-bar,
+  .app-layout,
+  .main-content,
+  .page-content {
+    all: unset !important;
+    display: block !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide titlebar completely */
+  .titlebar {
+    display: none !important;
+  }
+
+  /* Hide tab bar */
+  .tab-bar {
+    display: none !important;
+  }
+
+  /* Hide sidebar completely */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Print body - show clean */
+  .print-body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .a4-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 20mm !important;
+    width: 100% !important;
+    page-break-after: always;
   }
 
   .page-break {

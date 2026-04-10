@@ -1306,3 +1306,63 @@ ipcMain.handle('save-pdf', async (event) => {
     }
 })
 
+// Report PDF - Hidden window approach (no visible window opens)
+ipcMain.handle('save-report-pdf', async (event) => {
+    let hiddenWin = null;
+    try {
+        const parentWin = BrowserWindow.fromWebContents(event.sender);
+
+        // Show save dialog first
+        const { canceled, filePath } = await dialog.showSaveDialog(parentWin, {
+            title: 'PDF Olarak Kaydet',
+            defaultPath: `Arac_Raporu_${new Date().toISOString().split('T')[0]}.pdf`,
+            filters: [
+                { name: 'PDF Belgeleri', extensions: ['pdf'] }
+            ]
+        });
+
+        if (canceled || !filePath) return { success: false, canceled: true };
+
+        // Create hidden window
+        hiddenWin = new BrowserWindow({
+            width: 1200,
+            height: 900,
+            show: false,
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                contextIsolation: true,
+                nodeIntegration: false
+            }
+        });
+
+        // Load the print page route
+        const baseURL = process.env.NODE_ENV === 'development' || !app.isPackaged
+            ? 'http://localhost:5173/#/print'
+            : `file://${path.join(__dirname, '../dist/index.html')}#/print`;
+
+        await hiddenWin.loadURL(baseURL);
+
+        // Wait for content to fully render
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Generate PDF
+        const pdfData = await hiddenWin.webContents.printToPDF({
+            printBackground: true,
+            pageSize: 'A4',
+            margins: { marginType: 'default' }
+        });
+
+        fs.writeFileSync(filePath, pdfData);
+
+        hiddenWin.close();
+        hiddenWin = null;
+
+        return { success: true, filePath };
+    } catch (err) {
+        console.error('Report PDF Error:', err);
+        if (hiddenWin && !hiddenWin.isDestroyed()) {
+            hiddenWin.close();
+        }
+        return { success: false, error: err.message };
+    }
+})

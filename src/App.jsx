@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { CompanyProvider, useCompany } from './context/CompanyContext'
 import { TabProvider } from './context/TabContext' // Import TabProvider
@@ -100,10 +100,12 @@ import { useDataListener } from './hooks/useDataListener'
 function AppRoutes() {
     useDataListener() // Global real-time data listener
     const { user } = useAuth()
+    const location = useLocation()
+    const isPrintRoute = location.pathname === '/print' || location.pathname.startsWith('/work-report')
 
     return (
         <>
-            <TitleBar />
+            {!isPrintRoute && <TitleBar />}
             <Suspense fallback={<PageLoader />}>
                 <Routes>
                     <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
