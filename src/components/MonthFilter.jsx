@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Calendar, ChevronDown } from 'lucide-react'
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const MonthFilter = ({ value, onChange, minDate }) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -43,6 +43,23 @@ const MonthFilter = ({ value, onChange, minDate }) => {
         setIsOpen(false)
     }
 
+    const handleMonthStep = (step) => {
+        if (!value) return
+        const [year, month] = value.split('-').map(Number)
+        let newDate = new Date(year, month - 1 + step, 1)
+        
+        // Apply minDate restriction
+        if (minDate) {
+            const [minY, minM] = minDate.split('-').map(Number)
+            const minDateTime = new Date(minY, minM - 1, 1)
+            if (newDate < minDateTime) newDate = minDateTime
+        }
+
+        const newYear = newDate.getFullYear()
+        const newMonth = (newDate.getMonth() + 1).toString().padStart(2, '0')
+        onChange(`${newYear}-${newMonth}`)
+    }
+
     const months = [
         'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
         'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
@@ -51,48 +68,124 @@ const MonthFilter = ({ value, onChange, minDate }) => {
     const currentMonthIndex = value ? parseInt(value.split('-')[1]) - 1 : -1
     const currentYear = value ? parseInt(value.split('-')[0]) : -1
 
+    const displayDate = value ? new Date(value + '-01').toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }) : 'Dönem Seç'
+
     return (
-        <div className="custom-date-picker" ref={containerRef}>
-            <button
-                className={`date-picker-trigger ${isOpen ? 'active' : ''}`}
-                onClick={() => setIsOpen(!isOpen)}
-                style={{
-                    height: '36px',
-                    padding: '0 12px',
-                    minWidth: '180px',
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: 'var(--bg-secondary)',
-                    borderColor: isOpen ? 'var(--accent-primary)' : 'var(--border-color)',
-                    borderWidth: '1px',
-                    borderStyle: 'solid',
-                    color: 'var(--text-primary)'
+        <div className="month-pager-wrapper" ref={containerRef} style={{ position: 'relative' }}>
+            <div 
+                className="month-pager-controls" 
+                style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: '10px',
+                    padding: '3px',
+                    border: '1px solid var(--border-color)',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    height: '40px'
                 }}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={16} style={{ color: 'var(--text-muted)' }} />
-                    <span style={{ fontSize: '13px', fontWeight: 500 }}>
-                        {new Date(value).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+                {/* Previous Month */}
+                <button
+                    className="pager-nav-btn"
+                    onClick={() => handleMonthStep(-1)}
+                    title="Önceki Ay"
+                    style={{
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        background: 'transparent',
+                        color: 'var(--text-secondary)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                >
+                    <ChevronLeft size={18} />
+                </button>
+
+                {/* Central Trigger */}
+                <button
+                    className={`month-pager-trigger ${isOpen ? 'active' : ''}`}
+                    onClick={() => setIsOpen(!isOpen)}
+                    style={{
+                        flex: 1,
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        border: 'none',
+                        background: isOpen ? 'var(--bg-tertiary)' : 'transparent',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        padding: '0 12px',
+                        transition: 'all 0.2s ease',
+                        minWidth: '130px'
+                    }}
+                    onMouseEnter={e => { if(!isOpen) e.currentTarget.style.background = 'var(--bg-tertiary)' }}
+                    onMouseLeave={e => { if(!isOpen) e.currentTarget.style.background = 'transparent' }}
+                >
+                    <Calendar size={14} style={{ color: isOpen ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+                    <span style={{ 
+                        fontSize: '13px', 
+                        fontWeight: 600, 
+                        color: 'var(--text-primary)',
+                        whiteSpace: 'nowrap'
+                    }}>
+                        {displayDate}
                     </span>
-                </div>
-                <ChevronDown size={14} style={{ color: 'var(--text-muted)', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-            </button>
+                </button>
+
+                {/* Next Month */}
+                <button
+                    className="pager-nav-btn"
+                    onClick={() => handleMonthStep(1)}
+                    title="Sonraki Ay"
+                    style={{
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        background: 'transparent',
+                        color: 'var(--text-secondary)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                >
+                    <ChevronRight size={18} />
+                </button>
+            </div>
 
             {isOpen && (
-                <div style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 4px)',
-                    right: 0,
-                    width: '240px',
-                    backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    zIndex: 1000,
-                    padding: '16px',
-                }}>
+                <div 
+                    className="month-picker-dropdown"
+                    style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '240px',
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.05)',
+                        zIndex: 1000,
+                        padding: '16px',
+                        animation: 'dropdownFadeIn 0.2s ease-out'
+                    }}
+                >
                     {/* Header: Year Selector */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                         <button
@@ -102,29 +195,25 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                                 background: 'transparent', 
                                 border: 'none', 
                                 borderRadius: '6px', 
-                                color: (minYear && viewYear <= minYear) ? 'var(--text-muted)' : 'var(--text-secondary)', 
-                                cursor: (minYear && viewYear <= minYear) ? 'default' : 'pointer', 
+                                color: 'var(--text-secondary)', 
+                                cursor: 'pointer', 
                                 width: '28px', 
                                 height: '28px', 
                                 display: 'flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'center', 
                                 transition: 'background 0.2s',
-                                opacity: (minYear && viewYear <= minYear) ? 0.4 : 1
+                                opacity: (minYear && viewYear <= minYear) ? 0.3 : 1
                             }}
-                            onMouseEnter={(e) => { if (!(minYear && viewYear <= minYear)) e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)' }}
-                            onMouseLeave={(e) => { if (!(minYear && viewYear <= minYear)) e.currentTarget.style.backgroundColor = 'transparent' }}
                         >
-                            <ChevronDown size={18} style={{ transform: 'rotate(90deg)' }} />
+                            <ChevronLeft size={16} />
                         </button>
-                        <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{viewYear}</span>
+                        <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{viewYear}</span>
                         <button
                             onClick={() => handleYearChange(1)}
                             style={{ background: 'transparent', border: 'none', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                            <ChevronDown size={18} style={{ transform: 'rotate(-90deg)' }} />
+                            <ChevronRight size={16} />
                         </button>
                     </div>
 
@@ -141,9 +230,9 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                                     onClick={() => !isDisabled && handleMonthSelect(idx)}
                                     disabled={isDisabled}
                                     style={{
-                                        height: '32px',
+                                        height: '36px',
                                         fontSize: '12px',
-                                        fontWeight: isSelected ? 600 : 500,
+                                        fontWeight: isSelected ? 700 : 500,
                                         borderRadius: '8px',
                                         background: isSelected ? 'var(--accent-primary)' : 'transparent',
                                         color: isSelected ? 'white' : (isDisabled ? 'var(--text-muted)' : 'var(--text-secondary)'),
@@ -153,12 +242,12 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        opacity: isDisabled ? 0.3 : 1
+                                        opacity: isDisabled ? 0.4 : 1
                                     }}
                                     onMouseEnter={(e) => {
                                         if (!isSelected && !isDisabled) {
                                             e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'
-                                            e.currentTarget.style.color = 'var(--text-primary)'
+                                            e.currentTarget.style.color = 'var(--accent-primary)'
                                         }
                                     }}
                                     onMouseLeave={(e) => {
@@ -175,6 +264,16 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                     </div>
                 </div>
             )}
+
+            <style>{`
+                @keyframes dropdownFadeIn {
+                    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+                .month-pager-controls button:focus {
+                    outline: none;
+                }
+            `}</style>
         </div>
     )
 }

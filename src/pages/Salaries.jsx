@@ -454,7 +454,7 @@ export default function Salaries() {
                     <p className="page-subtitle">Dönemsel maaş takibi, mesai ve ödemeler</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '200px' }}>
+                    <div style={{ width: '240px' }}>
                         <MonthFilter
                             value={selectedMonth}
                             onChange={setSelectedMonth}

@@ -726,7 +726,7 @@ export default function EmployeeDetail() {
                     </h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         {activeTab === 'salary' && (
-                            <div style={{ width: '180px' }}>
+                            <div style={{ width: '240px' }}>
                                 <MonthFilter 
                                     value={selectedMonth} 
                                     onChange={setSelectedMonth} 
