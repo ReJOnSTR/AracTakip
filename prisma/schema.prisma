@@ -308,6 +308,7 @@ model salaries {
   deduction    Float?    @default(0)
   net_salary   Float?    @default(0)
   payment_date   DateTime?
+  salary_month   String?
   status         String?   @default("pending")
   payment_method String?   @default("cash")
   notes          String?
