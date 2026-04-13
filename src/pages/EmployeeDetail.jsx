@@ -836,7 +836,7 @@ export default function EmployeeDetail() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                             <div className="card" style={{ padding: '14px 16px' }}>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Yıllık İzin</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--accent-primary)' }}>
+                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>
                                     {(() => {
                                         if (!employee.start_date) return '-'
                                         const start = new Date(employee.start_date)
@@ -866,7 +866,9 @@ export default function EmployeeDetail() {
 
                                         const pastUsed = employee.past_used_leaves || 0
                                         const systemUsedAnnual = leaves.filter(l => l.status === 'approved' && l.type === 'annual').reduce((acc, l) => acc + (l.days || 1), 0)
-                                        return Math.max(0, totalAccrued - pastUsed - systemUsedAnnual) + ' gün'
+                                        
+                                        const balance = totalAccrued - pastUsed - systemUsedAnnual
+                                        return <span style={{ color: balance < 0 ? 'var(--danger)' : 'var(--accent-primary)' }}>{balance} gün</span>
                                     })()}
                                 </div>
                             </div>
