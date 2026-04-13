@@ -794,10 +794,10 @@ export default function EmployeeDetail() {
                             }
 
                             const activeRemainingLoan = activeLoanTaken - activeLoanPaid;
-                            const hasActiveLoan = activeLoanTaken > 0;
+                            const hasLoanHistory = sortedLoans.length > 0;
 
                             return (
-                                <div style={{ display: 'grid', gridTemplateColumns: hasActiveLoan ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                                     {/* Ödenecek Tutar */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai)</div>
@@ -838,7 +838,7 @@ export default function EmployeeDetail() {
                                     </div>
 
                                     {/* Borç Bakiyesi (Conditional) */}
-                                    {hasActiveLoan && (
+                                    {hasLoanHistory && (
                                         <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Güncel Borç Bakiyesi</div>
