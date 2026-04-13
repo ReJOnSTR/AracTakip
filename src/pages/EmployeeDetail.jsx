@@ -965,33 +965,47 @@ export default function EmployeeDetail() {
 
                 {activeTab === 'overtime' && (
                     <div className="tab-pane">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Toplam Saat</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>{totalOvertimeHours} saat</div>
-                            </div>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Toplam Tutar</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>{formatCurrency(overtimes.reduce((s, o) => s + (o.amount || 0), 0))}</div>
-                            </div>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kayıt Sayısı</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>{overtimes.length}</div>
-                            </div>
-                        </div>
-                        <DataTable persistenceKey="EmployeeDetail_table_2"
-                            storageKey="emp_overtime_cols"
-                            columns={overtimeColumns}
-                            data={overtimes}
-                            emptyMessage="Henüz mesai kaydı bulunmuyor."
-                            onBulkDelete={(ids) => handleDeleteClick('overtime', null, ids)}
-                            actions={(item) => (
+                        {(() => {
+                            const monthlyOvertimesList = overtimes.filter(o => {
+                                if (!o.date) return false;
+                                const dStr = typeof o.date === 'string' ? o.date : new Date(o.date).toISOString()
+                                return dStr.startsWith(selectedMonth)
+                            });
+                            const monthlyTotalHours = monthlyOvertimesList.reduce((sum, o) => sum + (o.hours || 0), 0)
+                            const monthlyTotalAmount = monthlyOvertimesList.reduce((sum, o) => sum + (o.amount || 0), 0)
+
+                            return (
                                 <>
-                                    <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                        <div className="card" style={{ padding: '14px 16px' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Saat</div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>{monthlyTotalHours} saat</div>
+                                        </div>
+                                        <div className="card" style={{ padding: '14px 16px' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Tutar</div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--accent-primary)' }}>{formatCurrency(monthlyTotalAmount)}</div>
+                                        </div>
+                                        <div className="card" style={{ padding: '14px 16px' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Kayıt Sayısı</div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>{monthlyOvertimesList.length}</div>
+                                        </div>
+                                    </div>
+                                    <DataTable persistenceKey="EmployeeDetail_table_2"
+                                        storageKey="emp_overtime_cols"
+                                        columns={overtimeColumns}
+                                        data={monthlyOvertimesList}
+                                        emptyMessage="Bu döneme ait mesai kaydı bulunmuyor."
+                                        onBulkDelete={(ids) => handleDeleteClick('overtime', null, ids)}
+                                        actions={(item) => (
+                                            <>
+                                                <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
+                                                <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
+                                            </>
+                                        )}
+                                    />
                                 </>
-                            )}
-                        />
+                            )
+                        })()}
                     </div>
                 )}
 
