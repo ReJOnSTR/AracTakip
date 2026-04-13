@@ -771,14 +771,33 @@ export default function EmployeeDetail() {
                             const pendingCount = monthlySalaries.filter(s => s.status === 'pending').length
                             const progress = netTarget > 0 ? Math.round((totalPaid / netTarget) * 100) : 0
 
-                            // Global Loan Calculation (All months)
-                            const totalLoanTaken = salaries.filter(s => s.status === 'paid' && s.period === 'loan').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const totalLoanPaid = salaries.filter(s => s.status === 'paid' && s.period === 'loan_payment').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const globalRemainingLoan = totalLoanTaken - totalLoanPaid
-                            const hasLoanHistory = totalLoanTaken > 0 || totalLoanPaid > 0
+                            // Active Loan Calculation (Only currently unclosed debt cycle)
+                            const sortedLoans = salaries
+                                .filter(s => s.status === 'paid' && (s.period === 'loan' || s.period === 'loan_payment'))
+                                .sort((a, b) => new Date(a.payment_date || a.created_at) - new Date(b.payment_date || b.created_at));
+
+                            let activeLoanTaken = 0;
+                            let activeLoanPaid = 0;
+
+                            for (const s of sortedLoans) {
+                                if (s.period === 'loan') {
+                                    activeLoanTaken += (s.net_salary || 0);
+                                } else if (s.period === 'loan_payment') {
+                                    activeLoanPaid += (s.net_salary || 0);
+                                }
+                                
+                                // If debt is fully paid, close the cycle
+                                if (activeLoanTaken > 0 && (activeLoanTaken - activeLoanPaid) <= 0) {
+                                    activeLoanTaken = 0;
+                                    activeLoanPaid = 0;
+                                }
+                            }
+
+                            const activeRemainingLoan = activeLoanTaken - activeLoanPaid;
+                            const hasActiveLoan = activeLoanTaken > 0;
 
                             return (
-                                <div style={{ display: 'grid', gridTemplateColumns: hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: hasActiveLoan ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                                     {/* Ödenecek Tutar */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai)</div>
@@ -819,7 +838,7 @@ export default function EmployeeDetail() {
                                     </div>
 
                                     {/* Borç Bakiyesi (Conditional) */}
-                                    {hasLoanHistory && (
+                                    {hasActiveLoan && (
                                         <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Güncel Borç Bakiyesi</div>
@@ -831,12 +850,12 @@ export default function EmployeeDetail() {
                                                 </button>
                                             </div>
                                             <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
-                                                {formatCurrency(globalRemainingLoan > 0 ? globalRemainingLoan : 0)}
+                                                {formatCurrency(activeRemainingLoan > 0 ? activeRemainingLoan : 0)}
                                             </div>
                                             <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                                <span style={{ opacity: 0.8 }}>Alınan:</span> {formatCurrency(totalLoanTaken)}
+                                                <span style={{ opacity: 0.8 }}>Alınan:</span> {formatCurrency(activeLoanTaken)}
                                                 <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                <span style={{ opacity: 0.8 }}>Ödenen:</span> {formatCurrency(totalLoanPaid)}
+                                                <span style={{ opacity: 0.8 }}>Ödenen:</span> {formatCurrency(activeLoanPaid)}
                                             </div>
                                         </div>
                                     )}
