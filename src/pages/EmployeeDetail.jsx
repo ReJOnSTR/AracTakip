@@ -755,11 +755,10 @@ export default function EmployeeDetail() {
                             const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidAdvance = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidLoanRepayt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'loan_payment').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             
-                            const totalPaid = paidSalary + paidOt + paidAdvance + paidLoanRepayt
+                            const totalPaid = paidSalary + paidOt + paidAdvance
 
-                            const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanRepayt
+                            const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance
                             const remainingOt = totalOtTarget - paidOt
                             const netRemaining = remainingSalary + remainingOt
 
@@ -795,7 +794,7 @@ export default function EmployeeDetail() {
 
                                     {/* Ödenen */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen + Kesilen</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen (Maaş+Avans)</div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>
                                             {formatCurrency(totalPaid)}
                                         </div>
