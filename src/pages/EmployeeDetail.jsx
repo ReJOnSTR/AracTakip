@@ -24,6 +24,8 @@ const paymentTypes = [
     { value: 'salary', label: 'Maaş' },
     { value: 'bonus', label: 'Prim' },
     { value: 'advance', label: 'Avans' },
+    { value: 'loan', label: 'Borç Alma' },
+    { value: 'loan_payment', label: 'Borç Ödeme' },
     { value: 'overtime_pay', label: 'Mesai Ücreti' },
     { value: 'expense', label: 'Harcırah' },
     { value: 'other', label: 'Diğer' }
@@ -743,74 +745,96 @@ export default function EmployeeDetail() {
 
                 {activeTab === 'salary' && (
                     <div className="tab-pane">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                            {(() => {
-                                const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
-                                const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
-                                const baseSalaryTarget = getHistoricalBaseSalary(employee, selectedMonth) || 0
-                                const netTarget = baseSalaryTarget + totalOtTarget
+                        {(() => {
+                            const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
+                            const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
+                            const baseSalaryTarget = getHistoricalBaseSalary(employee, selectedMonth) || 0
+                            const netTarget = baseSalaryTarget + totalOtTarget
 
-                                const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                                const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                                const totalPaid = paidSalary + paidOt
+                            const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const paidAdvance = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const paidLoanRepayt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'loan_payment').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            
+                            const totalPaid = paidSalary + paidOt + paidAdvance + paidLoanRepayt
 
-                                const remainingSalary = baseSalaryTarget - paidSalary
-                                const remainingOt = totalOtTarget - paidOt
-                                const netRemaining = remainingSalary + remainingOt
+                            const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanRepayt
+                            const remainingOt = totalOtTarget - paidOt
+                            const netRemaining = remainingSalary + remainingOt
 
-                                const lastPaidDate = (() => {
-                                    const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
-                                    if (paidRecords.length === 0) return null
-                                    return new Date(Math.max(...paidRecords.map(r => new Date(r.payment_date || r.created_at))))
-                                })()
+                            const lastPaidDate = (() => {
+                                const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
+                                if (paidRecords.length === 0) return null
+                                return new Date(Math.max(...paidRecords.map(r => new Date(r.payment_date || r.created_at))))
+                            })()
 
-                                const pendingCount = monthlySalaries.filter(s => s.status === 'pending').length
-                                const progress = netTarget > 0 ? Math.round((totalPaid / netTarget) * 100) : 0
+                            const pendingCount = monthlySalaries.filter(s => s.status === 'pending').length
+                            const progress = netTarget > 0 ? Math.round((totalPaid / netTarget) * 100) : 0
 
-                                return (
-                                    <>
-                                        {/* Ödenecek Tutar - Kaynak bilgisini koruyoruz */}
+                            // Global Loan Calculation (All months)
+                            const totalLoanTaken = salaries.filter(s => s.status === 'paid' && s.period === 'loan').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const totalLoanPaid = salaries.filter(s => s.status === 'paid' && s.period === 'loan_payment').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const globalRemainingLoan = totalLoanTaken - totalLoanPaid
+                            const hasLoanHistory = totalLoanTaken > 0 || totalLoanPaid > 0
+
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                    {/* Ödenecek Tutar */}
+                                    <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai)</div>
+                                        <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
+                                            {formatCurrency(netTarget)}
+                                        </div>
+                                        <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                            <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(baseSalaryTarget)}
+                                            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                            <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(totalOtTarget)}
+                                        </div>
+                                    </div>
+
+                                    {/* Ödenen */}
+                                    <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen + Kesilen</div>
+                                        <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>
+                                            {formatCurrency(totalPaid)}
+                                        </div>
+                                        <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                            <span>{monthlySalaries.filter(s => s.status === 'paid').length} İşlem</span>
+                                            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                            <span>{lastPaidDate ? `Son: ${formatDate(lastPaidDate)}` : 'Ödeme Yok'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Kalan Bakiye */}
+                                    <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Maaş Bakiyesi</div>
+                                        <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--warning)' }}>
+                                            {formatCurrency(netRemaining)}
+                                        </div>
+                                        <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                            <span style={{ color: progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{progress} Ödendi</span>
+                                            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                            <span>{pendingCount} Kayıt Bekliyor</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Borç Bakiyesi (Conditional) */}
+                                    {hasLoanHistory && (
                                         <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai)</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Güncel Borç Bakiyesi</div>
                                             <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
-                                                {formatCurrency(netTarget)}
+                                                {formatCurrency(globalRemainingLoan > 0 ? globalRemainingLoan : 0)}
                                             </div>
                                             <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                                <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(baseSalaryTarget)}
+                                                <span style={{ opacity: 0.8 }}>Alınan:</span> {formatCurrency(totalLoanTaken)}
                                                 <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(totalOtTarget)}
+                                                <span style={{ opacity: 0.8 }}>Ödenen:</span> {formatCurrency(totalLoanPaid)}
                                             </div>
                                         </div>
-
-                                        {/* Ödenen - İşlem bilgisi ekliyoruz */}
-                                        <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen</div>
-                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>
-                                                {formatCurrency(totalPaid)}
-                                            </div>
-                                            <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                                <span>{monthlySalaries.filter(s => s.status === 'paid').length} İşlem</span>
-                                                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                <span>{lastPaidDate ? `Son: ${formatDate(lastPaidDate)}` : 'Ödeme Yok'}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Kalan Bakiye - Ödeme durumu ve bekleyen kayıt bilgisi */}
-                                        <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Bakiye</div>
-                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--warning)' }}>
-                                                {formatCurrency(netRemaining)}
-                                            </div>
-                                            <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                                <span style={{ color: progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{progress} Ödendi</span>
-                                                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                <span>{pendingCount} Kayıt Bekliyor</span>
-                                            </div>
-                                        </div>
-                                    </>
-                                )
-                            })()}
-                        </div>
+                                    )}
+                                </div>
+                            )
+                        })()}
                         <DataTable persistenceKey="EmployeeDetail_table_0"
                             storageKey="emp_salary_cols"
                             columns={salaryColumns}

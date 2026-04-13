@@ -10,6 +10,11 @@ async function syncFinanceTransaction(salaryId, action, employeeId, paymentMetho
             return;
         }
 
+        if (period === 'loan' || period === 'loan_payment') {
+            await prisma.transactions.deleteMany({ where: { category: categoryCode } });
+            return;
+        }
+
         const emp = await prisma.employees.findUnique({ where: { id: parseInt(employeeId) } });
         if (!emp) return;
 
