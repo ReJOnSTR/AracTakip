@@ -137,6 +137,7 @@ export default function EmployeeDetail() {
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
     const [previewDoc, setPreviewDoc] = useState(null)
+    const [showLoanHistory, setShowLoanHistory] = useState(false)
 
     useEffect(() => {
         if (currentCompany) loadEmployeeData()
@@ -821,7 +822,15 @@ export default function EmployeeDetail() {
                                     {/* Borç Bakiyesi (Conditional) */}
                                     {hasLoanHistory && (
                                         <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Güncel Borç Bakiyesi</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Güncel Borç Bakiyesi</div>
+                                                <button 
+                                                    style={{ background: 'none', border: 'none', padding: '2px 6px', fontSize: '10px', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, borderRadius: '4px' }}
+                                                    onClick={() => setShowLoanHistory(true)}
+                                                >
+                                                    Geçmiş
+                                                </button>
+                                            </div>
                                             <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
                                                 {formatCurrency(globalRemainingLoan > 0 ? globalRemainingLoan : 0)}
                                             </div>
@@ -1023,6 +1032,29 @@ export default function EmployeeDetail() {
             </div>
 
             {/* ========== MODALS ========== */}
+
+            {/* Loan History Modal */}
+            <Modal
+                isOpen={showLoanHistory}
+                onClose={() => setShowLoanHistory(false)}
+                title="Tüm Borç / Ödeme Geçmişi"
+                size="xl"
+                footer={null}
+            >
+                <DataTable
+                    persistenceKey="EmployeeLoanHistory"
+                    storageKey="emp_loan_cols"
+                    columns={salaryColumns}
+                    data={salaries.filter(s => s.period === 'loan' || s.period === 'loan_payment')}
+                    emptyMessage="Herhangi bir borç veya borç ödeme kaydı bulunmuyor."
+                    actions={(item) => (
+                        <>
+                            <button onClick={() => { setShowLoanHistory(false); openEditModal('salary', item); }}><Pencil size={16} /></button>
+                            <button className="danger" onClick={() => { setShowLoanHistory(false); handleDeleteClick('salary', item); }}><Trash2 size={16} /></button>
+                        </>
+                    )}
+                />
+            </Modal>
 
             {/* Edit Employee Modal */}
             <Modal
