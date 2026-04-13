@@ -728,7 +728,7 @@ export default function EmployeeDetail() {
                         {tabs.find(t => t.id === activeTab)?.label} Kayıtları
                     </h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        {activeTab === 'salary' && (
+                        {(activeTab === 'salary' || activeTab === 'overtime') && (
                             <div style={{ width: '240px' }}>
                                 <MonthFilter 
                                     value={selectedMonth} 
