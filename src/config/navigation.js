@@ -27,6 +27,7 @@ export const moduleMenus = {
             title: 'Genel',
             items: [
                 { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                { path: '/profile', label: 'Profil Bilgileri', icon: User },
                 { path: '/reports', label: 'Raporlar', icon: FileText }
             ]
         },
