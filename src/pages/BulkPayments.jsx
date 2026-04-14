@@ -381,6 +381,8 @@ export default function BulkPayments() {
                             loading={loading}
                             emptyMessage="Bu dönem için personel kaydı bulunamadı."
                             onRowClick={(item) => toggleEmployee(item.id)}
+                            showCheckboxes={false}
+                            showSearch={false}
                             disablePagination={true}
                         />
                     </div>
