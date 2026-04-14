@@ -332,140 +332,143 @@ export default function BulkPayments() {
     ]
 
     return (
-        <div style={{ padding: '24px 32px', maxWidth: '1400px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
+        <div style={{ padding: '24px 32px', maxWidth: '1600px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Users size={28} style={{ color: 'var(--accent-primary)' }} />
                         Toplu Personel Ödemeleri
                     </h1>
                     <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14.5px' }}>
-                        Tüm aktif çalışanlar için aynı anda maaş ve avans gibi toplu ödemeler gerçekleştirin.
+                        Personellere tek seferde maaş, avans veya mesai ödemesi yapın. Soldan personelleri seçip, sağ taraftan işlemi tamamlayın.
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{ width: '220px' }}>
-                        <MonthFilter value={selectedMonth} onChange={setSelectedMonth} />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '24px', alignItems: 'start' }}>
+                {/* Left Side: Table & Filters */}
+                <div className="card" style={{ padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', background: 'var(--bg-secondary)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input 
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Personel ara..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    style={{ paddingLeft: '38px', width: '280px', borderRadius: 'var(--radius-full)' }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Dönem Seçimi:</span>
+                            <div style={{ width: '160px' }}>
+                                <MonthFilter value={selectedMonth} onChange={setSelectedMonth} />
+                            </div>
+                            <button className="btn btn-secondary btn-icon" onClick={loadData} disabled={loading} title="Verileri Güncelle" style={{ padding: '8px' }}>
+                                <RefreshCw size={18} className={loading ? 'spinning' : ''} />
+                            </button>
+                        </div>
                     </div>
-                    <button className="btn btn-secondary" onClick={loadData} disabled={loading} title="Verileri Güncelle">
-                        <RefreshCw size={18} className={loading ? 'spinning' : ''} />
-                    </button>
-                </div>
-            </div>
 
-            <div className="card" style={{ marginBottom: '20px', padding: '20px', display: 'flex', flexWrap: 'wrap', gap: '20px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
-                <div style={{ flex: '1 1 200px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>İşlem Tipi</label>
-                    <CustomSelect 
-                        options={paymentTypes}
-                        value={paymentParams.period}
-                        onChange={val => setPaymentParams(prev => ({ ...prev, period: val }))}
-                    />
+                    <div style={{ position: 'relative', overflowX: 'auto' }}>
+                        <DataTable 
+                            persistenceKey="BulkPayments_table"
+                            columns={columns}
+                            data={filteredEmployees}
+                            loading={loading}
+                            emptyMessage="Bu dönem için personel kaydı bulunamadı."
+                            onRowClick={(item) => toggleEmployee(item.id)}
+                            disablePagination={true}
+                        />
+                    </div>
                 </div>
-                <div style={{ flex: '1 1 200px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ödeme Yöntemi</label>
-                    <CustomSelect 
-                        options={paymentMethods}
-                        value={paymentParams.paymentMethod}
-                        onChange={val => setPaymentParams(prev => ({ ...prev, paymentMethod: val }))}
-                    />
-                </div>
-                <div style={{ flex: '1 1 200px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ödeme Tarihi</label>
-                    <CustomDatePicker 
-                        value={paymentParams.paymentDate}
-                        onChange={val => setPaymentParams(prev => ({ ...prev, paymentDate: val }))}
-                    />
-                </div>
-                <div style={{ flex: '2 1 300px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ortak Açıklama (Not)</label>
-                    <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder={`Örn: ${paymentTypes.find(t => t.value === paymentParams.period)?.label || ''} toplu işlemi`}
-                        value={paymentParams.commonNote}
-                        onChange={e => setPaymentParams(prev => ({ ...prev, commonNote: e.target.value }))}
-                    />
-                </div>
-            </div>
 
-            <div className="card" style={{ padding: '0', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ position: 'relative' }}>
-                            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input 
-                                type="text"
-                                className="form-input"
-                                placeholder="Personel ara..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                style={{ paddingLeft: '38px', width: '280px', borderRadius: 'var(--radius-full)' }}
+                {/* Right Side: Setup & Checkout */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '24px' }}>
+                    <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>
+                            İşlem Detayları
+                        </h3>
+                        
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>İşlem Tipi</label>
+                            <CustomSelect 
+                                options={paymentTypes}
+                                value={paymentParams.period}
+                                onChange={val => setPaymentParams(prev => ({ ...prev, period: val }))}
+                            />
+                        </div>
+                        
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ödeme Yöntemi</label>
+                            <CustomSelect 
+                                options={paymentMethods}
+                                value={paymentParams.paymentMethod}
+                                onChange={val => setPaymentParams(prev => ({ ...prev, paymentMethod: val }))}
+                            />
+                        </div>
+                        
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ödeme Tarihi</label>
+                            <CustomDatePicker 
+                                value={paymentParams.paymentDate}
+                                onChange={val => setPaymentParams(prev => ({ ...prev, paymentDate: val }))}
+                            />
+                        </div>
+                        
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ortak Açıklama (Not)</label>
+                            <textarea 
+                                className="form-input" 
+                                placeholder={`Örn: ${paymentTypes.find(t => t.value === paymentParams.period)?.label || ''} toplu işlemi...`}
+                                value={paymentParams.commonNote}
+                                onChange={e => setPaymentParams(prev => ({ ...prev, commonNote: e.target.value }))}
+                                rows={3}
+                                style={{ resize: 'none' }}
                             />
                         </div>
                     </div>
-                </div>
 
-                <div style={{ position: 'relative' }}>
-                    <DataTable 
-                        persistenceKey="BulkPayments_table"
-                        columns={columns}
-                        data={filteredEmployees}
-                        loading={loading}
-                        emptyMessage="Aktif personel kaydı bulunamadı."
-                        // Disable actions and pointer events for rows themselves, only keep checkboxes active
-                        onRowClick={(item) => toggleEmployee(item.id)}
-                    />
-                </div>
+                    <div className="card" style={{ padding: '24px', background: 'var(--bg-primary)', border: '2px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Seçilen Personel</span>
+                                <span style={{ fontSize: '16px', fontWeight: 700, color: selectedIds.size > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                    {selectedIds.size}
+                                </span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Toplam Tutar</span>
+                                <span style={{ fontSize: '22px', fontWeight: 800, color: 'var(--accent-primary)' }}>
+                                    {formatCurrency(
+                                        Array.from(selectedIds).reduce((sum, id) => {
+                                            const amt = parseFloat(customAmounts[id])
+                                            return sum + (isNaN(amt) ? 0 : amt)
+                                        }, 0)
+                                    )}
+                                </span>
+                            </div>
 
-                {/* Footer Action Bar */}
-                <div style={{ 
-                    padding: '16px 24px', 
-                    background: 'var(--bg-primary)', 
-                    borderTop: '1px solid var(--border-color)', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    borderBottomLeftRadius: 'var(--radius-lg)',
-                    borderBottomRightRadius: 'var(--radius-lg)',
-                    position: 'sticky',
-                    bottom: 0,
-                    zIndex: 10,
-                    boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 600 }}>Seçili Personel Sayısı</span>
-                            <span style={{ fontSize: '18px', fontWeight: 700, color: selectedIds.size > 0 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
-                                {selectedIds.size} / {filteredEmployees.length}
-                            </span>
-                        </div>
-                        <div style={{ width: '1px', height: '30px', background: 'var(--border-color)' }}></div>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 600 }}>İşlem Görecek Toplam Tutar</span>
-                            <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                {formatCurrency(
-                                    Array.from(selectedIds).reduce((sum, id) => {
-                                        const amt = parseFloat(customAmounts[id])
-                                        return sum + (isNaN(amt) ? 0 : amt)
-                                    }, 0)
+                            <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }}></div>
+
+                            <button 
+                                className="btn btn-primary" 
+                                style={{ width: '100%', padding: '14px', fontSize: '16px', justifyContent: 'center' }}
+                                onClick={handleBulkPay}
+                                disabled={selectedIds.size === 0 || processing || loading}
+                            >
+                                {processing ? (
+                                    <><RefreshCw size={18} className="spinning" /> İşleniyor...</>
+                                ) : (
+                                    <><Check size={20} /> Ödemeyi Tamamla</>
                                 )}
-                            </span>
+                            </button>
                         </div>
                     </div>
-                    
-                    <button 
-                        className="btn btn-primary" 
-                        style={{ padding: '10px 24px', fontSize: '15px' }}
-                        onClick={handleBulkPay}
-                        disabled={selectedIds.size === 0 || processing || loading}
-                    >
-                        {processing ? (
-                            <><RefreshCw size={18} className="spinning" /> İşleniyor...</>
-                        ) : (
-                            <><Check size={18} /> {selectedIds.size} Personele Toplu Öde</>
-                        )}
-                    </button>
                 </div>
             </div>
         </div>
