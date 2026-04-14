@@ -4,37 +4,9 @@ import { Check, Info, Users, Search, AlertCircle, RefreshCw } from 'lucide-react
 import MonthFilter from '../components/MonthFilter'
 import CustomDatePicker from '../components/CustomDatePicker'
 import CustomSelect from '../components/CustomSelect'
-import { formatCurrency } from '../utils'
+import { formatCurrency, getHistoricalBaseSalary } from '../utils/helpers'
 import { useNotification } from '../hooks/useNotification'
 import DataTable from '../components/DataTable'
-
-// Reused simple calculation helper
-const getHistoricalBaseSalary = (employee, targetMonthStr) => {
-    if (!employee || !employee.base_salary) return 0
-    if (!employee.salary_history || employee.salary_history.length === 0) {
-        return employee.base_salary
-    }
-    const history = [...employee.salary_history].sort((a, b) => new Date(b.effective_date) - new Date(a.effective_date))
-    const targetDate = new Date(`${targetMonthStr}-01`)
-
-    for (const record of history) {
-        const recordDate = new Date(record.effective_date)
-        const recordMonth = `${recordDate.getFullYear()}-${String(recordDate.getMonth() + 1).padStart(2, '0')}`
-        if (targetMonthStr >= recordMonth) {
-            return record.amount
-        }
-    }
-    
-    // If no history before target date, return the oldest known or base_salary
-    const oldestRecord = history[history.length - 1]
-    const oldestDate = new Date(oldestRecord.effective_date)
-    const oldestMonth = `${oldestDate.getFullYear()}-${String(oldestDate.getMonth() + 1).padStart(2, '0')}`
-    if (targetMonthStr < oldestMonth) {
-        return history[history.length - 1].amount // or we fallback to 0/base_salary
-    }
-
-    return employee.base_salary
-}
 
 export default function BulkPayments() {
     const { currentCompany } = useCompany()
