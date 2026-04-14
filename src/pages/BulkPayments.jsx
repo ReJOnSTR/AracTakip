@@ -1,478 +1,419 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
-import { Check, Info, Users, Search, AlertCircle, RefreshCw } from 'lucide-react'
-import MonthFilter from '../components/MonthFilter'
+import TopProgressBar from '../components/TopProgressBar'
 import CustomDatePicker from '../components/CustomDatePicker'
 import CustomSelect from '../components/CustomSelect'
-import { formatCurrency, getHistoricalBaseSalary } from '../utils/helpers'
-import { useNotification } from '../hooks/useNotification'
-import DataTable from '../components/DataTable'
+import { formatCurrency } from '../utils/helpers'
+import { Filter, DollarSign, CheckSquare, Search, Building2, Save } from 'lucide-react'
+
+const paymentTypes = [
+    { value: 'salary', label: 'Elden Maaş Ödemesi' },
+    { value: 'advance', label: 'Avans Ver' },
+    { value: 'loan', label: 'Borç Ver' },
+    { value: 'loan_payment', label: 'Borç Tahsil Et / Kesinti' },
+    { value: 'overtime_pay', label: 'Elden Mesai Ödemesi' }
+]
+
+const paymentMethods = [
+    { value: 'nakit', label: 'Nakit (Dış)' },
+    { value: 'banka', label: 'Banka (Dış)' },
+    { value: 'kasa', label: 'Nakit (İç Kasa)' },
+    { value: 'bank', label: 'Banka (İç Banka)' }
+]
 
 export default function BulkPayments() {
     const { currentCompany } = useCompany()
-    const notify = useNotification()
-
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+    const navigate = useNavigate()
+    const [employees, setEmployees] = useState([])
+    const [salaries, setSalaries] = useState([])
+    const [overtimes, setOvertimes] = useState([])
     const [loading, setLoading] = useState(true)
-    const [processing, setProcessing] = useState(false)
-    const [employeesData, setEmployeesData] = useState([])
-    const [searchQuery, setSearchQuery] = useState('')
 
-    // Bulk form state
-    const [paymentParams, setPaymentParams] = useState({
-        period: 'advance', // salary, advance, overtime_pay, loan, vs
-        paymentMethod: 'nakit',
-        paymentDate: new Date().toISOString().split('T')[0],
-        commonNote: ''
-    })
+    // Form states
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+    const [paymentType, setPaymentType] = useState('advance')
+    const [paymentMethod, setPaymentMethod] = useState('nakit')
+    const [commonNote, setCommonNote] = useState('')
+    const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0])
 
-    // Selections and custom amounts
-    const [selectedIds, setSelectedIds] = useState(new Set())
-    const [customAmounts, setCustomAmounts] = useState({}) // { empId: amount }
+    // Table specific states
+    const [searchTerm, setSearchTerm] = useState('')
+    const [selectedEmpIds, setSelectedEmpIds] = useState(new Set())
+    const [customAmounts, setCustomAmounts] = useState({})
+    const [customNotes, setCustomNotes] = useState({})
+    const [saving, setSaving] = useState(false)
 
-    const paymentTypes = [
-        { value: 'salary', label: 'Maaş Ödemesi' },
-        { value: 'advance', label: 'Avans' },
-        { value: 'overtime_pay', label: 'Mesai Ödemesi' },
-        { value: 'loan', label: 'Borç Alma' }
-    ]
-
-    const paymentMethods = [
-        { value: 'nakit', label: 'Nakit' },
-        { value: 'kasa', label: 'Kasa' },
-        { value: 'bank', label: 'Banka' }
-    ]
-
-    const loadData = async () => {
-        if (!currentCompany) return
-        setLoading(true)
-        setSelectedIds(new Set())
-        setCustomAmounts({})
-
-        try {
-            // Sadece aktif çalışanları getir
-            const resEmp = await window.electronAPI.getEmployees(currentCompany.id, false)
-            if (!resEmp.success) throw new Error(resEmp.error)
-            
-            const activeEmployees = resEmp.data.filter(e => e.status === 'active')
-
-            // Her çalışan için ayın maaş, mesai vb kayıtlarını paralel çekelim
-            const enhancedData = await Promise.all(activeEmployees.map(async (emp) => {
-                const [salRes, otRes] = await Promise.all([
-                    window.electronAPI.getSalaries(emp.id),
-                    window.electronAPI.getOvertimes(emp.id)
-                ])
-
-                const salaries = salRes.success ? salRes.data : []
-                const overtimes = otRes.success ? otRes.data : []
-
-                // Hesaplamalar
-                const monthlySalaries = salaries.filter(s => {
-                    if (s.salary_month) return s.salary_month === selectedMonth
-                    if (!s.payment_date && !s.created_at) return false
-                    const d = s.payment_date || s.created_at
-                    const dStr = typeof d === 'string' ? d : new Date(d).toISOString()
-                    return dStr.startsWith(selectedMonth)
-                })
-
-                const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
-                
-                const baseSalaryTarget = getHistoricalBaseSalary(emp, selectedMonth) || 0
-                const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
-                
-                const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                const paidAdvance = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                
-                const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance
-                const remainingOt = totalOtTarget - paidOt
-
-                return {
-                    ...emp,
-                    baseSalaryTarget,
-                    totalOtTarget,
-                    paidSalary,
-                    paidAdvance,
-                    paidOt,
-                    remainingSalary,
-                    remainingOt,
-                    totalTarget: baseSalaryTarget + totalOtTarget,
-                    totalPaid: paidSalary + paidAdvance + paidOt
-                }
-            }))
-
-            setEmployeesData(enhancedData)
-
-            // Auto-fill custom amounts based on selected payment type?
-            // Optionally we can initialize them here with defaults:
-            const initialAmounts = {}
-            enhancedData.forEach(e => {
-                initialAmounts[e.id] = (paymentParams.period === 'salary') ? e.remainingSalary : ''
-            })
-            setCustomAmounts(initialAmounts)
-
-        } catch (err) {
-            console.error('Data load error:', err)
-            notify.error('Veriler yüklenirken bir hata oluştu.')
-        } finally {
+    useEffect(() => {
+        if (currentCompany) {
+            loadData()
+        } else {
+            setEmployees([])
+            setSalaries([])
+            setOvertimes([])
             setLoading(false)
         }
-    }
+    }, [currentCompany])
 
-    // Seçili ay veya şirket değiştiğinde veriyi tekrar çek
-    useEffect(() => {
-        loadData()
-    }, [currentCompany, selectedMonth])
-
-    // Ödeme tipi değiştiğinde varsayılan tutarları güncelle
-    useEffect(() => {
-        const defaultAmounts = {}
-        employeesData.forEach(e => {
-            if (paymentParams.period === 'salary') {
-                defaultAmounts[e.id] = e.remainingSalary > 0 ? e.remainingSalary : 0
-            } else if (paymentParams.period === 'overtime_pay') {
-                defaultAmounts[e.id] = e.remainingOt > 0 ? e.remainingOt : 0
-            } else {
-                defaultAmounts[e.id] = '' // Avans veya borç için genellikle özel belirlerler
-            }
-        })
-        setCustomAmounts(prev => ({ ...prev, ...defaultAmounts }))
-    }, [paymentParams.period, employeesData])
-
-    const filteredEmployees = useMemo(() => {
-        if (!searchQuery) return employeesData
-        const lowerQ = searchQuery.toLowerCase()
-        return employeesData.filter(e => 
-            (e.first_name && e.first_name.toLowerCase().includes(lowerQ)) ||
-            (e.last_name && e.last_name.toLowerCase().includes(lowerQ)) ||
-            (e.department && e.department.toLowerCase().includes(lowerQ))
-        )
-    }, [employeesData, searchQuery])
-
-    const toggleSelectAll = () => {
-        if (selectedIds.size === filteredEmployees.length) {
-            setSelectedIds(new Set())
-        } else {
-            const allIds = filteredEmployees.map(e => e.id)
-            setSelectedIds(new Set(allIds))
-        }
-    }
-
-    const toggleEmployee = (id) => {
-        const newSet = new Set(selectedIds)
-        if (newSet.has(id)) {
-            newSet.delete(id)
-        } else {
-            newSet.add(id)
-        }
-        setSelectedIds(newSet)
-    }
-
-    const handleAmountChange = (id, val) => {
-        setCustomAmounts(prev => ({ ...prev, [id]: val }))
-        // Seçili değilsa otomatik seçelim
-        if (Number(val) > 0 && !selectedIds.has(id)) {
-            const newSet = new Set(selectedIds)
-            newSet.add(id)
-            setSelectedIds(newSet)
-        }
-    }
-
-    const handleBulkPay = async () => {
-        if (selectedIds.size === 0) {
-            notify.warning('Lütfen ödeme yapılacak en az bir personel seçin.')
-            return
-        }
-
-        // Validate amounts
-        const payload = []
-        for (const id of selectedIds) {
-            const emp = employeesData.find(e => e.id === id)
-            const amtStr = customAmounts[id]
-            const amtFloat = parseFloat(amtStr)
-            
-            if (!amtStr || isNaN(amtFloat) || amtFloat <= 0) {
-                notify.warning(`${emp.first_name} ${emp.last_name} için geçerli bir tutar girmelisiniz. İşlem iptal edildi.`)
-                return
-            }
-
-            payload.push({
-                employeeId: id,
-                paymentType: paymentParams.period,
-                amount: amtFloat,
-                paymentDate: paymentParams.paymentDate || new Date().toISOString().split('T')[0],
-                salaryMonth: selectedMonth,
-                status: 'paid',
-                paymentMethod: paymentParams.paymentMethod,
-                notes: paymentParams.commonNote
-            })
-        }
-
-        if (!confirm(`Seçili ${selectedIds.size} personele toplamda ${formatCurrency(payload.reduce((s, p) => s + p.amount, 0))} değerinde toplu ${paymentTypes.find(t => t.value === paymentParams.period)?.label} kaydedilecek.\n\nEmin misiniz?`)) {
-            return
-        }
-
-        setProcessing(true)
+    const loadData = async () => {
+        setLoading(true)
         try {
-            // Paralel API call'ları
-            const results = await Promise.all(payload.map(p => 
-                window.electronAPI.createSalary({
-                    employee_id: p.employeeId,
-                    period: p.paymentType,
-                    status: p.status,
-                    net_salary: p.amount,
-                    payment_date: p.paymentDate,
-                    salary_month: p.salaryMonth,
-                    payment_method: p.paymentMethod,
-                    notes: p.notes
-                })
-            ))
+            // First fetch active employees
+            const empRes = await window.electronAPI.getEmployees(currentCompany.id, 0)
+            const activeEmployees = (empRes.data || []).filter(e => e.status === 'active')
+            setEmployees(activeEmployees)
 
-            const failures = results.filter(r => !r.success)
-            if (failures.length > 0) {
-                notify.error(`${failures.length} işlemin kaydında hata oluştu! Kısmı başarı.`)
-                console.error("Failures:", failures)
-            } else {
-                notify.success(`Tüm ödemeler (${selectedIds.size} işlem) başarıyla kaydedildi!`)
+            // Then fetch salaries/overtimes for these employees using Promise.all
+            // Actually, we need to make parallel queries
+            const salPromises = activeEmployees.map(e => window.electronAPI.getSalaries(e.id))
+            const otPromises = activeEmployees.map(e => window.electronAPI.getOvertimes(e.id))
+
+            const allSalariesData = await Promise.all(salPromises)
+            const allOvertimesData = await Promise.all(otPromises)
+
+            let mergedSalaries = []
+            let mergedOvertimes = []
+
+            allSalariesData.forEach(res => {
+                if (res.success && res.data) mergedSalaries.push(...res.data)
+            })
+            allOvertimesData.forEach(res => {
+                if (res.success && res.data) mergedOvertimes.push(...res.data)
+            })
+
+            setSalaries(mergedSalaries)
+            setOvertimes(mergedOvertimes)
+        } catch (err) {
+            console.error('Failed to load data for bulk payments:', err)
+        }
+        setLoading(false)
+    }
+
+    // Helper to get historical base salary
+    const getHistoricalBaseSalary = (employee, targetMonth) => {
+        if (!employee.salary_history || !Array.isArray(employee.salary_history)) return employee.salary || 0
+        const sortedHistory = [...employee.salary_history].sort((a, b) => new Date(b.effective_date) - new Date(a.effective_date))
+        for (const record of sortedHistory) {
+            const effectiveMonth = record.effective_date.substring(0, 7)
+            if (targetMonth >= effectiveMonth) {
+                return parseFloat(record.salary)
+            }
+        }
+        return employee.salary || 0
+    }
+
+    // Prepare table data dynamically whenever selectedMonth, or other states change.
+    const tableData = useMemo(() => {
+        return employees.map(emp => {
+            // Filter records for this month
+            const formatMonth = (dStr) => {
+                if (!dStr) return null
+                return (typeof dStr === 'string' ? dStr : new Date(dStr).toISOString()).slice(0, 7)
             }
             
-            // Temizle ve tekrar yükle
-            setPaymentParams(prev => ({ ...prev, commonNote: '' }))
-            loadData()
+            const empSalaries = salaries.filter(s => s.employee_id === emp.id && s.status === 'paid' && (s.salary_month === selectedMonth || formatMonth(s.payment_date || s.created_at) === selectedMonth))
+            const empOvertimes = overtimes.filter(o => o.employee_id === emp.id && formatMonth(o.date) === selectedMonth)
 
-        } catch (err) {
-            console.error('Bulk pay error:', err)
-            notify.error('İşlem sırasında beklenmeyen bir hata oluştu.')
-        } finally {
-            setProcessing(false)
+            const targetBase = getHistoricalBaseSalary(emp, selectedMonth)
+            const targetOt = empOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
+            const netTarget = targetBase + targetOt
+
+            const paidSalary = empSalaries.filter(s => s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+            const paidOt = empSalaries.filter(s => s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+            const paidAdvance = empSalaries.filter(s => s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+            
+            const totalPaid = paidSalary + paidOt + paidAdvance
+            const netRemaining = targetBase - paidSalary - paidAdvance + targetOt - paidOt
+
+            const globalLoanTaken = salaries.filter(s => s.employee_id === emp.id && s.status === 'paid' && s.period === 'loan').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+            const globalLoanPaid = salaries.filter(s => s.employee_id === emp.id && s.status === 'paid' && s.period === 'loan_payment').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+            const globalRemainingLoan = globalLoanTaken - globalLoanPaid
+
+            // Context-sensitive recommendation
+            let recommendedAmount = ''
+            if (paymentType === 'salary' || paymentType === 'advance') {
+                recommendedAmount = netRemaining > 0 ? netRemaining : ''
+            } else if (paymentType === 'loan_payment') {
+                recommendedAmount = globalRemainingLoan > 0 ? globalRemainingLoan : ''
+            } else if (paymentType === 'overtime_pay') {
+                const remainingOt = targetOt - paidOt
+                recommendedAmount = remainingOt > 0 ? remainingOt : ''
+            }
+
+            return {
+                ...emp,
+                targetBase,
+                totalPaid,
+                netRemaining,
+                globalRemainingLoan,
+                recommendedAmount
+            }
+        }).filter(item => {
+            if (!searchTerm) return true
+            return `${item.first_name} ${item.last_name} ${item.department} ${item.position}`.toLowerCase().includes(searchTerm.toLowerCase())
+        })
+    }, [employees, salaries, overtimes, selectedMonth, paymentType, searchTerm])
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedEmpIds(new Set(tableData.map(t => t.id)))
+        } else {
+            setSelectedEmpIds(new Set())
         }
     }
 
-    const columns = [
-        {
-            key: 'checkbox',
-            label: (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <input 
-                        type="checkbox" 
-                        checked={selectedIds.size > 0 && selectedIds.size === filteredEmployees.length}
-                        onChange={toggleSelectAll}
-                        style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                </div>
-            ),
-            width: '40px',
-            render: (_, item) => (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    <input 
-                        type="checkbox" 
-                        checked={selectedIds.has(item.id)}
-                        onChange={() => toggleEmployee(item.id)}
-                        style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                </div>
-            )
-        },
-        {
-            key: 'name',
-            label: 'Personel',
-            render: (_, item) => (
-                <div>
-                    <div style={{ fontWeight: 600 }}>{item.first_name} {item.last_name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.department || '-'}</div>
-                </div>
-            )
-        },
-        {
-            key: 'balance',
-            label: 'Hedef Bakiye',
-            render: (_, item) => (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 600 }}>{formatCurrency(item.totalTarget)}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                        (Maaş: {formatCurrency(item.baseSalaryTarget)} | Mesai: {formatCurrency(item.totalOtTarget)})
-                    </span>
-                </div>
-            )
-        },
-        {
-            key: 'paid',
-            label: 'Ödenen',
-            render: (_, item) => (
-                <div style={{ fontWeight: 500, color: 'var(--success)' }}>
-                    {formatCurrency(item.totalPaid)}
-                </div>
-            )
-        },
-        {
-            key: 'remaining',
-            label: 'Kalan Bakiye',
-            render: (_, item) => (
-                <div style={{ fontWeight: 600, color: item.remainingSalary > 0 ? 'var(--warning)' : 'var(--text-secondary)' }}>
-                    {formatCurrency(item.remainingSalary)}
-                </div>
-            )
-        },
-        {
-            key: 'customAmount',
-            label: 'İşlem Görecek Tutar',
-            render: (_, item) => (
-                <div style={{ padding: '4px 0' }} onClick={e => e.stopPropagation()}>
-                    <input 
-                        type="number" 
-                        className="form-input" 
-                        style={{ width: '140px', padding: '6px 12px', textAlign: 'right', fontWeight: 600, borderColor: selectedIds.has(item.id) ? 'var(--accent-primary)' : 'var(--border-color)' }}
-                        placeholder="0.00"
-                        value={customAmounts[item.id] !== undefined ? customAmounts[item.id] : ''}
-                        onChange={(e) => handleAmountChange(item.id, e.target.value)}
-                    />
-                </div>
-            )
+    const toggleEmp = (id) => {
+        const next = new Set(selectedEmpIds)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        setSelectedEmpIds(next)
+    }
+
+    const handleBulkSubmit = async () => {
+        if (selectedEmpIds.size === 0) return
+        setSaving(true)
+        try {
+            for (const empId of selectedEmpIds) {
+                const empData = tableData.find(t => t.id === empId)
+                if (!empData) continue
+
+                let val = customAmounts[empId] || empData.recommendedAmount
+                if (!val || parseFloat(val) <= 0) continue
+
+                let note = commonNote
+                if (customNotes[empId]) {
+                    note = `${commonNote ? commonNote + ' - ' : ''}${customNotes[empId]}`
+                }
+
+                await window.electronAPI.createSalary({
+                    employee_id: empId,
+                    period: paymentType,
+                    base_salary: empData.targetBase,
+                    net_salary: parseFloat(val),
+                    salary_month: selectedMonth,
+                    payment_date: paymentDate,
+                    status: 'paid',
+                    payment_method: paymentMethod,
+                    notes: note
+                })
+            }
+            alert(`${selectedEmpIds.size} personele toplu işlem başarıyla eklendi!`)
+            setSelectedEmpIds(new Set())
+            setCustomAmounts({})
+            setCustomNotes({})
+            setCommonNote('')
+            loadData() // Refresh to fetch new balances
+        } catch (err) {
+            console.error(err)
+            alert("İşlem sırasında hata oluştu")
         }
-    ]
+        setSaving(false)
+    }
+
+    // Set amounts to default when the payment type or month basically forces a big reload
+    useEffect(() => {
+        setCustomAmounts({})
+        setCustomNotes({})
+        setSelectedEmpIds(new Set())
+    }, [paymentType, selectedMonth])
+
+    if (!currentCompany) {
+        return (
+            <div className="empty-state">
+                <div className="empty-state-icon">
+                    <Building2 />
+                </div>
+                <h2 className="empty-state-title">Şirket Seçilmedi</h2>
+            </div>
+        )
+    }
 
     return (
-        <div style={{ padding: '24px 32px', maxWidth: '1600px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+        <div>
+            <TopProgressBar loading={loading || saving} />
+            
+            <div className="page-header" style={{ marginBottom: '20px' }}>
                 <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Users size={28} style={{ color: 'var(--accent-primary)' }} />
-                        Toplu Personel Ödemeleri
-                    </h1>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14.5px' }}>
-                        Personellere tek seferde maaş, avans veya mesai ödemesi yapın. Soldan personelleri seçip, sağ taraftan işlemi tamamlayın.
-                    </p>
+                    <h1 className="page-title">Toplu Ödemeler</h1>
+                    <p style={{ marginTop: '5px', color: '#666' }}>Seçili aya dair çoklu personeller için toplu avans, maaş ve borç işlemleri yapın.</p>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '24px', alignItems: 'start' }}>
-                {/* Left Side: Table & Filters */}
-                <div className="card" style={{ padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', background: 'var(--bg-secondary)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ position: 'relative' }}>
-                                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                <input 
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Personel ara..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    style={{ paddingLeft: '38px', width: '280px', borderRadius: 'var(--radius-full)' }}
-                                />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Dönem Seçimi:</span>
-                            <div style={{ width: '160px' }}>
-                                <MonthFilter value={selectedMonth} onChange={setSelectedMonth} />
-                            </div>
-                            <button className="btn btn-secondary btn-icon" onClick={loadData} disabled={loading} title="Verileri Güncelle" style={{ padding: '8px' }}>
-                                <RefreshCw size={18} className={loading ? 'spinning' : ''} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style={{ position: 'relative', overflowX: 'auto' }}>
-                        <DataTable 
-                            persistenceKey="BulkPayments_table"
-                            columns={columns}
-                            data={filteredEmployees}
-                            loading={loading}
-                            emptyMessage="Bu dönem için personel kaydı bulunamadı."
-                            onRowClick={(item) => toggleEmployee(item.id)}
-                            showCheckboxes={false}
-                            showSearch={false}
-                            disablePagination={true}
+            <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                    
+                    <div>
+                        <label className="form-label">İşlem Yapılacak Ay</label>
+                        <CustomDatePicker 
+                            type="month"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
                         />
                     </div>
+
+                    <div>
+                        <label className="form-label">Ödeme / İşlem Tarihi</label>
+                        <CustomDatePicker 
+                            type="date"
+                            value={paymentDate}
+                            onChange={(e) => setPaymentDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="form-label">İşlem Tipi</label>
+                        <CustomSelect 
+                            options={paymentTypes}
+                            value={paymentType}
+                            onChange={(val) => setPaymentType(val)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="form-label">Ödeme Yöntemi</label>
+                        <CustomSelect 
+                            options={paymentMethods}
+                            value={paymentMethod}
+                            onChange={(val) => setPaymentMethod(val)}
+                        />
+                    </div>
+
                 </div>
 
-                {/* Right Side: Setup & Checkout */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '24px' }}>
-                    <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', color: 'var(--text-primary)' }}>
-                            İşlem Detayları
-                        </h3>
-                        
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>İşlem Tipi</label>
-                            <CustomSelect 
-                                options={paymentTypes}
-                                value={paymentParams.period}
-                                onChange={val => setPaymentParams(prev => ({ ...prev, period: val }))}
-                            />
-                        </div>
-                        
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ödeme Yöntemi</label>
-                            <CustomSelect 
-                                options={paymentMethods}
-                                value={paymentParams.paymentMethod}
-                                onChange={val => setPaymentParams(prev => ({ ...prev, paymentMethod: val }))}
-                            />
-                        </div>
-                        
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ödeme Tarihi</label>
-                            <CustomDatePicker 
-                                value={paymentParams.paymentDate}
-                                onChange={val => setPaymentParams(prev => ({ ...prev, paymentDate: val }))}
-                            />
-                        </div>
-                        
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Ortak Açıklama (Not)</label>
-                            <textarea 
-                                className="form-input" 
-                                placeholder={`Örn: ${paymentTypes.find(t => t.value === paymentParams.period)?.label || ''} toplu işlemi...`}
-                                value={paymentParams.commonNote}
-                                onChange={e => setPaymentParams(prev => ({ ...prev, commonNote: e.target.value }))}
-                                rows={3}
-                                style={{ resize: 'none' }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="card" style={{ padding: '24px', background: 'var(--bg-primary)', border: '2px solid var(--border-color)' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Seçilen Personel</span>
-                                <span style={{ fontSize: '16px', fontWeight: 700, color: selectedIds.size > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                    {selectedIds.size}
-                                </span>
-                            </div>
-                            
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Toplam Tutar</span>
-                                <span style={{ fontSize: '22px', fontWeight: 800, color: 'var(--accent-primary)' }}>
-                                    {formatCurrency(
-                                        Array.from(selectedIds).reduce((sum, id) => {
-                                            const amt = parseFloat(customAmounts[id])
-                                            return sum + (isNaN(amt) ? 0 : amt)
-                                        }, 0)
-                                    )}
-                                </span>
-                            </div>
-
-                            <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }}></div>
-
-                            <button 
-                                className="btn btn-primary" 
-                                style={{ width: '100%', padding: '14px', fontSize: '16px', justifyContent: 'center' }}
-                                onClick={handleBulkPay}
-                                disabled={selectedIds.size === 0 || processing || loading}
-                            >
-                                {processing ? (
-                                    <><RefreshCw size={18} className="spinning" /> İşleniyor...</>
-                                ) : (
-                                    <><Check size={20} /> Ödemeyi Tamamla</>
-                                )}
-                            </button>
-                        </div>
-                    </div>
+                <div style={{ marginTop: '16px' }}>
+                    <label className="form-label">Ortak Not (Seçilmiş Cümle)</label>
+                    <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="Örn: Ekim ayı avans ödemesi" 
+                        value={commonNote}
+                        onChange={(e) => setCommonNote(e.target.value)}
+                    />
                 </div>
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>Aktif Personeller ({tableData.length})</h3>
+                </div>
+                <div style={{ width: '300px', position: 'relative' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input 
+                        type="text" 
+                        className="form-input" 
+                        style={{ paddingLeft: '38px', borderRadius: 'var(--radius-full)' }} 
+                        placeholder="Personel ara..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="card" style={{ overflow: 'hidden' }}>
+                <div style={{ overflowX: 'auto' }}>
+                    <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                        <thead style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+                            <tr>
+                                <th style={{ padding: '12px 16px', width: '40px' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={tableData.length > 0 && selectedEmpIds.size === tableData.length}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
+                                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Personel</th>
+                                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Departman</th>
+                                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Maaş (Hesaplanan)</th>
+                                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Bu Ayki Kalan</th>
+                                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', width: '160px' }}>{paymentTypes.find(t => t.value === paymentType)?.label} Tutarı (₺)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tableData.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>Bulunamadı.</td>
+                                </tr>
+                            ) : tableData.map(emp => {
+                                const isSelected = selectedEmpIds.has(emp.id)
+                                const val = customAmounts[emp.id] !== undefined ? customAmounts[emp.id] : emp.recommendedAmount
+                                return (
+                                    <tr key={emp.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background-color 0.2s', backgroundColor: isSelected ? 'var(--bg-secondary)' : 'transparent' }}>
+                                        <td style={{ padding: '12px 16px' }}>
+                                            <input 
+                                                type="checkbox" 
+                                                onChange={() => toggleEmp(emp.id)}
+                                                checked={isSelected}
+                                            />
+                                        </td>
+                                        <td style={{ padding: '12px 16px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                            {emp.first_name} {emp.last_name}
+                                        </td>
+                                        <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '13px' }}>{emp.department || '-'}</td>
+                                        <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '13px' }}>{formatCurrency(emp.targetBase)}</td>
+                                        <td style={{ padding: '12px 16px', color: 'var(--warning)', fontWeight: 600, fontSize: '13px' }}>
+                                            {formatCurrency(emp.netRemaining)}
+                                        </td>
+                                        <td style={{ padding: '12px 16px' }}>
+                                            <input 
+                                                type="number" 
+                                                className="form-input" 
+                                                placeholder="0.00"
+                                                style={{ width: '100%' }}
+                                                value={val}
+                                                onChange={(e) => {
+                                                    setCustomAmounts(prev => ({ ...prev, [emp.id]: e.target.value }))
+                                                    if (!isSelected && e.target.value) {
+                                                        const next = new Set(selectedEmpIds)
+                                                        next.add(emp.id)
+                                                        setSelectedEmpIds(next)
+                                                    }
+                                                }}
+                                            />
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {selectedEmpIds.size > 0 && (
+                <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: 'var(--bg-primary)', padding: '16px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 100 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary-alpha)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Users size={20} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>SEÇİLEN PERSONEL</div>
+                            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedEmpIds.size} Kişi</div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingLeft: '20px', borderLeft: '1px solid var(--border-color)' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--success-bg)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <DollarSign size={20} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>TOPLAM ÖDENECEK</div>
+                            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--success)' }}>
+                                {formatCurrency(
+                                    Array.from(selectedEmpIds).reduce((sum, id) => {
+                                        const empData = tableData.find(t => t.id === id)
+                                        const val = customAmounts[id] !== undefined ? customAmounts[id] : (empData?.recommendedAmount || 0)
+                                        return sum + (parseFloat(val) || 0)
+                                    }, 0)
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button className="btn btn-primary" style={{ marginLeft: '16px', padding: '10px 24px' }} disabled={saving} onClick={handleBulkSubmit}>
+                        <Save size={18} />
+                        İşlemi Onayla
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

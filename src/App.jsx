@@ -141,8 +141,8 @@ function AppRoutes() {
                         <Route path="/services" element={<Services />} />
                         <Route path="/assignments" element={<Assignments />} />
                         <Route path="/employees" element={<Employees />} />
-                        <Route path="/bulk-payments" element={<BulkPayments />} />
                         <Route path="/employees/:id" element={<EmployeeDetail />} />
+                        <Route path="/bulk-payments" element={<BulkPayments />} />
                         <Route path="/works" element={<Works />} />
                         <Route path="/works/:id" element={<WorkDetails />} />
                         <Route path="/customers" element={<Customers />} />
