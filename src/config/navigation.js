@@ -15,6 +15,7 @@ import {
     UtensilsCrossed,
     CircleDollarSign,
     Users,
+    User,
     UserCheck,
     Briefcase,
     Building2
