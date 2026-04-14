@@ -181,6 +181,17 @@ async function updateUser(data) {
     }
 }
 
+async function getUserPasswordHash(userId) {
+    try {
+        const user = await prisma.users.findUnique({
+            where: { id: userId }
+        });
+        return user ? user.password_hash : null;
+    } catch {
+        return null;
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
