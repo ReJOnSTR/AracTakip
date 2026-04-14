@@ -43,6 +43,7 @@ const WorkDetails = lazy(() => import('./pages/WorkDetails'))
 const WorkPdfReport = lazy(() => import('./pages/WorkPdfReport'))
 const Customers = lazy(() => import('./pages/Customers'))
 const CustomerDetail = lazy(() => import('./pages/CustomerDetail'))
+const Profile = lazy(() => import('./pages/Profile'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -145,6 +146,7 @@ function AppRoutes() {
                         <Route path="/works/:id" element={<WorkDetails />} />
                         <Route path="/customers" element={<Customers />} />
                         <Route path="/customers/:id" element={<CustomerDetail />} />
+                        <Route path="/profile" element={<Profile />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/reports" element={<Reports />} />
                     </Route>

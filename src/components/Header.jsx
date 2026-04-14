@@ -20,6 +20,7 @@ const pageTitles = {
     '/insurance': 'Sigorta Yönetimi',
     '/assignments': 'Zimmet Takibi',
     '/services': 'Servis İşlemleri',
+    '/profile': 'Profil Bilgileri',
     '/reports': 'Raporlar'
 }
 
@@ -144,6 +145,10 @@ export default function Header() {
                                         <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.username}</div>
                                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
                                     </div>
+                                </div>
+                                <div className="user-dropdown-item" onClick={() => { navigate('/profile'); setShowUserDropdown(false) }}>
+                                    <User size={16} />
+                                    <span>Profil Bilgileri</span>
                                 </div>
                                 <div className="user-dropdown-item danger" onClick={logout}>
                                     <LogOut size={16} />
