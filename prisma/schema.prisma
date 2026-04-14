@@ -112,8 +112,8 @@ model employee_documents {
   file_path   String
   file_type   String?
   category    String?
-  expiry_date  DateTime?
-  employees    employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at  DateTime? @default(now())
+  employees   employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_employee_documents_employee")
 }

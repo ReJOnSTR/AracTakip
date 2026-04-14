@@ -79,7 +79,6 @@ const allTablesSQL = [
     "file_path" TEXT NOT NULL,
     "file_type" TEXT,
     "category" TEXT,
-    "expiry_date" DATETIME,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "employee_documents_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,

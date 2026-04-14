@@ -158,28 +158,6 @@ async function getUpcomingEvents(companyId) {
                 }
             });
         } catch (e) { console.error('getUpcomingEvents maintenances error:', e.message); }
-        
-        // 4. Get Expiring Employee Documents
-        try {
-            const empDocs = await prisma.employee_documents.findMany({
-                where: { expiry_date: { lte: futureDate } },
-                include: { employees: true }
-            });
-            empDocs.forEach(d => {
-                if (d.expiry_date) {
-                    events.push({
-                        id: d.id,
-                        eventType: 'document',
-                        type: 'Personel Belgesi',
-                        date: d.expiry_date,
-                        employeeId: d.employee_id,
-                        plate: `${d.employees?.first_name} ${d.employees?.last_name}`,
-                        brand: d.file_name,
-                        model: 'Doküman Süresi'
-                    });
-                }
-            });
-        } catch (e) { console.error('getUpcomingEvents empDocs error:', e.message); }
 
         // Sort by date ascending (closest first)
         events.sort((a, b) => new Date(a.date) - new Date(b.date));

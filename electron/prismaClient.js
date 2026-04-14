@@ -161,17 +161,6 @@ async function runAutoMigrations() {
         log.error('Migration step 8 (salary_month) error:', error.message);
     }
 
-    // 9. Add expiry_date to employee_documents
-    try {
-        const edCols = await p.$queryRawUnsafe("PRAGMA table_info('employee_documents')");
-        if (edCols.length > 0 && !edCols.some(c => c.name === 'expiry_date')) {
-            await p.$executeRawUnsafe("ALTER TABLE employee_documents ADD COLUMN expiry_date DATETIME");
-            log.info('Migration: Added expiry_date to employee_documents');
-        }
-    } catch (error) {
-        log.error('Migration step 9 (expiry_date) error:', error.message);
-    }
-
     log.info('Auto-migrations loop completed.');
 }
 
