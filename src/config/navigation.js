@@ -72,6 +72,7 @@ export const moduleMenus = {
             title: 'Personel Yönetimi',
             items: [
                 { path: '/employees', label: 'Personeller', icon: Users },
+                { path: '/bulk-payments', label: 'Toplu Ödemeler', icon: Banknote }
             ]
         }
     ],
