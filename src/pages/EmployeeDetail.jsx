@@ -12,7 +12,7 @@ import MonthFilter from '../components/MonthFilter'
 import EmployeeForm from '../components/forms/EmployeeForm'
 import AssignmentForm from '../components/forms/AssignmentForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate, getHistoricalBaseSalary } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary, getDaysUntil } from '../utils/helpers'
 import {
     ArrowLeft, Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -138,6 +138,8 @@ export default function EmployeeDetail() {
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
     const [previewDoc, setPreviewDoc] = useState(null)
     const [showLoanHistory, setShowLoanHistory] = useState(false)
+    const [uploadCategory, setUploadCategory] = useState('')
+    const [uploadExpiryDate, setUploadExpiryDate] = useState('')
 
     useEffect(() => {
         if (currentCompany) loadEmployeeData()
@@ -379,6 +381,8 @@ export default function EmployeeDetail() {
 
     const handleOpenUpload = () => {
         setSelectedUploadFile(null)
+        setUploadCategory('')
+        setUploadExpiryDate('')
         setUploadModalOpen(true)
     }
 
@@ -402,7 +406,8 @@ export default function EmployeeDetail() {
                 fileName: selectedUploadFile.name,
                 filePath: selectedUploadFile.path,
                 fileType: ext,
-                category: null
+                category: uploadCategory,
+                expiryDate: uploadExpiryDate
             })
             if (res.success) {
                 setUploadModalOpen(false)
@@ -514,9 +519,28 @@ export default function EmployeeDetail() {
 
     const documentColumns = [
         { key: 'file_name', label: 'Dosya Adı' },
-        { key: 'file_type', label: 'Tür' },
         { key: 'category', label: 'Kategori', render: (v) => v || '-' },
-        { key: 'created_at', label: 'Yükleme Tarihi', render: (v) => formatDate(v) }
+        { key: 'created_at', label: 'Yükleme Tarihi', render: (v) => formatDate(v) },
+        { 
+            key: 'expiry_date', 
+            label: 'Geçerlilik Tarihi', 
+            render: (v) => {
+                if (!v) return <span style={{ color: 'var(--text-muted)' }}>Süresiz</span>;
+                const days = getDaysUntil(v);
+                let color = 'var(--text-secondary)';
+                let label = formatDate(v);
+
+                if (days < 0) {
+                    color = 'var(--danger)';
+                    label = `${formatDate(v)} (Süresi Doldu)`;
+                } else if (days <= 15) {
+                    color = 'var(--warning)';
+                    label = `${formatDate(v)} (${days} gün kaldı)`;
+                }
+
+                return <span style={{ color, fontWeight: days <= 15 ? 600 : 400 }}>{label}</span>;
+            }
+        }
     ]
 
     // ========== RENDER ==========
@@ -1340,17 +1364,34 @@ export default function EmployeeDetail() {
                                     </div>
                                 </div>
                             ) : (
-                                <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', backgroundColor: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <FileText size={24} />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', backgroundColor: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                        <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            <FileText size={24} />
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
+                                            <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '2px' }}>Yüklemeye hazır</div>
+                                        </div>
+                                        <button onClick={() => setSelectedUploadFile(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', borderRadius: '50%' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                            <X size={18} />
+                                        </button>
                                     </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '2px' }}>Yüklemeye hazır</div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                        <CustomInput 
+                                            label="Belge Kategorisi" 
+                                            placeholder="Örn: Ehliyet, Kimlik..." 
+                                            value={uploadCategory} 
+                                            onChange={setUploadCategory} 
+                                        />
+                                        <CustomInput 
+                                            label="Geçerlilik Tarihi (Opsiyonel)" 
+                                            type="date" 
+                                            value={uploadExpiryDate} 
+                                            onChange={setUploadExpiryDate} 
+                                        />
                                     </div>
-                                    <button onClick={() => setSelectedUploadFile(null)} style={{ background: 'transparent', border: 'none', color: 'var(--error)', cursor: 'pointer', padding: '8px' }}>
-                                        <X size={20} />
-                                    </button>
                                 </div>
                             )}
 

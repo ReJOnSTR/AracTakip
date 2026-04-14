@@ -299,7 +299,8 @@ async function addEmployeeDocument(data) {
                 file_name: data.fileName,
                 file_path: data.filePath,
                 file_type: data.fileType || null,
-                category: data.category || null
+                category: data.category || null,
+                expiry_date: data.expiryDate ? new Date(data.expiryDate) : null
             }
         });
         return { success: true, id: result.id };
