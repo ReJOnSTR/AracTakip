@@ -15,7 +15,6 @@ import {
     UtensilsCrossed,
     CircleDollarSign,
     Users,
-    User,
     UserCheck,
     Briefcase,
     Building2
@@ -28,7 +27,6 @@ export const moduleMenus = {
             title: 'Genel',
             items: [
                 { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                { path: '/profile', label: 'Profil Bilgileri', icon: User },
                 { path: '/reports', label: 'Raporlar', icon: FileText }
             ]
         },
@@ -47,6 +45,12 @@ export const moduleMenus = {
                 { path: '/insurance', icon: Shield, label: 'Sigorta' },
                 { path: '/services', icon: Truck, label: 'Servis' }
             ]
+        },
+        {
+            title: '',
+            items: [
+                { path: '/module-settings/fleet', label: 'Ayarlar', icon: Settings }
+            ]
         }
     ],
     finance: [
@@ -56,6 +60,12 @@ export const moduleMenus = {
                 { path: '/finance-dashboard', label: 'Finans Dashboard', icon: Wallet },
                 { path: '/finance', label: 'Kasa & Banka Cüzdanı', icon: Banknote },
                 { path: '/checks', label: 'Çek & Senetler', icon: FileSignature }
+            ]
+        },
+        {
+            title: '',
+            items: [
+                { path: '/module-settings/finance', label: 'Ayarlar', icon: Settings }
             ]
         }
     ],
@@ -67,6 +77,12 @@ export const moduleMenus = {
                 { path: '/meal-ticket-report', label: 'Fiş Raporu', icon: ClipboardList },
                 { path: '/meal-ticket-settings', label: 'Ücret Ayarları', icon: CircleDollarSign }
             ]
+        },
+        {
+            title: '',
+            items: [
+                { path: '/module-settings/meals', label: 'Ayarlar', icon: Settings }
+            ]
         }
     ],
     hr: [
@@ -74,6 +90,12 @@ export const moduleMenus = {
             title: 'Personel Yönetimi',
             items: [
                 { path: '/employees', label: 'Personeller', icon: Users }
+            ]
+        },
+        {
+            title: '',
+            items: [
+                { path: '/module-settings/hr', label: 'Ayarlar', icon: Settings }
             ]
         }
     ],
@@ -83,6 +105,12 @@ export const moduleMenus = {
             items: [
                 { path: '/works', label: 'İş Takibi', icon: Briefcase }
             ]
+        },
+        {
+            title: '',
+            items: [
+                { path: '/module-settings/works', label: 'Ayarlar', icon: Settings }
+            ]
         }
     ],
     customers: [
@@ -91,6 +119,12 @@ export const moduleMenus = {
             items: [
                 { path: '/customers', label: 'Müşteriler', icon: Building2 }
             ]
+        },
+        {
+            title: '',
+            items: [
+                { path: '/module-settings/customers', label: 'Ayarlar', icon: Settings }
+            ]
         }
     ],
     portal: []
@@ -98,6 +132,21 @@ export const moduleMenus = {
 
 // Keep the old menuGroups reference pointing to fleet for backwards compatibility
 export const menuGroups = moduleMenus.fleet
+
+// Build a reverse lookup map: path → module key (data-driven, no hardcoded prefixes)
+const buildPathToModuleMap = () => {
+    const map = {}
+    Object.entries(moduleMenus).forEach(([moduleKey, groups]) => {
+        groups.forEach(group => {
+            group.items.forEach(item => {
+                map[item.path] = moduleKey
+            })
+        })
+    })
+    return map
+}
+
+const pathToModuleMap = buildPathToModuleMap()
 
 // Flat list of all items used for reverse lookup
 const getAllItems = () => {
@@ -120,8 +169,15 @@ export const getRouteInfo = (path) => {
     const item = allItems.find(i => i.path === path)
     if (item) return item
 
-    // Fallback for settings
-    if (path.startsWith('/settings')) return { label: 'Ayarlar', icon: Settings }
+    // Fallback for global settings
+    if (path === '/settings') return { label: 'Ayarlar', icon: Settings }
+
+    // Fallback for module settings
+    if (path.startsWith('/module-settings/')) {
+        const moduleKey = path.split('/module-settings/')[1]
+        const labels = { fleet: 'Filo', finance: 'Finans', meals: 'Yemek', hr: 'Personel', works: 'İş', customers: 'Müşteri' }
+        return { label: `${labels[moduleKey] || ''} Ayarları`, icon: Settings }
+    }
 
     // Fallback for detail pages
     if (path.startsWith('/vehicles/')) return { label: 'Araç Detay', icon: Car }
@@ -141,13 +197,47 @@ export const getActiveModule = (pathname, search = '') => {
         if (moduleParam && moduleMenus[moduleParam]) return moduleParam
     }
 
-    // 2. Fallback to pathname-based detection
-    if (pathname.startsWith('/finance') || pathname.startsWith('/checks')) return 'finance'
-    if (pathname.startsWith('/meal-ticket')) return 'meals'
-    if (pathname.startsWith('/employee')) return 'hr'
-    if (pathname.startsWith('/works')) return 'works'
-    if (pathname.startsWith('/customers')) return 'customers'
+    // 2. Exact match from data-driven path→module map
+    if (pathToModuleMap[pathname]) return pathToModuleMap[pathname]
+
+    // 3. Detail page prefix matching (for /vehicles/:id, /employees/:id, etc.)
+    // These are child pages that belong to specific modules
+    const detailPrefixMap = {
+        '/vehicles/': 'fleet',
+        '/employees/': 'hr',
+        '/works/': 'works',
+        '/customers/': 'customers',
+        '/module-settings/fleet': 'fleet',
+        '/module-settings/finance': 'finance',
+        '/module-settings/meals': 'meals',
+        '/module-settings/hr': 'hr',
+        '/module-settings/works': 'works',
+        '/module-settings/customers': 'customers'
+    }
+
+    for (const [prefix, moduleKey] of Object.entries(detailPrefixMap)) {
+        if (pathname.startsWith(prefix)) return moduleKey
+    }
+
+    // 4. Portal
     if (pathname === '/portal' || pathname === '/') return 'portal'
-    
+
+    // 5. Global settings page — preserve the current module
+    if (pathname === '/settings') {
+        // Try to get from sessionStorage to avoid sidebar jump
+        const stored = sessionStorage.getItem('lastActiveModule')
+        if (stored && moduleMenus[stored]) return stored
+        return 'fleet'
+    }
+
+    // 6. Ultimate fallback - try to match any path prefix from the map
+    for (const [path, moduleKey] of Object.entries(pathToModuleMap)) {
+        if (pathname.startsWith(path)) return moduleKey
+    }
+
+    // 7. If nothing matched, preserve last known module
+    const lastModule = sessionStorage.getItem('lastActiveModule')
+    if (lastModule && moduleMenus[lastModule]) return lastModule
+
     return 'fleet'
 }

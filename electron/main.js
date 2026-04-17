@@ -280,8 +280,8 @@ ipcMain.handle('auth:login', async (event, credentials) => {
     return result
 })
 
-ipcMain.handle('auth:updateUser', async (event, data) => {
-    return await db.updateUser(data)
+ipcMain.handle('auth:changePassword', async (event, data) => {
+    return await db.changePassword(data)
 })
 
 // Company handlers

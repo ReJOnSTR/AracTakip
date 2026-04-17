@@ -56,23 +56,8 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('aractakip_company')
     }
 
-    const updateProfile = async (data) => {
-        try {
-            const result = await authService.updateUser({ ...data, userId: user?.id })
-            if (result.success) {
-                setUser(result.user)
-                localStorage.setItem('aractakip_user', JSON.stringify(result.user))
-                return { success: true }
-            }
-            return { success: false, error: result.error }
-        } catch (error) {
-            console.error('Update profile error:', error)
-            return { success: false, error: 'Bağlantı hatası: ' + error.message }
-        }
-    }
-
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     )

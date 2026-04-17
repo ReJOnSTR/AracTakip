@@ -3,6 +3,7 @@ import { moduleMenus, getActiveModule } from '../config/navigation'
 import logo from '../assets/logos/logo-chatgpt.png'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { useTabs } from '../context/TabContext'
+import { useEffect } from 'react'
 
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -12,6 +13,13 @@ export default function Sidebar({ collapsed, onToggle }) {
     // Determine the active module
     const activeModule = getActiveModule(location.pathname, location.search)
     const activeMenus = moduleMenus[activeModule] || []
+
+    // Persist active module so we can recover it for non-module pages (like /settings)
+    useEffect(() => {
+        if (activeModule && activeModule !== 'portal') {
+            sessionStorage.setItem('lastActiveModule', activeModule)
+        }
+    }, [activeModule])
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''} `}>
@@ -25,7 +33,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             <nav className="sidebar-nav">
                 {activeMenus.map((group, index) => (
                     <div className="nav-section" key={index}>
-                        <div className="nav-section-title">{group.title}</div>
+                        {group.title && <div className="nav-section-title">{group.title}</div>}
                         {group.items.map((item) => (
                             <NavLink
                                 key={item.path}

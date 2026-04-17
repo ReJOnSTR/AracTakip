@@ -126,61 +126,6 @@ async function changePassword(data) {
     }
 }
 
-async function updateUser(data) {
-    try {
-        const { userId, username, email, newPassword, currentPassword } = data;
-
-        const user = await prisma.users.findUnique({
-            where: { id: userId }
-        });
-
-        if (!user) {
-            return { success: false, error: 'Kullanıcı bulunamadı' };
-        }
-
-        const updateData = {};
-
-        if (username) updateData.username = username;
-        if (email) updateData.email = email;
-
-        if (newPassword) {
-            if (!currentPassword) {
-                return { success: false, error: 'Şifre değiştirmek için mevcut şifreniz gereklidir' };
-            }
-
-            const isValid = bcrypt.compareSync(currentPassword, user.password_hash);
-            if (!isValid) {
-                return { success: false, error: 'Mevcut şifre hatalı' };
-            }
-
-            updateData.password_hash = bcrypt.hashSync(newPassword, 10);
-            updateData.must_change_password = 0;
-        }
-
-        const updatedUser = await prisma.users.update({
-            where: { id: userId },
-            data: updateData
-        });
-
-        // Strip hash before returning
-        const safeUser = {
-            id: updatedUser.id,
-            username: updatedUser.username,
-            email: updatedUser.email,
-            mustChangePassword: updatedUser.must_change_password === 1
-        };
-
-        return { success: true, user: safeUser };
-
-    } catch (error) {
-        console.error('Update user error:', error);
-        if (error.code === 'P2002') {
-            return { success: false, error: 'Bu kullanıcı adı veya e-posta zaten kullanımda' };
-        }
-        return { success: false, error: 'Profil güncelleme başarısız: ' + error.message };
-    }
-}
-
 async function getUserPasswordHash(userId) {
     try {
         const user = await prisma.users.findUnique({
@@ -196,6 +141,5 @@ module.exports = {
     registerUser,
     loginUser,
     changePassword,
-    updateUser,
     getUserPasswordHash
 };
