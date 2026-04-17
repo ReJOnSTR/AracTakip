@@ -49,7 +49,7 @@ export const moduleMenus = {
         {
             title: '',
             items: [
-                { path: '/module-settings/fleet', label: 'Ayarlar', icon: Settings }
+                { path: '/module-settings/fleet', label: 'Filo Ayarları', icon: Settings }
             ]
         }
     ],
@@ -65,7 +65,7 @@ export const moduleMenus = {
         {
             title: '',
             items: [
-                { path: '/module-settings/finance', label: 'Ayarlar', icon: Settings }
+                { path: '/module-settings/finance', label: 'Finans Ayarları', icon: Settings }
             ]
         }
     ],
@@ -81,7 +81,7 @@ export const moduleMenus = {
         {
             title: '',
             items: [
-                { path: '/module-settings/meals', label: 'Ayarlar', icon: Settings }
+                { path: '/module-settings/meals', label: 'Yemek Fişi Ayarları', icon: Settings }
             ]
         }
     ],
@@ -95,7 +95,7 @@ export const moduleMenus = {
         {
             title: '',
             items: [
-                { path: '/module-settings/hr', label: 'Ayarlar', icon: Settings }
+                { path: '/module-settings/hr', label: 'Personel Ayarları', icon: Settings }
             ]
         }
     ],
@@ -109,7 +109,7 @@ export const moduleMenus = {
         {
             title: '',
             items: [
-                { path: '/module-settings/works', label: 'Ayarlar', icon: Settings }
+                { path: '/module-settings/works', label: 'İş Ayarları', icon: Settings }
             ]
         }
     ],
@@ -123,7 +123,7 @@ export const moduleMenus = {
         {
             title: '',
             items: [
-                { path: '/module-settings/customers', label: 'Ayarlar', icon: Settings }
+                { path: '/module-settings/customers', label: 'Müşteri Ayarları', icon: Settings }
             ]
         }
     ],
