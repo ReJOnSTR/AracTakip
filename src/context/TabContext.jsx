@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getRouteInfo } from '../config/navigation'
 
@@ -11,11 +11,16 @@ export function TabProvider({ children }) {
     const location = useLocation()
     const navigate = useNavigate()
 
+    // Per-tab history: { tabId: { entries: ['/path1', '/path2'], index: 0 } }
+    const tabHistoryRef = useRef({})
+    // Flag to prevent recording navigations triggered by our own back/forward/tab-switch
+    const internalNavRef = useRef(false)
+
     // Initialize first tab or sync on load
     useEffect(() => {
         if (tabs.length === 0) {
-            const initialPath = location.pathname
-            const routeInfo = getRouteInfo(initialPath)
+            const initialPath = location.pathname + location.search
+            const routeInfo = getRouteInfo(location.pathname)
             const newTab = {
                 id: crypto.randomUUID(),
                 path: initialPath,
@@ -24,34 +29,52 @@ export function TabProvider({ children }) {
             }
             setTabs([newTab])
             setActiveTabId(newTab.id)
+            tabHistoryRef.current[newTab.id] = { entries: [initialPath], index: 0 }
         }
     }, []) // Run once on mount
 
-    // Update active tab when location changes (if triggered by browser back/forward or manual URL entry)
+    // Update active tab when location changes
     useEffect(() => {
         if (!activeTabId) return
 
         const fullPath = location.pathname + location.search
+
+        // Update the tab's path/label
         setTabs(prev => {
             return prev.map(tab => {
                 if (tab.id === activeTabId && tab.path !== fullPath) {
                     const routeInfo = getRouteInfo(location.pathname)
-                    
-                    // Only update label if the base pathname has changed
-                    // This prevents flickering when detail pages set specific titles
                     const prevPathname = tab.path.split('?')[0]
                     const hasPathnameChanged = prevPathname !== location.pathname
-                    
-                    return { 
-                        ...tab, 
-                        path: fullPath, 
-                        label: hasPathnameChanged ? routeInfo.label : tab.label, 
-                        icon: routeInfo.icon 
+
+                    return {
+                        ...tab,
+                        path: fullPath,
+                        label: hasPathnameChanged ? routeInfo.label : tab.label,
+                        icon: routeInfo.icon
                     }
                 }
                 return tab
             })
         })
+
+        // Record in per-tab history (only for user-initiated navigations)
+        if (!internalNavRef.current) {
+            const hist = tabHistoryRef.current[activeTabId]
+            if (hist) {
+                const currentEntry = hist.entries[hist.index]
+                if (currentEntry !== fullPath) {
+                    // Truncate forward history and push new entry
+                    const newEntries = hist.entries.slice(0, hist.index + 1)
+                    newEntries.push(fullPath)
+                    tabHistoryRef.current[activeTabId] = {
+                        entries: newEntries,
+                        index: newEntries.length - 1
+                    }
+                }
+            }
+        }
+        internalNavRef.current = false
     }, [location.pathname, location.search, activeTabId])
 
 
@@ -63,8 +86,12 @@ export function TabProvider({ children }) {
             label: customLabel || routeInfo.label,
             icon: routeInfo.icon
         }
+        // Initialize per-tab history
+        tabHistoryRef.current[newTab.id] = { entries: [path], index: 0 }
+
         setTabs(prev => [...prev, newTab])
         if (!background) {
+            internalNavRef.current = true
             setActiveTabId(newTab.id)
             navigate(path)
         }
@@ -73,6 +100,7 @@ export function TabProvider({ children }) {
     const activateTab = useCallback((tabId) => {
         const tab = tabs.find(t => t.id === tabId)
         if (tab) {
+            internalNavRef.current = true
             setActiveTabId(tabId)
             navigate(tab.path)
         }
@@ -94,21 +122,22 @@ export function TabProvider({ children }) {
     const closeTab = useCallback((tabId, e) => {
         if (e) e.stopPropagation()
 
+        // Clean up per-tab history
+        delete tabHistoryRef.current[tabId]
+
         setTabs(prev => {
             const newTabs = prev.filter(t => t.id !== tabId)
 
-            // If we closed the active tab, we need to find a new one
             if (activeTabId === tabId) {
                 const closeIndex = prev.findIndex(t => t.id === tabId)
-                // Try to go to the left, or the right if left doesn't exist
                 const nextTab = newTabs[closeIndex - 1] || newTabs[closeIndex]
 
                 if (nextTab) {
+                    internalNavRef.current = true
                     setActiveTabId(nextTab.id)
                     navigate(nextTab.path)
                     return newTabs
                 } else {
-                    // Closed the last tab? Go to portal and create its tab
                     const routeInfo = getRouteInfo('/portal')
                     const homeTab = {
                         id: crypto.randomUUID(),
@@ -116,6 +145,8 @@ export function TabProvider({ children }) {
                         label: routeInfo.label,
                         icon: routeInfo.icon
                     }
+                    tabHistoryRef.current[homeTab.id] = { entries: ['/portal'], index: 0 }
+                    internalNavRef.current = true
                     setActiveTabId(homeTab.id)
                     navigate('/portal')
                     return [homeTab]
@@ -127,11 +158,20 @@ export function TabProvider({ children }) {
     }, [activeTabId, navigate])
 
     const closeOtherTabs = useCallback((tabId) => {
-        setTabs(prev => prev.filter(t => t.id === tabId))
+        setTabs(prev => {
+            // Clean up history for closed tabs
+            prev.forEach(t => {
+                if (t.id !== tabId) delete tabHistoryRef.current[t.id]
+            })
+            return prev.filter(t => t.id === tabId)
+        })
         setActiveTabId(tabId)
     }, [])
 
     const closeAll = useCallback(() => {
+        // Clean up all histories
+        tabHistoryRef.current = {}
+
         const routeInfo = getRouteInfo('/portal')
         const homeTab = {
             id: crypto.randomUUID(),
@@ -139,10 +179,47 @@ export function TabProvider({ children }) {
             label: routeInfo.label,
             icon: routeInfo.icon
         }
+        tabHistoryRef.current[homeTab.id] = { entries: ['/portal'], index: 0 }
         setTabs([homeTab])
+        internalNavRef.current = true
         setActiveTabId(homeTab.id)
         navigate('/portal')
     }, [navigate])
+
+    // Per-tab back/forward
+    const canGoBack = useCallback(() => {
+        if (!activeTabId) return false
+        const hist = tabHistoryRef.current[activeTabId]
+        return hist ? hist.index > 0 : false
+    }, [activeTabId])
+
+    const canGoForward = useCallback(() => {
+        if (!activeTabId) return false
+        const hist = tabHistoryRef.current[activeTabId]
+        return hist ? hist.index < hist.entries.length - 1 : false
+    }, [activeTabId])
+
+    const goBack = useCallback(() => {
+        if (!activeTabId) return
+        const hist = tabHistoryRef.current[activeTabId]
+        if (hist && hist.index > 0) {
+            hist.index--
+            const path = hist.entries[hist.index]
+            internalNavRef.current = true
+            navigate(path)
+        }
+    }, [activeTabId, navigate])
+
+    const goForward = useCallback(() => {
+        if (!activeTabId) return
+        const hist = tabHistoryRef.current[activeTabId]
+        if (hist && hist.index < hist.entries.length - 1) {
+            hist.index++
+            const path = hist.entries[hist.index]
+            internalNavRef.current = true
+            navigate(path)
+        }
+    }, [activeTabId, navigate])
 
     return (
         <TabContext.Provider value={{
@@ -154,7 +231,11 @@ export function TabProvider({ children }) {
             closeOtherTabs,
             closeAll,
             updateTabsOrder,
-            updateTabInfo
+            updateTabInfo,
+            canGoBack,
+            canGoForward,
+            goBack,
+            goForward
         }}>
             {children}
         </TabContext.Provider>

@@ -43,7 +43,7 @@ function SortableTab({ tab, isActive, activateTab, closeTab }) {
 }
 
 export default function TabBar() {
-    const { tabs, activeTabId, activateTab, closeTab, updateTabsOrder, openNewTab } = useTabs()
+    const { tabs, activeTabId, activateTab, closeTab, updateTabsOrder, openNewTab, canGoBack, canGoForward, goBack, goForward } = useTabs()
     const { user, logout } = useAuth()
     const { companies, currentCompany, selectCompany } = useCompany()
     const navigate = useNavigate()
@@ -51,29 +51,10 @@ export default function TabBar() {
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
 
-    const [canGoBack, setCanGoBack] = useState(false)
-    const [canGoForward, setCanGoForward] = useState(false)
-
+    // Force re-render when location changes so canGoBack/canGoForward update
+    const [, forceUpdate] = useState(0)
     React.useEffect(() => {
-        const checkNavigation = () => {
-            if (location.pathname === '/portal') {
-                setCanGoBack(false);
-                setCanGoForward(false);
-                return;
-            }
-
-            const state = window.history.state;
-            if (state && typeof state.idx === 'number') {
-                setCanGoBack(state.idx > 0);
-                // In electron, the initial history length can sometimes be slightly off from RR's idx calculation
-                // but generally state.idx < window.history.length - 1 is correct for standard react-router.
-                setCanGoForward(state.idx < window.history.length - 1 && window.history.length > 1);
-            } else {
-                setCanGoBack(location.key !== 'default')
-                setCanGoForward(false)
-            }
-        }
-        setTimeout(checkNavigation, 0)
+        forceUpdate(n => n + 1)
     }, [location])
 
     const sensors = useSensors(
@@ -115,6 +96,9 @@ export default function TabBar() {
         };
     };
 
+    const backEnabled = canGoBack()
+    const forwardEnabled = canGoForward()
+
     return (
         <div className="tab-bar">
             {/* Left: Draggable Tabs */}
@@ -122,19 +106,19 @@ export default function TabBar() {
                 <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: '-1px' }}>
                     <button
                         className="tab-nav-btn"
-                        onClick={() => canGoBack && navigate(-1)}
+                        onClick={() => backEnabled && goBack()}
                         title="Geri Dön"
-                        style={{ opacity: canGoBack ? 1 : 0.3, cursor: canGoBack ? 'pointer' : 'default' }}
-                        disabled={!canGoBack}
+                        style={{ opacity: backEnabled ? 1 : 0.3, cursor: backEnabled ? 'pointer' : 'default' }}
+                        disabled={!backEnabled}
                     >
                         <ArrowLeft size={16} />
                     </button>
                     <button
                         className="tab-nav-btn forward-btn"
-                        onClick={() => canGoForward && navigate(1)}
+                        onClick={() => forwardEnabled && goForward()}
                         title="İleri Git"
-                        style={{ opacity: canGoForward ? 1 : 0.3, cursor: canGoForward ? 'pointer' : 'default' }}
-                        disabled={!canGoForward}
+                        style={{ opacity: forwardEnabled ? 1 : 0.3, cursor: forwardEnabled ? 'pointer' : 'default' }}
+                        disabled={!forwardEnabled}
                     >
                         <ArrowRight size={16} />
                     </button>
