@@ -202,8 +202,10 @@ export default function EmployeeDetail() {
         if (!activeSalary) return 0
         const dailyRate = activeSalary / 30
         const hourlyRate = dailyRate / 10
-        if (type === 'weekday') return Math.round(hourlyRate * 1.5 * 100) / 100
-        if (type === 'sunday') return Math.round(dailyRate * 1.5 * 100) / 100
+        const weekdayMultiplier = parseFloat(localStorage.getItem('hr_overtime_weekday_multiplier')) || 1.5
+        const sundayMultiplier = parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
+        if (type === 'weekday') return Math.round(hourlyRate * weekdayMultiplier * 100) / 100
+        if (type === 'sunday') return Math.round(dailyRate * sundayMultiplier * 100) / 100
         return 0
     }
 
