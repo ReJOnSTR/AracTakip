@@ -460,6 +460,7 @@ export default function EmployeeDetail() {
         const leaveDate = overtimeItem.date || new Date().toISOString().split('T')[0]
 
         try {
+            // Create leave record
             const leaveData = {
                 employeeId: parseInt(id),
                 type: 'overtime_leave',
@@ -471,8 +472,18 @@ export default function EmployeeDetail() {
             }
             const result = await window.electronAPI.createLeave(leaveData)
             if (result.success) {
-                // Delete the overtime record after conversion
-                await window.electronAPI.deleteOvertime(overtimeItem.id)
+                // Mark overtime as used for leave (don't delete)
+                const existingNotes = overtimeItem.notes || ''
+                const updatedNotes = `[İZİN OLARAK KULLANILDI] ${existingNotes}`.trim()
+                await window.electronAPI.updateOvertime({
+                    id: overtimeItem.id,
+                    employeeId: parseInt(id),
+                    date: overtimeItem.date,
+                    hours: overtimeItem.hours,
+                    rate: overtimeItem.rate,
+                    amount: overtimeItem.amount,
+                    notes: updatedNotes
+                })
                 loadEmployeeData()
             }
         } catch (err) {
@@ -528,7 +539,11 @@ export default function EmployeeDetail() {
     ]
 
     const leaveColumns = [
-        { key: 'type', label: 'Tür', render: (v) => leaveTypes.find(t => t.value === v)?.label || v },
+        { key: 'type', label: 'Tür', render: (v) => {
+            const lt = leaveTypes.find(t => t.value === v)
+            if (v === 'overtime_leave') return <span className="badge badge-info" style={{ fontWeight: 600 }}>🔄 Mesai İzni</span>
+            return lt?.label || v
+        }},
         { key: 'start_date', label: 'Başlangıç', render: (v) => formatDate(v) },
         { key: 'end_date', label: 'Bitiş', render: (v) => formatDate(v) },
         { key: 'days', label: 'Gün' },
@@ -541,13 +556,20 @@ export default function EmployeeDetail() {
             key: 'rate', label: 'Tür', render: (v, row) => {
                 if (!getHistoricalBaseSalary(employee, selectedMonth)) return '-'
                 const weekdayRate = calcOvertimeRate('weekday')
-                return Math.abs(v - weekdayRate) < 1 ? 'Hafta İçi' : 'Pazar'
+                const isUsedAsLeave = row.notes && row.notes.includes('[İZİN OLARAK KULLANILDI]')
+                const typeLabel = Math.abs(v - weekdayRate) < 1 ? 'Hafta İçi' : 'Pazar'
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{typeLabel}</span>
+                        {isUsedAsLeave && <span className="badge badge-info" style={{ fontSize: '9px' }}>İZİN</span>}
+                    </div>
+                )
             }
         },
         { key: 'date', label: 'Tarih', render: (v) => formatDate(v) },
         { key: 'hours', label: 'Saat' },
         { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
-        { key: 'notes', label: 'Not' }
+        { key: 'notes', label: 'Not', render: (v) => v ? v.replace('[İZİN OLARAK KULLANILDI]', '').trim() || '-' : '-' }
     ]
 
     const assignmentColumns = [
@@ -1043,13 +1065,16 @@ export default function EmployeeDetail() {
                                         data={monthlyOvertimesList}
                                         emptyMessage="Bu döneme ait mesai kaydı bulunmuyor."
                                         onBulkDelete={(ids) => handleDeleteClick('overtime', null, ids)}
-                                        actions={(item) => (
-                                            <>
-                                                <button title="İzne Çevir" onClick={() => handleConvertToLeave(item)} style={{ color: 'var(--success)' }}><CalendarCheck size={16} /></button>
-                                                <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
-                                                <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
-                                            </>
-                                        )}
+                                        actions={(item) => {
+                                            const isConverted = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
+                                            return (
+                                                <>
+                                                    {!isConverted && <button title="İzne Çevir" onClick={() => handleConvertToLeave(item)} style={{ color: 'var(--success)' }}><CalendarCheck size={16} /></button>}
+                                                    <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
+                                                    <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
+                                                </>
+                                            )
+                                        }}
                                     />
                                 </>
                             )
