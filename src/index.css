@@ -262,6 +262,10 @@ body {
   justify-content: center;
 }
 
+.sidebar.collapsed .sidebar-title {
+  display: none;
+}
+
 .sidebar-logo {
   width: 24px;
   height: 24px;
@@ -428,6 +432,10 @@ body {
   gap: 0;
   padding: 10px 0;
   justify-content: center;
+}
+
+.sidebar.collapsed .nav-item span {
+  display: none;
 }
 
 .sidebar.collapsed .nav-item span {
