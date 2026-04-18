@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator, Pencil, Save } from 'lucide-react'
+import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator, Pencil, Save, CalendarCheck } from 'lucide-react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 
@@ -101,6 +101,12 @@ function HrModuleContent() {
     const [sundayMultiplier, setSundayMultiplier] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
     })
+    const [weekdayHoursPerLeave, setWeekdayHoursPerLeave] = useState(() => {
+        return parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+    })
+    const [sundayDaysPerLeave, setSundayDaysPerLeave] = useState(() => {
+        return parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+    })
 
     // Modal
     const [showModal, setShowModal] = useState(false)
@@ -113,6 +119,7 @@ function HrModuleContent() {
             label: 'Hafta İçi Mesai Katsayısı',
             description: 'Saatlik ücret × katsayı (Maaş ÷ 30 ÷ 10 × katsayı)',
             value: weekdayMultiplier,
+            unit: 'x',
             storageKey: 'hr_overtime_weekday_multiplier'
         },
         {
@@ -120,7 +127,24 @@ function HrModuleContent() {
             label: 'Pazar Mesai Katsayısı',
             description: 'Günlük ücret × katsayı (Maaş ÷ 30 × katsayı)',
             value: sundayMultiplier,
+            unit: 'x',
             storageKey: 'hr_overtime_sunday_multiplier'
+        },
+        {
+            id: 'weekday_leave',
+            label: 'Hafta İçi Mesai → İzin',
+            description: 'Kaç saat hafta içi mesai = 1 gün izin',
+            value: weekdayHoursPerLeave,
+            unit: ' saat',
+            storageKey: 'hr_overtime_weekday_hours_per_leave'
+        },
+        {
+            id: 'sunday_leave',
+            label: 'Pazar Mesai → İzin',
+            description: 'Kaç pazar mesai günü = 1 gün izin',
+            value: sundayDaysPerLeave,
+            unit: ' gün',
+            storageKey: 'hr_overtime_sunday_days_per_leave'
         }
     ]
 
@@ -140,9 +164,9 @@ function HrModuleContent() {
             key: 'value',
             label: 'Değer',
             sortable: false,
-            render: (val) => (
+            render: (val, item) => (
                 <span style={{ fontWeight: '600', color: 'var(--accent-primary)', fontSize: '15px' }}>
-                    {val}x
+                    {val}{item.unit}
                 </span>
             )
         }
@@ -163,6 +187,8 @@ function HrModuleContent() {
 
         if (editingItem.id === 'weekday') setWeekdayMultiplier(numVal)
         if (editingItem.id === 'sunday') setSundayMultiplier(numVal)
+        if (editingItem.id === 'weekday_leave') setWeekdayHoursPerLeave(numVal)
+        if (editingItem.id === 'sunday_leave') setSundayDaysPerLeave(numVal)
 
         setShowModal(false)
         setEditingItem(null)
@@ -171,7 +197,7 @@ function HrModuleContent() {
     return (
         <>
             {/* Stat Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '25px', maxWidth: '500px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '25px' }}>
                 <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                         <div className="stat-label">HAFTA İÇİ</div>
@@ -179,7 +205,7 @@ function HrModuleContent() {
                     </div>
                     <div>
                         <div className="stat-value" style={{ fontSize: '22px' }}>{weekdayMultiplier}x</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Saatlik mesai katsayısı</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Mesai katsayısı</div>
                     </div>
                 </div>
                 <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
@@ -189,7 +215,27 @@ function HrModuleContent() {
                     </div>
                     <div>
                         <div className="stat-value" style={{ fontSize: '22px' }}>{sundayMultiplier}x</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Günlük mesai katsayısı</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Mesai katsayısı</div>
+                    </div>
+                </div>
+                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <div className="stat-label">H.İÇİ → İZİN</div>
+                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><CalendarCheck size={16} /></div>
+                    </div>
+                    <div>
+                        <div className="stat-value" style={{ fontSize: '22px' }}>{weekdayHoursPerLeave} saat</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>= 1 gün izin</div>
+                    </div>
+                </div>
+                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <div className="stat-label">PAZAR → İZİN</div>
+                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><CalendarCheck size={16} /></div>
+                    </div>
+                    <div>
+                        <div className="stat-value" style={{ fontSize: '22px' }}>{sundayDaysPerLeave} gün</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>= 1 gün izin</div>
                     </div>
                 </div>
             </div>
@@ -229,10 +275,10 @@ function HrModuleContent() {
                         />
                         {editingItem && (
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: '1.6' }}>
-                                {editingItem.id === 'weekday'
-                                    ? <>Hesaplama: Maaş ÷ 30 ÷ 10 × <strong>{editValue || '?'}</strong> = Saatlik mesai ücreti</>
-                                    : <>Hesaplama: Maaş ÷ 30 × <strong>{editValue || '?'}</strong> = Günlük pazar mesai ücreti</>
-                                }
+                                {editingItem.id === 'weekday' && <>Hesaplama: Maaş ÷ 30 ÷ 10 × <strong>{editValue || '?'}</strong> = Saatlik mesai ücreti</>}
+                                {editingItem.id === 'sunday' && <>Hesaplama: Maaş ÷ 30 × <strong>{editValue || '?'}</strong> = Günlük pazar mesai ücreti</>}
+                                {editingItem.id === 'weekday_leave' && <><strong>{editValue || '?'}</strong> saat hafta içi mesai yapan personel 1 gün izin hak eder</>}
+                                {editingItem.id === 'sunday_leave' && <><strong>{editValue || '?'}</strong> gün pazar mesai yapan personel 1 gün izin hak eder</>}
                             </div>
                         )}
                     </div>

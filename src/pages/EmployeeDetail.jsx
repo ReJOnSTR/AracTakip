@@ -17,7 +17,7 @@ import {
     ArrowLeft, Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
     UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet,
-    Upload, X, ExternalLink
+    Upload, X, ExternalLink, CalendarCheck
 } from 'lucide-react'
 
 const paymentTypes = [
@@ -36,6 +36,7 @@ const leaveTypes = [
     { value: 'sick', label: 'Hastalık İzni' },
     { value: 'unpaid', label: 'Ücretsiz İzin' },
     { value: 'maternity', label: 'Doğum İzni' },
+    { value: 'overtime_leave', label: 'Mesai İzni' },
     { value: 'other', label: 'Diğer' }
 ]
 
@@ -432,6 +433,50 @@ export default function EmployeeDetail() {
             }
         } else {
             await window.electronAPI.openFile(doc.file_path)
+        }
+    }
+    // ========== OVERTIME TO LEAVE CONVERSION ==========
+
+    const handleConvertToLeave = async (overtimeItem) => {
+        if (!overtimeItem || !overtimeItem.hours) return
+
+        // Determine type based on rate
+        const weekdayRate = calcOvertimeRate('weekday')
+        const isWeekday = Math.abs((overtimeItem.rate || 0) - weekdayRate) < 1
+
+        // Read conversion settings
+        const weekdayHoursPerLeave = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+        const sundayDaysPerLeave = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+
+        let leaveDays
+        if (isWeekday) {
+            leaveDays = Math.round((overtimeItem.hours / weekdayHoursPerLeave) * 100) / 100
+        } else {
+            leaveDays = Math.round((overtimeItem.hours / sundayDaysPerLeave) * 100) / 100
+        }
+
+        if (leaveDays <= 0) return
+
+        const leaveDate = overtimeItem.date || new Date().toISOString().split('T')[0]
+
+        try {
+            const leaveData = {
+                employeeId: parseInt(id),
+                type: 'overtime_leave',
+                startDate: leaveDate,
+                endDate: leaveDate,
+                days: leaveDays,
+                status: 'approved',
+                notes: `Mesaiden dönüştürüldü: ${overtimeItem.hours} ${isWeekday ? 'saat' : 'gün'} mesai → ${leaveDays} gün izin`
+            }
+            const result = await window.electronAPI.createLeave(leaveData)
+            if (result.success) {
+                // Delete the overtime record after conversion
+                await window.electronAPI.deleteOvertime(overtimeItem.id)
+                loadEmployeeData()
+            }
+        } catch (err) {
+            console.error('Mesai → İzin dönüşüm hatası:', err)
         }
     }
 
@@ -1000,6 +1045,7 @@ export default function EmployeeDetail() {
                                         onBulkDelete={(ids) => handleDeleteClick('overtime', null, ids)}
                                         actions={(item) => (
                                             <>
+                                                <button title="İzne Çevir" onClick={() => handleConvertToLeave(item)} style={{ color: 'var(--success)' }}><CalendarCheck size={16} /></button>
                                                 <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
                                                 <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
                                             </>
