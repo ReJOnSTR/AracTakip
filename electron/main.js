@@ -622,17 +622,17 @@ ipcMain.handle('overtimes:getAll', async (event, employeeId) => {
     return db.getOvertimes(employeeId)
 })
 ipcMain.handle('overtimes:create', async (event, data) => {
-    const result = db.addOvertime(data)
+    const result = await db.addOvertime(data)
     if (result.success) notifyDbUpdate({ table: 'overtimes', action: 'create' })
     return result
 })
 ipcMain.handle('overtimes:update', async (event, data) => {
-    const result = db.updateOvertime(data)
+    const result = await db.updateOvertime(data)
     if (result.success) notifyDbUpdate({ table: 'overtimes', action: 'update' })
     return result
 })
 ipcMain.handle('overtimes:delete', async (event, id) => {
-    const result = db.deleteOvertime(id)
+    const result = await db.deleteOvertime(id)
     if (result.success) notifyDbUpdate({ table: 'overtimes', action: 'delete' })
     return result
 })
@@ -642,17 +642,17 @@ ipcMain.handle('employeeAssignments:getAll', async (event, employeeId) => {
     return db.getEmployeeAssignments(employeeId)
 })
 ipcMain.handle('employeeAssignments:create', async (event, data) => {
-    const result = db.addEmployeeAssignment(data)
+    const result = await db.addEmployeeAssignment(data)
     if (result.success) notifyDbUpdate({ table: 'employee_assignments', action: 'create' })
     return result
 })
 ipcMain.handle('employeeAssignments:update', async (event, data) => {
-    const result = db.updateEmployeeAssignment(data)
+    const result = await db.updateEmployeeAssignment(data)
     if (result.success) notifyDbUpdate({ table: 'employee_assignments', action: 'update' })
     return result
 })
 ipcMain.handle('employeeAssignments:delete', async (event, id) => {
-    const result = db.deleteEmployeeAssignment(id)
+    const result = await db.deleteEmployeeAssignment(id)
     if (result.success) notifyDbUpdate({ table: 'employee_assignments', action: 'delete' })
     return result
 })
@@ -662,12 +662,12 @@ ipcMain.handle('employeeDocuments:getAll', async (event, employeeId) => {
     return db.getEmployeeDocuments(employeeId)
 })
 ipcMain.handle('employeeDocuments:create', async (event, data) => {
-    const result = db.addEmployeeDocument(data)
+    const result = await db.addEmployeeDocument(data)
     if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'create' })
     return result
 })
 ipcMain.handle('employeeDocuments:delete', async (event, id) => {
-    const result = db.deleteEmployeeDocument(id)
+    const result = await db.deleteEmployeeDocument(id)
     if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'delete' })
     return result
 })

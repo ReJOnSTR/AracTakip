@@ -328,28 +328,30 @@ export default function EmployeeDetail() {
             let linkedType = null
             
             const currentItem = recType === 'overtime' 
-                ? overtimes.find(o => o.id === recId) 
-                : (recType === 'leave' ? leaves.find(l => l.id === recId) : null)
+                ? overtimes.find(o => parseInt(o.id) === parseInt(recId)) 
+                : (recType === 'leave' ? leaves.find(l => parseInt(l.id) === parseInt(recId)) : null)
             
             if (currentItem && currentItem.notes) {
                 if (recType === 'overtime') {
+                    // Match [LID:123]
                     const match = currentItem.notes.match(/\[LID:(\d+)\]/)
                     if (match) { linkedId = parseInt(match[1]); linkedType = 'leave' }
                 } else if (recType === 'leave') {
+                    // Match [OTID:123]
                     const match = currentItem.notes.match(/\[OTID:(\d+)\]/)
                     if (match) { linkedId = parseInt(match[1]); linkedType = 'overtime' }
                 }
             }
 
-            // Delete the primary record
+            // Delete the primary record first
             await window.electronAPI[apiMap[recType]](recId)
             
-            // Delete the linked record if found
+            // Delete the linked record if found and it exists
             if (linkedId && linkedType) {
                 try {
                     await window.electronAPI[apiMap[linkedType]](linkedId)
                 } catch (linkErr) {
-                    console.error('Linked record deletion failed:', linkErr)
+                    console.error('Bağlı kayıt silinemedi (muhtemelen zaten silinmiş):', linkErr)
                 }
             }
         }
@@ -430,7 +432,7 @@ export default function EmployeeDetail() {
             const result = editingItem ? await window.electronAPI.updateOvertime({ id: editingItem.id, ...data }) : await window.electronAPI.createOvertime(data)
             
             if (result.success) {
-                const otId = editingItem ? editingItem.id : result.id
+                const otId = editingItem ? editingItem.id : result.data.id
                 
                 // If it was just converted to leave (either new or was paid before)
                 if (shouldBeUsedAsLeave && !isCurrentlyUsedAsLeave) {
@@ -454,8 +456,8 @@ export default function EmployeeDetail() {
                         })
                         
                         // Link the leave ID back to the overtime record
-                        if (leaveResult.success && leaveResult.id) {
-                            const updatedOtNotes = `[İZİN OLARAK KULLANILDI][LID:${leaveResult.id}] ${formData.notes || ''}`.trim()
+                        if (leaveResult.success && leaveResult.data && leaveResult.data.id) {
+                            const updatedOtNotes = `[İZİN OLARAK KULLANILDI][LID:${leaveResult.data.id}] ${formData.notes || ''}`.trim()
                             await window.electronAPI.updateOvertime({
                                 ...data,
                                 id: otId,
