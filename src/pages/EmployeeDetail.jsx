@@ -233,17 +233,19 @@ export default function EmployeeDetail() {
         if (type === 'salary') {
             setFormData({ paymentType: item.period || 'salary', amount: item.net_salary || '', paymentDate: item.payment_date ? new Date(item.payment_date).toISOString().split('T')[0] : '', salaryMonth: item.salary_month || selectedMonth, status: item.status || 'pending', paymentMethod: item.payment_method || 'nakit', notes: item.notes || '' })
         } else if (type === 'leave') {
-            setFormData({ type: item.type || 'annual', status: item.status || 'approved', startDate: item.start_date || '', endDate: item.end_date || '', days: item.days || 1, notes: item.notes || '' })
+            const strippedNotes = (item.notes || '').replace(/\[OTID:\d+\]/g, '').trim()
+            setFormData({ type: item.type || 'annual', status: item.status || 'approved', startDate: item.start_date || '', endDate: item.end_date || '', days: item.days || 1, notes: strippedNotes })
         } else if (type === 'overtime') {
             const otType = Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday'
             const isUsedAsLeave = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
+            const strippedNotes = (item.notes || '').replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[LID:\d+\]/g, '').trim()
             setFormData({ 
                 overtimeType: otType, 
                 date: item.date || '', 
                 hours: item.hours || '', 
                 rate: item.rate || 0, 
                 amount: item.amount || '', 
-                notes: item.notes || '',
+                notes: strippedNotes,
                 useAsLeave: !!isUsedAsLeave
             })
         } else if (type === 'assignment') {
@@ -319,13 +321,46 @@ export default function EmployeeDetail() {
         if (!confirmModal) return
         const { type, item, ids } = confirmModal
         const apiMap = { salary: 'deleteSalary', leave: 'deleteLeave', overtime: 'deleteOvertime', assignment: 'deleteEmployeeAssignment', documents: 'deleteEmployeeDocument' }
+        
+        const deleteRecord = async (recType, recId) => {
+            // Find linked record before deleting this one
+            let linkedId = null
+            let linkedType = null
+            
+            const currentItem = recType === 'overtime' 
+                ? overtimes.find(o => o.id === recId) 
+                : (recType === 'leave' ? leaves.find(l => l.id === recId) : null)
+            
+            if (currentItem && currentItem.notes) {
+                if (recType === 'overtime') {
+                    const match = currentItem.notes.match(/\[LID:(\d+)\]/)
+                    if (match) { linkedId = parseInt(match[1]); linkedType = 'leave' }
+                } else if (recType === 'leave') {
+                    const match = currentItem.notes.match(/\[OTID:(\d+)\]/)
+                    if (match) { linkedId = parseInt(match[1]); linkedType = 'overtime' }
+                }
+            }
+
+            // Delete the primary record
+            await window.electronAPI[apiMap[recType]](recId)
+            
+            // Delete the linked record if found
+            if (linkedId && linkedType) {
+                try {
+                    await window.electronAPI[apiMap[linkedType]](linkedId)
+                } catch (linkErr) {
+                    console.error('Linked record deletion failed:', linkErr)
+                }
+            }
+        }
+
         try {
             if (ids) {
                 for (const delId of ids) {
-                    await window.electronAPI[apiMap[type]](delId)
+                    await deleteRecord(type, delId)
                 }
             } else {
-                await window.electronAPI[apiMap[type]](item.id)
+                await deleteRecord(type, item.id)
             }
             loadEmployeeData()
         } catch (err) { console.error('Delete failed:', err) }
@@ -395,6 +430,8 @@ export default function EmployeeDetail() {
             const result = editingItem ? await window.electronAPI.updateOvertime({ id: editingItem.id, ...data }) : await window.electronAPI.createOvertime(data)
             
             if (result.success) {
+                const otId = editingItem ? editingItem.id : result.id
+                
                 // If it was just converted to leave (either new or was paid before)
                 if (shouldBeUsedAsLeave && !isCurrentlyUsedAsLeave) {
                     const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
@@ -406,15 +443,25 @@ export default function EmployeeDetail() {
                     
                     if (leaveDays > 0) {
                         const leaveDate = data.date || new Date().toISOString().split('T')[0]
-                        await window.electronAPI.createLeave({
+                        const leaveResult = await window.electronAPI.createLeave({
                             employeeId: parseInt(id),
                             type: 'overtime_leave',
                             startDate: leaveDate,
                             endDate: leaveDate,
                             days: leaveDays,
                             status: 'approved',
-                            notes: `Mesaiden dönüştürüldü (Yeni Kayıt/Düzenleme): ${hours} ${isWeekday ? 'saat' : 'gün'} mesai → ${leaveDays} gün izin`
+                            notes: `[OTID:${otId}] Mesaiden dönüştürüldü (Yeni Kayıt/Düzenleme): ${hours} ${isWeekday ? 'saat' : 'gün'} mesai → ${leaveDays} gün izin`
                         })
+                        
+                        // Link the leave ID back to the overtime record
+                        if (leaveResult.success && leaveResult.id) {
+                            const updatedOtNotes = `[İZİN OLARAK KULLANILDI][LID:${leaveResult.id}] ${formData.notes || ''}`.trim()
+                            await window.electronAPI.updateOvertime({
+                                ...data,
+                                id: otId,
+                                notes: updatedOtNotes
+                            })
+                        }
                     }
                 }
                 
@@ -553,7 +600,7 @@ export default function EmployeeDetail() {
         { key: 'end_date', label: 'Bitiş', render: (v) => formatDate(v) },
         { key: 'days', label: 'Gün' },
         { key: 'status', label: 'Durum', render: (v) => { const c = { approved: 'success', pending: 'warning', rejected: 'danger' }; const l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi' }; return <span className={`badge badge-${c[v] || 'secondary'}`}>{l[v] || v}</span> } },
-        { key: 'notes', label: 'Not' }
+        { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[OTID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
     const overtimeColumns = [
@@ -574,7 +621,7 @@ export default function EmployeeDetail() {
         { key: 'date', label: 'Tarih', render: (v) => formatDate(v) },
         { key: 'hours', label: 'Saat' },
         { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
-        { key: 'notes', label: 'Not', render: (v) => v ? v.replace('[İZİN OLARAK KULLANILDI]', '').trim() || '-' : '-' }
+        { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
     const assignmentColumns = [
