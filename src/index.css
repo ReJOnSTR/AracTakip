@@ -257,6 +257,11 @@ body {
   white-space: nowrap;
 }
 
+.sidebar.collapsed .sidebar-header {
+  padding: 0;
+  justify-content: center;
+}
+
 .sidebar-logo {
   width: 24px;
   height: 24px;
@@ -421,6 +426,8 @@ body {
 
 .sidebar.collapsed .nav-item {
   gap: 0;
+  padding: 10px 0;
+  justify-content: center;
 }
 
 .sidebar.collapsed .nav-item span {
