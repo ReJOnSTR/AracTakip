@@ -26,7 +26,7 @@ export const moduleMenus = {
         {
             title: 'Genel',
             items: [
-                { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                { path: '/dashboard', label: 'Filo Dashboard', icon: LayoutDashboard },
                 { path: '/reports', label: 'Raporlar', icon: FileText }
             ]
         },

@@ -418,7 +418,7 @@ export default function Dashboard() {
             {!(companyLoading || loading) && <div>
                 <div className="page-header">
                     <div>
-                        <h1 className="page-title">Gösterge Paneli</h1>
+                        <h1 className="page-title">Filo Dashboard</h1>
                         <p style={{ marginTop: '5px', color: 'var(--text-muted)' }}>Filo durum özeti ve performans metrikleri.</p>
                     </div>
                 </div>
