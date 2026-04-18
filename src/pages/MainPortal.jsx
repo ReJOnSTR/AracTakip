@@ -9,21 +9,29 @@ const portalStyles = `
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
     }
-    @keyframes portalFadeUp {
-        from { opacity: 0; transform: translateY(16px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframes portalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .portal-header-area {
+        animation: portalFadeIn 0.4s ease forwards;
     }
     .portal-card {
         position: relative;
         border-radius: 20px;
-        padding: 28px;
+        padding: 24px;
         cursor: pointer;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.25s var(--ease-out);
         display: flex;
         flex-direction: column;
         overflow: hidden;
         border: 1px solid rgba(255,255,255,0.06);
-        animation: portalFadeUp 0.5s ease forwards;
+        animation: portalFadeIn 0.5s ease forwards;
+        background: var(--bg-card);
+    }
+    .portal-card:hover {
+        border-color: rgba(255,255,255,0.15);
+        background: var(--bg-card-hover);
     }
     .portal-card::before {
         content: '';
@@ -36,9 +44,6 @@ const portalStyles = `
     }
     .portal-card:hover::before {
         opacity: 1;
-    }
-    .portal-card:hover {
-        transform: translateY(-6px) scale(1.01);
     }
     .portal-card > * {
         position: relative;
@@ -78,8 +83,8 @@ const portalStyles = `
     .portal-card:hover .card-arrow {
         transform: translateX(4px);
     }
-    .portal-header-area {
-        animation: portalFadeUp 0.4s ease forwards;
+    .portal-card:hover .card-arrow {
+        transform: translateX(4px);
     }
 `
 
@@ -219,9 +224,9 @@ export default function MainPortal() {
     return (
         <>
             <style>{portalStyles}</style>
-            <div style={{ padding: '36px 44px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ padding: '24px 44px', maxWidth: '1240px', margin: '0 auto' }}>
                 {/* Header */}
-                <div className="portal-header-area" style={{ marginBottom: '44px' }}>
+                <div className="portal-header-area" style={{ marginBottom: '32px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '12px', marginBottom: '10px', fontWeight: '500' }}>
@@ -270,11 +275,9 @@ export default function MainPortal() {
                             }}
                             onClick={() => navigate(mod.path)}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.background = mod.hoverGradient
-                                e.currentTarget.style.boxShadow = `0 12px 40px ${mod.glowColor}12, 0 0 0 1px ${mod.glowColor}25`
+                                e.currentTarget.style.boxShadow = `0 12px 40px ${mod.glowColor}15, 0 0 0 1px ${mod.glowColor}30`
                             }}
                             onMouseLeave={(e) => {
-                                e.currentTarget.style.background = mod.gradient
                                 e.currentTarget.style.boxShadow = 'none'
                             }}
                         >
