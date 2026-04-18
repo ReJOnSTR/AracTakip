@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator, Pencil, X, Save } from 'lucide-react'
+import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator, Pencil, Save } from 'lucide-react'
+import Modal from '../components/Modal'
+import DataTable from '../components/DataTable'
 
 const moduleConfig = {
     fleet: {
@@ -100,175 +102,150 @@ function HrModuleContent() {
         return parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
     })
 
-    // Modal state
+    // Modal
     const [showModal, setShowModal] = useState(false)
-    const [editWeekday, setEditWeekday] = useState(weekdayMultiplier)
-    const [editSunday, setEditSunday] = useState(sundayMultiplier)
+    const [editingItem, setEditingItem] = useState(null)
+    const [editValue, setEditValue] = useState('')
 
-    const openModal = () => {
-        setEditWeekday(weekdayMultiplier)
-        setEditSunday(sundayMultiplier)
+    const settingsData = [
+        {
+            id: 'weekday',
+            label: 'Hafta İçi Mesai Katsayısı',
+            description: 'Saatlik ücret × katsayı (Maaş ÷ 30 ÷ 10 × katsayı)',
+            value: weekdayMultiplier,
+            storageKey: 'hr_overtime_weekday_multiplier'
+        },
+        {
+            id: 'sunday',
+            label: 'Pazar Mesai Katsayısı',
+            description: 'Günlük ücret × katsayı (Maaş ÷ 30 × katsayı)',
+            value: sundayMultiplier,
+            storageKey: 'hr_overtime_sunday_multiplier'
+        }
+    ]
+
+    const columns = [
+        {
+            key: 'label',
+            label: 'Ayar',
+            sortable: false,
+            render: (val, item) => (
+                <div>
+                    <div style={{ fontWeight: '500' }}>{val}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{item.description}</div>
+                </div>
+            )
+        },
+        {
+            key: 'value',
+            label: 'Değer',
+            sortable: false,
+            render: (val) => (
+                <span style={{ fontWeight: '600', color: 'var(--accent-primary)', fontSize: '15px' }}>
+                    {val}x
+                </span>
+            )
+        }
+    ]
+
+    const openEdit = (item) => {
+        setEditingItem(item)
+        setEditValue(String(item.value))
         setShowModal(true)
     }
 
-    const handleSave = () => {
-        const wVal = parseFloat(editWeekday)
-        const sVal = parseFloat(editSunday)
-        if (isNaN(wVal) || wVal <= 0 || isNaN(sVal) || sVal <= 0) return
+    const handleSave = (e) => {
+        e.preventDefault()
+        const numVal = parseFloat(editValue)
+        if (isNaN(numVal) || numVal <= 0) return
 
-        localStorage.setItem('hr_overtime_weekday_multiplier', wVal.toString())
-        localStorage.setItem('hr_overtime_sunday_multiplier', sVal.toString())
-        setWeekdayMultiplier(wVal)
-        setSundayMultiplier(sVal)
+        localStorage.setItem(editingItem.storageKey, numVal.toString())
+
+        if (editingItem.id === 'weekday') setWeekdayMultiplier(numVal)
+        if (editingItem.id === 'sunday') setSundayMultiplier(numVal)
+
         setShowModal(false)
+        setEditingItem(null)
     }
 
     return (
         <>
-            <div className="settings-layout">
-                <div className="settings-column">
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Mesai Ücret Katsayıları</h2>
-                        <div className="settings-list">
-                            {/* Weekday Overtime */}
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Clock size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Hafta İçi Mesai Katsayısı</div>
-                                    <div className="settings-item-desc">Saatlik ücret bu katsayı ile çarpılır</div>
-                                </div>
-                                <span style={{
-                                    fontSize: '14px',
-                                    fontWeight: 700,
-                                    color: 'var(--accent-primary)',
-                                    background: 'var(--accent-primary-alpha, rgba(59,130,246,0.1))',
-                                    padding: '4px 12px',
-                                    borderRadius: '6px',
-                                    minWidth: '50px',
-                                    textAlign: 'center'
-                                }}>
-                                    {weekdayMultiplier}x
-                                </span>
-                            </div>
-
-                            {/* Sunday Overtime */}
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Calculator size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Pazar Mesai Katsayısı</div>
-                                    <div className="settings-item-desc">Günlük ücret bu katsayı ile çarpılır</div>
-                                </div>
-                                <span style={{
-                                    fontSize: '14px',
-                                    fontWeight: 700,
-                                    color: 'var(--accent-primary)',
-                                    background: 'var(--accent-primary-alpha, rgba(59,130,246,0.1))',
-                                    padding: '4px 12px',
-                                    borderRadius: '6px',
-                                    minWidth: '50px',
-                                    textAlign: 'center'
-                                }}>
-                                    {sundayMultiplier}x
-                                </span>
-                            </div>
-                        </div>
-                        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-color)' }}>
-                            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={openModal}>
-                                <Pencil size={16} />
-                                Düzenle
-                            </button>
-                        </div>
+            {/* Stat Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '25px', maxWidth: '500px' }}>
+                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <div className="stat-label">HAFTA İÇİ</div>
+                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><Clock size={16} /></div>
+                    </div>
+                    <div>
+                        <div className="stat-value" style={{ fontSize: '22px' }}>{weekdayMultiplier}x</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Saatlik mesai katsayısı</div>
                     </div>
                 </div>
-
-                <div className="settings-column">
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Bilgi</h2>
-                        <div className="settings-list">
-                            <div className="settings-item" style={{ alignItems: 'flex-start' }}>
-                                <div className="settings-item-icon" style={{ marginTop: '2px' }}>
-                                    <Info size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Mesai Hesaplama Formülü</div>
-                                    <div className="settings-item-desc" style={{ marginTop: '8px', lineHeight: '1.8' }}>
-                                        <strong>Hafta İçi Mesai:</strong><br />
-                                        Saatlik Ücret = Maaş ÷ 30 ÷ 10<br />
-                                        Mesai Ücreti = Saatlik Ücret × Katsayı × Saat<br /><br />
-                                        <strong>Pazar Mesai:</strong><br />
-                                        Günlük Ücret = Maaş ÷ 30<br />
-                                        Mesai Ücreti = Günlük Ücret × Katsayı × Gün
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <div className="stat-label">PAZAR</div>
+                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><Calculator size={16} /></div>
+                    </div>
+                    <div>
+                        <div className="stat-value" style={{ fontSize: '22px' }}>{sundayMultiplier}x</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Günlük mesai katsayısı</div>
                     </div>
                 </div>
             </div>
 
-            {/* Edit Modal */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
-                        <div className="modal-header">
-                            <h3 className="modal-title">Mesai Katsayılarını Düzenle</h3>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="form-group floating-label-group">
-                                <div className="input-wrapper">
-                                    <input
-                                        type="number"
-                                        id="edit-weekday"
-                                        className="form-input"
-                                        value={editWeekday}
-                                        onChange={e => setEditWeekday(e.target.value)}
-                                        step="0.1"
-                                        min="0.1"
-                                        placeholder=" "
-                                    />
-                                    <label className="form-label" htmlFor="edit-weekday">Hafta İçi Mesai Katsayısı</label>
-                                </div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', paddingLeft: '2px' }}>
-                                    Maaş ÷ 30 ÷ 10 × <strong>{editWeekday || '?'}</strong> = Saatlik mesai ücreti
-                                </div>
-                            </div>
+            {/* Table */}
+            <DataTable
+                persistenceKey="ModuleSettings_hr_table_0"
+                storageKey="module_settings_hr_cols"
+                columns={columns}
+                data={settingsData}
+                emptyMessage="Ayar bulunamadı."
+                searchable={false}
+                paginated={false}
+                actions={(item) => (
+                    <button title="Düzenle" onClick={() => openEdit(item)}><Pencil size={16} /></button>
+                )}
+            />
 
-                            <div className="form-group floating-label-group" style={{ marginTop: '16px' }}>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="number"
-                                        id="edit-sunday"
-                                        className="form-input"
-                                        value={editSunday}
-                                        onChange={e => setEditSunday(e.target.value)}
-                                        step="0.1"
-                                        min="0.1"
-                                        placeholder=" "
-                                    />
-                                    <label className="form-label" htmlFor="edit-sunday">Pazar Mesai Katsayısı</label>
-                                </div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', paddingLeft: '2px' }}>
-                                    Maaş ÷ 30 × <strong>{editSunday || '?'}</strong> = Günlük pazar mesai ücreti
-                                </div>
+            {/* Edit Modal */}
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingItem ? `${editingItem.label} Düzenle` : 'Düzenle'}
+            >
+                <form onSubmit={handleSave}>
+                    <div className="form-group">
+                        <label className="form-label">Katsayı Değeri</label>
+                        <input
+                            type="number"
+                            className="form-input"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            min="0.1"
+                            step="0.1"
+                            placeholder="Örn: 1.5"
+                            autoFocus
+                        />
+                        {editingItem && (
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: '1.6' }}>
+                                {editingItem.id === 'weekday'
+                                    ? <>Hesaplama: Maaş ÷ 30 ÷ 10 × <strong>{editValue || '?'}</strong> = Saatlik mesai ücreti</>
+                                    : <>Hesaplama: Maaş ÷ 30 × <strong>{editValue || '?'}</strong> = Günlük pazar mesai ücreti</>
+                                }
                             </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-secondary" onClick={() => setShowModal(false)}>İptal</button>
-                            <button className="btn btn-primary" onClick={handleSave}>
-                                <Save size={16} />
-                                Kaydet
-                            </button>
-                        </div>
+                        )}
                     </div>
-                </div>
-            )}
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>İptal</button>
+                        <button type="submit" className="btn btn-primary">
+                            <Save size={15} />
+                            Kaydet
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </>
     )
 }
@@ -281,11 +258,11 @@ export default function ModuleSettings() {
     const ModuleIcon = config.icon
 
     return (
-        <div className="settings-page">
+        <div className="page-container fade-in">
             <div className="page-header">
                 <div>
                     <h1 className="page-title">{config.title} Ayarları</h1>
-                    <p style={{ marginTop: '5px', color: '#666' }}>{config.description}</p>
+                    <p className="page-subtitle">{config.description}</p>
                 </div>
             </div>
 
