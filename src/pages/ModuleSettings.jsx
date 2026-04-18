@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator } from 'lucide-react'
+import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator, Pencil, X, Save } from 'lucide-react'
 
 const moduleConfig = {
     fleet: {
@@ -91,7 +91,7 @@ function DefaultModuleContent({ config, ModuleIcon }) {
     )
 }
 
-// HR Module Settings with overtime multipliers
+// HR Module Settings
 function HrModuleContent() {
     const [weekdayMultiplier, setWeekdayMultiplier] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_weekday_multiplier')) || 1.5
@@ -99,113 +99,177 @@ function HrModuleContent() {
     const [sundayMultiplier, setSundayMultiplier] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
     })
-    const [saved, setSaved] = useState(false)
 
-    const handleSave = (key, value, setter) => {
-        const numVal = parseFloat(value)
-        if (isNaN(numVal) || numVal <= 0) return
-        setter(numVal)
-        localStorage.setItem(key, numVal.toString())
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2000)
+    // Modal state
+    const [showModal, setShowModal] = useState(false)
+    const [editWeekday, setEditWeekday] = useState(weekdayMultiplier)
+    const [editSunday, setEditSunday] = useState(sundayMultiplier)
+
+    const openModal = () => {
+        setEditWeekday(weekdayMultiplier)
+        setEditSunday(sundayMultiplier)
+        setShowModal(true)
+    }
+
+    const handleSave = () => {
+        const wVal = parseFloat(editWeekday)
+        const sVal = parseFloat(editSunday)
+        if (isNaN(wVal) || wVal <= 0 || isNaN(sVal) || sVal <= 0) return
+
+        localStorage.setItem('hr_overtime_weekday_multiplier', wVal.toString())
+        localStorage.setItem('hr_overtime_sunday_multiplier', sVal.toString())
+        setWeekdayMultiplier(wVal)
+        setSundayMultiplier(sVal)
+        setShowModal(false)
     }
 
     return (
-        <div className="settings-layout">
-            <div className="settings-column">
-                <div className="settings-section">
-                    <h2 className="settings-section-title">Mesai Ücret Katsayıları</h2>
-                    <div className="settings-list">
-                        {/* Weekday Overtime */}
-                        <div className="settings-item" style={{ alignItems: 'flex-start' }}>
-                            <div className="settings-item-icon" style={{ marginTop: '4px' }}>
-                                <Clock size={18} />
+        <>
+            <div className="settings-layout">
+                <div className="settings-column">
+                    <div className="settings-section">
+                        <h2 className="settings-section-title">Mesai Ücret Katsayıları</h2>
+                        <div className="settings-list">
+                            {/* Weekday Overtime */}
+                            <div className="settings-item">
+                                <div className="settings-item-icon">
+                                    <Clock size={18} />
+                                </div>
+                                <div className="settings-item-content">
+                                    <div className="settings-item-label">Hafta İçi Mesai Katsayısı</div>
+                                    <div className="settings-item-desc">Saatlik ücret bu katsayı ile çarpılır</div>
+                                </div>
+                                <span style={{
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    color: 'var(--accent-primary)',
+                                    background: 'var(--accent-primary-alpha, rgba(59,130,246,0.1))',
+                                    padding: '4px 12px',
+                                    borderRadius: '6px',
+                                    minWidth: '50px',
+                                    textAlign: 'center'
+                                }}>
+                                    {weekdayMultiplier}x
+                                </span>
                             </div>
-                            <div className="settings-item-content">
-                                <div className="settings-item-label">Hafta İçi Mesai Katsayısı</div>
-                                <div className="settings-item-desc">
-                                    Saatlik ücret bu katsayı ile çarpılır. Varsayılan: 1.5x
+
+                            {/* Sunday Overtime */}
+                            <div className="settings-item">
+                                <div className="settings-item-icon">
+                                    <Calculator size={18} />
                                 </div>
-                                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <input
-                                        type="number"
-                                        className="form-input"
-                                        style={{ width: '100px', textAlign: 'center' }}
-                                        value={weekdayMultiplier}
-                                        onChange={(e) => setWeekdayMultiplier(e.target.value)}
-                                        onBlur={(e) => handleSave('hr_overtime_weekday_multiplier', e.target.value, setWeekdayMultiplier)}
-                                        step="0.1"
-                                        min="0.1"
-                                    />
-                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>x</span>
-                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                        (Maaş / 30 / 10 × {weekdayMultiplier})
-                                    </span>
+                                <div className="settings-item-content">
+                                    <div className="settings-item-label">Pazar Mesai Katsayısı</div>
+                                    <div className="settings-item-desc">Günlük ücret bu katsayı ile çarpılır</div>
                                 </div>
+                                <span style={{
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    color: 'var(--accent-primary)',
+                                    background: 'var(--accent-primary-alpha, rgba(59,130,246,0.1))',
+                                    padding: '4px 12px',
+                                    borderRadius: '6px',
+                                    minWidth: '50px',
+                                    textAlign: 'center'
+                                }}>
+                                    {sundayMultiplier}x
+                                </span>
                             </div>
                         </div>
-
-                        {/* Sunday Overtime */}
-                        <div className="settings-item" style={{ alignItems: 'flex-start' }}>
-                            <div className="settings-item-icon" style={{ marginTop: '4px' }}>
-                                <Calculator size={18} />
-                            </div>
-                            <div className="settings-item-content">
-                                <div className="settings-item-label">Pazar Mesai Katsayısı</div>
-                                <div className="settings-item-desc">
-                                    Günlük ücret bu katsayı ile çarpılır. Varsayılan: 1.5x
-                                </div>
-                                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <input
-                                        type="number"
-                                        className="form-input"
-                                        style={{ width: '100px', textAlign: 'center' }}
-                                        value={sundayMultiplier}
-                                        onChange={(e) => setSundayMultiplier(e.target.value)}
-                                        onBlur={(e) => handleSave('hr_overtime_sunday_multiplier', e.target.value, setSundayMultiplier)}
-                                        step="0.1"
-                                        min="0.1"
-                                    />
-                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>x</span>
-                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                        (Maaş / 30 × {sundayMultiplier})
-                                    </span>
-                                </div>
-                            </div>
+                        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-color)' }}>
+                            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={openModal}>
+                                <Pencil size={16} />
+                                Düzenle
+                            </button>
                         </div>
                     </div>
-                    {saved && (
-                        <div style={{ padding: '8px 16px', fontSize: '12px', color: 'var(--success)', fontWeight: 500, textAlign: 'center' }}>
-                            ✓ Kaydedildi
-                        </div>
-                    )}
                 </div>
-            </div>
 
-            <div className="settings-column">
-                <div className="settings-section">
-                    <h2 className="settings-section-title">Bilgi</h2>
-                    <div className="settings-list">
-                        <div className="settings-item" style={{ alignItems: 'flex-start' }}>
-                            <div className="settings-item-icon" style={{ marginTop: '2px' }}>
-                                <Info size={18} />
-                            </div>
-                            <div className="settings-item-content">
-                                <div className="settings-item-label">Mesai Hesaplama Formülü</div>
-                                <div className="settings-item-desc" style={{ marginTop: '8px', lineHeight: '1.8' }}>
-                                    <strong>Hafta İçi Mesai:</strong><br />
-                                    Saatlik Ücret = Maaş ÷ 30 ÷ 10<br />
-                                    Mesai Ücreti = Saatlik Ücret × Katsayı × Saat<br /><br />
-                                    <strong>Pazar Mesai:</strong><br />
-                                    Günlük Ücret = Maaş ÷ 30<br />
-                                    Mesai Ücreti = Günlük Ücret × Katsayı × Gün
+                <div className="settings-column">
+                    <div className="settings-section">
+                        <h2 className="settings-section-title">Bilgi</h2>
+                        <div className="settings-list">
+                            <div className="settings-item" style={{ alignItems: 'flex-start' }}>
+                                <div className="settings-item-icon" style={{ marginTop: '2px' }}>
+                                    <Info size={18} />
+                                </div>
+                                <div className="settings-item-content">
+                                    <div className="settings-item-label">Mesai Hesaplama Formülü</div>
+                                    <div className="settings-item-desc" style={{ marginTop: '8px', lineHeight: '1.8' }}>
+                                        <strong>Hafta İçi Mesai:</strong><br />
+                                        Saatlik Ücret = Maaş ÷ 30 ÷ 10<br />
+                                        Mesai Ücreti = Saatlik Ücret × Katsayı × Saat<br /><br />
+                                        <strong>Pazar Mesai:</strong><br />
+                                        Günlük Ücret = Maaş ÷ 30<br />
+                                        Mesai Ücreti = Günlük Ücret × Katsayı × Gün
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Edit Modal */}
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Mesai Katsayılarını Düzenle</h3>
+                            <button className="modal-close" onClick={() => setShowModal(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="form-group floating-label-group">
+                                <div className="input-wrapper">
+                                    <input
+                                        type="number"
+                                        id="edit-weekday"
+                                        className="form-input"
+                                        value={editWeekday}
+                                        onChange={e => setEditWeekday(e.target.value)}
+                                        step="0.1"
+                                        min="0.1"
+                                        placeholder=" "
+                                    />
+                                    <label className="form-label" htmlFor="edit-weekday">Hafta İçi Mesai Katsayısı</label>
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', paddingLeft: '2px' }}>
+                                    Maaş ÷ 30 ÷ 10 × <strong>{editWeekday || '?'}</strong> = Saatlik mesai ücreti
+                                </div>
+                            </div>
+
+                            <div className="form-group floating-label-group" style={{ marginTop: '16px' }}>
+                                <div className="input-wrapper">
+                                    <input
+                                        type="number"
+                                        id="edit-sunday"
+                                        className="form-input"
+                                        value={editSunday}
+                                        onChange={e => setEditSunday(e.target.value)}
+                                        step="0.1"
+                                        min="0.1"
+                                        placeholder=" "
+                                    />
+                                    <label className="form-label" htmlFor="edit-sunday">Pazar Mesai Katsayısı</label>
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', paddingLeft: '2px' }}>
+                                    Maaş ÷ 30 × <strong>{editSunday || '?'}</strong> = Günlük pazar mesai ücreti
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowModal(false)}>İptal</button>
+                            <button className="btn btn-primary" onClick={handleSave}>
+                                <Save size={16} />
+                                Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     )
 }
 
