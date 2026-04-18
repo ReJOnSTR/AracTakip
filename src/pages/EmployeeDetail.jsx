@@ -72,7 +72,7 @@ const today = () => new Date().toISOString().split('T')[0]
 const emptyForms = {
     salary: { paymentType: 'salary', amount: '', paymentDate: '', status: 'pending', paymentMethod: 'nakit', notes: '' },
     leave: { type: 'annual', status: 'approved', startDate: '', endDate: '', days: 1, notes: '' },
-    overtime: { overtimeType: 'weekday', date: '', hours: '', rate: 0, amount: '', notes: '' },
+    overtime: { overtimeType: 'weekday', date: '', hours: '', rate: 0, amount: '', notes: '', useAsLeave: false },
     assignment: { itemName: '', quantity: 1, assignedDate: '', returnDate: '', status: 'active', notes: '' }
 }
 
@@ -235,9 +235,17 @@ export default function EmployeeDetail() {
         } else if (type === 'leave') {
             setFormData({ type: item.type || 'annual', status: item.status || 'approved', startDate: item.start_date || '', endDate: item.end_date || '', days: item.days || 1, notes: item.notes || '' })
         } else if (type === 'overtime') {
-            const activeSalary = getHistoricalBaseSalary(employee, selectedMonth)
-            const otType = item.rate && activeSalary ? (Math.abs(item.rate - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday') : 'weekday'
-            setFormData({ overtimeType: otType, date: item.date || '', hours: item.hours || '', rate: item.rate || 0, amount: item.amount || '', notes: item.notes || '' })
+            const otType = Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday'
+            const isUsedAsLeave = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
+            setFormData({ 
+                overtimeType: otType, 
+                date: item.date || '', 
+                hours: item.hours || '', 
+                rate: item.rate || 0, 
+                amount: item.amount || '', 
+                notes: item.notes || '',
+                useAsLeave: !!isUsedAsLeave
+            })
         } else if (type === 'assignment') {
             setFormData({ itemName: item.item_name || '', quantity: item.quantity || 1, assignedDate: item.assigned_date || '', returnDate: item.return_date || '', status: item.status || 'active', notes: item.notes || '' })
         }
@@ -361,11 +369,63 @@ export default function EmployeeDetail() {
     const handleOvertimeSubmit = async (e) => {
         e.preventDefault()
         setSaving(true); setError('')
-        const data = { employeeId: parseInt(id), date: formData.date, hours: parseFloat(formData.hours) || 0, rate: parseFloat(formData.rate) || 1.5, amount: parseFloat(formData.amount) || 0, notes: formData.notes || null }
+        
+        const isCurrentlyUsedAsLeave = editingItem && editingItem.notes && editingItem.notes.includes('[İZİN OLARAK KULLANILDI]')
+        const shouldBeUsedAsLeave = formData.useAsLeave
+        
+        let finalNotes = formData.notes || ''
+        const marker = '[İZİN OLARAK KULLANILDI]'
+        
+        if (shouldBeUsedAsLeave && !finalNotes.includes(marker)) {
+            finalNotes = (marker + ' ' + finalNotes).trim()
+        } else if (!shouldBeUsedAsLeave && finalNotes.includes(marker)) {
+            finalNotes = finalNotes.replace(marker, '').trim()
+        }
+        
+        const data = { 
+            employeeId: parseInt(id), 
+            date: formData.date, 
+            hours: parseFloat(formData.hours) || 0, 
+            rate: parseFloat(formData.rate) || 1.5, 
+            amount: parseFloat(formData.amount) || 0, 
+            notes: finalNotes || null 
+        }
+        
         try {
             const result = editingItem ? await window.electronAPI.updateOvertime({ id: editingItem.id, ...data }) : await window.electronAPI.createOvertime(data)
-            if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
-        } catch (err) { setError(err.message) }
+            
+            if (result.success) {
+                // If it was just converted to leave (either new or was paid before)
+                if (shouldBeUsedAsLeave && !isCurrentlyUsedAsLeave) {
+                    const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+                    const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                    const hours = parseFloat(formData.hours) || 0
+                    const isWeekday = Math.abs((data.rate || 0) - calcOvertimeRate('weekday')) < 1
+                    
+                    const leaveDays = Math.round((hours / (isWeekday ? whpl : sdpl)) * 100) / 100
+                    
+                    if (leaveDays > 0) {
+                        const leaveDate = data.date || new Date().toISOString().split('T')[0]
+                        await window.electronAPI.createLeave({
+                            employeeId: parseInt(id),
+                            type: 'overtime_leave',
+                            startDate: leaveDate,
+                            endDate: leaveDate,
+                            days: leaveDays,
+                            status: 'approved',
+                            notes: `Mesaiden dönüştürüldü (Yeni Kayıt/Düzenleme): ${hours} ${isWeekday ? 'saat' : 'gün'} mesai → ${leaveDays} gün izin`
+                        })
+                    }
+                }
+                
+                closeModal()
+                loadEmployeeData()
+            } else {
+                setError(result.error || 'Bir hata oluştu.')
+            }
+        } catch (err) { 
+            setError(err.message) 
+        }
         setSaving(false)
     }
 
@@ -1259,8 +1319,54 @@ export default function EmployeeDetail() {
                                     <CustomInput label="Tarih *" type="date" value={formData.date || ''} onChange={(val) => updateField('date', val)} required />
                                     <CustomInput label={formData.overtimeType === 'sunday' ? 'Süre (Gün) *' : 'Süre (Saat) *'} type="number" value={formData.hours || ''} onChange={(val) => updateField('hours', val)} step="0.5" min={0} required />
                                 </div>
-                                {employee?.salary && (
-                                    <div style={{ marginTop: '16px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',
+                                    background: formData.useAsLeave ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                    border: `1px solid ${formData.useAsLeave ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                }} onClick={() => updateField('useAsLeave', !formData.useAsLeave)}>
+                                    <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                                        <input type="checkbox" checked={formData.useAsLeave || false} onChange={(e) => updateField('useAsLeave', e.target.checked)} />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mesaiyi İzin Olarak Kullan</span>
+                                            {formData.useAsLeave && formData.hours > 0 && (
+                                                <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                                                    + {(() => {
+                                                        const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+                                                        const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                                                        const hours = parseFloat(formData.hours) || 0
+                                                        const days = formData.overtimeType === 'weekday' ? hours / whpl : hours / sdpl
+                                                        return Math.round(days * 100) / 100
+                                                    })()} Gün İzin
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span style={{ fontSize: '14px', fontWeight: 600, color: formData.useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                            {formData.useAsLeave ? 'Aktif - İzin Tabına Eklenecek' : 'Pasif - Ücret Olarak Ödenecek'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div style={{ 
+                                    marginTop: '16px', 
+                                    padding: '12px 14px', 
+                                    backgroundColor: 'var(--bg-secondary)', 
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--border-color)',
+                                    display: formData.useAsLeave ? 'none' : 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Hesaplanan Tutar</div>
+                                    <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent-primary)' }}>{formatCurrency(formData.amount || 0)}</div>
+                                </div>
+
+                                {employee?.salary && !formData.useAsLeave && (
+                                    <div style={{ marginTop: '16px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)' }}>
                                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                                             <strong>Birim Ücret:</strong> {formData.overtimeType === 'sunday' ? `${formatCurrency(calcOvertimeRate('sunday'))} / gün` : `${formatCurrency(calcOvertimeRate('weekday'))} / saat`} (Maaş üzerinden otomatik hesaplandı)
                                         </div>
