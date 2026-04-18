@@ -14,10 +14,10 @@ import AssignmentForm from '../components/forms/AssignmentForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { formatCurrency, formatDate, getHistoricalBaseSalary } from '../utils/helpers'
 import {
-    ArrowLeft, Pencil, Trash2, Plus, AlertCircle, Users,
+    Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
     UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet,
-    Upload, X, ExternalLink, CalendarCheck
+    Upload, X, ExternalLink
 } from 'lucide-react'
 
 const paymentTypes = [
@@ -495,61 +495,6 @@ export default function EmployeeDetail() {
             await window.electronAPI.openFile(doc.file_path)
         }
     }
-    // ========== OVERTIME TO LEAVE CONVERSION ==========
-
-    const handleConvertToLeave = async (overtimeItem) => {
-        if (!overtimeItem || !overtimeItem.hours) return
-
-        // Determine type based on rate
-        const weekdayRate = calcOvertimeRate('weekday')
-        const isWeekday = Math.abs((overtimeItem.rate || 0) - weekdayRate) < 1
-
-        // Read conversion settings
-        const weekdayHoursPerLeave = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
-        const sundayDaysPerLeave = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
-
-        let leaveDays
-        if (isWeekday) {
-            leaveDays = Math.round((overtimeItem.hours / weekdayHoursPerLeave) * 100) / 100
-        } else {
-            leaveDays = Math.round((overtimeItem.hours / sundayDaysPerLeave) * 100) / 100
-        }
-
-        if (leaveDays <= 0) return
-
-        const leaveDate = overtimeItem.date || new Date().toISOString().split('T')[0]
-
-        try {
-            // Create leave record
-            const leaveData = {
-                employeeId: parseInt(id),
-                type: 'overtime_leave',
-                startDate: leaveDate,
-                endDate: leaveDate,
-                days: leaveDays,
-                status: 'approved',
-                notes: `Mesaiden dönüştürüldü: ${overtimeItem.hours} ${isWeekday ? 'saat' : 'gün'} mesai → ${leaveDays} gün izin`
-            }
-            const result = await window.electronAPI.createLeave(leaveData)
-            if (result.success) {
-                // Mark overtime as used for leave (don't delete)
-                const existingNotes = overtimeItem.notes || ''
-                const updatedNotes = `[İZİN OLARAK KULLANILDI] ${existingNotes}`.trim()
-                await window.electronAPI.updateOvertime({
-                    id: overtimeItem.id,
-                    employeeId: parseInt(id),
-                    date: overtimeItem.date,
-                    hours: overtimeItem.hours,
-                    rate: overtimeItem.rate,
-                    amount: overtimeItem.amount,
-                    notes: updatedNotes
-                })
-                loadEmployeeData()
-            }
-        } catch (err) {
-            console.error('Mesai → İzin dönüşüm hatası:', err)
-        }
-    }
 
     // ========== COMPUTED VALUES ==========
 
@@ -876,7 +821,11 @@ export default function EmployeeDetail() {
                 {activeTab === 'salary' && (
                     <div className="tab-pane">
                         {(() => {
-                            const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
+                            const monthlyOvertimes = overtimes.filter(o => 
+                                o.date && 
+                                o.date.startsWith(selectedMonth) && 
+                                (!o.notes || !o.notes.includes('[İZİN OLARAK KULLANILDI]'))
+                            )
                             const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
                             const baseSalaryTarget = getHistoricalBaseSalary(employee, selectedMonth) || 0
                             const netTarget = baseSalaryTarget + totalOtTarget
@@ -1125,16 +1074,12 @@ export default function EmployeeDetail() {
                                         data={monthlyOvertimesList}
                                         emptyMessage="Bu döneme ait mesai kaydı bulunmuyor."
                                         onBulkDelete={(ids) => handleDeleteClick('overtime', null, ids)}
-                                        actions={(item) => {
-                                            const isConverted = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
-                                            return (
-                                                <>
-                                                    {!isConverted && <button title="İzne Çevir" onClick={() => handleConvertToLeave(item)} style={{ color: 'var(--success)' }}><CalendarCheck size={16} /></button>}
-                                                    <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
-                                                    <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
-                                                </>
-                                            )
-                                        }}
+                                        actions={(item) => (
+                                            <>
+                                                <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
+                                                <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
+                                            </>
+                                        )}
                                     />
                                 </>
                             )
