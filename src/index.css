@@ -250,20 +250,18 @@ body {
 .sidebar-header {
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  /* Use fixed 18px to center a 24px logo in 60px and avoid ANY move during transition */
+  padding-left: 18px;
+  padding-right: 18px;
   border-bottom: 1px solid var(--border-color);
   height: 40px;
   position: relative;
   white-space: nowrap;
+  /* No padding transition = No logo movement */
 }
 
 .sidebar.collapsed .sidebar-header {
-  padding: 0;
-  justify-content: center;
-}
-
-.sidebar.collapsed .sidebar-title {
-  display: none;
+  /* Inherit the same padding */
 }
 
 .sidebar-logo {
@@ -300,10 +298,18 @@ body {
 }
 
 .sidebar.collapsed .sidebar-title {
-  /* COLLAPSING: Instant fade out */
+  /* COLLAPSING: Instant fade out + remove space softly */
   opacity: 0;
+  width: 0;
+  margin: 0;
+  overflow: hidden;
   transform: translateX(-10px);
-  transition: opacity 0.05s ease 0s, transform 0.05s ease 0s;
+  /* Synchronize with header/sidebar transitions */
+  transition: 
+    opacity 0.1s ease, 
+    transform 0.1s ease, 
+    width 0.25s cubic-bezier(0.2, 0, 0, 1), 
+    margin 0.25s cubic-bezier(0.2, 0, 0, 1);
 
   pointer-events: none;
 }
@@ -377,7 +383,8 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 20px;
+  /* 21px padding-left centers an 18px icon in a 60px sidebar */
+  padding: 10px 21px; 
   border-radius: 0;
   color: var(--text-secondary);
   text-decoration: none;
@@ -430,12 +437,6 @@ body {
 
 .sidebar.collapsed .nav-item {
   gap: 0;
-  padding: 10px 0;
-  justify-content: center;
-}
-
-.sidebar.collapsed .nav-item span {
-  display: none;
 }
 
 .sidebar.collapsed .nav-item span {
