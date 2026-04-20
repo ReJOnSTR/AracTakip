@@ -282,16 +282,13 @@ export default function PayrollDashboard() {
             render: (value) => {
                 const isPending = value > 0
                 return isPending ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ color: 'var(--danger)', fontWeight: '700', fontSize: '14px' }}>
-                            {formatCurrency(value)}
-                        </span>
-                        <span style={{ fontSize: '10px', color: 'var(--danger)', opacity: 0.8, textTransform: 'uppercase', fontWeight: 600 }}>Eksik Ödeme</span>
-                    </div>
+                    <span style={{ color: 'var(--danger)', fontWeight: '600', fontSize: '13px' }}>
+                        {formatCurrency(value)}
+                    </span>
                 ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
-                        <span style={{ fontWeight: '600', fontSize: '13px' }}>Tamamı Ödendi</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)', opacity: 0.8 }}>
+                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                        <span style={{ fontSize: '12px', fontWeight: '500' }}>Ödendi</span>
                     </div>
                 )
             }
