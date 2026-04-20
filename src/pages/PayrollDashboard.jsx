@@ -215,48 +215,91 @@ export default function PayrollDashboard() {
         {
             key: 'name',
             label: 'Ad Soyad',
-            render: (_, row) => `${row.first_name} ${row.last_name}`
+            render: (_, row) => (
+                <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                    {row.first_name} {row.last_name}
+                </span>
+            )
         },
-        { key: 'department', label: 'Departman' },
+        {
+            key: 'department',
+            label: 'Departman',
+            render: (value) => (
+                <span style={{
+                    backgroundColor: 'var(--bg-tertiary)',
+                    color: 'var(--text-secondary)',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    border: '1px solid var(--border-color)'
+                }}>
+                    {value}
+                </span>
+            )
+        },
         {
             key: 'calc_base',
             label: 'Aylık Maaş',
-            render: (value) => formatCurrency(value || 0)
+            render: (value) => (
+                <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>
+                    {formatCurrency(value || 0)}
+                </span>
+            )
         },
         {
             key: 'calc_overtimes',
             label: 'Mesailer',
-            render: (value) => value > 0 ? formatCurrency(value) : '-'
+            render: (value) => (
+                <span style={{ color: value > 0 ? 'var(--secondary-color)' : 'var(--text-muted)' }}>
+                    {value > 0 ? formatCurrency(value) : '-'}
+                </span>
+            )
         },
         {
             key: 'calc_required',
-            label: 'Hak Ediş (Maaş+Mesai)',
-            render: (value) => formatCurrency(value || 0)
+            label: 'Hak Ediş',
+            render: (value) => (
+                <span style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
+                    {formatCurrency(value || 0)}
+                </span>
+            )
         },
         {
             key: 'calc_paid',
             label: 'Ödenen',
-            render: (value) => formatCurrency(value || 0)
+            render: (value) => (
+                <span style={{ fontWeight: '600', color: 'var(--success)' }}>
+                    {formatCurrency(value || 0)}
+                </span>
+            )
         },
         {
             key: 'calc_remaining',
-            label: 'Ödenecek (Bakiye)',
+            label: 'Durum / Bakiye',
             render: (value) => {
                 const isPending = value > 0
-                return (
-                    <span style={{ 
-                        color: isPending ? 'var(--danger)' : 'var(--text-primary)',
-                        fontWeight: isPending ? '600' : '400'
-                    }}>
-                        {formatCurrency(value || 0)}
-                    </span>
+                return isPending ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ color: 'var(--danger)', fontWeight: '700', fontSize: '14px' }}>
+                            {formatCurrency(value)}
+                        </span>
+                        <span style={{ fontSize: '10px', color: 'var(--danger)', opacity: 0.8, textTransform: 'uppercase', fontWeight: 600 }}>Eksik Ödeme</span>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)' }}>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                        <span style={{ fontWeight: '600', fontSize: '13px' }}>Tamamı Ödendi</span>
+                    </div>
                 )
             }
         }
     ]
 
     // Summary Card Component
-    const StatCard = ({ title, value, icon: Icon, color, isDanger }) => (
+    const StatCard = ({ title, value, icon: Icon, color, bgColor, isDanger }) => (
         <div style={{
             backgroundColor: 'var(--bg-secondary)',
             borderRadius: '16px',
@@ -267,14 +310,14 @@ export default function PayrollDashboard() {
             border: `1px solid var(--border-color)`
         }}>
             <div style={{
-                backgroundColor: color,
-                width: '44px',
-                height: '44px',
+                backgroundColor: isDanger ? 'var(--danger-bg)' : (bgColor || 'var(--accent-subtle)'),
+                color: isDanger ? 'var(--danger)' : color,
+                width: '42px',
+                height: '42px',
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
                 flexShrink: 0
             }}>
                 <Icon size={22} />
@@ -328,25 +371,29 @@ export default function PayrollDashboard() {
                     title="Aylık Net Maaş Toplamı" 
                     value={formatCurrency(stats.totalCurrentSalary)} 
                     icon={Users} 
-                    color="var(--primary-color)" 
+                    color="var(--accent-primary)" 
+                    bgColor="var(--accent-subtle)"
                 />
                 <StatCard 
                     title="Aylık Mesai Toplamı" 
                     value={formatCurrency(stats.totalOvertimes)} 
                     icon={Clock} 
-                    color="var(--secondary-color)" 
+                    color="var(--info)" 
+                    bgColor="var(--info-bg)"
                 />
                 <StatCard 
                     title="Toplam Ödenen" 
                     value={formatCurrency(stats.totalPaid)} 
                     icon={Wallet} 
                     color="var(--success)" 
+                    bgColor="var(--success-bg)"
                 />
                 <StatCard 
                     title="Ödenmesi Gereken" 
                     value={formatCurrency(stats.totalPending)} 
                     icon={Banknote} 
                     color="var(--warning)" 
+                    bgColor="var(--warning-bg)"
                     isDanger={stats.totalPending > 0} 
                 />
             </div>
