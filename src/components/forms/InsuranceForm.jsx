@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { insuranceSchema } from '../../schemas/insuranceSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
-import { insuranceTypes } from '../../utils/helpers'
+import { insuranceTypes, formatDateForInput } from '../../utils/helpers'
 import { AlertCircle } from 'lucide-react'
 
 export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicles, loading, error }) {
@@ -22,8 +22,8 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
             type: 'traffic',
             company: '',
             policyNo: '',
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            startDate: formatDateForInput(new Date()),
+            endDate: formatDateForInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
             premium: '',
             notes: ''
         }
@@ -38,8 +38,8 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                 type: initialData.type || 'traffic',
                 company: initialData.company || '',
                 policyNo: initialData.policy_no || initialData.policyNo || '',
-                startDate: initialData.start_date || initialData.startDate || new Date().toISOString().split('T')[0],
-                endDate: initialData.end_date || initialData.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                startDate: formatDateForInput(initialData.start_date || initialData.startDate) || formatDateForInput(new Date()),
+                endDate: formatDateForInput(initialData.end_date || initialData.endDate) || formatDateForInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
                 premium: initialData.premium || '',
                 notes: initialData.notes || ''
             })
@@ -49,8 +49,8 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                 type: 'traffic',
                 company: '',
                 policyNo: '',
-                startDate: new Date().toISOString().split('T')[0],
-                endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                startDate: formatDateForInput(new Date()),
+                endDate: formatDateForInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
                 premium: '',
                 notes: ''
             })
@@ -64,9 +64,7 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
     // Auto-calculate end date (+1 year) when start date changes
     useEffect(() => {
         if (startDate) {
-            const date = new Date(startDate)
-            date.setFullYear(date.getFullYear() + 1)
-            setValue('endDate', date.toISOString().split('T')[0])
+            setValue('endDate', formatDateForInput(new Date(startDate).setFullYear(new Date(startDate).getFullYear() + 1)))
         }
     }, [startDate, setValue])
 

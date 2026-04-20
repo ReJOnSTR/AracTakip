@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { maintenanceSchema } from '../../schemas/maintenanceSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
-import { maintenanceTypes } from '../../utils/helpers'
+import { maintenanceTypes, formatDateForInput } from '../../utils/helpers'
 
 export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
@@ -19,7 +19,7 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
             vehicleId: '',
             type: 'general',
             description: '',
-            date: new Date().toISOString().split('T')[0],
+            date: formatDateForInput(new Date()),
             cost: '',
             nextKm: '',
             nextDate: '',
@@ -33,10 +33,10 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                 vehicleId: initialData.vehicle_id || initialData.vehicleId || '',
                 type: initialData.type || 'general',
                 description: initialData.description || '',
-                date: initialData.date || new Date().toISOString().split('T')[0],
+                date: formatDateForInput(initialData.date) || formatDateForInput(new Date()),
                 cost: initialData.cost || '',
                 nextKm: initialData.next_km || initialData.nextKm || '',
-                nextDate: initialData.next_date || initialData.nextDate || '',
+                nextDate: formatDateForInput(initialData.next_date || initialData.nextDate),
                 notes: initialData.notes || ''
             })
         } else {
@@ -45,7 +45,7 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                 vehicleId: '',
                 type: 'general',
                 description: '',
-                date: new Date().toISOString().split('T')[0],
+                date: formatDateForInput(new Date()),
                 cost: '',
                 nextKm: '',
                 nextDate: '',

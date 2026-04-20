@@ -174,3 +174,20 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
     // Default fallback if no valid record covers the month but history exists
     return employee.salary || 0
 }
+
+/**
+ * Safely formats any date-like string or object into YYYY-MM-DD for HTML date inputs.
+ * @param {any} dateValue - The date to format
+ * @returns {string} - YYYY-MM-DD or empty string
+ */
+export function formatDateForInput(dateValue) {
+    if (!dateValue) return ''
+    try {
+        const date = new Date(dateValue)
+        if (isNaN(date.getTime())) return ''
+        return date.toISOString().split('T')[0]
+    } catch (e) {
+        console.error('Error formatting date for input:', e)
+        return ''
+    }
+}

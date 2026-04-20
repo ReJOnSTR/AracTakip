@@ -84,8 +84,8 @@ export default function CustomInput({
     // Date/Time inputs always show a mask/placeholder natively, so label must float to avoid overlap
     const isDateType = ['date', 'time', 'datetime-local', 'month', 'week'].includes(type)
 
-    // Hide '0' when not focused to allow label to be inside
-    const shouldHideValue = !isFocused && (value === 0 || value === '0')
+    // Show '0' values even when not focused.
+    const shouldHideValue = false
 
     // Determine the display value
     let displayValue = shouldHideValue ? '' : value

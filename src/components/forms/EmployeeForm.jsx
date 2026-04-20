@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import { formatDateForInput } from '../../utils/helpers'
 
 const departmentOptions = [
     { value: 'Yönetim', label: 'Yönetim' },
@@ -48,10 +49,10 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                 email: initialData.email || '',
                 position: initialData.position || '',
                 department: initialData.department || '',
-                startDate: initialData.start_date ? (typeof initialData.start_date === 'string' ? initialData.start_date : new Date(initialData.start_date).toISOString()).split('T')[0] : '',
-                birthDate: initialData.birth_date ? (typeof initialData.birth_date === 'string' ? initialData.birth_date : new Date(initialData.birth_date).toISOString()).split('T')[0] : '',
+                startDate: formatDateForInput(initialData.start_date),
+                birthDate: formatDateForInput(initialData.birth_date),
                 salary: initialData.salary || '',
-                effectiveDate: new Date().toISOString().split('T')[0],
+                effectiveDate: formatDateForInput(new Date()),
                 pastUsedLeaves: initialData.past_used_leaves || '',
                 status: initialData.status || 'active',
                 notes: initialData.notes || ''

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { inspectionSchema } from '../../schemas/inspectionSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import { formatDateForInput } from '../../utils/helpers'
 import { AlertCircle } from 'lucide-react'
 
 export default function InspectionForm({ initialData, onSubmit, onCancel, vehicles, type = 'traffic', loading, error }) {
@@ -18,7 +19,7 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
         resolver: zodResolver(inspectionSchema),
         defaultValues: {
             vehicleId: '',
-            inspectionDate: new Date().toISOString().split('T')[0],
+            inspectionDate: formatDateForInput(new Date()),
             nextInspection: '',
             result: '',
             cost: '',
@@ -32,8 +33,8 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
         if (initialData) {
             reset({
                 vehicleId: initialData.vehicle_id || initialData.vehicleId || '',
-                inspectionDate: initialData.inspection_date || initialData.inspectionDate || new Date().toISOString().split('T')[0],
-                nextInspection: initialData.next_inspection || initialData.nextInspection || '',
+                inspectionDate: formatDateForInput(initialData.inspection_date || initialData.inspectionDate) || formatDateForInput(new Date()),
+                nextInspection: formatDateForInput(initialData.next_inspection || initialData.nextInspection) || '',
                 result: initialData.result || '',
                 cost: initialData.cost || '',
                 notes: initialData.notes || ''
@@ -41,7 +42,7 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
         } else {
             reset({
                 vehicleId: '',
-                inspectionDate: new Date().toISOString().split('T')[0],
+                inspectionDate: formatDateForInput(new Date()),
                 nextInspection: '',
                 result: '',
                 cost: '',
@@ -57,9 +58,7 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
     // Auto-calculate next inspection date (+1 year) when inspection date changes
     useEffect(() => {
         if (inspectionDate) {
-            const date = new Date(inspectionDate)
-            date.setFullYear(date.getFullYear() + 1)
-            setValue('nextInspection', date.toISOString().split('T')[0])
+            setValue('nextInspection', formatDateForInput(new Date(inspectionDate).setFullYear(new Date(inspectionDate).getFullYear() + 1)))
         }
     }, [inspectionDate, setValue])
 

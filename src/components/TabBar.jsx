@@ -256,10 +256,14 @@ export default function TabBar() {
                                     onClick={() => setShowUserDropdown(false)}
                                 />
                                 <div className="user-dropdown">
-                                    <div className="user-dropdown-item" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                    <div 
+                                        className="user-dropdown-item" 
+                                        style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+                                        onClick={() => { openNewTab('/profile'); setShowUserDropdown(false) }}
+                                    >
                                         <User size={16} />
                                         <div>
-                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.username}</div>
+                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.full_name || user?.username}</div>
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
                                         </div>
                                     </div>

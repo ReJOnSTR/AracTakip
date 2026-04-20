@@ -368,6 +368,7 @@ model users {
   id                   Int         @id @default(autoincrement())
   username             String      @unique(map: "sqlite_autoindex_users_1")
   email                String      @unique(map: "sqlite_autoindex_users_2")
+  full_name            String?
   password_hash        String
   created_at           DateTime?   @default(now())
   must_change_password Int?        @default(0)

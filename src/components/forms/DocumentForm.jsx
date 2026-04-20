@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { X, Upload } from 'lucide-react'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import { formatDateForInput } from '../../utils/helpers'
 
 export default function DocumentForm({ onSubmit, onCancel, loading, initialType = 'other' }) {
     const [docType, setDocType] = useState(initialType)
-    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
+    const [startDate, setStartDate] = useState(formatDateForInput(new Date()))
     const [endDate, setEndDate] = useState('')
     const [file, setFile] = useState(null)
     const [fileName, setFileName] = useState('') // For manual descriptive name if needed, or just specific doc name

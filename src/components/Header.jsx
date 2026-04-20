@@ -137,19 +137,27 @@ export default function Header() {
                                 }}
                                 onClick={() => setShowUserDropdown(false)}
                             />
-                            <div className="user-dropdown">
-                                <div className="user-dropdown-item" style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                    <User size={16} />
-                                    <div>
-                                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.username}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
+                                <div className="user-dropdown">
+                                    <div 
+                                        className="user-dropdown-item" 
+                                        style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+                                        onClick={() => { navigate('/profile'); setShowUserDropdown(false) }}
+                                    >
+                                        <User size={16} />
+                                        <div>
+                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user?.full_name || user?.username}</div>
+                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
+                                        </div>
+                                    </div>
+                                    <div className="user-dropdown-item" onClick={() => { navigate('/profile'); setShowUserDropdown(false) }}>
+                                        <Settings size={16} />
+                                        <span>Profil Ayarları</span>
+                                    </div>
+                                    <div className="user-dropdown-item danger" onClick={logout}>
+                                        <LogOut size={16} />
+                                        <span>Çıkış Yap</span>
                                     </div>
                                 </div>
-                                <div className="user-dropdown-item danger" onClick={logout}>
-                                    <LogOut size={16} />
-                                    <span>Çıkış Yap</span>
-                                </div>
-                            </div>
                         </>
                     )}
                 </div>

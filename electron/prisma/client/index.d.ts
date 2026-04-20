@@ -89,11 +89,6 @@ export type maintenances = $Result.DefaultSelection<Prisma.$maintenancesPayload>
  */
 export type meal_settings = $Result.DefaultSelection<Prisma.$meal_settingsPayload>
 /**
- * Model hr_settings
- * 
- */
-export type hr_settings = $Result.DefaultSelection<Prisma.$hr_settingsPayload>
-/**
  * Model meal_tickets
  * 
  */
@@ -419,16 +414,6 @@ export class PrismaClient<
     * ```
     */
   get meal_settings(): Prisma.meal_settingsDelegate<ExtArgs, ClientOptions>;
-
-  /**
-   * `prisma.hr_settings`: Exposes CRUD operations for the **hr_settings** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more Hr_settings
-    * const hr_settings = await prisma.hr_settings.findMany()
-    * ```
-    */
-  get hr_settings(): Prisma.hr_settingsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.meal_tickets`: Exposes CRUD operations for the **meal_tickets** model.
@@ -988,7 +973,6 @@ export namespace Prisma {
     leaves: 'leaves',
     maintenances: 'maintenances',
     meal_settings: 'meal_settings',
-    hr_settings: 'hr_settings',
     meal_tickets: 'meal_tickets',
     overtimes: 'overtimes',
     recurring_transactions: 'recurring_transactions',
@@ -1015,7 +999,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "hr_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2129,80 +2113,6 @@ export namespace Prisma {
           }
         }
       }
-      hr_settings: {
-        payload: Prisma.$hr_settingsPayload<ExtArgs>
-        fields: Prisma.hr_settingsFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.hr_settingsFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.hr_settingsFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>
-          }
-          findFirst: {
-            args: Prisma.hr_settingsFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.hr_settingsFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>
-          }
-          findMany: {
-            args: Prisma.hr_settingsFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>[]
-          }
-          create: {
-            args: Prisma.hr_settingsCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>
-          }
-          createMany: {
-            args: Prisma.hr_settingsCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.hr_settingsCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>[]
-          }
-          delete: {
-            args: Prisma.hr_settingsDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>
-          }
-          update: {
-            args: Prisma.hr_settingsUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>
-          }
-          deleteMany: {
-            args: Prisma.hr_settingsDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.hr_settingsUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateManyAndReturn: {
-            args: Prisma.hr_settingsUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>[]
-          }
-          upsert: {
-            args: Prisma.hr_settingsUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$hr_settingsPayload>
-          }
-          aggregate: {
-            args: Prisma.Hr_settingsAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateHr_settings>
-          }
-          groupBy: {
-            args: Prisma.hr_settingsGroupByArgs<ExtArgs>
-            result: $Utils.Optional<Hr_settingsGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.hr_settingsCountArgs<ExtArgs>
-            result: $Utils.Optional<Hr_settingsCountAggregateOutputType> | number
-          }
-        }
-      }
       meal_tickets: {
         payload: Prisma.$meal_ticketsPayload<ExtArgs>
         fields: Prisma.meal_ticketsFieldRefs
@@ -3140,7 +3050,6 @@ export namespace Prisma {
     leaves?: leavesOmit
     maintenances?: maintenancesOmit
     meal_settings?: meal_settingsOmit
-    hr_settings?: hr_settingsOmit
     meal_tickets?: meal_ticketsOmit
     overtimes?: overtimesOmit
     recurring_transactions?: recurring_transactionsOmit
@@ -5041,7 +4950,6 @@ export namespace Prisma {
     vehicles?: boolean | companies$vehiclesArgs<ExtArgs>
     works?: boolean | companies$worksArgs<ExtArgs>
     customers?: boolean | companies$customersArgs<ExtArgs>
-    hr_settings?: boolean | companies$hr_settingsArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
 
@@ -5088,7 +4996,6 @@ export namespace Prisma {
     vehicles?: boolean | companies$vehiclesArgs<ExtArgs>
     works?: boolean | companies$worksArgs<ExtArgs>
     customers?: boolean | companies$customersArgs<ExtArgs>
-    hr_settings?: boolean | companies$hr_settingsArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type companiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5110,7 +5017,6 @@ export namespace Prisma {
       vehicles: Prisma.$vehiclesPayload<ExtArgs>[]
       works: Prisma.$worksPayload<ExtArgs>[]
       customers: Prisma.$customersPayload<ExtArgs>[]
-      hr_settings: Prisma.$hr_settingsPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -5523,7 +5429,6 @@ export namespace Prisma {
     vehicles<T extends companies$vehiclesArgs<ExtArgs> = {}>(args?: Subset<T, companies$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehiclesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     works<T extends companies$worksArgs<ExtArgs> = {}>(args?: Subset<T, companies$worksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$worksPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     customers<T extends companies$customersArgs<ExtArgs> = {}>(args?: Subset<T, companies$customersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$customersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    hr_settings<T extends companies$hr_settingsArgs<ExtArgs> = {}>(args?: Subset<T, companies$hr_settingsArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6138,25 +6043,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CustomersScalarFieldEnum | CustomersScalarFieldEnum[]
-  }
-
-  /**
-   * companies.hr_settings
-   */
-  export type companies$hr_settingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    where?: hr_settingsWhereInput
   }
 
   /**
@@ -21640,1155 +21526,6 @@ export namespace Prisma {
 
 
   /**
-   * Model hr_settings
-   */
-
-  export type AggregateHr_settings = {
-    _count: Hr_settingsCountAggregateOutputType | null
-    _avg: Hr_settingsAvgAggregateOutputType | null
-    _sum: Hr_settingsSumAggregateOutputType | null
-    _min: Hr_settingsMinAggregateOutputType | null
-    _max: Hr_settingsMaxAggregateOutputType | null
-  }
-
-  export type Hr_settingsAvgAggregateOutputType = {
-    id: number | null
-    company_id: number | null
-    overtime_day_threshold: number | null
-    weekday_rate: number | null
-    weekend_rate: number | null
-    holiday_rate: number | null
-  }
-
-  export type Hr_settingsSumAggregateOutputType = {
-    id: number | null
-    company_id: number | null
-    overtime_day_threshold: number | null
-    weekday_rate: number | null
-    weekend_rate: number | null
-    holiday_rate: number | null
-  }
-
-  export type Hr_settingsMinAggregateOutputType = {
-    id: number | null
-    company_id: number | null
-    overtime_day_threshold: number | null
-    weekday_rate: number | null
-    weekend_rate: number | null
-    holiday_rate: number | null
-    created_at: Date | null
-    updated_at: Date | null
-  }
-
-  export type Hr_settingsMaxAggregateOutputType = {
-    id: number | null
-    company_id: number | null
-    overtime_day_threshold: number | null
-    weekday_rate: number | null
-    weekend_rate: number | null
-    holiday_rate: number | null
-    created_at: Date | null
-    updated_at: Date | null
-  }
-
-  export type Hr_settingsCountAggregateOutputType = {
-    id: number
-    company_id: number
-    overtime_day_threshold: number
-    weekday_rate: number
-    weekend_rate: number
-    holiday_rate: number
-    created_at: number
-    updated_at: number
-    _all: number
-  }
-
-
-  export type Hr_settingsAvgAggregateInputType = {
-    id?: true
-    company_id?: true
-    overtime_day_threshold?: true
-    weekday_rate?: true
-    weekend_rate?: true
-    holiday_rate?: true
-  }
-
-  export type Hr_settingsSumAggregateInputType = {
-    id?: true
-    company_id?: true
-    overtime_day_threshold?: true
-    weekday_rate?: true
-    weekend_rate?: true
-    holiday_rate?: true
-  }
-
-  export type Hr_settingsMinAggregateInputType = {
-    id?: true
-    company_id?: true
-    overtime_day_threshold?: true
-    weekday_rate?: true
-    weekend_rate?: true
-    holiday_rate?: true
-    created_at?: true
-    updated_at?: true
-  }
-
-  export type Hr_settingsMaxAggregateInputType = {
-    id?: true
-    company_id?: true
-    overtime_day_threshold?: true
-    weekday_rate?: true
-    weekend_rate?: true
-    holiday_rate?: true
-    created_at?: true
-    updated_at?: true
-  }
-
-  export type Hr_settingsCountAggregateInputType = {
-    id?: true
-    company_id?: true
-    overtime_day_threshold?: true
-    weekday_rate?: true
-    weekend_rate?: true
-    holiday_rate?: true
-    created_at?: true
-    updated_at?: true
-    _all?: true
-  }
-
-  export type Hr_settingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which hr_settings to aggregate.
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of hr_settings to fetch.
-     */
-    orderBy?: hr_settingsOrderByWithRelationInput | hr_settingsOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: hr_settingsWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` hr_settings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` hr_settings.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned hr_settings
-    **/
-    _count?: true | Hr_settingsCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to average
-    **/
-    _avg?: Hr_settingsAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: Hr_settingsSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: Hr_settingsMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: Hr_settingsMaxAggregateInputType
-  }
-
-  export type GetHr_settingsAggregateType<T extends Hr_settingsAggregateArgs> = {
-        [P in keyof T & keyof AggregateHr_settings]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateHr_settings[P]>
-      : GetScalarType<T[P], AggregateHr_settings[P]>
-  }
-
-
-
-
-  export type hr_settingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: hr_settingsWhereInput
-    orderBy?: hr_settingsOrderByWithAggregationInput | hr_settingsOrderByWithAggregationInput[]
-    by: Hr_settingsScalarFieldEnum[] | Hr_settingsScalarFieldEnum
-    having?: hr_settingsScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: Hr_settingsCountAggregateInputType | true
-    _avg?: Hr_settingsAvgAggregateInputType
-    _sum?: Hr_settingsSumAggregateInputType
-    _min?: Hr_settingsMinAggregateInputType
-    _max?: Hr_settingsMaxAggregateInputType
-  }
-
-  export type Hr_settingsGroupByOutputType = {
-    id: number
-    company_id: number
-    overtime_day_threshold: number | null
-    weekday_rate: number | null
-    weekend_rate: number | null
-    holiday_rate: number | null
-    created_at: Date | null
-    updated_at: Date | null
-    _count: Hr_settingsCountAggregateOutputType | null
-    _avg: Hr_settingsAvgAggregateOutputType | null
-    _sum: Hr_settingsSumAggregateOutputType | null
-    _min: Hr_settingsMinAggregateOutputType | null
-    _max: Hr_settingsMaxAggregateOutputType | null
-  }
-
-  type GetHr_settingsGroupByPayload<T extends hr_settingsGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<Hr_settingsGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof Hr_settingsGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], Hr_settingsGroupByOutputType[P]>
-            : GetScalarType<T[P], Hr_settingsGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type hr_settingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    company_id?: boolean
-    overtime_day_threshold?: boolean
-    weekday_rate?: boolean
-    weekend_rate?: boolean
-    holiday_rate?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    companies?: boolean | companiesDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["hr_settings"]>
-
-  export type hr_settingsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    company_id?: boolean
-    overtime_day_threshold?: boolean
-    weekday_rate?: boolean
-    weekend_rate?: boolean
-    holiday_rate?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    companies?: boolean | companiesDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["hr_settings"]>
-
-  export type hr_settingsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    company_id?: boolean
-    overtime_day_threshold?: boolean
-    weekday_rate?: boolean
-    weekend_rate?: boolean
-    holiday_rate?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    companies?: boolean | companiesDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["hr_settings"]>
-
-  export type hr_settingsSelectScalar = {
-    id?: boolean
-    company_id?: boolean
-    overtime_day_threshold?: boolean
-    weekday_rate?: boolean
-    weekend_rate?: boolean
-    holiday_rate?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }
-
-  export type hr_settingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "overtime_day_threshold" | "weekday_rate" | "weekend_rate" | "holiday_rate" | "created_at" | "updated_at", ExtArgs["result"]["hr_settings"]>
-  export type hr_settingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    companies?: boolean | companiesDefaultArgs<ExtArgs>
-  }
-  export type hr_settingsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    companies?: boolean | companiesDefaultArgs<ExtArgs>
-  }
-  export type hr_settingsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    companies?: boolean | companiesDefaultArgs<ExtArgs>
-  }
-
-  export type $hr_settingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "hr_settings"
-    objects: {
-      companies: Prisma.$companiesPayload<ExtArgs>
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      id: number
-      company_id: number
-      overtime_day_threshold: number | null
-      weekday_rate: number | null
-      weekend_rate: number | null
-      holiday_rate: number | null
-      created_at: Date | null
-      updated_at: Date | null
-    }, ExtArgs["result"]["hr_settings"]>
-    composites: {}
-  }
-
-  type hr_settingsGetPayload<S extends boolean | null | undefined | hr_settingsDefaultArgs> = $Result.GetResult<Prisma.$hr_settingsPayload, S>
-
-  type hr_settingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<hr_settingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: Hr_settingsCountAggregateInputType | true
-    }
-
-  export interface hr_settingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['hr_settings'], meta: { name: 'hr_settings' } }
-    /**
-     * Find zero or one Hr_settings that matches the filter.
-     * @param {hr_settingsFindUniqueArgs} args - Arguments to find a Hr_settings
-     * @example
-     * // Get one Hr_settings
-     * const hr_settings = await prisma.hr_settings.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends hr_settingsFindUniqueArgs>(args: SelectSubset<T, hr_settingsFindUniqueArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find one Hr_settings that matches the filter or throw an error with `error.code='P2025'`
-     * if no matches were found.
-     * @param {hr_settingsFindUniqueOrThrowArgs} args - Arguments to find a Hr_settings
-     * @example
-     * // Get one Hr_settings
-     * const hr_settings = await prisma.hr_settings.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends hr_settingsFindUniqueOrThrowArgs>(args: SelectSubset<T, hr_settingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first Hr_settings that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {hr_settingsFindFirstArgs} args - Arguments to find a Hr_settings
-     * @example
-     * // Get one Hr_settings
-     * const hr_settings = await prisma.hr_settings.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends hr_settingsFindFirstArgs>(args?: SelectSubset<T, hr_settingsFindFirstArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first Hr_settings that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {hr_settingsFindFirstOrThrowArgs} args - Arguments to find a Hr_settings
-     * @example
-     * // Get one Hr_settings
-     * const hr_settings = await prisma.hr_settings.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends hr_settingsFindFirstOrThrowArgs>(args?: SelectSubset<T, hr_settingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find zero or more Hr_settings that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {hr_settingsFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all Hr_settings
-     * const hr_settings = await prisma.hr_settings.findMany()
-     * 
-     * // Get first 10 Hr_settings
-     * const hr_settings = await prisma.hr_settings.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const hr_settingsWithIdOnly = await prisma.hr_settings.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends hr_settingsFindManyArgs>(args?: SelectSubset<T, hr_settingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
-
-    /**
-     * Create a Hr_settings.
-     * @param {hr_settingsCreateArgs} args - Arguments to create a Hr_settings.
-     * @example
-     * // Create one Hr_settings
-     * const Hr_settings = await prisma.hr_settings.create({
-     *   data: {
-     *     // ... data to create a Hr_settings
-     *   }
-     * })
-     * 
-     */
-    create<T extends hr_settingsCreateArgs>(args: SelectSubset<T, hr_settingsCreateArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Create many Hr_settings.
-     * @param {hr_settingsCreateManyArgs} args - Arguments to create many Hr_settings.
-     * @example
-     * // Create many Hr_settings
-     * const hr_settings = await prisma.hr_settings.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends hr_settingsCreateManyArgs>(args?: SelectSubset<T, hr_settingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many Hr_settings and returns the data saved in the database.
-     * @param {hr_settingsCreateManyAndReturnArgs} args - Arguments to create many Hr_settings.
-     * @example
-     * // Create many Hr_settings
-     * const hr_settings = await prisma.hr_settings.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Hr_settings and only return the `id`
-     * const hr_settingsWithIdOnly = await prisma.hr_settings.createManyAndReturn({
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends hr_settingsCreateManyAndReturnArgs>(args?: SelectSubset<T, hr_settingsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Delete a Hr_settings.
-     * @param {hr_settingsDeleteArgs} args - Arguments to delete one Hr_settings.
-     * @example
-     * // Delete one Hr_settings
-     * const Hr_settings = await prisma.hr_settings.delete({
-     *   where: {
-     *     // ... filter to delete one Hr_settings
-     *   }
-     * })
-     * 
-     */
-    delete<T extends hr_settingsDeleteArgs>(args: SelectSubset<T, hr_settingsDeleteArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Update one Hr_settings.
-     * @param {hr_settingsUpdateArgs} args - Arguments to update one Hr_settings.
-     * @example
-     * // Update one Hr_settings
-     * const hr_settings = await prisma.hr_settings.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends hr_settingsUpdateArgs>(args: SelectSubset<T, hr_settingsUpdateArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Delete zero or more Hr_settings.
-     * @param {hr_settingsDeleteManyArgs} args - Arguments to filter Hr_settings to delete.
-     * @example
-     * // Delete a few Hr_settings
-     * const { count } = await prisma.hr_settings.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends hr_settingsDeleteManyArgs>(args?: SelectSubset<T, hr_settingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Hr_settings.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {hr_settingsUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many Hr_settings
-     * const hr_settings = await prisma.hr_settings.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends hr_settingsUpdateManyArgs>(args: SelectSubset<T, hr_settingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Hr_settings and returns the data updated in the database.
-     * @param {hr_settingsUpdateManyAndReturnArgs} args - Arguments to update many Hr_settings.
-     * @example
-     * // Update many Hr_settings
-     * const hr_settings = await prisma.hr_settings.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more Hr_settings and only return the `id`
-     * const hr_settingsWithIdOnly = await prisma.hr_settings.updateManyAndReturn({
-     *   select: { id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends hr_settingsUpdateManyAndReturnArgs>(args: SelectSubset<T, hr_settingsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Create or update one Hr_settings.
-     * @param {hr_settingsUpsertArgs} args - Arguments to update or create a Hr_settings.
-     * @example
-     * // Update or create a Hr_settings
-     * const hr_settings = await prisma.hr_settings.upsert({
-     *   create: {
-     *     // ... data to create a Hr_settings
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the Hr_settings we want to update
-     *   }
-     * })
-     */
-    upsert<T extends hr_settingsUpsertArgs>(args: SelectSubset<T, hr_settingsUpsertArgs<ExtArgs>>): Prisma__hr_settingsClient<$Result.GetResult<Prisma.$hr_settingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-
-    /**
-     * Count the number of Hr_settings.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {hr_settingsCountArgs} args - Arguments to filter Hr_settings to count.
-     * @example
-     * // Count the number of Hr_settings
-     * const count = await prisma.hr_settings.count({
-     *   where: {
-     *     // ... the filter for the Hr_settings we want to count
-     *   }
-     * })
-    **/
-    count<T extends hr_settingsCountArgs>(
-      args?: Subset<T, hr_settingsCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], Hr_settingsCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a Hr_settings.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {Hr_settingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends Hr_settingsAggregateArgs>(args: Subset<T, Hr_settingsAggregateArgs>): Prisma.PrismaPromise<GetHr_settingsAggregateType<T>>
-
-    /**
-     * Group by Hr_settings.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {hr_settingsGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends hr_settingsGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: hr_settingsGroupByArgs['orderBy'] }
-        : { orderBy?: hr_settingsGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, hr_settingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetHr_settingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the hr_settings model
-   */
-  readonly fields: hr_settingsFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for hr_settings.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__hr_settingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the hr_settings model
-   */
-  interface hr_settingsFieldRefs {
-    readonly id: FieldRef<"hr_settings", 'Int'>
-    readonly company_id: FieldRef<"hr_settings", 'Int'>
-    readonly overtime_day_threshold: FieldRef<"hr_settings", 'Float'>
-    readonly weekday_rate: FieldRef<"hr_settings", 'Float'>
-    readonly weekend_rate: FieldRef<"hr_settings", 'Float'>
-    readonly holiday_rate: FieldRef<"hr_settings", 'Float'>
-    readonly created_at: FieldRef<"hr_settings", 'DateTime'>
-    readonly updated_at: FieldRef<"hr_settings", 'DateTime'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * hr_settings findUnique
-   */
-  export type hr_settingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * Filter, which hr_settings to fetch.
-     */
-    where: hr_settingsWhereUniqueInput
-  }
-
-  /**
-   * hr_settings findUniqueOrThrow
-   */
-  export type hr_settingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * Filter, which hr_settings to fetch.
-     */
-    where: hr_settingsWhereUniqueInput
-  }
-
-  /**
-   * hr_settings findFirst
-   */
-  export type hr_settingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * Filter, which hr_settings to fetch.
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of hr_settings to fetch.
-     */
-    orderBy?: hr_settingsOrderByWithRelationInput | hr_settingsOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for hr_settings.
-     */
-    cursor?: hr_settingsWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` hr_settings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` hr_settings.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of hr_settings.
-     */
-    distinct?: Hr_settingsScalarFieldEnum | Hr_settingsScalarFieldEnum[]
-  }
-
-  /**
-   * hr_settings findFirstOrThrow
-   */
-  export type hr_settingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * Filter, which hr_settings to fetch.
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of hr_settings to fetch.
-     */
-    orderBy?: hr_settingsOrderByWithRelationInput | hr_settingsOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for hr_settings.
-     */
-    cursor?: hr_settingsWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` hr_settings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` hr_settings.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of hr_settings.
-     */
-    distinct?: Hr_settingsScalarFieldEnum | Hr_settingsScalarFieldEnum[]
-  }
-
-  /**
-   * hr_settings findMany
-   */
-  export type hr_settingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * Filter, which hr_settings to fetch.
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of hr_settings to fetch.
-     */
-    orderBy?: hr_settingsOrderByWithRelationInput | hr_settingsOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing hr_settings.
-     */
-    cursor?: hr_settingsWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` hr_settings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` hr_settings.
-     */
-    skip?: number
-    distinct?: Hr_settingsScalarFieldEnum | Hr_settingsScalarFieldEnum[]
-  }
-
-  /**
-   * hr_settings create
-   */
-  export type hr_settingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * The data needed to create a hr_settings.
-     */
-    data: XOR<hr_settingsCreateInput, hr_settingsUncheckedCreateInput>
-  }
-
-  /**
-   * hr_settings createMany
-   */
-  export type hr_settingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many hr_settings.
-     */
-    data: hr_settingsCreateManyInput | hr_settingsCreateManyInput[]
-  }
-
-  /**
-   * hr_settings createManyAndReturn
-   */
-  export type hr_settingsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * The data used to create many hr_settings.
-     */
-    data: hr_settingsCreateManyInput | hr_settingsCreateManyInput[]
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * hr_settings update
-   */
-  export type hr_settingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * The data needed to update a hr_settings.
-     */
-    data: XOR<hr_settingsUpdateInput, hr_settingsUncheckedUpdateInput>
-    /**
-     * Choose, which hr_settings to update.
-     */
-    where: hr_settingsWhereUniqueInput
-  }
-
-  /**
-   * hr_settings updateMany
-   */
-  export type hr_settingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update hr_settings.
-     */
-    data: XOR<hr_settingsUpdateManyMutationInput, hr_settingsUncheckedUpdateManyInput>
-    /**
-     * Filter which hr_settings to update
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * Limit how many hr_settings to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * hr_settings updateManyAndReturn
-   */
-  export type hr_settingsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * The data used to update hr_settings.
-     */
-    data: XOR<hr_settingsUpdateManyMutationInput, hr_settingsUncheckedUpdateManyInput>
-    /**
-     * Filter which hr_settings to update
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * Limit how many hr_settings to update.
-     */
-    limit?: number
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsIncludeUpdateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * hr_settings upsert
-   */
-  export type hr_settingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * The filter to search for the hr_settings to update in case it exists.
-     */
-    where: hr_settingsWhereUniqueInput
-    /**
-     * In case the hr_settings found by the `where` argument doesn't exist, create a new hr_settings with this data.
-     */
-    create: XOR<hr_settingsCreateInput, hr_settingsUncheckedCreateInput>
-    /**
-     * In case the hr_settings was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<hr_settingsUpdateInput, hr_settingsUncheckedUpdateInput>
-  }
-
-  /**
-   * hr_settings delete
-   */
-  export type hr_settingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-    /**
-     * Filter which hr_settings to delete.
-     */
-    where: hr_settingsWhereUniqueInput
-  }
-
-  /**
-   * hr_settings deleteMany
-   */
-  export type hr_settingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which hr_settings to delete
-     */
-    where?: hr_settingsWhereInput
-    /**
-     * Limit how many hr_settings to delete.
-     */
-    limit?: number
-  }
-
-  /**
-   * hr_settings without action
-   */
-  export type hr_settingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the hr_settings
-     */
-    select?: hr_settingsSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the hr_settings
-     */
-    omit?: hr_settingsOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: hr_settingsInclude<ExtArgs> | null
-  }
-
-
-  /**
    * Model meal_tickets
    */
 
@@ -23934,8 +22671,6 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
-    use_as_leave: number | null
-    coefficient: number | null
     is_archived: number | null
   }
 
@@ -23945,8 +22680,6 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
-    use_as_leave: number | null
-    coefficient: number | null
     is_archived: number | null
   }
 
@@ -23957,8 +22690,6 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
-    use_as_leave: number | null
-    coefficient: number | null
     notes: string | null
     created_at: Date | null
     is_archived: number | null
@@ -23971,8 +22702,6 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
-    use_as_leave: number | null
-    coefficient: number | null
     notes: string | null
     created_at: Date | null
     is_archived: number | null
@@ -23985,8 +22714,6 @@ export namespace Prisma {
     hours: number
     rate: number
     amount: number
-    use_as_leave: number
-    coefficient: number
     notes: number
     created_at: number
     is_archived: number
@@ -24000,8 +22727,6 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
-    use_as_leave?: true
-    coefficient?: true
     is_archived?: true
   }
 
@@ -24011,8 +22736,6 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
-    use_as_leave?: true
-    coefficient?: true
     is_archived?: true
   }
 
@@ -24023,8 +22746,6 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
-    use_as_leave?: true
-    coefficient?: true
     notes?: true
     created_at?: true
     is_archived?: true
@@ -24037,8 +22758,6 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
-    use_as_leave?: true
-    coefficient?: true
     notes?: true
     created_at?: true
     is_archived?: true
@@ -24051,8 +22770,6 @@ export namespace Prisma {
     hours?: true
     rate?: true
     amount?: true
-    use_as_leave?: true
-    coefficient?: true
     notes?: true
     created_at?: true
     is_archived?: true
@@ -24152,8 +22869,6 @@ export namespace Prisma {
     hours: number | null
     rate: number | null
     amount: number | null
-    use_as_leave: number | null
-    coefficient: number | null
     notes: string | null
     created_at: Date | null
     is_archived: number | null
@@ -24185,8 +22900,6 @@ export namespace Prisma {
     hours?: boolean
     rate?: boolean
     amount?: boolean
-    use_as_leave?: boolean
-    coefficient?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
@@ -24200,8 +22913,6 @@ export namespace Prisma {
     hours?: boolean
     rate?: boolean
     amount?: boolean
-    use_as_leave?: boolean
-    coefficient?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
@@ -24215,8 +22926,6 @@ export namespace Prisma {
     hours?: boolean
     rate?: boolean
     amount?: boolean
-    use_as_leave?: boolean
-    coefficient?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
@@ -24230,14 +22939,12 @@ export namespace Prisma {
     hours?: boolean
     rate?: boolean
     amount?: boolean
-    use_as_leave?: boolean
-    coefficient?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
   }
 
-  export type overtimesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "date" | "hours" | "rate" | "amount" | "use_as_leave" | "coefficient" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["overtimes"]>
+  export type overtimesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "date" | "hours" | "rate" | "amount" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["overtimes"]>
   export type overtimesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -24260,8 +22967,6 @@ export namespace Prisma {
       hours: number | null
       rate: number | null
       amount: number | null
-      use_as_leave: number | null
-      coefficient: number | null
       notes: string | null
       created_at: Date | null
       is_archived: number | null
@@ -24695,8 +23400,6 @@ export namespace Prisma {
     readonly hours: FieldRef<"overtimes", 'Float'>
     readonly rate: FieldRef<"overtimes", 'Float'>
     readonly amount: FieldRef<"overtimes", 'Float'>
-    readonly use_as_leave: FieldRef<"overtimes", 'Int'>
-    readonly coefficient: FieldRef<"overtimes", 'Float'>
     readonly notes: FieldRef<"overtimes", 'String'>
     readonly created_at: FieldRef<"overtimes", 'DateTime'>
     readonly is_archived: FieldRef<"overtimes", 'Int'>
@@ -30983,6 +29686,7 @@ export namespace Prisma {
     id: number | null
     username: string | null
     email: string | null
+    full_name: string | null
     password_hash: string | null
     created_at: Date | null
     must_change_password: number | null
@@ -30992,6 +29696,7 @@ export namespace Prisma {
     id: number | null
     username: string | null
     email: string | null
+    full_name: string | null
     password_hash: string | null
     created_at: Date | null
     must_change_password: number | null
@@ -31001,6 +29706,7 @@ export namespace Prisma {
     id: number
     username: number
     email: number
+    full_name: number
     password_hash: number
     created_at: number
     must_change_password: number
@@ -31022,6 +29728,7 @@ export namespace Prisma {
     id?: true
     username?: true
     email?: true
+    full_name?: true
     password_hash?: true
     created_at?: true
     must_change_password?: true
@@ -31031,6 +29738,7 @@ export namespace Prisma {
     id?: true
     username?: true
     email?: true
+    full_name?: true
     password_hash?: true
     created_at?: true
     must_change_password?: true
@@ -31040,6 +29748,7 @@ export namespace Prisma {
     id?: true
     username?: true
     email?: true
+    full_name?: true
     password_hash?: true
     created_at?: true
     must_change_password?: true
@@ -31136,6 +29845,7 @@ export namespace Prisma {
     id: number
     username: string
     email: string
+    full_name: string | null
     password_hash: string
     created_at: Date | null
     must_change_password: number | null
@@ -31164,6 +29874,7 @@ export namespace Prisma {
     id?: boolean
     username?: boolean
     email?: boolean
+    full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
     must_change_password?: boolean
@@ -31175,6 +29886,7 @@ export namespace Prisma {
     id?: boolean
     username?: boolean
     email?: boolean
+    full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
     must_change_password?: boolean
@@ -31184,6 +29896,7 @@ export namespace Prisma {
     id?: boolean
     username?: boolean
     email?: boolean
+    full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
     must_change_password?: boolean
@@ -31193,12 +29906,13 @@ export namespace Prisma {
     id?: boolean
     username?: boolean
     email?: boolean
+    full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
     must_change_password?: boolean
   }
 
-  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "password_hash" | "created_at" | "must_change_password", ExtArgs["result"]["users"]>
+  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "full_name" | "password_hash" | "created_at" | "must_change_password", ExtArgs["result"]["users"]>
   export type usersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | users$companiesArgs<ExtArgs>
     _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
@@ -31215,6 +29929,7 @@ export namespace Prisma {
       id: number
       username: string
       email: string
+      full_name: string | null
       password_hash: string
       created_at: Date | null
       must_change_password: number | null
@@ -31645,6 +30360,7 @@ export namespace Prisma {
     readonly id: FieldRef<"users", 'Int'>
     readonly username: FieldRef<"users", 'String'>
     readonly email: FieldRef<"users", 'String'>
+    readonly full_name: FieldRef<"users", 'String'>
     readonly password_hash: FieldRef<"users", 'String'>
     readonly created_at: FieldRef<"users", 'DateTime'>
     readonly must_change_password: FieldRef<"users", 'Int'>
@@ -36451,20 +35167,6 @@ export namespace Prisma {
   export type Meal_settingsScalarFieldEnum = (typeof Meal_settingsScalarFieldEnum)[keyof typeof Meal_settingsScalarFieldEnum]
 
 
-  export const Hr_settingsScalarFieldEnum: {
-    id: 'id',
-    company_id: 'company_id',
-    overtime_day_threshold: 'overtime_day_threshold',
-    weekday_rate: 'weekday_rate',
-    weekend_rate: 'weekend_rate',
-    holiday_rate: 'holiday_rate',
-    created_at: 'created_at',
-    updated_at: 'updated_at'
-  };
-
-  export type Hr_settingsScalarFieldEnum = (typeof Hr_settingsScalarFieldEnum)[keyof typeof Hr_settingsScalarFieldEnum]
-
-
   export const Meal_ticketsScalarFieldEnum: {
     id: 'id',
     company_id: 'company_id',
@@ -36485,8 +35187,6 @@ export namespace Prisma {
     hours: 'hours',
     rate: 'rate',
     amount: 'amount',
-    use_as_leave: 'use_as_leave',
-    coefficient: 'coefficient',
     notes: 'notes',
     created_at: 'created_at',
     is_archived: 'is_archived'
@@ -36584,6 +35284,7 @@ export namespace Prisma {
     id: 'id',
     username: 'username',
     email: 'email',
+    full_name: 'full_name',
     password_hash: 'password_hash',
     created_at: 'created_at',
     must_change_password: 'must_change_password'
@@ -36814,7 +35515,6 @@ export namespace Prisma {
     vehicles?: VehiclesListRelationFilter
     works?: WorksListRelationFilter
     customers?: CustomersListRelationFilter
-    hr_settings?: XOR<Hr_settingsNullableScalarRelationFilter, hr_settingsWhereInput> | null
   }
 
   export type companiesOrderByWithRelationInput = {
@@ -36834,7 +35534,6 @@ export namespace Prisma {
     vehicles?: vehiclesOrderByRelationAggregateInput
     works?: worksOrderByRelationAggregateInput
     customers?: customersOrderByRelationAggregateInput
-    hr_settings?: hr_settingsOrderByWithRelationInput
   }
 
   export type companiesWhereUniqueInput = Prisma.AtLeast<{
@@ -36857,7 +35556,6 @@ export namespace Prisma {
     vehicles?: VehiclesListRelationFilter
     works?: WorksListRelationFilter
     customers?: CustomersListRelationFilter
-    hr_settings?: XOR<Hr_settingsNullableScalarRelationFilter, hr_settingsWhereInput> | null
   }, "id">
 
   export type companiesOrderByWithAggregationInput = {
@@ -37983,78 +36681,6 @@ export namespace Prisma {
     is_archived?: IntNullableWithAggregatesFilter<"meal_settings"> | number | null
   }
 
-  export type hr_settingsWhereInput = {
-    AND?: hr_settingsWhereInput | hr_settingsWhereInput[]
-    OR?: hr_settingsWhereInput[]
-    NOT?: hr_settingsWhereInput | hr_settingsWhereInput[]
-    id?: IntFilter<"hr_settings"> | number
-    company_id?: IntFilter<"hr_settings"> | number
-    overtime_day_threshold?: FloatNullableFilter<"hr_settings"> | number | null
-    weekday_rate?: FloatNullableFilter<"hr_settings"> | number | null
-    weekend_rate?: FloatNullableFilter<"hr_settings"> | number | null
-    holiday_rate?: FloatNullableFilter<"hr_settings"> | number | null
-    created_at?: DateTimeNullableFilter<"hr_settings"> | Date | string | null
-    updated_at?: DateTimeNullableFilter<"hr_settings"> | Date | string | null
-    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
-  }
-
-  export type hr_settingsOrderByWithRelationInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrderInput | SortOrder
-    weekday_rate?: SortOrderInput | SortOrder
-    weekend_rate?: SortOrderInput | SortOrder
-    holiday_rate?: SortOrderInput | SortOrder
-    created_at?: SortOrderInput | SortOrder
-    updated_at?: SortOrderInput | SortOrder
-    companies?: companiesOrderByWithRelationInput
-  }
-
-  export type hr_settingsWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
-    company_id?: number
-    AND?: hr_settingsWhereInput | hr_settingsWhereInput[]
-    OR?: hr_settingsWhereInput[]
-    NOT?: hr_settingsWhereInput | hr_settingsWhereInput[]
-    overtime_day_threshold?: FloatNullableFilter<"hr_settings"> | number | null
-    weekday_rate?: FloatNullableFilter<"hr_settings"> | number | null
-    weekend_rate?: FloatNullableFilter<"hr_settings"> | number | null
-    holiday_rate?: FloatNullableFilter<"hr_settings"> | number | null
-    created_at?: DateTimeNullableFilter<"hr_settings"> | Date | string | null
-    updated_at?: DateTimeNullableFilter<"hr_settings"> | Date | string | null
-    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
-  }, "id" | "company_id">
-
-  export type hr_settingsOrderByWithAggregationInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrderInput | SortOrder
-    weekday_rate?: SortOrderInput | SortOrder
-    weekend_rate?: SortOrderInput | SortOrder
-    holiday_rate?: SortOrderInput | SortOrder
-    created_at?: SortOrderInput | SortOrder
-    updated_at?: SortOrderInput | SortOrder
-    _count?: hr_settingsCountOrderByAggregateInput
-    _avg?: hr_settingsAvgOrderByAggregateInput
-    _max?: hr_settingsMaxOrderByAggregateInput
-    _min?: hr_settingsMinOrderByAggregateInput
-    _sum?: hr_settingsSumOrderByAggregateInput
-  }
-
-  export type hr_settingsScalarWhereWithAggregatesInput = {
-    AND?: hr_settingsScalarWhereWithAggregatesInput | hr_settingsScalarWhereWithAggregatesInput[]
-    OR?: hr_settingsScalarWhereWithAggregatesInput[]
-    NOT?: hr_settingsScalarWhereWithAggregatesInput | hr_settingsScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"hr_settings"> | number
-    company_id?: IntWithAggregatesFilter<"hr_settings"> | number
-    overtime_day_threshold?: FloatNullableWithAggregatesFilter<"hr_settings"> | number | null
-    weekday_rate?: FloatNullableWithAggregatesFilter<"hr_settings"> | number | null
-    weekend_rate?: FloatNullableWithAggregatesFilter<"hr_settings"> | number | null
-    holiday_rate?: FloatNullableWithAggregatesFilter<"hr_settings"> | number | null
-    created_at?: DateTimeNullableWithAggregatesFilter<"hr_settings"> | Date | string | null
-    updated_at?: DateTimeNullableWithAggregatesFilter<"hr_settings"> | Date | string | null
-  }
-
   export type meal_ticketsWhereInput = {
     AND?: meal_ticketsWhereInput | meal_ticketsWhereInput[]
     OR?: meal_ticketsWhereInput[]
@@ -38132,8 +36758,6 @@ export namespace Prisma {
     hours?: FloatNullableFilter<"overtimes"> | number | null
     rate?: FloatNullableFilter<"overtimes"> | number | null
     amount?: FloatNullableFilter<"overtimes"> | number | null
-    use_as_leave?: IntNullableFilter<"overtimes"> | number | null
-    coefficient?: FloatNullableFilter<"overtimes"> | number | null
     notes?: StringNullableFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableFilter<"overtimes"> | Date | string | null
     is_archived?: IntNullableFilter<"overtimes"> | number | null
@@ -38147,8 +36771,6 @@ export namespace Prisma {
     hours?: SortOrderInput | SortOrder
     rate?: SortOrderInput | SortOrder
     amount?: SortOrderInput | SortOrder
-    use_as_leave?: SortOrderInput | SortOrder
-    coefficient?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
@@ -38165,8 +36787,6 @@ export namespace Prisma {
     hours?: FloatNullableFilter<"overtimes"> | number | null
     rate?: FloatNullableFilter<"overtimes"> | number | null
     amount?: FloatNullableFilter<"overtimes"> | number | null
-    use_as_leave?: IntNullableFilter<"overtimes"> | number | null
-    coefficient?: FloatNullableFilter<"overtimes"> | number | null
     notes?: StringNullableFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableFilter<"overtimes"> | Date | string | null
     is_archived?: IntNullableFilter<"overtimes"> | number | null
@@ -38180,8 +36800,6 @@ export namespace Prisma {
     hours?: SortOrderInput | SortOrder
     rate?: SortOrderInput | SortOrder
     amount?: SortOrderInput | SortOrder
-    use_as_leave?: SortOrderInput | SortOrder
-    coefficient?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
@@ -38202,8 +36820,6 @@ export namespace Prisma {
     hours?: FloatNullableWithAggregatesFilter<"overtimes"> | number | null
     rate?: FloatNullableWithAggregatesFilter<"overtimes"> | number | null
     amount?: FloatNullableWithAggregatesFilter<"overtimes"> | number | null
-    use_as_leave?: IntNullableWithAggregatesFilter<"overtimes"> | number | null
-    coefficient?: FloatNullableWithAggregatesFilter<"overtimes"> | number | null
     notes?: StringNullableWithAggregatesFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"overtimes"> | Date | string | null
     is_archived?: IntNullableWithAggregatesFilter<"overtimes"> | number | null
@@ -38648,6 +37264,7 @@ export namespace Prisma {
     id?: IntFilter<"users"> | number
     username?: StringFilter<"users"> | string
     email?: StringFilter<"users"> | string
+    full_name?: StringNullableFilter<"users"> | string | null
     password_hash?: StringFilter<"users"> | string
     created_at?: DateTimeNullableFilter<"users"> | Date | string | null
     must_change_password?: IntNullableFilter<"users"> | number | null
@@ -38658,6 +37275,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     email?: SortOrder
+    full_name?: SortOrderInput | SortOrder
     password_hash?: SortOrder
     created_at?: SortOrderInput | SortOrder
     must_change_password?: SortOrderInput | SortOrder
@@ -38671,6 +37289,7 @@ export namespace Prisma {
     AND?: usersWhereInput | usersWhereInput[]
     OR?: usersWhereInput[]
     NOT?: usersWhereInput | usersWhereInput[]
+    full_name?: StringNullableFilter<"users"> | string | null
     password_hash?: StringFilter<"users"> | string
     created_at?: DateTimeNullableFilter<"users"> | Date | string | null
     must_change_password?: IntNullableFilter<"users"> | number | null
@@ -38681,6 +37300,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     email?: SortOrder
+    full_name?: SortOrderInput | SortOrder
     password_hash?: SortOrder
     created_at?: SortOrderInput | SortOrder
     must_change_password?: SortOrderInput | SortOrder
@@ -38698,6 +37318,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"users"> | number
     username?: StringWithAggregatesFilter<"users"> | string
     email?: StringWithAggregatesFilter<"users"> | string
+    full_name?: StringNullableWithAggregatesFilter<"users"> | string | null
     password_hash?: StringWithAggregatesFilter<"users"> | string
     created_at?: DateTimeNullableWithAggregatesFilter<"users"> | Date | string | null
     must_change_password?: IntNullableWithAggregatesFilter<"users"> | number | null
@@ -39175,7 +37796,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateInput = {
@@ -39194,7 +37814,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUpdateInput = {
@@ -39212,7 +37831,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateInput = {
@@ -39231,7 +37849,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesCreateManyInput = {
@@ -40430,79 +39047,6 @@ export namespace Prisma {
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
-  export type hr_settingsCreateInput = {
-    overtime_day_threshold?: number | null
-    weekday_rate?: number | null
-    weekend_rate?: number | null
-    holiday_rate?: number | null
-    created_at?: Date | string | null
-    updated_at?: Date | string | null
-    companies: companiesCreateNestedOneWithoutHr_settingsInput
-  }
-
-  export type hr_settingsUncheckedCreateInput = {
-    id?: number
-    company_id: number
-    overtime_day_threshold?: number | null
-    weekday_rate?: number | null
-    weekend_rate?: number | null
-    holiday_rate?: number | null
-    created_at?: Date | string | null
-    updated_at?: Date | string | null
-  }
-
-  export type hr_settingsUpdateInput = {
-    overtime_day_threshold?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekend_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    holiday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    companies?: companiesUpdateOneRequiredWithoutHr_settingsNestedInput
-  }
-
-  export type hr_settingsUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    company_id?: IntFieldUpdateOperationsInput | number
-    overtime_day_threshold?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekend_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    holiday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type hr_settingsCreateManyInput = {
-    id?: number
-    company_id: number
-    overtime_day_threshold?: number | null
-    weekday_rate?: number | null
-    weekend_rate?: number | null
-    holiday_rate?: number | null
-    created_at?: Date | string | null
-    updated_at?: Date | string | null
-  }
-
-  export type hr_settingsUpdateManyMutationInput = {
-    overtime_day_threshold?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekend_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    holiday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type hr_settingsUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    company_id?: IntFieldUpdateOperationsInput | number
-    overtime_day_threshold?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekend_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    holiday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
   export type meal_ticketsCreateInput = {
     date: Date | string
     person_count?: number
@@ -40574,8 +39118,6 @@ export namespace Prisma {
     hours?: number | null
     rate?: number | null
     amount?: number | null
-    use_as_leave?: number | null
-    coefficient?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -40589,8 +39131,6 @@ export namespace Prisma {
     hours?: number | null
     rate?: number | null
     amount?: number | null
-    use_as_leave?: number | null
-    coefficient?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -40601,8 +39141,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -40616,8 +39154,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -40630,8 +39166,6 @@ export namespace Prisma {
     hours?: number | null
     rate?: number | null
     amount?: number | null
-    use_as_leave?: number | null
-    coefficient?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -40642,8 +39176,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -40656,8 +39188,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -41137,6 +39667,7 @@ export namespace Prisma {
   export type usersCreateInput = {
     username: string
     email: string
+    full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
     must_change_password?: number | null
@@ -41147,6 +39678,7 @@ export namespace Prisma {
     id?: number
     username: string
     email: string
+    full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
     must_change_password?: number | null
@@ -41156,6 +39688,7 @@ export namespace Prisma {
   export type usersUpdateInput = {
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
@@ -41166,6 +39699,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
@@ -41176,6 +39710,7 @@ export namespace Prisma {
     id?: number
     username: string
     email: string
+    full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
     must_change_password?: number | null
@@ -41184,6 +39719,7 @@ export namespace Prisma {
   export type usersUpdateManyMutationInput = {
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
@@ -41193,6 +39729,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
@@ -41877,11 +40414,6 @@ export namespace Prisma {
     every?: customersWhereInput
     some?: customersWhereInput
     none?: customersWhereInput
-  }
-
-  export type Hr_settingsNullableScalarRelationFilter = {
-    is?: hr_settingsWhereInput | null
-    isNot?: hr_settingsWhereInput | null
   }
 
   export type employeesOrderByRelationAggregateInput = {
@@ -42788,57 +41320,6 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type hr_settingsCountOrderByAggregateInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrder
-    weekday_rate?: SortOrder
-    weekend_rate?: SortOrder
-    holiday_rate?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type hr_settingsAvgOrderByAggregateInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrder
-    weekday_rate?: SortOrder
-    weekend_rate?: SortOrder
-    holiday_rate?: SortOrder
-  }
-
-  export type hr_settingsMaxOrderByAggregateInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrder
-    weekday_rate?: SortOrder
-    weekend_rate?: SortOrder
-    holiday_rate?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type hr_settingsMinOrderByAggregateInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrder
-    weekday_rate?: SortOrder
-    weekend_rate?: SortOrder
-    holiday_rate?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type hr_settingsSumOrderByAggregateInput = {
-    id?: SortOrder
-    company_id?: SortOrder
-    overtime_day_threshold?: SortOrder
-    weekday_rate?: SortOrder
-    weekend_rate?: SortOrder
-    holiday_rate?: SortOrder
-  }
-
   export type meal_ticketsCountOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
@@ -42890,8 +41371,6 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
-    use_as_leave?: SortOrder
-    coefficient?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
@@ -42903,8 +41382,6 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
-    use_as_leave?: SortOrder
-    coefficient?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -42915,8 +41392,6 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
-    use_as_leave?: SortOrder
-    coefficient?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
@@ -42929,8 +41404,6 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
-    use_as_leave?: SortOrder
-    coefficient?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
@@ -42942,8 +41415,6 @@ export namespace Prisma {
     hours?: SortOrder
     rate?: SortOrder
     amount?: SortOrder
-    use_as_leave?: SortOrder
-    coefficient?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -43245,6 +41716,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     email?: SortOrder
+    full_name?: SortOrder
     password_hash?: SortOrder
     created_at?: SortOrder
     must_change_password?: SortOrder
@@ -43259,6 +41731,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     email?: SortOrder
+    full_name?: SortOrder
     password_hash?: SortOrder
     created_at?: SortOrder
     must_change_password?: SortOrder
@@ -43268,6 +41741,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     email?: SortOrder
+    full_name?: SortOrder
     password_hash?: SortOrder
     created_at?: SortOrder
     must_change_password?: SortOrder
@@ -43686,12 +42160,6 @@ export namespace Prisma {
     connect?: customersWhereUniqueInput | customersWhereUniqueInput[]
   }
 
-  export type hr_settingsCreateNestedOneWithoutCompaniesInput = {
-    create?: XOR<hr_settingsCreateWithoutCompaniesInput, hr_settingsUncheckedCreateWithoutCompaniesInput>
-    connectOrCreate?: hr_settingsCreateOrConnectWithoutCompaniesInput
-    connect?: hr_settingsWhereUniqueInput
-  }
-
   export type employeesUncheckedCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -43745,12 +42213,6 @@ export namespace Prisma {
     connectOrCreate?: customersCreateOrConnectWithoutCompaniesInput | customersCreateOrConnectWithoutCompaniesInput[]
     createMany?: customersCreateManyCompaniesInputEnvelope
     connect?: customersWhereUniqueInput | customersWhereUniqueInput[]
-  }
-
-  export type hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput = {
-    create?: XOR<hr_settingsCreateWithoutCompaniesInput, hr_settingsUncheckedCreateWithoutCompaniesInput>
-    connectOrCreate?: hr_settingsCreateOrConnectWithoutCompaniesInput
-    connect?: hr_settingsWhereUniqueInput
   }
 
   export type usersUpdateOneRequiredWithoutCompaniesNestedInput = {
@@ -43869,16 +42331,6 @@ export namespace Prisma {
     deleteMany?: customersScalarWhereInput | customersScalarWhereInput[]
   }
 
-  export type hr_settingsUpdateOneWithoutCompaniesNestedInput = {
-    create?: XOR<hr_settingsCreateWithoutCompaniesInput, hr_settingsUncheckedCreateWithoutCompaniesInput>
-    connectOrCreate?: hr_settingsCreateOrConnectWithoutCompaniesInput
-    upsert?: hr_settingsUpsertWithoutCompaniesInput
-    disconnect?: hr_settingsWhereInput | boolean
-    delete?: hr_settingsWhereInput | boolean
-    connect?: hr_settingsWhereUniqueInput
-    update?: XOR<XOR<hr_settingsUpdateToOneWithWhereWithoutCompaniesInput, hr_settingsUpdateWithoutCompaniesInput>, hr_settingsUncheckedUpdateWithoutCompaniesInput>
-  }
-
   export type employeesUncheckedUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -43985,16 +42437,6 @@ export namespace Prisma {
     update?: customersUpdateWithWhereUniqueWithoutCompaniesInput | customersUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: customersUpdateManyWithWhereWithoutCompaniesInput | customersUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: customersScalarWhereInput | customersScalarWhereInput[]
-  }
-
-  export type hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput = {
-    create?: XOR<hr_settingsCreateWithoutCompaniesInput, hr_settingsUncheckedCreateWithoutCompaniesInput>
-    connectOrCreate?: hr_settingsCreateOrConnectWithoutCompaniesInput
-    upsert?: hr_settingsUpsertWithoutCompaniesInput
-    disconnect?: hr_settingsWhereInput | boolean
-    delete?: hr_settingsWhereInput | boolean
-    connect?: hr_settingsWhereUniqueInput
-    update?: XOR<XOR<hr_settingsUpdateToOneWithWhereWithoutCompaniesInput, hr_settingsUpdateWithoutCompaniesInput>, hr_settingsUncheckedUpdateWithoutCompaniesInput>
   }
 
   export type companiesCreateNestedOneWithoutCustomersInput = {
@@ -44657,20 +43099,6 @@ export namespace Prisma {
     upsert?: companiesUpsertWithoutMeal_settingsInput
     connect?: companiesWhereUniqueInput
     update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutMeal_settingsInput, companiesUpdateWithoutMeal_settingsInput>, companiesUncheckedUpdateWithoutMeal_settingsInput>
-  }
-
-  export type companiesCreateNestedOneWithoutHr_settingsInput = {
-    create?: XOR<companiesCreateWithoutHr_settingsInput, companiesUncheckedCreateWithoutHr_settingsInput>
-    connectOrCreate?: companiesCreateOrConnectWithoutHr_settingsInput
-    connect?: companiesWhereUniqueInput
-  }
-
-  export type companiesUpdateOneRequiredWithoutHr_settingsNestedInput = {
-    create?: XOR<companiesCreateWithoutHr_settingsInput, companiesUncheckedCreateWithoutHr_settingsInput>
-    connectOrCreate?: companiesCreateOrConnectWithoutHr_settingsInput
-    upsert?: companiesUpsertWithoutHr_settingsInput
-    connect?: companiesWhereUniqueInput
-    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutHr_settingsInput, companiesUpdateWithoutHr_settingsInput>, companiesUncheckedUpdateWithoutHr_settingsInput>
   }
 
   export type companiesCreateNestedOneWithoutMeal_ticketsInput = {
@@ -45632,6 +44060,7 @@ export namespace Prisma {
   export type usersCreateWithoutCompaniesInput = {
     username: string
     email: string
+    full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
     must_change_password?: number | null
@@ -45641,6 +44070,7 @@ export namespace Prisma {
     id?: number
     username: string
     email: string
+    full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
     must_change_password?: number | null
@@ -45977,30 +44407,6 @@ export namespace Prisma {
     data: customersCreateManyCompaniesInput | customersCreateManyCompaniesInput[]
   }
 
-  export type hr_settingsCreateWithoutCompaniesInput = {
-    overtime_day_threshold?: number | null
-    weekday_rate?: number | null
-    weekend_rate?: number | null
-    holiday_rate?: number | null
-    created_at?: Date | string | null
-    updated_at?: Date | string | null
-  }
-
-  export type hr_settingsUncheckedCreateWithoutCompaniesInput = {
-    id?: number
-    overtime_day_threshold?: number | null
-    weekday_rate?: number | null
-    weekend_rate?: number | null
-    holiday_rate?: number | null
-    created_at?: Date | string | null
-    updated_at?: Date | string | null
-  }
-
-  export type hr_settingsCreateOrConnectWithoutCompaniesInput = {
-    where: hr_settingsWhereUniqueInput
-    create: XOR<hr_settingsCreateWithoutCompaniesInput, hr_settingsUncheckedCreateWithoutCompaniesInput>
-  }
-
   export type usersUpsertWithoutCompaniesInput = {
     update: XOR<usersUpdateWithoutCompaniesInput, usersUncheckedUpdateWithoutCompaniesInput>
     create: XOR<usersCreateWithoutCompaniesInput, usersUncheckedCreateWithoutCompaniesInput>
@@ -46015,6 +44421,7 @@ export namespace Prisma {
   export type usersUpdateWithoutCompaniesInput = {
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
@@ -46024,6 +44431,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
@@ -46299,36 +44707,6 @@ export namespace Prisma {
     is_archived?: IntNullableFilter<"customers"> | number | null
   }
 
-  export type hr_settingsUpsertWithoutCompaniesInput = {
-    update: XOR<hr_settingsUpdateWithoutCompaniesInput, hr_settingsUncheckedUpdateWithoutCompaniesInput>
-    create: XOR<hr_settingsCreateWithoutCompaniesInput, hr_settingsUncheckedCreateWithoutCompaniesInput>
-    where?: hr_settingsWhereInput
-  }
-
-  export type hr_settingsUpdateToOneWithWhereWithoutCompaniesInput = {
-    where?: hr_settingsWhereInput
-    data: XOR<hr_settingsUpdateWithoutCompaniesInput, hr_settingsUncheckedUpdateWithoutCompaniesInput>
-  }
-
-  export type hr_settingsUpdateWithoutCompaniesInput = {
-    overtime_day_threshold?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekend_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    holiday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type hr_settingsUncheckedUpdateWithoutCompaniesInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    overtime_day_threshold?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    weekend_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    holiday_rate?: NullableFloatFieldUpdateOperationsInput | number | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
   export type companiesCreateWithoutCustomersInput = {
     name: string
     tax_number?: string | null
@@ -46343,7 +44721,6 @@ export namespace Prisma {
     transactions?: transactionsCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutCustomersInput = {
@@ -46361,7 +44738,6 @@ export namespace Prisma {
     transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutCustomersInput = {
@@ -46438,7 +44814,6 @@ export namespace Prisma {
     transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutCustomersInput = {
@@ -46456,7 +44831,6 @@ export namespace Prisma {
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type worksUpsertWithWhereUniqueWithoutCustomersInput = {
@@ -47407,7 +45781,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutEmployeesInput = {
@@ -47425,7 +45798,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutEmployeesInput = {
@@ -47470,8 +45842,6 @@ export namespace Prisma {
     hours?: number | null
     rate?: number | null
     amount?: number | null
-    use_as_leave?: number | null
-    coefficient?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -47483,8 +45853,6 @@ export namespace Prisma {
     hours?: number | null
     rate?: number | null
     amount?: number | null
-    use_as_leave?: number | null
-    coefficient?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -47801,7 +46169,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutEmployeesInput = {
@@ -47819,7 +46186,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type leavesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -47880,8 +46246,6 @@ export namespace Prisma {
     hours?: FloatNullableFilter<"overtimes"> | number | null
     rate?: FloatNullableFilter<"overtimes"> | number | null
     amount?: FloatNullableFilter<"overtimes"> | number | null
-    use_as_leave?: IntNullableFilter<"overtimes"> | number | null
-    coefficient?: FloatNullableFilter<"overtimes"> | number | null
     notes?: StringNullableFilter<"overtimes"> | string | null
     created_at?: DateTimeNullableFilter<"overtimes"> | Date | string | null
     is_archived?: IntNullableFilter<"overtimes"> | number | null
@@ -48455,7 +46819,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_settingsInput = {
@@ -48473,7 +46836,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_settingsInput = {
@@ -48506,7 +46868,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_settingsInput = {
@@ -48518,93 +46879,6 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
-    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
-    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
-    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
-    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
-    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
-    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
-  }
-
-  export type companiesCreateWithoutHr_settingsInput = {
-    name: string
-    tax_number?: string | null
-    address?: string | null
-    phone?: string | null
-    created_at?: Date | string | null
-    users: usersCreateNestedOneWithoutCompaniesInput
-    employees?: employeesCreateNestedManyWithoutCompaniesInput
-    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
-    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
-    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
-    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
-    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
-    works?: worksCreateNestedManyWithoutCompaniesInput
-    customers?: customersCreateNestedManyWithoutCompaniesInput
-  }
-
-  export type companiesUncheckedCreateWithoutHr_settingsInput = {
-    id?: number
-    user_id: number
-    name: string
-    tax_number?: string | null
-    address?: string | null
-    phone?: string | null
-    created_at?: Date | string | null
-    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
-    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
-    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
-    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
-    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
-    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
-    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
-    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-  }
-
-  export type companiesCreateOrConnectWithoutHr_settingsInput = {
-    where: companiesWhereUniqueInput
-    create: XOR<companiesCreateWithoutHr_settingsInput, companiesUncheckedCreateWithoutHr_settingsInput>
-  }
-
-  export type companiesUpsertWithoutHr_settingsInput = {
-    update: XOR<companiesUpdateWithoutHr_settingsInput, companiesUncheckedUpdateWithoutHr_settingsInput>
-    create: XOR<companiesCreateWithoutHr_settingsInput, companiesUncheckedCreateWithoutHr_settingsInput>
-    where?: companiesWhereInput
-  }
-
-  export type companiesUpdateToOneWithWhereWithoutHr_settingsInput = {
-    where?: companiesWhereInput
-    data: XOR<companiesUpdateWithoutHr_settingsInput, companiesUncheckedUpdateWithoutHr_settingsInput>
-  }
-
-  export type companiesUpdateWithoutHr_settingsInput = {
-    name?: StringFieldUpdateOperationsInput | string
-    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
-    address?: NullableStringFieldUpdateOperationsInput | string | null
-    phone?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
-    employees?: employeesUpdateManyWithoutCompaniesNestedInput
-    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
-    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
-    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
-    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
-    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
-    works?: worksUpdateManyWithoutCompaniesNestedInput
-    customers?: customersUpdateManyWithoutCompaniesNestedInput
-  }
-
-  export type companiesUncheckedUpdateWithoutHr_settingsInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    user_id?: IntFieldUpdateOperationsInput | number
-    name?: StringFieldUpdateOperationsInput | string
-    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
-    address?: NullableStringFieldUpdateOperationsInput | string | null
-    phone?: NullableStringFieldUpdateOperationsInput | string | null
-    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
-    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
     meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
     recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
@@ -48627,7 +46901,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_ticketsInput = {
@@ -48645,7 +46918,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_ticketsInput = {
@@ -48678,7 +46950,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_ticketsInput = {
@@ -48696,7 +46967,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutOvertimesInput = {
@@ -48847,7 +47117,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutRecurring_transactionsInput = {
@@ -48865,7 +47134,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutRecurring_transactionsInput = {
@@ -48898,7 +47166,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutRecurring_transactionsInput = {
@@ -48916,7 +47183,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutSalariesInput = {
@@ -49177,7 +47443,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutTransactionsInput = {
@@ -49195,7 +47460,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutTransactionsInput = {
@@ -49228,7 +47492,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutTransactionsInput = {
@@ -49246,7 +47509,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutUsersInput = {
@@ -49263,7 +47525,6 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutUsersInput = {
@@ -49281,7 +47542,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutUsersInput = {
@@ -49546,7 +47806,6 @@ export namespace Prisma {
     transactions?: transactionsCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehiclesInput = {
@@ -49564,7 +47823,6 @@ export namespace Prisma {
     transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehiclesInput = {
@@ -49886,7 +48144,6 @@ export namespace Prisma {
     transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehiclesInput = {
@@ -49904,7 +48161,6 @@ export namespace Prisma {
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type work_itemsUpsertWithWhereUniqueWithoutVehiclesInput = {
@@ -50443,7 +48699,6 @@ export namespace Prisma {
     transactions?: transactionsCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutWorksInput = {
@@ -50461,7 +48716,6 @@ export namespace Prisma {
     transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
-    hr_settings?: hr_settingsUncheckedCreateNestedOneWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutWorksInput = {
@@ -50670,7 +48924,6 @@ export namespace Prisma {
     transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutWorksInput = {
@@ -50688,7 +48941,6 @@ export namespace Prisma {
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type customersUpsertWithoutWorksInput = {
@@ -51322,8 +49574,6 @@ export namespace Prisma {
     hours?: number | null
     rate?: number | null
     amount?: number | null
-    use_as_leave?: number | null
-    coefficient?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -51562,8 +49812,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -51575,8 +49823,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -51588,8 +49834,6 @@ export namespace Prisma {
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
     rate?: NullableFloatFieldUpdateOperationsInput | number | null
     amount?: NullableFloatFieldUpdateOperationsInput | number | null
-    use_as_leave?: NullableIntFieldUpdateOperationsInput | number | null
-    coefficient?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -51770,7 +50014,6 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutUsersInput = {
@@ -51788,7 +50031,6 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
-    hr_settings?: hr_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateManyWithoutUsersInput = {

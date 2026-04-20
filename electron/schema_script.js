@@ -286,6 +286,7 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "full_name" TEXT,
     "password_hash" TEXT NOT NULL,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "must_change_password" INTEGER DEFAULT 0

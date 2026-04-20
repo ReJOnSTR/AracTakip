@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { transactionSchema } from '../../schemas/transactionSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import { formatDateForInput } from '../../utils/helpers'
 
 const transactionTypes = [
     { value: 'IN', label: 'Gelir (Giren)' },
@@ -29,7 +30,7 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
             type: 'IN',
             method: onlyCheck ? 'CHECK' : 'CASH',
             amount: '',
-            date: new Date().toISOString().split('T')[0],
+            date: formatDateForInput(new Date()),
             description: '',
             checkNumber: '',
             checkDueDate: '',
@@ -45,10 +46,10 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                 type: initialData.type || 'IN',
                 method: initialData.method || (onlyCheck ? 'CHECK' : 'CASH'),
                 amount: initialData.amount || '',
-                date: initialData.date || new Date().toISOString().split('T')[0],
+                date: formatDateForInput(initialData.date) || formatDateForInput(new Date()),
                 description: initialData.description || '',
                 checkNumber: initialData.check_number || initialData.checkNumber || '',
-                checkDueDate: initialData.check_due_date || initialData.checkDueDate || '',
+                checkDueDate: formatDateForInput(initialData.check_due_date || initialData.checkDueDate),
                 status: initialData.status || 'COMPLETED'
             })
         } else {
@@ -56,7 +57,7 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                 type: 'IN',
                 method: onlyCheck ? 'CHECK' : 'CASH',
                 amount: '',
-                date: new Date().toISOString().split('T')[0],
+                date: formatDateForInput(new Date()),
                 description: '',
                 checkNumber: '',
                 checkDueDate: '',

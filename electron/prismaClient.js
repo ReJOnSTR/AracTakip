@@ -161,6 +161,17 @@ async function runAutoMigrations() {
         log.error('Migration step 8 (salary_month) error:', error.message);
     }
 
+    // 9. Add full_name to users
+    try {
+        const userCols = await p.$queryRawUnsafe("PRAGMA table_info('users')");
+        if (userCols.length > 0 && !userCols.some(c => c.name === 'full_name')) {
+            await p.$executeRawUnsafe("ALTER TABLE users ADD COLUMN full_name TEXT");
+            log.info('Migration: Added full_name to users');
+        }
+    } catch (error) {
+        log.error('Migration step 9 (full_name) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

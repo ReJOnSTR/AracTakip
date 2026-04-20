@@ -36,7 +36,12 @@ async function registerUser(userData) {
         });
 
         // Strip hash before returning
-        const safeUser = { id: result.id, username: result.username, email: result.email };
+        const safeUser = { 
+            id: result.id, 
+            username: result.username, 
+            email: result.email,
+            full_name: result.full_name
+        };
         return { success: true, user: safeUser };
 
     } catch (error) {
@@ -78,6 +83,7 @@ async function loginUser(credentials) {
             id: user.id,
             username: user.username,
             email: user.email,
+            full_name: user.full_name,
             mustChangePassword: user.must_change_password === 1
         };
 
@@ -126,6 +132,59 @@ async function changePassword(data) {
     }
 }
 
+async function updateProfile(data) {
+    try {
+        const { userId, username, email, full_name } = data;
+
+        // Check if username/email is taken by another user
+        if (username || email) {
+            const existingUser = await prisma.users.findFirst({
+                where: {
+                    AND: [
+                        { id: { not: userId } },
+                        {
+                            OR: [
+                                username ? { username } : null,
+                                email ? { email } : null
+                            ].filter(Boolean)
+                        }
+                    ]
+                }
+            });
+
+            if (existingUser) {
+                return { 
+                    success: false, 
+                    error: existingUser.username === username ? 'Bu kullanıcı adı zaten alınmış' : 'Bu e-posta adresi zaten kullanımda' 
+                };
+            }
+        }
+
+        const updated = await prisma.users.update({
+            where: { id: userId },
+            data: {
+                username,
+                email,
+                full_name
+            }
+        });
+
+        const safeUser = {
+            id: updated.id,
+            username: updated.username,
+            email: updated.email,
+            full_name: updated.full_name,
+            mustChangePassword: updated.must_change_password === 1
+        };
+
+        return { success: true, user: safeUser };
+
+    } catch (error) {
+        console.error('Update profile error:', error);
+        return { success: false, error: 'Profil güncelleme başarısız: ' + error.message };
+    }
+}
+
 async function getUserPasswordHash(userId) {
     try {
         const user = await prisma.users.findUnique({
@@ -141,5 +200,6 @@ module.exports = {
     registerUser,
     loginUser,
     changePassword,
+    updateProfile,
     getUserPasswordHash
 };

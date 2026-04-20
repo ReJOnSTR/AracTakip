@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CustomInput from '../CustomInput'
 
 export default function CustomerForm({ initialData = null, onSubmit, onCancel, loading = false }) {
     const [formData, setFormData] = useState({
@@ -25,17 +26,15 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
         }
     }, [initialData])
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
+    const handleChange = (key, value) => {
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [key]: value
         }))
     }
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        // Form validation
         if (!formData.name.trim()) {
             alert('Müşteri adı/ünvanı zorunludur.')
             return
@@ -44,95 +43,67 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
     }
 
     return (
-        <form onSubmit={handleSubmit} className="form-layout">
-            <div className="form-group">
-                <label className="form-label">Müşteri Adı / Ünvanı <span className="text-danger">*</span></label>
-                <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="form-input"
-                    placeholder="Müşteri Adı veya Firma Ünvanı"
+        <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <CustomInput
+                    label="Müşteri Adı / Ünvanı"
                     required
+                    value={formData.name}
+                    onChange={val => handleChange('name', val)}
+                    placeholder="Müşteri Adı veya Firma Ünvanı"
                 />
-            </div>
 
-            <div className="form-row">
-                <div className="form-group">
-                    <label className="form-label">Telefon</label>
-                    <input
-                        type="text"
-                        name="phone"
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <CustomInput
+                        label="Telefon"
                         value={formData.phone}
-                        onChange={handleChange}
-                        className="form-input"
+                        onChange={val => handleChange('phone', val)}
                         placeholder="05XX XXX XX XX"
                     />
-                </div>
-                <div className="form-group">
-                    <label className="form-label">E-Posta</label>
-                    <input
+                    <CustomInput
+                        label="E-Posta"
                         type="email"
-                        name="email"
                         value={formData.email}
-                        onChange={handleChange}
-                        className="form-input"
+                        onChange={val => handleChange('email', val)}
                         placeholder="ornek@firma.com"
                     />
                 </div>
-            </div>
 
-            <div className="form-row">
-                <div className="form-group">
-                    <label className="form-label">Vergi Numarası / T.C. Kimlik</label>
-                    <input
-                        type="text"
-                        name="tax_number"
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <CustomInput
+                        label="Vergi Numarası / T.C. Kimlik"
                         value={formData.tax_number}
-                        onChange={handleChange}
-                        className="form-input"
+                        onChange={val => handleChange('tax_number', val)}
                         placeholder="Vergi No veya TCKN"
                     />
-                </div>
-                <div className="form-group">
-                    <label className="form-label">Vergi Dairesi</label>
-                    <input
-                        type="text"
-                        name="tax_office"
+                    <CustomInput
+                        label="Vergi Dairesi"
                         value={formData.tax_office}
-                        onChange={handleChange}
-                        className="form-input"
+                        onChange={val => handleChange('tax_office', val)}
                         placeholder="Vergi Dairesi"
                     />
                 </div>
-            </div>
 
-            <div className="form-group">
-                <label className="form-label">Açık Adres</label>
-                <textarea
-                    name="address"
+                <CustomInput
+                    label="Açık Adres"
+                    type="textarea"
                     value={formData.address}
-                    onChange={handleChange}
-                    className="form-input"
-                    rows="2"
+                    onChange={val => handleChange('address', val)}
+                    rows={2}
                     placeholder="Müşteri açık adresi..."
                 />
-            </div>
 
-            <div className="form-group">
-                <label className="form-label">Notlar</label>
-                <textarea
-                    name="notes"
+                <CustomInput
+                    label="Notlar"
+                    type="textarea"
                     value={formData.notes}
-                    onChange={handleChange}
-                    className="form-input"
-                    rows="3"
+                    onChange={val => handleChange('notes', val)}
+                    rows={3}
                     placeholder="Özel notlar..."
                 />
             </div>
 
-            <div className="form-actions">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                 <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={loading}>
                     İptal
                 </button>

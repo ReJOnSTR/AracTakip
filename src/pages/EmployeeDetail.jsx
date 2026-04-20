@@ -12,7 +12,7 @@ import MonthFilter from '../components/MonthFilter'
 import EmployeeForm from '../components/forms/EmployeeForm'
 import AssignmentForm from '../components/forms/AssignmentForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate, getHistoricalBaseSalary } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
 import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -231,17 +231,32 @@ export default function EmployeeDetail() {
         setEditingItem(item)
         setError('')
         if (type === 'salary') {
-            setFormData({ paymentType: item.period || 'salary', amount: item.net_salary || '', paymentDate: item.payment_date ? new Date(item.payment_date).toISOString().split('T')[0] : '', salaryMonth: item.salary_month || selectedMonth, status: item.status || 'pending', paymentMethod: item.payment_method || 'nakit', notes: item.notes || '' })
+            setFormData({ 
+                paymentType: item.period || 'salary', 
+                amount: item.net_salary || '', 
+                paymentDate: formatDateForInput(item.payment_date) || formatDateForInput(new Date()), 
+                salaryMonth: item.salary_month || selectedMonth, 
+                status: item.status || 'pending', 
+                paymentMethod: item.payment_method || 'nakit', 
+                notes: item.notes || '' 
+            })
         } else if (type === 'leave') {
             const strippedNotes = (item.notes || '').replace(/\[OTID:\d+\]/g, '').trim()
-            setFormData({ type: item.type || 'annual', status: item.status || 'approved', startDate: item.start_date || '', endDate: item.end_date || '', days: item.days || 1, notes: strippedNotes })
+            setFormData({ 
+                type: item.type || 'annual', 
+                status: item.status || 'approved', 
+                startDate: formatDateForInput(item.start_date), 
+                endDate: formatDateForInput(item.end_date), 
+                days: item.days || 1, 
+                notes: strippedNotes 
+            })
         } else if (type === 'overtime') {
             const otType = Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday'
             const isUsedAsLeave = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
             const strippedNotes = (item.notes || '').replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[LID:\d+\]/g, '').trim()
             setFormData({ 
                 overtimeType: otType, 
-                date: item.date || '', 
+                date: formatDateForInput(item.date), 
                 hours: item.hours || '', 
                 rate: item.rate || 0, 
                 amount: item.amount || '', 
@@ -249,7 +264,14 @@ export default function EmployeeDetail() {
                 useAsLeave: !!isUsedAsLeave
             })
         } else if (type === 'assignment') {
-            setFormData({ itemName: item.item_name || '', quantity: item.quantity || 1, assignedDate: item.assigned_date || '', returnDate: item.return_date || '', status: item.status || 'active', notes: item.notes || '' })
+            setFormData({ 
+                itemName: item.item_name || '', 
+                quantity: item.quantity || 1, 
+                assignedDate: formatDateForInput(item.assigned_date), 
+                returnDate: formatDateForInput(item.return_date), 
+                status: item.status || 'active', 
+                notes: item.notes || '' 
+            })
         }
     }
 
@@ -284,12 +306,12 @@ export default function EmployeeDetail() {
                     const days = parseInt(newData.days) || 1
                     const start = new Date(newData.startDate)
                     start.setDate(start.getDate() + days - 1)
-                    newData.endDate = start.toISOString().split('T')[0]
+                    newData.endDate = formatDateForInput(start)
                 } else if (key === 'days' && newData.startDate) {
                     const days = parseInt(value) || 1
                     const start = new Date(newData.startDate)
                     start.setDate(start.getDate() + days - 1)
-                    newData.endDate = start.toISOString().split('T')[0]
+                    newData.endDate = formatDateForInput(start)
                 } else if (key === 'endDate' && newData.startDate && newData.endDate) {
                     const start = new Date(newData.startDate)
                     const end = new Date(newData.endDate)
@@ -395,11 +417,137 @@ export default function EmployeeDetail() {
     const handleLeaveSubmit = async (e) => {
         e.preventDefault()
         setSaving(true); setError('')
-        const data = { employeeId: parseInt(id), type: formData.type || 'annual', startDate: formData.startDate, endDate: formData.endDate, days: parseInt(formData.days) || 1, status: formData.status || 'approved', notes: formData.notes || null }
+
+        const type = formData.type || 'annual'
+        let days = parseInt(formData.days) || 0
+        let notes = formData.notes || ''
+
+        // Validation for Overtime Leave
+        if (type === 'overtime_leave') {
+            const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+            const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+            const weekdayRate = calcOvertimeRate('weekday')
+            
+            // Sort earned overtimes by date (FIFO)
+            const earnedOts = [...overtimes]
+                .filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+            const earnedData = earnedOts.map(o => ({
+                date: o.date,
+                days: (o.hours || 0) / (Math.abs((o.rate || 0) - weekdayRate) < 1 ? whpl : sdpl)
+            }))
+
+            const totalEarned = earnedData.reduce((sum, d) => sum + d.days, 0)
+            const totalUsedOT = leaves
+                .filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset') && (editingItem ? l.id !== editingItem.id : true))
+                .reduce((sum, l) => sum + (l.days || 0), 0)
+            
+            const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
+
+            if (days > otBalance) {
+                setError(`Yetersiz mesai izni bakiyesi. Mevcut: ${otBalance} gün.`)
+                setSaving(false)
+                return
+            }
+
+            // FIFO Note Generation: Identify which overtimes are being used
+            let remainingSkip = totalUsedOT
+            let needed = days
+            const usedDates = []
+
+            for (const ot of earnedData) {
+                if (needed <= 0) break
+                
+                if (remainingSkip >= ot.days) {
+                    remainingSkip -= ot.days
+                    continue
+                }
+
+                // This OT has at least some remaining contribution
+                const available = ot.days - remainingSkip
+                remainingSkip = 0 // Used up the skip
+                
+                const consumed = Math.min(available, needed)
+                needed -= consumed
+                usedDates.push(formatDate(ot.date))
+            }
+
+            if (usedDates.length > 0) {
+                const consumptionNote = `[Kullanılan Mesailer: ${usedDates.join(', ')}]`
+                if (!notes.includes(consumptionNote)) {
+                    notes = notes ? `${notes}\n${consumptionNote}` : consumptionNote
+                }
+            }
+        }
+
+        const data = { employeeId: parseInt(id), type, startDate: formData.startDate, endDate: formData.endDate, days, status: formData.status || 'approved', notes: notes || null }
         try {
             const result = editingItem ? await window.electronAPI.updateLeave({ id: editingItem.id, ...data }) : await window.electronAPI.createLeave(data)
             if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
+        setSaving(false)
+    }
+
+    const handleOffsetLeave = async (amount, currentAnnualBalance, currentOtBalance) => {
+        if (!window.confirm(`${amount} günlük yıllık izin borcunu mesai izninden mahsup etmek istediğinize emin misiniz?`)) return
+        
+        setSaving(true)
+        try {
+            const today = new Date().toISOString().split('T')[0]
+            
+            // Calculate which overtimes are being used (FIFO)
+            const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+            const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+            const weekdayRate = calcOvertimeRate('weekday')
+            
+            const earnedOts = [...overtimes]
+                .filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+            const earnedData = earnedOts.map(o => ({
+                date: o.date,
+                days: (o.hours || 0) / (Math.abs((o.rate || 0) - weekdayRate) < 1 ? whpl : sdpl)
+            }))
+
+            const totalUsedOT = leaves
+                .filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset'))
+                .reduce((sum, l) => sum + (l.days || 0), 0)
+
+            let remainingSkip = totalUsedOT
+            let needed = amount
+            const usedDates = []
+
+            for (const ot of earnedData) {
+                if (needed <= 0) break
+                if (remainingSkip >= ot.days) {
+                    remainingSkip -= ot.days
+                    continue
+                }
+                const available = ot.days - remainingSkip
+                remainingSkip = 0
+                const consumed = Math.min(available, needed)
+                needed -= consumed
+                usedDates.push(formatDate(ot.date))
+            }
+
+            const consumptionNote = usedDates.length > 0 ? ` [Kullanılan Mesailer: ${usedDates.join(', ')}]` : ''
+            
+            // Create a single "offset" record
+            await window.electronAPI.createLeave({
+                employeeId: parseInt(id),
+                type: 'offset',
+                startDate: today,
+                endDate: today,
+                days: amount,
+                status: 'approved',
+                notes: `[MAHSUP] Yıllık izin borcu kapatıldı. (${amount} gün)${consumptionNote}`
+            })
+            
+            loadEmployeeData()
+        } catch (err) {
+            setError('Mahsup işlemi sırasında bir hata oluştu: ' + err.message)
+        }
         setSaving(false)
     }
 
@@ -413,10 +561,14 @@ export default function EmployeeDetail() {
         let finalNotes = formData.notes || ''
         const marker = '[İZİN OLARAK KULLANILDI]'
         
+        const lidMatch = editingItem?.notes?.match(/\[LID:(\d+)\]/)
+        const linkedLeaveId = lidMatch ? parseInt(lidMatch[1]) : null
+        
         if (shouldBeUsedAsLeave && !finalNotes.includes(marker)) {
             finalNotes = (marker + ' ' + finalNotes).trim()
-        } else if (!shouldBeUsedAsLeave && finalNotes.includes(marker)) {
-            finalNotes = finalNotes.replace(marker, '').trim()
+        } else if (!shouldBeUsedAsLeave && isCurrentlyUsedAsLeave) {
+            // Remove both markers and LID tags
+            finalNotes = finalNotes.replace(marker, '').replace(/\[LID:\d+\]/, '').trim()
         }
         
         const data = { 
@@ -432,39 +584,13 @@ export default function EmployeeDetail() {
             const result = editingItem ? await window.electronAPI.updateOvertime({ id: editingItem.id, ...data }) : await window.electronAPI.createOvertime(data)
             
             if (result.success) {
-                const otId = editingItem ? editingItem.id : result.data.id
+                // We no longer automatically create a leave record.
+                // We just mark the overtime as "Use as leave" in the notes.
+                // The balance system will handle the rest.
                 
-                // If it was just converted to leave (either new or was paid before)
-                if (shouldBeUsedAsLeave && !isCurrentlyUsedAsLeave) {
-                    const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
-                    const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
-                    const hours = parseFloat(formData.hours) || 0
-                    const isWeekday = Math.abs((data.rate || 0) - calcOvertimeRate('weekday')) < 1
-                    
-                    const leaveDays = Math.round((hours / (isWeekday ? whpl : sdpl)) * 100) / 100
-                    
-                    if (leaveDays > 0) {
-                        const leaveDate = data.date || new Date().toISOString().split('T')[0]
-                        const leaveResult = await window.electronAPI.createLeave({
-                            employeeId: parseInt(id),
-                            type: 'overtime_leave',
-                            startDate: leaveDate,
-                            endDate: leaveDate,
-                            days: leaveDays,
-                            status: 'approved',
-                            notes: `[OTID:${otId}] Mesaiden dönüştürüldü (Yeni Kayıt/Düzenleme): ${hours} ${isWeekday ? 'saat' : 'gün'} mesai → ${leaveDays} gün izin`
-                        })
-                        
-                        // Link the leave ID back to the overtime record
-                        if (leaveResult.success && leaveResult.data && leaveResult.data.id) {
-                            const updatedOtNotes = `[İZİN OLARAK KULLANILDI][LID:${leaveResult.data.id}] ${formData.notes || ''}`.trim()
-                            await window.electronAPI.updateOvertime({
-                                ...data,
-                                id: otId,
-                                notes: updatedOtNotes
-                            })
-                        }
-                    }
+                // Reversal: If it was used as leave but now converted back to paid
+                if (!shouldBeUsedAsLeave && isCurrentlyUsedAsLeave && linkedLeaveId) {
+                    await window.electronAPI.deleteLeave(linkedLeaveId)
                 }
                 
                 closeModal()
@@ -595,13 +721,23 @@ export default function EmployeeDetail() {
     const leaveColumns = [
         { key: 'type', label: 'Tür', render: (v) => {
             const lt = leaveTypes.find(t => t.value === v)
-            if (v === 'overtime_leave') return <span className="badge badge-info" style={{ fontWeight: 600 }}>🔄 Mesai İzni</span>
+            if (v === 'offset') return <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Mahsup</span>
             return lt?.label || v
         }},
         { key: 'start_date', label: 'Başlangıç', render: (v) => formatDate(v) },
         { key: 'end_date', label: 'Bitiş', render: (v) => formatDate(v) },
         { key: 'days', label: 'Gün' },
-        { key: 'status', label: 'Durum', render: (v) => { const c = { approved: 'success', pending: 'warning', rejected: 'danger' }; const l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi' }; return <span className={`badge badge-${c[v] || 'secondary'}`}>{l[v] || v}</span> } },
+        {key: 'status', label: 'Durum', render: (v, row) => { 
+            const c = { approved: 'success', pending: 'warning', rejected: 'danger' }; 
+            let l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi' }; 
+            
+            // Custom label for overtime accruals
+            if (v === 'pending' && row.type === 'overtime_leave') {
+                return <span className="badge badge-info" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>Tanımlandı</span>
+            }
+            
+            return <span className={`badge badge-${c[v] || 'secondary'}`}>{l[v] || v}</span> 
+        }},
         { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[OTID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
@@ -1011,7 +1147,7 @@ export default function EmployeeDetail() {
 
                 {activeTab === 'leave' && (
                     <div className="tab-pane">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                             <div className="card" style={{ padding: '14px 16px' }}>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Yıllık İzin</div>
                                 <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>
@@ -1044,31 +1180,92 @@ export default function EmployeeDetail() {
 
                                         const pastUsed = employee.past_used_leaves || 0
                                         const systemUsedAnnual = leaves.filter(l => l.status === 'approved' && l.type === 'annual').reduce((acc, l) => acc + (l.days || 1), 0)
+                                        const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type === 'offset').reduce((acc, l) => acc + (l.days || 0), 0)
                                         
-                                        const balance = totalAccrued - pastUsed - systemUsedAnnual
-                                        return <span style={{ color: balance < 0 ? 'var(--danger)' : 'var(--accent-primary)' }}>{balance} gün</span>
+                                        const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
+                                        
+                                        // Calculate OT balance for the offset button
+                                        const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+                                        const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                                        const weekdayRate = calcOvertimeRate('weekday')
+                                        const earnedOts = overtimes.filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
+                                        const totalEarned = earnedOts.reduce((sum, o) => {
+                                            const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
+                                            return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
+                                        }, 0)
+                                        const totalUsedOT = leaves.filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset')).reduce((sum, l) => sum + (l.days || 0), 0)
+                                        const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
+
+                                        return (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                                <span style={{ color: balance < 0 ? 'var(--danger)' : 'var(--accent-primary)' }}>{balance} gün</span>
+                                                {balance < 0 && otBalance > 0 && (
+                                                    <button 
+                                                        onClick={() => handleOffsetLeave(Math.min(Math.abs(balance), otBalance), balance, otBalance)}
+                                                        style={{ padding: '4px 8px', fontSize: '10px', background: 'var(--accent-subtle)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                                                    >
+                                                        Mahsup Et
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )
                                     })()}
                                 </div>
                             </div>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Kullanılan</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>
-                                    {(() => {
-                                        const now = new Date()
-                                        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-                                        const usedThisMonth = leaves.filter(l =>
-                                            l.status === 'approved' &&
-                                            ((l.start_date && (typeof l.start_date === 'string' ? l.start_date : new Date(l.start_date).toISOString()).startsWith(currentMonth)) || 
-                                             (l.end_date && (typeof l.end_date === 'string' ? l.end_date : new Date(l.end_date).toISOString()).startsWith(currentMonth)))
-                                        ).reduce((acc, l) => acc + (l.days || 1), 0)
-                                        return usedThisMonth + ' gün'
-                                    })()}
-                                </div>
-                            </div>
-                            <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bekleyen</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: leaves.filter(l => l.status === 'pending').length > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>{leaves.filter(l => l.status === 'pending').length} kayıt</div>
-                            </div>
+                             <div className="card" style={{ padding: '14px 16px' }}>
+                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Kullanılan</div>
+                                 <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>
+                                     {(() => {
+                                         const now = new Date()
+                                         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+                                         const usedThisMonth = leaves.filter(l =>
+                                             l.status === 'approved' &&
+                                             ((l.start_date && (typeof l.start_date === 'string' ? l.start_date : new Date(l.start_date).toISOString()).startsWith(currentMonth)) || 
+                                              (l.end_date && (typeof l.end_date === 'string' ? l.end_date : new Date(l.end_date).toISOString()).startsWith(currentMonth)))
+                                         ).reduce((acc, l) => acc + (l.days || 1), 0)
+                                         return usedThisMonth + ' gün'
+                                     })()}
+                                 </div>
+                             </div>
+                             <div className="card" style={{ padding: '14px 16px' }}>
+                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bekleyen</div>
+                                 <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: leaves.filter(l => l.status === 'pending').length > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>{leaves.filter(l => l.status === 'pending').length} kayıt</div>
+                             </div>
+                             {(() => {
+                                 const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+                                 const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                                 const weekdayRate = calcOvertimeRate('weekday')
+                                 const earnedOts = overtimes.filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
+                                 const totalEarned = earnedOts.reduce((sum, o) => {
+                                     const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
+                                     return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
+                                 }, 0)
+                                 const totalUsedOT = leaves
+                                     .filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset'))
+                                     .reduce((sum, l) => sum + (l.days || 0), 0)
+                                 const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
+
+                                 let cardStyle = { padding: '14px 16px' }
+                                 let textColor = 'var(--text-primary)'
+                                 let labelColor = 'var(--text-muted)'
+                                 let fontWeight = 700
+
+                                 if (otBalance > 0) {
+                                     cardStyle = { ...cardStyle, background: 'var(--accent-subtle)', border: '1px solid var(--accent-primary)' }
+                                     labelColor = 'var(--accent-primary)'
+                                     fontWeight = 800
+                                 } else if (otBalance < 0) {
+                                     cardStyle = { ...cardStyle, background: '#fff5f5', border: '1px solid #feb2b2' }
+                                     textColor = '#c53030'
+                                 }
+
+                                 return (
+                                     <div className="card" style={cardStyle}>
+                                         <div style={{ fontSize: '11px', color: labelColor, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Mesai İzni</div>
+                                         <div style={{ fontSize: '20px', fontWeight: fontWeight, marginTop: '4px', color: textColor }}>{otBalance} gün</div>
+                                     </div>
+                                 )
+                             })()}
                         </div>
                         <DataTable persistenceKey="EmployeeDetail_table_1"
                             storageKey="emp_leave_cols"
@@ -1098,16 +1295,28 @@ export default function EmployeeDetail() {
                                 const dStr = typeof o.date === 'string' ? o.date : new Date(o.date).toISOString()
                                 return dStr.startsWith(selectedMonth)
                             });
-                            const monthlyTotalHours = monthlyOvertimesList.reduce((sum, o) => sum + (o.hours || 0), 0)
-                            const monthlyTotalAmount = monthlyOvertimesList.reduce((sum, o) => sum + (o.amount || 0), 0)
+                             const weekdayRate = calcOvertimeRate('weekday');
+                             const monthlyWeekdayHours = monthlyOvertimesList
+                                 .filter(o => Math.abs((o.rate || 0) - weekdayRate) < 1)
+                                 .reduce((sum, o) => sum + (o.hours || 0), 0);
+                             const monthlySundayDays = monthlyOvertimesList
+                                 .filter(o => Math.abs((o.rate || 0) - weekdayRate) >= 1)
+                                 .reduce((sum, o) => sum + (o.hours || 0), 0);
+                             
+                             const monthlyTotalAmount = monthlyOvertimesList.reduce((sum, o) => sum + (o.amount || 0), 0)
 
-                            return (
-                                <>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                                        <div className="card" style={{ padding: '14px 16px' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Saat</div>
-                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>{monthlyTotalHours} saat</div>
-                                        </div>
+                             return (
+                                 <>
+                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                         <div className="card" style={{ padding: '14px 16px' }}>
+                                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Mesai</div>
+                                             <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                                 {monthlyWeekdayHours > 0 && <span>{monthlyWeekdayHours} sa</span>}
+                                                 {monthlyWeekdayHours > 0 && monthlySundayDays > 0 && <span>/</span>}
+                                                 {monthlySundayDays > 0 && <span>{monthlySundayDays} Pazar</span>}
+                                                 {monthlyWeekdayHours === 0 && monthlySundayDays === 0 && <span>0 sa</span>}
+                                             </div>
+                                         </div>
                                         <div className="card" style={{ padding: '14px 16px' }}>
                                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Tutar</div>
                                             <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--accent-primary)' }}>{formatCurrency(monthlyTotalAmount)}</div>

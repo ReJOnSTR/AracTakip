@@ -309,17 +309,6 @@ exports.Prisma.Meal_settingsScalarFieldEnum = {
   is_archived: 'is_archived'
 };
 
-exports.Prisma.Hr_settingsScalarFieldEnum = {
-  id: 'id',
-  company_id: 'company_id',
-  overtime_day_threshold: 'overtime_day_threshold',
-  weekday_rate: 'weekday_rate',
-  weekend_rate: 'weekend_rate',
-  holiday_rate: 'holiday_rate',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-};
-
 exports.Prisma.Meal_ticketsScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
@@ -337,8 +326,6 @@ exports.Prisma.OvertimesScalarFieldEnum = {
   hours: 'hours',
   rate: 'rate',
   amount: 'amount',
-  use_as_leave: 'use_as_leave',
-  coefficient: 'coefficient',
   notes: 'notes',
   created_at: 'created_at',
   is_archived: 'is_archived'
@@ -418,6 +405,7 @@ exports.Prisma.UsersScalarFieldEnum = {
   id: 'id',
   username: 'username',
   email: 'email',
+  full_name: 'full_name',
   password_hash: 'password_hash',
   created_at: 'created_at',
   must_change_password: 'must_change_password'
@@ -504,7 +492,6 @@ exports.Prisma.ModelName = {
   leaves: 'leaves',
   maintenances: 'maintenances',
   meal_settings: 'meal_settings',
-  hr_settings: 'hr_settings',
   meal_tickets: 'meal_tickets',
   overtimes: 'overtimes',
   recurring_transactions: 'recurring_transactions',

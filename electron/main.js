@@ -284,6 +284,10 @@ ipcMain.handle('auth:changePassword', async (event, data) => {
     return await db.changePassword(data)
 })
 
+ipcMain.handle('auth:updateProfile', async (event, data) => {
+    return await db.updateProfile(data)
+})
+
 // Company handlers
 ipcMain.handle('companies:getAll', async (event, userId) => {
     return await db.getCompanies(userId)

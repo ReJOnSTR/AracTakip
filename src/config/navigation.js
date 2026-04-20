@@ -17,7 +17,8 @@ import {
     Users,
     UserCheck,
     Briefcase,
-    Building2
+    Building2,
+    User
 } from 'lucide-react'
 
 // Define menus per module
@@ -185,6 +186,7 @@ export const getRouteInfo = (path) => {
     if (path.startsWith('/works/')) return { label: 'İş Detayı', icon: Briefcase }
     if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
+    if (path === '/profile') return { label: 'Profil Ayarları', icon: User }
 
     return { label: 'Sayfa', icon: FileText }
 }

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { assignmentSchema } from '../../schemas/assignmentSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import { formatDateForInput } from '../../utils/helpers'
 
 export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
@@ -20,7 +21,7 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
             quantity: '1',
             assignedTo: '',
             department: '',
-            startDate: new Date().toISOString().split('T')[0],
+            startDate: formatDateForInput(new Date()),
             endDate: '',
             notes: ''
         }
@@ -34,8 +35,8 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                 quantity: initialData.quantity || '1',
                 assignedTo: initialData.assigned_to || initialData.assignedTo || '',
                 department: initialData.department || '',
-                startDate: initialData.start_date || initialData.startDate || new Date().toISOString().split('T')[0],
-                endDate: initialData.end_date || initialData.endDate || '',
+                startDate: formatDateForInput(initialData.start_date || initialData.startDate) || formatDateForInput(new Date()),
+                endDate: formatDateForInput(initialData.end_date || initialData.endDate),
                 notes: initialData.notes || ''
             })
         } else {
@@ -45,7 +46,7 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                 quantity: '1',
                 assignedTo: '',
                 department: '',
-                startDate: new Date().toISOString().split('T')[0],
+                startDate: formatDateForInput(new Date()),
                 endDate: '',
                 notes: ''
             })

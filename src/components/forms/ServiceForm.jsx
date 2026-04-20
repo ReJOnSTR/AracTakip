@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { serviceSchema } from '../../schemas/serviceSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
-import { serviceTypes } from '../../utils/helpers'
+import { serviceTypes, formatDateForInput } from '../../utils/helpers'
 
 export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
@@ -20,7 +20,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
             type: 'Genel Bakım',
             serviceName: '',
             description: '',
-            date: new Date().toISOString().split('T')[0],
+            date: formatDateForInput(new Date()),
             km: '',
             cost: '',
             notes: ''
@@ -34,7 +34,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                 type: initialData.type || 'Genel Bakım',
                 serviceName: initialData.service_name || initialData.serviceName || '',
                 description: initialData.description || '',
-                date: initialData.date || new Date().toISOString().split('T')[0],
+                date: formatDateForInput(initialData.date) || formatDateForInput(new Date()),
                 km: initialData.km || '',
                 cost: initialData.cost || '',
                 notes: initialData.notes || ''
@@ -45,7 +45,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                 type: 'Genel Bakım',
                 serviceName: '',
                 description: '',
-                date: new Date().toISOString().split('T')[0],
+                date: formatDateForInput(new Date()),
                 km: '',
                 cost: '',
                 notes: ''
