@@ -25,7 +25,8 @@ const paymentTypes = [
 const paymentMethods = [
     { value: 'nakit', label: 'Nakit' },
     { value: 'kasa', label: 'Kasa' },
-    { value: 'bank', label: 'Banka' }
+    { value: 'bank', label: 'Banka' },
+    { value: 'salary_deduction', label: 'Maaştan Düşme' }
 ]
 
 export default function PayrollDashboard() {
@@ -82,7 +83,20 @@ export default function PayrollDashboard() {
                         .reduce((sum, o) => sum + (o.amount || 0), 0);
                     const requiredPay = historicalBase + otAmount;
                     
-                    const paidAmount = (emp.salaries || []).filter(s => s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0);
+                    const paidAmount = (emp.salaries || [])
+                        .filter(s => s.status === 'paid')
+                        .filter(s => {
+                            // Borç alma (loan) maaş ödemesi değildir, yansıtma.
+                            if (s.period === 'loan') return false;
+                            
+                            // Borç ödeme (loan_payment) sadece maaştan düşülüyorsa yansıt.
+                            if (s.period === 'loan_payment') {
+                                return s.payment_method === 'salary_deduction';
+                            }
+                            
+                            return true;
+                        })
+                        .reduce((sum, s) => sum + (s.net_salary || 0), 0);
                     
                     const remainingPay = requiredPay - paidAmount;
 
