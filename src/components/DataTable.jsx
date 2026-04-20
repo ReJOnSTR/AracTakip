@@ -19,9 +19,10 @@ export default function DataTable({
     onRowClick = null,
     onSelectionChange = null,
     onBulkDelete = null,
-    onBulkArchive = null, // New prop
-    isArchiveView = false, // New prop
-    onToggleArchiveView = null, // New prop
+    onBulkArchive = null,
+    customBulkActions = null,
+    isArchiveView = false,
+    onToggleArchiveView = null,
     onContextMenu = null,
     enableExport = false,
     exportFileName = 'Liste',
@@ -819,6 +820,8 @@ export default function DataTable({
                                 {isArchiveView ? 'Geri Al' : 'Arşivle'}
                             </button>
                         )}
+                        {customBulkActions && customBulkActions(Array.from(selectedRows), clearSelection)}
+
                         <button className="btn-bulk-action secondary" onClick={clearSelection}>
                             <X size={15} />
                             Vazgeç

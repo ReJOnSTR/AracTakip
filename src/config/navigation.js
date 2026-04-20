@@ -90,7 +90,8 @@ export const moduleMenus = {
         {
             title: 'Personel Yönetimi',
             items: [
-                { path: '/employees', label: 'Personeller', icon: Users }
+                { path: '/employees', label: 'Personeller', icon: Users },
+                { path: '/payroll', label: 'Maaş Tablosu', icon: Banknote }
             ]
         },
         {
@@ -183,6 +184,7 @@ export const getRouteInfo = (path) => {
     // Fallback for detail pages
     if (path.startsWith('/vehicles/')) return { label: 'Araç Detay', icon: Car }
     if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
+    if (path === '/payroll') return { label: 'Maaş & Ödeme Tablosu', icon: Banknote }
     if (path.startsWith('/works/')) return { label: 'İş Detayı', icon: Briefcase }
     if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }

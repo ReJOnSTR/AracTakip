@@ -57,6 +57,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Employees
     getEmployees: (companyId, isArchived) => ipcRenderer.invoke('employees:getAll', companyId, isArchived),
+    getPayrollSummary: (companyId, month) => ipcRenderer.invoke('employees:getPayrollSummary', companyId, month),
     getEmployeeById: (id) => ipcRenderer.invoke('employees:getById', id),
     createEmployee: (data) => ipcRenderer.invoke('employees:create', data),
     updateEmployee: (data) => ipcRenderer.invoke('employees:update', data),

@@ -139,6 +139,34 @@ async function deleteEmployee(id) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+async function getPayrollSummary(companyId, month) {
+    try {
+        const targetMonth = month || new Date().toISOString().slice(0, 7);
+        const [year, m] = targetMonth.split('-');
+        const startDate = new Date(year, parseInt(m) - 1, 1);
+        const endDate = new Date(year, parseInt(m), 0, 23, 59, 59);
+
+        const employees = await prisma.employees.findMany({
+            where: { company_id: parseInt(companyId), status: 'active' },
+            include: {
+                salaries: { where: { salary_month: targetMonth } },
+                overtimes: { 
+                    where: { 
+                        date: { gte: startDate, lte: endDate },
+                        is_archived: 0
+                    } 
+                },
+                employee_salary_history: { orderBy: { start_date: 'asc' } }
+            },
+            orderBy: { first_name: 'asc' }
+        });
+
+        return { success: true, data: employees };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
-    getEmployees, getEmployeeById, addEmployee, updateEmployee, deleteEmployee
+    getEmployees, getEmployeeById, addEmployee, updateEmployee, deleteEmployee, getPayrollSummary
 };

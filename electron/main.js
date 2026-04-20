@@ -562,6 +562,10 @@ ipcMain.handle('mealTickets:getReport', async (event, { companyId, month, year }
 ipcMain.handle('employees:getAll', async (event, companyId, isArchived) => {
     return db.getEmployees(companyId, isArchived)
 })
+ipcMain.handle('employees:getPayrollSummary', async (event, companyId, month) => {
+    return db.getPayrollSummary(companyId, month)
+})
+
 ipcMain.handle('employees:getById', async (event, id) => {
     return await db.getEmployeeById(id)
 })
