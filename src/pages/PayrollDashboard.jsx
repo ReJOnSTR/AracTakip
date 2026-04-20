@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
@@ -33,15 +33,14 @@ export default function PayrollDashboard() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
     const { openNewTab } = useTabs()
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
-    const [payrollData, setPayrollData] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [stats, setStats] = useState({
-        totalCurrentSalary: 0,
-        totalOvertimes: 0,
-        totalPaid: 0,
-        totalPending: 0
+    const [selectedMonth, setSelectedMonth] = useState(() => {
+        const saved = localStorage.getItem(`payroll_selected_month_${currentCompany?.id || 'default'}`)
+        return saved || new Date().toISOString().slice(0, 7)
     })
+    
+    const [payrollData, setPayrollData] = useState([])
+    const [displayData, setDisplayData] = useState([]) // Data after table-top filters
+    const [loading, setLoading] = useState(true)
 
     const [selectedRows, setSelectedRows] = useState([])
     const [modalOpen, setModalOpen] = useState(false)
@@ -56,11 +55,42 @@ export default function PayrollDashboard() {
         useRemaining: false
     })
 
+    // Restore Month Persistence
+    useEffect(() => {
+        if (currentCompany) {
+            const m = localStorage.getItem(`payroll_selected_month_${currentCompany.id}`)
+            if (m) setSelectedMonth(m)
+        }
+    }, [currentCompany])
+
+    useEffect(() => {
+        if (selectedMonth && currentCompany) {
+            localStorage.setItem(`payroll_selected_month_${currentCompany.id}`, selectedMonth)
+        }
+    }, [selectedMonth, currentCompany])
+
+    // Derive available departments for the filter dropdown
+    const departmentOptions = useMemo(() => {
+        const depts = [...new Set(payrollData.map(item => item.department).filter(Boolean))].sort()
+        return depts.map(d => ({ value: d, label: d }))
+    }, [payrollData])
+
+    // Derive stats from displayData (dynamically updated by DataTable filters)
+    const displayStats = useMemo(() => {
+        return displayData.reduce((acc, item) => ({
+            totalCurrentSalary: acc.totalCurrentSalary + (item.calc_base || 0),
+            totalOvertimes: acc.totalOvertimes + (item.calc_overtimes || 0),
+            totalPaid: acc.totalPaid + (item.calc_paid || 0),
+            totalPending: acc.totalPending + (item.calc_remaining || 0)
+        }), { totalCurrentSalary: 0, totalOvertimes: 0, totalPaid: 0, totalPending: 0 })
+    }, [displayData])
+
     useEffect(() => {
         if (currentCompany) {
             loadPayroll()
         } else {
             setPayrollData([])
+            setDisplayData([])
             setLoading(false)
         }
     }, [currentCompany, selectedMonth])
@@ -116,12 +146,7 @@ export default function PayrollDashboard() {
                 });
 
                 setPayrollData(processedData)
-                setStats({
-                    totalCurrentSalary: tBase,
-                    totalOvertimes: tOt,
-                    totalPaid: tPaid,
-                    totalPending: tPending
-                })
+
             }
         } catch (err) {
             console.error('Failed to load payroll summary:', err)
@@ -224,7 +249,7 @@ export default function PayrollDashboard() {
         {
             key: 'department',
             label: 'Departman',
-            render: (value) => (
+            render: (value) => value ? (
                 <span style={{
                     backgroundColor: 'var(--bg-tertiary)',
                     color: 'var(--text-secondary)',
@@ -238,7 +263,8 @@ export default function PayrollDashboard() {
                 }}>
                     {value}
                 </span>
-            )
+            ) : <span style={{ color: 'var(--text-muted)', paddingLeft: '10px' }}>-</span>
+
         },
         {
             key: 'calc_base',
@@ -280,17 +306,28 @@ export default function PayrollDashboard() {
             key: 'calc_remaining',
             label: 'Durum / Bakiye',
             render: (value) => {
-                const isPending = value > 0
-                return isPending ? (
-                    <span style={{ color: 'var(--danger)', fontWeight: '600', fontSize: '13px' }}>
-                        {formatCurrency(value)}
-                    </span>
-                ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)', opacity: 0.8 }}>
-                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
-                        <span style={{ fontSize: '12px', fontWeight: '500' }}>Ödendi</span>
-                    </div>
-                )
+                if (value > 0) {
+                    return (
+                        <span style={{ color: 'var(--danger)', fontWeight: '600', fontSize: '13px' }}>
+                            {formatCurrency(value)}
+                        </span>
+                    )
+                } else if (value < 0) {
+                    const overpaidAmount = Math.abs(value)
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--info)' }}>
+                            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                            <span style={{ fontWeight: '600', fontSize: '13px' }}>{formatCurrency(overpaidAmount)}</span>
+                        </div>
+                    )
+                } else {
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)', opacity: 0.8 }}>
+                            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                            <span style={{ fontSize: '12px', fontWeight: '500' }}>Ödendi</span>
+                        </div>
+                    )
+                }
             }
         }
     ]
@@ -353,7 +390,7 @@ export default function PayrollDashboard() {
                     <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>Tüm personellerin maaş bakiyeleri ve ödeme durumları.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ width: '200px' }}>
+                    <div style={{ width: '180px' }}>
                         <MonthFilter 
                             value={selectedMonth} 
                             onChange={setSelectedMonth} 
@@ -365,42 +402,65 @@ export default function PayrollDashboard() {
             {/* Top Summaries */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '30px' }}>
                 <StatCard 
-                    title="Aylık Net Maaş Toplamı" 
-                    value={formatCurrency(stats.totalCurrentSalary)} 
+                    title="Seçili Net Maaş" 
+                    value={formatCurrency(displayStats.totalCurrentSalary)} 
                     icon={Users} 
                     color="var(--accent-primary)" 
                     bgColor="var(--accent-subtle)"
                 />
                 <StatCard 
-                    title="Aylık Mesai Toplamı" 
-                    value={formatCurrency(stats.totalOvertimes)} 
+                    title="Seçili Mesai" 
+                    value={formatCurrency(displayStats.totalOvertimes)} 
                     icon={Clock} 
                     color="var(--info)" 
                     bgColor="var(--info-bg)"
                 />
                 <StatCard 
-                    title="Toplam Ödenen" 
-                    value={formatCurrency(stats.totalPaid)} 
+                    title="Seçili Ödenen" 
+                    value={formatCurrency(displayStats.totalPaid)} 
                     icon={Wallet} 
                     color="var(--success)" 
                     bgColor="var(--success-bg)"
                 />
                 <StatCard 
-                    title="Ödenmesi Gereken" 
-                    value={formatCurrency(stats.totalPending)} 
+                    title="Seçili Kalan" 
+                    value={formatCurrency(displayStats.totalPending)} 
                     icon={Banknote} 
                     color="var(--warning)" 
                     bgColor="var(--warning-bg)"
-                    isDanger={stats.totalPending > 0} 
+                    isDanger={displayStats.totalPending > 0} 
                 />
             </div>
 
             {/* Data Table */}
             <DataTable 
-                persistenceKey="Payroll_table_1"
+                persistenceKey="Payroll_table_v2"
                 storageKey="payroll_table_cols"
                 columns={columns}
                 data={payrollData}
+                onFilteredDataChange={setDisplayData}
+                filters={[
+                    {
+                        key: 'department',
+                        label: 'Departman',
+                        options: departmentOptions
+                    },
+                    {
+                        key: 'payment_status',
+                        label: 'Ödeme Durumu',
+                        options: [
+                            { value: 'pending', label: 'Eksik Ödeme' },
+                            { value: 'paid', label: 'Ödenenler' },
+                            { value: 'overpaid', label: 'Fazla Ödeme' }
+                        ],
+                        filterFn: (row, value) => {
+                            if (value === 'pending') return row.calc_remaining > 0
+                            if (value === 'paid') return row.calc_remaining === 0
+                            if (value === 'overpaid') return row.calc_remaining < 0
+                            return true
+                        }
+                    }
+                ]}
                 showSearch={true}
                 searchPlaceholder="Personel Ara..."
                 searchKeys={['first_name', 'last_name', 'department']}
