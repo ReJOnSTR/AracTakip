@@ -38,6 +38,7 @@ const MealTicketReport = lazy(() => import('./pages/MealTicketReport'))
 const MealTicketSettings = lazy(() => import('./pages/MealTicketSettings'))
 const Employees = lazy(() => import('./pages/Employees'))
 const EmployeeDetail = lazy(() => import('./pages/EmployeeDetail'))
+const PersonelDashboard = lazy(() => import('./pages/PersonelDashboard'))
 const PayrollDashboard = lazy(() => import('./pages/PayrollDashboard'))
 const Works = lazy(() => import('./pages/Works'))
 const WorkDetails = lazy(() => import('./pages/WorkDetails'))
@@ -144,6 +145,7 @@ function AppRoutes() {
                         <Route path="/assignments" element={<Assignments />} />
                         <Route path="/employees" element={<Employees />} />
                         <Route path="/employees/:id" element={<EmployeeDetail />} />
+                        <Route path="/personel-dashboard" element={<PersonelDashboard />} />
                         <Route path="/payroll" element={<PayrollDashboard />} />
                         <Route path="/works" element={<Works />} />
                         <Route path="/works/:id" element={<WorkDetails />} />

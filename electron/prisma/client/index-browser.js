@@ -173,12 +173,14 @@ exports.Prisma.Employee_assignmentsScalarFieldEnum = {
   id: 'id',
   employee_id: 'employee_id',
   item_name: 'item_name',
+  serial_number: 'serial_number',
   quantity: 'quantity',
-  assigned_date: 'assigned_date',
+  assign_date: 'assign_date',
   return_date: 'return_date',
   status: 'status',
   notes: 'notes',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.Employee_attendanceScalarFieldEnum = {
@@ -197,6 +199,10 @@ exports.Prisma.Employee_documentsScalarFieldEnum = {
   file_path: 'file_path',
   file_type: 'file_type',
   category: 'category',
+  issue_date: 'issue_date',
+  start_date: 'start_date',
+  expiry_date: 'expiry_date',
+  is_archived: 'is_archived',
   created_at: 'created_at'
 };
 

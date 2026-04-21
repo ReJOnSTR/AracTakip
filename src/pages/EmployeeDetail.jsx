@@ -17,7 +17,7 @@ import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
     UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet,
-    Upload, X, ExternalLink
+    Upload, X, ExternalLink, Archive, ArchiveRestore
 } from 'lucide-react'
 
 const paymentTypes = [
@@ -118,8 +118,27 @@ export default function EmployeeDetail() {
     const { updateTabInfo } = useTabs()
 
     const [employee, setEmployee] = useState(null)
-    const [activeTab, setActiveTab] = usePersistentTab('EmployeeDetail', 'salary')
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+    const [activeTab, setActiveTab ] = usePersistentTab('EmployeeDetail', 'salary')
+    const [selectedMonth, setSelectedMonth] = useState(() => {
+        const saved = localStorage.getItem(`payroll_selected_month_${currentCompany?.id || 'default'}`)
+        return saved || new Date().toISOString().slice(0, 7)
+    })
+    
+    // Sync with global payroll month
+    useEffect(() => {
+        if (currentCompany) {
+            const saved = localStorage.getItem(`payroll_selected_month_${currentCompany.id}`)
+            if (saved && saved !== selectedMonth) {
+                setSelectedMonth(saved)
+            }
+        }
+    }, [currentCompany])
+
+    useEffect(() => {
+        if (selectedMonth && currentCompany) {
+            localStorage.setItem(`payroll_selected_month_${currentCompany.id}`, selectedMonth)
+        }
+    }, [selectedMonth, currentCompany])
     const [tabsRef] = useState({})
     const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
     const [loading, setLoading] = useState(true)
@@ -138,12 +157,19 @@ export default function EmployeeDetail() {
     const [confirmModal, setConfirmModal] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
+    const [uploadCategory, setUploadCategory] = useState('')
+    const [uploadIssueDate, setUploadIssueDate] = useState('')
+    const [uploadStartDate, setUploadStartDate] = useState('')
+    const [uploadExpiryDate, setUploadExpiryDate] = useState('')
+    const [editDocModalOpen, setEditDocModalOpen] = useState(false)
+    const [editingDoc, setEditingDoc] = useState(null)
     const [previewDoc, setPreviewDoc] = useState(null)
     const [showLoanHistory, setShowLoanHistory] = useState(false)
+    const [isDocArchiveView, setIsDocArchiveView] = useState(false)
 
     useEffect(() => {
         if (currentCompany) loadEmployeeData()
-    }, [currentCompany, id])
+    }, [currentCompany, id, isDocArchiveView])
 
     useEffect(() => {
         const activeElement = tabsRef[activeTab]
@@ -171,7 +197,7 @@ export default function EmployeeDetail() {
                 window.electronAPI.getLeaves(parseInt(id)),
                 window.electronAPI.getOvertimes(parseInt(id)),
                 window.electronAPI.getEmployeeAssignments(parseInt(id)),
-                window.electronAPI.getEmployeeDocuments(parseInt(id))
+                window.electronAPI.getEmployeeDocuments(parseInt(id), isDocArchiveView)
             ])
             if (empRes.success) {
                 setEmployee(empRes.data)
@@ -267,8 +293,9 @@ export default function EmployeeDetail() {
         } else if (type === 'assignment') {
             setFormData({ 
                 itemName: item.item_name || '', 
+                serialNumber: item.serial_number || '',
                 quantity: item.quantity || 1, 
-                assignedDate: formatDateForInput(item.assigned_date), 
+                assignedDate: formatDateForInput(item.assign_date), 
                 returnDate: formatDateForInput(item.return_date), 
                 status: item.status || 'active', 
                 notes: item.notes || '' 
@@ -608,7 +635,16 @@ export default function EmployeeDetail() {
     const handleAssignmentSubmit = async (e) => {
         e.preventDefault()
         setSaving(true); setError('')
-        const data = { employeeId: parseInt(id), itemName: formData.itemName, quantity: parseInt(formData.quantity) || 1, assignedDate: formData.assignedDate || null, returnDate: formData.returnDate || null, status: formData.status || 'active', notes: formData.notes || null }
+        const data = { 
+            employeeId: parseInt(id), 
+            itemName: formData.itemName, 
+            serialNumber: formData.serialNumber || null,
+            quantity: parseInt(formData.quantity) || 1, 
+            assignDate: formData.assignedDate || null, 
+            returnDate: formData.returnDate || null, 
+            status: formData.status || 'active', 
+            notes: formData.notes || null 
+        }
         try {
             const result = editingItem ? await window.electronAPI.updateEmployeeAssignment({ id: editingItem.id, ...data }) : await window.electronAPI.createEmployeeAssignment(data)
             if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
@@ -617,7 +653,12 @@ export default function EmployeeDetail() {
     }
 
     const handleOpenUpload = () => {
+        const todayStr = new Date().toISOString().split('T')[0]
         setSelectedUploadFile(null)
+        setUploadCategory('')
+        setUploadIssueDate(todayStr)
+        setUploadStartDate('')
+        setUploadExpiryDate('')
         setUploadModalOpen(true)
     }
 
@@ -641,7 +682,10 @@ export default function EmployeeDetail() {
                 fileName: selectedUploadFile.name,
                 filePath: selectedUploadFile.path,
                 fileType: ext,
-                category: null
+                category: uploadCategory || null,
+                issueDate: uploadIssueDate || null,
+                startDate: uploadStartDate || null,
+                expiryDate: uploadExpiryDate || null
             })
             if (res.success) {
                 setUploadModalOpen(false)
@@ -650,6 +694,74 @@ export default function EmployeeDetail() {
                 console.error('Upload error:', res.error)
             }
         } catch (err) { console.error('Upload failed:', err) }
+    }
+
+    const handleEditDoc = (doc) => {
+        setEditingDoc(doc)
+        setUploadCategory(doc.category || '')
+        setUploadIssueDate(doc.issue_date ? new Date(doc.issue_date).toISOString().split('T')[0] : '')
+        setUploadStartDate(doc.start_date ? new Date(doc.start_date).toISOString().split('T')[0] : '')
+        setUploadExpiryDate(doc.expiry_date ? new Date(doc.expiry_date).toISOString().split('T')[0] : '')
+        setSelectedUploadFile(null)
+        setError('')
+        setEditDocModalOpen(true)
+    }
+
+    const handleUpdateDocConfirm = async () => {
+        if (!editingDoc) return
+        setSaving(true)
+        setError('')
+        try {
+            const updatePayload = {
+                id: editingDoc.id,
+                category: uploadCategory || null,
+                issueDate: new Date().toISOString().split('T')[0], // Always today on modification
+                startDate: uploadStartDate || null,
+                expiryDate: uploadExpiryDate || null
+            }
+            if (selectedUploadFile) {
+                const ext = selectedUploadFile.name.split('.').pop().toLowerCase()
+                updatePayload.fileName = selectedUploadFile.name
+                updatePayload.filePath = selectedUploadFile.path
+                updatePayload.fileType = ext
+            }
+            const res = await window.electronAPI.updateEmployeeDocument(updatePayload)
+            if (res.success) {
+                setEditDocModalOpen(false)
+                loadEmployeeData()
+            } else {
+                setError(res.error || 'Güncelleme başarısız oldu.')
+            }
+        } catch (err) { 
+            console.error('Update failed:', err)
+            setError('Bir hata oluştu.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleArchiveDoc = async (docId, isArchived) => {
+        try {
+            const res = await window.electronAPI.archiveItem('employee_documents', docId, isArchived ? 1 : 0)
+            if (res.success) {
+                loadEmployeeData()
+            } else {
+                alert(res.error || 'İşlem başarısız oldu.')
+            }
+        } catch (err) {
+            console.error('Archive failed:', err)
+        }
+    }
+
+    const handleBulkArchiveDocs = async (ids, isArchived) => {
+        try {
+            // We can reuse archiveItem in a loop or implement a bulk one, but given the app's pattern:
+            const promises = ids.map(id => window.electronAPI.archiveItem('employee_documents', id, isArchived ? 1 : 0))
+            await Promise.all(promises)
+            loadEmployeeData()
+        } catch (err) {
+            console.error('Bulk archive failed:', err)
+        }
     }
 
     const handleDocumentOpen = async (doc) => {
@@ -701,6 +813,7 @@ export default function EmployeeDetail() {
         { id: 'salary', label: 'Ödeme', icon: CreditCard, count: salaries.length },
         { id: 'leave', label: 'İzin', icon: CalendarOff, count: leaves.length },
         { id: 'overtime', label: 'Mesai', icon: Clock, count: overtimes.length },
+        { id: 'assignment', label: 'Zimmet', icon: Package, count: assignments.length },
         { id: 'documents', label: 'Belgeler', icon: FileText, count: documents.length }
     ]
 
@@ -765,18 +878,68 @@ export default function EmployeeDetail() {
 
     const assignmentColumns = [
         { key: 'item_name', label: 'Demirbaş' },
+        { key: 'serial_number', label: 'Seri No' },
         { key: 'quantity', label: 'Adet' },
-        { key: 'assigned_date', label: 'Teslim Tarihi', render: (v) => v ? formatDate(v) : '-' },
+        { key: 'assign_date', label: 'Teslim Tarihi', render: (v) => v ? formatDate(v) : '-' },
         { key: 'return_date', label: 'İade Tarihi', render: (v) => v ? formatDate(v) : <span className="badge badge-success">Aktif</span> },
         { key: 'status', label: 'Durum', render: (v) => <span className={`badge badge-${v === 'active' ? 'success' : 'secondary'}`}>{v === 'active' ? 'Aktif' : 'İade Edildi'}</span> },
         { key: 'notes', label: 'Not' }
     ]
 
+    const documentCategories = [
+        { value: 'Kimlik', label: 'Kimlik / Pasaport' },
+        { value: 'Ehliyet', label: 'Sürücü Belgesi' },
+        { value: 'Psikoteknik', label: 'Psikoteknik Belgesi' },
+        { value: 'SRC', label: 'SRC Belgesi' },
+        { value: 'Sözleşme', label: 'İş Sözleşmesi' },
+        { value: 'Sağlık', label: 'Sağlık Raporu' },
+        { value: 'Adli Sicil', label: 'Adli Sicil Kaydı' },
+        { value: 'İkametgah', label: 'İkametgah Belgesi' },
+        { value: 'Mezuniyet', label: 'Diploma / Sertifika' },
+        { value: 'Diğer', label: 'Diğer' }
+    ]
+
     const documentColumns = [
-        { key: 'file_name', label: 'Dosya Adı' },
-        { key: 'file_type', label: 'Tür' },
-        { key: 'category', label: 'Kategori', render: (v) => v || '-' },
-        { key: 'created_at', label: 'Yükleme Tarihi', render: (v) => formatDate(v) }
+        { key: 'category', label: 'Kategori', render: (v) => <span style={{ fontWeight: 600 }}>{v || 'Belirtilmedi'}</span> },
+        { key: 'file_name', label: 'Dosya Adı', render: (v) => <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{v}</span> },
+        { key: 'issue_date', label: 'Düzenlenme', render: (v) => v ? formatDate(v) : '-' },
+        { key: 'start_date', label: 'Başlangıç Tarihi', render: (v) => v ? formatDate(v) : '-' },
+        { 
+            key: 'expiry_date', 
+            label: 'Bitiş Tarihi', 
+            render: (v) => v ? formatDate(v) : '-'
+        },
+        {
+            key: 'remaining_time',
+            label: 'Kalan Süre',
+            render: (_, row) => {
+                if (!row.expiry_date) return '-';
+                const target = new Date(row.expiry_date);
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                
+                const diffTime = target - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) return <span style={{ color: 'var(--danger)', fontWeight: 700, fontSize: '12px' }}>SÜRESİ DOLDU</span>;
+                if (diffDays === 0) return <span style={{ color: 'var(--warning)', fontWeight: 700, fontSize: '12px' }}>BUGÜN</span>;
+                
+                if (diffDays < 30) {
+                    const color = diffDays < 10 ? 'var(--danger)' : 'var(--warning)';
+                    return <span style={{ color, fontWeight: 600 }}>{diffDays} Gün</span>;
+                }
+                
+                const months = Math.floor(diffDays / 30);
+                const remainingDays = diffDays % 30;
+                
+                return (
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                        {months} Ay {remainingDays > 0 ? `${remainingDays} Gün` : ''}
+                    </span>
+                );
+            }
+        },
+        { key: 'created_at', label: 'Yükleme Tarihi', render: (v) => <span style={{ opacity: 0.7 }}>{formatDate(v)}</span> }
     ]
 
     // ========== RENDER ==========
@@ -1388,12 +1551,19 @@ export default function EmployeeDetail() {
                             storageKey="emp_document_cols"
                             columns={documentColumns}
                             data={documents}
-                            emptyMessage="Belge bulunamadı"
+                            emptyMessage={isDocArchiveView ? "Arşivlenmiş belge bulunmuyor" : "Aktif belge bulunamadı"}
+                            filters={[
+                                { key: 'category', label: 'Kategori', options: documentCategories.map(c => ({ value: c, label: c })) }
+                            ]}
+                            isArchiveView={isDocArchiveView}
+                            onToggleArchiveView={(val) => setIsDocArchiveView(val)}
                             onBulkDelete={(ids) => handleDeleteClick('documents', null, ids)}
+                            onBulkArchive={(ids) => handleBulkArchiveDocs(ids, !isDocArchiveView)}
                             actions={(item) => (
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item) }} title="Aç"><FileText size={16} /></button>
-                                    <button className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }}><Trash2 size={16} /></button>
+                                    <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item) }} title="Aç"><FileText size={16} /></button>
+                                    {!isDocArchiveView && <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleEditDoc(item) }} title="Düzenle"><Pencil size={16} /></button>}
+                                    <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }} title="Sil"><Trash2 size={16} /></button>
                                 </div>
                             )}
                         />
@@ -1595,7 +1765,9 @@ export default function EmployeeDetail() {
                             <form onSubmit={handleAssignmentSubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <CustomInput label="Demirbaş Adı *" value={formData.itemName || ''} onChange={(val) => updateField('itemName', val)} required />
+                                    <CustomInput label="Seri No" value={formData.serialNumber || ''} onChange={(val) => updateField('serialNumber', val)} />
                                     <CustomInput label="Adet" type="number" value={formData.quantity || 1} onChange={(val) => updateField('quantity', val)} min={1} />
+                                    <div />
                                     <CustomInput label="Teslim Tarihi" type="date" value={formData.assignedDate || ''} onChange={(val) => updateField('assignedDate', val)} />
                                     <CustomInput label="İade Tarihi" type="date" value={formData.returnDate || ''} onChange={(val) => updateField('returnDate', val)} />
                                 </div>
@@ -1693,66 +1865,204 @@ export default function EmployeeDetail() {
             )}
 
             {/* Upload Modal */}
-            {uploadModalOpen && (
-                <div className="modal-overlay" style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', animation: 'fadeIn 0.2s ease-out'
-                }} onClick={() => setUploadModalOpen(false)}>
-                    <div className="modal-content" style={{
-                        width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-elevated)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }} onClick={e => e.stopPropagation()}>
-
-                        <div style={{
-                            padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-secondary)'
-                        }}>
-                            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Belge Yükle</h3>
-                            <button onClick={() => setUploadModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <X size={20} />
-                            </button>
+            <Modal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                title="Yeni Belge Yükle"
+                size="lg"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* Metadata Section */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                        <CustomSelect 
+                            label="Belge Kategorisi *"
+                            value={uploadCategory}
+                            onChange={setUploadCategory}
+                            options={documentCategories}
+                            placeholder="Kategori seçin..."
+                        />
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <CustomInput 
+                                label="Başlangıç Tarihi"
+                                type="date"
+                                value={uploadStartDate}
+                                onChange={setUploadStartDate}
+                            />
+                            <CustomInput 
+                                label="Bitiş Tarihi"
+                                type="date"
+                                value={uploadExpiryDate}
+                                onChange={setUploadExpiryDate}
+                            />
                         </div>
-
-                        <div style={{ padding: '24px' }}>
-                            {!selectedUploadFile ? (
-                                <div onClick={handleSelectUploadFile} style={{
-                                    border: '2px dashed var(--border-color)', borderRadius: '12px', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: 'var(--bg-secondary)'
-                                }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.backgroundColor = 'var(--accent-subtle)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.backgroundColor = 'var(--bg-secondary)' }}>
-                                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-                                        <Upload size={32} />
-                                    </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Dosya Seçmek İçin Tıklayın</div>
-                                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>veya buraya sürükleyin</div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', backgroundColor: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <FileText size={24} />
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '2px' }}>Yüklemeye hazır</div>
-                                    </div>
-                                    <button onClick={() => setSelectedUploadFile(null)} style={{ background: 'transparent', border: 'none', color: 'var(--error)', cursor: 'pointer', padding: '8px' }}>
-                                        <X size={20} />
-                                    </button>
-                                </div>
-                            )}
-
-                            <div style={{ marginTop: '20px', display: 'flex', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                <div style={{ minWidth: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor', marginTop: '6px' }} />
-                                Desteklenen formatlar: Resimler (PNG, JPG), PDF ve diğer belgeler.
-                            </div>
-                        </div>
-
-                        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
-                            <button className="btn btn-secondary" onClick={() => setUploadModalOpen(false)}>İptal</button>
-                            <button className="btn btn-primary" disabled={!selectedUploadFile} onClick={handleUploadConfirm} style={{ opacity: !selectedUploadFile ? 0.5 : 1 }}>
-                                <Upload size={16} /> Yükle
-                            </button>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '-8px' }}>
+                            * Düzenlenme tarihi kayıt anında otomatik olarak bugünün tarihi alınacaktır.
                         </div>
                     </div>
+
+                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', opacity: 0.5 }} />
+
+                    {/* File Selection Section */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Dosya Seçimi *</label>
+                        
+                        {!selectedUploadFile ? (
+                            <div onClick={handleSelectUploadFile} style={{
+                                border: '2px dashed var(--border-color)', borderRadius: '16px', 
+                                padding: '32px', display: 'flex', flexDirection: 'column', 
+                                alignItems: 'center', gap: '12px', cursor: 'pointer', 
+                                transition: 'all 0.2s', backgroundColor: 'var(--bg-secondary)',
+                                textAlign: 'center'
+                            }} 
+                            onMouseEnter={e => { 
+                                e.currentTarget.style.borderColor = 'var(--accent-primary)'; 
+                                e.currentTarget.style.backgroundColor = 'var(--accent-subtle)';
+                            }} 
+                            onMouseLeave={e => { 
+                                e.currentTarget.style.borderColor = 'var(--border-color)'; 
+                                e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
+                            }}>
+                                <Upload size={24} style={{ color: 'var(--accent-primary)' }} />
+                                <div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Dosyayı Seçin</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Veya buraya sürükleyin</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ 
+                                border: '1px solid var(--border-color)', borderRadius: '12px', 
+                                padding: '12px 16px', backgroundColor: 'var(--bg-tertiary)', 
+                                display: 'flex', alignItems: 'center', gap: '12px'
+                            }}>
+                                <div style={{ 
+                                    width: '40px', height: '40px', borderRadius: '8px', 
+                                    backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <FileText size={20} />
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '1px' }}>Yüklemeye hazır</div>
+                                </div>
+                                <button onClick={() => setSelectedUploadFile(null)} style={{ 
+                                    background: 'transparent', border: 'none', color: 'var(--error)', 
+                                    cursor: 'pointer', padding: '8px', borderRadius: '8px'
+                                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--error-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                        <button className="btn btn-secondary" onClick={() => setUploadModalOpen(false)}>İptal</button>
+                        <button 
+                            className="btn btn-primary" 
+                            disabled={!selectedUploadFile || !uploadCategory || saving} 
+                            onClick={handleUploadConfirm}
+                        >
+                            {saving ? 'Yükleniyor...' : (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Upload size={16} /> Belgeyi Yükle
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </div>
-            )}
+            </Modal>
+            
+            {/* Document Edit Modal */}
+            <Modal
+                isOpen={editDocModalOpen}
+                onClose={() => { setEditDocModalOpen(false); setError(''); }}
+                title="Belge Bilgilerini Düzenle"
+                size="md"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {error && (
+                        <div style={{ padding: '10px 14px', backgroundColor: 'var(--error-bg)', color: 'var(--error)', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <AlertCircle size={14} /> {error}
+                        </div>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                        <CustomSelect 
+                            label="Belge Kategorisi *"
+                            value={uploadCategory}
+                            onChange={setUploadCategory}
+                            options={documentCategories}
+                            placeholder="Kategori seçin..."
+                        />
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <CustomInput 
+                                label="Başlangıç Tarihi"
+                                type="date"
+                                value={uploadStartDate}
+                                onChange={setUploadStartDate}
+                            />
+                            <CustomInput 
+                                label="Bitiş Tarihi"
+                                type="date"
+                                value={uploadExpiryDate}
+                                onChange={setUploadExpiryDate}
+                            />
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginTop: '-8px', fontWeight: 500 }}>
+                            * Kaydedildiğinde Düzenlenme tarihi otomatik olarak bugünün tarihi (<strong>{new Date().toLocaleDateString('tr-TR')}</strong>) ile güncellenecektir.
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '12px', textTransform: 'uppercase' }}>Belge Dosyası</div>
+                        
+                        {!selectedUploadFile ? (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                                        <FileText size={18} />
+                                    </div>
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{editingDoc?.file_name}</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Mevcut Dosya</div>
+                                    </div>
+                                </div>
+                                <button className="btn btn-secondary btn-sm" onClick={handleSelectUploadFile}>
+                                    Dosyayı Değiştir
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: 'var(--accent-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
+                                        <Upload size={18} />
+                                    </div>
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--success)' }}>Yeni Dosya Seçildi</div>
+                                    </div>
+                                </div>
+                                <button className="btn btn-icon danger" onClick={() => setSelectedUploadFile(null)} title="Vazgeç">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                        <button className="btn btn-secondary" onClick={() => setEditDocModalOpen(false)}>İptal</button>
+                        <button 
+                            className="btn btn-primary" 
+                            disabled={!uploadCategory || saving} 
+                            onClick={handleUpdateDocConfirm}
+                        >
+                            {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     )
 }

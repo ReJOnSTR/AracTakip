@@ -61,7 +61,7 @@ async function runAutoMigrations() {
         const archivableTables = [
             'assignments', 'customers', 'employee_assignments', 'employees',
             'inspections', 'insurances', 'maintenances', 'meal_tickets',
-            'services', 'transactions', 'vehicles', 'works'
+            'services', 'transactions', 'vehicles', 'works', 'employee_documents'
         ];
 
         for (const tableName of archivableTables) {
@@ -161,15 +161,50 @@ async function runAutoMigrations() {
         log.error('Migration step 8 (salary_month) error:', error.message);
     }
 
-    // 9. Add full_name to users
+    // 10. Employee Assignments: serial_number, assign_date (sync with schema)
     try {
-        const userCols = await p.$queryRawUnsafe("PRAGMA table_info('users')");
-        if (userCols.length > 0 && !userCols.some(c => c.name === 'full_name')) {
-            await p.$executeRawUnsafe("ALTER TABLE users ADD COLUMN full_name TEXT");
-            log.info('Migration: Added full_name to users');
+        const eaCols = await p.$queryRawUnsafe("PRAGMA table_info('employee_assignments')");
+        if (eaCols.length > 0) {
+            if (!eaCols.some(c => c.name === 'serial_number')) {
+                await p.$executeRawUnsafe('ALTER TABLE employee_assignments ADD COLUMN serial_number TEXT');
+                log.info('Migration: Added serial_number to employee_assignments');
+            }
+            if (!eaCols.some(c => c.name === 'assign_date')) {
+                // If assigned_date exists but assign_date does not, we should ideally rename or add it.
+                // SQLite doesn't support easy renames on older versions, so we just add assign_date.
+                await p.$executeRawUnsafe('ALTER TABLE employee_assignments ADD COLUMN assign_date DATETIME');
+                log.info('Migration: Added assign_date to employee_assignments');
+                
+                // Copy data if assigned_date exists
+                if (eaCols.some(c => c.name === 'assigned_date')) {
+                    await p.$executeRawUnsafe('UPDATE employee_assignments SET assign_date = assigned_date');
+                    log.info('Migration: Copied assigned_date to assign_date');
+                }
+            }
         }
     } catch (error) {
-        log.error('Migration step 9 (full_name) error:', error.message);
+        log.error('Migration step 10 (employee_assignments) error:', error.message);
+    }
+
+    // 11. Employee Documents: issue_date, expiry_date
+    try {
+        const edCols = await p.$queryRawUnsafe("PRAGMA table_info('employee_documents')");
+        if (edCols.length > 0) {
+            if (!edCols.some(c => c.name === 'issue_date')) {
+                await p.$executeRawUnsafe('ALTER TABLE employee_documents ADD COLUMN issue_date DATETIME');
+                log.info('Migration: Added issue_date to employee_documents');
+            }
+            if (!edCols.some(c => c.name === 'expiry_date')) {
+                await p.$executeRawUnsafe('ALTER TABLE employee_documents ADD COLUMN expiry_date DATETIME');
+                log.info('Migration: Added expiry_date to employee_documents');
+            }
+            if (!edCols.some(c => c.name === 'start_date')) {
+                await p.$executeRawUnsafe('ALTER TABLE employee_documents ADD COLUMN start_date DATETIME');
+                log.info('Migration: Added start_date to employee_documents');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11 (employee_documents) error:', error.message);
     }
 
     log.info('Auto-migrations loop completed.');

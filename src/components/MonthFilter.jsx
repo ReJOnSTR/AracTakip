@@ -92,8 +92,8 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                     onClick={() => handleMonthStep(-1)}
                     title="Önceki Ay"
                     style={{
-                        width: '32px',
-                        height: '32px',
+                        width: '36px',
+                        height: '36px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -107,7 +107,7 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
-                    <ChevronLeft size={18} />
+                    <ChevronLeft size={20} />
                 </button>
 
                 {/* Central Trigger */}
@@ -149,8 +149,8 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                     onClick={() => handleMonthStep(1)}
                     title="Sonraki Ay"
                     style={{
-                        width: '32px',
-                        height: '32px',
+                        width: '36px',
+                        height: '36px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -164,7 +164,7 @@ const MonthFilter = ({ value, onChange, minDate }) => {
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
-                    <ChevronRight size={18} />
+                    <ChevronRight size={20} />
                 </button>
             </div>
 

@@ -666,10 +666,13 @@ ipcMain.handle('employeeAssignments:delete', async (event, id) => {
 })
 
 // Employee Documents
-ipcMain.handle('employeeDocuments:getAll', async (event, employeeId) => {
-    return db.getEmployeeDocuments(employeeId)
-})
-ipcMain.handle('employeeDocuments:create', async (event, data) => {
+    ipcMain.handle('employeeDocuments:getAll', async (event, employeeId, isArchived) => {
+        return await db.getEmployeeDocuments(employeeId, isArchived);
+    });
+    ipcMain.handle('employeeDocuments:getUpcoming', async (event, companyId) => {
+        return await db.getUpcomingDocuments(companyId);
+    });
+    ipcMain.handle('employeeDocuments:create', async (event, data) => {
     const result = await db.addEmployeeDocument(data)
     if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'create' })
     return result
@@ -677,6 +680,11 @@ ipcMain.handle('employeeDocuments:create', async (event, data) => {
 ipcMain.handle('employeeDocuments:delete', async (event, id) => {
     const result = await db.deleteEmployeeDocument(id)
     if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'delete' })
+    return result
+})
+ipcMain.handle('employeeDocuments:update', async (event, data) => {
+    const result = await db.updateEmployeeDocument(data)
+    if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'update' })
     return result
 })
 

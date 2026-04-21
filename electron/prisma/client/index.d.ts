@@ -8481,48 +8481,56 @@ export namespace Prisma {
     id: number | null
     employee_id: number | null
     quantity: number | null
+    is_archived: number | null
   }
 
   export type Employee_assignmentsSumAggregateOutputType = {
     id: number | null
     employee_id: number | null
     quantity: number | null
+    is_archived: number | null
   }
 
   export type Employee_assignmentsMinAggregateOutputType = {
     id: number | null
     employee_id: number | null
     item_name: string | null
+    serial_number: string | null
     quantity: number | null
-    assigned_date: Date | null
+    assign_date: Date | null
     return_date: Date | null
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Employee_assignmentsMaxAggregateOutputType = {
     id: number | null
     employee_id: number | null
     item_name: string | null
+    serial_number: string | null
     quantity: number | null
-    assigned_date: Date | null
+    assign_date: Date | null
     return_date: Date | null
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type Employee_assignmentsCountAggregateOutputType = {
     id: number
     employee_id: number
     item_name: number
+    serial_number: number
     quantity: number
-    assigned_date: number
+    assign_date: number
     return_date: number
     status: number
     notes: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -8531,48 +8539,56 @@ export namespace Prisma {
     id?: true
     employee_id?: true
     quantity?: true
+    is_archived?: true
   }
 
   export type Employee_assignmentsSumAggregateInputType = {
     id?: true
     employee_id?: true
     quantity?: true
+    is_archived?: true
   }
 
   export type Employee_assignmentsMinAggregateInputType = {
     id?: true
     employee_id?: true
     item_name?: true
+    serial_number?: true
     quantity?: true
-    assigned_date?: true
+    assign_date?: true
     return_date?: true
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Employee_assignmentsMaxAggregateInputType = {
     id?: true
     employee_id?: true
     item_name?: true
+    serial_number?: true
     quantity?: true
-    assigned_date?: true
+    assign_date?: true
     return_date?: true
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type Employee_assignmentsCountAggregateInputType = {
     id?: true
     employee_id?: true
     item_name?: true
+    serial_number?: true
     quantity?: true
-    assigned_date?: true
+    assign_date?: true
     return_date?: true
     status?: true
     notes?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -8666,12 +8682,14 @@ export namespace Prisma {
     id: number
     employee_id: number
     item_name: string
+    serial_number: string | null
     quantity: number | null
-    assigned_date: Date | null
+    assign_date: Date | null
     return_date: Date | null
     status: string | null
     notes: string | null
     created_at: Date | null
+    is_archived: number | null
     _count: Employee_assignmentsCountAggregateOutputType | null
     _avg: Employee_assignmentsAvgAggregateOutputType | null
     _sum: Employee_assignmentsSumAggregateOutputType | null
@@ -8697,12 +8715,14 @@ export namespace Prisma {
     id?: boolean
     employee_id?: boolean
     item_name?: boolean
+    serial_number?: boolean
     quantity?: boolean
-    assigned_date?: boolean
+    assign_date?: boolean
     return_date?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employee_assignments"]>
 
@@ -8710,12 +8730,14 @@ export namespace Prisma {
     id?: boolean
     employee_id?: boolean
     item_name?: boolean
+    serial_number?: boolean
     quantity?: boolean
-    assigned_date?: boolean
+    assign_date?: boolean
     return_date?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employee_assignments"]>
 
@@ -8723,12 +8745,14 @@ export namespace Prisma {
     id?: boolean
     employee_id?: boolean
     item_name?: boolean
+    serial_number?: boolean
     quantity?: boolean
-    assigned_date?: boolean
+    assign_date?: boolean
     return_date?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employee_assignments"]>
 
@@ -8736,15 +8760,17 @@ export namespace Prisma {
     id?: boolean
     employee_id?: boolean
     item_name?: boolean
+    serial_number?: boolean
     quantity?: boolean
-    assigned_date?: boolean
+    assign_date?: boolean
     return_date?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type employee_assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "item_name" | "quantity" | "assigned_date" | "return_date" | "status" | "notes" | "created_at", ExtArgs["result"]["employee_assignments"]>
+  export type employee_assignmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "item_name" | "serial_number" | "quantity" | "assign_date" | "return_date" | "status" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["employee_assignments"]>
   export type employee_assignmentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -8764,12 +8790,14 @@ export namespace Prisma {
       id: number
       employee_id: number
       item_name: string
+      serial_number: string | null
       quantity: number | null
-      assigned_date: Date | null
+      assign_date: Date | null
       return_date: Date | null
       status: string | null
       notes: string | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["employee_assignments"]>
     composites: {}
   }
@@ -9197,12 +9225,14 @@ export namespace Prisma {
     readonly id: FieldRef<"employee_assignments", 'Int'>
     readonly employee_id: FieldRef<"employee_assignments", 'Int'>
     readonly item_name: FieldRef<"employee_assignments", 'String'>
+    readonly serial_number: FieldRef<"employee_assignments", 'String'>
     readonly quantity: FieldRef<"employee_assignments", 'Int'>
-    readonly assigned_date: FieldRef<"employee_assignments", 'DateTime'>
+    readonly assign_date: FieldRef<"employee_assignments", 'DateTime'>
     readonly return_date: FieldRef<"employee_assignments", 'DateTime'>
     readonly status: FieldRef<"employee_assignments", 'String'>
     readonly notes: FieldRef<"employee_assignments", 'String'>
     readonly created_at: FieldRef<"employee_assignments", 'DateTime'>
+    readonly is_archived: FieldRef<"employee_assignments", 'Int'>
   }
     
 
@@ -10737,11 +10767,13 @@ export namespace Prisma {
   export type Employee_documentsAvgAggregateOutputType = {
     id: number | null
     employee_id: number | null
+    is_archived: number | null
   }
 
   export type Employee_documentsSumAggregateOutputType = {
     id: number | null
     employee_id: number | null
+    is_archived: number | null
   }
 
   export type Employee_documentsMinAggregateOutputType = {
@@ -10751,6 +10783,10 @@ export namespace Prisma {
     file_path: string | null
     file_type: string | null
     category: string | null
+    issue_date: Date | null
+    start_date: Date | null
+    expiry_date: Date | null
+    is_archived: number | null
     created_at: Date | null
   }
 
@@ -10761,6 +10797,10 @@ export namespace Prisma {
     file_path: string | null
     file_type: string | null
     category: string | null
+    issue_date: Date | null
+    start_date: Date | null
+    expiry_date: Date | null
+    is_archived: number | null
     created_at: Date | null
   }
 
@@ -10771,6 +10811,10 @@ export namespace Prisma {
     file_path: number
     file_type: number
     category: number
+    issue_date: number
+    start_date: number
+    expiry_date: number
+    is_archived: number
     created_at: number
     _all: number
   }
@@ -10779,11 +10823,13 @@ export namespace Prisma {
   export type Employee_documentsAvgAggregateInputType = {
     id?: true
     employee_id?: true
+    is_archived?: true
   }
 
   export type Employee_documentsSumAggregateInputType = {
     id?: true
     employee_id?: true
+    is_archived?: true
   }
 
   export type Employee_documentsMinAggregateInputType = {
@@ -10793,6 +10839,10 @@ export namespace Prisma {
     file_path?: true
     file_type?: true
     category?: true
+    issue_date?: true
+    start_date?: true
+    expiry_date?: true
+    is_archived?: true
     created_at?: true
   }
 
@@ -10803,6 +10853,10 @@ export namespace Prisma {
     file_path?: true
     file_type?: true
     category?: true
+    issue_date?: true
+    start_date?: true
+    expiry_date?: true
+    is_archived?: true
     created_at?: true
   }
 
@@ -10813,6 +10867,10 @@ export namespace Prisma {
     file_path?: true
     file_type?: true
     category?: true
+    issue_date?: true
+    start_date?: true
+    expiry_date?: true
+    is_archived?: true
     created_at?: true
     _all?: true
   }
@@ -10910,6 +10968,10 @@ export namespace Prisma {
     file_path: string
     file_type: string | null
     category: string | null
+    issue_date: Date | null
+    start_date: Date | null
+    expiry_date: Date | null
+    is_archived: number | null
     created_at: Date | null
     _count: Employee_documentsCountAggregateOutputType | null
     _avg: Employee_documentsAvgAggregateOutputType | null
@@ -10939,6 +11001,10 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    issue_date?: boolean
+    start_date?: boolean
+    expiry_date?: boolean
+    is_archived?: boolean
     created_at?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employee_documents"]>
@@ -10950,6 +11016,10 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    issue_date?: boolean
+    start_date?: boolean
+    expiry_date?: boolean
+    is_archived?: boolean
     created_at?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employee_documents"]>
@@ -10961,6 +11031,10 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    issue_date?: boolean
+    start_date?: boolean
+    expiry_date?: boolean
+    is_archived?: boolean
     created_at?: boolean
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employee_documents"]>
@@ -10972,10 +11046,14 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    issue_date?: boolean
+    start_date?: boolean
+    expiry_date?: boolean
+    is_archived?: boolean
     created_at?: boolean
   }
 
-  export type employee_documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "file_name" | "file_path" | "file_type" | "category" | "created_at", ExtArgs["result"]["employee_documents"]>
+  export type employee_documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "file_name" | "file_path" | "file_type" | "category" | "issue_date" | "start_date" | "expiry_date" | "is_archived" | "created_at", ExtArgs["result"]["employee_documents"]>
   export type employee_documentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -10998,6 +11076,10 @@ export namespace Prisma {
       file_path: string
       file_type: string | null
       category: string | null
+      issue_date: Date | null
+      start_date: Date | null
+      expiry_date: Date | null
+      is_archived: number | null
       created_at: Date | null
     }, ExtArgs["result"]["employee_documents"]>
     composites: {}
@@ -11429,6 +11511,10 @@ export namespace Prisma {
     readonly file_path: FieldRef<"employee_documents", 'String'>
     readonly file_type: FieldRef<"employee_documents", 'String'>
     readonly category: FieldRef<"employee_documents", 'String'>
+    readonly issue_date: FieldRef<"employee_documents", 'DateTime'>
+    readonly start_date: FieldRef<"employee_documents", 'DateTime'>
+    readonly expiry_date: FieldRef<"employee_documents", 'DateTime'>
+    readonly is_archived: FieldRef<"employee_documents", 'Int'>
     readonly created_at: FieldRef<"employee_documents", 'DateTime'>
   }
     
@@ -34998,12 +35084,14 @@ export namespace Prisma {
     id: 'id',
     employee_id: 'employee_id',
     item_name: 'item_name',
+    serial_number: 'serial_number',
     quantity: 'quantity',
-    assigned_date: 'assigned_date',
+    assign_date: 'assign_date',
     return_date: 'return_date',
     status: 'status',
     notes: 'notes',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type Employee_assignmentsScalarFieldEnum = (typeof Employee_assignmentsScalarFieldEnum)[keyof typeof Employee_assignmentsScalarFieldEnum]
@@ -35028,6 +35116,10 @@ export namespace Prisma {
     file_path: 'file_path',
     file_type: 'file_type',
     category: 'category',
+    issue_date: 'issue_date',
+    start_date: 'start_date',
+    expiry_date: 'expiry_date',
+    is_archived: 'is_archived',
     created_at: 'created_at'
   };
 
@@ -35770,12 +35862,14 @@ export namespace Prisma {
     id?: IntFilter<"employee_assignments"> | number
     employee_id?: IntFilter<"employee_assignments"> | number
     item_name?: StringFilter<"employee_assignments"> | string
+    serial_number?: StringNullableFilter<"employee_assignments"> | string | null
     quantity?: IntNullableFilter<"employee_assignments"> | number | null
-    assigned_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
+    assign_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
     return_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
     status?: StringNullableFilter<"employee_assignments"> | string | null
     notes?: StringNullableFilter<"employee_assignments"> | string | null
     created_at?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
+    is_archived?: IntNullableFilter<"employee_assignments"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }
 
@@ -35783,12 +35877,14 @@ export namespace Prisma {
     id?: SortOrder
     employee_id?: SortOrder
     item_name?: SortOrder
+    serial_number?: SortOrderInput | SortOrder
     quantity?: SortOrderInput | SortOrder
-    assigned_date?: SortOrderInput | SortOrder
+    assign_date?: SortOrderInput | SortOrder
     return_date?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
   }
 
@@ -35799,12 +35895,14 @@ export namespace Prisma {
     NOT?: employee_assignmentsWhereInput | employee_assignmentsWhereInput[]
     employee_id?: IntFilter<"employee_assignments"> | number
     item_name?: StringFilter<"employee_assignments"> | string
+    serial_number?: StringNullableFilter<"employee_assignments"> | string | null
     quantity?: IntNullableFilter<"employee_assignments"> | number | null
-    assigned_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
+    assign_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
     return_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
     status?: StringNullableFilter<"employee_assignments"> | string | null
     notes?: StringNullableFilter<"employee_assignments"> | string | null
     created_at?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
+    is_archived?: IntNullableFilter<"employee_assignments"> | number | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }, "id">
 
@@ -35812,12 +35910,14 @@ export namespace Prisma {
     id?: SortOrder
     employee_id?: SortOrder
     item_name?: SortOrder
+    serial_number?: SortOrderInput | SortOrder
     quantity?: SortOrderInput | SortOrder
-    assigned_date?: SortOrderInput | SortOrder
+    assign_date?: SortOrderInput | SortOrder
     return_date?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: employee_assignmentsCountOrderByAggregateInput
     _avg?: employee_assignmentsAvgOrderByAggregateInput
     _max?: employee_assignmentsMaxOrderByAggregateInput
@@ -35832,12 +35932,14 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"employee_assignments"> | number
     employee_id?: IntWithAggregatesFilter<"employee_assignments"> | number
     item_name?: StringWithAggregatesFilter<"employee_assignments"> | string
+    serial_number?: StringNullableWithAggregatesFilter<"employee_assignments"> | string | null
     quantity?: IntNullableWithAggregatesFilter<"employee_assignments"> | number | null
-    assigned_date?: DateTimeNullableWithAggregatesFilter<"employee_assignments"> | Date | string | null
+    assign_date?: DateTimeNullableWithAggregatesFilter<"employee_assignments"> | Date | string | null
     return_date?: DateTimeNullableWithAggregatesFilter<"employee_assignments"> | Date | string | null
     status?: StringNullableWithAggregatesFilter<"employee_assignments"> | string | null
     notes?: StringNullableWithAggregatesFilter<"employee_assignments"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"employee_assignments"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"employee_assignments"> | number | null
   }
 
   export type employee_attendanceWhereInput = {
@@ -35913,6 +36015,10 @@ export namespace Prisma {
     file_path?: StringFilter<"employee_documents"> | string
     file_type?: StringNullableFilter<"employee_documents"> | string | null
     category?: StringNullableFilter<"employee_documents"> | string | null
+    issue_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    expiry_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    is_archived?: IntNullableFilter<"employee_documents"> | number | null
     created_at?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }
@@ -35924,6 +36030,10 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
+    issue_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
+    expiry_date?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
   }
@@ -35938,6 +36048,10 @@ export namespace Prisma {
     file_path?: StringFilter<"employee_documents"> | string
     file_type?: StringNullableFilter<"employee_documents"> | string | null
     category?: StringNullableFilter<"employee_documents"> | string | null
+    issue_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    expiry_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    is_archived?: IntNullableFilter<"employee_documents"> | number | null
     created_at?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     employees?: XOR<EmployeesScalarRelationFilter, employeesWhereInput>
   }, "id">
@@ -35949,6 +36063,10 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
+    issue_date?: SortOrderInput | SortOrder
+    start_date?: SortOrderInput | SortOrder
+    expiry_date?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: employee_documentsCountOrderByAggregateInput
     _avg?: employee_documentsAvgOrderByAggregateInput
@@ -35967,6 +36085,10 @@ export namespace Prisma {
     file_path?: StringWithAggregatesFilter<"employee_documents"> | string
     file_type?: StringNullableWithAggregatesFilter<"employee_documents"> | string | null
     category?: StringNullableWithAggregatesFilter<"employee_documents"> | string | null
+    issue_date?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
+    start_date?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
+    expiry_date?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"employee_documents"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
   }
 
@@ -38073,12 +38195,14 @@ export namespace Prisma {
 
   export type employee_assignmentsCreateInput = {
     item_name: string
+    serial_number?: string | null
     quantity?: number | null
-    assigned_date?: Date | string | null
+    assign_date?: Date | string | null
     return_date?: Date | string | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     employees: employeesCreateNestedOneWithoutEmployee_assignmentsInput
   }
 
@@ -38086,22 +38210,26 @@ export namespace Prisma {
     id?: number
     employee_id: number
     item_name: string
+    serial_number?: string | null
     quantity?: number | null
-    assigned_date?: Date | string | null
+    assign_date?: Date | string | null
     return_date?: Date | string | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employee_assignmentsUpdateInput = {
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneRequiredWithoutEmployee_assignmentsNestedInput
   }
 
@@ -38109,46 +38237,54 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     employee_id?: IntFieldUpdateOperationsInput | number
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsCreateManyInput = {
     id?: number
     employee_id: number
     item_name: string
+    serial_number?: string | null
     quantity?: number | null
-    assigned_date?: Date | string | null
+    assign_date?: Date | string | null
     return_date?: Date | string | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employee_assignmentsUpdateManyMutationInput = {
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     employee_id?: IntFieldUpdateOperationsInput | number
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_attendanceCreateInput = {
@@ -38215,6 +38351,10 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    issue_date?: Date | string | null
+    start_date?: Date | string | null
+    expiry_date?: Date | string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     employees: employeesCreateNestedOneWithoutEmployee_documentsInput
   }
@@ -38226,6 +38366,10 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    issue_date?: Date | string | null
+    start_date?: Date | string | null
+    expiry_date?: Date | string | null
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -38234,6 +38378,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUpdateOneRequiredWithoutEmployee_documentsNestedInput
   }
@@ -38245,6 +38393,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -38255,6 +38407,10 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    issue_date?: Date | string | null
+    start_date?: Date | string | null
+    expiry_date?: Date | string | null
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -38263,6 +38419,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -38273,6 +38433,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -40606,48 +40770,56 @@ export namespace Prisma {
     id?: SortOrder
     employee_id?: SortOrder
     item_name?: SortOrder
+    serial_number?: SortOrder
     quantity?: SortOrder
-    assigned_date?: SortOrder
+    assign_date?: SortOrder
     return_date?: SortOrder
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type employee_assignmentsAvgOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
     quantity?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type employee_assignmentsMaxOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
     item_name?: SortOrder
+    serial_number?: SortOrder
     quantity?: SortOrder
-    assigned_date?: SortOrder
+    assign_date?: SortOrder
     return_date?: SortOrder
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type employee_assignmentsMinOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
     item_name?: SortOrder
+    serial_number?: SortOrder
     quantity?: SortOrder
-    assigned_date?: SortOrder
+    assign_date?: SortOrder
     return_date?: SortOrder
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type employee_assignmentsSumOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
     quantity?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type employee_attendanceEmployee_idDateCompoundUniqueInput = {
@@ -40699,12 +40871,17 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrder
     category?: SortOrder
+    issue_date?: SortOrder
+    start_date?: SortOrder
+    expiry_date?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
   }
 
   export type employee_documentsAvgOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type employee_documentsMaxOrderByAggregateInput = {
@@ -40714,6 +40891,10 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrder
     category?: SortOrder
+    issue_date?: SortOrder
+    start_date?: SortOrder
+    expiry_date?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
   }
 
@@ -40724,12 +40905,17 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrder
     category?: SortOrder
+    issue_date?: SortOrder
+    start_date?: SortOrder
+    expiry_date?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
   }
 
   export type employee_documentsSumOrderByAggregateInput = {
     id?: SortOrder
     employee_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type FloatNullableFilter<$PrismaModel = never> = {
@@ -45631,23 +45817,27 @@ export namespace Prisma {
 
   export type employee_assignmentsCreateWithoutEmployeesInput = {
     item_name: string
+    serial_number?: string | null
     quantity?: number | null
-    assigned_date?: Date | string | null
+    assign_date?: Date | string | null
     return_date?: Date | string | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employee_assignmentsUncheckedCreateWithoutEmployeesInput = {
     id?: number
     item_name: string
+    serial_number?: string | null
     quantity?: number | null
-    assigned_date?: Date | string | null
+    assign_date?: Date | string | null
     return_date?: Date | string | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employee_assignmentsCreateOrConnectWithoutEmployeesInput = {
@@ -45688,6 +45878,10 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    issue_date?: Date | string | null
+    start_date?: Date | string | null
+    expiry_date?: Date | string | null
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -45697,6 +45891,10 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    issue_date?: Date | string | null
+    start_date?: Date | string | null
+    expiry_date?: Date | string | null
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -46018,12 +46216,14 @@ export namespace Prisma {
     id?: IntFilter<"employee_assignments"> | number
     employee_id?: IntFilter<"employee_assignments"> | number
     item_name?: StringFilter<"employee_assignments"> | string
+    serial_number?: StringNullableFilter<"employee_assignments"> | string | null
     quantity?: IntNullableFilter<"employee_assignments"> | number | null
-    assigned_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
+    assign_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
     return_date?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
     status?: StringNullableFilter<"employee_assignments"> | string | null
     notes?: StringNullableFilter<"employee_assignments"> | string | null
     created_at?: DateTimeNullableFilter<"employee_assignments"> | Date | string | null
+    is_archived?: IntNullableFilter<"employee_assignments"> | number | null
   }
 
   export type employee_attendanceUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -46080,6 +46280,10 @@ export namespace Prisma {
     file_path?: StringFilter<"employee_documents"> | string
     file_type?: StringNullableFilter<"employee_documents"> | string | null
     category?: StringNullableFilter<"employee_documents"> | string | null
+    issue_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    start_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    expiry_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
+    is_archived?: IntNullableFilter<"employee_documents"> | number | null
     created_at?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
   }
 
@@ -49510,12 +49714,14 @@ export namespace Prisma {
   export type employee_assignmentsCreateManyEmployeesInput = {
     id?: number
     item_name: string
+    serial_number?: string | null
     quantity?: number | null
-    assigned_date?: Date | string | null
+    assign_date?: Date | string | null
     return_date?: Date | string | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type employee_attendanceCreateManyEmployeesInput = {
@@ -49532,6 +49738,10 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    issue_date?: Date | string | null
+    start_date?: Date | string | null
+    expiry_date?: Date | string | null
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -49632,34 +49842,40 @@ export namespace Prisma {
 
   export type employee_assignmentsUpdateWithoutEmployeesInput = {
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsUncheckedUpdateWithoutEmployeesInput = {
     id?: IntFieldUpdateOperationsInput | number
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsUncheckedUpdateManyWithoutEmployeesInput = {
     id?: IntFieldUpdateOperationsInput | number
     item_name?: StringFieldUpdateOperationsInput | string
+    serial_number?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: NullableIntFieldUpdateOperationsInput | number | null
-    assigned_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    assign_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     return_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_attendanceUpdateWithoutEmployeesInput = {
@@ -49690,6 +49906,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -49699,6 +49919,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -49708,6 +49932,10 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

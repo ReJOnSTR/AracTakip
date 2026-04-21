@@ -281,10 +281,13 @@ async function deleteEmployeeAssignment(id) {
 }
 
 // ========== EMPLOYEE DOCUMENTS ==========
-async function getEmployeeDocuments(employeeId) {
+async function getEmployeeDocuments(employeeId, isArchived = 0) {
     try {
         const data = await prisma.employee_documents.findMany({
-            where: { employee_id: parseInt(employeeId) },
+            where: { 
+                employee_id: parseInt(employeeId),
+                is_archived: isArchived ? 1 : 0
+            },
             orderBy: { created_at: 'desc' }
         });
         return { success: true, data: JSON.parse(JSON.stringify(data)) };
@@ -296,10 +299,12 @@ async function addEmployeeDocument(data) {
         const result = await prisma.employee_documents.create({
             data: {
                 employee_id: parseInt(data.employeeId),
-                file_name: data.fileName,
                 file_path: data.filePath,
                 file_type: data.fileType || null,
-                category: data.category || null
+                category: data.category || null,
+                issue_date: new Date(), // Always today for new uploads
+                start_date: data.startDate ? new Date(data.startDate) : null,
+                expiry_date: data.expiryDate ? new Date(data.expiryDate) : null
             }
         });
         return { success: true, id: result.id };
@@ -313,10 +318,67 @@ async function deleteEmployeeDocument(id) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+async function updateEmployeeDocument(data) {
+    try {
+        const { id, category, issueDate, expiryDate, startDate, fileName, filePath, fileType } = data;
+        const updateData = {
+            category: category || null,
+            issue_date: new Date(), // Automatically update to "now" on any change
+            start_date: startDate ? new Date(startDate) : null,
+            expiry_date: expiryDate ? new Date(expiryDate) : null
+        };
+
+        if (fileName) updateData.file_name = fileName;
+        if (filePath) updateData.file_path = filePath;
+        if (fileType) updateData.file_type = fileType;
+
+        await prisma.employee_documents.update({
+            where: { id: parseInt(id) },
+            data: updateData
+        });
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function getUpcomingDocuments(companyId) {
+    try {
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+        const docs = await prisma.employee_documents.findMany({
+            where: {
+                employees: {
+                    company_id: parseInt(companyId)
+                },
+                is_archived: 0,
+                expiry_date: {
+                    lte: thirtyDaysFromNow,
+                    not: null
+                }
+            },
+            include: {
+                employees: {
+                    select: {
+                        first_name: true,
+                        last_name: true,
+                        id: true
+                    }
+                }
+            },
+            orderBy: {
+                expiry_date: 'asc'
+            }
+        });
+
+        return { success: true, data: JSON.parse(JSON.stringify(docs)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
     getSalariesByEmployee, createSalary, updateSalary, deleteSalary,
     getLeavesByEmployee, createLeave, updateLeave, deleteLeave,
     getOvertimes, addOvertime, updateOvertime, deleteOvertime,
     getEmployeeAssignments, addEmployeeAssignment, updateEmployeeAssignment, deleteEmployeeAssignment,
-    getEmployeeDocuments, addEmployeeDocument, deleteEmployeeDocument
+    getEmployeeDocuments, addEmployeeDocument, deleteEmployeeDocument, updateEmployeeDocument,
+    getUpcomingDocuments
 };

@@ -390,7 +390,7 @@ export default function PayrollDashboard() {
                     <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>Tüm personellerin maaş bakiyeleri ve ödeme durumları.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ width: '180px' }}>
+                    <div style={{ width: '240px' }}>
                         <MonthFilter 
                             value={selectedMonth} 
                             onChange={setSelectedMonth} 

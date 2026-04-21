@@ -88,8 +88,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteEmployeeAssignment: (id) => ipcRenderer.invoke('employeeAssignments:delete', id),
 
     // Employee Documents
-    getEmployeeDocuments: (employeeId) => ipcRenderer.invoke('employeeDocuments:getAll', employeeId),
+    getEmployeeDocuments: (employeeId, isArchived) => ipcRenderer.invoke('employeeDocuments:getAll', employeeId, isArchived),
+    getUpcomingPersonnelDocuments: (companyId) => ipcRenderer.invoke('employeeDocuments:getUpcoming', companyId),
     createEmployeeDocument: (data) => ipcRenderer.invoke('employeeDocuments:create', data),
+    updateEmployeeDocument: (data) => ipcRenderer.invoke('employeeDocuments:update', data),
     deleteEmployeeDocument: (id) => ipcRenderer.invoke('employeeDocuments:delete', id),
 
     // Archive

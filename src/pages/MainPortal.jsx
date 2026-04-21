@@ -183,7 +183,7 @@ export default function MainPortal() {
             hoverGradient: 'linear-gradient(145deg, rgba(16,185,129,0.14) 0%, rgba(5,159,104,0.08) 100%)',
             color: '#10b981',
             glowColor: '#10b981',
-            path: '/employees',
+            path: '/personel-dashboard',
             active: true,
             features: ['Personel kayıtları', 'Maaş takibi', 'İzin yönetimi', 'Mesai & Zimmet']
         },
