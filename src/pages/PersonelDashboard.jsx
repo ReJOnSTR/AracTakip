@@ -76,21 +76,24 @@ export default function PersonelDashboard() {
         const active = employees.filter(e => e.status === 'active')
         const totalSalary = active.reduce((sum, e) => sum + (parseFloat(e.salary) || 0), 0)
         
-        // Birthdays this month
-        const currentMonth = new Date().getMonth() + 1
-        const birthdays = employees.filter(e => {
-            if (!e.birth_date) return false
-            const birthMonth = new Date(e.birth_date).getMonth() + 1
-            return birthMonth === currentMonth
-        }).sort((a, b) => new Date(a.birth_date).getDate() - new Date(b.birth_date).getDate())
+        // Upcoming Birthdays (Next 30 days)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
 
-        // New hires this month
-        const currentYear = new Date().getFullYear()
-        const recentHires = employees.filter(e => {
-            if (!e.start_date) return false
-            const hireDate = new Date(e.start_date)
-            return hireDate.getMonth() + 1 === currentMonth && hireDate.getFullYear() === currentYear
-        })
+        const birthdays = employees
+            .filter(e => e.birth_date && e.status === 'active')
+            .map(e => {
+                const bDate = new Date(e.birth_date)
+                const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate())
+                if (nextBday < today) {
+                    nextBday.setFullYear(today.getFullYear() + 1)
+                }
+                const diffTime = nextBday - today
+                const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                return { ...e, daysUntil }
+            })
+            .filter(e => e.daysUntil <= 30)
+            .sort((a, b) => a.daysUntil - b.daysUntil)
 
         // Department breakdown
         const deptMap = {}
@@ -120,6 +123,21 @@ export default function PersonelDashboard() {
             hiringTrend.push({ name: monthLabel, count })
         }
 
+        // Seniority Distribution
+        const seniorityMap = { '< 1 Yıl': 0, '1-3 Yıl': 0, '3-5 Yıl': 0, '5+ Yıl': 0 }
+        active.forEach(e => {
+            if (!e.start_date) {
+                seniorityMap['< 1 Yıl']++
+                return
+            }
+            const years = (today - new Date(e.start_date)) / (1000 * 60 * 60 * 24 * 365.25)
+            if (years < 1) seniorityMap['< 1 Yıl']++
+            else if (years < 3) seniorityMap['1-3 Yıl']++
+            else if (years < 5) seniorityMap['3-5 Yıl']++
+            else seniorityMap['5+ Yıl']++
+        })
+        const seniorityStats = Object.entries(seniorityMap).map(([name, count]) => ({ name, count }))
+
         return {
             total: employees.length,
             active: active.length,
@@ -128,8 +146,8 @@ export default function PersonelDashboard() {
             avgSalary: active.length > 0 ? totalSalary / active.length : 0,
             deptStats,
             birthdays,
-            recentHires,
-            hiringTrend
+            hiringTrend,
+            seniorityStats
         }
     }, [employees])
 
@@ -290,7 +308,7 @@ export default function PersonelDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '30px' }}>
                 <StatCard 
                     label="Toplam Personel" 
                     value={stats.total} 
@@ -312,16 +330,9 @@ export default function PersonelDashboard() {
                     icon={TrendingUp} 
                     type="info"
                 />
-                <StatCard 
-                    label="Bu Ay Katılanlar" 
-                    value={stats.recentHires.length} 
-                    subValue="Yeni personel girişi"
-                    icon={UserCheck} 
-                    type="warning"
-                />
             </div>
             
-            {/* Middle Row: Documents & Distribution */}
+            {/* Middle Row: Documents & Birthdays */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '25px' }}>
                 {/* Upcoming Personnel Documents */}
                 <div className="card" style={{ padding: 0 }}>
@@ -428,6 +439,97 @@ export default function PersonelDashboard() {
                     </div>
                 </div>
 
+                {/* Upcoming Birthdays */}
+                <div className="card" style={{ padding: 0 }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to right, rgba(236, 72, 153, 0.05), transparent)' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Cake size={18} color="#ec4899" /> Yaklaşan Doğum Günleri
+                        </h3>
+                        {stats.birthdays.length > 0 && (
+                            <span style={{ fontSize: '11px', color: '#ec4899', background: 'rgba(236, 72, 153, 0.1)', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
+                                🎉 {stats.birthdays.length} Kişi
+                            </span>
+                        )}
+                    </div>
+                    <div style={{ padding: '5px 0' }}>
+                        {stats.birthdays.length === 0 ? (
+                            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                <Cake size={32} style={{ opacity: 0.2, marginBottom: '10px' }} />
+                                <p style={{ fontSize: '13px', margin: 0 }}>Önümüzdeki 30 gün içinde doğum günü bulunmuyor.</p>
+                            </div>
+                        ) : (
+                            <ScrollableList height="240px">
+                                {stats.birthdays.map((e, i) => {
+                                    const isToday = e.daysUntil === 0
+                                    const isTomorrow = e.daysUntil === 1
+                                    
+                                    return (
+                                        <div 
+                                            key={i} 
+                                            onClick={() => navigate(`/employees?id=${e.id}`)}
+                                            style={{ 
+                                                padding: '12px 20px', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'space-between', 
+                                                borderBottom: i < stats.birthdays.length - 1 ? '1px solid var(--border-color)' : 'none',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                background: isToday ? 'rgba(236, 72, 153, 0.03)' : 'transparent'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = isToday ? 'rgba(236, 72, 153, 0.03)' : 'transparent'}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                                <div style={{ 
+                                                    width: '40px', 
+                                                    height: '40px', 
+                                                    borderRadius: '12px', 
+                                                    background: isToday ? 'linear-gradient(135deg, #ec4899, #f43f5e)' : 'var(--bg-elevated)', 
+                                                    color: isToday ? '#fff' : 'var(--text-primary)', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center', 
+                                                    fontWeight: '700', 
+                                                    fontSize: '14px',
+                                                    border: isToday ? 'none' : '1px solid var(--border-color)',
+                                                    boxShadow: isToday ? '0 4px 12px rgba(236, 72, 153, 0.2)' : 'none'
+                                                }}>
+                                                    {e.first_name[0]}{e.last_name[0]}
+                                                </div>
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        {e.first_name} {e.last_name}
+                                                        {isToday && <span>🎂</span>}
+                                                    </div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {e.department} • {new Date(e.birth_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                                {isToday ? (
+                                                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#ec4899', background: 'rgba(236, 72, 153, 0.1)', padding: '4px 10px', borderRadius: '20px', animation: 'pulse 2s infinite' }}>BUGÜN</div>
+                                                ) : isTomorrow ? (
+                                                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', padding: '4px 10px', borderRadius: '20px' }}>YARIN</div>
+                                                ) : (
+                                                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                                                        {e.daysUntil} gün kaldı
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </ScrollableList>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Row: Distribution Analysis */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
                 {/* Department Distribution */}
                 <div className="card" style={{ padding: 0 }}>
                     <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -455,61 +557,36 @@ export default function PersonelDashboard() {
                         ))}
                     </div>
                 </div>
-            </div>
 
-            {/* Bottom Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-                {/* Upcoming Birthdays */}
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                {/* Seniority Distribution */}
+                <div className="card" style={{ padding: 0 }}>
                     <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Cake size={18} color="var(--accent-primary)" /> Bu Ayki Doğum Günleri
+                            <Clock size={18} color="var(--info)" /> Kıdem Dağılımı (Görev Süresi)
                         </h3>
                     </div>
-                    <div style={{ padding: '10px 0' }}>
-                        {stats.birthdays.length === 0 ? (
-                            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>Bu ay doğum günü bulunmuyor.</div>
-                        ) : stats.birthdays.slice(0, 5).map((e, i) => (
-                            <div key={i} style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: i < 4 ? '1px solid var(--border-color)' : 'none' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontWeight: '700', fontSize: '14px', textAlign: 'center', lineHeight: '36px' }}>
-                                        {e.first_name[0]}{e.last_name[0]}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: '14px', fontWeight: '600' }}>{e.first_name} {e.last_name}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{e.department} • {new Date(e.birth_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</div>
-                                    </div>
+                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {stats.seniorityStats.map((s, i) => (
+                            <div key={i}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>{s.name}</span>
+                                    <span style={{ fontSize: '12px', fontWeight: '700' }}>{s.count} Personel</span>
                                 </div>
-                                <div style={{ color: 'var(--accent-primary)' }}><ArrowRight size={16} /></div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Recent Hires */}
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <UserCheck size={18} color="var(--success)" /> Yeni Katılanlar (Son 5)
-                        </h3>
-                    </div>
-                    <div style={{ padding: '10px 0' }}>
-                        {employees.length === 0 ? (
-                            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>Kayıtlı personel bulunmuyor.</div>
-                        ) : [...employees].sort((a,b) => new Date(b.start_date) - new Date(a.start_date)).slice(0, 5).map((e, i) => (
-                            <div key={i} style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: i < 4 ? '1px solid var(--border-color)' : 'none' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div>
-                                        <div style={{ fontSize: '14px', fontWeight: '600' }}>{e.first_name} {e.last_name}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{e.department} • {e.position}</div>
-                                    </div>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>{formatDate(e.start_date)}</div>
-                                    <div style={{ fontSize: '11px', color: 'var(--success)' }}>Katıldı</div>
+                                <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div 
+                                        style={{ 
+                                            width: `${(s.count / stats.active) * 100}%`, 
+                                            height: '100%', 
+                                            background: 'var(--info)', 
+                                            borderRadius: '3px'
+                                        }} 
+                                    />
                                 </div>
                             </div>
                         ))}
+                        <div style={{ marginTop: '10px', padding: '10px', background: 'var(--bg-tertiary)', borderRadius: '8px', fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                            Katılım tarihinden itibaren geçen süreye göre analiz edilmiştir.
+                        </div>
                     </div>
                 </div>
             </div>

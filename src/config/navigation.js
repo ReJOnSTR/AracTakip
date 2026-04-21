@@ -48,7 +48,7 @@ export const moduleMenus = {
             ]
         },
         {
-            title: '',
+            title: 'Sistem',
             items: [
                 { path: '/module-settings/fleet', label: 'Filo Ayarları', icon: Settings }
             ]
@@ -56,7 +56,7 @@ export const moduleMenus = {
     ],
     finance: [
         {
-            title: 'Finans',
+            title: 'Finans Yönetimi',
             items: [
                 { path: '/finance-dashboard', label: 'Finans Dashboard', icon: Wallet },
                 { path: '/finance', label: 'Kasa & Banka Cüzdanı', icon: Banknote },
@@ -64,7 +64,7 @@ export const moduleMenus = {
             ]
         },
         {
-            title: '',
+            title: 'Sistem',
             items: [
                 { path: '/module-settings/finance', label: 'Finans Ayarları', icon: Settings }
             ]
@@ -72,7 +72,7 @@ export const moduleMenus = {
     ],
     meals: [
         {
-            title: 'Yemek Fişleri',
+            title: 'Yemek Fişi Takibi',
             items: [
                 { path: '/meal-tickets', label: 'Yemek Fişleri', icon: UtensilsCrossed },
                 { path: '/meal-ticket-report', label: 'Fiş Raporu', icon: ClipboardList },
@@ -80,7 +80,7 @@ export const moduleMenus = {
             ]
         },
         {
-            title: '',
+            title: 'Sistem',
             items: [
                 { path: '/module-settings/meals', label: 'Yemek Fişi Ayarları', icon: Settings }
             ]
@@ -96,7 +96,7 @@ export const moduleMenus = {
             ]
         },
         {
-            title: '',
+            title: 'Sistem',
             items: [
                 { path: '/module-settings/hr', label: 'Personel Ayarları', icon: Settings }
             ]
@@ -104,13 +104,13 @@ export const moduleMenus = {
     ],
     works: [
         {
-            title: 'İş & Operasyon',
+            title: 'Operasyon',
             items: [
                 { path: '/works', label: 'İş Takibi', icon: Briefcase }
             ]
         },
         {
-            title: '',
+            title: 'Sistem',
             items: [
                 { path: '/module-settings/works', label: 'İş Ayarları', icon: Settings }
             ]
@@ -118,13 +118,13 @@ export const moduleMenus = {
     ],
     customers: [
         {
-            title: 'Cari & Müşteri',
+            title: 'Müşteri Yönetimi',
             items: [
                 { path: '/customers', label: 'Müşteriler', icon: Building2 }
             ]
         },
         {
-            title: '',
+            title: 'Sistem',
             items: [
                 { path: '/module-settings/customers', label: 'Müşteri Ayarları', icon: Settings }
             ]
