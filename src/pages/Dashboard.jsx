@@ -330,7 +330,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Quick Actions Grid */}
-                <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleActions.length, 4)}, 1fr)`, gap: '20px', marginBottom: '25px' }}>
+                <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '25px', gap: '20px' }}>
                     {visibleActions.map(action => (
                         <div
                             key={action.id}
@@ -350,7 +350,7 @@ export default function Dashboard() {
 
                 {/* Main Stats Grid */}
                 {/* Main Stats Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '25px' }}>
+                <div className="grid-responsive-2" style={{ marginBottom: '25px', gap: '20px' }}>
                     {/* Total Vehicles */}
                     <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -414,7 +414,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Dashboard Content Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+                <div className="grid-responsive-2-1" style={{ gap: '20px' }}>
 
                     {/* Left Column */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
@@ -442,7 +442,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '20px' }}>
+                            <div className="grid-responsive-1-auto-1" style={{ gap: '20px' }}>
                                 {/* Overdue Column */}
                                 <div>
                                     <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--danger)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -286,7 +286,7 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Quick Actions Grid */}
-            <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(Math.max(visibleActions.length, 1), 5)}, 1fr)`, gap: '20px', marginBottom: '30px' }}>
+            <div className={`quick-actions grid-responsive-${Math.min(Math.max(visibleActions.length, 1), 4)}`} style={{ marginBottom: '30px', gap: '20px' }}>
                 {visibleActions.map(action => (
                     <div
                         key={action.id}
@@ -305,7 +305,7 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Stat Cards Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '25px' }}>
+            <div className="grid-responsive-3" style={{ marginBottom: '25px', gap: '15px' }}>
                 {/* Total Balance */}
                 <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -377,7 +377,7 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Bottom Row: Recent Transactions + Upcoming Checks */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="grid-responsive-2" style={{ gap: '20px' }}>
                 {/* Recent Transactions */}
                 <div style={{
                     background: 'var(--bg-secondary)',

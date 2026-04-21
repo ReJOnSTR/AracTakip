@@ -289,7 +289,7 @@ export default function PersonelDashboard() {
             </div>
 
             {/* Quick Actions Grid */}
-            <div className="quick-actions" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleActions.length, 4)}, 1fr)`, gap: '15px', marginBottom: '30px' }}>
+            <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '30px' }}>
                 {visibleActions.map(action => (
                     <button 
                         key={action.id}
@@ -308,7 +308,7 @@ export default function PersonelDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '30px' }}>
+            <div className="grid-responsive-3" style={{ marginBottom: '30px' }}>
                 <StatCard 
                     label="Toplam Personel" 
                     value={stats.total} 
@@ -333,7 +333,7 @@ export default function PersonelDashboard() {
             </div>
             
             {/* Middle Row: Documents & Birthdays */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '25px' }}>
+            <div className="grid-responsive-2-1" style={{ marginBottom: '25px' }}>
                 {/* Upcoming Personnel Documents */}
                 <div className="card" style={{ padding: 0 }}>
                     <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -355,7 +355,7 @@ export default function PersonelDashboard() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '20px', padding: '20px' }}>
+                    <div className="grid-responsive-1-auto-1" style={{ padding: '20px' }}>
                         {/* Overdue Column */}
                         <div>
                             <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--danger)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -529,7 +529,7 @@ export default function PersonelDashboard() {
             </div>
 
             {/* Bottom Row: Distribution Analysis */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+            <div className="grid-responsive-2">
                 {/* Department Distribution */}
                 <div className="card" style={{ padding: 0 }}>
                     <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '10px' }}>

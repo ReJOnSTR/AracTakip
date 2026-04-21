@@ -11,6 +11,7 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import TabBar from './components/TabBar' // Import TabBar
 import TopProgressBar from './components/TopProgressBar'
+import BottomNav from './components/BottomNav'
 
 // Lazy-loaded pages (code splitting)
 const Login = lazy(() => import('./pages/Login'))
@@ -93,6 +94,7 @@ function MainLayout() {
                             </Suspense>
                         </ErrorBoundary>
                     </div>
+                    <BottomNav />
                 </div>
             </div>
         </>
