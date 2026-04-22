@@ -675,20 +675,88 @@ ipcMain.handle('employeeAssignments:delete', async (event, id) => {
     ipcMain.handle('employeeDocuments:getUpcoming', async (event, companyId) => {
         return await db.getUpcomingDocuments(companyId);
     });
-    ipcMain.handle('employeeDocuments:create', async (event, data) => {
-    const result = await db.addEmployeeDocument(data)
-    if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'create' })
-    return result
+ipcMain.handle('employeeDocuments:create', async (event, data) => {
+    try {
+        const userDataPath = app.getPath('userData')
+        const filesDir = path.join(userDataPath, 'files')
+
+        // Ensure directory exists
+        if (!fs.existsSync(filesDir)) {
+            fs.mkdirSync(filesDir, { recursive: true })
+        }
+
+        const sourcePath = data.filePath
+        const ext = path.extname(sourcePath)
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
+        const destPath = path.join(filesDir, fileName)
+
+        // Copy file
+        fs.copyFileSync(sourcePath, destPath)
+
+        // Save to DB with the NEW path (the filename in our storage)
+        const result = await db.addEmployeeDocument({
+            ...data,
+            fileName: path.basename(sourcePath), // Original name
+            filePath: fileName // New storage name (timestamped)
+        })
+
+        if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'create' })
+        return result
+    } catch (error) {
+        console.error('Employee document create error:', error)
+        return { success: false, error: error.message }
+    }
 })
 ipcMain.handle('employeeDocuments:delete', async (event, id) => {
-    const result = await db.deleteEmployeeDocument(id)
-    if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'delete' })
-    return result
+    try {
+        // 1. Find document to get file path
+        const docRes = await db.getEmployeeDocumentById(id)
+        if (docRes.success && docRes.data) {
+            const fileName = docRes.data.file_path
+            const userDataPath = app.getPath('userData')
+            const filePath = path.join(userDataPath, 'files', fileName)
+            
+            // 2. Delete physical file if exists
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath)
+            }
+        }
+
+        // 3. Delete from DB
+        const result = await db.deleteEmployeeDocument(id)
+        if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'delete' })
+        return result
+    } catch (error) {
+        console.error('Employee document delete error:', error)
+        return { success: false, error: error.message }
+    }
 })
 ipcMain.handle('employeeDocuments:update', async (event, data) => {
-    const result = await db.updateEmployeeDocument(data)
-    if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'update' })
-    return result
+    try {
+        let finalData = { ...data }
+
+        if (data.filePath && !data.filePath.includes(app.getPath('userData'))) {
+            // New file selected (full path), copy it
+            const userDataPath = app.getPath('userData')
+            const filesDir = path.join(userDataPath, 'files')
+            if (!fs.existsSync(filesDir)) fs.mkdirSync(filesDir, { recursive: true })
+
+            const ext = path.extname(data.filePath)
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
+            const destPath = path.join(filesDir, fileName)
+
+            fs.copyFileSync(data.filePath, destPath)
+            finalData.fileName = path.basename(data.filePath)
+            finalData.filePath = fileName
+        }
+
+        const result = await db.updateEmployeeDocument(finalData)
+        if (result.success) notifyDbUpdate({ table: 'employee_documents', action: 'update' })
+        return result
+    } catch (error) {
+        console.error('Employee document update error:', error)
+        return { success: false, error: error.message }
+    }
 })
 
 // Archive handler

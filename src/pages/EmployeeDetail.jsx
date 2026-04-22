@@ -769,18 +769,18 @@ export default function EmployeeDetail() {
         const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif']
         if (imageExtensions.includes(ext)) {
             try {
-                const dataUrl = await window.electronAPI.readImageFile(doc.file_path)
-                if (dataUrl) {
-                    setPreviewDoc({ data: dataUrl, name: doc.file_name, path: doc.file_path, doc })
+                const res = await window.electronAPI.readDocumentData(doc.file_path)
+                if (res.success && res.data) {
+                    setPreviewDoc({ data: res.data, name: doc.file_name, path: doc.file_path, doc })
                 } else {
-                    await window.electronAPI.openFile(doc.file_path)
+                    await window.electronAPI.openDocument(doc.file_path)
                 }
             } catch (error) {
                 console.error('Failed to preview image:', error)
-                await window.electronAPI.openFile(doc.file_path)
+                await window.electronAPI.openDocument(doc.file_path)
             }
         } else {
-            await window.electronAPI.openFile(doc.file_path)
+            await window.electronAPI.openDocument(doc.file_path)
         }
     }
 

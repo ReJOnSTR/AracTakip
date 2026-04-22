@@ -325,6 +325,7 @@ async function addEmployeeDocument(data) {
         const result = await prisma.employee_documents.create({
             data: {
                 employee_id: parseInt(data.employeeId),
+                file_name: data.fileName,
                 file_path: data.filePath,
                 file_type: data.fileType || null,
                 category: data.category || null,
@@ -400,11 +401,20 @@ async function getUpcomingDocuments(companyId) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+async function getEmployeeDocumentById(id) {
+    try {
+        const data = await prisma.employee_documents.findUnique({
+            where: { id: parseInt(id) }
+        });
+        return { success: true, data: JSON.parse(JSON.stringify(data)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
     getSalariesByEmployee, createSalary, updateSalary, deleteSalary,
     getLeavesByEmployee, getAllLeaves, createLeave, updateLeave, deleteLeave,
     getOvertimes, addOvertime, updateOvertime, deleteOvertime,
     getEmployeeAssignments, addEmployeeAssignment, updateEmployeeAssignment, deleteEmployeeAssignment,
     getEmployeeDocuments, addEmployeeDocument, deleteEmployeeDocument, updateEmployeeDocument,
-    getUpcomingDocuments
+    getUpcomingDocuments, getEmployeeDocumentById
 };
