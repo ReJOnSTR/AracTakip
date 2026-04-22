@@ -19,6 +19,10 @@ export function formatShortDate(dateString) {
     })
 }
 
+export function today() {
+    return new Date().toISOString().split('T')[0]
+}
+
 export function formatCurrency(amount) {
     if (amount === null || amount === undefined) return '-'
     return new Intl.NumberFormat('tr-TR', {

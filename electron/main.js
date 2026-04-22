@@ -609,6 +609,9 @@ ipcMain.handle('salaries:delete', async (event, id) => {
 ipcMain.handle('leaves:getAll', async (event, employeeId) => {
     return await db.getLeavesByEmployee(employeeId)
 })
+ipcMain.handle('leaves:getAllByCompany', async (event, companyId) => {
+    return await db.getAllLeaves(companyId)
+})
 ipcMain.handle('leaves:create', async (event, data) => {
     const result = await db.createLeave(data)
     if (result.success) notifyDbUpdate({ table: 'leaves', action: 'create' })

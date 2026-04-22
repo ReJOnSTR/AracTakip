@@ -18,7 +18,8 @@ import {
     UserCheck,
     Briefcase,
     Building2,
-    User
+    User,
+    Calendar
 } from 'lucide-react'
 
 // Define menus per module
@@ -88,10 +89,21 @@ export const moduleMenus = {
     ],
     hr: [
         {
-            title: 'Personel Yönetimi',
+            title: 'Genel',
             items: [
-                { path: '/personel-dashboard', label: 'Personel Dashboard', icon: LayoutDashboard },
-                { path: '/employees', label: 'Personeller', icon: Users },
+                { path: '/personel-dashboard', label: 'Personel Dashboard', icon: LayoutDashboard }
+            ]
+        },
+        {
+            title: 'Personel İşlemleri',
+            items: [
+                { path: '/employees', label: 'Personeller', icon: Users }
+            ]
+        },
+        {
+            title: 'Bordro & İzin',
+            items: [
+                { path: '/leaves', label: 'İzin Tablosu', icon: Calendar },
                 { path: '/payroll', label: 'Maaş Tablosu', icon: Banknote }
             ]
         },
@@ -187,6 +199,7 @@ export const getRouteInfo = (path) => {
     if (path === '/personel-dashboard') return { label: 'Personel Dashboard', icon: LayoutDashboard }
     if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
     if (path === '/payroll') return { label: 'Maaş & Ödeme Tablosu', icon: Banknote }
+    if (path === '/leaves') return { label: 'Personel İzin Tablosu', icon: Calendar }
     if (path.startsWith('/works/')) return { label: 'İş Detayı', icon: Briefcase }
     if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }

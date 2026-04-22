@@ -12,6 +12,7 @@ import Header from './components/Header'
 import TabBar from './components/TabBar' // Import TabBar
 import TopProgressBar from './components/TopProgressBar'
 import BottomNav from './components/BottomNav'
+import MobileHeader from './components/MobileHeader'
 
 // Lazy-loaded pages (code splitting)
 const Login = lazy(() => import('./pages/Login'))
@@ -41,6 +42,7 @@ const Employees = lazy(() => import('./pages/Employees'))
 const EmployeeDetail = lazy(() => import('./pages/EmployeeDetail'))
 const PersonelDashboard = lazy(() => import('./pages/PersonelDashboard'))
 const PayrollDashboard = lazy(() => import('./pages/PayrollDashboard'))
+const Leaves = lazy(() => import('./pages/Leaves'))
 const Works = lazy(() => import('./pages/Works'))
 const WorkDetails = lazy(() => import('./pages/WorkDetails'))
 const WorkPdfReport = lazy(() => import('./pages/WorkPdfReport'))
@@ -83,6 +85,7 @@ function MainLayout() {
 
     return (
         <>
+            <MobileHeader />
             <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
                 <div className="main-content">
@@ -147,6 +150,7 @@ function AppRoutes() {
                         <Route path="/assignments" element={<Assignments />} />
                         <Route path="/employees" element={<Employees />} />
                         <Route path="/employees/:id" element={<EmployeeDetail />} />
+                        <Route path="/leaves" element={<Leaves />} />
                         <Route path="/personel-dashboard" element={<PersonelDashboard />} />
                         <Route path="/payroll" element={<PayrollDashboard />} />
                         <Route path="/works" element={<Works />} />

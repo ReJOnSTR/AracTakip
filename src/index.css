@@ -210,8 +210,16 @@ body {
   padding-bottom: 80px; /* Space for BottomNav */
 }
 
-/* Hide BottomNav on Desktop */
-.bottom-nav, .mobile-menu-overlay {
+/* Desktop only utilities */
+.desktop-only {
+  display: block;
+}
+.desktop-hidden {
+  display: none;
+}
+
+/* Hide BottomNav and MobileHeader on Desktop */
+.bottom-nav, .mobile-menu-overlay, .mobile-header {
   display: none;
 }
 
@@ -225,26 +233,159 @@ body {
 @media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
-    margin-top: 0; /* Remove title bar margin if any */
-    height: 100svh; /* Use vh unit that accounts for mobile browser bars */
+    margin-top: 0; 
+    height: 100dvh; 
+    overflow: hidden;
+  }
+
+  .desktop-title-bar {
+    display: none !important;
   }
 
   .sidebar {
-    display: none !important; /* Hide Sidebar on mobile */
+    display: none !important;
   }
 
   .main-content {
     margin-left: 0 !important;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
 
   .page-content {
-    padding: 16px; /* Smaller padding for mobile */
-    padding-bottom: 80px; /* Space for BottomNav */
+    padding: 15px;
+    padding-top: 75px !important;
+    padding-bottom: 100px !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    height: auto; /* Allow flex to control height */
   }
 
-  /* Hide Desktop Tab Bar */
   .tab-bar {
     display: none !important;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .desktop-hidden {
+    display: block !important;
+  }
+
+  /* Compact Cards for Mobile */
+  .stat-card {
+    padding: 15px !important;
+    gap: 5px !important;
+  }
+
+  .stat-value {
+    font-size: 20px !important;
+  }
+
+  .card {
+    border-radius: 12px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .page-header {
+    margin-bottom: 15px !important;
+  }
+
+  .page-title {
+    font-size: 20px !important;
+  }
+  
+  /* Hide the page-header on mobile since MobileHeader handles it */
+  .page-header.mobile-hidden-header {
+    display: none !important;
+  }
+
+  /* Mobile Header Styles */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 16px;
+    z-index: 1100;
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-header-left {
+    width: 60px;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-back-btn, .mobile-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+
+  .mobile-back-btn:active, .mobile-icon-btn:active {
+    background: var(--bg-tertiary);
+  }
+
+  .mobile-logo-circle {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+  }
+
+  .mobile-header-center {
+    flex: 1;
+    text-align: center;
+  }
+
+  .mobile-header-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-header-right {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  /* Update page-content to handle fixed header */
+  .page-content {
+    padding: 15px;
+    padding-top: 75px !important; /* Force space below MobileHeader */
+    padding-bottom: 100px !important; /* Space for BottomNav */
   }
 
   /* Bottom Navigation Styles */
@@ -3604,16 +3745,6 @@ tr:hover .td-actions {
 
   /* Hide titlebar completely */
   .titlebar {
-    display: none !important;
-  }
-
-  /* Hide tab bar */
-  .tab-bar {
-    display: none !important;
-  }
-
-  /* Hide sidebar completely */
-  .sidebar {
     display: none !important;
   }
 

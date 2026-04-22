@@ -71,6 +71,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Leaves
     getLeaves: (employeeId) => ipcRenderer.invoke('leaves:getAll', employeeId),
+    getLeavesByCompany: (companyId) => ipcRenderer.invoke('leaves:getAllByCompany', companyId),
     createLeave: (data) => ipcRenderer.invoke('leaves:create', data),
     updateLeave: (data) => ipcRenderer.invoke('leaves:update', data),
     deleteLeave: (id) => ipcRenderer.invoke('leaves:delete', id),

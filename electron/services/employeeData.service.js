@@ -178,6 +178,32 @@ async function deleteLeave(id) {
 }
 
 
+async function getAllLeaves(companyId) {
+    try {
+        const data = await prisma.leaves.findMany({
+            where: {
+                employees: {
+                    company_id: parseInt(companyId)
+                },
+                is_archived: 0
+            },
+            include: {
+                employees: {
+                    select: {
+                        first_name: true,
+                        last_name: true,
+                        id: true,
+                        department: true
+                    }
+                }
+            },
+            orderBy: [{ start_date: 'desc' }, { id: 'desc' }]
+        });
+        return { success: true, data: JSON.parse(JSON.stringify(data)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+
 // ========== OVERTIMES ==========
 async function getOvertimes(employeeId) {
     try {
@@ -376,7 +402,7 @@ async function getUpcomingDocuments(companyId) {
 
 module.exports = {
     getSalariesByEmployee, createSalary, updateSalary, deleteSalary,
-    getLeavesByEmployee, createLeave, updateLeave, deleteLeave,
+    getLeavesByEmployee, getAllLeaves, createLeave, updateLeave, deleteLeave,
     getOvertimes, addOvertime, updateOvertime, deleteOvertime,
     getEmployeeAssignments, addEmployeeAssignment, updateEmployeeAssignment, deleteEmployeeAssignment,
     getEmployeeDocuments, addEmployeeDocument, deleteEmployeeDocument, updateEmployeeDocument,
