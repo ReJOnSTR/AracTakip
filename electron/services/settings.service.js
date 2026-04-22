@@ -158,6 +158,51 @@ async function getUpcomingEvents(companyId) {
                 }
             });
         } catch (e) { console.error('getUpcomingEvents maintenances error:', e.message); }
+        
+        // 4. Get Employee Documents Expiry
+        try {
+            const empDocs = await prisma.employee_documents.findMany({
+                where: {
+                    employees: { company_id: cid },
+                    expiry_date: { lte: futureDate, not: null },
+                    is_archived: 0
+                },
+                include: { employees: true }
+            });
+            empDocs.forEach(d => {
+                events.push({
+                    id: d.id,
+                    eventType: 'employee_document',
+                    type: `Belge Süresi: ${d.category || 'Döküman'}`,
+                    date: d.expiry_date,
+                    employeeId: d.employee_id,
+                    employeeName: `${d.employees?.first_name} ${d.employees?.last_name}`
+                });
+            });
+        } catch (e) { console.error('getUpcomingEvents employee docs error:', e.message); }
+
+        // 5. Get Upcoming Checks / Notes
+        try {
+            const checks = await prisma.transactions.findMany({
+                where: {
+                    company_id: cid,
+                    method: 'CHECK',
+                    status: 'PENDING',
+                    check_due_date: { lte: futureDate, not: null },
+                    is_archived: 0
+                }
+            });
+            checks.forEach(c => {
+                events.push({
+                    id: c.id,
+                    eventType: 'finance_check',
+                    type: `Çek/Senet Vadesi: ${c.check_number || ''}`,
+                    date: c.check_due_date,
+                    amount: c.amount,
+                    description: c.description
+                });
+            });
+        } catch (e) { console.error('getUpcomingEvents checks error:', e.message); }
 
         // Sort by date ascending (closest first)
         events.sort((a, b) => new Date(a.date) - new Date(b.date));

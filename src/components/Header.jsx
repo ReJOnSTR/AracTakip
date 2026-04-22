@@ -10,6 +10,7 @@ import {
     Settings,
     ArrowLeft
 } from 'lucide-react'
+import NotificationCenter from './NotificationCenter'
 
 const pageTitles = {
     '/': 'Dashboard',
@@ -61,6 +62,9 @@ export default function Header() {
             </div>
 
             <div className="header-right">
+                {/* Notification Center */}
+                <NotificationCenter />
+
                 {/* Company Selector */}
                 <div className="company-selector">
                     <button

@@ -8,12 +8,15 @@ import { formatDate, formatCurrency } from '../utils/helpers'
 import Modal from '../components/Modal'
 import CustomerForm from '../components/forms/CustomerForm'
 import TransactionForm from '../components/forms/TransactionForm'
+import WorkForm from '../components/forms/WorkForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { useTabs } from '../context/TabContext'
+import { useCompany } from '../context/CompanyContext'
 
 export default function CustomerDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const { currentCompany } = useCompany()
     const { updateTabInfo } = useTabs()
     const [customer, setCustomer] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -23,6 +26,7 @@ export default function CustomerDetail() {
     
     // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isWorkModalOpen, setIsWorkModalOpen] = useState(false)
     const [saving, setSaving] = useState(false)
 
     const [paymentModalOpen, setPaymentModalOpen] = useState(false)
@@ -72,6 +76,25 @@ export default function CustomerDetail() {
         } catch (error) {
             console.error('Error updating customer:', error)
             alert('Müşteri güncellenirken bir hata oluştu')
+        }
+        setSaving(false)
+    }
+
+    const handleWorkSubmit = async (data) => {
+        setSaving(true)
+        try {
+            const result = await window.electronAPI.createWork({
+                ...data,
+                companyId: currentCompany.id
+            })
+            if (result.success) {
+                setIsWorkModalOpen(false)
+                loadCustomer() // Reload to see new work
+            } else {
+                alert('Hata: ' + result.error)
+            }
+        } catch (error) {
+            console.error('Error creating work:', error)
         }
         setSaving(false)
     }
@@ -371,9 +394,9 @@ export default function CustomerDetail() {
                                 İşler ve Projeler
                             </h3>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <Link to={`/works/new?customer=${customer.id}`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                                <button className="btn btn-primary" onClick={() => setIsWorkModalOpen(true)}>
                                     <Briefcase size={18} /> Yeni İş Ekle
-                                </Link>
+                                </button>
                             </div>
                         </div>
 
@@ -477,6 +500,22 @@ export default function CustomerDetail() {
                     onCancel={() => setPaymentModalOpen(false)}
                     loading={saving}
                     hideCheck={false}
+                />
+            </Modal>
+            {/* New Work Modal */}
+            <Modal
+                isOpen={isWorkModalOpen}
+                onClose={() => setIsWorkModalOpen(false)}
+                title="Yeni İş Ekle"
+                footer={null}
+            >
+                <WorkForm
+                    initialData={{ customerId: customer.id, customer: customer.name }}
+                    onSubmit={handleWorkSubmit}
+                    onCancel={() => setIsWorkModalOpen(false)}
+                    loading={saving}
+                    customers={[customer]} // Current customer as the only option
+                    disableCustomerSelect={true}
                 />
             </Modal>
         </div>

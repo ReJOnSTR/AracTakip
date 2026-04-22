@@ -91,7 +91,8 @@ export const moduleMenus = {
         {
             title: 'Genel',
             items: [
-                { path: '/personel-dashboard', label: 'Personel Dashboard', icon: LayoutDashboard }
+                { path: '/personel-dashboard', label: 'Personel Dashboard', icon: LayoutDashboard },
+                { path: '/employee-reports', label: 'Raporlar', icon: FileText }
             ]
         },
         {

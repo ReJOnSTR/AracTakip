@@ -32,6 +32,7 @@ const Insurance = lazy(() => import('./pages/Insurance'))
 const Assignments = lazy(() => import('./pages/Assignments'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Reports = lazy(() => import('./pages/Reports'))
+const EmployeeReports = lazy(() => import('./pages/EmployeeReports'))
 const PrintPage = lazy(() => import('./pages/PrintPage'))
 const Services = lazy(() => import('./pages/Services'))
 const ChangePassword = lazy(() => import('./pages/ChangePassword'))
@@ -160,6 +161,7 @@ function AppRoutes() {
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/module-settings/:module" element={<ModuleSettings />} />
                         <Route path="/reports" element={<Reports />} />
+                        <Route path="/employee-reports" element={<EmployeeReports />} />
                         <Route path="/profile" element={<Profile />} />
                     </Route>
 

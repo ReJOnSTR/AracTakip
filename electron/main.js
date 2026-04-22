@@ -1076,10 +1076,71 @@ ipcMain.handle('settings:selectFolder', async () => {
     return { filePaths }
 })
 
-// Initialize auto backup on app start
+// Initialize auto backup and notifications on app start
 app.on('ready', () => {
-    setupAutoBackup(loadSettings())
+    const settings = loadSettings()
+    setupAutoBackup(settings)
+    setupNotificationCheck()
 })
+
+let notificationInterval = null
+let notifiedEvents = new Set() // Store keys to avoid double notifying in same session
+
+async function checkAndNotify() {
+    const settings = loadSettings()
+    if (!settings.userId) return
+
+    try {
+        const companies = await db.getCompanies(settings.userId)
+        if (!companies.success) return
+
+        for (const company of companies.data) {
+            const result = await db.getUpcomingEvents(company.id)
+            if (result.success) {
+                // Filter events based on user preferences
+                const preferences = settings.notificationPreferences || {}
+                const criticalEvents = result.data.filter(e => {
+                    // Check if this category is enabled (default to true if not set)
+                    const isEnabled = preferences[e.eventType] !== false
+                    if (!isEnabled) return false
+
+                    const eventDate = new Date(e.date)
+                    const now = new Date()
+                    const diffDays = Math.ceil((eventDate - now) / (1000 * 60 * 60 * 24))
+                    return diffDays < 3 
+                })
+
+                for (const event of criticalEvents) {
+                    const eventKey = `${event.eventType}-${event.id}-${event.date}`
+                    if (!notifiedEvents.has(eventKey)) {
+                        const title = event.plate || event.employeeName || 'Önemli Hatırlatma'
+                        const body = `${event.type} işlemi yaklaşıyor veya gecikti (${new Date(event.date).toLocaleDateString('tr-TR')})`
+                        
+                        if (Notification.isSupported()) {
+                            new Notification({ 
+                                title, 
+                                body,
+                                icon: path.join(__dirname, '../resources/icon.png')
+                            }).show()
+                        }
+                        
+                        notifiedEvents.add(eventKey)
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        log.error('Periodic notification check failed:', error)
+    }
+}
+
+function setupNotificationCheck() {
+    if (notificationInterval) clearInterval(notificationInterval)
+    // Every 30 minutes
+    notificationInterval = setInterval(checkAndNotify, 30 * 60 * 1000)
+    // Run first check after a short delay
+    setTimeout(checkAndNotify, 10000)
+}
 
 
 // ============ AUTO UPDATER ============

@@ -176,16 +176,20 @@ export default function Leaves() {
     };
 
     const stats = useMemo(() => {
-        const now = new Date();
-        const thisMonth = now.toISOString().slice(0, 7);
+        const todayStr = today(); // YYYY-MM-DD
+        const thisMonth = todayStr.slice(0, 7);
         
-        const thisMonthLeaves = leaves.filter(l => l.start_date.startsWith(thisMonth));
-        const activeToday = leaves.filter(l => {
-            const start = new Date(l.start_date);
-            const end = new Date(l.end_date);
-            const todayDate = new Date();
-            todayDate.setHours(0, 0, 0, 0);
-            return todayDate >= start && todayDate <= end;
+        const approvedLeaves = leaves.filter(l => l.status === 'approved');
+        
+        const thisMonthLeaves = approvedLeaves.filter(l => {
+            const dateStr = formatDateForInput(l.start_date);
+            return dateStr.startsWith(thisMonth);
+        });
+
+        const activeToday = approvedLeaves.filter(l => {
+            const startStr = formatDateForInput(l.start_date);
+            const endStr = formatDateForInput(l.end_date);
+            return todayStr >= startStr && todayStr <= endStr;
         });
 
         return {

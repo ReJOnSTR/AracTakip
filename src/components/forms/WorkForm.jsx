@@ -13,7 +13,7 @@ const statusOptions = [
     { value: 'cancelled', label: 'İptal Edildi' }
 ]
 
-export default function WorkForm({ initialData, onSubmit, onCancel, loading, customers = [] }) {
+export default function WorkForm({ initialData, onSubmit, onCancel, loading, customers = [], disableCustomerSelect = false }) {
     const {
         control,
         handleSubmit,
@@ -92,6 +92,7 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                 options={customers.map(c => ({ value: c.id, label: c.name }))}
                                 placeholder="Arama yapın..."
                                 error={errors.customerId?.message}
+                                disabled={disableCustomerSelect}
                             />
                         )}
                     />

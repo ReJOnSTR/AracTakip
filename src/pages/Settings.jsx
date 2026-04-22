@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import CustomSelect from '../components/CustomSelect'
-import { Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, Bell, Zap, Download, Upload, RefreshCw, Folder } from 'lucide-react'
+import { Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet } from 'lucide-react'
 
 export default function Settings() {
     const { theme, toggleTheme } = useTheme()
@@ -27,13 +27,23 @@ export default function Settings() {
     const [notifications, setNotifications] = useState({
         maintenance: localStorage.getItem('notify_maintenance') !== 'false',
         inspection: localStorage.getItem('notify_inspection') !== 'false',
-        insurance: localStorage.getItem('notify_insurance') !== 'false'
+        insurance: localStorage.getItem('notify_insurance') !== 'false',
+        employee_document: localStorage.getItem('notify_employee_document') !== 'false',
+        finance_check: localStorage.getItem('notify_finance_check') !== 'false'
     })
 
-    const toggleNotification = (key) => {
+    const toggleNotification = async (key) => {
         const newVal = !notifications[key]
-        setNotifications(prev => ({ ...prev, [key]: newVal }))
+        const newNotifications = { ...notifications, [key]: newVal }
+        setNotifications(newNotifications)
         localStorage.setItem(`notify_${key}`, newVal)
+        
+        // Sync with main process settings
+        const currentSettings = await window.electronAPI.getSettings()
+        await window.electronAPI.saveSettings({
+            ...currentSettings,
+            notificationPreferences: newNotifications
+        })
     }
 
     useEffect(() => {
@@ -403,6 +413,42 @@ export default function Settings() {
                                         type="checkbox"
                                         checked={notifications.insurance}
                                         onChange={() => toggleNotification('insurance')}
+                                    />
+                                    <span className="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="settings-item">
+                                <div className="settings-item-icon">
+                                    <User size={18} />
+                                </div>
+                                <div className="settings-item-content">
+                                    <div className="settings-item-label">Personel Belgeleri</div>
+                                    <div className="settings-item-desc">Süresi dolan personel belgeleri için uyar</div>
+                                </div>
+                                <label className="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.employee_document}
+                                        onChange={() => toggleNotification('employee_document')}
+                                    />
+                                    <span className="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="settings-item">
+                                <div className="settings-item-icon">
+                                    <Wallet size={18} />
+                                </div>
+                                <div className="settings-item-content">
+                                    <div className="settings-item-label">Finansal Hatırlatmalar</div>
+                                    <div className="settings-item-desc">Çek ve senet vadeleri için bildirim</div>
+                                </div>
+                                <label className="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.finance_check}
+                                        onChange={() => toggleNotification('finance_check')}
                                     />
                                     <span className="toggle-slider"></span>
                                 </label>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ReportRenderer from '../components/ReportRenderer'
+import EmployeeReportRenderer from '../components/EmployeeReportRenderer'
 
 export default function PrintPage() {
     const [data, setData] = useState(null)
@@ -10,7 +11,7 @@ export default function PrintPage() {
             try {
                 const parsed = JSON.parse(storedData)
                 setData(parsed)
-                document.title = 'Araç Raporları'
+                document.title = parsed.isEmployeeReport ? 'Personel Raporları' : 'Araç Raporları'
 
                 // Trigger print after render
                 setTimeout(() => {
@@ -40,15 +41,27 @@ export default function PrintPage() {
                 `}
             </style>
 
-            <ReportRenderer
-                reports={reports}
-                config={config}
-                listConfig={listConfig}
-                dateRange={dateRange}
-                companyName={companyName}
-                reportType={reportType}
-                isPreview={false}
-            />
+            {data.isEmployeeReport ? (
+                <EmployeeReportRenderer
+                    reports={reports}
+                    config={config}
+                    listConfig={listConfig}
+                    dateRange={dateRange}
+                    companyName={companyName}
+                    reportType={reportType}
+                    isPreview={false}
+                />
+            ) : (
+                <ReportRenderer
+                    reports={reports}
+                    config={config}
+                    listConfig={listConfig}
+                    dateRange={dateRange}
+                    companyName={companyName}
+                    reportType={reportType}
+                    isPreview={false}
+                />
+            )}
         </div>
     )
 }

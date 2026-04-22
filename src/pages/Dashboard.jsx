@@ -278,7 +278,8 @@ export default function Dashboard() {
     }
 
     // Data is already processed and sorted by backend
-    const allUpcoming = upcomingEvents || []
+    // Filter out non-fleet events for the Fleet Dashboard
+    const allUpcoming = (upcomingEvents || []).filter(e => e.eventType !== 'finance_check')
 
     // Helper to get count by keywords
     const getCount = (typeKeywords) => {
@@ -465,13 +466,17 @@ export default function Dashboard() {
                                                         borderRadius: '6px',
                                                     }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
+                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                                                                {event.eventType === 'employee_document' ? event.employeeName : event.eventType === 'finance_check' ? `Çek: ${event.id}` : event.plate}
+                                                            </span>
                                                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--danger)' }}>
                                                                 {Math.abs(days)} gün geçti
                                                             </span>
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
+                                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                                                {event.eventType === 'employee_document' ? 'Personel Belgesi' : event.eventType === 'finance_check' ? formatCurrency(event.amount) : `${event.brand} ${event.model}`}
+                                                            </span>
                                                             <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                                                                 {event.type}
                                                             </span>
@@ -529,13 +534,17 @@ export default function Dashboard() {
                                                         borderRadius: '6px',
                                                     }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{event.plate}</span>
+                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                                                                {event.eventType === 'employee_document' ? event.employeeName : event.eventType === 'finance_check' ? `Çek: ${event.id}` : event.plate}
+                                                            </span>
                                                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: statusColor }}>
                                                                 {days === 0 ? 'Bugün' : `${days} gün kaldı`}
                                                             </span>
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{event.brand} {event.model}</span>
+                                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                                                {event.eventType === 'employee_document' ? 'Personel Belgesi' : event.eventType === 'finance_check' ? formatCurrency(event.amount) : `${event.brand} ${event.model}`}
+                                                            </span>
                                                             <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                                                                 {event.type}
                                                             </span>

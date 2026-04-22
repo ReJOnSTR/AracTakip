@@ -4017,3 +4017,67 @@ tr:hover .td-actions {
   background: var(--danger-bg);
   color: var(--danger);
 }
+
+/* ============================================
+   NOTIFICATION CENTER
+   ============================================ */
+.notification-bell:hover {
+  background: var(--bg-tertiary) !important;
+  color: var(--accent-primary) !important;
+  transform: translateY(-1px);
+}
+
+.notification-bell.active {
+  background: var(--accent-subtle) !important;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.notification-dropdown {
+  transform-origin: top right;
+  animation: notifyIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes notifyIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.notification-item-hover:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+.notification-item-hover:active {
+  background: var(--bg-elevated) !important;
+}
+
+/* Scrollbar for notification list */
+.notification-dropdown div::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notification-dropdown div::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+/* Mobile specific for notification center */
+@media (max-width: 768px) {
+  .notification-center {
+    position: static !important;
+  }
+  
+  .notification-dropdown {
+    position: fixed !important;
+    top: 60px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-height: 80vh !important;
+  }
+}
