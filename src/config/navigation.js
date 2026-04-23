@@ -143,6 +143,7 @@ export const moduleMenus = {
             ]
         }
     ],
+    system: [],
     portal: []
 }
 
@@ -242,12 +243,14 @@ export const getActiveModule = (pathname, search = '') => {
     // 4. Portal
     if (pathname === '/portal' || pathname === '/') return 'portal'
 
-    // 5. Global settings page — preserve the current module
+    // 5. Global system pages
+    if (pathname === '/settings' || pathname === '/profile' || pathname === '/companies') {
+        return 'system'
+    }
+
+    // 6. Global settings page fallback (legacy check)
     if (pathname === '/settings') {
-        // Try to get from sessionStorage to avoid sidebar jump
-        const stored = sessionStorage.getItem('lastActiveModule')
-        if (stored && moduleMenus[stored]) return stored
-        return 'fleet'
+        return 'system'
     }
 
     // 6. Ultimate fallback - try to match any path prefix from the map

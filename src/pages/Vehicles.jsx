@@ -294,8 +294,51 @@ export default function Vehicles() {
                 );
             })()}
 
-            {vehicles.length === 0 && !loading && !showArchived ? (
-                <div className="empty-state">
+            <DataTable persistenceKey={`Vehicles_table_${activeTab}`}
+                columns={columns}
+                data={activeTab === 'all' ? vehicles : vehicles.filter(v => v.type === activeTab)}
+                showSearch={true}
+                showCheckboxes={true}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
+                emptyMessage={showArchived ? "Arşivlenmiş araç bulunmuyor." : "Bu kategoride henüz araç bulunmuyor."}
+                searchPlaceholder="Plaka veya marka ara..."
+                searchKeys={['plate', 'brand', 'model', 'year']}
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'Durum',
+                        options: [
+                            { value: 'active', label: 'Aktif' },
+                            { value: 'maintenance', label: 'Bakımda' },
+                            { value: 'inactive', label: 'Pasif' }
+                        ]
+                    }
+                ]}
+                onRowClick={(vehicle, e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        openNewTab(`/vehicles/${vehicle.id}`, true, `${vehicle.plate} ${vehicle.brand} ${vehicle.model}`)
+                    } else {
+                        navigate(`/vehicles/${vehicle.id}`)
+                    }
+                }}
+                onBulkDelete={handleBulkDeleteClick}
+                onContextMenu={handleContextMenu}
+                actions={(vehicle) => (
+                    <>
+                        <button title="Düzenle" onClick={() => openEditModal(vehicle)}>
+                            <Pencil size={16} />
+                        </button>
+                        <button title="Sil" className="danger" onClick={() => handleDeleteClick(vehicle)}>
+                            <Trash2 size={16} />
+                        </button>
+                    </>
+                )}
+            />
+
+            {vehicles.length === 0 && !loading && !showArchived && seenTypes.size === 0 && (
+                <div className="empty-state" style={{ marginTop: '40px', border: 'none', background: 'transparent' }}>
                     <div className="empty-state-icon">
                         <Car />
                     </div>
@@ -308,48 +351,6 @@ export default function Vehicles() {
                         Araç Ekle
                     </button>
                 </div>
-            ) : (
-                <DataTable persistenceKey={`Vehicles_table_${activeTab}`}
-                    columns={columns}
-                    data={activeTab === 'all' ? vehicles : vehicles.filter(v => v.type === activeTab)}
-                    showSearch={true}
-                    showCheckboxes={true}
-                    onBulkArchive={handleBulkArchive}
-                    isArchiveView={showArchived}
-                    onToggleArchiveView={setShowArchived}
-                    searchPlaceholder="Plaka veya marka ara..."
-                    searchKeys={['plate', 'brand', 'model', 'year']}
-                    filters={[
-                        {
-                            key: 'status',
-                            label: 'Durum',
-                            options: [
-                                { value: 'active', label: 'Aktif' },
-                                { value: 'maintenance', label: 'Bakımda' },
-                                { value: 'inactive', label: 'Pasif' }
-                            ]
-                        }
-                    ]}
-                    onRowClick={(vehicle, e) => {
-                        if (e.ctrlKey || e.metaKey) {
-                            openNewTab(`/vehicles/${vehicle.id}`, true, `${vehicle.plate} ${vehicle.brand} ${vehicle.model}`)
-                        } else {
-                            navigate(`/vehicles/${vehicle.id}`)
-                        }
-                    }}
-                    onBulkDelete={handleBulkDeleteClick}
-                    onContextMenu={handleContextMenu}
-                    actions={(vehicle) => (
-                        <>
-                            <button title="Düzenle" onClick={() => openEditModal(vehicle)}>
-                                <Pencil size={16} />
-                            </button>
-                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(vehicle)}>
-                                <Trash2 size={16} />
-                            </button>
-                        </>
-                    )}
-                />
             )}
 
             <Modal

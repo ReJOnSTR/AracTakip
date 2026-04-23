@@ -349,8 +349,8 @@ export default function Assignments() {
             </div>
 
             {/* Dynamic Vehicle Type Tabs */}
-            {assignments.length > 0 && (() => {
-                const existingTypes = [...new Set(vehicles.filter(v => assignments.some(a => a.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
+            {(() => {
+                const existingTypes = [...new Set(vehicles.map(v => v.type).filter(Boolean))];
                 const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === t; }).length }));
                 
                 return (
@@ -367,9 +367,40 @@ export default function Assignments() {
                 );
             })()}
 
-            {assignments.length === 0 && vehicles.length === 0 ? (
-                <div className="empty-state">
-                    <div className="empty-state-icon"><UserCheck /></div>
+            <DataTable
+                columns={columns}
+                data={activeTab === 'all' ? assignments : assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === activeTab; })}
+                persistenceKey={`assignments_table_${activeTab}`}
+                showSearch={true}
+                showCheckboxes={true}
+                showDateFilter={true}
+                dateFilterKey="start_date"
+                searchKeys={['vehicle_plate', 'model', 'driver_name', 'driver_phone', 'notes']}
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'Durum',
+                        options: [
+                            { value: 'active', label: 'Aktif' },
+                            { value: 'returned', label: 'İade Edildi' }
+                        ]
+                    }
+                ]}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
+                actions={(item) => (
+                    <>
+                        <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
+                        <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
+                    </>
+                )}
+            />
+
+            {assignments.length === 0 && vehicles.length === 0 && (
+                <div className="empty-state" style={{ marginTop: '24px' }}>
+                    <div className="empty-state-icon"><LayoutList /></div>
                     <h2 className="empty-state-title">Zimmet Kaydı Yok</h2>
                     <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
                     <div style={{ marginTop: '16px' }}>
@@ -379,37 +410,6 @@ export default function Assignments() {
                         </button>
                     </div>
                 </div>
-            ) : (
-                <DataTable
-                    columns={columns}
-                    data={activeTab === 'all' ? assignments : assignments.filter(a => { const v = vehicles.find(vv => vv.id === a.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`assignments_table_${activeTab}`}
-                    showSearch={true}
-                    showCheckboxes={true}
-                    showDateFilter={true}
-                    dateFilterKey="start_date"
-                    searchKeys={['vehicle_plate', 'model', 'driver_name', 'driver_phone', 'notes']}
-                    filters={[
-                        {
-                            key: 'status',
-                            label: 'Durum',
-                            options: [
-                                { value: 'active', label: 'Aktif' },
-                                { value: 'returned', label: 'İade Edildi' }
-                            ]
-                        }
-                    ]}
-                    onBulkDelete={handleBulkDeleteClick}
-                    onBulkArchive={handleBulkArchive}
-                    isArchiveView={showArchived}
-                    onToggleArchiveView={setShowArchived}
-                    actions={(item) => (
-                        <>
-                            <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
-                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
-                        </>
-                    )}
-                />
             )}
 
             <Modal

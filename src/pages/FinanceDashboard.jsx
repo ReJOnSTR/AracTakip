@@ -286,16 +286,19 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Quick Actions Grid */}
-            <div className={`quick-actions grid-responsive-${Math.min(Math.max(visibleActions.length, 1), 4)}`} style={{ marginBottom: '30px', gap: '20px' }}>
+            <div className={`quick-actions grid-responsive-${Math.min(Math.max(visibleActions.length, 1), 4)}`} style={{ marginBottom: '30px', gap: '16px' }}>
                 {visibleActions.map(action => (
-                    <div
+                    <button
                         key={action.id}
-                        style={{ cursor: 'pointer', justifyContent: 'center', height: '42px', gap: '8px' }}
+                        style={{ justifyContent: 'center', height: '44px', gap: '10px' }}
                         onClick={() => triggerAction(action)}
                         className="btn btn-secondary"
                     >
-                        {actionIconMap[action.icon]} {action.label}
-                    </div>
+                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                            {actionIconMap[action.icon]}
+                        </span>
+                        {action.label}
+                    </button>
                 ))}
                 {visibleActions.length === 0 && (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>

@@ -369,8 +369,8 @@ export default function Services() {
             </div>
 
             {/* Dynamic Vehicle Type Tabs */}
-            {services.length > 0 && (() => {
-                const existingTypes = [...new Set(vehicles.filter(v => services.some(s => s.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
+            {(() => {
+                const existingTypes = [...new Set(vehicles.map(v => v.type).filter(Boolean))];
                 const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: services.filter(s => { const v = vehicles.find(vv => vv.id === s.vehicle_id); return v && v.type === t; }).length }));
                 
                 return (
@@ -387,8 +387,35 @@ export default function Services() {
                 );
             })()}
 
-            {services.length === 0 && vehicles.length === 0 ? (
-                <div className="empty-state">
+            <DataTable
+                columns={columns}
+                data={activeTab === 'all' ? services : services.filter(s => { const v = vehicles.find(vv => vv.id === s.vehicle_id); return v && v.type === activeTab; })}
+                persistenceKey={`services_table_${activeTab}`}
+                showSearch={true}
+                showCheckboxes={true}
+                showDateFilter={true}
+                dateFilterKey="date"
+                filters={[
+                    {
+                        key: 'type',
+                        label: 'İşlem Türü',
+                        options: serviceTypes
+                    }
+                ]}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
+                actions={(item) => (
+                    <>
+                        <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
+                        <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
+                    </>
+                )}
+            />
+
+            {services.length === 0 && vehicles.length === 0 && (
+                <div className="empty-state" style={{ marginTop: '24px' }}>
                     <div className="empty-state-icon"><Wrench /></div>
                     <h2 className="empty-state-title">Servis Kaydı Yok</h2>
                     <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
@@ -399,33 +426,6 @@ export default function Services() {
                         </button>
                     </div>
                 </div>
-            ) : (
-                <DataTable
-                    columns={columns}
-                    data={activeTab === 'all' ? services : services.filter(s => { const v = vehicles.find(vv => vv.id === s.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`services_table_${activeTab}`}
-                    showSearch={true}
-                    showCheckboxes={true}
-                    showDateFilter={true}
-                    dateFilterKey="date"
-                    filters={[
-                        {
-                            key: 'type',
-                            label: 'İşlem Türü',
-                            options: serviceTypes
-                        }
-                    ]}
-                    onBulkDelete={handleBulkDeleteClick}
-                    onBulkArchive={handleBulkArchive}
-                    isArchiveView={showArchived}
-                    onToggleArchiveView={setShowArchived}
-                    actions={(item) => (
-                        <>
-                            <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
-                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
-                        </>
-                    )}
-                />
             )}
 
             <Modal

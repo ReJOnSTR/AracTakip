@@ -278,8 +278,11 @@ export default function Dashboard() {
     }
 
     // Data is already processed and sorted by backend
-    // Filter out non-fleet events for the Fleet Dashboard
-    const allUpcoming = (upcomingEvents || []).filter(e => e.eventType !== 'finance_check')
+    // Filter out non-fleet events for the Fleet Dashboard (Finance and Personnel)
+    const allUpcoming = (upcomingEvents || []).filter(e => 
+        e.eventType !== 'finance_check' && 
+        e.eventType !== 'employee_document'
+    )
 
     // Helper to get count by keywords
     const getCount = (typeKeywords) => {
@@ -331,16 +334,19 @@ export default function Dashboard() {
                 </div>
 
                 {/* Quick Actions Grid */}
-                <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '25px', gap: '20px' }}>
+                <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '25px', gap: '16px' }}>
                     {visibleActions.map(action => (
-                        <div
+                        <button
                             key={action.id}
-                            style={{ cursor: 'pointer', justifyContent: 'center', height: '42px', gap: '8px' }}
+                            style={{ justifyContent: 'center', height: '44px', gap: '10px' }}
                             onClick={() => triggerAction(action)}
                             className="btn btn-secondary"
                         >
-                            {actionIconMap[action.icon]} {action.label}
-                        </div>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                {actionIconMap[action.icon]}
+                            </span>
+                            {action.label}
+                        </button>
                     ))}
                     {visibleActions.length === 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
@@ -467,7 +473,7 @@ export default function Dashboard() {
                                                     }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                                                             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                                                {event.eventType === 'employee_document' ? event.employeeName : event.eventType === 'finance_check' ? `Çek: ${event.id}` : event.plate}
+                                                                {event.eventType === 'employee_document' ? event.employeeName : event.eventType === 'finance_check' ? 'Finansal İşlem' : event.plate}
                                                             </span>
                                                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--danger)' }}>
                                                                 {Math.abs(days)} gün geçti
@@ -535,7 +541,7 @@ export default function Dashboard() {
                                                     }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                                                             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                                                {event.eventType === 'employee_document' ? event.employeeName : event.eventType === 'finance_check' ? `Çek: ${event.id}` : event.plate}
+                                                                {event.eventType === 'employee_document' ? event.employeeName : event.eventType === 'finance_check' ? 'Finansal İşlem' : event.plate}
                                                             </span>
                                                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: statusColor }}>
                                                                 {days === 0 ? 'Bugün' : `${days} gün kaldı`}

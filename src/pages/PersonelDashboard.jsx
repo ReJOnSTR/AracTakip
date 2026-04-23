@@ -289,15 +289,18 @@ export default function PersonelDashboard() {
             </div>
 
             {/* Quick Actions Grid */}
-            <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '30px' }}>
+            <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '30px', gap: '16px' }}>
                 {visibleActions.map(action => (
                     <button 
                         key={action.id}
                         className="btn btn-secondary" 
                         onClick={() => triggerAction(action)} 
-                        style={{ justifyContent: 'center', height: '45px', gap: '10px', background: 'var(--bg-secondary)' }}
+                        style={{ justifyContent: 'center', height: '44px', gap: '10px' }}
                     >
-                        {actionIconMap[action.icon]} {action.label}
+                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                            {actionIconMap[action.icon]}
+                        </span>
+                        {action.label}
                     </button>
                 ))}
                 {visibleActions.length === 0 && (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Bell, AlertTriangle, Calendar, FileText, Wallet, CheckCircle2, ChevronRight, X, Shield, Wrench, User } from 'lucide-react'
+import { Bell, AlertTriangle, Calendar, FileText, Wallet, CheckCircle2, ChevronRight, X, Shield, Wrench, User, ClipboardCheck } from 'lucide-react'
 import { useCompany } from '../context/CompanyContext'
 import { getDaysUntil, formatDate, formatCurrency } from '../utils/helpers'
 import { useNavigate } from 'react-router-dom'
@@ -47,7 +47,7 @@ export default function NotificationCenter() {
 
     const getIcon = (type) => {
         switch (type) {
-            case 'inspection': return <FileText size={16} className="text-primary" />
+            case 'inspection': return <ClipboardCheck size={16} className="text-primary" />
             case 'insurance': return <Shield size={16} className="text-success" />
             case 'maintenance': return <Wrench size={16} className="text-warning" />
             case 'employee_document': return <User size={16} className="text-info" />
@@ -215,21 +215,18 @@ function NotificationItem({ event, onClick, isOverdue }) {
             className="notification-item-hover"
         >
             <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: isOverdue ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-tertiary)',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: isOverdue ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-tertiary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                color: getUrgencyColor()
+                color: getUrgencyColor(),
+                border: `1px solid ${isOverdue ? 'rgba(239, 68, 68, 0.2)' : 'var(--border-color)'}`
             }}>
-                {event.eventType === 'inspection' && <Calendar size={16} />}
-                {event.eventType === 'insurance' && <FileText size={16} />}
-                {event.eventType === 'maintenance' && <Calendar size={16} />}
-                {event.eventType === 'employee_document' && <FileText size={16} />}
-                {event.eventType === 'finance_check' && <Wallet size={16} />}
+                {getIcon(event.eventType)}
             </div>
             
             <div style={{ flex: 1 }}>

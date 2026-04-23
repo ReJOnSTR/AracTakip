@@ -1066,63 +1066,32 @@ function setupAutoBackup(settings) {
         const currentSettings = loadSettings()
         const now = new Date()
 
-        // Skip if no user ID configured in settings (wait for user to save settings once)
-        if (!currentSettings.userId) return
-
-        const companiesResult = db.getCompanies(currentSettings.userId)
-        // Logic: specific to logged in user? Auto-backup implies background. 
-        // For simplicity: backup all companies associated with "last active" user or just loop all companies?
-        // Let's loop all companies in DB? Or just the active one?
-        // Better: Backup ALL companies.
-
-        // Actually, let's keep it simple. Only if app is running.
-        // We need 'lastBackup' timestamp per company or global?
-        // Let's store 'lastBackup' timestamp in settings.
+        // Skip if autoBackup was turned off in settings file manually
+        if (!currentSettings.autoBackup || !currentSettings.backupPath) return
 
         const lastBackupTime = new Date(currentSettings.lastBackup?.global || 0)
         let shouldBackup = false
 
+        const diffTime = now - lastBackupTime
         if (currentSettings.frequency === 'daily') {
-            // Check if 24 hours passed
-            if (now - lastBackupTime > 24 * 60 * 60 * 1000) shouldBackup = true
+            if (diffTime > 24 * 60 * 60 * 1000) shouldBackup = true
         } else if (currentSettings.frequency === 'weekly') {
-            if (now - lastBackupTime > 7 * 24 * 60 * 60 * 1000) shouldBackup = true
+            if (diffTime > 7 * 24 * 60 * 60 * 1000) shouldBackup = true
         } else if (currentSettings.frequency === 'monthly') {
-            if (now - lastBackupTime > 30 * 24 * 60 * 60 * 1000) shouldBackup = true
+            if (diffTime > 30 * 24 * 60 * 60 * 1000) shouldBackup = true
         }
 
         if (shouldBackup) {
-            // Backup all companies
-            // Need a way to get all companies ID. 
-            // db.getCompanies requires userId. 
-            // Let's assume user ID 1 for single-user desktop app, or find a way to get all.
-            // db.js doesn't have getAllCompanies without userId.
-            // Let's hack: backup active user's companies? We don't know who is active in main process easily.
-            // Let's add db.getAllCompanies system-wide or just skip for now and iterate if we can.
-            // Safer: Just backup when user is logged in?
-
-            // Re-read requirement: "istediğin şirketin... hatta otomatik yedeklemede ekle".
-            // Implementation: When app is running, if time has passed, backup. 
-            // Since we can't easily get current user in main process (it's stateless regarding auth usually unless stored),
-            // let's rely on frontend triggering it? No, backup should be backend.
-
-            // Let's add `db.getAllCompaniesSystem()`?
-            // Or just store userId in settings when they turn on auto backup.
-
-            if (currentSettings.userId) {
-                const companies = await db.getCompanies(currentSettings.userId)
-                if (companies.success) {
-                    let allSuccess = true
-                    for (const comp of companies.data) {
-                        const success = performAutoBackup(comp.id, currentSettings.backupPath)
-                        if (!success) allSuccess = false
-                    }
-
-                    if (allSuccess) {
-                        currentSettings.lastBackup = { global: now.toISOString() }
-                        saveSettings(currentSettings)
-                    }
-                }
+            // Since our backup creates a ZIP of the entire database, 
+            // we only need to run it once, not per company.
+            const success = await performAutoBackup('system', currentSettings.backupPath)
+            
+            if (success) {
+                currentSettings.lastBackup = { global: now.toISOString() }
+                saveSettings(currentSettings)
+                log.info('Auto backup completed successfully')
+            } else {
+                log.error('Auto backup failed')
             }
         }
     }, 60 * 60 * 1000) // Check every hour
@@ -1181,8 +1150,38 @@ async function checkAndNotify() {
                 for (const event of criticalEvents) {
                     const eventKey = `${event.eventType}-${event.id}-${event.date}`
                     if (!notifiedEvents.has(eventKey)) {
-                        const title = event.plate || event.employeeName || 'Önemli Hatırlatma'
-                        const body = `${event.type} işlemi yaklaşıyor veya gecikti (${new Date(event.date).toLocaleDateString('tr-TR')})`
+                        let title = 'Hatırlatma'
+                        let body = ''
+
+                        const formattedDate = new Date(event.date).toLocaleDateString('tr-TR')
+                        const daysUntil = Math.ceil((new Date(event.date) - new Date()) / (1000 * 60 * 60 * 24))
+                        const timeStatus = daysUntil < 0 ? 'GECİKTİ!' : (daysUntil === 0 ? 'BUGÜN!' : `${daysUntil} gün kaldı`)
+
+                        switch (event.eventType) {
+                            case 'maintenance':
+                                title = `Bakım: ${event.plate}`
+                                body = `${event.plate} plakalı aracın bakımı yaklaşıyor (${timeStatus}). Tarih: ${formattedDate}`
+                                break
+                            case 'inspection':
+                                title = `Muayene: ${event.plate}`
+                                body = `${event.plate} plakalı aracın ${event.type} zamanı (${timeStatus}). Tarih: ${formattedDate}`
+                                break
+                            case 'insurance':
+                                title = `Sigorta: ${event.plate}`
+                                body = `${event.plate} plakalı aracın ${event.type} süresi doluyor (${timeStatus}). Tarih: ${formattedDate}`
+                                break
+                            case 'employee_document':
+                                title = `Personel: ${event.employeeName}`
+                                body = `${event.employeeName} isimli personelin ${event.type} süresi doluyor (${timeStatus}). Tarih: ${formattedDate}`
+                                break
+                            case 'finance_check':
+                                title = `Finans: Çek/Senet`
+                                body = `${event.type} vadesi geldi (${timeStatus}). Tutar: ${event.amount ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(event.amount) : ''}`
+                                break
+                            default:
+                                title = event.plate || event.employeeName || 'Önemli Hatırlatma'
+                                body = `${event.type} (${timeStatus}). Tarih: ${formattedDate}`
+                        }
                         
                         if (Notification.isSupported()) {
                             new Notification({ 

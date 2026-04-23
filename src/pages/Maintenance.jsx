@@ -379,9 +379,16 @@ export default function Maintenance() {
             </div>
 
             {/* Dynamic Vehicle Type Tabs */}
-            {maintenances.length > 0 && (() => {
-                const existingTypes = [...new Set(vehicles.filter(v => maintenances.some(m => m.vehicle_id === v.id)).map(v => v.type).filter(Boolean))];
-                const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: maintenances.filter(m => { const v = vehicles.find(vv => vv.id === m.vehicle_id); return v && v.type === t; }).length }));
+            {(() => {
+                const existingTypes = [...new Set(vehicles.filter(v => (activeTab === 'all' || activeTab === v.type)).map(v => v.type).filter(Boolean))];
+                // If we have any vehicles, we might have tabs. If no vehicles, show nothing.
+                if (vehicles.length === 0) return null;
+                
+                const tabs = [...new Set(vehicles.map(v => v.type).filter(Boolean))].map(t => ({ 
+                    value: t, 
+                    label: getVehicleTypeLabel(t), 
+                    count: maintenances.filter(m => { const v = vehicles.find(vv => vv.id === m.vehicle_id); return v && v.type === t; }).length 
+                }));
                 
                 return (
                     <div className="vehicle-tabs">
@@ -397,8 +404,42 @@ export default function Maintenance() {
                 );
             })()}
 
-            {maintenances.length === 0 && vehicles.length === 0 ? (
-                <div className="empty-state">
+            <DataTable
+                columns={columns}
+                data={activeTab === 'all' ? maintenances : maintenances.filter(m => { const v = vehicles.find(vv => vv.id === m.vehicle_id); return v && v.type === activeTab; })}
+                persistenceKey={`maintenance_table_${activeTab}`}
+                showSearch={true}
+                showCheckboxes={true}
+                showDateFilter={true}
+                dateFilterKey="date"
+                emptyMessage={showArchived ? "Arşivlenmiş bakım kaydı bulunmuyor." : "Henüz bakım kaydı bulunmuyor."}
+                searchKeys={['plate', 'vendor', 'type', 'status', 'description']}
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'Durum',
+                        options: [
+                            { value: 'completed', label: 'Tamamlandı' },
+                            { value: 'pending', label: 'Bekliyor' },
+                            { value: 'in_progress', label: 'Devam Ediyor' }
+                        ]
+                    }
+                ]}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
+                initialSort={{ key: 'next_date', direction: 'asc' }}
+                actions={(item) => (
+                    <>
+                        <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
+                        <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
+                    </>
+                )}
+            />
+
+            {maintenances.length === 0 && vehicles.length === 0 && !loading && !showArchived && (
+                <div className="empty-state" style={{ marginTop: '40px', border: 'none', background: 'transparent' }}>
                     <div className="empty-state-icon"><Wrench /></div>
                     <h2 className="empty-state-title">Bakım Kaydı Yok</h2>
                     <p className="empty-state-desc">Önce araç eklemeniz gerekiyor.</p>
@@ -409,39 +450,6 @@ export default function Maintenance() {
                         </button>
                     </div>
                 </div>
-            ) : (
-                <DataTable
-                    columns={columns}
-                    data={activeTab === 'all' ? maintenances : maintenances.filter(m => { const v = vehicles.find(vv => vv.id === m.vehicle_id); return v && v.type === activeTab; })}
-                    persistenceKey={`maintenance_table_${activeTab}`}
-                    showSearch={true}
-                    showCheckboxes={true}
-                    showDateFilter={true}
-                    dateFilterKey="date"
-                    searchKeys={['plate', 'vendor', 'type', 'status', 'description']}
-                    filters={[
-                        {
-                            key: 'status',
-                            label: 'Durum',
-                            options: [
-                                { value: 'completed', label: 'Tamamlandı' },
-                                { value: 'pending', label: 'Bekliyor' },
-                                { value: 'in_progress', label: 'Devam Ediyor' }
-                            ]
-                        }
-                    ]}
-                    onBulkDelete={handleBulkDeleteClick}
-                    onBulkArchive={handleBulkArchive}
-                    isArchiveView={showArchived}
-                    onToggleArchiveView={setShowArchived}
-                    initialSort={{ key: 'next_date', direction: 'asc' }}
-                    actions={(item) => (
-                        <>
-                            <button title="Düzenle" onClick={() => openEditModal(item)}><Pencil size={16} /></button>
-                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(item)}><Trash2 size={16} /></button>
-                        </>
-                    )}
-                />
             )}
 
             <Modal

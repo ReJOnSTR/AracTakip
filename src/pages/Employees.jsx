@@ -205,8 +205,118 @@ export default function Employees() {
                 </div>
             </div>
 
-            {employees.length === 0 && !loading && !showArchived ? (
-                <div className="empty-state">
+            {/* Personnel Upcoming Alerts */}
+            {currentCompany && !showArchived && (
+                <div style={{ marginBottom: '25px' }}>
+                    {(() => {
+                        const { upcomingEvents } = useCompany()
+                        const empEvents = (upcomingEvents || []).filter(e => e.eventType === 'employee_document')
+                        const overdue = empEvents.filter(e => {
+                            const d = Math.ceil((new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24))
+                            return d < 0
+                        })
+                        const upcoming = empEvents.filter(e => {
+                            const d = Math.ceil((new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24))
+                            return d >= 0 && d <= 15
+                        })
+
+                        if (overdue.length === 0 && upcoming.length === 0) return null
+
+                        return (
+                            <div className="card" style={{ padding: '15px' }}>
+                                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                                    {overdue.length > 0 && (
+                                        <div style={{ flex: 1, minWidth: '300px' }}>
+                                            <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--danger)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase' }}>
+                                                <AlertCircle size={14} /> Geciken Belgeler ({overdue.length})
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {overdue.map(e => (
+                                                    <div key={e.id} onClick={() => navigate(`/employees/${e.employeeId}`)} style={{ cursor: 'pointer', padding: '8px 12px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <div>
+                                                            <div style={{ fontSize: '13px', fontWeight: '600' }}>{e.employeeName}</div>
+                                                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{e.type}</div>
+                                                        </div>
+                                                        <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--danger)' }}>{Math.abs(Math.ceil((new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24)))} gün geçti</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {upcoming.length > 0 && (
+                                        <div style={{ flex: 1, minWidth: '300px' }}>
+                                            <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase' }}>
+                                                <Calendar size={14} /> Yaklaşan Belgeler ({upcoming.length})
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {upcoming.map(e => {
+                                                    const d = Math.ceil((new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24))
+                                                    return (
+                                                        <div key={e.id} onClick={() => navigate(`/employees/${e.employeeId}`)} style={{ cursor: 'pointer', padding: '8px 12px', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.1)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <div>
+                                                                <div style={{ fontSize: '13px', fontWeight: '600' }}>{e.employeeName}</div>
+                                                                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{e.type}</div>
+                                                            </div>
+                                                            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--warning)' }}>{d === 0 ? 'Bugün' : `${d} gün kaldı`}</span>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })()}
+                </div>
+            )}
+
+            <DataTable persistenceKey="Employees_table_0"
+                storageKey="employees_table_cols"
+                columns={columns}
+                data={employees}
+                showSearch={true}
+                showCheckboxes={true}
+                emptyMessage={showArchived ? "Arşivlenmiş personel bulunmuyor." : "Henüz personel eklenmemiş."}
+                searchPlaceholder="Ad, soyad, departman veya pozisyon ile ara..."
+                searchKeys={['first_name', 'last_name', 'position', 'department', 'phone']}
+                filters={[
+                    {
+                        key: 'department',
+                        label: 'Departman',
+                        options: departmentOptions
+                    },
+                    {
+                        key: 'status',
+                        label: 'Durum',
+                        options: statusOptions
+                    }
+                ]}
+                onRowClick={(employee, e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        openNewTab(`/employees/${employee.id}`, true, `${employee.first_name} ${employee.last_name}`)
+                    } else {
+                        navigate(`/employees/${employee.id}`)
+                    }
+                }}
+                onBulkDelete={handleBulkDeleteClick}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
+                actions={(employee) => (
+                    <>
+                        <button title="Düzenle" onClick={() => openEditModal(employee)}>
+                            <Pencil size={16} />
+                        </button>
+                        <button title="Sil" className="danger" onClick={() => handleDeleteClick(employee)}>
+                            <Trash2 size={16} />
+                        </button>
+                    </>
+                )}
+            />
+
+            {employees.length === 0 && !loading && !showArchived && (
+                <div className="empty-state" style={{ marginTop: '40px', border: 'none', background: 'transparent' }}>
                     <div className="empty-state-icon">
                         <Users />
                     </div>
@@ -219,49 +329,6 @@ export default function Employees() {
                         Personel Ekle
                     </button>
                 </div>
-            ) : (
-                <DataTable persistenceKey="Employees_table_0"
-                    storageKey="employees_table_cols"
-                    columns={columns}
-                    data={employees}
-                    showSearch={true}
-                    showCheckboxes={true}
-                    searchPlaceholder="Ad, soyad, departman veya pozisyon ile ara..."
-                    searchKeys={['first_name', 'last_name', 'position', 'department', 'phone']}
-                    filters={[
-                        {
-                            key: 'department',
-                            label: 'Departman',
-                            options: departmentOptions
-                        },
-                        {
-                            key: 'status',
-                            label: 'Durum',
-                            options: statusOptions
-                        }
-                    ]}
-                    onRowClick={(employee, e) => {
-                        if (e.ctrlKey || e.metaKey) {
-                            openNewTab(`/employees/${employee.id}`, true, `${employee.first_name} ${employee.last_name}`)
-                        } else {
-                            navigate(`/employees/${employee.id}`)
-                        }
-                    }}
-                    onBulkDelete={handleBulkDeleteClick}
-                    onBulkArchive={handleBulkArchive}
-                    isArchiveView={showArchived}
-                    onToggleArchiveView={setShowArchived}
-                    actions={(employee) => (
-                        <>
-                            <button title="Düzenle" onClick={() => openEditModal(employee)}>
-                                <Pencil size={16} />
-                            </button>
-                            <button title="Sil" className="danger" onClick={() => handleDeleteClick(employee)}>
-                                <Trash2 size={16} />
-                            </button>
-                        </>
-                    )}
-                />
             )}
 
             <Modal

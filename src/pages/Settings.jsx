@@ -3,12 +3,19 @@ import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import CustomSelect from '../components/CustomSelect'
-import { Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet } from 'lucide-react'
+import { 
+    Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
+    Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet, 
+    Wrench, FileSearch, ClipboardCheck, Layout, Cog
+} from 'lucide-react'
+import TopProgressBar from '../components/TopProgressBar'
 
 export default function Settings() {
     const { theme, toggleTheme } = useTheme()
     const { user } = useAuth()
     const { currentCompany } = useCompany()
+
+    const [activeTab, setActiveTab] = useState('general')
 
     const [settings, setSettings] = useState({
         autoBackup: false,
@@ -18,7 +25,7 @@ export default function Settings() {
     })
 
     const [appVersion, setAppVersion] = useState('1.0.0')
-    const [updateStatus, setUpdateStatus] = useState('idle') // idle, checking, available, not-available, downloading, downloaded, error, dev-mode
+    const [updateStatus, setUpdateStatus] = useState('idle')
     const [updateInfo, setUpdateInfo] = useState(null)
     const [progress, setProgress] = useState(0)
     const [errorMsg, setErrorMsg] = useState('')
@@ -38,7 +45,6 @@ export default function Settings() {
         setNotifications(newNotifications)
         localStorage.setItem(`notify_${key}`, newVal)
         
-        // Sync with main process settings
         const currentSettings = await window.electronAPI.getSettings()
         await window.electronAPI.saveSettings({
             ...currentSettings,
@@ -50,9 +56,7 @@ export default function Settings() {
         loadSettings()
         loadAppVersion()
 
-        // Update Listeners
         window.electronAPI.onUpdateStatus((data) => {
-            console.log('Update Status:', data)
             setUpdateStatus(data.status)
             if (data.info) setUpdateInfo(data.info)
             if (data.error) setErrorMsg(data.error)
@@ -97,39 +101,31 @@ export default function Settings() {
 
     const handleExport = async () => {
         if (!currentCompany) return
-
-        // Gather LocalStorage Data
         const localStorageData = {}
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i)
             localStorageData[key] = localStorage.getItem(key)
         }
-
         const result = await window.electronAPI.exportCompanyData({
             companyId: currentCompany.id,
             localStorageData,
             userId: user?.id
         })
-
         if (result.success) {
             window.electronAPI.showNotification('Başarılı', `Yedek alındı: ${result.filePath}`)
         } else {
-            console.error(result.error)
             setErrorMsg(result.error)
         }
     }
 
     const handleImport = async () => {
         const result = await window.electronAPI.importCompanyData(user.id)
-
         if (result.success) {
-            // Restore LocalStorage
             if (result.localStorage) {
                 const { oldCompanyId, newCompanyId, localStorage: lsData } = result
                 try {
                     const oldId = oldCompanyId ? oldCompanyId.toString() : ''
                     const newId = newCompanyId ? newCompanyId.toString() : ''
-
                     Object.entries(lsData).forEach(([key, value]) => {
                         if (oldId && newId && key.includes(oldId)) {
                             const newKey = key.replace(oldId, newId)
@@ -138,36 +134,26 @@ export default function Settings() {
                             localStorage.setItem(key, value)
                         }
                     })
-
-                    // Refresh notifications state
                     setNotifications({
                         maintenance: localStorage.getItem('notify_maintenance') !== 'false',
                         inspection: localStorage.getItem('notify_inspection') !== 'false',
-                        insurance: localStorage.getItem('notify_insurance') !== 'false'
+                        insurance: localStorage.getItem('notify_insurance') !== 'false',
+                        employee_document: localStorage.getItem('notify_employee_document') !== 'false',
+                        finance_check: localStorage.getItem('notify_finance_check') !== 'false'
                     })
-
-                    // Re-load settings
                     const newSettings = await window.electronAPI.getSettings()
                     setSettings(newSettings)
-
                 } catch (err) {
                     console.error('LocalStorage restore error:', err)
                 }
             }
-
-            // FIX: Set the active company to the newly imported one
             if (result.companyId) {
                 localStorage.setItem('aractakip_company', result.companyId)
             }
-
-            // Force refresh companies before reload (optional but good practice)
-            // await window.electronAPI.getCompanies(user.id) // Not needed, reload will handle it
-
             window.electronAPI.showNotification('Başarılı', 'Yedek başarıyla geri yüklendi. Sayfa yenileniyor...')
             setTimeout(() => window.location.reload(), 1500)
         } else {
             if (result.error !== 'Dosya seçilmedi' && result.error !== 'İşlem iptal edildi') {
-                console.error(result.error)
                 window.electronAPI.showNotification('Hata', result.error)
             }
         }
@@ -178,7 +164,6 @@ export default function Settings() {
         setErrorMsg('')
         const result = await window.electronAPI.checkForUpdates()
         if (result && !result.success) {
-            // If check fails immediately (e.g. network)
             if (result.status === 'dev-mode') {
                 setUpdateStatus('dev-mode')
             } else {
@@ -203,386 +188,298 @@ export default function Settings() {
         { value: 'monthly', label: 'Her Ay' }
     ]
 
+    const sidebarItems = [
+        { id: 'general', label: 'Genel', icon: <Cog size={18} /> },
+        { id: 'appearance', label: 'Görünüm', icon: <Palette size={18} /> },
+        { id: 'notifications', label: 'Bildirimler', icon: <Bell size={18} /> },
+        { id: 'data', label: 'Veri Yönetimi', icon: <Database size={18} /> },
+    ]
+
     return (
         <div className="settings-page">
+            <TopProgressBar loading={updateStatus === 'checking' || updateStatus === 'downloading'} />
+            
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Ayarlar</h1>
-                    <p style={{ marginTop: '5px', color: '#666' }}>Uygulama ayarları.</p>
+                    <p style={{ marginTop: '5px', color: 'var(--text-muted)' }}>Uygulama tercihlerini yönetin.</p>
                 </div>
             </div>
 
-            <div className="settings-layout">
-                {/* Left Column */}
-                <div className="settings-column">
-                    {/* Profile Section */}
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Profil</h2>
-                        <div className="profile-card">
-                            <div className="profile-avatar">
-                                {user?.username?.charAt(0).toUpperCase() || 'U'}
-                            </div>
-                            <div className="profile-details">
-                                <h3>{user?.username}</h3>
-                                <p>{user?.email}</p>
-                                <span className="profile-badge">Aktif Kullanıcı</span>
-                            </div>
+            <div className="settings-container">
+                {/* Sidebar Navigation */}
+                <div className="settings-sidebar">
+                    {sidebarItems.map(item => (
+                        <div 
+                            key={item.id} 
+                            className={`settings-sidebar-item ${activeTab === item.id ? 'active' : ''}`}
+                            onClick={() => setActiveTab(item.id)}
+                        >
+                            {item.icon}
+                            <span>{item.label}</span>
                         </div>
-                    </div>
-
-                    {/* Appearance Section */}
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Görünüm</h2>
-                        <div className="settings-list">
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Palette size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Tema</div>
-                                    <div className="settings-item-desc">Uygulama görünümünü seçin</div>
-                                </div>
-                                <div className="theme-switcher">
-                                    <button
-                                        className={`theme-option ${theme === 'light' ? 'active' : ''}`}
-                                        onClick={() => theme !== 'light' && toggleTheme()}
-                                    >
-                                        <Sun size={16} />
-                                        <span>Açık</span>
-                                    </button>
-                                    <button
-                                        className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
-                                        onClick={() => theme !== 'dark' && toggleTheme()}
-                                    >
-                                        <Moon size={16} />
-                                        <span>Koyu</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* System & Update Section */}
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Sistem & Güncelleme</h2>
-                        <div className="settings-list">
-                            <div className="settings-item" style={{ alignItems: 'flex-start', gap: '15px' }}>
-                                <div className="settings-item-icon" style={{ marginTop: '2px' }}>
-                                    <Globe size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Versiyon</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
-                                        <span style={{
-                                            background: 'var(--bg-tertiary)',
-                                            padding: '2px 8px',
-                                            borderRadius: '6px',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--border-color)'
-                                        }}>
-                                            v{appVersion}
-                                        </span>
-
-                                        {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '12px', fontWeight: 500 }}>Sürümünüz güncel</span>}
-                                        {updateStatus === 'dev-mode' && <span className="text-warning" style={{ fontSize: '12px', fontWeight: 500 }}>Geliştirici modu</span>}
-                                        {updateStatus === 'checking' && <span className="text-muted" style={{ fontSize: '12px' }}>Kontrol ediliyor...</span>}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                        {updateStatus === 'idle' || updateStatus === 'not-available' || updateStatus === 'error' || updateStatus === 'dev-mode' ? (
-                                            <button className="btn btn-sm btn-secondary" onClick={checkForUpdates} disabled={updateStatus === 'checking'}>
-                                                <RefreshCw size={14} /> Denetle
-                                            </button>
-                                        ) : null}
-
-                                        {updateStatus === 'available' && (
-                                            <button className="btn btn-sm btn-primary" onClick={downloadUpdate}>
-                                                <Download size={14} /> İndir (v{updateInfo?.version})
-                                            </button>
-                                        )}
-
-                                        {updateStatus === 'downloaded' && (
-                                            <button className="btn btn-sm btn-success" onClick={quitAndInstall}>
-                                                <RefreshCw size={14} /> Yeniden Başlat & Yükle
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {/* Error Message */}
-                                    {updateStatus === 'error' && (
-                                        <div style={{ marginTop: '12px', fontSize: '12px', background: 'var(--danger-bg-subtle)', padding: '12px', borderRadius: '8px', border: '1px solid var(--danger-border)' }}>
-                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--danger)', fontWeight: '600', marginBottom: '8px' }}>
-                                                <span>⚠️ Güncelleme Hatası</span>
-                                            </div>
-                                            <p style={{ margin: 0, color: 'var(--text-primary)', marginBottom: '8px' }}>{errorMsg}</p>
-                                            <button
-                                                className="btn btn-sm btn-outline-danger"
-                                                style={{ width: '100%', justifyContent: 'center' }}
-                                                onClick={() => window.electronAPI.openExternal('https://github.com/ReJOnSTR/AracTakip/releases/latest')}
-                                            >
-                                                <Download size={14} /> GitHub'dan İndir
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Progress Bar */}
-                                    {updateStatus === 'downloading' && (
-                                        <div style={{ marginTop: '12px', width: '100%' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
-                                                <span>İndiriliyor...</span>
-                                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>%{Math.round(progress)}</span>
-                                            </div>
-                                            <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s ease-out' }}></div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <HardDrive size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Veritabanı</div>
-                                    <div className="settings-item-desc">Yerel SQLite veritabanı</div>
-                                </div>
-                                <span className="badge badge-success" style={{ fontSize: '10px' }}>AKTİF</span>
-                            </div>
-
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Right Column */}
-                <div className="settings-column">
-                    {/* Notifications Section */}
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Bildirimler</h2>
-                        <div className="settings-list">
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Bell size={18} />
+                {/* Main Content Area */}
+                <div className="settings-content">
+                    
+                    {activeTab === 'general' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><User size={20} className="text-primary" /> Profil Bilgileri</h2>
+                                <div className="profile-card">
+                                    <div className="profile-avatar">
+                                        {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    <div className="profile-details">
+                                        <h3>{user?.username}</h3>
+                                        <p>{user?.email}</p>
+                                        <span className="profile-badge">Aktif Kullanıcı</span>
+                                    </div>
                                 </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Bakım Hatırlatmaları</div>
-                                    <div className="settings-item-desc">Yaklaşan bakımlar için bildirim</div>
-                                </div>
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={notifications.maintenance}
-                                        onChange={() => toggleNotification('maintenance')}
-                                    />
-                                    <span className="toggle-slider"></span>
-                                </label>
                             </div>
 
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Shield size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Muayene Uyarıları</div>
-                                    <div className="settings-item-desc">Muayene tarihi yaklaşınca uyar</div>
-                                </div>
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={notifications.inspection}
-                                        onChange={() => toggleNotification('inspection')}
-                                    />
-                                    <span className="toggle-slider"></span>
-                                </label>
-                            </div>
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><Globe size={20} className="text-primary" /> Sistem Bilgileri</h2>
+                                <div className="settings-list">
+                                    <div className="settings-item">
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Uygulama Versiyonu</div>
+                                            <div className="settings-item-desc">Mevcut çalışan sürüm</div>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                                            <span className="badge badge-outline">v{appVersion}</span>
+                                            {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '11px' }}>Güncel</span>}
+                                            {updateStatus === 'error' && <span className="text-danger" style={{ fontSize: '11px' }}>Hata</span>}
+                                            
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                {(updateStatus === 'idle' || updateStatus === 'not-available' || updateStatus === 'error' || updateStatus === 'dev-mode') && (
+                                                    <button className="btn btn-sm btn-secondary" onClick={checkForUpdates} disabled={updateStatus === 'checking'}>
+                                                        <RefreshCw size={14} /> Güncellemeleri Denetle
+                                                    </button>
+                                                )}
+                                                {updateStatus === 'available' && (
+                                                    <button className="btn btn-sm btn-primary" onClick={downloadUpdate}>
+                                                        <Download size={14} /> İndir (v{updateInfo?.version})
+                                                    </button>
+                                                )}
+                                                {updateStatus === 'downloaded' && (
+                                                    <button className="btn btn-sm btn-success" onClick={quitAndInstall}>
+                                                        <RefreshCw size={14} /> Kur & Yeniden Başlat
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Zap size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Sigorta Bildirimleri</div>
-                                    <div className="settings-item-desc">Sigorta bitiş tarihi hatırlatması</div>
-                                </div>
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={notifications.insurance}
-                                        onChange={() => toggleNotification('insurance')}
-                                    />
-                                    <span className="toggle-slider"></span>
-                                </label>
-                            </div>
+                                    {updateStatus === 'downloading' && (
+                                        <div style={{ padding: '15px 0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '6px' }}>
+                                                <span>İndiriliyor...</span>
+                                                <span>%{Math.round(progress)}</span>
+                                            </div>
+                                            <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s' }}></div>
+                                            </div>
+                                        </div>
+                                    )}
 
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <User size={18} />
+                                    <div className="settings-item">
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Veritabanı Durumu</div>
+                                            <div className="settings-item-desc">Yerel SQLite bağlantısı</div>
+                                        </div>
+                                        <span className="badge badge-success">BAĞLI</span>
+                                    </div>
                                 </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Personel Belgeleri</div>
-                                    <div className="settings-item-desc">Süresi dolan personel belgeleri için uyar</div>
-                                </div>
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={notifications.employee_document}
-                                        onChange={() => toggleNotification('employee_document')}
-                                    />
-                                    <span className="toggle-slider"></span>
-                                </label>
-                            </div>
-
-                            <div className="settings-item">
-                                <div className="settings-item-icon">
-                                    <Wallet size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Finansal Hatırlatmalar</div>
-                                    <div className="settings-item-desc">Çek ve senet vadeleri için bildirim</div>
-                                </div>
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={notifications.finance_check}
-                                        onChange={() => toggleNotification('finance_check')}
-                                    />
-                                    <span className="toggle-slider"></span>
-                                </label>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-
-                    {/* Data Management Section */}
-                    <div className="settings-section">
-                        <h2 className="settings-section-title">Veri Yönetimi</h2>
-                        <div className="settings-list" style={{ overflow: 'visible' }}>
-                            <div className="settings-item" style={{ alignItems: 'flex-start' }}>
-                                <div className="settings-item-icon" style={{ marginTop: '4px' }}>
-                                    <Database size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Yedekleme ve Geri Yükleme</div>
-                                    <div className="settings-item-desc">Şirket verilerini yönetin</div>
-                                    <div className="settings-actions-row" style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
-                                        <button className="btn btn-sm btn-outline" onClick={handleExport} disabled={!currentCompany}>
-                                            <Download size={14} /> Dışa Aktar
-                                        </button>
-                                        <button className="btn btn-sm btn-outline" onClick={handleImport}>
-                                            <Upload size={14} /> İçe Aktar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="settings-item" style={{ borderBottom: 'none', paddingBottom: settings.autoBackup ? '12px' : '16px' }}>
-                                <div className="settings-item-icon">
-                                    <RefreshCw size={18} />
-                                </div>
-                                <div className="settings-item-content">
-                                    <div className="settings-item-label">Otomatik Yedekleme</div>
-                                    <div className="settings-item-desc">Verileri periyodik olarak yedekle</div>
-                                </div>
-                                <label className="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.autoBackup}
-                                        onChange={(e) => handleSettingChange('autoBackup', e.target.checked)}
-                                    />
-                                    <span className="toggle-slider"></span>
-                                </label>
-                            </div>
-
-                            {/* Auto Backup Configuration Area */}
-                            {settings.autoBackup && (
-                                <div style={{
-                                    margin: '0 16px 16px 16px',
-                                    background: 'var(--bg-tertiary)',
-                                    padding: '16px',
-                                    borderRadius: '8px',
-                                    border: '1px solid var(--border-color)',
-                                    animation: 'fadeIn 0.2s ease-out',
-                                    overflow: 'visible' // Allow dropdown to overflow
-                                }}>
-                                    <div style={{ marginBottom: '16px', position: 'relative', zIndex: 10 }}>
-                                        <CustomSelect
-                                            label="Sıklık"
-                                            options={backupOptions}
-                                            value={settings.frequency}
-                                            onChange={(val) => handleSettingChange('frequency', val)}
-                                        />
-                                    </div>
-
-                                    <div style={{ position: 'relative', zIndex: 1 }}>
-                                        <div
-                                            className={`form-group floating-label-group has-value ${isBackupPathFocused ? 'focused' : ''}`}
-                                            style={{
-                                                marginBottom: 0,
-                                                border: isBackupPathFocused ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                                                borderRadius: '8px',
-                                                overflow: 'hidden',
-                                                transition: 'all 0.2s ease',
-                                                boxShadow: isBackupPathFocused ? '0 0 0 3px rgba(50, 200, 255, 0.25)' : 'none'
-                                            }}
+                    {activeTab === 'appearance' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><Palette size={20} className="text-primary" /> Görünüm Ayarları</h2>
+                                    <div className="settings-item">
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Tema Tercihi</div>
+                                            <div className="settings-item-desc">Açık veya koyu tema arasında geçiş yapın</div>
+                                        </div>
+                                        
+                                        <div 
+                                            className={`premium-theme-toggle ${theme}`}
+                                            onClick={toggleTheme}
                                         >
-                                            <div className="input-wrapper" style={{ display: 'flex', alignItems: 'center' }}>
-                                                <input
-                                                    type="text"
-                                                    id="backupPath"
-                                                    className="form-input"
-                                                    style={{
-                                                        border: 'none',
-                                                        borderRadius: 0,
-                                                        boxShadow: 'none',
-                                                        outline: 'none',
-                                                        textOverflow: 'ellipsis',
-                                                        paddingRight: '10px',
-                                                        flex: 1,
-                                                        background: 'transparent',
-                                                        height: '40px'
-                                                    }}
-                                                    readOnly
-                                                    value={settings.backupPath || 'Varsayılan (Belgelerim)'}
-                                                    onFocus={() => setIsBackupPathFocused(true)}
-                                                    onBlur={() => setIsBackupPathFocused(false)}
-                                                />
-                                                <label className="form-label" htmlFor="backupPath">
-                                                    Yedekleme Konumu
-                                                </label>
+                                            <div className="active-bg"></div>
+                                            <div className={`toggle-icon-container light ${theme === 'light' ? 'active' : ''}`}>
+                                                <Sun size={18} />
+                                            </div>
+                                            <div className={`toggle-icon-container dark ${theme === 'dark' ? 'active' : ''}`}>
+                                                <Moon size={18} />
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    )}
 
-                                                <button
-                                                    className="btn btn-secondary"
-                                                    style={{
-                                                        borderRadius: 0,
-                                                        border: 'none',
-                                                        borderLeft: '1px solid var(--border-color)',
-                                                        padding: '0 12px',
-                                                        height: '42px',
-                                                        marginTop: '0',
-                                                        background: 'var(--bg-secondary)',
-                                                        outline: 'none'
-                                                    }}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleBackupPathSelect();
-                                                    }}
+                    {activeTab === 'notifications' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><Bell size={20} className="text-primary" /> Bildirim Tercihleri</h2>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                                    Hangi işlemler için hatırlatma almak istediğinizi buradan yönetebilirsiniz.
+                                </p>
+                                
+                                <div className="settings-grid">
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-icon"><Wrench size={18} /></div>
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Bakım Bildirimleri</div>
+                                            <div className="settings-item-desc">Servis ve periyodik bakımlar</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input type="checkbox" checked={notifications.maintenance} onChange={() => toggleNotification('maintenance')} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-icon"><ClipboardCheck size={18} /></div>
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Muayene Bildirimleri</div>
+                                            <div className="settings-item-desc">Trafik ve egzoz muayeneleri</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input type="checkbox" checked={notifications.inspection} onChange={() => toggleNotification('inspection')} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-icon"><Shield size={18} /></div>
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Sigorta Bildirimleri</div>
+                                            <div className="settings-item-desc">Kasko ve trafik sigortaları</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input type="checkbox" checked={notifications.insurance} onChange={() => toggleNotification('insurance')} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-icon"><User size={18} /></div>
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Personel Belgeleri</div>
+                                            <div className="settings-item-desc">Ehliyet, SRC ve diğer belgeler</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input type="checkbox" checked={notifications.employee_document} onChange={() => toggleNotification('employee_document')} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-icon"><Wallet size={18} /></div>
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Finans Bildirimleri</div>
+                                            <div className="settings-item-desc">Çek ve senet vadesi uyarıları</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input type="checkbox" checked={notifications.finance_check} onChange={() => toggleNotification('finance_check')} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'data' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><Database size={20} className="text-primary" /> Yedekleme ve Geri Yükleme</h2>
+                                <div className="settings-item" style={{ alignItems: 'flex-start' }}>
+                                    <div className="settings-item-content">
+                                        <div className="settings-item-label">Manuel Yedekleme</div>
+                                        <div className="settings-item-desc">Mevcut şirket verilerini ve yerel ayarları bir dosyaya kaydeder.</div>
+                                        <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+                                            <button className="btn btn-secondary" onClick={handleExport} disabled={!currentCompany}>
+                                                <Download size={16} /> Verileri Dışa Aktar
+                                            </button>
+                                            <button className="btn btn-secondary" onClick={handleImport}>
+                                                <Upload size={16} /> Verileri İçe Aktar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="settings-item" style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
+                                    <div className="settings-item-content">
+                                        <div className="settings-item-label" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            Otomatik Yedekleme
+                                            {settings.autoBackup && <span className="badge badge-success" style={{ fontSize: '9px', padding: '2px 6px' }}>AKTİF</span>}
+                                        </div>
+                                        <div className="settings-item-desc">Belirlenen aralıklarla arka planda yedek alır.</div>
+                                    </div>
+                                    <label className="toggle-switch">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={settings.autoBackup} 
+                                            onChange={(e) => handleSettingChange('autoBackup', e.target.checked)} 
+                                        />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                </div>
+
+                                {settings.autoBackup && (
+                                    <div className="auto-backup-config" style={{ 
+                                        marginTop: '20px', 
+                                        background: 'rgba(0, 0, 0, 0.02)', 
+                                        padding: '24px', 
+                                        borderRadius: '16px',
+                                        border: '1px solid var(--border-color)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '20px'
+                                    }}>
+                                        <div style={{ maxWidth: '300px' }}>
+                                            <CustomSelect 
+                                                label="Yedekleme Sıklığı"
+                                                options={backupOptions}
+                                                value={settings.frequency}
+                                                onChange={(val) => handleSettingChange('frequency', val)}
+                                            />
+                                        </div>
+
+                                        <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
+                                            <div className="input-wrapper">
+                                                <input 
+                                                    type="text" 
+                                                    className="form-input" 
+                                                    readOnly 
+                                                    value={settings.backupPath || 'Varsayılan (Belgelerim)'} 
+                                                    style={{ background: 'var(--bg-primary)' }}
+                                                />
+                                                <label className="form-label">Yedekleme Klasörü</label>
+                                                <button 
+                                                    className="btn btn-secondary" 
+                                                    style={{ height: '42px', minWidth: '42px', padding: 0 }} 
+                                                    onClick={handleBackupPathSelect}
                                                     title="Klasör Seç"
-                                                    onFocus={() => setIsBackupPathFocused(true)}
-                                                    onBlur={() => setIsBackupPathFocused(false)}
                                                 >
                                                     <Folder size={18} />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
+
                 </div>
             </div>
         </div>
