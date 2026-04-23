@@ -13,6 +13,7 @@ import TabBar from './components/TabBar' // Import TabBar
 import TopProgressBar from './components/TopProgressBar'
 import BottomNav from './components/BottomNav'
 import MobileHeader from './components/MobileHeader'
+import CommandPalette from './components/CommandPalette'
 
 // Lazy-loaded pages (code splitting)
 const Login = lazy(() => import('./pages/Login'))
@@ -86,6 +87,7 @@ function MainLayout() {
 
     return (
         <>
+            <CommandPalette />
             <MobileHeader />
             <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />

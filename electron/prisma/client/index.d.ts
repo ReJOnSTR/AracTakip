@@ -7302,7 +7302,6 @@ export namespace Prisma {
     file_name: string | null
     file_path: string | null
     file_type: string | null
-    doc_type: string | null
     start_date: Date | null
     end_date: Date | null
     created_at: Date | null
@@ -7316,7 +7315,6 @@ export namespace Prisma {
     file_name: string | null
     file_path: string | null
     file_type: string | null
-    doc_type: string | null
     start_date: Date | null
     end_date: Date | null
     created_at: Date | null
@@ -7330,7 +7328,6 @@ export namespace Prisma {
     file_name: number
     file_path: number
     file_type: number
-    doc_type: number
     start_date: number
     end_date: number
     created_at: number
@@ -7358,7 +7355,6 @@ export namespace Prisma {
     file_name?: true
     file_path?: true
     file_type?: true
-    doc_type?: true
     start_date?: true
     end_date?: true
     created_at?: true
@@ -7372,7 +7368,6 @@ export namespace Prisma {
     file_name?: true
     file_path?: true
     file_type?: true
-    doc_type?: true
     start_date?: true
     end_date?: true
     created_at?: true
@@ -7386,7 +7381,6 @@ export namespace Prisma {
     file_name?: true
     file_path?: true
     file_type?: true
-    doc_type?: true
     start_date?: true
     end_date?: true
     created_at?: true
@@ -7487,7 +7481,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type: string | null
-    doc_type: string | null
     start_date: Date | null
     end_date: Date | null
     created_at: Date | null
@@ -7520,7 +7513,6 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
-    doc_type?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
@@ -7535,7 +7527,6 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
-    doc_type?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
@@ -7550,7 +7541,6 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
-    doc_type?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
@@ -7565,13 +7555,12 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
-    doc_type?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
   }
 
-  export type documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicle_id" | "related_type" | "related_id" | "file_name" | "file_path" | "file_type" | "doc_type" | "start_date" | "end_date" | "created_at", ExtArgs["result"]["documents"]>
+  export type documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicle_id" | "related_type" | "related_id" | "file_name" | "file_path" | "file_type" | "start_date" | "end_date" | "created_at", ExtArgs["result"]["documents"]>
   export type documentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     vehicles?: boolean | documents$vehiclesArgs<ExtArgs>
   }
@@ -7595,7 +7584,6 @@ export namespace Prisma {
       file_name: string
       file_path: string
       file_type: string | null
-      doc_type: string | null
       start_date: Date | null
       end_date: Date | null
       created_at: Date | null
@@ -8030,7 +8018,6 @@ export namespace Prisma {
     readonly file_name: FieldRef<"documents", 'String'>
     readonly file_path: FieldRef<"documents", 'String'>
     readonly file_type: FieldRef<"documents", 'String'>
-    readonly doc_type: FieldRef<"documents", 'String'>
     readonly start_date: FieldRef<"documents", 'DateTime'>
     readonly end_date: FieldRef<"documents", 'DateTime'>
     readonly created_at: FieldRef<"documents", 'DateTime'>
@@ -35071,7 +35058,6 @@ export namespace Prisma {
     file_name: 'file_name',
     file_path: 'file_path',
     file_type: 'file_type',
-    doc_type: 'doc_type',
     start_date: 'start_date',
     end_date: 'end_date',
     created_at: 'created_at'
@@ -35779,7 +35765,6 @@ export namespace Prisma {
     file_name?: StringFilter<"documents"> | string
     file_path?: StringFilter<"documents"> | string
     file_type?: StringNullableFilter<"documents"> | string | null
-    doc_type?: StringNullableFilter<"documents"> | string | null
     start_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableFilter<"documents"> | Date | string | null
@@ -35794,7 +35779,6 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
-    doc_type?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -35812,7 +35796,6 @@ export namespace Prisma {
     file_name?: StringFilter<"documents"> | string
     file_path?: StringFilter<"documents"> | string
     file_type?: StringNullableFilter<"documents"> | string | null
-    doc_type?: StringNullableFilter<"documents"> | string | null
     start_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableFilter<"documents"> | Date | string | null
@@ -35827,7 +35810,6 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
-    doc_type?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -35849,7 +35831,6 @@ export namespace Prisma {
     file_name?: StringWithAggregatesFilter<"documents"> | string
     file_path?: StringWithAggregatesFilter<"documents"> | string
     file_type?: StringNullableWithAggregatesFilter<"documents"> | string | null
-    doc_type?: StringNullableWithAggregatesFilter<"documents"> | string | null
     start_date?: DateTimeNullableWithAggregatesFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableWithAggregatesFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"documents"> | Date | string | null
@@ -38105,7 +38086,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
-    doc_type?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
@@ -38120,7 +38100,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
-    doc_type?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
@@ -38132,7 +38111,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -38147,7 +38125,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -38161,7 +38138,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
-    doc_type?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
@@ -38173,7 +38149,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -38187,7 +38162,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -40715,7 +40689,6 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrder
-    doc_type?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     created_at?: SortOrder
@@ -40735,7 +40708,6 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrder
-    doc_type?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     created_at?: SortOrder
@@ -40749,7 +40721,6 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrder
-    doc_type?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     created_at?: SortOrder
@@ -47826,7 +47797,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
-    doc_type?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
@@ -47839,7 +47809,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
-    doc_type?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
@@ -48182,7 +48151,6 @@ export namespace Prisma {
     file_name?: StringFilter<"documents"> | string
     file_path?: StringFilter<"documents"> | string
     file_type?: StringNullableFilter<"documents"> | string | null
-    doc_type?: StringNullableFilter<"documents"> | string | null
     start_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableFilter<"documents"> | Date | string | null
@@ -50290,7 +50258,6 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
-    doc_type?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
@@ -50430,7 +50397,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50443,7 +50409,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50456,7 +50421,6 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
-    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

@@ -163,7 +163,6 @@ exports.Prisma.DocumentsScalarFieldEnum = {
   file_name: 'file_name',
   file_path: 'file_path',
   file_type: 'file_type',
-  doc_type: 'doc_type',
   start_date: 'start_date',
   end_date: 'end_date',
   created_at: 'created_at'

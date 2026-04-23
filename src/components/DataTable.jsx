@@ -324,12 +324,14 @@ export default function DataTable({
     const filteredData = useMemo(() => {
         if (!searchQuery.trim()) return customFilteredData
 
-        const query = searchQuery.toLowerCase()
+        const query = searchQuery.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
         return customFilteredData.filter(row => {
             return visibleColumnsList.some(col => {
                 const value = row[col.key]
                 if (value === null || value === undefined) return false
-                return String(value).toLowerCase().includes(query)
+                // Normalize data value: remove spaces and handle Turkish case
+                const normalizedValue = String(value).toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+                return normalizedValue.includes(query)
             })
         })
     }, [customFilteredData, searchQuery, visibleColumnsList])

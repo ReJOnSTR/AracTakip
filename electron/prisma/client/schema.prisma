@@ -71,7 +71,6 @@ model documents {
   file_name    String
   file_path    String
   file_type    String?
-  doc_type     String?
   start_date   DateTime?
   end_date     DateTime?
   created_at   DateTime? @default(now())

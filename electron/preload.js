@@ -201,6 +201,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return () => ipcRenderer.removeListener('db-update', subscription)
     },
 
+    // Global Search
+    searchGlobal: (companyId, query) => ipcRenderer.invoke('global:search', companyId, query),
+
     // System actions
     saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
     saveReportPdf: () => ipcRenderer.invoke('save-report-pdf')

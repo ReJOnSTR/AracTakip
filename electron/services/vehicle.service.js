@@ -16,7 +16,6 @@ async function getVehicles(companyId, isArchived = 0) {
             orderBy: { created_at: 'desc' }
         });
 
-        // Match the shape of legacy object output
         const formatted = vehicles.map(v => ({
             ...v,
             maintenances_count: v.maintenances.length,
@@ -44,14 +43,8 @@ async function getVehicleById(vehicleId) {
 async function createVehicle(data) {
     try {
         const { companyId, type, plate, ...rest } = data;
-
-        // Archive any existing active vehicle with the same plate
         const existingVehicle = await prisma.vehicles.findFirst({
-            where: {
-                company_id: parseInt(companyId),
-                plate: plate,
-                is_archived: 0
-            }
+            where: { company_id: parseInt(companyId), plate: plate, is_archived: 0 }
         });
 
         if (existingVehicle) {
@@ -108,9 +101,7 @@ async function updateVehicle(data) {
 
 async function deleteVehicle(id) {
     try {
-        await prisma.vehicles.delete({
-            where: { id: parseInt(id) }
-        });
+        await prisma.vehicles.delete({ where: { id: parseInt(id) } });
         return { success: true };
     } catch (error) {
         return { success: false, error: error.message };
@@ -126,7 +117,6 @@ async function getMaintenances(vehicleId) {
             orderBy: [{ date: 'desc' }, { id: 'desc' }],
             include: { vehicles: true }
         });
-        // Shape formatting for legacy compatibility 
         const mapped = data.map(d => ({ ...d, plate: d.vehicles?.plate, vehicle_plate: d.vehicles?.plate, model: d.vehicles?.model, brand: d.vehicles?.brand }));
         return { success: true, data: mapped };
     } catch (error) { return { success: false, error: error.message }; }
@@ -135,10 +125,7 @@ async function getMaintenances(vehicleId) {
 async function getAllMaintenances(companyId, isArchived) {
     try {
         const data = await prisma.maintenances.findMany({
-            where: {
-                is_archived: isArchived ? 1 : 0,
-                vehicles: { company_id: parseInt(companyId) }
-            },
+            where: { is_archived: isArchived ? 1 : 0, vehicles: { company_id: parseInt(companyId) } },
             include: { vehicles: true },
             orderBy: [{ date: 'desc' }, { id: 'desc' }]
         });
@@ -168,7 +155,7 @@ async function createMaintenance(data) {
 
 async function updateMaintenance(data) {
     try {
-        const { id, vehicleId, ...rest } = data;
+        const { id, ...rest } = data;
         const result = await prisma.maintenances.update({
             where: { id: parseInt(id) },
             data: {
@@ -192,9 +179,6 @@ async function deleteMaintenance(id) {
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
 }
-
-// Additional handlers for Inspections, Insurances, Assignments, Services can identically repeat Prisma structures...
-// Due to payload sizes they will be mapped in similar files or unified under vehicle service.
 
 module.exports = {
     getVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle,
