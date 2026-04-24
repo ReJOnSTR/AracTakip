@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import confetti from 'canvas-confetti'
 import TopProgressBar from '../components/TopProgressBar'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
@@ -74,7 +75,9 @@ const emptyForms = {
     salary: { paymentType: 'salary', amount: '', paymentDate: '', status: 'pending', paymentMethod: 'nakit', notes: '' },
     leave: { type: 'annual', status: 'approved', startDate: '', endDate: '', days: 1, notes: '' },
     overtime: { overtimeType: 'weekday', date: '', hours: '', rate: 0, amount: '', notes: '', useAsLeave: false },
-    assignment: { itemName: '', quantity: 1, assignedDate: '', returnDate: '', status: 'active', notes: '' }
+    assignment: { itemName: '', quantity: 1, assignedDate: '', returnDate: '', status: 'active', notes: '' },
+    documents: { category: '', startDate: '', expiryDate: '', fileName: '', filePath: '' },
+    salary_history: { amount: '', startDate: '', type: 'raise', description: '' }
 }
 
 const StatCard = ({ label, value, valueColor }) => (
@@ -166,6 +169,7 @@ export default function EmployeeDetail() {
     const [previewDoc, setPreviewDoc] = useState(null)
     const [showLoanHistory, setShowLoanHistory] = useState(false)
     const [isDocArchiveView, setIsDocArchiveView] = useState(false)
+    const confettiCanvasRef = useRef(null)
 
     useEffect(() => {
         if (currentCompany) loadEmployeeData()
@@ -178,7 +182,6 @@ export default function EmployeeDetail() {
         }
     }, [activeTab, tabsRef, salaries, leaves, overtimes, assignments, documents])
 
-    // Ensure selectedMonth is not before employee start_date
     useEffect(() => {
         if (employee?.start_date) {
             const hireMonth = new Date(employee.start_date).toISOString().slice(0, 7)
@@ -187,6 +190,56 @@ export default function EmployeeDetail() {
             }
         }
     }, [employee, selectedMonth])
+
+    // Birthday Confetti Effect
+    useEffect(() => {
+        if (employee?.birth_date) {
+            const today = new Date();
+            const bDay = new Date(employee.birth_date);
+            
+            // Check if today matches the birth day and month
+            const isBirthday = today.getMonth() === bDay.getMonth() && today.getDate() === bDay.getDate();
+            
+            if (isBirthday && confettiCanvasRef.current) {
+                const myConfetti = confetti.create(confettiCanvasRef.current, {
+                    resize: true,
+                    useWorker: true
+                });
+
+                const duration = 15 * 1000;
+                const animationEnd = Date.now() + duration;
+                const colors = ['#14b8a6', '#2dd4bf', '#f59e0b', '#0ea5e9', '#ffffff'];
+
+                const interval = setInterval(() => {
+                    const timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    myConfetti({
+                        particleCount: 1,
+                        startVelocity: 0,
+                        ticks: 400,
+                        gravity: 0.5,
+                        origin: {
+                            x: Math.random(),
+                            y: Math.random() * -0.2
+                        },
+                        colors: [colors[Math.floor(Math.random() * colors.length)]],
+                        shapes: ['circle', 'square'],
+                        scalar: Math.random() * 0.7 + 0.6,
+                        drift: Math.random() * 2 - 1
+                    });
+                }, 60);
+
+                return () => {
+                    clearInterval(interval);
+                    myConfetti.reset();
+                };
+            }
+        }
+    }, [employee])
 
     const loadEmployeeData = async () => {
         setLoading(true)
@@ -247,6 +300,8 @@ export default function EmployeeDetail() {
             setFormData({ overtimeType: 'weekday', date: today(), hours: '', rate, amount: '', notes: '' })
         } else if (type === 'leave') {
             setFormData({ type: 'annual', status: 'approved', startDate: today(), endDate: today(), days: 1, notes: '' })
+        } else if (type === 'salary_history') {
+            setFormData({ amount: employee.salary || '', startDate: today(), type: 'raise', description: '' })
         } else {
             setFormData({ ...(emptyForms[type] || {}) })
         }
@@ -299,6 +354,14 @@ export default function EmployeeDetail() {
                 returnDate: formatDateForInput(item.return_date), 
                 status: item.status || 'active', 
                 notes: item.notes || '' 
+            })
+        } else if (type === 'salary_history') {
+            setFormData({ 
+                amount: item.amount || '', 
+                startDate: formatDateForInput(item.start_date), 
+                endDate: formatDateForInput(item.end_date), 
+                type: item.type || 'raise', 
+                description: item.description || '' 
             })
         }
     }
@@ -370,7 +433,7 @@ export default function EmployeeDetail() {
     const handleConfirmDelete = async () => {
         if (!confirmModal) return
         const { type, item, ids } = confirmModal
-        const apiMap = { salary: 'deleteSalary', leave: 'deleteLeave', overtime: 'deleteOvertime', assignment: 'deleteEmployeeAssignment', documents: 'deleteEmployeeDocument' }
+        const apiMap = { salary: 'deleteSalary', leave: 'deleteLeave', overtime: 'deleteOvertime', assignment: 'deleteEmployeeAssignment', documents: 'deleteEmployeeDocument', salary_history: 'deleteSalaryHistory' }
         
         const deleteRecord = async (recType, recId) => {
             // Find linked record before deleting this one
@@ -426,6 +489,24 @@ export default function EmployeeDetail() {
             if (result.success) { closeModal(); loadEmployeeData() }
             else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError('Beklenmeyen hata: ' + err.message) }
+        setSaving(false)
+    }
+
+    const handleSalaryHistorySubmit = async (e) => {
+        e.preventDefault()
+        setSaving(true); setError('')
+        const data = { 
+            employeeId: parseInt(id), 
+            amount: parseFloat(formData.amount) || 0, 
+            startDate: formData.startDate, 
+            endDate: formData.endDate || null, 
+            type: formData.type || 'raise', 
+            description: formData.description || null 
+        }
+        try {
+            const result = editingItem ? await window.electronAPI.updateSalaryHistory({ id: editingItem.id, ...data }) : await window.electronAPI.createSalaryHistory(data)
+            if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
+        } catch (err) { setError(err.message) }
         setSaving(false)
     }
 
@@ -811,11 +892,11 @@ export default function EmployeeDetail() {
 
     const tabs = [
         { id: 'salary', label: 'Ödeme', icon: CreditCard, count: salaries.length },
-        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee?.employee_salary_history?.length || 0 },
         { id: 'leave', label: 'İzin', icon: CalendarOff, count: leaves.length },
         { id: 'overtime', label: 'Mesai', icon: Clock, count: overtimes.length },
         { id: 'assignment', label: 'Zimmet', icon: Package, count: assignments.length },
-        { id: 'documents', label: 'Belgeler', icon: FileText, count: documents.length }
+        { id: 'documents', label: 'Belgeler', icon: FileText, count: documents.length },
+        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee?.employee_salary_history?.length || 0 }
     ]
 
     const salaryHistoryColumns = [
@@ -967,7 +1048,20 @@ export default function EmployeeDetail() {
     const statusInfo = employee.status === 'active' ? { label: 'Aktif', color: 'success' } : { label: 'Pasif', color: 'secondary' }
 
     return (
-        <div>
+        <div className="page-container fade-in" style={{ paddingBottom: '40px', position: 'relative' }}>
+            <canvas 
+                ref={confettiCanvasRef} 
+                style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    width: '100%', 
+                    height: '100%', 
+                    pointerEvents: 'none', 
+                    zIndex: 99999,
+                    background: 'transparent'
+                }} 
+            />
             <TopProgressBar loading={loading} />
 
             {/* Header / Breadcrumb / Actions */}
@@ -1022,7 +1116,38 @@ export default function EmployeeDetail() {
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Doğum Tarihi</div>
                             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
                                 {employee.birth_date ? (
-                                    `${formatDate(employee.birth_date)} (${Math.floor((new Date() - new Date(employee.birth_date)) / (1000 * 60 * 60 * 24 * 365.25))} yaş)`
+                                    <>
+                                        {(() => {
+                                            const today = new Date();
+                                            const bDay = new Date(employee.birth_date);
+                                            const isBirthday = today.getMonth() === bDay.getMonth() && today.getDate() === bDay.getDate();
+                                            
+                                            if (isBirthday) {
+                                                return (
+                                                    <span style={{ 
+                                                        background: 'linear-gradient(135deg, #2dd4bf, #0ea5e9, #a855f7)',
+                                                        WebkitBackgroundClip: 'text',
+                                                        backgroundClip: 'text',
+                                                        WebkitTextFillColor: 'transparent',
+                                                        color: 'transparent',
+                                                        fontWeight: '700',
+                                                        display: 'inline-block'
+                                                    }}>
+                                                        {formatDate(employee.birth_date)}
+                                                    </span>
+                                                )
+                                            }
+                                            
+                                            return (
+                                                <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+                                                    {formatDate(employee.birth_date)}
+                                                </span>
+                                            )
+                                        })()}
+                                        <span style={{ opacity: 0.6, fontSize: '12px', marginLeft: '6px' }}>
+                                            ({Math.floor((new Date() - new Date(employee.birth_date)) / (1000 * 60 * 60 * 24 * 365.25))} yaş)
+                                        </span>
+                                    </>
                                 ) : '-'}
                             </div>
                         </div>
@@ -1077,37 +1202,8 @@ export default function EmployeeDetail() {
 
                 {/* Finansal Bilgiler */}
                 <div className="card" style={{ padding: '16px 20px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Wallet size={13} /> Finansal Bilgiler
-                        </div>
-                        <button 
-                            onClick={() => setActiveTab('salary_history')}
-                            style={{ 
-                                background: 'var(--accent-subtle)', 
-                                border: '1px solid var(--accent-primary)', 
-                                padding: '4px 10px', 
-                                fontSize: '10px', 
-                                color: 'var(--accent-primary)', 
-                                cursor: 'pointer', 
-                                fontWeight: 700, 
-                                borderRadius: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.3px',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseOver={(e) => e.target.style.background = 'var(--accent-primary)'}
-                            onMouseOver={(e) => {
-                                e.target.style.background = 'var(--accent-primary)'
-                                e.target.style.color = '#fff'
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.background = 'var(--accent-subtle)'
-                                e.target.style.color = 'var(--accent-primary)'
-                            }}
-                        >
-                            GEÇMİŞİ GÖR
-                        </button>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Wallet size={13} /> Finansal Bilgiler
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                         <div style={{ gridColumn: '1 / -1' }}>
@@ -1354,6 +1450,13 @@ export default function EmployeeDetail() {
                             columns={salaryHistoryColumns}
                             data={employee.employee_salary_history || []}
                             emptyMessage="Maaş geçmişi bulunmuyor."
+                            onBulkDelete={(ids) => handleDeleteClick('salary_history', null, ids)}
+                            actions={(item) => (
+                                <>
+                                    <button onClick={() => openEditModal('salary_history', item)}><Pencil size={16} /></button>
+                                    <button className="danger" onClick={() => handleDeleteClick('salary_history', item)}><Trash2 size={16} /></button>
+                                </>
+                            )}
                         />
                     </div>
                 )}
@@ -1691,6 +1794,24 @@ export default function EmployeeDetail() {
                                 </div>
                                 <div style={{ marginTop: '16px' }}>
                                     <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+                                    <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>
+                                    <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+                                </div>
+                            </form>
+                        )}
+
+                        {modalType === 'salary_history' && (
+                            <form onSubmit={handleSalaryHistorySubmit}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <CustomInput label="Maaş Tutarı (₺) *" format="currency" value={formData.amount || ''} onChange={(val) => updateField('amount', val)} required />
+                                    <CustomSelect label="Kayıt Türü" value={formData.type || 'raise'} options={[{value: 'initial', label: 'İşe Giriş'}, {value: 'raise', label: 'Zam'}]} onChange={(val) => updateField('type', val)} />
+                                    <CustomInput label="Başlangıç Tarihi *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
+                                    <CustomInput label="Bitiş Tarihi" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} />
+                                </div>
+                                <div style={{ marginTop: '16px' }}>
+                                    <CustomInput label="Açıklama" value={formData.description || ''} onChange={(val) => updateField('description', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>

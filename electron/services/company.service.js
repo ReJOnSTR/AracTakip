@@ -6,9 +6,11 @@ async function getCompanies(userId) {
         const whereClause = userId ? { user_id: parseInt(userId, 10) } : {};
 
         const companies = await prisma.companies.findMany({
-            where: whereClause,
-            orderBy: { name: 'asc' }
+            where: whereClause
         });
+
+        const collator = new Intl.Collator('tr');
+        companies.sort((a, b) => collator.compare(a.name, b.name));
 
         // Deep clone sanitization for IPC
         const sanitizedData = JSON.parse(JSON.stringify(companies));

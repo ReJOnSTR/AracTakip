@@ -68,6 +68,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createSalary: (data) => ipcRenderer.invoke('salaries:create', data),
     updateSalary: (data) => ipcRenderer.invoke('salaries:update', data),
     deleteSalary: (id) => ipcRenderer.invoke('salaries:delete', id),
+    createSalaryHistory: (data) => ipcRenderer.invoke('salaryHistory:create', data),
+    updateSalaryHistory: (data) => ipcRenderer.invoke('salaryHistory:update', data),
+    deleteSalaryHistory: (id) => ipcRenderer.invoke('salaryHistory:delete', id),
 
     // Leaves
     getLeaves: (employeeId) => ipcRenderer.invoke('leaves:getAll', employeeId),

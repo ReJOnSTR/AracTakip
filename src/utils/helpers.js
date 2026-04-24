@@ -175,8 +175,10 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
         }
     }
 
-    // Default fallback if no valid record covers the month but history exists
-    return employee.salary || 0
+    // Default fallback: if no match found, take the EARLIEST known salary record
+    // This handles cases where target month is before the first recorded history entry
+    const earliestRecord = [...employee.employee_salary_history].sort((a, b) => new Date(a.start_date) - new Date(b.start_date))[0]
+    return earliestRecord?.amount || employee.salary || 0
 }
 
 /**

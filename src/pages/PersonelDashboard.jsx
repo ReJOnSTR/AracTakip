@@ -444,24 +444,29 @@ export default function PersonelDashboard() {
 
                 {/* Upcoming Birthdays */}
                 <div className="card" style={{ padding: 0 }}>
-                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to right, rgba(236, 72, 153, 0.05), transparent)' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Cake size={18} color="#ec4899" /> Yaklaşan Doğum Günleri
+                    <div style={{ 
+                        padding: '16px 20px', 
+                        borderBottom: '1px solid var(--border-color)', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center'
+                    }}>
+                        <h3 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', margin: 0, textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Cake size={14} /> Doğum Günleri
                         </h3>
                         {stats.birthdays.length > 0 && (
-                            <span style={{ fontSize: '11px', color: '#ec4899', background: 'rgba(236, 72, 153, 0.1)', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
-                                🎉 {stats.birthdays.length} Kişi
-                            </span>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
+                                {stats.birthdays.length} Kayıt
+                            </div>
                         )}
                     </div>
-                    <div style={{ padding: '5px 0' }}>
+                    <div style={{ padding: '8px 0' }}>
                         {stats.birthdays.length === 0 ? (
-                            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                <Cake size={32} style={{ opacity: 0.2, marginBottom: '10px' }} />
-                                <p style={{ fontSize: '13px', margin: 0 }}>Önümüzdeki 30 gün içinde doğum günü bulunmuyor.</p>
+                            <div style={{ padding: '30px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                <p style={{ fontSize: '12px', margin: 0 }}>Yakın zamanda doğum günü yok.</p>
                             </div>
                         ) : (
-                            <ScrollableList height="240px">
+                            <ScrollableList height="260px">
                                 {stats.birthdays.map((e, i) => {
                                     const isToday = e.daysUntil === 0
                                     const isTomorrow = e.daysUntil === 1
@@ -471,54 +476,52 @@ export default function PersonelDashboard() {
                                             key={i} 
                                             onClick={() => navigate(`/employees?id=${e.id}`)}
                                             style={{ 
-                                                padding: '12px 20px', 
+                                                padding: '10px 20px', 
                                                 display: 'flex', 
                                                 alignItems: 'center', 
                                                 justifyContent: 'space-between', 
-                                                borderBottom: i < stats.birthdays.length - 1 ? '1px solid var(--border-color)' : 'none',
                                                 cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                background: isToday ? 'rgba(236, 72, 153, 0.03)' : 'transparent'
+                                                transition: 'all 0.15s ease',
+                                                borderLeft: isToday ? '3px solid var(--accent-primary)' : '3px solid transparent',
+                                                background: isToday ? 'var(--accent-subtle)' : 'transparent'
                                             }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = isToday ? 'rgba(236, 72, 153, 0.03)' : 'transparent'}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = isToday ? 'var(--accent-subtle)' : 'var(--bg-tertiary)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = isToday ? 'var(--accent-subtle)' : 'transparent'}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                                                 <div style={{ 
-                                                    width: '40px', 
-                                                    height: '40px', 
-                                                    borderRadius: '12px', 
-                                                    background: isToday ? 'linear-gradient(135deg, #ec4899, #f43f5e)' : 'var(--bg-elevated)', 
-                                                    color: isToday ? '#fff' : 'var(--text-primary)', 
+                                                    width: '32px', 
+                                                    height: '32px', 
+                                                    borderRadius: '50%', 
+                                                    background: 'var(--bg-tertiary)', 
+                                                    color: 'var(--text-primary)', 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
                                                     justifyContent: 'center', 
-                                                    fontWeight: '700', 
-                                                    fontSize: '14px',
-                                                    border: isToday ? 'none' : '1px solid var(--border-color)',
-                                                    boxShadow: isToday ? '0 4px 12px rgba(236, 72, 153, 0.2)' : 'none'
+                                                    fontWeight: '600', 
+                                                    fontSize: '12px',
+                                                    border: '1px solid var(--border-color)'
                                                 }}>
                                                     {e.first_name[0]}{e.last_name[0]}
                                                 </div>
                                                 <div style={{ minWidth: 0 }}>
-                                                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div style={{ fontSize: '13px', fontWeight: '600', color: isToday ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                                                         {e.first_name} {e.last_name}
-                                                        {isToday && <span>🎂</span>}
                                                     </div>
-                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                        {e.department} • {new Date(e.birth_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                        {new Date(e.birth_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
                                                     </div>
                                                 </div>
                                             </div>
                                             
                                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                                 {isToday ? (
-                                                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#ec4899', background: 'rgba(236, 72, 153, 0.1)', padding: '4px 10px', borderRadius: '20px', animation: 'pulse 2s infinite' }}>BUGÜN</div>
+                                                    <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>BUGÜN</div>
                                                 ) : isTomorrow ? (
-                                                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', padding: '4px 10px', borderRadius: '20px' }}>YARIN</div>
+                                                    <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--warning)' }}>YARIN</div>
                                                 ) : (
-                                                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}>
-                                                        {e.daysUntil} gün kaldı
+                                                    <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-muted)' }}>
+                                                        {e.daysUntil} gün
                                                     </div>
                                                 )}
                                             </div>

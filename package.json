@@ -1,6 +1,6 @@
 {
   "name": "muayen",
-  "version": "1.0.117",
+  "version": "1.0.118",
   "description": "Muayen - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -24,6 +24,7 @@
     "adm-zip": "^0.5.16",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.6.2",
+    "canvas-confetti": "^1.9.4",
     "cors": "^2.8.6",
     "electron-log": "^5.4.3",
     "electron-store": "^8.1.0",

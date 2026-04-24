@@ -16,12 +16,14 @@ async function getEmployees(companyId, isArchived = 0) {
                 salaries: { where: { status: 'pending' } },
                 leaves: { where: { status: 'pending' } },
                 employee_salary_history: { orderBy: { start_date: 'asc' } }
-            },
-            orderBy: { first_name: 'asc' }
+            }
         });
 
+        const collator = new Intl.Collator('tr');
+        const sortedData = data.sort((a, b) => collator.compare(a.first_name, b.first_name));
+
         // Append summary fields
-        const mapped = data.map(emp => ({
+        const mapped = sortedData.map(emp => ({
             ...emp,
             pending_salaries: emp.salaries.length,
             pending_leaves: emp.leaves.length
@@ -157,11 +159,13 @@ async function getPayrollSummary(companyId, month) {
                     } 
                 },
                 employee_salary_history: { orderBy: { start_date: 'asc' } }
-            },
-            orderBy: { first_name: 'asc' }
+            }
         });
 
-        return { success: true, data: employees };
+        const collator = new Intl.Collator('tr');
+        const sortedEmployees = employees.sort((a, b) => collator.compare(a.first_name, b.first_name));
+
+        return { success: true, data: sortedEmployees };
     } catch (error) {
         return { success: false, error: error.message };
     }

@@ -11,9 +11,11 @@ async function getCustomers(companyId, isArchived = 0) {
                         work_items: true
                     }
                 }
-            },
-            orderBy: { name: 'asc' }
+            }
         })
+
+        const collator = new Intl.Collator('tr');
+        customersList.sort((a, b) => collator.compare(a.name, b.name));
 
         // Format and calculate balance (bakiye = works total_price - transactions amount where customer is referenced... wait, we don't have transactions linked to customer yet!)
         // Wait, the user said "ödeme bilgileri yönetmebileceğim bir sistem", if we just look at works, total_price is the receivable. 

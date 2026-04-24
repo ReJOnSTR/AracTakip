@@ -606,6 +606,23 @@ ipcMain.handle('salaries:delete', async (event, id) => {
     return result
 })
 
+// Salary History
+ipcMain.handle('salaryHistory:create', async (event, data) => {
+    const result = await db.createSalaryHistory(data)
+    if (result.success) notifyDbUpdate({ table: 'employee_salary_history', action: 'create' })
+    return result
+})
+ipcMain.handle('salaryHistory:update', async (event, data) => {
+    const result = await db.updateSalaryHistory(data)
+    if (result.success) notifyDbUpdate({ table: 'employee_salary_history', action: 'update' })
+    return result
+})
+ipcMain.handle('salaryHistory:delete', async (event, id) => {
+    const result = await db.deleteSalaryHistory(id)
+    if (result.success) notifyDbUpdate({ table: 'employee_salary_history', action: 'delete' })
+    return result
+})
+
 // Leaves
 ipcMain.handle('leaves:getAll', async (event, employeeId) => {
     return await db.getLeavesByEmployee(employeeId)

@@ -410,11 +410,51 @@ async function getEmployeeDocumentById(id) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+async function createSalaryHistory(data) {
+    try {
+        const result = await prisma.employee_salary_history.create({
+            data: {
+                employee_id: parseInt(data.employeeId),
+                amount: parseFloat(data.amount) || 0,
+                start_date: new Date(data.startDate),
+                end_date: data.endDate ? new Date(data.endDate) : null,
+                type: data.type || 'raise',
+                description: data.description || null
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function updateSalaryHistory(data) {
+    try {
+        const result = await prisma.employee_salary_history.update({
+            where: { id: parseInt(data.id) },
+            data: {
+                amount: parseFloat(data.amount) || 0,
+                start_date: new Date(data.startDate),
+                end_date: data.endDate ? new Date(data.endDate) : null,
+                type: data.type,
+                description: data.description || null
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function deleteSalaryHistory(id) {
+    try {
+        await prisma.employee_salary_history.delete({ where: { id: parseInt(id) } });
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
     getSalariesByEmployee, createSalary, updateSalary, deleteSalary,
     getLeavesByEmployee, getAllLeaves, createLeave, updateLeave, deleteLeave,
     getOvertimes, addOvertime, updateOvertime, deleteOvertime,
     getEmployeeAssignments, addEmployeeAssignment, updateEmployeeAssignment, deleteEmployeeAssignment,
     getEmployeeDocuments, addEmployeeDocument, deleteEmployeeDocument, updateEmployeeDocument,
-    getUpcomingDocuments, getEmployeeDocumentById
+    getUpcomingDocuments, getEmployeeDocumentById,
+    createSalaryHistory, updateSalaryHistory, deleteSalaryHistory
 };
