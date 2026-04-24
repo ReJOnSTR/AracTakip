@@ -212,6 +212,7 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                                     onChange={field.onChange}
                                     placeholder="İşlem detayı vb."
                                     error={errors.description?.message}
+                                    maxLength={250}
                                 />
                             )}
                         />
@@ -230,8 +231,10 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                                     label="Çek Numarası"
                                     value={field.value}
                                     onChange={field.onChange}
+                                    format="uppercase"
                                     placeholder="Opsiyonel"
                                     error={errors.checkNumber?.message}
+                                    maxLength={50}
                                 />
                             )}
                         />
@@ -267,6 +270,7 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                                 onChange={field.onChange}
                                 placeholder="Çek detayları..."
                                 error={errors.description?.message}
+                                maxLength={250}
                             />
                         )}
                     />

@@ -126,6 +126,8 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                                 onChange={field.onChange}
                                 placeholder="Örn: Oto Koç, Sanayi..."
                                 error={errors.serviceName?.message}
+                                maxLength={100}
+                                format="title"
                             />
                         )}
                     />
@@ -140,10 +142,11 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                         render={({ field }) => (
                             <CustomInput
                                 label="KM"
-                                type="number"
+                                format="numeric"
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.km?.message}
+                                maxLength={10}
                             />
                         )}
                     />
@@ -176,6 +179,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                             value={field.value}
                             onChange={field.onChange}
                             error={errors.description?.message}
+                            maxLength={250}
                         />
                     )}
                 />
@@ -193,6 +197,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                            maxLength={500}
                         />
                     )}
                 />

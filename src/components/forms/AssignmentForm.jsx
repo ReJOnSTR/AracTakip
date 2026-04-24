@@ -93,6 +93,7 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.itemName?.message}
+                                maxLength={100}
                             />
                         )}
                     />
@@ -104,10 +105,11 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                         render={({ field }) => (
                             <CustomInput
                                 label="Adet"
-                                type="number"
+                                format="numeric"
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.quantity?.message}
+                                maxLength={5}
                             />
                         )}
                     />
@@ -126,6 +128,7 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                                 onChange={field.onChange}
                                 format="title"
                                 error={errors.assignedTo?.message}
+                                maxLength={100}
                             />
                         )}
                     />
@@ -141,6 +144,7 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                                 onChange={field.onChange}
                                 format="title"
                                 error={errors.department?.message}
+                                maxLength={50}
                             />
                         )}
                     />
@@ -193,6 +197,7 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                            maxLength={500}
                         />
                     )}
                 />

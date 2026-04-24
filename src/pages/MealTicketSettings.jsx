@@ -3,6 +3,7 @@ import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
+import CustomInput from '../components/CustomInput'
 import { Save, CircleDollarSign, Pencil } from 'lucide-react'
 
 export default function MealTicketSettings() {
@@ -137,14 +138,11 @@ export default function MealTicketSettings() {
             >
                 <form onSubmit={handleSave}>
                     <div className="form-group">
-                        <label className="form-label">Kişi Başı Ücret (₺)</label>
-                        <input
-                            type="number"
-                            className="form-input"
+                        <CustomInput
+                            label="Kişi Başı Ücret (₺)"
+                            format="currency"
                             value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            min="0"
-                            step="0.01"
+                            onChange={(val) => setEditValue(val)}
                             placeholder="Örn: 250.00"
                             autoFocus
                         />

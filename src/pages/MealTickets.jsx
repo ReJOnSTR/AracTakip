@@ -4,6 +4,7 @@ import TopProgressBar from '../components/TopProgressBar'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
+import CustomInput from '../components/CustomInput'
 import { UtensilsCrossed, Users, CalendarDays, Plus, Pencil, Trash2, Settings, TrendingUp } from 'lucide-react'
 
 export default function MealTickets() {
@@ -312,22 +313,37 @@ export default function MealTickets() {
                 <form onSubmit={handleSubmit}>
                     {error && <div className="error-message" style={{ marginBottom: '16px' }}>{error}</div>}
 
-                    <div className="form-group">
-                        <label className="form-label">Tarih *</label>
-                        <input type="date" className="form-input" value={formDate} onChange={(e) => setFormDate(e.target.value)} required />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <CustomInput
+                            label="Tarih"
+                            type="date"
+                            value={formDate}
+                            onChange={(val) => setFormDate(val)}
+                            required
+                        />
+
+                        <CustomInput
+                            label="Kişi Sayısı"
+                            format="numeric"
+                            value={formCount}
+                            onChange={(val) => setFormCount(val)}
+                            placeholder="Kaç kişi yemeğe gitti?"
+                            required
+                            maxLength={4}
+                        />
+
+                        <CustomInput
+                            label="Notlar"
+                            multiline={true}
+                            rows={3}
+                            value={formNotes}
+                            onChange={(val) => setFormNotes(val)}
+                            placeholder="Ekstra bilgi (opsiyonel)"
+                            maxLength={250}
+                        />
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Kişi Sayısı *</label>
-                        <input type="number" className="form-input" value={formCount} onChange={(e) => setFormCount(e.target.value)} min="1" placeholder="Kaç kişi yemeğe gitti?" required />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Notlar</label>
-                        <textarea className="form-input" value={formNotes} onChange={(e) => setFormNotes(e.target.value)} rows={3} placeholder="Ekstra bilgi (opsiyonel)" style={{ resize: 'vertical' }} />
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
                         <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>İptal</button>
                         <button type="submit" className="btn btn-primary" disabled={saving}>
                             {saving ? 'Kaydediliyor...' : (editingTicket ? 'Güncelle' : 'Kaydet')}

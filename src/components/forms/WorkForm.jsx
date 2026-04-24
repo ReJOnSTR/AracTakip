@@ -68,6 +68,8 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                 onChange={field.onChange}
                                 error={errors.title?.message}
                                 placeholder="Örn: Vinç Kiralama"
+                                maxLength={100}
+                                format="title"
                             />
                         )}
                     />
@@ -127,6 +129,8 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                 onChange={field.onChange}
                                 placeholder="İşin yapılacağı yer"
                                 error={errors.location?.message}
+                                maxLength={200}
+                                format="title"
                             />
                         )}
                     />
@@ -146,6 +150,7 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                             rows={3}
                             placeholder="İş detayları..."
                             error={errors.description?.message}
+                            maxLength={1000}
                         />
                     )}
                 />

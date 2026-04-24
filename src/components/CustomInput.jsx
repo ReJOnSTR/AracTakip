@@ -25,19 +25,58 @@ export default function CustomInput({
         } else if (format === 'title') {
             // Capitalize first letter of each word
             val = val.replace(/\b\w/g, c => c.toUpperCase())
-        } else if (format === 'phone') {
-            // Allow only numbers
+        } else if (format === 'tc_no') {
             val = val.replace(/\D/g, '')
-            // Limit to 10 digits (Turkish mobile usually without 0 prefix or 11 with 0)
+            if (val.length > 11) val = val.slice(0, 11)
+        } else if (format === 'plate') {
+            // Uppercase and allow only numbers/letters
+            val = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
+            if (val.length > 9) val = val.slice(0, 9)
+            
+            // Basic Turkish plate formatting: 34ABC123 -> 34 ABC 123
+            if (val.length > 2) {
+                const city = val.slice(0, 2)
+                let rest = val.slice(2)
+                const firstDigitIndex = rest.search(/\d/)
+                if (firstDigitIndex !== -1) {
+                    const letters = rest.slice(0, firstDigitIndex)
+                    const numbers = rest.slice(firstDigitIndex)
+                    val = letters ? `${city} ${letters} ${numbers}` : `${city} ${numbers}`
+                } else {
+                    val = `${city} ${rest}`
+                }
+            }
+        } else if (format === 'iban') {
+            // TR + 24 digits
+            val = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
+            if (!val.startsWith('TR') && val.length > 0) val = 'TR' + val
+            val = val.slice(0, 26) // TR + 24 digits
+            
+            // Format: TRXX XXXX XXXX XXXX XXXX XXXX XX
+            const tr = val.slice(0, 2)
+            const rest = val.slice(2).replace(/\D/g, '')
+            const parts = rest.match(/.{1,4}/g) || []
+            val = tr + (parts.length > 0 ? ' ' + parts.join(' ') : '')
+        } else if (format === 'numeric') {
+            val = val.replace(/\D/g, '')
+        } else if (format === 'lowercase') {
+            val = val.toLowerCase()
+        } else if (format === 'alphanumeric') {
+            val = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
+        } else if (format === 'phone') {
+            val = val.replace(/\D/g, '')
             if (val.length > 10) val = val.slice(0, 10)
 
-            // Format as (5XX) XXX XX XX
-            if (val.length > 6) {
-                val = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`
-            } else if (val.length > 3) {
-                val = `(${val.slice(0, 3)}) ${val.slice(3)}`
-            } else if (val.length > 0) {
+            if (val.length === 0) {
+                val = ''
+            } else if (val.length <= 3) {
                 val = `(${val}`
+            } else if (val.length <= 6) {
+                val = `(${val.slice(0, 3)}) ${val.slice(3)}`
+            } else if (val.length <= 8) {
+                val = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6)}`
+            } else {
+                val = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`
             }
         } else if (format === 'currency') {
             // Remove existing dots (thousands separators)
@@ -161,7 +200,21 @@ export default function CustomInput({
             {/* Label (After input for CSS peer selector) */}
             {label && (
                 <label className="form-label">
-                    {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+                    <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                        <span>
+                            {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+                        </span>
+                        {props.maxLength && isFocused && (
+                            <span className="char-counter" style={{
+                                fontSize: '10px',
+                                opacity: 0.7,
+                                fontWeight: 'normal',
+                                marginLeft: '8px'
+                            }}>
+                                {(displayValue || '').length}/{props.maxLength}
+                            </span>
+                        )}
+                    </span>
                 </label>
             )}
 

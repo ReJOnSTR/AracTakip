@@ -1296,6 +1296,9 @@ body {
   pointer-events: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: left top;
+  width: calc(100% - 24px);
+  display: flex;
+  align-items: center;
   margin: 0;
   z-index: 5;
   font-weight: 500;

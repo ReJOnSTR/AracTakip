@@ -137,6 +137,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                         placeholder="Örn: Ford"
                                         floatingLabel={true}
                                         error={errors.brand?.message}
+                                        maxLength={50}
                                     />
                                 )}
                             />
@@ -154,6 +155,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                         placeholder="Örn: Focus"
                                         floatingLabel={true}
                                         error={errors.model?.message}
+                                        maxLength={50}
                                     />
                                 )}
                             />
@@ -227,6 +229,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                     placeholder="Örn: Beyaz"
                                     floatingLabel={true}
                                     error={errors.color?.message}
+                                    maxLength={30}
                                 />
                             )}
                         />
@@ -245,6 +248,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                     rows={3}
                                     floatingLabel={true}
                                     placeholder="Araç hakkında ek bilgiler..."
+                                    maxLength={500}
                                 />
                             )}
                         />

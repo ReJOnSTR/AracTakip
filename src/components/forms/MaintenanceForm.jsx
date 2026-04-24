@@ -145,6 +145,7 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                             value={field.value}
                             onChange={field.onChange}
                             error={errors.description?.message}
+                            maxLength={150}
                         />
                     )}
                 />
@@ -156,14 +157,15 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                         name="nextKm"
                         control={control}
                         render={({ field }) => (
-                            <CustomInput
-                                label="Sonraki KM"
-                                type="number"
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder="0"
-                                error={errors.nextKm?.message}
-                            />
+                                <CustomInput
+                                    label="Sonraki KM"
+                                    format="numeric"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    placeholder="0"
+                                    error={errors.nextKm?.message}
+                                    maxLength={10}
+                                />
                         )}
                     />
                 </div>
@@ -196,6 +198,7 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                            maxLength={500}
                         />
                     )}
                 />

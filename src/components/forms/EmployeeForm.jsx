@@ -84,21 +84,24 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                     value={form.firstName}
                     onChange={(val) => handleChange('firstName', val)}
                     required
+                    maxLength={50}
                 />
                 <CustomInput
                     label="Soyad *"
                     value={form.lastName}
                     onChange={(val) => handleChange('lastName', val)}
                     required
+                    maxLength={50}
                 />
                 <CustomInput
                     label="TC Kimlik No"
+                    format="tc_no"
                     value={form.tcNo}
                     onChange={(val) => handleChange('tcNo', val)}
-                    maxLength={11}
                 />
                 <CustomInput
                     label="Telefon"
+                    format="phone"
                     value={form.phone}
                     onChange={(val) => handleChange('phone', val)}
                 />
@@ -107,11 +110,13 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                     type="email"
                     value={form.email}
                     onChange={(val) => handleChange('email', val)}
+                    maxLength={100}
                 />
                 <CustomInput
                     label="Pozisyon / Unvan"
                     value={form.position}
                     onChange={(val) => handleChange('position', val)}
+                    maxLength={100}
                 />
                 <CustomSelect
                     label="Departman"
@@ -169,6 +174,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
                     onChange={(val) => handleChange('notes', val)}
                     type="textarea"
                     rows={3}
+                    maxLength={500}
                 />
             </div>
 

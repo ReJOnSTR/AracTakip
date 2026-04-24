@@ -196,6 +196,8 @@ function App() {
     const isIdle = useIdle(lockSettings.enabled ? lockSettings.timeout * 60000 : 999999999) 
     
     const [isLocked, setIsLocked] = useState(() => {
+        const settings = JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false}')
+        if (!settings.enabled) return false
         return localStorage.getItem('aractakip_locked') === 'true'
     })
 
@@ -238,7 +240,7 @@ function App() {
         if (!lockSettings.enabled && isLocked) {
             handleUnlock()
         }
-    }, [lockSettings.enabled])
+    }, [lockSettings.enabled, isLocked])
 
     const handleUnlock = () => {
         setIsLocked(false)

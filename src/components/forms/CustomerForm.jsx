@@ -51,14 +51,16 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                     value={formData.name}
                     onChange={val => handleChange('name', val)}
                     placeholder="Müşteri Adı veya Firma Ünvanı"
+                    maxLength={100}
                 />
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <CustomInput
                         label="Telefon"
+                        format="phone"
                         value={formData.phone}
                         onChange={val => handleChange('phone', val)}
-                        placeholder="05XX XXX XX XX"
+                        placeholder="(5XX) XXX XX XX"
                     />
                     <CustomInput
                         label="E-Posta"
@@ -66,12 +68,14 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                         value={formData.email}
                         onChange={val => handleChange('email', val)}
                         placeholder="ornek@firma.com"
+                        maxLength={100}
                     />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <CustomInput
                         label="Vergi Numarası / T.C. Kimlik"
+                        format="tc_no"
                         value={formData.tax_number}
                         onChange={val => handleChange('tax_number', val)}
                         placeholder="Vergi No veya TCKN"
@@ -81,6 +85,7 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                         value={formData.tax_office}
                         onChange={val => handleChange('tax_office', val)}
                         placeholder="Vergi Dairesi"
+                        maxLength={50}
                     />
                 </div>
 
@@ -91,6 +96,7 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                     onChange={val => handleChange('address', val)}
                     rows={2}
                     placeholder="Müşteri açık adresi..."
+                    maxLength={250}
                 />
 
                 <CustomInput
@@ -100,6 +106,7 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                     onChange={val => handleChange('notes', val)}
                     rows={3}
                     placeholder="Özel notlar..."
+                    maxLength={500}
                 />
             </div>
 
