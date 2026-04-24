@@ -1077,8 +1077,37 @@ export default function EmployeeDetail() {
 
                 {/* Finansal Bilgiler */}
                 <div className="card" style={{ padding: '16px 20px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Wallet size={13} /> Finansal Bilgiler
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Wallet size={13} /> Finansal Bilgiler
+                        </div>
+                        <button 
+                            onClick={() => setActiveTab('salary_history')}
+                            style={{ 
+                                background: 'var(--accent-subtle)', 
+                                border: '1px solid var(--accent-primary)', 
+                                padding: '4px 10px', 
+                                fontSize: '10px', 
+                                color: 'var(--accent-primary)', 
+                                cursor: 'pointer', 
+                                fontWeight: 700, 
+                                borderRadius: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.3px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseOver={(e) => e.target.style.background = 'var(--accent-primary)'}
+                            onMouseOver={(e) => {
+                                e.target.style.background = 'var(--accent-primary)'
+                                e.target.style.color = '#fff'
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.background = 'var(--accent-subtle)'
+                                e.target.style.color = 'var(--accent-primary)'
+                            }}
+                        >
+                            GEÇMİŞİ GÖR
+                        </button>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                         <div style={{ gridColumn: '1 / -1' }}>
