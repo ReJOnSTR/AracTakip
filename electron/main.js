@@ -714,7 +714,7 @@ ipcMain.handle('employeeDocuments:create', async (event, data) => {
         // Save to DB with the NEW path (the filename in our storage)
         const result = await db.addEmployeeDocument({
             ...data,
-            fileName: path.basename(sourcePath), // Original name
+            fileName: data.fileName || path.basename(sourcePath), // Prioritize provided name
             filePath: fileName // New storage name (timestamped)
         })
 
@@ -1357,7 +1357,7 @@ ipcMain.on('app:openExternal', (event, url) => {
 // File handlers
 ipcMain.handle('files:select', async () => {
     const result = await dialog.showOpenDialog({
-        properties: ['openFile'],
+        properties: ['openFile', 'multiSelections'],
         filters: [
             { name: 'Belgeler', extensions: ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx'] }
         ]
@@ -1415,13 +1415,15 @@ ipcMain.handle('documents:add', async (event, data) => {
         fs.copyFileSync(sourcePath, destPath)
 
         // Add to DB
-        const result = db.addDocument({
+        const result = await db.addDocument({
             vehicleId: data.vehicleId,
             relatedType: data.relatedType,
             relatedId: data.relatedId,
-            fileName: path.basename(sourcePath),
+            fileName: data.fileName || path.basename(sourcePath),
             filePath: fileName, // Store relative path (filename only)
-            fileType: ext
+            fileType: ext,
+            startDate: data.startDate,
+            endDate: data.endDate
         })
 
         return result

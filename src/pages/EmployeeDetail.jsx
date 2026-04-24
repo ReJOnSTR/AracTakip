@@ -12,6 +12,7 @@ import CustomSelect from '../components/CustomSelect'
 import MonthFilter from '../components/MonthFilter'
 import EmployeeForm from '../components/forms/EmployeeForm'
 import AssignmentForm from '../components/forms/AssignmentForm'
+import DocumentForm from '../components/forms/DocumentForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
 import {
@@ -161,6 +162,7 @@ export default function EmployeeDetail() {
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
     const [uploadCategory, setUploadCategory] = useState('')
+    const [uploadFileName, setUploadFileName] = useState('')
     const [uploadIssueDate, setUploadIssueDate] = useState('')
     const [uploadStartDate, setUploadStartDate] = useState('')
     const [uploadExpiryDate, setUploadExpiryDate] = useState('')
@@ -754,32 +756,36 @@ export default function EmployeeDetail() {
         } catch (err) { console.error('Failed to select file:', err) }
     }
 
-    const handleUploadConfirm = async () => {
-        if (!selectedUploadFile) return
+    const handleUploadConfirm = async (docs) => {
+        if (!docs || docs.length === 0) return
+        setSaving(true)
         try {
-            const ext = selectedUploadFile.name.split('.').pop().toLowerCase()
-            const res = await window.electronAPI.createEmployeeDocument({
-                employeeId: parseInt(id),
-                fileName: selectedUploadFile.name,
-                filePath: selectedUploadFile.path,
-                fileType: ext,
-                category: uploadCategory || null,
-                issueDate: uploadIssueDate || null,
-                startDate: uploadStartDate || null,
-                expiryDate: uploadExpiryDate || null
-            })
-            if (res.success) {
-                setUploadModalOpen(false)
-                loadEmployeeData()
-            } else {
-                console.error('Upload error:', res.error)
+            for (const doc of docs) {
+                const ext = doc.originalName.split('.').pop().toLowerCase()
+                await window.electronAPI.createEmployeeDocument({
+                    employeeId: parseInt(id),
+                    fileName: doc.displayName,
+                    filePath: doc.path,
+                    fileType: ext,
+                    category: doc.docType || null,
+                    issueDate: doc.startDate || null,
+                    startDate: doc.startDate || null,
+                    expiryDate: doc.endDate || null
+                })
             }
-        } catch (err) { console.error('Upload failed:', err) }
+            await loadEmployeeData()
+        } catch (err) { 
+            console.error('Upload failed:', err)
+            alert('Belgeler yüklenirken bir hata oluştu.')
+        } finally {
+            setSaving(false)
+        }
     }
 
     const handleEditDoc = (doc) => {
         setEditingDoc(doc)
         setUploadCategory(doc.category || '')
+        setUploadFileName(doc.file_name || '')
         setUploadIssueDate(doc.issue_date ? new Date(doc.issue_date).toISOString().split('T')[0] : '')
         setUploadStartDate(doc.start_date ? new Date(doc.start_date).toISOString().split('T')[0] : '')
         setUploadExpiryDate(doc.expiry_date ? new Date(doc.expiry_date).toISOString().split('T')[0] : '')
@@ -795,6 +801,7 @@ export default function EmployeeDetail() {
         try {
             const updatePayload = {
                 id: editingDoc.id,
+                fileName: uploadFileName || editingDoc.file_name,
                 category: uploadCategory || null,
                 issueDate: new Date().toISOString().split('T')[0], // Always today on modification
                 startDate: uploadStartDate || null,
@@ -1704,7 +1711,7 @@ export default function EmployeeDetail() {
                             data={documents}
                             emptyMessage={isDocArchiveView ? "Arşivlenmiş belge bulunmuyor" : "Aktif belge bulunamadı"}
                             filters={[
-                                { key: 'category', label: 'Kategori', options: documentCategories.map(c => ({ value: c, label: c })) }
+                                { key: 'category', label: 'Kategori', options: documentCategories }
                             ]}
                             isArchiveView={isDocArchiveView}
                             onToggleArchiveView={(val) => setIsDocArchiveView(val)}
@@ -2037,110 +2044,15 @@ export default function EmployeeDetail() {
             <Modal
                 isOpen={uploadModalOpen}
                 onClose={() => setUploadModalOpen(false)}
-                title="Yeni Belge Yükle"
+                title="Belge Yükle"
                 size="lg"
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {/* Metadata Section */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-                        <CustomSelect 
-                            label="Belge Kategorisi *"
-                            value={uploadCategory}
-                            onChange={setUploadCategory}
-                            options={documentCategories}
-                            placeholder="Kategori seçin..."
-                        />
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <CustomInput 
-                                label="Başlangıç Tarihi"
-                                type="date"
-                                value={uploadStartDate}
-                                onChange={setUploadStartDate}
-                            />
-                            <CustomInput 
-                                label="Bitiş Tarihi"
-                                type="date"
-                                value={uploadExpiryDate}
-                                onChange={setUploadExpiryDate}
-                            />
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '-8px' }}>
-                            * Düzenlenme tarihi kayıt anında otomatik olarak bugünün tarihi alınacaktır.
-                        </div>
-                    </div>
-
-                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', opacity: 0.5 }} />
-
-                    {/* File Selection Section */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Dosya Seçimi *</label>
-                        
-                        {!selectedUploadFile ? (
-                            <div onClick={handleSelectUploadFile} style={{
-                                border: '2px dashed var(--border-color)', borderRadius: '16px', 
-                                padding: '32px', display: 'flex', flexDirection: 'column', 
-                                alignItems: 'center', gap: '12px', cursor: 'pointer', 
-                                transition: 'all 0.2s', backgroundColor: 'var(--bg-secondary)',
-                                textAlign: 'center'
-                            }} 
-                            onMouseEnter={e => { 
-                                e.currentTarget.style.borderColor = 'var(--accent-primary)'; 
-                                e.currentTarget.style.backgroundColor = 'var(--accent-subtle)';
-                            }} 
-                            onMouseLeave={e => { 
-                                e.currentTarget.style.borderColor = 'var(--border-color)'; 
-                                e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
-                            }}>
-                                <Upload size={24} style={{ color: 'var(--accent-primary)' }} />
-                                <div>
-                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Dosyayı Seçin</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Veya buraya sürükleyin</div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div style={{ 
-                                border: '1px solid var(--border-color)', borderRadius: '12px', 
-                                padding: '12px 16px', backgroundColor: 'var(--bg-tertiary)', 
-                                display: 'flex', alignItems: 'center', gap: '12px'
-                            }}>
-                                <div style={{ 
-                                    width: '40px', height: '40px', borderRadius: '8px', 
-                                    backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', 
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                                }}>
-                                    <FileText size={20} />
-                                </div>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedUploadFile.name}</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '1px' }}>Yüklemeye hazır</div>
-                                </div>
-                                <button onClick={() => setSelectedUploadFile(null)} style={{ 
-                                    background: 'transparent', border: 'none', color: 'var(--error)', 
-                                    cursor: 'pointer', padding: '8px', borderRadius: '8px'
-                                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--error-bg)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                                    <X size={18} />
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                        <button className="btn btn-secondary" onClick={() => setUploadModalOpen(false)}>İptal</button>
-                        <button 
-                            className="btn btn-primary" 
-                            disabled={!selectedUploadFile || !uploadCategory || saving} 
-                            onClick={handleUploadConfirm}
-                        >
-                            {saving ? 'Yükleniyor...' : (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Upload size={16} /> Belgeyi Yükle
-                                </span>
-                            )}
-                        </button>
-                    </div>
-                </div>
+                <DocumentForm
+                    onSubmit={handleUploadConfirm}
+                    onCancel={() => setUploadModalOpen(false)}
+                    loading={saving}
+                    options={documentCategories}
+                />
             </Modal>
             
             {/* Document Edit Modal */}
@@ -2157,6 +2069,12 @@ export default function EmployeeDetail() {
                         </div>
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                        <CustomInput 
+                            label="Dosya Adı *"
+                            value={uploadFileName}
+                            onChange={setUploadFileName}
+                            required
+                        />
                         <CustomSelect 
                             label="Belge Kategorisi *"
                             value={uploadCategory}

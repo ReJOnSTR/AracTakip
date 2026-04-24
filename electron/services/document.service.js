@@ -10,7 +10,9 @@ async function addDocument(data) {
                 related_id: data.relatedId ? parseInt(data.relatedId) : null,
                 file_name: data.fileName,
                 file_path: data.filePath,
-                file_type: data.fileType || null
+                file_type: data.fileType || null,
+                start_date: data.startDate ? new Date(data.startDate) : null,
+                end_date: data.endDate ? new Date(data.endDate) : null
             }
         });
         return { success: true, id: result.id };

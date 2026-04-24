@@ -44,6 +44,7 @@ import InspectionForm from '../components/forms/InspectionForm'
 import InsuranceForm from '../components/forms/InsuranceForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import AssignmentForm from '../components/forms/AssignmentForm'
+import DocumentForm from '../components/forms/DocumentForm'
 
 const StatCard = ({ label, value, valueColor }) => (
     <div style={{ 
@@ -116,6 +117,13 @@ export default function VehicleDetail() {
 
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    
+    // Document Edit states
+    const [editDocModalOpen, setEditDocModalOpen] = useState(false)
+    const [editingDoc, setEditingDoc] = useState(null)
+    const [uploadFileName, setUploadFileName] = useState('')
+    const [uploadStartDate, setUploadStartDate] = useState('')
+    const [uploadEndDate, setUploadEndDate] = useState('')
 
     // Confirm Modal state
     const [confirmModal, setConfirmModal] = useState(null) // { type, item, ids, title, message }
@@ -456,27 +464,58 @@ export default function VehicleDetail() {
         }
     }
 
-    const handleUploadConfirm = async () => {
-        if (!selectedUploadFile) return
+    const handleUploadConfirm = async (docs) => {
+        if (!docs || docs.length === 0) return
 
+        setSaving(true)
         try {
-            const addRes = await window.electronAPI.addDocument({
-                vehicleId: parseInt(id),
-                relatedType: activeUploadContext?.type || 'vehicle',
-                relatedId: (activeUploadContext?.id !== null && activeUploadContext?.id !== undefined) ? parseInt(activeUploadContext.id) : parseInt(id),
-                filePath: selectedUploadFile.path
+            for (const doc of docs) {
+                await window.electronAPI.addDocument({
+                    vehicleId: parseInt(id),
+                    relatedType: activeUploadContext?.type || 'vehicle',
+                    relatedId: (activeUploadContext?.id !== null && activeUploadContext?.id !== undefined) ? parseInt(activeUploadContext.id) : parseInt(id),
+                    filePath: doc.path,
+                    fileName: doc.displayName,
+                    docType: doc.docType,
+                    startDate: doc.startDate,
+                    endDate: doc.endDate
+                })
+            }
+            await loadVehicleData()
+        } catch (err) {
+            console.error('Document upload error:', err)
+            alert('Dosyalar yüklenirken bir hata oluştu.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleEditDoc = (doc) => {
+        setEditingDoc(doc)
+        setUploadFileName(doc.file_name || '')
+        setUploadStartDate(doc.start_date ? new Date(doc.start_date).toISOString().split('T')[0] : '')
+        setUploadEndDate(doc.end_date ? new Date(doc.end_date).toISOString().split('T')[0] : '')
+        setEditDocModalOpen(true)
+    }
+
+    const handleUpdateDocConfirm = async () => {
+        if (!editingDoc) return
+        setSaving(true)
+        try {
+            const res = await window.electronAPI.updateDocument({
+                id: editingDoc.id,
+                fileName: uploadFileName,
+                startDate: uploadStartDate || null,
+                endDate: uploadEndDate || null
             })
-            if (addRes.success) {
-                await loadVehicleData()
-                setUploadModalOpen(false)
-                setSelectedUploadFile(null)
-                // Optional: Show success toast instead of alert
-            } else {
-                alert('Dosya yüklenirken hata oluştu: ' + addRes.error)
+            if (res.success) {
+                setEditDocModalOpen(false)
+                loadVehicleData()
             }
         } catch (err) {
-            console.error('Document add error:', err)
-            alert('Dosya yükleme hatası: ' + err.message)
+            console.error('Update document failed:', err)
+        } finally {
+            setSaving(false)
         }
     }
 
@@ -989,7 +1028,9 @@ export default function VehicleDetail() {
 
                             <DataTable persistenceKey="VehicleDetail_table_6"
                                 columns={[
-                                    { key: 'file_name', label: 'Dosya Adı' },
+                                    { key: 'file_name', label: 'Belge Adı' },
+                                    { key: 'start_date', label: 'Başlangıç', render: v => v ? formatDate(v) : '-' },
+                                    { key: 'end_date', label: 'Bitiş', render: v => v ? formatDate(v) : '-' },
                                     {
                                         key: 'related_info', label: 'İlgili Kayıt', width: '200px', render: (_, row) => {
                                             if (row.related_type === 'vehicle') return <span className="badge badge-primary">Araç Geneli</span>;
@@ -1031,7 +1072,8 @@ export default function VehicleDetail() {
                                 actions={(item) => (
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item.file_path) }} title="Aç"><FileText size={16} /></button>
-                                        <button className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }}><Trash2 size={16} /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleEditDoc(item) }} title="Düzenle"><Pencil size={16} /></button>
+                                        <button className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }} title="Sil"><Trash2 size={16} /></button>
                                     </div>
                                 )}
                             />
@@ -1288,192 +1330,61 @@ export default function VehicleDetail() {
             {/* Upload Modal */}
             {
                 uploadModalOpen && (
-                    <div className="modal-overlay" style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        backdropFilter: 'blur(4px)',
-                        zIndex: 1000,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '20px',
-                        animation: 'fadeIn 0.2s ease-out'
-                    }} onClick={() => setUploadModalOpen(false)}>
-                        <div className="modal-content" style={{
-                            width: '100%',
-                            maxWidth: '500px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            backgroundColor: 'var(--bg-elevated)',
-                            borderRadius: '16px',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                            overflow: 'hidden',
-                            animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                        }} onClick={e => e.stopPropagation()}>
-
-                            {/* Header */}
-                            <div style={{
-                                padding: '16px 24px',
-                                borderBottom: '1px solid var(--border-color)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                backgroundColor: 'var(--bg-secondary)'
-                            }}>
-                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
-                                    Belge Yükle
-                                </h3>
-                                <button
-                                    onClick={() => setUploadModalOpen(false)}
-                                    style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        color: 'var(--text-secondary)',
-                                        cursor: 'pointer',
-                                        padding: '8px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
-
-                            {/* Body */}
-                            <div style={{ padding: '24px' }}>
-                                {!selectedUploadFile ? (
-                                    <div
-                                        onClick={handleSelectUploadFile}
-                                        style={{
-                                            border: '2px dashed var(--border-color)',
-                                            borderRadius: '12px',
-                                            padding: '40px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: '16px',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
-                                            backgroundColor: 'var(--bg-secondary)'
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.borderColor = 'var(--accent-primary)'
-                                            e.currentTarget.style.backgroundColor = 'var(--accent-subtle)'
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.borderColor = 'var(--border-color)'
-                                            e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'
-                                        }}
-                                    >
-                                        <div style={{
-                                            width: '64px',
-                                            height: '64px',
-                                            borderRadius: '50%',
-                                            backgroundColor: 'var(--bg-elevated)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: 'var(--accent-primary)',
-                                            boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-                                        }}>
-                                            <Upload size={32} />
-                                        </div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                Dosya Seçmek İçin Tıklayın
-                                            </div>
-                                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                                veya buraya sürükleyin
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '12px',
-                                        padding: '16px',
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '16px'
-                                    }}>
-                                        <div style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            borderRadius: '8px',
-                                            backgroundColor: 'var(--accent-subtle)',
-                                            color: 'var(--accent-primary)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            flexShrink: 0
-                                        }}>
-                                            <FileText size={24} />
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {selectedUploadFile.name}
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: 'var(--success)', marginTop: '2px' }}>
-                                                Yüklemeye hazır
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => setSelectedUploadFile(null)}
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--error)',
-                                                cursor: 'pointer',
-                                                padding: '8px'
-                                            }}
-                                        >
-                                            <X size={20} />
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Help Text */}
-                                <div style={{ marginTop: '20px', display: 'flex', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    <div style={{ minWidth: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor', marginTop: '6px' }} />
-                                    Desteklenen formatlar: Resimler (PNG, JPG), PDF ve diğer belgeler.
-                                </div>
-                            </div>
-
-                            {/* Footer */}
-                            <div style={{
-                                padding: '16px 24px',
-                                borderTop: '1px solid var(--border-color)',
-                                backgroundColor: 'var(--bg-elevated)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'flex-end',
-                                gap: '12px'
-                            }}>
-                                <button className="btn btn-secondary" onClick={() => setUploadModalOpen(false)}>
-                                    İptal
-                                </button>
-                                <button
-                                    className="btn btn-primary"
-                                    disabled={!selectedUploadFile}
-                                    onClick={handleUploadConfirm}
-                                    style={{ opacity: !selectedUploadFile ? 0.5 : 1 }}
-                                >
-                                    <Upload size={16} />
-                                    Yükle
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <Modal
+                        isOpen={uploadModalOpen}
+                        onClose={() => setUploadModalOpen(false)}
+                        title="Belge Yükle"
+                        size="lg"
+                    >
+                        <DocumentForm
+                            onSubmit={handleUploadConfirm}
+                            onCancel={() => setUploadModalOpen(false)}
+                            loading={saving}
+                        />
+                    </Modal>
                 )
             }
 
+            {/* Document Edit Modal */}
+            <Modal
+                isOpen={editDocModalOpen}
+                onClose={() => setEditDocModalOpen(false)}
+                title="Belge Bilgilerini Düzenle"
+                size="md"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <CustomInput 
+                        label="Dosya Adı *"
+                        value={uploadFileName}
+                        onChange={setUploadFileName}
+                        required
+                    />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <CustomInput 
+                            label="Başlangıç Tarihi"
+                            type="date"
+                            value={uploadStartDate}
+                            onChange={setUploadStartDate}
+                        />
+                        <CustomInput 
+                            label="Bitiş Tarihi"
+                            type="date"
+                            value={uploadEndDate}
+                            onChange={setUploadEndDate}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                        <button className="btn btn-secondary" onClick={() => setEditDocModalOpen(false)}>İptal</button>
+                        <button 
+                            className="btn btn-primary" 
+                            disabled={saving || !uploadFileName} 
+                            onClick={handleUpdateDocConfirm}
+                        >
+                            {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div >
     )
 }
