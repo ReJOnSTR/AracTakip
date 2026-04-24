@@ -16,7 +16,8 @@ export default function CommandPalette() {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            // Support both Ctrl+K and Cmd+K (case-insensitive)
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault()
                 setIsOpen(true)
             }
