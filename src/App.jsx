@@ -14,6 +14,8 @@ import TopProgressBar from './components/TopProgressBar'
 import BottomNav from './components/BottomNav'
 import MobileHeader from './components/MobileHeader'
 import CommandPalette from './components/CommandPalette'
+import LockScreen from './components/LockScreen'
+import { useIdle } from './hooks/useIdle'
 
 // Lazy-loaded pages (code splitting)
 const Login = lazy(() => import('./pages/Login'))
@@ -177,8 +179,28 @@ function AppRoutes() {
 }
 
 function App() {
+    const [lockSettings, setLockSettings] = useState(() => {
+        return JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
+    })
+
     useEffect(() => {
-        // Detect platform for CSS adjustments (Windows title bar overlay)
+        const handleStorage = (e) => {
+            if (e.key === 'aractakip_lock_settings') {
+                setLockSettings(JSON.parse(e.newValue || '{}'))
+            }
+        }
+        window.addEventListener('storage', handleStorage)
+        return () => window.removeEventListener('storage', handleStorage)
+    }, [])
+    
+    const isIdle = useIdle(lockSettings.enabled ? lockSettings.timeout * 60000 : 999999999) 
+    
+    const [isLocked, setIsLocked] = useState(() => {
+        return localStorage.getItem('aractakip_locked') === 'true'
+    })
+
+    useEffect(() => {
+        // Detect platform for CSS adjustments
         const isWindows = navigator.userAgent.includes('Windows') || navigator.platform.startsWith('Win')
         if (isWindows) {
             document.body.setAttribute('data-platform', 'win32')
@@ -187,8 +209,29 @@ function App() {
         }
     }, [])
 
+    const { user } = useAuth()
+
+    useEffect(() => {
+        if (isIdle && user && lockSettings.enabled) {
+            setIsLocked(true)
+            localStorage.setItem('aractakip_locked', 'true')
+        }
+    }, [isIdle, user, lockSettings.enabled])
+
+    useEffect(() => {
+        if (!lockSettings.enabled && isLocked) {
+            handleUnlock()
+        }
+    }, [lockSettings.enabled])
+
+    const handleUnlock = () => {
+        setIsLocked(false)
+        localStorage.removeItem('aractakip_locked')
+    }
+
     return (
         <ErrorBoundary>
+            <LockScreen isLocked={isLocked && !!user && lockSettings.enabled} onUnlock={handleUnlock} />
             <AppRoutes />
         </ErrorBoundary>
     )

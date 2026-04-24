@@ -1390,8 +1390,38 @@ body {
 
 .form-input.input-error:focus,
 .form-select.input-error:focus {
-  box-shadow: 0 0 0 3px var(--danger-bg);
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-bg);
 }
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  z-index: 5;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.password-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 
 .input-error-text {
   color: var(--danger);

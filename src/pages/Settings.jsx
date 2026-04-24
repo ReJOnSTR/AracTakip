@@ -6,7 +6,7 @@ import CustomSelect from '../components/CustomSelect'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet, 
-    Wrench, FileSearch, ClipboardCheck, Layout, Cog
+    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 
@@ -30,6 +30,10 @@ export default function Settings() {
     const [progress, setProgress] = useState(0)
     const [errorMsg, setErrorMsg] = useState('')
     const [isBackupPathFocused, setIsBackupPathFocused] = useState(false)
+    const [showLockPass, setShowLockPass] = useState(false)
+    const [lockSettings, setLockSettings] = useState(() => {
+        return JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
+    })
 
     const [notifications, setNotifications] = useState({
         maintenance: localStorage.getItem('notify_maintenance') !== 'false',
@@ -38,6 +42,12 @@ export default function Settings() {
         employee_document: localStorage.getItem('notify_employee_document') !== 'false',
         finance_check: localStorage.getItem('notify_finance_check') !== 'false'
     })
+
+    const handleLockSettingChange = (key, value) => {
+        const newLockSettings = { ...lockSettings, [key]: value }
+        setLockSettings(newLockSettings)
+        localStorage.setItem('aractakip_lock_settings', JSON.stringify(newLockSettings))
+    }
 
     const toggleNotification = async (key) => {
         const newVal = !notifications[key]
@@ -191,6 +201,7 @@ export default function Settings() {
     const sidebarItems = [
         { id: 'general', label: 'Genel', icon: <Cog size={18} /> },
         { id: 'appearance', label: 'Görünüm', icon: <Palette size={18} /> },
+        { id: 'security', label: 'Güvenlik', icon: <Shield size={18} /> },
         { id: 'notifications', label: 'Bildirimler', icon: <Bell size={18} /> },
         { id: 'data', label: 'Veri Yönetimi', icon: <Database size={18} /> },
     ]
@@ -320,6 +331,95 @@ export default function Settings() {
                                             </div>
                                         </div>
                                     </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'security' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><Shield size={20} className="text-primary" /> Uygulama Güvenliği</h2>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                                    Uygulamanın güvenliğini ve otomatik kilitleme tercihlerini yönetin.
+                                </p>
+
+                                <div className="settings-list">
+                                    <div className="settings-item">
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Otomatik Kilitleme</div>
+                                            <div className="settings-item-desc">Belirli bir süre işlem yapılmadığında uygulamayı kilitler.</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={lockSettings.enabled} 
+                                                onChange={(e) => handleLockSettingChange('enabled', e.target.checked)} 
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    {lockSettings.enabled && (
+                                        <>
+                                            <div className="settings-item">
+                                                <div className="settings-item-content">
+                                                    <div className="settings-item-label">Kilitleme Süresi (Dakika)</div>
+                                                    <div className="settings-item-desc">Kaç dakika hareketsizlikten sonra kilitlensin?</div>
+                                                </div>
+                                                <div style={{ width: '80px' }}>
+                                                    <input 
+                                                        type="number" 
+                                                        className="form-input text-center" 
+                                                        value={lockSettings.timeout}
+                                                        min="1"
+                                                        max="60"
+                                                        onChange={(e) => handleLockSettingChange('timeout', parseInt(e.target.value) || 1)}
+                                                        style={{ padding: '8px' }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="settings-item">
+                                                <div className="settings-item-content">
+                                                    <div className="settings-item-label">Özel Kilit Şifresi Kullan</div>
+                                                    <div className="settings-item-desc">Giriş şifresi yerine farklı bir şifre ile kilit açma.</div>
+                                                </div>
+                                                <label className="toggle-switch">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={lockSettings.useCustomPassword} 
+                                                        onChange={(e) => handleLockSettingChange('useCustomPassword', e.target.checked)} 
+                                                    />
+                                                    <span className="toggle-slider"></span>
+                                                </label>
+                                            </div>
+
+                                            {lockSettings.useCustomPassword && (
+                                                <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
+                                                    <div className="settings-item-label">Kilit Şifresini Belirle</div>
+                                                    <div style={{ width: '100%', position: 'relative' }}>
+                                                        <input 
+                                                            type={showLockPass ? 'text' : 'password'} 
+                                                            className="form-input" 
+                                                            placeholder="Yeni kilit şifresi"
+                                                            value={lockSettings.customPassword}
+                                                            onChange={(e) => handleLockSettingChange('customPassword', e.target.value)}
+                                                            style={{ paddingRight: '45px' }}
+                                                        />
+                                                        <button 
+                                                            type="button"
+                                                            className="password-toggle-btn" 
+                                                            onClick={() => setShowLockPass(!showLockPass)}
+                                                            title={showLockPass ? "Şifreyi Gizle" : "Şifreyi Göster"}
+                                                        >
+                                                            {showLockPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}

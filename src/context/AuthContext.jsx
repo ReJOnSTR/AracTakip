@@ -54,6 +54,7 @@ export function AuthProvider({ children }) {
         setUser(null)
         localStorage.removeItem('aractakip_user')
         localStorage.removeItem('aractakip_company')
+        localStorage.removeItem('aractakip_locked')
     }
 
     const updateProfile = async (data) => {

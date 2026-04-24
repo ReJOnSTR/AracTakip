@@ -92,7 +92,7 @@ export default function MainPortal() {
     const navigate = useNavigate()
     const { currentCompany } = useCompany()
     const { user } = useAuth()
-    const [quickStats, setQuickStats] = useState({ vehicleCount: 0, totalBalance: 0, todayMeals: 0 })
+    const [quickStats, setQuickStats] = useState({ vehicleCount: 0, cashBalance: 0, todayMeals: 0 })
 
     useEffect(() => {
         if (currentCompany) {
@@ -109,7 +109,7 @@ export default function MainPortal() {
             ])
             setQuickStats({
                 vehicleCount: dashRes.success ? dashRes.data.totalVehicles : 0,
-                totalBalance: finRes.success ? finRes.data.totalBalance : 0,
+                cashBalance: finRes.success ? finRes.data.cashBalance : 0,
                 todayMeals: mealRes.success ? mealRes.data.todayCount : 0
             })
         } catch (e) {
@@ -156,7 +156,7 @@ export default function MainPortal() {
             path: '/finance-dashboard',
             active: true,
             features: ['Gelir/Gider takibi', 'Çek & Senet portföyü', 'Finans dashboard', 'Kasa defteri'],
-            stat: quickStats.totalBalance !== 0 ? formatCurrency(quickStats.totalBalance) : null,
+            stat: quickStats.cashBalance !== 0 ? formatCurrency(quickStats.cashBalance) : null,
             statIcon: Banknote
         },
         {
