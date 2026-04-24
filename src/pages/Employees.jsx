@@ -52,7 +52,13 @@ export default function Employees() {
         setLoading(true)
         try {
             const result = await window.electronAPI.getEmployees(currentCompany.id, showArchived ? 1 : 0)
-            if (result.success) setEmployees(result.data || [])
+            if (result.success) {
+                const formattedData = (result.data || []).map(emp => ({
+                    ...emp,
+                    full_name: `${emp.first_name} ${emp.last_name}`
+                }))
+                setEmployees(formattedData)
+            }
         } catch (err) {
             console.error('Failed to load employees:', err)
         }

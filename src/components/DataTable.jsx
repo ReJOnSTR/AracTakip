@@ -372,11 +372,11 @@ export default function DataTable({
                 }
             }
 
-            const aStr = String(aVal).toLowerCase()
-            const bStr = String(bVal).toLowerCase()
+            const aStr = String(aVal).toLocaleLowerCase('tr-TR')
+            const bStr = String(bVal).toLocaleLowerCase('tr-TR')
             return sortConfig.direction === 'asc'
-                ? aStr.localeCompare(bStr, 'tr')
-                : bStr.localeCompare(aStr, 'tr')
+                ? aStr.localeCompare(bStr, 'tr', { sensitivity: 'accent' })
+                : bStr.localeCompare(aStr, 'tr', { sensitivity: 'accent' })
         })
     }, [filteredData, sortConfig])
 
