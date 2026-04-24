@@ -372,11 +372,15 @@ export default function DataTable({
                 }
             }
 
-            const aStr = String(aVal).toLocaleLowerCase('tr-TR')
-            const bStr = String(bVal).toLocaleLowerCase('tr-TR')
+            const collator = new Intl.Collator('tr', { 
+                sensitivity: 'variant', 
+                numeric: true,
+                caseFirst: 'upper'
+            })
+            
             return sortConfig.direction === 'asc'
-                ? aStr.localeCompare(bStr, 'tr', { sensitivity: 'accent' })
-                : bStr.localeCompare(aStr, 'tr', { sensitivity: 'accent' })
+                ? collator.compare(String(aVal), String(bVal))
+                : collator.compare(String(bVal), String(aVal))
         })
     }, [filteredData, sortConfig])
 

@@ -55,7 +55,7 @@ export default function Employees() {
             if (result.success) {
                 const formattedData = (result.data || []).map(emp => ({
                     ...emp,
-                    full_name: `${emp.first_name} ${emp.last_name}`
+                    full_name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
                 }))
                 setEmployees(formattedData)
             }
@@ -277,7 +277,8 @@ export default function Employees() {
                 </div>
             )}
 
-            <DataTable persistenceKey="Employees_table_0"
+            <DataTable persistenceKey="Employees_table_v2"
+                initialSort={{ key: 'full_name', direction: 'asc' }}
                 storageKey="employees_table_cols"
                 columns={columns}
                 data={employees}
