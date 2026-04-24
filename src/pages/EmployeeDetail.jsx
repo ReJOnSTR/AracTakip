@@ -811,7 +811,7 @@ export default function EmployeeDetail() {
 
     const tabs = [
         { id: 'salary', label: 'Ödeme', icon: CreditCard, count: salaries.length },
-        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee.employee_salary_history?.length || 0 },
+        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee?.employee_salary_history?.length || 0 },
         { id: 'leave', label: 'İzin', icon: CalendarOff, count: leaves.length },
         { id: 'overtime', label: 'Mesai', icon: Clock, count: overtimes.length },
         { id: 'assignment', label: 'Zimmet', icon: Package, count: assignments.length },
