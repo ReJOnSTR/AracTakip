@@ -811,10 +811,19 @@ export default function EmployeeDetail() {
 
     const tabs = [
         { id: 'salary', label: 'Ödeme', icon: CreditCard, count: salaries.length },
+        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee.employee_salary_history?.length || 0 },
         { id: 'leave', label: 'İzin', icon: CalendarOff, count: leaves.length },
         { id: 'overtime', label: 'Mesai', icon: Clock, count: overtimes.length },
         { id: 'assignment', label: 'Zimmet', icon: Package, count: assignments.length },
         { id: 'documents', label: 'Belgeler', icon: FileText, count: documents.length }
+    ]
+
+    const salaryHistoryColumns = [
+        { key: 'amount', label: 'Maaş Tutarı', render: (v) => formatCurrency(v) },
+        { key: 'start_date', label: 'Başlangıç Tarihi', render: (v) => formatDate(v) },
+        { key: 'end_date', label: 'Bitiş Tarihi', render: (v) => v ? formatDate(v) : <span className="badge badge-success">Güncel</span> },
+        { key: 'type', label: 'Tür', render: (v) => v === 'initial' ? 'İşe Giriş' : 'Zam' },
+        { key: 'description', label: 'Açıklama' }
     ]
 
     const salaryColumns = [
@@ -1306,6 +1315,16 @@ export default function EmployeeDetail() {
                                     <button className="danger" onClick={() => handleDeleteClick('salary', item)}><Trash2 size={16} /></button>
                                 </>
                             )}
+                        />
+                    </div>
+                )}
+                {activeTab === 'salary_history' && (
+                    <div className="tab-pane">
+                        <DataTable 
+                            persistenceKey="EmployeeDetail_salary_history_0"
+                            columns={salaryHistoryColumns}
+                            data={employee.employee_salary_history || []}
+                            emptyMessage="Maaş geçmişi bulunmuyor."
                         />
                     </div>
                 )}
