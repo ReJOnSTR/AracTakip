@@ -209,6 +209,22 @@ function App() {
         }
     }, [])
 
+    useEffect(() => {
+        // Startup security check
+        const isFreshStart = !sessionStorage.getItem('aractakip_session_active')
+        const storedUser = localStorage.getItem('aractakip_user')
+        
+        if (storedUser && lockSettings.enabled && isFreshStart) {
+            setIsLocked(true)
+            localStorage.setItem('aractakip_locked', 'true')
+        }
+
+        // Mark session as active so subsequent refreshes don't lock unless idle
+        if (storedUser) {
+            sessionStorage.setItem('aractakip_session_active', 'true')
+        }
+    }, [lockSettings.enabled])
+
     const { user } = useAuth()
 
     useEffect(() => {

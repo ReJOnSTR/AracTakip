@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
             if (result.success) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
+                sessionStorage.setItem('aractakip_session_active', 'true')
                 return { success: true }
             }
             return { success: false, error: result.error }
@@ -41,6 +42,7 @@ export function AuthProvider({ children }) {
             if (result.success) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
+                sessionStorage.setItem('aractakip_session_active', 'true')
                 return { success: true }
             }
             return { success: false, error: result.error }
@@ -55,6 +57,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('aractakip_user')
         localStorage.removeItem('aractakip_company')
         localStorage.removeItem('aractakip_locked')
+        sessionStorage.removeItem('aractakip_session_active')
     }
 
     const updateProfile = async (data) => {
