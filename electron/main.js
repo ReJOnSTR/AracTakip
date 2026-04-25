@@ -1187,6 +1187,58 @@ ipcMain.handle('settings:save', (event, newSettings) => {
     return saveSettings(newSettings)
 })
 
+// Personnel Settings
+ipcMain.handle('settings:getDepartments', async (event, companyId) => db.getDepartments(companyId))
+ipcMain.handle('settings:createDepartment', async (event, data) => {
+    const result = await db.createDepartment(data)
+    if (result.success) notifyDbUpdate({ table: 'departments', action: 'create' })
+    return result
+})
+ipcMain.handle('settings:updateDepartment', async (event, data) => {
+    const result = await db.updateDepartment(data)
+    if (result.success) notifyDbUpdate({ table: 'departments', action: 'update' })
+    return result
+})
+ipcMain.handle('settings:deleteDepartment', async (event, id) => {
+    const result = await db.deleteDepartment(id)
+    if (result.success) notifyDbUpdate({ table: 'departments', action: 'delete' })
+    return result
+})
+
+ipcMain.handle('settings:getLeaveTypes', async (event, companyId) => db.getLeaveTypes(companyId))
+ipcMain.handle('settings:createLeaveType', async (event, data) => {
+    const result = await db.createLeaveType(data)
+    if (result.success) notifyDbUpdate({ table: 'leave_types', action: 'create' })
+    return result
+})
+ipcMain.handle('settings:updateLeaveType', async (event, data) => {
+    const result = await db.updateLeaveType(data)
+    if (result.success) notifyDbUpdate({ table: 'leave_types', action: 'update' })
+    return result
+})
+ipcMain.handle('settings:deleteLeaveType', async (event, id) => {
+    const result = await db.deleteLeaveType(id)
+    if (result.success) notifyDbUpdate({ table: 'leave_types', action: 'delete' })
+    return result
+})
+
+ipcMain.handle('settings:getDocumentCategories', async (event, companyId) => db.getDocumentCategories(companyId))
+ipcMain.handle('settings:createDocumentCategory', async (event, data) => {
+    const result = await db.createDocumentCategory(data)
+    if (result.success) notifyDbUpdate({ table: 'document_categories', action: 'create' })
+    return result
+})
+ipcMain.handle('settings:updateDocumentCategory', async (event, data) => {
+    const result = await db.updateDocumentCategory(data)
+    if (result.success) notifyDbUpdate({ table: 'document_categories', action: 'update' })
+    return result
+})
+ipcMain.handle('settings:deleteDocumentCategory', async (event, id) => {
+    const result = await db.deleteDocumentCategory(id)
+    if (result.success) notifyDbUpdate({ table: 'document_categories', action: 'delete' })
+    return result
+})
+
 ipcMain.handle('settings:selectFolder', async () => {
     const { filePaths } = await dialog.showOpenDialog(mainWindow, {
         title: 'Yedekleme Klasörü Seç',

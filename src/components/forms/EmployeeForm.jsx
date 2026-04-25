@@ -3,23 +3,12 @@ import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import { formatDateForInput } from '../../utils/helpers'
 
-const departmentOptions = [
-    { value: 'Yönetim', label: 'Yönetim' },
-    { value: 'Operasyon', label: 'Operasyon' },
-    { value: 'Muhasebe', label: 'Muhasebe' },
-    { value: 'İnsan Kaynakları', label: 'İnsan Kaynakları' },
-    { value: 'Lojistik', label: 'Lojistik' },
-    { value: 'Teknik', label: 'Teknik' },
-    { value: 'Satış', label: 'Satış' },
-    { value: 'Diğer', label: 'Diğer' }
-]
-
 const statusOptions = [
     { value: 'active', label: 'Aktif' },
     { value: 'inactive', label: 'Pasif' }
 ]
 
-export default function EmployeeForm({ initialData, onSubmit, onCancel, loading }) {
+export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, departmentOptions = [] }) {
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -179,14 +168,11 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, loading 
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={loading}>
-                    İptal
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? 'Kaydediliyor...' : (initialData ? 'Güncelle' : 'Kaydet')}
+                <button type="button" className="btn btn-secondary" onClick={onCancel}>Vazgeç</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? 'Kaydediliyor...' : (initialData ? 'Güncelle' : 'Kaydet')}
                 </button>
             </div>
         </form>
     )
 }
-

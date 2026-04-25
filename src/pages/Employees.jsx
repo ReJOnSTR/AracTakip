@@ -10,17 +10,6 @@ import EmployeeForm from '../components/forms/EmployeeForm'
 import { formatCurrency } from '../utils/helpers'
 import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar } from 'lucide-react'
 
-const departmentOptions = [
-    { value: 'Yönetim', label: 'Yönetim' },
-    { value: 'Operasyon', label: 'Operasyon' },
-    { value: 'Muhasebe', label: 'Muhasebe' },
-    { value: 'İnsan Kaynakları', label: 'İnsan Kaynakları' },
-    { value: 'Lojistik', label: 'Lojistik' },
-    { value: 'Teknik', label: 'Teknik' },
-    { value: 'Satış', label: 'Satış' },
-    { value: 'Diğer', label: 'Diğer' }
-]
-
 const statusOptions = [
     { value: 'active', label: 'Aktif' },
     { value: 'inactive', label: 'Pasif' }
@@ -38,6 +27,8 @@ export default function Employees() {
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
+    const [departments, setDepartments] = useState([])
+    const departmentOptions = departments.map(d => ({ value: d.name, label: d.name }))
 
     useEffect(() => {
         if (currentCompany) {
@@ -51,13 +42,21 @@ export default function Employees() {
     const loadEmployees = async () => {
         setLoading(true)
         try {
-            const result = await window.electronAPI.getEmployees(currentCompany.id, showArchived ? 1 : 0)
-            if (result.success) {
-                const formattedData = (result.data || []).map(emp => ({
+            const [empRes, deptRes] = await Promise.all([
+                window.electronAPI.getEmployees(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getDepartments(currentCompany.id)
+            ])
+
+            if (empRes.success) {
+                const formattedData = (empRes.data || []).map(emp => ({
                     ...emp,
                     full_name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
                 }))
                 setEmployees(formattedData)
+            }
+
+            if (deptRes.success) {
+                setDepartments(deptRes.data || [])
             }
         } catch (err) {
             console.error('Failed to load employees:', err)
@@ -291,7 +290,7 @@ export default function Employees() {
                     {
                         key: 'department',
                         label: 'Departman',
-                        options: departmentOptions
+                        options: departments.map(d => ({ value: d.name, label: d.name }))
                     },
                     {
                         key: 'status',
@@ -362,11 +361,12 @@ export default function Employees() {
                         <span>{error}</span>
                     </div>
                 )}
-                <EmployeeForm
-                    initialData={editingEmployee}
-                    onSubmit={handleSubmit}
-                    onCancel={closeModal}
-                    loading={saving}
+                <EmployeeForm 
+                    initialData={editingEmployee} 
+                    onSubmit={handleSubmit} 
+                    onCancel={closeModal} 
+                    saving={saving}
+                    departmentOptions={departmentOptions}
                 />
             </Modal>
 

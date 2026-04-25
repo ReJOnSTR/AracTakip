@@ -31,7 +31,7 @@ export default function Leaves() {
     const [editingLeave, setEditingLeave] = useState(null);
     const [formData, setFormData] = useState({
         employeeId: '',
-        type: 'annual',
+        type: 'Yıllık Ücretli İzin',
         startDate: today(),
         endDate: today(),
         days: 1,
@@ -42,27 +42,43 @@ export default function Leaves() {
     const [error, setError] = useState('');
     const [confirmDelete, setConfirmDelete] = useState(null);
 
-    const leaveTypes = [
-        { value: 'annual', label: 'Yıllık İzin', color: '#3b82f6' },
-        { value: 'sick', label: 'Hastalık / Rapor', color: '#ef4444' },
-        { value: 'unpaid', label: 'Ücretsiz İzin', color: '#f59e0b' },
-        { value: 'excuse', label: 'Mazeret İzni', color: '#8b5cf6' },
-        { value: 'overtime_leave', label: 'Mesai İzni', color: '#10b981' },
-        { value: 'offset', label: 'Mahsup', color: '#6366f1' },
-        { value: 'other', label: 'Diğer', color: '#6b7280' }
-    ];
+    const [leaveTypes, setLeaveTypes] = useState([]);
+
+    const defaultColors = {
+        'Yıllık Ücretli İzin': '#3b82f6',
+        'Hastalık / Rapor (İstirahat)': '#ef4444',
+        'Ücretsiz İzin': '#f59e0b',
+        'Mazeret İzni': '#8b5cf6',
+        'Evlilik İzni': '#ec4899',
+        'Ölüm İzni': '#6b7280',
+        'Doğum / Analık İzni': '#d946ef',
+        'Babalık İzni': '#0ea5e9',
+        'Süt İzni': '#10b981',
+        'İdari İzin': '#6366f1',
+        'Mesai İzni (Mahsup)': '#f97316',
+        'Diğer': '#94a3b8'
+    };
 
     const loadData = async () => {
         if (!currentCompany) return;
         setLoading(true);
         try {
-            const [leavesRes, employeesRes] = await Promise.all([
+            const [leavesRes, employeesRes, typesRes] = await Promise.all([
                 window.electronAPI.getLeavesByCompany(currentCompany.id),
-                window.electronAPI.getEmployees(currentCompany.id, 0)
+                window.electronAPI.getEmployees(currentCompany.id, 0),
+                window.electronAPI.getLeaveTypes(currentCompany.id)
             ]);
             
             if (leavesRes.success) setLeaves(leavesRes.data || []);
             if (employeesRes.success) setEmployees(employeesRes.data || []);
+            if (typesRes.success) {
+                const types = (typesRes.data || []).map(t => ({
+                    value: t.name,
+                    label: t.name,
+                    color: defaultColors[t.name] || '#6b7280'
+                }));
+                setLeaveTypes(types);
+            }
         } catch (err) {
             console.error('Failed to load leaves:', err);
         }
@@ -77,7 +93,7 @@ export default function Leaves() {
         setEditingLeave(null);
         setFormData({
             employeeId: '',
-            type: 'annual',
+            type: 'Yıllık Ücretli İzin',
             startDate: today(),
             endDate: today(),
             days: 1,

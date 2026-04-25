@@ -1,8 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, Clock, Calculator, Pencil, Save, CalendarCheck } from 'lucide-react'
+import { 
+    Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, 
+    Clock, Calculator, Pencil, Save, CalendarCheck, Users, Plus, Trash2, 
+    Edit2, Briefcase, FileText, AlertCircle 
+} from 'lucide-react'
 import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
+import CustomInput from '../components/CustomInput'
+import { useCompany } from '../context/CompanyContext'
 
 const moduleConfig = {
     fleet: {
@@ -95,6 +102,7 @@ function DefaultModuleContent({ config, ModuleIcon }) {
 
 // HR Module Settings
 function HrModuleContent() {
+    const { currentCompany } = useCompany()
     const [weekdayMultiplier, setWeekdayMultiplier] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_weekday_multiplier')) || 1.5
     })
@@ -107,6 +115,21 @@ function HrModuleContent() {
     const [sundayDaysPerLeave, setSundayDaysPerLeave] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
     })
+
+    // Personnel Data States
+    const [personnelSettings, setPersonnelSettings] = useState({
+        departments: [],
+        leaveTypes: [],
+        docCategories: []
+    })
+    const [loadingPersonnel, setLoadingPersonnel] = useState(false)
+    const [personnelModal, setPersonnelModal] = useState({
+        isOpen: false,
+        type: '', // 'dept', 'leave', 'doc'
+        item: null,
+        value: ''
+    })
+    const [confirmDeletePersonnel, setConfirmDeletePersonnel] = useState(null)
 
     // Modal
     const [showModal, setShowModal] = useState(false)
@@ -171,6 +194,76 @@ function HrModuleContent() {
             )
         }
     ]
+
+    useEffect(() => {
+        loadPersonnelSettings()
+    }, [currentCompany])
+
+    const loadPersonnelSettings = async () => {
+        if (!currentCompany) return
+        setLoadingPersonnel(true)
+        try {
+            const [depts, leaves, docs] = await Promise.all([
+                window.electronAPI.getDepartments(currentCompany.id),
+                window.electronAPI.getLeaveTypes(currentCompany.id),
+                window.electronAPI.getDocumentCategories(currentCompany.id)
+            ])
+            setPersonnelSettings({
+                departments: depts.data || [],
+                leaveTypes: leaves.data || [],
+                docCategories: docs.data || []
+            })
+        } catch (error) {
+            console.error('Failed to load personnel settings:', error)
+        }
+        setLoadingPersonnel(false)
+    }
+
+    const handleSavePersonnelItem = async (e) => {
+        if (e) e.preventDefault()
+        if (!personnelModal.value.trim()) return
+
+        try {
+            let result
+            if (personnelModal.type === 'dept') {
+                result = personnelModal.item 
+                    ? await window.electronAPI.updateDepartment({ id: personnelModal.item.id, name: personnelModal.value })
+                    : await window.electronAPI.createDepartment({ companyId: currentCompany.id, name: personnelModal.value })
+            } else if (personnelModal.type === 'leave') {
+                result = personnelModal.item
+                    ? await window.electronAPI.updateLeaveType({ id: personnelModal.item.id, name: personnelModal.value })
+                    : await window.electronAPI.createLeaveType({ companyId: currentCompany.id, name: personnelModal.value })
+            } else if (personnelModal.type === 'doc') {
+                result = personnelModal.item
+                    ? await window.electronAPI.updateDocumentCategory({ id: personnelModal.item.id, name: personnelModal.value })
+                    : await window.electronAPI.createDocumentCategory({ companyId: currentCompany.id, name: personnelModal.value })
+            }
+
+            if (result.success) {
+                setPersonnelModal({ isOpen: false, type: '', item: null, value: '' })
+                loadPersonnelSettings()
+            }
+        } catch (err) {
+            console.error('Save personnel item error:', err)
+        }
+    }
+
+    const handleDeletePersonnelItem = async () => {
+        if (!confirmDeletePersonnel) return
+        try {
+            let result
+            if (confirmDeletePersonnel.type === 'dept') result = await window.electronAPI.deleteDepartment(confirmDeletePersonnel.id)
+            else if (confirmDeletePersonnel.type === 'leave') result = await window.electronAPI.deleteLeaveType(confirmDeletePersonnel.id)
+            else if (confirmDeletePersonnel.type === 'doc') result = await window.electronAPI.deleteDocumentCategory(confirmDeletePersonnel.id)
+
+            if (result.success) {
+                setConfirmDeletePersonnel(null)
+                loadPersonnelSettings()
+            }
+        } catch (err) {
+            console.error('Delete personnel item error:', err)
+        }
+    }
 
     const openEdit = (item) => {
         setEditingItem(item)
@@ -240,21 +333,131 @@ function HrModuleContent() {
                 </div>
             </div>
 
-            {/* Table */}
-            <DataTable
-                persistenceKey="ModuleSettings_hr_table_0"
-                storageKey="module_settings_hr_cols"
-                columns={columns}
-                data={settingsData}
-                emptyMessage="Ayar bulunamadı."
-                searchable={false}
-                paginated={false}
-                actions={(item) => (
-                    <button title="Düzenle" onClick={() => openEdit(item)}><Pencil size={16} /></button>
-                )}
-            />
+            {/* Katsayı Ayarları Bölümü */}
+            <div className="settings-section" style={{ marginTop: '30px' }}>
+                <h3 className="settings-section-title">
+                    <Calculator size={18} />
+                    <span>Mesai ve İzin Hesaplama Katsayıları</span>
+                </h3>
+                
+                <DataTable
+                    persistenceKey="ModuleSettings_hr_table_0"
+                    storageKey="module_settings_hr_cols"
+                    columns={columns}
+                    data={settingsData}
+                    emptyMessage="Ayar bulunamadı."
+                    searchable={false}
+                    paginated={false}
+                    actions={(item) => (
+                        <button title="Düzenle" onClick={() => openEdit(item)}><Pencil size={16} /></button>
+                    )}
+                />
+            </div>
 
-            {/* Edit Modal */}
+            {/* Personel Tanımlamaları Bölümü */}
+            <div className="settings-section" style={{ marginTop: '40px' }}>
+                <h3 className="settings-section-title">
+                    <Users size={18} />
+                    <span>Personel Tanımlamaları</span>
+                </h3>
+                {!currentCompany ? (
+                    <div className="alert alert-warning">
+                        <AlertCircle size={18} />
+                        <span>Tanımlamaları yönetmek için lütfen bir şirket seçin.</span>
+                    </div>
+                ) : (
+                    <div className="personnel-settings-grid">
+                        {/* Departments Section */}
+                        <div className="personnel-card">
+                            <div className="section-header">
+                                <div className="section-title">
+                                    <Briefcase size={16} />
+                                    <span>Departman Türleri</span>
+                                </div>
+                                <button className="btn btn-icon-sm" onClick={() => setPersonnelModal({ isOpen: true, type: 'dept', item: null, value: '' })}>
+                                    <Plus size={14} />
+                                </button>
+                            </div>
+                            <div className="settings-list">
+                                {personnelSettings.departments.map(dept => (
+                                    <div key={dept.id} className="settings-list-item">
+                                        <span>{dept.name}</span>
+                                        <div className="item-actions">
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'dept', item: dept, value: dept.name })}>
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...dept, type: 'dept' })}>
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {personnelSettings.departments.length === 0 && <div className="empty-list-msg">Departman tanımlanmamış.</div>}
+                            </div>
+                        </div>
+
+                        {/* Leave Types Section */}
+                        <div className="personnel-card">
+                            <div className="section-header">
+                                <div className="section-title">
+                                    <CalendarCheck size={16} />
+                                    <span>İzin Türleri</span>
+                                </div>
+                                <button className="btn btn-icon-sm" onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: null, value: '' })}>
+                                    <Plus size={14} />
+                                </button>
+                            </div>
+                            <div className="settings-list">
+                                {personnelSettings.leaveTypes.map(type => (
+                                    <div key={type.id} className="settings-list-item">
+                                        <span>{type.name}</span>
+                                        <div className="item-actions">
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: type, value: type.name })}>
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...type, type: 'leave' })}>
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {personnelSettings.leaveTypes.length === 0 && <div className="empty-list-msg">İzin türü tanımlanmamış.</div>}
+                            </div>
+                        </div>
+
+                        {/* Document Categories Section */}
+                        <div className="personnel-card">
+                            <div className="section-header">
+                                <div className="section-title">
+                                    <FileText size={16} />
+                                    <span>Belge Kategorileri</span>
+                                </div>
+                                <button className="btn btn-icon-sm" onClick={() => setPersonnelModal({ isOpen: true, type: 'doc', item: null, value: '' })}>
+                                    <Plus size={14} />
+                                </button>
+                            </div>
+                            <div className="settings-list">
+                                {personnelSettings.docCategories.map(cat => (
+                                    <div key={cat.id} className="settings-list-item">
+                                        <span>{cat.name}</span>
+                                        <div className="item-actions">
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'doc', item: cat, value: cat.name })}>
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...cat, type: 'doc' })}>
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {personnelSettings.docCategories.length === 0 && <div className="empty-list-msg">Belge kategorisi tanımlanmamış.</div>}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Katsayı Edit Modal */}
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
@@ -292,6 +495,37 @@ function HrModuleContent() {
                     </div>
                 </form>
             </Modal>
+
+            {/* Personnel Definitions Add/Edit Modal */}
+            <Modal
+                isOpen={personnelModal.isOpen}
+                onClose={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '' })}
+                title={personnelModal.item ? 'Tanımlama Düzenle' : 'Yeni Tanımlama Ekle'}
+                size="small"
+            >
+                <form onSubmit={handleSavePersonnelItem}>
+                    <CustomInput 
+                        label={personnelModal.type === 'dept' ? 'Departman Adı' : personnelModal.type === 'leave' ? 'İzin Türü Adı' : 'Belge Kategori Adı'}
+                        value={personnelModal.value}
+                        onChange={(val) => setPersonnelModal(prev => ({ ...prev, value: val }))}
+                        autoFocus
+                        required
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '' })}>Vazgeç</button>
+                        <button type="submit" className="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Personnel Delete Confirm */}
+            <ConfirmModal 
+                isOpen={!!confirmDeletePersonnel}
+                onClose={() => setConfirmDeletePersonnel(null)}
+                onConfirm={handleDeletePersonnelItem}
+                title="Tanımlamayı Sil?"
+                message={`"${confirmDeletePersonnel?.name}" tanımını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+            />
         </>
     )
 }

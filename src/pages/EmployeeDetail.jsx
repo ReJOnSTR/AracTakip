@@ -33,15 +33,6 @@ const paymentTypes = [
     { value: 'other', label: 'Diğer' }
 ]
 
-const leaveTypes = [
-    { value: 'annual', label: 'Yıllık İzin' },
-    { value: 'sick', label: 'Hastalık İzni' },
-    { value: 'unpaid', label: 'Ücretsiz İzin' },
-    { value: 'maternity', label: 'Doğum İzni' },
-    { value: 'overtime_leave', label: 'Mesai İzni' },
-    { value: 'other', label: 'Diğer' }
-]
-
 const leaveStatuses = [
     { value: 'approved', label: 'Onaylandı' },
     { value: 'pending', label: 'Bekliyor' },
@@ -158,6 +149,9 @@ export default function EmployeeDetail() {
     const [formData, setFormData] = useState({})
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [departments, setDepartments] = useState([])
+    const [leaveTypes, setLeaveTypes] = useState([])
+    const [documentCategories, setDocumentCategories] = useState([])
     const [confirmModal, setConfirmModal] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
@@ -246,13 +240,16 @@ export default function EmployeeDetail() {
     const loadEmployeeData = async () => {
         setLoading(true)
         try {
-            const [empRes, salRes, leaveRes, otRes, assRes, docRes] = await Promise.all([
+            const [empRes, salRes, leaveRes, otRes, assRes, docRes, ltRes, dcRes, deptRes] = await Promise.all([
                 window.electronAPI.getEmployeeById(parseInt(id)),
                 window.electronAPI.getSalaries(parseInt(id)),
                 window.electronAPI.getLeaves(parseInt(id)),
                 window.electronAPI.getOvertimes(parseInt(id)),
                 window.electronAPI.getEmployeeAssignments(parseInt(id)),
-                window.electronAPI.getEmployeeDocuments(parseInt(id), isDocArchiveView)
+                window.electronAPI.getEmployeeDocuments(parseInt(id), isDocArchiveView),
+                window.electronAPI.getLeaveTypes(currentCompany.id),
+                window.electronAPI.getDocumentCategories(currentCompany.id),
+                window.electronAPI.getDepartments(currentCompany.id)
             ])
             if (empRes.success) {
                 setEmployee(empRes.data)
@@ -263,6 +260,9 @@ export default function EmployeeDetail() {
             if (otRes.success) setOvertimes(otRes.data || [])
             if (assRes.success) setAssignments(assRes.data || [])
             if (docRes.success) setDocuments(docRes.data || [])
+            if (ltRes.success) setLeaveTypes(ltRes.data.map(t => ({ value: t.name, label: t.name })))
+            if (dcRes.success) setDocumentCategories(dcRes.data.map(t => ({ value: t.name, label: t.name })))
+            if (deptRes.success) setDepartments(deptRes.data || [])
         } catch (err) {
             console.error('Failed to load employee data:', err)
         }
@@ -301,7 +301,7 @@ export default function EmployeeDetail() {
             const rate = calcOvertimeRate('weekday')
             setFormData({ overtimeType: 'weekday', date: today(), hours: '', rate, amount: '', notes: '' })
         } else if (type === 'leave') {
-            setFormData({ type: 'annual', status: 'approved', startDate: today(), endDate: today(), days: 1, notes: '' })
+            setFormData({ type: leaveTypes[0]?.value || 'annual', status: 'approved', startDate: today(), endDate: today(), days: 1, notes: '' })
         } else if (type === 'salary_history') {
             setFormData({ amount: employee.salary || '', startDate: today(), type: 'raise', description: '' })
         } else {
@@ -981,19 +981,6 @@ export default function EmployeeDetail() {
         { key: 'return_date', label: 'İade Tarihi', render: (v) => v ? formatDate(v) : <span className="badge badge-success">Aktif</span> },
         { key: 'status', label: 'Durum', render: (v) => <span className={`badge badge-${v === 'active' ? 'success' : 'secondary'}`}>{v === 'active' ? 'Aktif' : 'İade Edildi'}</span> },
         { key: 'notes', label: 'Not' }
-    ]
-
-    const documentCategories = [
-        { value: 'Kimlik', label: 'Kimlik / Pasaport' },
-        { value: 'Ehliyet', label: 'Sürücü Belgesi' },
-        { value: 'Psikoteknik', label: 'Psikoteknik Belgesi' },
-        { value: 'SRC', label: 'SRC Belgesi' },
-        { value: 'Sözleşme', label: 'İş Sözleşmesi' },
-        { value: 'Sağlık', label: 'Sağlık Raporu' },
-        { value: 'Adli Sicil', label: 'Adli Sicil Kaydı' },
-        { value: 'İkametgah', label: 'İkametgah Belgesi' },
-        { value: 'Mezuniyet', label: 'Diploma / Sertifika' },
-        { value: 'Diğer', label: 'Diğer' }
     ]
 
     const documentColumns = [
@@ -1763,7 +1750,13 @@ export default function EmployeeDetail() {
                 footer={null}
             >
                 {modalType === 'employee' ? (
-                    <EmployeeForm initialData={editingItem} onSubmit={handleEmployeeSave} onCancel={closeModal} loading={saving} />
+                    <EmployeeForm 
+                        initialData={editingItem} 
+                        onSubmit={handleEmployeeSave} 
+                        onCancel={closeModal} 
+                        loading={saving}
+                        departmentOptions={departments.map(d => ({ value: d.name, label: d.name }))}
+                    />
                 ) : (
                     <>
                         {error && (

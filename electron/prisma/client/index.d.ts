@@ -143,6 +143,21 @@ export type work_items = $Result.DefaultSelection<Prisma.$work_itemsPayload>
  * 
  */
 export type works = $Result.DefaultSelection<Prisma.$worksPayload>
+/**
+ * Model departments
+ * 
+ */
+export type departments = $Result.DefaultSelection<Prisma.$departmentsPayload>
+/**
+ * Model leave_types
+ * 
+ */
+export type leave_types = $Result.DefaultSelection<Prisma.$leave_typesPayload>
+/**
+ * Model document_categories
+ * 
+ */
+export type document_categories = $Result.DefaultSelection<Prisma.$document_categoriesPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -524,6 +539,36 @@ export class PrismaClient<
     * ```
     */
   get works(): Prisma.worksDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.departments`: Exposes CRUD operations for the **departments** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Departments
+    * const departments = await prisma.departments.findMany()
+    * ```
+    */
+  get departments(): Prisma.departmentsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.leave_types`: Exposes CRUD operations for the **leave_types** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Leave_types
+    * const leave_types = await prisma.leave_types.findMany()
+    * ```
+    */
+  get leave_types(): Prisma.leave_typesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.document_categories`: Exposes CRUD operations for the **document_categories** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Document_categories
+    * const document_categories = await prisma.document_categories.findMany()
+    * ```
+    */
+  get document_categories(): Prisma.document_categoriesDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -983,7 +1028,10 @@ export namespace Prisma {
     users: 'users',
     vehicles: 'vehicles',
     work_items: 'work_items',
-    works: 'works'
+    works: 'works',
+    departments: 'departments',
+    leave_types: 'leave_types',
+    document_categories: 'document_categories'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -999,7 +1047,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2927,6 +2975,228 @@ export namespace Prisma {
           }
         }
       }
+      departments: {
+        payload: Prisma.$departmentsPayload<ExtArgs>
+        fields: Prisma.departmentsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.departmentsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.departmentsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>
+          }
+          findFirst: {
+            args: Prisma.departmentsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.departmentsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>
+          }
+          findMany: {
+            args: Prisma.departmentsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>[]
+          }
+          create: {
+            args: Prisma.departmentsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>
+          }
+          createMany: {
+            args: Prisma.departmentsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.departmentsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>[]
+          }
+          delete: {
+            args: Prisma.departmentsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>
+          }
+          update: {
+            args: Prisma.departmentsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>
+          }
+          deleteMany: {
+            args: Prisma.departmentsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.departmentsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.departmentsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>[]
+          }
+          upsert: {
+            args: Prisma.departmentsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$departmentsPayload>
+          }
+          aggregate: {
+            args: Prisma.DepartmentsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDepartments>
+          }
+          groupBy: {
+            args: Prisma.departmentsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DepartmentsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.departmentsCountArgs<ExtArgs>
+            result: $Utils.Optional<DepartmentsCountAggregateOutputType> | number
+          }
+        }
+      }
+      leave_types: {
+        payload: Prisma.$leave_typesPayload<ExtArgs>
+        fields: Prisma.leave_typesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.leave_typesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.leave_typesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>
+          }
+          findFirst: {
+            args: Prisma.leave_typesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.leave_typesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>
+          }
+          findMany: {
+            args: Prisma.leave_typesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>[]
+          }
+          create: {
+            args: Prisma.leave_typesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>
+          }
+          createMany: {
+            args: Prisma.leave_typesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.leave_typesCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>[]
+          }
+          delete: {
+            args: Prisma.leave_typesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>
+          }
+          update: {
+            args: Prisma.leave_typesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>
+          }
+          deleteMany: {
+            args: Prisma.leave_typesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.leave_typesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.leave_typesUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>[]
+          }
+          upsert: {
+            args: Prisma.leave_typesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$leave_typesPayload>
+          }
+          aggregate: {
+            args: Prisma.Leave_typesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLeave_types>
+          }
+          groupBy: {
+            args: Prisma.leave_typesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Leave_typesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.leave_typesCountArgs<ExtArgs>
+            result: $Utils.Optional<Leave_typesCountAggregateOutputType> | number
+          }
+        }
+      }
+      document_categories: {
+        payload: Prisma.$document_categoriesPayload<ExtArgs>
+        fields: Prisma.document_categoriesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.document_categoriesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.document_categoriesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>
+          }
+          findFirst: {
+            args: Prisma.document_categoriesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.document_categoriesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>
+          }
+          findMany: {
+            args: Prisma.document_categoriesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>[]
+          }
+          create: {
+            args: Prisma.document_categoriesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>
+          }
+          createMany: {
+            args: Prisma.document_categoriesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.document_categoriesCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>[]
+          }
+          delete: {
+            args: Prisma.document_categoriesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>
+          }
+          update: {
+            args: Prisma.document_categoriesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>
+          }
+          deleteMany: {
+            args: Prisma.document_categoriesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.document_categoriesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.document_categoriesUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>[]
+          }
+          upsert: {
+            args: Prisma.document_categoriesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_categoriesPayload>
+          }
+          aggregate: {
+            args: Prisma.Document_categoriesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDocument_categories>
+          }
+          groupBy: {
+            args: Prisma.document_categoriesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Document_categoriesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.document_categoriesCountArgs<ExtArgs>
+            result: $Utils.Optional<Document_categoriesCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3061,6 +3331,9 @@ export namespace Prisma {
     vehicles?: vehiclesOmit
     work_items?: work_itemsOmit
     works?: worksOmit
+    departments?: departmentsOmit
+    leave_types?: leave_typesOmit
+    document_categories?: document_categoriesOmit
   }
 
   /* Types for Logging */
@@ -3148,6 +3421,9 @@ export namespace Prisma {
     vehicles: number
     works: number
     customers: number
+    departments: number
+    leave_types: number
+    document_categories: number
   }
 
   export type CompaniesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3158,6 +3434,9 @@ export namespace Prisma {
     vehicles?: boolean | CompaniesCountOutputTypeCountVehiclesArgs
     works?: boolean | CompaniesCountOutputTypeCountWorksArgs
     customers?: boolean | CompaniesCountOutputTypeCountCustomersArgs
+    departments?: boolean | CompaniesCountOutputTypeCountDepartmentsArgs
+    leave_types?: boolean | CompaniesCountOutputTypeCountLeave_typesArgs
+    document_categories?: boolean | CompaniesCountOutputTypeCountDocument_categoriesArgs
   }
 
   // Custom InputTypes
@@ -3218,6 +3497,27 @@ export namespace Prisma {
    */
   export type CompaniesCountOutputTypeCountCustomersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: customersWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountDepartmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: departmentsWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountLeave_typesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: leave_typesWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountDocument_categoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: document_categoriesWhereInput
   }
 
 
@@ -4950,6 +5250,9 @@ export namespace Prisma {
     vehicles?: boolean | companies$vehiclesArgs<ExtArgs>
     works?: boolean | companies$worksArgs<ExtArgs>
     customers?: boolean | companies$customersArgs<ExtArgs>
+    departments?: boolean | companies$departmentsArgs<ExtArgs>
+    leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
+    document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
 
@@ -4996,6 +5299,9 @@ export namespace Prisma {
     vehicles?: boolean | companies$vehiclesArgs<ExtArgs>
     works?: boolean | companies$worksArgs<ExtArgs>
     customers?: boolean | companies$customersArgs<ExtArgs>
+    departments?: boolean | companies$departmentsArgs<ExtArgs>
+    leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
+    document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type companiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5017,6 +5323,9 @@ export namespace Prisma {
       vehicles: Prisma.$vehiclesPayload<ExtArgs>[]
       works: Prisma.$worksPayload<ExtArgs>[]
       customers: Prisma.$customersPayload<ExtArgs>[]
+      departments: Prisma.$departmentsPayload<ExtArgs>[]
+      leave_types: Prisma.$leave_typesPayload<ExtArgs>[]
+      document_categories: Prisma.$document_categoriesPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -5429,6 +5738,9 @@ export namespace Prisma {
     vehicles<T extends companies$vehiclesArgs<ExtArgs> = {}>(args?: Subset<T, companies$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehiclesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     works<T extends companies$worksArgs<ExtArgs> = {}>(args?: Subset<T, companies$worksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$worksPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     customers<T extends companies$customersArgs<ExtArgs> = {}>(args?: Subset<T, companies$customersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$customersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    departments<T extends companies$departmentsArgs<ExtArgs> = {}>(args?: Subset<T, companies$departmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    leave_types<T extends companies$leave_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$leave_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    document_categories<T extends companies$document_categoriesArgs<ExtArgs> = {}>(args?: Subset<T, companies$document_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6043,6 +6355,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CustomersScalarFieldEnum | CustomersScalarFieldEnum[]
+  }
+
+  /**
+   * companies.departments
+   */
+  export type companies$departmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    where?: departmentsWhereInput
+    orderBy?: departmentsOrderByWithRelationInput | departmentsOrderByWithRelationInput[]
+    cursor?: departmentsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DepartmentsScalarFieldEnum | DepartmentsScalarFieldEnum[]
+  }
+
+  /**
+   * companies.leave_types
+   */
+  export type companies$leave_typesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    where?: leave_typesWhereInput
+    orderBy?: leave_typesOrderByWithRelationInput | leave_typesOrderByWithRelationInput[]
+    cursor?: leave_typesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Leave_typesScalarFieldEnum | Leave_typesScalarFieldEnum[]
+  }
+
+  /**
+   * companies.document_categories
+   */
+  export type companies$document_categoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    where?: document_categoriesWhereInput
+    orderBy?: document_categoriesOrderByWithRelationInput | document_categoriesOrderByWithRelationInput[]
+    cursor?: document_categoriesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Document_categoriesScalarFieldEnum | Document_categoriesScalarFieldEnum[]
   }
 
   /**
@@ -34993,6 +35377,3249 @@ export namespace Prisma {
 
 
   /**
+   * Model departments
+   */
+
+  export type AggregateDepartments = {
+    _count: DepartmentsCountAggregateOutputType | null
+    _avg: DepartmentsAvgAggregateOutputType | null
+    _sum: DepartmentsSumAggregateOutputType | null
+    _min: DepartmentsMinAggregateOutputType | null
+    _max: DepartmentsMaxAggregateOutputType | null
+  }
+
+  export type DepartmentsAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type DepartmentsSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type DepartmentsMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type DepartmentsMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type DepartmentsCountAggregateOutputType = {
+    id: number
+    company_id: number
+    name: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type DepartmentsAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type DepartmentsSumAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type DepartmentsMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type DepartmentsMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type DepartmentsCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type DepartmentsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which departments to aggregate.
+     */
+    where?: departmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of departments to fetch.
+     */
+    orderBy?: departmentsOrderByWithRelationInput | departmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: departmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` departments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` departments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned departments
+    **/
+    _count?: true | DepartmentsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DepartmentsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DepartmentsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DepartmentsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DepartmentsMaxAggregateInputType
+  }
+
+  export type GetDepartmentsAggregateType<T extends DepartmentsAggregateArgs> = {
+        [P in keyof T & keyof AggregateDepartments]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDepartments[P]>
+      : GetScalarType<T[P], AggregateDepartments[P]>
+  }
+
+
+
+
+  export type departmentsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: departmentsWhereInput
+    orderBy?: departmentsOrderByWithAggregationInput | departmentsOrderByWithAggregationInput[]
+    by: DepartmentsScalarFieldEnum[] | DepartmentsScalarFieldEnum
+    having?: departmentsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DepartmentsCountAggregateInputType | true
+    _avg?: DepartmentsAvgAggregateInputType
+    _sum?: DepartmentsSumAggregateInputType
+    _min?: DepartmentsMinAggregateInputType
+    _max?: DepartmentsMaxAggregateInputType
+  }
+
+  export type DepartmentsGroupByOutputType = {
+    id: number
+    company_id: number
+    name: string
+    created_at: Date | null
+    _count: DepartmentsCountAggregateOutputType | null
+    _avg: DepartmentsAvgAggregateOutputType | null
+    _sum: DepartmentsSumAggregateOutputType | null
+    _min: DepartmentsMinAggregateOutputType | null
+    _max: DepartmentsMaxAggregateOutputType | null
+  }
+
+  type GetDepartmentsGroupByPayload<T extends departmentsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DepartmentsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DepartmentsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DepartmentsGroupByOutputType[P]>
+            : GetScalarType<T[P], DepartmentsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type departmentsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["departments"]>
+
+  export type departmentsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["departments"]>
+
+  export type departmentsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["departments"]>
+
+  export type departmentsSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+  }
+
+  export type departmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["departments"]>
+  export type departmentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type departmentsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type departmentsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $departmentsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "departments"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      name: string
+      created_at: Date | null
+    }, ExtArgs["result"]["departments"]>
+    composites: {}
+  }
+
+  type departmentsGetPayload<S extends boolean | null | undefined | departmentsDefaultArgs> = $Result.GetResult<Prisma.$departmentsPayload, S>
+
+  type departmentsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<departmentsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DepartmentsCountAggregateInputType | true
+    }
+
+  export interface departmentsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['departments'], meta: { name: 'departments' } }
+    /**
+     * Find zero or one Departments that matches the filter.
+     * @param {departmentsFindUniqueArgs} args - Arguments to find a Departments
+     * @example
+     * // Get one Departments
+     * const departments = await prisma.departments.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends departmentsFindUniqueArgs>(args: SelectSubset<T, departmentsFindUniqueArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Departments that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {departmentsFindUniqueOrThrowArgs} args - Arguments to find a Departments
+     * @example
+     * // Get one Departments
+     * const departments = await prisma.departments.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends departmentsFindUniqueOrThrowArgs>(args: SelectSubset<T, departmentsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Departments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {departmentsFindFirstArgs} args - Arguments to find a Departments
+     * @example
+     * // Get one Departments
+     * const departments = await prisma.departments.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends departmentsFindFirstArgs>(args?: SelectSubset<T, departmentsFindFirstArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Departments that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {departmentsFindFirstOrThrowArgs} args - Arguments to find a Departments
+     * @example
+     * // Get one Departments
+     * const departments = await prisma.departments.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends departmentsFindFirstOrThrowArgs>(args?: SelectSubset<T, departmentsFindFirstOrThrowArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Departments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {departmentsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Departments
+     * const departments = await prisma.departments.findMany()
+     * 
+     * // Get first 10 Departments
+     * const departments = await prisma.departments.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const departmentsWithIdOnly = await prisma.departments.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends departmentsFindManyArgs>(args?: SelectSubset<T, departmentsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Departments.
+     * @param {departmentsCreateArgs} args - Arguments to create a Departments.
+     * @example
+     * // Create one Departments
+     * const Departments = await prisma.departments.create({
+     *   data: {
+     *     // ... data to create a Departments
+     *   }
+     * })
+     * 
+     */
+    create<T extends departmentsCreateArgs>(args: SelectSubset<T, departmentsCreateArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Departments.
+     * @param {departmentsCreateManyArgs} args - Arguments to create many Departments.
+     * @example
+     * // Create many Departments
+     * const departments = await prisma.departments.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends departmentsCreateManyArgs>(args?: SelectSubset<T, departmentsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Departments and returns the data saved in the database.
+     * @param {departmentsCreateManyAndReturnArgs} args - Arguments to create many Departments.
+     * @example
+     * // Create many Departments
+     * const departments = await prisma.departments.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Departments and only return the `id`
+     * const departmentsWithIdOnly = await prisma.departments.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends departmentsCreateManyAndReturnArgs>(args?: SelectSubset<T, departmentsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Departments.
+     * @param {departmentsDeleteArgs} args - Arguments to delete one Departments.
+     * @example
+     * // Delete one Departments
+     * const Departments = await prisma.departments.delete({
+     *   where: {
+     *     // ... filter to delete one Departments
+     *   }
+     * })
+     * 
+     */
+    delete<T extends departmentsDeleteArgs>(args: SelectSubset<T, departmentsDeleteArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Departments.
+     * @param {departmentsUpdateArgs} args - Arguments to update one Departments.
+     * @example
+     * // Update one Departments
+     * const departments = await prisma.departments.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends departmentsUpdateArgs>(args: SelectSubset<T, departmentsUpdateArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Departments.
+     * @param {departmentsDeleteManyArgs} args - Arguments to filter Departments to delete.
+     * @example
+     * // Delete a few Departments
+     * const { count } = await prisma.departments.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends departmentsDeleteManyArgs>(args?: SelectSubset<T, departmentsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Departments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {departmentsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Departments
+     * const departments = await prisma.departments.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends departmentsUpdateManyArgs>(args: SelectSubset<T, departmentsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Departments and returns the data updated in the database.
+     * @param {departmentsUpdateManyAndReturnArgs} args - Arguments to update many Departments.
+     * @example
+     * // Update many Departments
+     * const departments = await prisma.departments.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Departments and only return the `id`
+     * const departmentsWithIdOnly = await prisma.departments.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends departmentsUpdateManyAndReturnArgs>(args: SelectSubset<T, departmentsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Departments.
+     * @param {departmentsUpsertArgs} args - Arguments to update or create a Departments.
+     * @example
+     * // Update or create a Departments
+     * const departments = await prisma.departments.upsert({
+     *   create: {
+     *     // ... data to create a Departments
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Departments we want to update
+     *   }
+     * })
+     */
+    upsert<T extends departmentsUpsertArgs>(args: SelectSubset<T, departmentsUpsertArgs<ExtArgs>>): Prisma__departmentsClient<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Departments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {departmentsCountArgs} args - Arguments to filter Departments to count.
+     * @example
+     * // Count the number of Departments
+     * const count = await prisma.departments.count({
+     *   where: {
+     *     // ... the filter for the Departments we want to count
+     *   }
+     * })
+    **/
+    count<T extends departmentsCountArgs>(
+      args?: Subset<T, departmentsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DepartmentsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Departments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DepartmentsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DepartmentsAggregateArgs>(args: Subset<T, DepartmentsAggregateArgs>): Prisma.PrismaPromise<GetDepartmentsAggregateType<T>>
+
+    /**
+     * Group by Departments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {departmentsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends departmentsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: departmentsGroupByArgs['orderBy'] }
+        : { orderBy?: departmentsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, departmentsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDepartmentsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the departments model
+   */
+  readonly fields: departmentsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for departments.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__departmentsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the departments model
+   */
+  interface departmentsFieldRefs {
+    readonly id: FieldRef<"departments", 'Int'>
+    readonly company_id: FieldRef<"departments", 'Int'>
+    readonly name: FieldRef<"departments", 'String'>
+    readonly created_at: FieldRef<"departments", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * departments findUnique
+   */
+  export type departmentsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * Filter, which departments to fetch.
+     */
+    where: departmentsWhereUniqueInput
+  }
+
+  /**
+   * departments findUniqueOrThrow
+   */
+  export type departmentsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * Filter, which departments to fetch.
+     */
+    where: departmentsWhereUniqueInput
+  }
+
+  /**
+   * departments findFirst
+   */
+  export type departmentsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * Filter, which departments to fetch.
+     */
+    where?: departmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of departments to fetch.
+     */
+    orderBy?: departmentsOrderByWithRelationInput | departmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for departments.
+     */
+    cursor?: departmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` departments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` departments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of departments.
+     */
+    distinct?: DepartmentsScalarFieldEnum | DepartmentsScalarFieldEnum[]
+  }
+
+  /**
+   * departments findFirstOrThrow
+   */
+  export type departmentsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * Filter, which departments to fetch.
+     */
+    where?: departmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of departments to fetch.
+     */
+    orderBy?: departmentsOrderByWithRelationInput | departmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for departments.
+     */
+    cursor?: departmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` departments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` departments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of departments.
+     */
+    distinct?: DepartmentsScalarFieldEnum | DepartmentsScalarFieldEnum[]
+  }
+
+  /**
+   * departments findMany
+   */
+  export type departmentsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * Filter, which departments to fetch.
+     */
+    where?: departmentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of departments to fetch.
+     */
+    orderBy?: departmentsOrderByWithRelationInput | departmentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing departments.
+     */
+    cursor?: departmentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` departments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` departments.
+     */
+    skip?: number
+    distinct?: DepartmentsScalarFieldEnum | DepartmentsScalarFieldEnum[]
+  }
+
+  /**
+   * departments create
+   */
+  export type departmentsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a departments.
+     */
+    data: XOR<departmentsCreateInput, departmentsUncheckedCreateInput>
+  }
+
+  /**
+   * departments createMany
+   */
+  export type departmentsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many departments.
+     */
+    data: departmentsCreateManyInput | departmentsCreateManyInput[]
+  }
+
+  /**
+   * departments createManyAndReturn
+   */
+  export type departmentsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * The data used to create many departments.
+     */
+    data: departmentsCreateManyInput | departmentsCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * departments update
+   */
+  export type departmentsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a departments.
+     */
+    data: XOR<departmentsUpdateInput, departmentsUncheckedUpdateInput>
+    /**
+     * Choose, which departments to update.
+     */
+    where: departmentsWhereUniqueInput
+  }
+
+  /**
+   * departments updateMany
+   */
+  export type departmentsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update departments.
+     */
+    data: XOR<departmentsUpdateManyMutationInput, departmentsUncheckedUpdateManyInput>
+    /**
+     * Filter which departments to update
+     */
+    where?: departmentsWhereInput
+    /**
+     * Limit how many departments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * departments updateManyAndReturn
+   */
+  export type departmentsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * The data used to update departments.
+     */
+    data: XOR<departmentsUpdateManyMutationInput, departmentsUncheckedUpdateManyInput>
+    /**
+     * Filter which departments to update
+     */
+    where?: departmentsWhereInput
+    /**
+     * Limit how many departments to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * departments upsert
+   */
+  export type departmentsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the departments to update in case it exists.
+     */
+    where: departmentsWhereUniqueInput
+    /**
+     * In case the departments found by the `where` argument doesn't exist, create a new departments with this data.
+     */
+    create: XOR<departmentsCreateInput, departmentsUncheckedCreateInput>
+    /**
+     * In case the departments was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<departmentsUpdateInput, departmentsUncheckedUpdateInput>
+  }
+
+  /**
+   * departments delete
+   */
+  export type departmentsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+    /**
+     * Filter which departments to delete.
+     */
+    where: departmentsWhereUniqueInput
+  }
+
+  /**
+   * departments deleteMany
+   */
+  export type departmentsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which departments to delete
+     */
+    where?: departmentsWhereInput
+    /**
+     * Limit how many departments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * departments without action
+   */
+  export type departmentsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the departments
+     */
+    select?: departmentsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the departments
+     */
+    omit?: departmentsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: departmentsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model leave_types
+   */
+
+  export type AggregateLeave_types = {
+    _count: Leave_typesCountAggregateOutputType | null
+    _avg: Leave_typesAvgAggregateOutputType | null
+    _sum: Leave_typesSumAggregateOutputType | null
+    _min: Leave_typesMinAggregateOutputType | null
+    _max: Leave_typesMaxAggregateOutputType | null
+  }
+
+  export type Leave_typesAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Leave_typesSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Leave_typesMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Leave_typesMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Leave_typesCountAggregateOutputType = {
+    id: number
+    company_id: number
+    name: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Leave_typesAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Leave_typesSumAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Leave_typesMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Leave_typesMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Leave_typesCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Leave_typesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which leave_types to aggregate.
+     */
+    where?: leave_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of leave_types to fetch.
+     */
+    orderBy?: leave_typesOrderByWithRelationInput | leave_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: leave_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` leave_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` leave_types.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned leave_types
+    **/
+    _count?: true | Leave_typesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Leave_typesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Leave_typesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Leave_typesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Leave_typesMaxAggregateInputType
+  }
+
+  export type GetLeave_typesAggregateType<T extends Leave_typesAggregateArgs> = {
+        [P in keyof T & keyof AggregateLeave_types]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLeave_types[P]>
+      : GetScalarType<T[P], AggregateLeave_types[P]>
+  }
+
+
+
+
+  export type leave_typesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: leave_typesWhereInput
+    orderBy?: leave_typesOrderByWithAggregationInput | leave_typesOrderByWithAggregationInput[]
+    by: Leave_typesScalarFieldEnum[] | Leave_typesScalarFieldEnum
+    having?: leave_typesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Leave_typesCountAggregateInputType | true
+    _avg?: Leave_typesAvgAggregateInputType
+    _sum?: Leave_typesSumAggregateInputType
+    _min?: Leave_typesMinAggregateInputType
+    _max?: Leave_typesMaxAggregateInputType
+  }
+
+  export type Leave_typesGroupByOutputType = {
+    id: number
+    company_id: number
+    name: string
+    created_at: Date | null
+    _count: Leave_typesCountAggregateOutputType | null
+    _avg: Leave_typesAvgAggregateOutputType | null
+    _sum: Leave_typesSumAggregateOutputType | null
+    _min: Leave_typesMinAggregateOutputType | null
+    _max: Leave_typesMaxAggregateOutputType | null
+  }
+
+  type GetLeave_typesGroupByPayload<T extends leave_typesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Leave_typesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Leave_typesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Leave_typesGroupByOutputType[P]>
+            : GetScalarType<T[P], Leave_typesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type leave_typesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["leave_types"]>
+
+  export type leave_typesSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["leave_types"]>
+
+  export type leave_typesSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["leave_types"]>
+
+  export type leave_typesSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+  }
+
+  export type leave_typesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["leave_types"]>
+  export type leave_typesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type leave_typesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type leave_typesIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $leave_typesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "leave_types"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      name: string
+      created_at: Date | null
+    }, ExtArgs["result"]["leave_types"]>
+    composites: {}
+  }
+
+  type leave_typesGetPayload<S extends boolean | null | undefined | leave_typesDefaultArgs> = $Result.GetResult<Prisma.$leave_typesPayload, S>
+
+  type leave_typesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<leave_typesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Leave_typesCountAggregateInputType | true
+    }
+
+  export interface leave_typesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['leave_types'], meta: { name: 'leave_types' } }
+    /**
+     * Find zero or one Leave_types that matches the filter.
+     * @param {leave_typesFindUniqueArgs} args - Arguments to find a Leave_types
+     * @example
+     * // Get one Leave_types
+     * const leave_types = await prisma.leave_types.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends leave_typesFindUniqueArgs>(args: SelectSubset<T, leave_typesFindUniqueArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Leave_types that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {leave_typesFindUniqueOrThrowArgs} args - Arguments to find a Leave_types
+     * @example
+     * // Get one Leave_types
+     * const leave_types = await prisma.leave_types.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends leave_typesFindUniqueOrThrowArgs>(args: SelectSubset<T, leave_typesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Leave_types that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {leave_typesFindFirstArgs} args - Arguments to find a Leave_types
+     * @example
+     * // Get one Leave_types
+     * const leave_types = await prisma.leave_types.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends leave_typesFindFirstArgs>(args?: SelectSubset<T, leave_typesFindFirstArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Leave_types that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {leave_typesFindFirstOrThrowArgs} args - Arguments to find a Leave_types
+     * @example
+     * // Get one Leave_types
+     * const leave_types = await prisma.leave_types.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends leave_typesFindFirstOrThrowArgs>(args?: SelectSubset<T, leave_typesFindFirstOrThrowArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Leave_types that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {leave_typesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Leave_types
+     * const leave_types = await prisma.leave_types.findMany()
+     * 
+     * // Get first 10 Leave_types
+     * const leave_types = await prisma.leave_types.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const leave_typesWithIdOnly = await prisma.leave_types.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends leave_typesFindManyArgs>(args?: SelectSubset<T, leave_typesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Leave_types.
+     * @param {leave_typesCreateArgs} args - Arguments to create a Leave_types.
+     * @example
+     * // Create one Leave_types
+     * const Leave_types = await prisma.leave_types.create({
+     *   data: {
+     *     // ... data to create a Leave_types
+     *   }
+     * })
+     * 
+     */
+    create<T extends leave_typesCreateArgs>(args: SelectSubset<T, leave_typesCreateArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Leave_types.
+     * @param {leave_typesCreateManyArgs} args - Arguments to create many Leave_types.
+     * @example
+     * // Create many Leave_types
+     * const leave_types = await prisma.leave_types.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends leave_typesCreateManyArgs>(args?: SelectSubset<T, leave_typesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Leave_types and returns the data saved in the database.
+     * @param {leave_typesCreateManyAndReturnArgs} args - Arguments to create many Leave_types.
+     * @example
+     * // Create many Leave_types
+     * const leave_types = await prisma.leave_types.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Leave_types and only return the `id`
+     * const leave_typesWithIdOnly = await prisma.leave_types.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends leave_typesCreateManyAndReturnArgs>(args?: SelectSubset<T, leave_typesCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Leave_types.
+     * @param {leave_typesDeleteArgs} args - Arguments to delete one Leave_types.
+     * @example
+     * // Delete one Leave_types
+     * const Leave_types = await prisma.leave_types.delete({
+     *   where: {
+     *     // ... filter to delete one Leave_types
+     *   }
+     * })
+     * 
+     */
+    delete<T extends leave_typesDeleteArgs>(args: SelectSubset<T, leave_typesDeleteArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Leave_types.
+     * @param {leave_typesUpdateArgs} args - Arguments to update one Leave_types.
+     * @example
+     * // Update one Leave_types
+     * const leave_types = await prisma.leave_types.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends leave_typesUpdateArgs>(args: SelectSubset<T, leave_typesUpdateArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Leave_types.
+     * @param {leave_typesDeleteManyArgs} args - Arguments to filter Leave_types to delete.
+     * @example
+     * // Delete a few Leave_types
+     * const { count } = await prisma.leave_types.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends leave_typesDeleteManyArgs>(args?: SelectSubset<T, leave_typesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Leave_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {leave_typesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Leave_types
+     * const leave_types = await prisma.leave_types.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends leave_typesUpdateManyArgs>(args: SelectSubset<T, leave_typesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Leave_types and returns the data updated in the database.
+     * @param {leave_typesUpdateManyAndReturnArgs} args - Arguments to update many Leave_types.
+     * @example
+     * // Update many Leave_types
+     * const leave_types = await prisma.leave_types.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Leave_types and only return the `id`
+     * const leave_typesWithIdOnly = await prisma.leave_types.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends leave_typesUpdateManyAndReturnArgs>(args: SelectSubset<T, leave_typesUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Leave_types.
+     * @param {leave_typesUpsertArgs} args - Arguments to update or create a Leave_types.
+     * @example
+     * // Update or create a Leave_types
+     * const leave_types = await prisma.leave_types.upsert({
+     *   create: {
+     *     // ... data to create a Leave_types
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Leave_types we want to update
+     *   }
+     * })
+     */
+    upsert<T extends leave_typesUpsertArgs>(args: SelectSubset<T, leave_typesUpsertArgs<ExtArgs>>): Prisma__leave_typesClient<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Leave_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {leave_typesCountArgs} args - Arguments to filter Leave_types to count.
+     * @example
+     * // Count the number of Leave_types
+     * const count = await prisma.leave_types.count({
+     *   where: {
+     *     // ... the filter for the Leave_types we want to count
+     *   }
+     * })
+    **/
+    count<T extends leave_typesCountArgs>(
+      args?: Subset<T, leave_typesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Leave_typesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Leave_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Leave_typesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Leave_typesAggregateArgs>(args: Subset<T, Leave_typesAggregateArgs>): Prisma.PrismaPromise<GetLeave_typesAggregateType<T>>
+
+    /**
+     * Group by Leave_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {leave_typesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends leave_typesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: leave_typesGroupByArgs['orderBy'] }
+        : { orderBy?: leave_typesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, leave_typesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLeave_typesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the leave_types model
+   */
+  readonly fields: leave_typesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for leave_types.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__leave_typesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the leave_types model
+   */
+  interface leave_typesFieldRefs {
+    readonly id: FieldRef<"leave_types", 'Int'>
+    readonly company_id: FieldRef<"leave_types", 'Int'>
+    readonly name: FieldRef<"leave_types", 'String'>
+    readonly created_at: FieldRef<"leave_types", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * leave_types findUnique
+   */
+  export type leave_typesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which leave_types to fetch.
+     */
+    where: leave_typesWhereUniqueInput
+  }
+
+  /**
+   * leave_types findUniqueOrThrow
+   */
+  export type leave_typesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which leave_types to fetch.
+     */
+    where: leave_typesWhereUniqueInput
+  }
+
+  /**
+   * leave_types findFirst
+   */
+  export type leave_typesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which leave_types to fetch.
+     */
+    where?: leave_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of leave_types to fetch.
+     */
+    orderBy?: leave_typesOrderByWithRelationInput | leave_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for leave_types.
+     */
+    cursor?: leave_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` leave_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` leave_types.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of leave_types.
+     */
+    distinct?: Leave_typesScalarFieldEnum | Leave_typesScalarFieldEnum[]
+  }
+
+  /**
+   * leave_types findFirstOrThrow
+   */
+  export type leave_typesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which leave_types to fetch.
+     */
+    where?: leave_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of leave_types to fetch.
+     */
+    orderBy?: leave_typesOrderByWithRelationInput | leave_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for leave_types.
+     */
+    cursor?: leave_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` leave_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` leave_types.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of leave_types.
+     */
+    distinct?: Leave_typesScalarFieldEnum | Leave_typesScalarFieldEnum[]
+  }
+
+  /**
+   * leave_types findMany
+   */
+  export type leave_typesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which leave_types to fetch.
+     */
+    where?: leave_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of leave_types to fetch.
+     */
+    orderBy?: leave_typesOrderByWithRelationInput | leave_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing leave_types.
+     */
+    cursor?: leave_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` leave_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` leave_types.
+     */
+    skip?: number
+    distinct?: Leave_typesScalarFieldEnum | Leave_typesScalarFieldEnum[]
+  }
+
+  /**
+   * leave_types create
+   */
+  export type leave_typesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * The data needed to create a leave_types.
+     */
+    data: XOR<leave_typesCreateInput, leave_typesUncheckedCreateInput>
+  }
+
+  /**
+   * leave_types createMany
+   */
+  export type leave_typesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many leave_types.
+     */
+    data: leave_typesCreateManyInput | leave_typesCreateManyInput[]
+  }
+
+  /**
+   * leave_types createManyAndReturn
+   */
+  export type leave_typesCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * The data used to create many leave_types.
+     */
+    data: leave_typesCreateManyInput | leave_typesCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * leave_types update
+   */
+  export type leave_typesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * The data needed to update a leave_types.
+     */
+    data: XOR<leave_typesUpdateInput, leave_typesUncheckedUpdateInput>
+    /**
+     * Choose, which leave_types to update.
+     */
+    where: leave_typesWhereUniqueInput
+  }
+
+  /**
+   * leave_types updateMany
+   */
+  export type leave_typesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update leave_types.
+     */
+    data: XOR<leave_typesUpdateManyMutationInput, leave_typesUncheckedUpdateManyInput>
+    /**
+     * Filter which leave_types to update
+     */
+    where?: leave_typesWhereInput
+    /**
+     * Limit how many leave_types to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * leave_types updateManyAndReturn
+   */
+  export type leave_typesUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * The data used to update leave_types.
+     */
+    data: XOR<leave_typesUpdateManyMutationInput, leave_typesUncheckedUpdateManyInput>
+    /**
+     * Filter which leave_types to update
+     */
+    where?: leave_typesWhereInput
+    /**
+     * Limit how many leave_types to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * leave_types upsert
+   */
+  export type leave_typesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * The filter to search for the leave_types to update in case it exists.
+     */
+    where: leave_typesWhereUniqueInput
+    /**
+     * In case the leave_types found by the `where` argument doesn't exist, create a new leave_types with this data.
+     */
+    create: XOR<leave_typesCreateInput, leave_typesUncheckedCreateInput>
+    /**
+     * In case the leave_types was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<leave_typesUpdateInput, leave_typesUncheckedUpdateInput>
+  }
+
+  /**
+   * leave_types delete
+   */
+  export type leave_typesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+    /**
+     * Filter which leave_types to delete.
+     */
+    where: leave_typesWhereUniqueInput
+  }
+
+  /**
+   * leave_types deleteMany
+   */
+  export type leave_typesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which leave_types to delete
+     */
+    where?: leave_typesWhereInput
+    /**
+     * Limit how many leave_types to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * leave_types without action
+   */
+  export type leave_typesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the leave_types
+     */
+    select?: leave_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the leave_types
+     */
+    omit?: leave_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: leave_typesInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model document_categories
+   */
+
+  export type AggregateDocument_categories = {
+    _count: Document_categoriesCountAggregateOutputType | null
+    _avg: Document_categoriesAvgAggregateOutputType | null
+    _sum: Document_categoriesSumAggregateOutputType | null
+    _min: Document_categoriesMinAggregateOutputType | null
+    _max: Document_categoriesMaxAggregateOutputType | null
+  }
+
+  export type Document_categoriesAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Document_categoriesSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Document_categoriesMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Document_categoriesMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Document_categoriesCountAggregateOutputType = {
+    id: number
+    company_id: number
+    name: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Document_categoriesAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Document_categoriesSumAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Document_categoriesMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Document_categoriesMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Document_categoriesCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Document_categoriesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which document_categories to aggregate.
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_categories to fetch.
+     */
+    orderBy?: document_categoriesOrderByWithRelationInput | document_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: document_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned document_categories
+    **/
+    _count?: true | Document_categoriesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Document_categoriesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Document_categoriesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Document_categoriesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Document_categoriesMaxAggregateInputType
+  }
+
+  export type GetDocument_categoriesAggregateType<T extends Document_categoriesAggregateArgs> = {
+        [P in keyof T & keyof AggregateDocument_categories]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDocument_categories[P]>
+      : GetScalarType<T[P], AggregateDocument_categories[P]>
+  }
+
+
+
+
+  export type document_categoriesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: document_categoriesWhereInput
+    orderBy?: document_categoriesOrderByWithAggregationInput | document_categoriesOrderByWithAggregationInput[]
+    by: Document_categoriesScalarFieldEnum[] | Document_categoriesScalarFieldEnum
+    having?: document_categoriesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Document_categoriesCountAggregateInputType | true
+    _avg?: Document_categoriesAvgAggregateInputType
+    _sum?: Document_categoriesSumAggregateInputType
+    _min?: Document_categoriesMinAggregateInputType
+    _max?: Document_categoriesMaxAggregateInputType
+  }
+
+  export type Document_categoriesGroupByOutputType = {
+    id: number
+    company_id: number
+    name: string
+    created_at: Date | null
+    _count: Document_categoriesCountAggregateOutputType | null
+    _avg: Document_categoriesAvgAggregateOutputType | null
+    _sum: Document_categoriesSumAggregateOutputType | null
+    _min: Document_categoriesMinAggregateOutputType | null
+    _max: Document_categoriesMaxAggregateOutputType | null
+  }
+
+  type GetDocument_categoriesGroupByPayload<T extends document_categoriesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Document_categoriesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Document_categoriesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Document_categoriesGroupByOutputType[P]>
+            : GetScalarType<T[P], Document_categoriesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type document_categoriesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["document_categories"]>
+
+  export type document_categoriesSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["document_categories"]>
+
+  export type document_categoriesSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["document_categories"]>
+
+  export type document_categoriesSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+  }
+
+  export type document_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["document_categories"]>
+  export type document_categoriesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type document_categoriesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type document_categoriesIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $document_categoriesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "document_categories"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      name: string
+      created_at: Date | null
+    }, ExtArgs["result"]["document_categories"]>
+    composites: {}
+  }
+
+  type document_categoriesGetPayload<S extends boolean | null | undefined | document_categoriesDefaultArgs> = $Result.GetResult<Prisma.$document_categoriesPayload, S>
+
+  type document_categoriesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<document_categoriesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Document_categoriesCountAggregateInputType | true
+    }
+
+  export interface document_categoriesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['document_categories'], meta: { name: 'document_categories' } }
+    /**
+     * Find zero or one Document_categories that matches the filter.
+     * @param {document_categoriesFindUniqueArgs} args - Arguments to find a Document_categories
+     * @example
+     * // Get one Document_categories
+     * const document_categories = await prisma.document_categories.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends document_categoriesFindUniqueArgs>(args: SelectSubset<T, document_categoriesFindUniqueArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Document_categories that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {document_categoriesFindUniqueOrThrowArgs} args - Arguments to find a Document_categories
+     * @example
+     * // Get one Document_categories
+     * const document_categories = await prisma.document_categories.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends document_categoriesFindUniqueOrThrowArgs>(args: SelectSubset<T, document_categoriesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Document_categories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_categoriesFindFirstArgs} args - Arguments to find a Document_categories
+     * @example
+     * // Get one Document_categories
+     * const document_categories = await prisma.document_categories.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends document_categoriesFindFirstArgs>(args?: SelectSubset<T, document_categoriesFindFirstArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Document_categories that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_categoriesFindFirstOrThrowArgs} args - Arguments to find a Document_categories
+     * @example
+     * // Get one Document_categories
+     * const document_categories = await prisma.document_categories.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends document_categoriesFindFirstOrThrowArgs>(args?: SelectSubset<T, document_categoriesFindFirstOrThrowArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Document_categories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_categoriesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Document_categories
+     * const document_categories = await prisma.document_categories.findMany()
+     * 
+     * // Get first 10 Document_categories
+     * const document_categories = await prisma.document_categories.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const document_categoriesWithIdOnly = await prisma.document_categories.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends document_categoriesFindManyArgs>(args?: SelectSubset<T, document_categoriesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Document_categories.
+     * @param {document_categoriesCreateArgs} args - Arguments to create a Document_categories.
+     * @example
+     * // Create one Document_categories
+     * const Document_categories = await prisma.document_categories.create({
+     *   data: {
+     *     // ... data to create a Document_categories
+     *   }
+     * })
+     * 
+     */
+    create<T extends document_categoriesCreateArgs>(args: SelectSubset<T, document_categoriesCreateArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Document_categories.
+     * @param {document_categoriesCreateManyArgs} args - Arguments to create many Document_categories.
+     * @example
+     * // Create many Document_categories
+     * const document_categories = await prisma.document_categories.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends document_categoriesCreateManyArgs>(args?: SelectSubset<T, document_categoriesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Document_categories and returns the data saved in the database.
+     * @param {document_categoriesCreateManyAndReturnArgs} args - Arguments to create many Document_categories.
+     * @example
+     * // Create many Document_categories
+     * const document_categories = await prisma.document_categories.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Document_categories and only return the `id`
+     * const document_categoriesWithIdOnly = await prisma.document_categories.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends document_categoriesCreateManyAndReturnArgs>(args?: SelectSubset<T, document_categoriesCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Document_categories.
+     * @param {document_categoriesDeleteArgs} args - Arguments to delete one Document_categories.
+     * @example
+     * // Delete one Document_categories
+     * const Document_categories = await prisma.document_categories.delete({
+     *   where: {
+     *     // ... filter to delete one Document_categories
+     *   }
+     * })
+     * 
+     */
+    delete<T extends document_categoriesDeleteArgs>(args: SelectSubset<T, document_categoriesDeleteArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Document_categories.
+     * @param {document_categoriesUpdateArgs} args - Arguments to update one Document_categories.
+     * @example
+     * // Update one Document_categories
+     * const document_categories = await prisma.document_categories.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends document_categoriesUpdateArgs>(args: SelectSubset<T, document_categoriesUpdateArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Document_categories.
+     * @param {document_categoriesDeleteManyArgs} args - Arguments to filter Document_categories to delete.
+     * @example
+     * // Delete a few Document_categories
+     * const { count } = await prisma.document_categories.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends document_categoriesDeleteManyArgs>(args?: SelectSubset<T, document_categoriesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Document_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_categoriesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Document_categories
+     * const document_categories = await prisma.document_categories.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends document_categoriesUpdateManyArgs>(args: SelectSubset<T, document_categoriesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Document_categories and returns the data updated in the database.
+     * @param {document_categoriesUpdateManyAndReturnArgs} args - Arguments to update many Document_categories.
+     * @example
+     * // Update many Document_categories
+     * const document_categories = await prisma.document_categories.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Document_categories and only return the `id`
+     * const document_categoriesWithIdOnly = await prisma.document_categories.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends document_categoriesUpdateManyAndReturnArgs>(args: SelectSubset<T, document_categoriesUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Document_categories.
+     * @param {document_categoriesUpsertArgs} args - Arguments to update or create a Document_categories.
+     * @example
+     * // Update or create a Document_categories
+     * const document_categories = await prisma.document_categories.upsert({
+     *   create: {
+     *     // ... data to create a Document_categories
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Document_categories we want to update
+     *   }
+     * })
+     */
+    upsert<T extends document_categoriesUpsertArgs>(args: SelectSubset<T, document_categoriesUpsertArgs<ExtArgs>>): Prisma__document_categoriesClient<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Document_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_categoriesCountArgs} args - Arguments to filter Document_categories to count.
+     * @example
+     * // Count the number of Document_categories
+     * const count = await prisma.document_categories.count({
+     *   where: {
+     *     // ... the filter for the Document_categories we want to count
+     *   }
+     * })
+    **/
+    count<T extends document_categoriesCountArgs>(
+      args?: Subset<T, document_categoriesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Document_categoriesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Document_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Document_categoriesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Document_categoriesAggregateArgs>(args: Subset<T, Document_categoriesAggregateArgs>): Prisma.PrismaPromise<GetDocument_categoriesAggregateType<T>>
+
+    /**
+     * Group by Document_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_categoriesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends document_categoriesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: document_categoriesGroupByArgs['orderBy'] }
+        : { orderBy?: document_categoriesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, document_categoriesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDocument_categoriesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the document_categories model
+   */
+  readonly fields: document_categoriesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for document_categories.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__document_categoriesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the document_categories model
+   */
+  interface document_categoriesFieldRefs {
+    readonly id: FieldRef<"document_categories", 'Int'>
+    readonly company_id: FieldRef<"document_categories", 'Int'>
+    readonly name: FieldRef<"document_categories", 'String'>
+    readonly created_at: FieldRef<"document_categories", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * document_categories findUnique
+   */
+  export type document_categoriesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which document_categories to fetch.
+     */
+    where: document_categoriesWhereUniqueInput
+  }
+
+  /**
+   * document_categories findUniqueOrThrow
+   */
+  export type document_categoriesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which document_categories to fetch.
+     */
+    where: document_categoriesWhereUniqueInput
+  }
+
+  /**
+   * document_categories findFirst
+   */
+  export type document_categoriesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which document_categories to fetch.
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_categories to fetch.
+     */
+    orderBy?: document_categoriesOrderByWithRelationInput | document_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for document_categories.
+     */
+    cursor?: document_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of document_categories.
+     */
+    distinct?: Document_categoriesScalarFieldEnum | Document_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * document_categories findFirstOrThrow
+   */
+  export type document_categoriesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which document_categories to fetch.
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_categories to fetch.
+     */
+    orderBy?: document_categoriesOrderByWithRelationInput | document_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for document_categories.
+     */
+    cursor?: document_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of document_categories.
+     */
+    distinct?: Document_categoriesScalarFieldEnum | Document_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * document_categories findMany
+   */
+  export type document_categoriesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which document_categories to fetch.
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_categories to fetch.
+     */
+    orderBy?: document_categoriesOrderByWithRelationInput | document_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing document_categories.
+     */
+    cursor?: document_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_categories.
+     */
+    skip?: number
+    distinct?: Document_categoriesScalarFieldEnum | Document_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * document_categories create
+   */
+  export type document_categoriesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * The data needed to create a document_categories.
+     */
+    data: XOR<document_categoriesCreateInput, document_categoriesUncheckedCreateInput>
+  }
+
+  /**
+   * document_categories createMany
+   */
+  export type document_categoriesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many document_categories.
+     */
+    data: document_categoriesCreateManyInput | document_categoriesCreateManyInput[]
+  }
+
+  /**
+   * document_categories createManyAndReturn
+   */
+  export type document_categoriesCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * The data used to create many document_categories.
+     */
+    data: document_categoriesCreateManyInput | document_categoriesCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * document_categories update
+   */
+  export type document_categoriesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * The data needed to update a document_categories.
+     */
+    data: XOR<document_categoriesUpdateInput, document_categoriesUncheckedUpdateInput>
+    /**
+     * Choose, which document_categories to update.
+     */
+    where: document_categoriesWhereUniqueInput
+  }
+
+  /**
+   * document_categories updateMany
+   */
+  export type document_categoriesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update document_categories.
+     */
+    data: XOR<document_categoriesUpdateManyMutationInput, document_categoriesUncheckedUpdateManyInput>
+    /**
+     * Filter which document_categories to update
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * Limit how many document_categories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * document_categories updateManyAndReturn
+   */
+  export type document_categoriesUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * The data used to update document_categories.
+     */
+    data: XOR<document_categoriesUpdateManyMutationInput, document_categoriesUncheckedUpdateManyInput>
+    /**
+     * Filter which document_categories to update
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * Limit how many document_categories to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * document_categories upsert
+   */
+  export type document_categoriesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * The filter to search for the document_categories to update in case it exists.
+     */
+    where: document_categoriesWhereUniqueInput
+    /**
+     * In case the document_categories found by the `where` argument doesn't exist, create a new document_categories with this data.
+     */
+    create: XOR<document_categoriesCreateInput, document_categoriesUncheckedCreateInput>
+    /**
+     * In case the document_categories was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<document_categoriesUpdateInput, document_categoriesUncheckedUpdateInput>
+  }
+
+  /**
+   * document_categories delete
+   */
+  export type document_categoriesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter which document_categories to delete.
+     */
+    where: document_categoriesWhereUniqueInput
+  }
+
+  /**
+   * document_categories deleteMany
+   */
+  export type document_categoriesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which document_categories to delete
+     */
+    where?: document_categoriesWhereInput
+    /**
+     * Limit how many document_categories to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * document_categories without action
+   */
+  export type document_categoriesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_categories
+     */
+    select?: document_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_categories
+     */
+    omit?: document_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_categoriesInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -35434,6 +39061,36 @@ export namespace Prisma {
   export type WorksScalarFieldEnum = (typeof WorksScalarFieldEnum)[keyof typeof WorksScalarFieldEnum]
 
 
+  export const DepartmentsScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    name: 'name',
+    created_at: 'created_at'
+  };
+
+  export type DepartmentsScalarFieldEnum = (typeof DepartmentsScalarFieldEnum)[keyof typeof DepartmentsScalarFieldEnum]
+
+
+  export const Leave_typesScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    name: 'name',
+    created_at: 'created_at'
+  };
+
+  export type Leave_typesScalarFieldEnum = (typeof Leave_typesScalarFieldEnum)[keyof typeof Leave_typesScalarFieldEnum]
+
+
+  export const Document_categoriesScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    name: 'name',
+    created_at: 'created_at'
+  };
+
+  export type Document_categoriesScalarFieldEnum = (typeof Document_categoriesScalarFieldEnum)[keyof typeof Document_categoriesScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -35593,6 +39250,9 @@ export namespace Prisma {
     vehicles?: VehiclesListRelationFilter
     works?: WorksListRelationFilter
     customers?: CustomersListRelationFilter
+    departments?: DepartmentsListRelationFilter
+    leave_types?: Leave_typesListRelationFilter
+    document_categories?: Document_categoriesListRelationFilter
   }
 
   export type companiesOrderByWithRelationInput = {
@@ -35612,6 +39272,9 @@ export namespace Prisma {
     vehicles?: vehiclesOrderByRelationAggregateInput
     works?: worksOrderByRelationAggregateInput
     customers?: customersOrderByRelationAggregateInput
+    departments?: departmentsOrderByRelationAggregateInput
+    leave_types?: leave_typesOrderByRelationAggregateInput
+    document_categories?: document_categoriesOrderByRelationAggregateInput
   }
 
   export type companiesWhereUniqueInput = Prisma.AtLeast<{
@@ -35634,6 +39297,9 @@ export namespace Prisma {
     vehicles?: VehiclesListRelationFilter
     works?: WorksListRelationFilter
     customers?: CustomersListRelationFilter
+    departments?: DepartmentsListRelationFilter
+    leave_types?: Leave_typesListRelationFilter
+    document_categories?: Document_categoriesListRelationFilter
   }, "id">
 
   export type companiesOrderByWithAggregationInput = {
@@ -37790,6 +41456,162 @@ export namespace Prisma {
     is_archived?: IntNullableWithAggregatesFilter<"works"> | number | null
   }
 
+  export type departmentsWhereInput = {
+    AND?: departmentsWhereInput | departmentsWhereInput[]
+    OR?: departmentsWhereInput[]
+    NOT?: departmentsWhereInput | departmentsWhereInput[]
+    id?: IntFilter<"departments"> | number
+    company_id?: IntFilter<"departments"> | number
+    name?: StringFilter<"departments"> | string
+    created_at?: DateTimeNullableFilter<"departments"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type departmentsOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type departmentsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: departmentsWhereInput | departmentsWhereInput[]
+    OR?: departmentsWhereInput[]
+    NOT?: departmentsWhereInput | departmentsWhereInput[]
+    company_id?: IntFilter<"departments"> | number
+    name?: StringFilter<"departments"> | string
+    created_at?: DateTimeNullableFilter<"departments"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type departmentsOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: departmentsCountOrderByAggregateInput
+    _avg?: departmentsAvgOrderByAggregateInput
+    _max?: departmentsMaxOrderByAggregateInput
+    _min?: departmentsMinOrderByAggregateInput
+    _sum?: departmentsSumOrderByAggregateInput
+  }
+
+  export type departmentsScalarWhereWithAggregatesInput = {
+    AND?: departmentsScalarWhereWithAggregatesInput | departmentsScalarWhereWithAggregatesInput[]
+    OR?: departmentsScalarWhereWithAggregatesInput[]
+    NOT?: departmentsScalarWhereWithAggregatesInput | departmentsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"departments"> | number
+    company_id?: IntWithAggregatesFilter<"departments"> | number
+    name?: StringWithAggregatesFilter<"departments"> | string
+    created_at?: DateTimeNullableWithAggregatesFilter<"departments"> | Date | string | null
+  }
+
+  export type leave_typesWhereInput = {
+    AND?: leave_typesWhereInput | leave_typesWhereInput[]
+    OR?: leave_typesWhereInput[]
+    NOT?: leave_typesWhereInput | leave_typesWhereInput[]
+    id?: IntFilter<"leave_types"> | number
+    company_id?: IntFilter<"leave_types"> | number
+    name?: StringFilter<"leave_types"> | string
+    created_at?: DateTimeNullableFilter<"leave_types"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type leave_typesOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type leave_typesWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: leave_typesWhereInput | leave_typesWhereInput[]
+    OR?: leave_typesWhereInput[]
+    NOT?: leave_typesWhereInput | leave_typesWhereInput[]
+    company_id?: IntFilter<"leave_types"> | number
+    name?: StringFilter<"leave_types"> | string
+    created_at?: DateTimeNullableFilter<"leave_types"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type leave_typesOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: leave_typesCountOrderByAggregateInput
+    _avg?: leave_typesAvgOrderByAggregateInput
+    _max?: leave_typesMaxOrderByAggregateInput
+    _min?: leave_typesMinOrderByAggregateInput
+    _sum?: leave_typesSumOrderByAggregateInput
+  }
+
+  export type leave_typesScalarWhereWithAggregatesInput = {
+    AND?: leave_typesScalarWhereWithAggregatesInput | leave_typesScalarWhereWithAggregatesInput[]
+    OR?: leave_typesScalarWhereWithAggregatesInput[]
+    NOT?: leave_typesScalarWhereWithAggregatesInput | leave_typesScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"leave_types"> | number
+    company_id?: IntWithAggregatesFilter<"leave_types"> | number
+    name?: StringWithAggregatesFilter<"leave_types"> | string
+    created_at?: DateTimeNullableWithAggregatesFilter<"leave_types"> | Date | string | null
+  }
+
+  export type document_categoriesWhereInput = {
+    AND?: document_categoriesWhereInput | document_categoriesWhereInput[]
+    OR?: document_categoriesWhereInput[]
+    NOT?: document_categoriesWhereInput | document_categoriesWhereInput[]
+    id?: IntFilter<"document_categories"> | number
+    company_id?: IntFilter<"document_categories"> | number
+    name?: StringFilter<"document_categories"> | string
+    created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type document_categoriesOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type document_categoriesWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: document_categoriesWhereInput | document_categoriesWhereInput[]
+    OR?: document_categoriesWhereInput[]
+    NOT?: document_categoriesWhereInput | document_categoriesWhereInput[]
+    company_id?: IntFilter<"document_categories"> | number
+    name?: StringFilter<"document_categories"> | string
+    created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type document_categoriesOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: document_categoriesCountOrderByAggregateInput
+    _avg?: document_categoriesAvgOrderByAggregateInput
+    _max?: document_categoriesMaxOrderByAggregateInput
+    _min?: document_categoriesMinOrderByAggregateInput
+    _sum?: document_categoriesSumOrderByAggregateInput
+  }
+
+  export type document_categoriesScalarWhereWithAggregatesInput = {
+    AND?: document_categoriesScalarWhereWithAggregatesInput | document_categoriesScalarWhereWithAggregatesInput[]
+    OR?: document_categoriesScalarWhereWithAggregatesInput[]
+    NOT?: document_categoriesScalarWhereWithAggregatesInput | document_categoriesScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"document_categories"> | number
+    company_id?: IntWithAggregatesFilter<"document_categories"> | number
+    name?: StringWithAggregatesFilter<"document_categories"> | string
+    created_at?: DateTimeNullableWithAggregatesFilter<"document_categories"> | Date | string | null
+  }
+
   export type assignmentsCreateInput = {
     item_name: string
     quantity?: number | null
@@ -37899,6 +41721,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateInput = {
@@ -37917,6 +41742,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUpdateInput = {
@@ -37934,6 +41762,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateInput = {
@@ -37952,6 +41783,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateManyInput = {
@@ -40270,6 +44104,141 @@ export namespace Prisma {
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
+  export type departmentsCreateInput = {
+    name: string
+    created_at?: Date | string | null
+    companies: companiesCreateNestedOneWithoutDepartmentsInput
+  }
+
+  export type departmentsUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type departmentsUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneRequiredWithoutDepartmentsNestedInput
+  }
+
+  export type departmentsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type departmentsCreateManyInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type departmentsUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type departmentsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type leave_typesCreateInput = {
+    name: string
+    created_at?: Date | string | null
+    companies: companiesCreateNestedOneWithoutLeave_typesInput
+  }
+
+  export type leave_typesUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type leave_typesUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneRequiredWithoutLeave_typesNestedInput
+  }
+
+  export type leave_typesUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type leave_typesCreateManyInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type leave_typesUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type leave_typesUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_categoriesCreateInput = {
+    name: string
+    created_at?: Date | string | null
+    companies: companiesCreateNestedOneWithoutDocument_categoriesInput
+  }
+
+  export type document_categoriesUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_categoriesUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneRequiredWithoutDocument_categoriesNestedInput
+  }
+
+  export type document_categoriesUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_categoriesCreateManyInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_categoriesUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_categoriesUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -40554,6 +44523,24 @@ export namespace Prisma {
     none?: customersWhereInput
   }
 
+  export type DepartmentsListRelationFilter = {
+    every?: departmentsWhereInput
+    some?: departmentsWhereInput
+    none?: departmentsWhereInput
+  }
+
+  export type Leave_typesListRelationFilter = {
+    every?: leave_typesWhereInput
+    some?: leave_typesWhereInput
+    none?: leave_typesWhereInput
+  }
+
+  export type Document_categoriesListRelationFilter = {
+    every?: document_categoriesWhereInput
+    some?: document_categoriesWhereInput
+    none?: document_categoriesWhereInput
+  }
+
   export type employeesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -40579,6 +44566,18 @@ export namespace Prisma {
   }
 
   export type customersOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type departmentsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type leave_typesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type document_categoriesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -42208,6 +46207,99 @@ export namespace Prisma {
     is_archived?: SortOrder
   }
 
+  export type departmentsCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type departmentsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type departmentsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type departmentsMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type departmentsSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type leave_typesCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type leave_typesAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type leave_typesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type leave_typesMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type leave_typesSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type document_categoriesCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type document_categoriesAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type document_categoriesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type document_categoriesMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type document_categoriesSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {
     create?: XOR<vehiclesCreateWithoutAssignmentsInput, vehiclesUncheckedCreateWithoutAssignmentsInput>
     connectOrCreate?: vehiclesCreateOrConnectWithoutAssignmentsInput
@@ -42317,6 +46409,27 @@ export namespace Prisma {
     connect?: customersWhereUniqueInput | customersWhereUniqueInput[]
   }
 
+  export type departmentsCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<departmentsCreateWithoutCompaniesInput, departmentsUncheckedCreateWithoutCompaniesInput> | departmentsCreateWithoutCompaniesInput[] | departmentsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: departmentsCreateOrConnectWithoutCompaniesInput | departmentsCreateOrConnectWithoutCompaniesInput[]
+    createMany?: departmentsCreateManyCompaniesInputEnvelope
+    connect?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+  }
+
+  export type leave_typesCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<leave_typesCreateWithoutCompaniesInput, leave_typesUncheckedCreateWithoutCompaniesInput> | leave_typesCreateWithoutCompaniesInput[] | leave_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: leave_typesCreateOrConnectWithoutCompaniesInput | leave_typesCreateOrConnectWithoutCompaniesInput[]
+    createMany?: leave_typesCreateManyCompaniesInputEnvelope
+    connect?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+  }
+
+  export type document_categoriesCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<document_categoriesCreateWithoutCompaniesInput, document_categoriesUncheckedCreateWithoutCompaniesInput> | document_categoriesCreateWithoutCompaniesInput[] | document_categoriesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_categoriesCreateOrConnectWithoutCompaniesInput | document_categoriesCreateOrConnectWithoutCompaniesInput[]
+    createMany?: document_categoriesCreateManyCompaniesInputEnvelope
+    connect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+  }
+
   export type employeesUncheckedCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -42370,6 +46483,27 @@ export namespace Prisma {
     connectOrCreate?: customersCreateOrConnectWithoutCompaniesInput | customersCreateOrConnectWithoutCompaniesInput[]
     createMany?: customersCreateManyCompaniesInputEnvelope
     connect?: customersWhereUniqueInput | customersWhereUniqueInput[]
+  }
+
+  export type departmentsUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<departmentsCreateWithoutCompaniesInput, departmentsUncheckedCreateWithoutCompaniesInput> | departmentsCreateWithoutCompaniesInput[] | departmentsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: departmentsCreateOrConnectWithoutCompaniesInput | departmentsCreateOrConnectWithoutCompaniesInput[]
+    createMany?: departmentsCreateManyCompaniesInputEnvelope
+    connect?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+  }
+
+  export type leave_typesUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<leave_typesCreateWithoutCompaniesInput, leave_typesUncheckedCreateWithoutCompaniesInput> | leave_typesCreateWithoutCompaniesInput[] | leave_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: leave_typesCreateOrConnectWithoutCompaniesInput | leave_typesCreateOrConnectWithoutCompaniesInput[]
+    createMany?: leave_typesCreateManyCompaniesInputEnvelope
+    connect?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+  }
+
+  export type document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<document_categoriesCreateWithoutCompaniesInput, document_categoriesUncheckedCreateWithoutCompaniesInput> | document_categoriesCreateWithoutCompaniesInput[] | document_categoriesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_categoriesCreateOrConnectWithoutCompaniesInput | document_categoriesCreateOrConnectWithoutCompaniesInput[]
+    createMany?: document_categoriesCreateManyCompaniesInputEnvelope
+    connect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
   }
 
   export type usersUpdateOneRequiredWithoutCompaniesNestedInput = {
@@ -42488,6 +46622,48 @@ export namespace Prisma {
     deleteMany?: customersScalarWhereInput | customersScalarWhereInput[]
   }
 
+  export type departmentsUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<departmentsCreateWithoutCompaniesInput, departmentsUncheckedCreateWithoutCompaniesInput> | departmentsCreateWithoutCompaniesInput[] | departmentsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: departmentsCreateOrConnectWithoutCompaniesInput | departmentsCreateOrConnectWithoutCompaniesInput[]
+    upsert?: departmentsUpsertWithWhereUniqueWithoutCompaniesInput | departmentsUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: departmentsCreateManyCompaniesInputEnvelope
+    set?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    disconnect?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    delete?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    connect?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    update?: departmentsUpdateWithWhereUniqueWithoutCompaniesInput | departmentsUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: departmentsUpdateManyWithWhereWithoutCompaniesInput | departmentsUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: departmentsScalarWhereInput | departmentsScalarWhereInput[]
+  }
+
+  export type leave_typesUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<leave_typesCreateWithoutCompaniesInput, leave_typesUncheckedCreateWithoutCompaniesInput> | leave_typesCreateWithoutCompaniesInput[] | leave_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: leave_typesCreateOrConnectWithoutCompaniesInput | leave_typesCreateOrConnectWithoutCompaniesInput[]
+    upsert?: leave_typesUpsertWithWhereUniqueWithoutCompaniesInput | leave_typesUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: leave_typesCreateManyCompaniesInputEnvelope
+    set?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    disconnect?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    delete?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    connect?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    update?: leave_typesUpdateWithWhereUniqueWithoutCompaniesInput | leave_typesUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: leave_typesUpdateManyWithWhereWithoutCompaniesInput | leave_typesUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: leave_typesScalarWhereInput | leave_typesScalarWhereInput[]
+  }
+
+  export type document_categoriesUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<document_categoriesCreateWithoutCompaniesInput, document_categoriesUncheckedCreateWithoutCompaniesInput> | document_categoriesCreateWithoutCompaniesInput[] | document_categoriesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_categoriesCreateOrConnectWithoutCompaniesInput | document_categoriesCreateOrConnectWithoutCompaniesInput[]
+    upsert?: document_categoriesUpsertWithWhereUniqueWithoutCompaniesInput | document_categoriesUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: document_categoriesCreateManyCompaniesInputEnvelope
+    set?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    disconnect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    delete?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    connect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    update?: document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput | document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: document_categoriesUpdateManyWithWhereWithoutCompaniesInput | document_categoriesUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: document_categoriesScalarWhereInput | document_categoriesScalarWhereInput[]
+  }
+
   export type employeesUncheckedUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -42594,6 +46770,48 @@ export namespace Prisma {
     update?: customersUpdateWithWhereUniqueWithoutCompaniesInput | customersUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: customersUpdateManyWithWhereWithoutCompaniesInput | customersUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: customersScalarWhereInput | customersScalarWhereInput[]
+  }
+
+  export type departmentsUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<departmentsCreateWithoutCompaniesInput, departmentsUncheckedCreateWithoutCompaniesInput> | departmentsCreateWithoutCompaniesInput[] | departmentsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: departmentsCreateOrConnectWithoutCompaniesInput | departmentsCreateOrConnectWithoutCompaniesInput[]
+    upsert?: departmentsUpsertWithWhereUniqueWithoutCompaniesInput | departmentsUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: departmentsCreateManyCompaniesInputEnvelope
+    set?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    disconnect?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    delete?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    connect?: departmentsWhereUniqueInput | departmentsWhereUniqueInput[]
+    update?: departmentsUpdateWithWhereUniqueWithoutCompaniesInput | departmentsUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: departmentsUpdateManyWithWhereWithoutCompaniesInput | departmentsUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: departmentsScalarWhereInput | departmentsScalarWhereInput[]
+  }
+
+  export type leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<leave_typesCreateWithoutCompaniesInput, leave_typesUncheckedCreateWithoutCompaniesInput> | leave_typesCreateWithoutCompaniesInput[] | leave_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: leave_typesCreateOrConnectWithoutCompaniesInput | leave_typesCreateOrConnectWithoutCompaniesInput[]
+    upsert?: leave_typesUpsertWithWhereUniqueWithoutCompaniesInput | leave_typesUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: leave_typesCreateManyCompaniesInputEnvelope
+    set?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    disconnect?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    delete?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    connect?: leave_typesWhereUniqueInput | leave_typesWhereUniqueInput[]
+    update?: leave_typesUpdateWithWhereUniqueWithoutCompaniesInput | leave_typesUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: leave_typesUpdateManyWithWhereWithoutCompaniesInput | leave_typesUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: leave_typesScalarWhereInput | leave_typesScalarWhereInput[]
+  }
+
+  export type document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<document_categoriesCreateWithoutCompaniesInput, document_categoriesUncheckedCreateWithoutCompaniesInput> | document_categoriesCreateWithoutCompaniesInput[] | document_categoriesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_categoriesCreateOrConnectWithoutCompaniesInput | document_categoriesCreateOrConnectWithoutCompaniesInput[]
+    upsert?: document_categoriesUpsertWithWhereUniqueWithoutCompaniesInput | document_categoriesUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: document_categoriesCreateManyCompaniesInputEnvelope
+    set?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    disconnect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    delete?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    connect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+    update?: document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput | document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: document_categoriesUpdateManyWithWhereWithoutCompaniesInput | document_categoriesUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: document_categoriesScalarWhereInput | document_categoriesScalarWhereInput[]
   }
 
   export type companiesCreateNestedOneWithoutCustomersInput = {
@@ -43884,6 +48102,48 @@ export namespace Prisma {
     deleteMany?: work_itemsScalarWhereInput | work_itemsScalarWhereInput[]
   }
 
+  export type companiesCreateNestedOneWithoutDepartmentsInput = {
+    create?: XOR<companiesCreateWithoutDepartmentsInput, companiesUncheckedCreateWithoutDepartmentsInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutDepartmentsInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutDepartmentsNestedInput = {
+    create?: XOR<companiesCreateWithoutDepartmentsInput, companiesUncheckedCreateWithoutDepartmentsInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutDepartmentsInput
+    upsert?: companiesUpsertWithoutDepartmentsInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutDepartmentsInput, companiesUpdateWithoutDepartmentsInput>, companiesUncheckedUpdateWithoutDepartmentsInput>
+  }
+
+  export type companiesCreateNestedOneWithoutLeave_typesInput = {
+    create?: XOR<companiesCreateWithoutLeave_typesInput, companiesUncheckedCreateWithoutLeave_typesInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutLeave_typesInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutLeave_typesNestedInput = {
+    create?: XOR<companiesCreateWithoutLeave_typesInput, companiesUncheckedCreateWithoutLeave_typesInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutLeave_typesInput
+    upsert?: companiesUpsertWithoutLeave_typesInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutLeave_typesInput, companiesUpdateWithoutLeave_typesInput>, companiesUncheckedUpdateWithoutLeave_typesInput>
+  }
+
+  export type companiesCreateNestedOneWithoutDocument_categoriesInput = {
+    create?: XOR<companiesCreateWithoutDocument_categoriesInput, companiesUncheckedCreateWithoutDocument_categoriesInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutDocument_categoriesInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutDocument_categoriesNestedInput = {
+    create?: XOR<companiesCreateWithoutDocument_categoriesInput, companiesUncheckedCreateWithoutDocument_categoriesInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutDocument_categoriesInput
+    upsert?: companiesUpsertWithoutDocument_categoriesInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutDocument_categoriesInput, companiesUpdateWithoutDocument_categoriesInput>, companiesUncheckedUpdateWithoutDocument_categoriesInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -44564,6 +48824,66 @@ export namespace Prisma {
     data: customersCreateManyCompaniesInput | customersCreateManyCompaniesInput[]
   }
 
+  export type departmentsCreateWithoutCompaniesInput = {
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type departmentsUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type departmentsCreateOrConnectWithoutCompaniesInput = {
+    where: departmentsWhereUniqueInput
+    create: XOR<departmentsCreateWithoutCompaniesInput, departmentsUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type departmentsCreateManyCompaniesInputEnvelope = {
+    data: departmentsCreateManyCompaniesInput | departmentsCreateManyCompaniesInput[]
+  }
+
+  export type leave_typesCreateWithoutCompaniesInput = {
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type leave_typesUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type leave_typesCreateOrConnectWithoutCompaniesInput = {
+    where: leave_typesWhereUniqueInput
+    create: XOR<leave_typesCreateWithoutCompaniesInput, leave_typesUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type leave_typesCreateManyCompaniesInputEnvelope = {
+    data: leave_typesCreateManyCompaniesInput | leave_typesCreateManyCompaniesInput[]
+  }
+
+  export type document_categoriesCreateWithoutCompaniesInput = {
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_categoriesUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_categoriesCreateOrConnectWithoutCompaniesInput = {
+    where: document_categoriesWhereUniqueInput
+    create: XOR<document_categoriesCreateWithoutCompaniesInput, document_categoriesUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type document_categoriesCreateManyCompaniesInputEnvelope = {
+    data: document_categoriesCreateManyCompaniesInput | document_categoriesCreateManyCompaniesInput[]
+  }
+
   export type usersUpsertWithoutCompaniesInput = {
     update: XOR<usersUpdateWithoutCompaniesInput, usersUncheckedUpdateWithoutCompaniesInput>
     create: XOR<usersCreateWithoutCompaniesInput, usersUncheckedCreateWithoutCompaniesInput>
@@ -44864,6 +49184,84 @@ export namespace Prisma {
     is_archived?: IntNullableFilter<"customers"> | number | null
   }
 
+  export type departmentsUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: departmentsWhereUniqueInput
+    update: XOR<departmentsUpdateWithoutCompaniesInput, departmentsUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<departmentsCreateWithoutCompaniesInput, departmentsUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type departmentsUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: departmentsWhereUniqueInput
+    data: XOR<departmentsUpdateWithoutCompaniesInput, departmentsUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type departmentsUpdateManyWithWhereWithoutCompaniesInput = {
+    where: departmentsScalarWhereInput
+    data: XOR<departmentsUpdateManyMutationInput, departmentsUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type departmentsScalarWhereInput = {
+    AND?: departmentsScalarWhereInput | departmentsScalarWhereInput[]
+    OR?: departmentsScalarWhereInput[]
+    NOT?: departmentsScalarWhereInput | departmentsScalarWhereInput[]
+    id?: IntFilter<"departments"> | number
+    company_id?: IntFilter<"departments"> | number
+    name?: StringFilter<"departments"> | string
+    created_at?: DateTimeNullableFilter<"departments"> | Date | string | null
+  }
+
+  export type leave_typesUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: leave_typesWhereUniqueInput
+    update: XOR<leave_typesUpdateWithoutCompaniesInput, leave_typesUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<leave_typesCreateWithoutCompaniesInput, leave_typesUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type leave_typesUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: leave_typesWhereUniqueInput
+    data: XOR<leave_typesUpdateWithoutCompaniesInput, leave_typesUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type leave_typesUpdateManyWithWhereWithoutCompaniesInput = {
+    where: leave_typesScalarWhereInput
+    data: XOR<leave_typesUpdateManyMutationInput, leave_typesUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type leave_typesScalarWhereInput = {
+    AND?: leave_typesScalarWhereInput | leave_typesScalarWhereInput[]
+    OR?: leave_typesScalarWhereInput[]
+    NOT?: leave_typesScalarWhereInput | leave_typesScalarWhereInput[]
+    id?: IntFilter<"leave_types"> | number
+    company_id?: IntFilter<"leave_types"> | number
+    name?: StringFilter<"leave_types"> | string
+    created_at?: DateTimeNullableFilter<"leave_types"> | Date | string | null
+  }
+
+  export type document_categoriesUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: document_categoriesWhereUniqueInput
+    update: XOR<document_categoriesUpdateWithoutCompaniesInput, document_categoriesUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<document_categoriesCreateWithoutCompaniesInput, document_categoriesUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: document_categoriesWhereUniqueInput
+    data: XOR<document_categoriesUpdateWithoutCompaniesInput, document_categoriesUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type document_categoriesUpdateManyWithWhereWithoutCompaniesInput = {
+    where: document_categoriesScalarWhereInput
+    data: XOR<document_categoriesUpdateManyMutationInput, document_categoriesUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type document_categoriesScalarWhereInput = {
+    AND?: document_categoriesScalarWhereInput | document_categoriesScalarWhereInput[]
+    OR?: document_categoriesScalarWhereInput[]
+    NOT?: document_categoriesScalarWhereInput | document_categoriesScalarWhereInput[]
+    id?: IntFilter<"document_categories"> | number
+    company_id?: IntFilter<"document_categories"> | number
+    name?: StringFilter<"document_categories"> | string
+    created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
+  }
+
   export type companiesCreateWithoutCustomersInput = {
     name: string
     tax_number?: string | null
@@ -44878,6 +49276,9 @@ export namespace Prisma {
     transactions?: transactionsCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutCustomersInput = {
@@ -44895,6 +49296,9 @@ export namespace Prisma {
     transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutCustomersInput = {
@@ -44971,6 +49375,9 @@ export namespace Prisma {
     transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutCustomersInput = {
@@ -44988,6 +49395,9 @@ export namespace Prisma {
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type worksUpsertWithWhereUniqueWithoutCustomersInput = {
@@ -45950,6 +50360,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutEmployeesInput = {
@@ -45967,6 +50380,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutEmployeesInput = {
@@ -46344,6 +50760,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutEmployeesInput = {
@@ -46361,6 +50780,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type leavesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -46994,6 +51416,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_settingsInput = {
@@ -47011,6 +51436,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_settingsInput = {
@@ -47043,6 +51471,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_settingsInput = {
@@ -47060,6 +51491,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutMeal_ticketsInput = {
@@ -47076,6 +51510,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_ticketsInput = {
@@ -47093,6 +51530,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_ticketsInput = {
@@ -47125,6 +51565,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_ticketsInput = {
@@ -47142,6 +51585,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutOvertimesInput = {
@@ -47292,6 +51738,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutRecurring_transactionsInput = {
@@ -47309,6 +51758,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutRecurring_transactionsInput = {
@@ -47341,6 +51793,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutRecurring_transactionsInput = {
@@ -47358,6 +51813,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutSalariesInput = {
@@ -47618,6 +52076,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutTransactionsInput = {
@@ -47635,6 +52096,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutTransactionsInput = {
@@ -47667,6 +52131,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutTransactionsInput = {
@@ -47684,6 +52151,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutUsersInput = {
@@ -47700,6 +52170,9 @@ export namespace Prisma {
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutUsersInput = {
@@ -47717,6 +52190,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutUsersInput = {
@@ -47979,6 +52455,9 @@ export namespace Prisma {
     transactions?: transactionsCreateNestedManyWithoutCompaniesInput
     works?: worksCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehiclesInput = {
@@ -47996,6 +52475,9 @@ export namespace Prisma {
     transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
     works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehiclesInput = {
@@ -48316,6 +52798,9 @@ export namespace Prisma {
     transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehiclesInput = {
@@ -48333,6 +52818,9 @@ export namespace Prisma {
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type work_itemsUpsertWithWhereUniqueWithoutVehiclesInput = {
@@ -48871,6 +53359,9 @@ export namespace Prisma {
     transactions?: transactionsCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
     customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutWorksInput = {
@@ -48888,6 +53379,9 @@ export namespace Prisma {
     transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
     vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutWorksInput = {
@@ -49096,6 +53590,9 @@ export namespace Prisma {
     transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutWorksInput = {
@@ -49113,6 +53610,9 @@ export namespace Prisma {
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type customersUpsertWithoutWorksInput = {
@@ -49151,6 +53651,288 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type companiesCreateWithoutDepartmentsInput = {
+    name: string
+    tax_number?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutDepartmentsInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutDepartmentsInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutDepartmentsInput, companiesUncheckedCreateWithoutDepartmentsInput>
+  }
+
+  export type companiesUpsertWithoutDepartmentsInput = {
+    update: XOR<companiesUpdateWithoutDepartmentsInput, companiesUncheckedUpdateWithoutDepartmentsInput>
+    create: XOR<companiesCreateWithoutDepartmentsInput, companiesUncheckedCreateWithoutDepartmentsInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutDepartmentsInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutDepartmentsInput, companiesUncheckedUpdateWithoutDepartmentsInput>
+  }
+
+  export type companiesUpdateWithoutDepartmentsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutDepartmentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesCreateWithoutLeave_typesInput = {
+    name: string
+    tax_number?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutLeave_typesInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutLeave_typesInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutLeave_typesInput, companiesUncheckedCreateWithoutLeave_typesInput>
+  }
+
+  export type companiesUpsertWithoutLeave_typesInput = {
+    update: XOR<companiesUpdateWithoutLeave_typesInput, companiesUncheckedUpdateWithoutLeave_typesInput>
+    create: XOR<companiesCreateWithoutLeave_typesInput, companiesUncheckedCreateWithoutLeave_typesInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutLeave_typesInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutLeave_typesInput, companiesUncheckedUpdateWithoutLeave_typesInput>
+  }
+
+  export type companiesUpdateWithoutLeave_typesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutLeave_typesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesCreateWithoutDocument_categoriesInput = {
+    name: string
+    tax_number?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutDocument_categoriesInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutDocument_categoriesInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutDocument_categoriesInput, companiesUncheckedCreateWithoutDocument_categoriesInput>
+  }
+
+  export type companiesUpsertWithoutDocument_categoriesInput = {
+    update: XOR<companiesUpdateWithoutDocument_categoriesInput, companiesUncheckedUpdateWithoutDocument_categoriesInput>
+    create: XOR<companiesCreateWithoutDocument_categoriesInput, companiesUncheckedCreateWithoutDocument_categoriesInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutDocument_categoriesInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutDocument_categoriesInput, companiesUncheckedUpdateWithoutDocument_categoriesInput>
+  }
+
+  export type companiesUpdateWithoutDocument_categoriesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutDocument_categoriesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateManyCompaniesInput = {
@@ -49257,6 +54039,24 @@ export namespace Prisma {
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
+  }
+
+  export type departmentsCreateManyCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type leave_typesCreateManyCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_categoriesCreateManyCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
   }
 
   export type employeesUpdateWithoutCompaniesInput = {
@@ -49608,6 +54408,57 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type departmentsUpdateWithoutCompaniesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type departmentsUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type departmentsUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type leave_typesUpdateWithoutCompaniesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type leave_typesUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type leave_typesUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_categoriesUpdateWithoutCompaniesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_categoriesUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_categoriesUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type worksCreateManyCustomersInput = {
@@ -50210,6 +55061,9 @@ export namespace Prisma {
     vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
     works?: worksUpdateManyWithoutCompaniesNestedInput
     customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutUsersInput = {
@@ -50227,6 +55081,9 @@ export namespace Prisma {
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
     works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateManyWithoutUsersInput = {

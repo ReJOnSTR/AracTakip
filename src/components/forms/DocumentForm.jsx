@@ -2,28 +2,32 @@ import { useState, useEffect } from 'react'
 import { X, Upload, FileText, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Plus, Check, Trash2 } from 'lucide-react'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import { useCompany } from '../../context/CompanyContext'
 import { formatDateForInput } from '../../utils/helpers'
 
 export default function DocumentForm({ onSubmit, onCancel, loading, initialType = 'other', options }) {
+    const { currentCompany } = useCompany()
     const [queue, setQueue] = useState([])
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isSelectionPhase, setIsSelectionPhase] = useState(true)
+    const [documentTypes, setDocumentTypes] = useState(options || [])
 
-    const defaultDocumentTypes = [
-        { value: 'ehliyet', label: 'Ehliyet' },
-        { value: 'src', label: 'SRC Belgesi' },
-        { value: 'psikoteknik', label: 'Psikoteknik' },
-        { value: 'sozlesme', label: 'İş Sözleşmesi' },
-        { value: 'kimlik', label: 'Kimlik Fotokopisi' },
-        { value: 'sabika', label: 'Adli Sicil Kaydı' },
-        { value: 'saglik', label: 'Sağlık Raporu' },
-        { value: 'ikametgah', label: 'İkametgah' },
-        { value: 'diploma', label: 'Diploma' },
-        { value: 'certificate', label: 'Sertifika / Belge' },
-        { value: 'other', label: 'Diğer' }
-    ]
+    useEffect(() => {
+        if (!options && currentCompany) {
+            loadCategories()
+        }
+    }, [currentCompany, options])
 
-    const documentTypes = options || defaultDocumentTypes
+    const loadCategories = async () => {
+        try {
+            const res = await window.electronAPI.getDocumentCategories(currentCompany.id)
+            if (res.success) {
+                setDocumentTypes(res.data.map(t => ({ value: t.name, label: t.name })))
+            }
+        } catch (error) {
+            console.error('Failed to load document categories:', error)
+        }
+    }
 
     const handleSelectFiles = async () => {
         try {

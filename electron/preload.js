@@ -115,6 +115,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
     selectFolder: () => ipcRenderer.invoke('settings:selectFolder'),
 
+    // Personnel Settings
+    getDepartments: (companyId) => ipcRenderer.invoke('settings:getDepartments', companyId),
+    createDepartment: (data) => ipcRenderer.invoke('settings:createDepartment', data),
+    updateDepartment: (data) => ipcRenderer.invoke('settings:updateDepartment', data),
+    deleteDepartment: (id) => ipcRenderer.invoke('settings:deleteDepartment', id),
+    getLeaveTypes: (companyId) => ipcRenderer.invoke('settings:getLeaveTypes', companyId),
+    createLeaveType: (data) => ipcRenderer.invoke('settings:createLeaveType', data),
+    updateLeaveType: (data) => ipcRenderer.invoke('settings:updateLeaveType', data),
+    deleteLeaveType: (id) => ipcRenderer.invoke('settings:deleteLeaveType', id),
+    getDocumentCategories: (companyId) => ipcRenderer.invoke('settings:getDocumentCategories', companyId),
+    createDocumentCategory: (data) => ipcRenderer.invoke('settings:createDocumentCategory', data),
+    updateDocumentCategory: (data) => ipcRenderer.invoke('settings:updateDocumentCategory', data),
+    deleteDocumentCategory: (id) => ipcRenderer.invoke('settings:deleteDocumentCategory', id),
+
     // Auto Updater
     checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
     downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),

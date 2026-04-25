@@ -41,6 +41,9 @@ model companies {
   vehicles               vehicles[]
   works                  works[]
   customers              customers[]
+  departments            departments[]
+  leave_types            leave_types[]
+  document_categories    document_categories[]
 
   @@index([user_id], map: "idx_companies_user")
 }
@@ -458,3 +461,28 @@ model works {
   @@index([company_id], map: "idx_works_company")
   @@index([customer_id], map: "idx_works_customer")
 }
+
+model departments {
+  id          Int       @id @default(autoincrement())
+  company_id  Int
+  name        String
+  created_at  DateTime? @default(now())
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model leave_types {
+  id          Int       @id @default(autoincrement())
+  company_id  Int
+  name        String
+  created_at  DateTime? @default(now())
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model document_categories {
+  id          Int       @id @default(autoincrement())
+  company_id  Int
+  name        String
+  created_at  DateTime? @default(now())
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+

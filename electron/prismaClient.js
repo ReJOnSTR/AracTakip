@@ -207,6 +207,95 @@ async function runAutoMigrations() {
         log.error('Migration step 11 (employee_documents) error:', error.message);
     }
 
+    // 12. Seed Default Personnel Settings for all companies
+    try {
+        const companies = await p.companies.findMany();
+        const defaultDepts = ['Yönetim', 'Operasyon', 'Muhasebe', 'İnsan Kaynakları', 'Lojistik', 'Teknik', 'Satış', 'Diğer'];
+        const defaultLeaveTypes = [
+            'Yıllık Ücretli İzin', 
+            'Ücretsiz İzin', 
+            'Hastalık / Rapor (İstirahat)', 
+            'Mazeret İzni', 
+            'Evlilik İzni', 
+            'Ölüm İzni', 
+            'Doğum / Analık İzni', 
+            'Babalık İzni', 
+            'Süt İzni', 
+            'İdari İzin', 
+            'Mesai İzni (Mahsup)', 
+            'Diğer'
+        ];
+        const defaultDocCats = ['Ehliyet', 'SRC Belgesi', 'Psikoteknik', 'İş Sözleşmesi', 'Kimlik Fotokopisi', 'Adli Sicil Kaydı', 'Sağlık Raporu', 'İkametgah', 'Diploma', 'Sertifika / Belge', 'Diğer'];
+
+        for (const company of companies) {
+            if (p.departments) {
+                const existingDepts = await p.departments.findMany({ where: { company_id: company.id } });
+                const existingDeptNames = existingDepts.map(d => d.name.toLowerCase());
+                
+                for (const name of defaultDepts) {
+                    if (!existingDeptNames.includes(name.toLowerCase())) {
+                        await p.departments.create({ data: { company_id: company.id, name } });
+                        log.info(`Seeding: Added default department "${name}" for company ${company.id}`);
+                    }
+                }
+            }
+
+            if (p.leave_types) {
+                const existingTypes = await p.leave_types.findMany({ where: { company_id: company.id } });
+                const existingNames = existingTypes.map(t => t.name.toLowerCase());
+                
+                for (const name of defaultLeaveTypes) {
+                    if (!existingNames.includes(name.toLowerCase())) {
+                        await p.leave_types.create({ data: { company_id: company.id, name } });
+                        log.info(`Seeding: Added official leave type "${name}" for company ${company.id}`);
+                    }
+                }
+            }
+
+            if (p.document_categories) {
+                const docCount = await p.document_categories.count({ where: { company_id: company.id } });
+                if (docCount === 0) {
+                    for (const name of defaultDocCats) {
+                        await p.document_categories.create({ data: { company_id: company.id, name } });
+                    }
+                    log.info(`Seeding: Added default document categories for company ${company.id}`);
+                }
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 12 (seeding settings) error:', error.message);
+    }
+
+    // 13. Migrate legacy data labels to new Turkish names
+    try {
+        log.info('Migrating legacy data labels...');
+        // Leaves
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Yıllık İzin' WHERE type = 'annual'");
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Hastalık / Rapor' WHERE type = 'sick'");
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Ücretsiz İzin' WHERE type = 'unpaid'");
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Mazeret İzni' WHERE type = 'excuse'");
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Mesai İzni' WHERE type = 'overtime_leave'");
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Mahsup' WHERE type = 'offset'");
+        await p.$executeRawUnsafe("UPDATE leaves SET type = 'Diğer' WHERE type = 'other'");
+
+        // Document Categories
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Ehliyet' WHERE category = 'ehliyet'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'SRC Belgesi' WHERE category = 'src'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Psikoteknik' WHERE category = 'psikoteknik'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'İş Sözleşmesi' WHERE category = 'sozlesme'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Kimlik Fotokopisi' WHERE category = 'kimlik'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Adli Sicil Kaydı' WHERE category = 'sabika'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Sağlık Raporu' WHERE category = 'saglik'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'İkametgah' WHERE category = 'ikametgah'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Diploma' WHERE category = 'diploma'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Sertifika / Belge' WHERE category = 'certificate'");
+        await p.$executeRawUnsafe("UPDATE employee_documents SET category = 'Diğer' WHERE category = 'other'");
+        
+        log.info('Data label migration completed.');
+    } catch (error) {
+        log.error('Migration step 13 (data labels) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

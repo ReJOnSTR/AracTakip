@@ -40,5 +40,8 @@ module.exports = {
     ...require('./services/work.service'),
     
     // Customers (Cari)
-    ...require('./services/customer.service')
+    ...require('./services/customer.service'),
+
+    // Personnel Settings (Departments, Leaves, Doc Categories)
+    ...require('./services/personnelSettings.service')
 };

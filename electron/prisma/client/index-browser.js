@@ -470,6 +470,27 @@ exports.Prisma.WorksScalarFieldEnum = {
   is_archived: 'is_archived'
 };
 
+exports.Prisma.DepartmentsScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  created_at: 'created_at'
+};
+
+exports.Prisma.Leave_typesScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  created_at: 'created_at'
+};
+
+exports.Prisma.Document_categoriesScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -507,7 +528,10 @@ exports.Prisma.ModelName = {
   users: 'users',
   vehicles: 'vehicles',
   work_items: 'work_items',
-  works: 'works'
+  works: 'works',
+  departments: 'departments',
+  leave_types: 'leave_types',
+  document_categories: 'document_categories'
 };
 
 /**
