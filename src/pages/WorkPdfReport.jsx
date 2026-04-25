@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -52,7 +52,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
             setLoading(false);
         };
         loadData();
-    }, [id]);
+    }, [id, propWork]);
 
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
@@ -210,18 +210,22 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
                 </div>
             )}
 
-            <div className="pdf-report-container">
+            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''}`}>
                 {/* Header */}
-            <div className="pdf-header">
-                <h2>Sak Vinç Puantaj Cetveli</h2>
-                <div className="pdf-date-right">
-                    {new Date().toLocaleDateString('tr-TR')}
+                <div className="pdf-header-standard">
+                    <div>
+                        <h1 className="pdf-title-standard">PUANTAJ CETVELİ</h1>
+                        <div className="pdf-company-standard">{(work.customer_name || 'Müşteri Belirtilmemiş').toUpperCase()}</div>
+                    </div>
+                    <div className="pdf-date-standard">
+                        <div className="pdf-date-label">Rapor Tarihi</div>
+                        <div className="pdf-date-value">{new Date().toLocaleDateString('tr-TR')}</div>
+                    </div>
                 </div>
-            </div>
 
-            <div className="pdf-customer-title">
-                <h3>{(work.customer_name || '').toUpperCase()}</h3>
-            </div>
+                <div style={{ marginBottom: '15px' }}>
+                    {/* Header info removed as requested */}
+                </div>
 
             {/* Tables grouped by vehicle */}
             {groups.map((group, idx) => {
@@ -277,49 +281,49 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
                                     <col style={{ width: '150px' }} />
                                 </colgroup>
                                 <tbody>
-                                    <tr className="bg-light-green">
-                                        <td colSpan="4" className="bold center" style={{ backgroundColor: '#e2f0e0', padding: '4px', fontSize: '11px', borderBottom: '1px solid #333' }}>
+                                    <tr className="bg-light-gray">
+                                        <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
                                             {group.machineName.toUpperCase()}
                                         </td>
                                     </tr>
                                     {(group.totalGun > 0 || group.isAylik) && (
-                                        <tr className="bg-light-green">
+                                        <tr className="bg-light-gray">
                                             <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
                                             <td className="center">{group.isAylik ? '1 AY' : (group.totalGun > 0 ? `${group.totalGun} GÜN` : '')}</td>
                                             <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
-                                            <td className="right bold green-text">{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
+                                            <td className="right bold total-text">{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
                                         </tr>
                                     )}
                                     {group.totalSaatlik > 0 && (
-                                        <tr className="bg-light-green">
+                                        <tr className="bg-light-gray">
                                             <td className="bold center">SAAT</td>
                                             <td className="center">{group.totalSaatlik} SAAT</td>
                                             <td className="right">{sampleSaatlikPrice ? formatCurrency(sampleSaatlikPrice) : ''}</td>
-                                            <td className="right bold green-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
+                                            <td className="right bold total-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
                                         </tr>
                                     )}
                                     {group.totalYol > 0 && (
-                                        <tr className="bg-light-green">
+                                        <tr className="bg-light-gray">
                                             <td className="bold center">YOL</td>
                                             <td className="center">{group.totalYol} ADET</td>
                                             <td className="right">{sampleYolPrice ? formatCurrency(sampleYolPrice) : ''}</td>
-                                            <td className="right bold green-text">{sampleYolPrice ? formatCurrency(group.totalYol * sampleYolPrice) : ''}</td>
+                                            <td className="right bold total-text">{sampleYolPrice ? formatCurrency(group.totalYol * sampleYolPrice) : ''}</td>
                                         </tr>
                                     )}
                                     {group.totalPazar > 0 && (
-                                        <tr className="bg-light-green">
+                                        <tr className="bg-light-gray">
                                             <td className="bold center">PAZAR</td>
                                             <td className="center">{group.totalPazar} GÜN</td>
                                             <td className="right">{samplePazarPrice ? formatCurrency(samplePazarPrice) : ''}</td>
-                                            <td className="right bold green-text">{samplePazarPrice ? formatCurrency(group.totalPazar * samplePazarPrice) : ''}</td>
+                                            <td className="right bold total-text">{samplePazarPrice ? formatCurrency(group.totalPazar * samplePazarPrice) : ''}</td>
                                         </tr>
                                     )}
                                     {group.totalMesai > 0 && (
-                                        <tr className="bg-light-green">
+                                        <tr className="bg-light-gray">
                                             <td className="bold center">MESAİ</td>
                                             <td className="center">{group.totalMesai} SAAT</td>
                                             <td className="right">{sampleMesaiPrice ? formatCurrency(sampleMesaiPrice) : ''}</td>
-                                            <td className="right bold green-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
+                                            <td className="right bold total-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -338,8 +342,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
                     </colgroup>
                     <tbody>
                         <tr>
-                            <td className="bold center bg-light-blue">TOPLAM</td>
-                            <td className="right bold green-text" style={{ backgroundColor: '#e2f0e0' }}>{formatCurrency(grandTotalPrice)}</td>
+                            <td className="bold center">TOPLAM</td>
+                            <td className="right bold total-text">{formatCurrency(grandTotalPrice)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -347,9 +351,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false }) {
 
             <div className="pdf-footer-note">
                 <strong>NOT:</strong>
-                <div style={{ marginLeft: '20px', display: 'inline-block' }}>Oluşturma Tarihi: {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR')} - {(work.customer_name || '').toUpperCase()} PUANTAJ CETVELİ</div>
+                <div style={{ marginLeft: '10px', display: 'inline-block' }}>Oluşturma Tarihi: {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR')} - {work.title}</div>
             </div>
 
+            <div className="pdf-footer-standard">Puantaj Raporları</div>
         </div>
         </div>
     );

@@ -584,7 +584,7 @@ body {
   padding-left: 18px;
   padding-right: 18px;
   border-bottom: 1px solid var(--border-color);
-  height: 52px;
+  height: 40px;
   position: relative;
   white-space: nowrap;
   /* No padding transition = No logo movement */

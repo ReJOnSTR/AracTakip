@@ -1062,16 +1062,6 @@ export default function EmployeeDetail() {
             <div style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <div className="employee-avatar" style={{ 
-                            width: '72px', height: '72px', fontSize: '28px', 
-                            borderRadius: '20px', backgroundColor: 'var(--bg-tertiary)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--primary)', fontWeight: '600',
-                            border: '1px solid var(--border-color)',
-                            flexShrink: 0
-                        }}>
-                            {employee.first_name[0]}{employee.last_name[0]}
-                        </div>
                         <div>
                             <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>
                                 {employee.first_name} {employee.last_name}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import ReportRenderer from '../components/ReportRenderer'
 import EmployeeReportRenderer from '../components/EmployeeReportRenderer'
+import WorkPdfReport from './WorkPdfReport'
 
 export default function PrintPage() {
     const [data, setData] = useState(null)
@@ -11,7 +12,7 @@ export default function PrintPage() {
             try {
                 const parsed = JSON.parse(storedData)
                 setData(parsed)
-                document.title = parsed.isEmployeeReport ? 'Personel Raporları' : 'Araç Raporları'
+                document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
 
                 // Trigger print after render
                 setTimeout(() => {
@@ -24,6 +25,25 @@ export default function PrintPage() {
     }, [])
 
     if (!data) return <div style={{ padding: '20px' }}>Yükleniyor veya veri bulunamadı...</div>
+
+    if (data.isWorkReport) {
+        return (
+            <div className="print-body" style={{ background: 'white', minHeight: '100vh' }}>
+                <style type="text/css" media="print">
+                    {`
+                    @page {
+                        size: A4;
+                        margin: 0mm;
+                    }
+                    body {
+                        margin: 0px;
+                    }
+                    `}
+                </style>
+                <WorkPdfReport propWork={data.work} noHeader={true} isPreview={false} />
+            </div>
+        )
+    }
 
     const { reports, config, listConfig, dateRange, companyName, reportType } = data
 

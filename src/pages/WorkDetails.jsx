@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
@@ -15,7 +15,7 @@ export default function WorkDetails(props) {
     const { id: urlId } = useParams()
     const id = props.id || urlId
     const navigate = useNavigate()
-    const { openNewTab, replaceTab, activeTabId, closeTab } = useTabs()
+    const { openNewTab, replaceTab, activeTabId, closeTab, updateTabInfo } = useTabs()
     const [work, setWork] = useState(null)
     const [loading, setLoading] = useState(true)
     const [vehicles, setVehicles] = useState([])
@@ -50,6 +50,8 @@ export default function WorkDetails(props) {
 
     // Confirm Delete State
     const [confirmModal, setConfirmModal] = useState(null)
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+    const [generatingPdf, setGeneratingPdf] = useState(false)
 
     // Form State
     const [formData, setFormData] = useState({
@@ -481,6 +483,35 @@ export default function WorkDetails(props) {
         })
     }
 
+    const handleSavePdf = async () => {
+        if (!window.electronAPI?.saveAsPdf) {
+            alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.')
+            return
+        }
+
+        setGeneratingPdf(true)
+        setTimeout(async () => {
+            try {
+                const res = await window.electronAPI.saveAsPdf()
+                if (res && !res.success && !res.canceled) {
+                    alert('PDF Kaydedilirken Hata: ' + res.error)
+                }
+            } catch (err) {
+                console.error('PDF error:', err)
+            } finally {
+                setGeneratingPdf(false)
+            }
+        }, 100)
+    }
+
+    const handlePrintReport = () => {
+        localStorage.setItem('printData', JSON.stringify({
+            isWorkReport: true,
+            work: work
+        }))
+        window.open('#/print', '_blank', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
+    }
+
     // --- Calculations ---
 
     const totalHours = work?.items?.reduce((sum, item) => sum + (item.hours || 0), 0) || 0
@@ -685,11 +716,8 @@ export default function WorkDetails(props) {
                     <button onClick={openBulkAddModal} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                         <Calendar size={16} /> Hızlı Üretim (Toplu Ekle)
                     </button>
-                    <button onClick={() => { 
-                        localStorage.setItem('workPdfData', JSON.stringify(work));
-                        window.open(`#/work-report/${id}`, '_blank', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no,titlebar=no');
-                    }} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <FileText size={16} /> PDF Rapor
+                    <button onClick={() => setIsReportModalOpen(true)} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileText size={16} /> Raporu Görüntüle
                     </button>
                     <button onClick={openAddModal} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Plus size={16} /> Yeni Kayıt
@@ -1088,6 +1116,30 @@ export default function WorkDetails(props) {
                 onClose={() => setConfirmModal(null)}
                 type="danger"
             />
+
+            {/* Report Preview Modal */}
+            <Modal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                title={`Puantaj Raporu: ${work.title}`}
+                size="fullscreen"
+                footer={
+                    <>
+                        <button className="btn btn-secondary" onClick={() => setIsReportModalOpen(false)}>Kapat</button>
+                        <div style={{ marginRight: 'auto' }}></div>
+                        <button className="btn btn-primary" onClick={handleSavePdf} disabled={generatingPdf} style={{ gap: '6px' }}>
+                            <FileDown size={16} /> {generatingPdf ? 'Hazırlanıyor...' : 'PDF Olarak Kaydet'}
+                        </button>
+                        <button className="btn btn-primary" onClick={handlePrintReport} style={{ gap: '6px' }}>
+                            <Printer size={16} /> Yazdır
+                        </button>
+                    </>
+                }
+            >
+                <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-tertiary)', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.01)' }}>
+                    <WorkPdfReport propWork={work} noHeader={true} isPreview={true} />
+                </div>
+            </Modal>
         </div>
     )
 }

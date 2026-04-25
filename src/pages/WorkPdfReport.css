@@ -1,72 +1,70 @@
 /* WorkPdfReport.css */
 
-/* When the PDF report is rendered, make the whole background look like a PDF Viewer (Dark gray) */
-body:has(.pdf-report-container),
-#root:has(.pdf-report-container) {
-    background-color: #525659 !important;
-    padding: 20px 0;
-    overflow-y: auto !important;
-    height: auto !important;
-}
-
+/* Standard A4 Report Container */
 .pdf-report-container {
-    padding: 20mm 15mm;
-    background: #ffffff;
-    color: #333333;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 11px;
-    
-    /* Strict A4 format on screen */
     width: 210mm;
     min-height: 297mm;
+    padding: 20mm;
     margin: 0 auto;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    background: white;
+    position: relative;
     box-sizing: border-box;
-
-    /* Draw A4 lines on screen to show pagination */
-    background-image: repeating-linear-gradient(
-        to bottom,
-        #ffffff,
-        #ffffff calc(297mm - 1px),
-        #cbd5e1 calc(297mm - 1px),
-        #b4c4d4 297mm
-    );
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
 }
 
-.pdf-header {
+.pdf-report-container.is-preview {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border: 1px solid #e0e0e0;
+}
+
+/* Standard Header Classes */
+.pdf-header-standard {
+    border-bottom: 2px solid #000;
+    padding-bottom: 20px;
+    marginBottom: 30px;
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 10px;
+    align-items: center;
     margin-bottom: 25px;
 }
 
-.pdf-header h2 {
-    color: #2c3e50;
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
+.pdf-title-standard {
+    font-size: 24px;
+    fontWeight: bold;
+    margin: 0 0 5px 0;
+    color: #000;
 }
 
-.pdf-date-right {
-    color: #7f8c8d;
+.pdf-company-standard {
+    font-size: 14px;
+    color: #666;
+}
+
+.pdf-date-standard {
+    text-align: right;
+}
+
+.pdf-date-label {
     font-size: 12px;
+    color: #666;
 }
 
-.pdf-customer-title {
+.pdf-date-value {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.pdf-footer-standard {
+    position: absolute;
+    bottom: 20mm;
+    left: 20mm;
+    right: 20mm;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    font-size: 10px;
+    color: #999;
     text-align: center;
-    color: #34495e;
-    font-size: 18px;
-    margin-bottom: 25px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.pdf-customer-title h3 {
-    margin: 0;
 }
 
 .pdf-vehicle-group {
@@ -98,7 +96,7 @@ body:has(.pdf-report-container),
 .pdf-table td {
     padding: 4px 6px; 
     line-height: 1.2;
-    border: 1px solid #000; /* Formal solid border */
+    border: 1px solid #ddd; /* Match standard reports */
 }
 
 /* Remove striped rows for a minimalist formal paper look */
@@ -139,13 +137,13 @@ body:has(.pdf-report-container),
     border-collapse: collapse;
     width: 320px;
     background: #ffffff;
-    border: 1px solid #000; 
+    border: 1px solid #ddd; 
 }
 
 .pdf-summary-table th,
 .pdf-summary-table td {
     padding: 4px 8px;
-    border: 1px solid #000;
+    border: 1px solid #ddd;
 }
 
 .pdf-summary-table td {
@@ -153,17 +151,17 @@ body:has(.pdf-report-container),
     color: #000;
 }
 
-.bg-light-green td {
-    background-color: #f8fbf8;
+.bg-light-gray td {
+    background-color: #f9f9f9;
 }
 
 .bg-light-blue {
     background-color: #f4f8fb;
 }
 
-.green-text {
-    color: #27ae60;
-    font-weight: 600;
+.total-text {
+    color: #000;
+    font-weight: 700;
 }
 
 .bold {
@@ -185,8 +183,7 @@ body:has(.pdf-report-container),
 
 /* Grand Total Summary */
 .pdf-grand-total .pdf-summary-table {
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #ddd;
 }
 
 .pdf-grand-total td {
@@ -205,43 +202,46 @@ body:has(.pdf-report-container),
     border-radius: 0 4px 4px 0;
 }
 
-/* Print Specific */
 @media print {
-    /* Override global index.css that forces height: 100% and overflow: hidden */
-    html, body, #root, .app, .main-content {
-        height: auto !important;
-        overflow: visible !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-    }
-
+    /* Hide everything first */
     body * {
         visibility: hidden;
     }
-
-    .pdf-report-container,
+    
+    /* Show the report container and its children */
+    .pdf-report-container, 
     .pdf-report-container * {
         visibility: visible;
     }
 
+    /* Reset some body/html styles for print */
+    body, html {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
     .pdf-report-container {
-        position: absolute !important; 
+        position: absolute !important;
         left: 0 !important;
         top: 0 !important;
-        width: 100% !important;
-        max-width: 210mm !important;
+        width: 210mm !important;
         min-height: 297mm !important;
         margin: 0 !important;
-        padding: 15mm 15mm 20mm 15mm !important; /* Safe padding replaces @page margins */
-        box-sizing: border-box !important;
-        background: transparent !important;
+        padding: 20mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .pdf-vehicle-group {
         border: none;
         box-shadow: none;
-        border-bottom: 2px dashed #eee;
+        border-bottom: 1px solid #eee;
         border-radius: 0;
     }
     
