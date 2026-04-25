@@ -47,6 +47,7 @@ const EmployeeDetail = lazy(() => import('./pages/EmployeeDetail'))
 const PersonelDashboard = lazy(() => import('./pages/PersonelDashboard'))
 const PayrollDashboard = lazy(() => import('./pages/PayrollDashboard'))
 const Leaves = lazy(() => import('./pages/Leaves'))
+const Overtimes = lazy(() => import('./pages/Overtimes'))
 const Works = lazy(() => import('./pages/Works'))
 const WorkDetails = lazy(() => import('./pages/WorkDetails'))
 const WorkPdfReport = lazy(() => import('./pages/WorkPdfReport'))
@@ -158,6 +159,7 @@ function AppRoutes() {
                         <Route path="/leaves" element={<Leaves />} />
                         <Route path="/personel-dashboard" element={<PersonelDashboard />} />
                         <Route path="/payroll" element={<PayrollDashboard />} />
+                        <Route path="/overtimes" element={<Overtimes />} />
                         <Route path="/works" element={<Works />} />
                         <Route path="/works/:id" element={<WorkDetails />} />
                         <Route path="/customers" element={<Customers />} />

@@ -285,13 +285,28 @@ export default function Settings() {
                                     </div>
 
                                     {updateStatus === 'downloading' && (
-                                        <div style={{ padding: '15px 0' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '6px' }}>
-                                                <span>İndiriliyor...</span>
-                                                <span>%{Math.round(progress)}</span>
+                                        <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'stretch', background: 'rgba(var(--accent-primary-rgb), 0.03)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    <Download size={16} className="text-primary" />
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Yeni Versiyon İndiriliyor</div>
+                                                </div>
+                                                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '2px 8px', borderRadius: '6px' }}>
+                                                    %{Math.round(progress)}
+                                                </div>
                                             </div>
-                                            <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s' }}></div>
+                                            <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative' }}>
+                                                <div style={{ 
+                                                    width: `${progress}%`, 
+                                                    height: '100%', 
+                                                    background: 'linear-gradient(90deg, var(--accent-primary), #6366f1)', 
+                                                    transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    boxShadow: '0 0 12px rgba(var(--accent-primary-rgb), 0.4)'
+                                                }}></div>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Lütfen uygulamayı kapatmayın...</span>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{updateInfo?.version} sürümüne güncelleniyor</span>
                                             </div>
                                         </div>
                                     )}

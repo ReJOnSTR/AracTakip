@@ -19,7 +19,8 @@ import {
     Briefcase,
     Building2,
     User,
-    Calendar
+    Calendar,
+    Clock
 } from 'lucide-react'
 
 // Define menus per module
@@ -105,7 +106,8 @@ export const moduleMenus = {
             title: 'Bordro & İzin',
             items: [
                 { path: '/leaves', label: 'İzin Tablosu', icon: Calendar },
-                { path: '/payroll', label: 'Maaş Tablosu', icon: Banknote }
+                { path: '/payroll', label: 'Maaş Tablosu', icon: Banknote },
+                { path: '/overtimes', label: 'Mesai Tablosu', icon: Clock }
             ]
         },
         {
@@ -202,6 +204,7 @@ export const getRouteInfo = (path) => {
     if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
     if (path === '/payroll') return { label: 'Maaş & Ödeme Tablosu', icon: Banknote }
     if (path === '/leaves') return { label: 'Personel İzin Tablosu', icon: Calendar }
+    if (path === '/overtimes') return { label: 'Mesai Tablosu', icon: Clock }
     if (path.startsWith('/works/')) return { label: 'İş Detayı', icon: Briefcase }
     if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
