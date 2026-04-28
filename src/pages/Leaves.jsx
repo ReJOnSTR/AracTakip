@@ -219,6 +219,7 @@ export default function Leaves() {
         {
             key: 'employee',
             label: 'Personel',
+            searchValue: (row) => `${row.employees?.first_name} ${row.employees?.last_name}`,
             render: (_, row) => (
                 <div style={{ fontWeight: 600 }}>{row.employees?.first_name} {row.employees?.last_name}</div>
             )

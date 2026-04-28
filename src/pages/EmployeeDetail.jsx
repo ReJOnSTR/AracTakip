@@ -968,7 +968,15 @@ export default function EmployeeDetail() {
             }
         },
         { key: 'date', label: 'Tarih', render: (v) => formatDate(v) },
-        { key: 'hours', label: 'Saat' },
+        { 
+            key: 'hours', 
+            label: 'Süre', 
+            render: (v, row) => {
+                const weekdayRate = calcOvertimeRate('weekday')
+                const isSunday = Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)
+                return `${v} ${isSunday ? 'Gün' : 'Saat'}`
+            }
+        },
         { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
         { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
     ]
@@ -1479,7 +1487,11 @@ export default function EmployeeDetail() {
                                         }
 
                                         const pastUsed = employee.past_used_leaves || 0
-                                        const systemUsedAnnual = leaves.filter(l => l.status === 'approved' && l.type === 'annual').reduce((acc, l) => acc + (l.days || 1), 0)
+                                        // Count both 'annual' and localized names like 'Yıllık Ücretli İzin'
+                                        const systemUsedAnnual = leaves.filter(l => 
+                                            l.status === 'approved' && 
+                                            (l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık')))
+                                        ).reduce((acc, l) => acc + (l.days || 0), 0)
                                         const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type === 'offset').reduce((acc, l) => acc + (l.days || 0), 0)
                                         
                                         const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets

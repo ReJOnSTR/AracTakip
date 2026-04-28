@@ -526,7 +526,12 @@ export default function Salaries() {
                 <DataTable
                     persistenceKey="salaries_table"
                     columns={[
-                        { key: 'employee_name', label: 'Personel', render: (_, r) => <span style={{ fontWeight: 600 }}>{r.employee_name} {r.employee_surname}</span> },
+                        { 
+                            key: 'employee_name', 
+                            label: 'Personel', 
+                            searchValue: (r) => `${r.employee_name} ${r.employee_surname}`,
+                            render: (_, r) => <span style={{ fontWeight: 600 }}>{r.employee_name} {r.employee_surname}</span> 
+                        },
                         { key: 'department', label: 'Departman', render: (v) => v || '-' },
                         {
                             key: 'salaryAmount',

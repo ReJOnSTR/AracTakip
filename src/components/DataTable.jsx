@@ -29,7 +29,8 @@ export default function DataTable({
     initialSort = null,
     persistenceKey = null,
     rowClassName = null,
-    onFilteredDataChange = null
+    onFilteredDataChange = null,
+    searchKeys = null
 }) {
     // Helper to get initial state from localStorage or default
     const getInitialState = (key, defaultVal) => {
@@ -325,16 +326,35 @@ export default function DataTable({
         if (!searchQuery.trim()) return customFilteredData
 
         const query = searchQuery.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+        
         return customFilteredData.filter(row => {
-            return visibleColumnsList.some(col => {
-                const value = row[col.key]
-                if (value === null || value === undefined) return false
-                // Normalize data value: remove spaces and handle Turkish case
-                const normalizedValue = String(value).toLocaleLowerCase('tr-TR').replace(/\s/g, '')
-                return normalizedValue.includes(query)
+            // Collect all searchable content for this row
+            const searchValues = []
+            
+            // 1. Add explicitly provided search keys
+            if (searchKeys && searchKeys.length > 0) {
+                searchKeys.forEach(key => {
+                    const val = row[key]
+                    if (val !== null && val !== undefined) searchValues.push(String(val))
+                })
+            }
+
+            // 2. Add visible column content
+            visibleColumnsList.forEach(col => {
+                let val = ''
+                if (col.searchValue) {
+                    val = col.searchValue(row)
+                } else {
+                    val = row[col.key]
+                }
+                if (val !== null && val !== undefined) searchValues.push(String(val))
             })
+
+            // Join all and normalize for search
+            const rowContent = searchValues.join(' ').toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+            return rowContent.includes(query)
         })
-    }, [customFilteredData, searchQuery, visibleColumnsList])
+    }, [customFilteredData, searchQuery, visibleColumnsList, searchKeys])
 
     // Expose filtered data to parent
     useEffect(() => {
