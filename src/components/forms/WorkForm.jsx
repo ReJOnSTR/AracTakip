@@ -27,7 +27,9 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
             customer: '',
             description: '',
             status: 'pending',
-            location: ''
+            location: '',
+            work_start_time: '08:00',
+            work_end_time: '17:00'
         }
     })
 
@@ -39,7 +41,9 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                 customer: initialData.customer || '',
                 description: initialData.description || '',
                 status: initialData.status || 'pending',
-                location: initialData.location || ''
+                location: initialData.location || '',
+                work_start_time: initialData.work_start_time || '08:00',
+                work_end_time: initialData.work_end_time || '17:00'
             })
         } else {
             reset({
@@ -48,7 +52,9 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                 customer: '',
                 description: '',
                 status: 'pending',
-                location: ''
+                location: '',
+                work_start_time: '08:00',
+                work_end_time: '17:00'
             })
         }
     }, [initialData, reset])
@@ -131,6 +137,39 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                 error={errors.location?.message}
                                 maxLength={200}
                                 format="title"
+                            />
+                        )}
+                    />
+                </div>
+            </div>
+
+            <div className="form-row">
+                <div className="form-group">
+                    <Controller
+                        name="work_start_time"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomInput
+                                label="Standart Mesai Başlangıç"
+                                type="time"
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={errors.work_start_time?.message}
+                            />
+                        )}
+                    />
+                </div>
+                <div className="form-group">
+                    <Controller
+                        name="work_end_time"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomInput
+                                label="Standart Mesai Bitiş"
+                                type="time"
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={errors.work_end_time?.message}
                             />
                         )}
                     />

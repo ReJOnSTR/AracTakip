@@ -296,6 +296,23 @@ async function runAutoMigrations() {
         log.error('Migration step 13 (data labels) error:', error.message);
     }
 
+    // 14. Add work_start_time and work_end_time to works
+    try {
+        const wCols2 = await p.$queryRawUnsafe("PRAGMA table_info('works')");
+        if (wCols2.length > 0) {
+            if (!wCols2.some(c => c.name === 'work_start_time')) {
+                await p.$executeRawUnsafe("ALTER TABLE works ADD COLUMN work_start_time TEXT DEFAULT '08:00'");
+                log.info('Migration: Added work_start_time to works');
+            }
+            if (!wCols2.some(c => c.name === 'work_end_time')) {
+                await p.$executeRawUnsafe("ALTER TABLE works ADD COLUMN work_end_time TEXT DEFAULT '17:00'");
+                log.info('Migration: Added work_end_time to works');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 14 (work_start/end_time) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

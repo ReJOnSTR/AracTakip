@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'; // Re-saved for sync
 
 export const workHeaderSchema = z.object({
     title: z.string().min(1, 'İş başlığı zorunludur'),
@@ -8,6 +8,8 @@ export const workHeaderSchema = z.object({
     start_date: z.string().optional().nullable(),
     end_date: z.string().optional().nullable(),
     location: z.string().optional(),
+    work_start_time: z.string().optional().default('08:00'),
+    work_end_time: z.string().optional().default('17:00'),
     status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).default('pending')
 });
 

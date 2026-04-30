@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react' // Trigger recompilation
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import { useNavigate } from 'react-router-dom'

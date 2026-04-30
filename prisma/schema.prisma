@@ -449,10 +449,12 @@ model works {
   price       Float?       @default(0)
   location    String?
   created_at  DateTime?    @default(now())
-  start_date  DateTime?
-  end_date    DateTime?
-  is_archived Int?         @default(0)
-  work_items  work_items[]
+  start_date      DateTime?
+  end_date        DateTime?
+  work_start_time String?      @default("08:00")
+  work_end_time   String?      @default("17:00")
+  is_archived     Int?         @default(0)
+  work_items      work_items[]
   employees   employees?   @relation(fields: [employee_id], references: [id], onUpdate: NoAction)
   vehicles    vehicles?    @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction)
   companies   companies    @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)

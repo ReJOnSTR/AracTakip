@@ -467,6 +467,8 @@ exports.Prisma.WorksScalarFieldEnum = {
   created_at: 'created_at',
   start_date: 'start_date',
   end_date: 'end_date',
+  work_start_time: 'work_start_time',
+  work_end_time: 'work_end_time',
   is_archived: 'is_archived'
 };
 

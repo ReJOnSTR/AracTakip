@@ -99,6 +99,8 @@ async function createWork(data) {
                 description: data.description,
                 status: data.status || 'pending',
                 location: data.location,
+                work_start_time: data.work_start_time || '08:00',
+                work_end_time: data.work_end_time || '17:00',
                 start_date: data.startDate ? new Date(data.startDate) : null,
                 end_date: data.endDate ? new Date(data.endDate) : null
             }
@@ -121,6 +123,8 @@ async function updateWork(data) {
                 description: data.description !== undefined ? data.description : undefined,
                 status: data.status !== undefined ? data.status : undefined,
                 location: data.location !== undefined ? data.location : undefined,
+                work_start_time: data.work_start_time !== undefined ? data.work_start_time : undefined,
+                work_end_time: data.work_end_time !== undefined ? data.work_end_time : undefined,
                 start_date: data.startDate !== undefined ? (data.startDate ? new Date(data.startDate) : null) : undefined,
                 end_date: data.endDate !== undefined ? (data.endDate ? new Date(data.endDate) : null) : undefined
             }

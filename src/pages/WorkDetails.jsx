@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react' // Re-saved for sync
 import { useParams, useNavigate, Link } from 'react-router-dom' // Even though we use tabs, we might get ID from props
 import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
@@ -74,107 +74,82 @@ export default function WorkDetails(props) {
         loadData()
     }, [id])
 
-    // Auto-calculate hours for bulk form
-    useEffect(() => {
-        if (!isBulkModalOpen) return;
+    const calculateAutoHours = (startTime, endTime, pricingType) => {
+        if (!startTime || !endTime) return { hours: 1, overtimeHours: 0 };
 
-        const { startTime, endTime } = bulkFormData;
-        if (startTime && endTime) {
-            const [startH, startM] = startTime.split(':').map(Number);
-            const [endH, endM] = endTime.split(':').map(Number);
+        const [startH, startM] = startTime.split(':').map(Number);
+        const [endH, endM] = endTime.split(':').map(Number);
 
-            let diffHours = endH - startH + (endM - startM) / 60;
-            if (diffHours < 0) diffHours += 24;
+        let diffHours = endH - startH + (endM - startM) / 60;
+        if (diffHours < 0) diffHours += 24;
 
-            let calculatedHours = 1;
-            let calculatedOvertime = 0;
+        let calculatedHours = 1;
+        let calculatedOvertime = 0;
 
-            if (diffHours > 9) {
-                calculatedHours = 1;
-                calculatedOvertime = diffHours - 9;
-            } else if (diffHours < 9 && diffHours > 0) {
-                calculatedHours = parseFloat((diffHours / 9).toFixed(2));
-                calculatedOvertime = 0;
+        if (pricingType === 'hourly') {
+            calculatedHours = parseFloat(diffHours.toFixed(2));
+            calculatedOvertime = 0;
+        } else {
+            // 'daily' or 'monthly' pricing
+            // Standard Window from work settings, defaulting to 08:00 - 17:00 (9 hours total)
+            const workStartStr = work?.work_start_time || '08:00';
+            const workEndStr = work?.work_end_time || '17:00';
+            
+            const [wSH, wSM] = workStartStr.split(':').map(Number);
+            const [wEH, wEM] = workEndStr.split(':').map(Number);
+            
+            const workStart = wSH + (wSM / 60);
+            const workEnd = wEH + (wEM / 60);
+            
+            // Standard workday duration in hours (e.g. 17:00 - 08:00 = 9)
+            let standardDuration = workEnd - workStart;
+            if (standardDuration < 0) standardDuration += 24;
+
+            // 1. Overtime due to duration (> standard duration)
+            const durationOvertime = diffHours > standardDuration ? diffHours - standardDuration : 0;
+
+            // 2. Overtime due to window (before workStart or after workEnd)
+            let windowOvertime = 0;
+            
+            const currentStart = startH + (startM / 60);
+            const currentEnd = endH + (endM / 60);
+
+            // Before workStart
+            if (currentStart < workStart) {
+                windowOvertime += (workStart - currentStart);
+            }
+            
+            // After workEnd
+            if (endH > wEH || (endH === wEH && endM > wEM)) {
+                windowOvertime += (currentEnd - workEnd);
+            } else if (currentEnd < currentStart) {
+                // If ended next day, all hours from workEnd of day 1 to end are overtime
+                windowOvertime += (24 - workEnd) + currentEnd;
             }
 
-            setBulkFormData(prev => ({
-                ...prev,
-                hours: calculatedHours,
-                overtimeHours: calculatedOvertime
-            }));
+            calculatedHours = 1;
+            calculatedOvertime = Math.max(durationOvertime, windowOvertime);
+            calculatedOvertime = parseFloat(calculatedOvertime.toFixed(2));
         }
-    }, [bulkFormData.startTime, bulkFormData.endTime, isBulkModalOpen])
+
+        return { hours: calculatedHours, overtimeHours: calculatedOvertime };
+    }
 
     // Auto-calculate hours for single form
     useEffect(() => {
         if (!isModalOpen) return;
+        const result = calculateAutoHours(formData.startTime, formData.endTime, formData.pricingType);
+        setFormData(prev => ({ ...prev, ...result }));
+    }, [formData.startTime, formData.endTime, formData.pricingType, isModalOpen, work])
 
-        const { startTime, endTime, pricingType } = formData;
-        if (startTime && endTime) {
-            const [startH, startM] = startTime.split(':').map(Number);
-            const [endH, endM] = endTime.split(':').map(Number);
-
-            let diffHours = endH - startH + (endM - startM) / 60;
-            if (diffHours < 0) diffHours += 24;
-
-            let calculatedHours = 1;
-            let calculatedOvertime = 0;
-
-            if (pricingType === 'hourly') {
-                calculatedHours = parseFloat(diffHours.toFixed(2));
-                calculatedOvertime = 0;
-            } else {
-                if (diffHours > 9) {
-                    calculatedHours = 1;
-                    calculatedOvertime = parseFloat((diffHours - 9).toFixed(2));
-                } else if (diffHours < 9 && diffHours > 0) {
-                    calculatedHours = parseFloat((diffHours / 9).toFixed(2));
-                    calculatedOvertime = 0;
-                }
-            }
-
-            setFormData(prev => ({
-                ...prev,
-                hours: calculatedHours,
-                overtimeHours: calculatedOvertime
-            }));
-        }
-    }, [formData.startTime, formData.endTime, formData.pricingType, isModalOpen])
-
+    // Auto-calculate hours for bulk form
     useEffect(() => {
         if (!isBulkModalOpen) return;
+        const result = calculateAutoHours(bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType);
+        setBulkFormData(prev => ({ ...prev, ...result }));
+    }, [bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType, isBulkModalOpen, work])
 
-        const { startTime, endTime, pricingType } = bulkFormData;
-        if (startTime && endTime && pricingType !== 'monthly') {
-            const [startH, startM] = startTime.split(':').map(Number);
-            const [endH, endM] = endTime.split(':').map(Number);
 
-            let diffHours = endH - startH + (endM - startM) / 60;
-            if (diffHours < 0) diffHours += 24;
-
-            let calculatedHours = 1;
-            let calculatedOvertime = 0;
-
-            if (pricingType === 'hourly') {
-                calculatedHours = parseFloat(diffHours.toFixed(2));
-                calculatedOvertime = 0;
-            } else {
-                if (diffHours > 9) {
-                    calculatedHours = 1;
-                    calculatedOvertime = parseFloat((diffHours - 9).toFixed(2));
-                } else if (diffHours < 9 && diffHours > 0) {
-                    calculatedHours = parseFloat((diffHours / 9).toFixed(2));
-                    calculatedOvertime = 0;
-                }
-            }
-
-            setBulkFormData(prev => ({
-                ...prev,
-                hours: calculatedHours,
-                overtimeHours: calculatedOvertime
-            }));
-        }
-    }, [bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType, isBulkModalOpen])
 
     const loadData = async () => {
         setLoading(true)

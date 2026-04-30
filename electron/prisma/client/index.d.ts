@@ -34068,6 +34068,8 @@ export namespace Prisma {
     created_at: Date | null
     start_date: Date | null
     end_date: Date | null
+    work_start_time: string | null
+    work_end_time: string | null
     is_archived: number | null
   }
 
@@ -34086,6 +34088,8 @@ export namespace Prisma {
     created_at: Date | null
     start_date: Date | null
     end_date: Date | null
+    work_start_time: string | null
+    work_end_time: string | null
     is_archived: number | null
   }
 
@@ -34104,6 +34108,8 @@ export namespace Prisma {
     created_at: number
     start_date: number
     end_date: number
+    work_start_time: number
+    work_end_time: number
     is_archived: number
     _all: number
   }
@@ -34144,6 +34150,8 @@ export namespace Prisma {
     created_at?: true
     start_date?: true
     end_date?: true
+    work_start_time?: true
+    work_end_time?: true
     is_archived?: true
   }
 
@@ -34162,6 +34170,8 @@ export namespace Prisma {
     created_at?: true
     start_date?: true
     end_date?: true
+    work_start_time?: true
+    work_end_time?: true
     is_archived?: true
   }
 
@@ -34180,6 +34190,8 @@ export namespace Prisma {
     created_at?: true
     start_date?: true
     end_date?: true
+    work_start_time?: true
+    work_end_time?: true
     is_archived?: true
     _all?: true
   }
@@ -34285,6 +34297,8 @@ export namespace Prisma {
     created_at: Date | null
     start_date: Date | null
     end_date: Date | null
+    work_start_time: string | null
+    work_end_time: string | null
     is_archived: number | null
     _count: WorksCountAggregateOutputType | null
     _avg: WorksAvgAggregateOutputType | null
@@ -34322,6 +34336,8 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    work_start_time?: boolean
+    work_end_time?: boolean
     is_archived?: boolean
     work_items?: boolean | works$work_itemsArgs<ExtArgs>
     employees?: boolean | works$employeesArgs<ExtArgs>
@@ -34346,6 +34362,8 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    work_start_time?: boolean
+    work_end_time?: boolean
     is_archived?: boolean
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
@@ -34368,6 +34386,8 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    work_start_time?: boolean
+    work_end_time?: boolean
     is_archived?: boolean
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
@@ -34390,10 +34410,12 @@ export namespace Prisma {
     created_at?: boolean
     start_date?: boolean
     end_date?: boolean
+    work_start_time?: boolean
+    work_end_time?: boolean
     is_archived?: boolean
   }
 
-  export type worksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "vehicle_id" | "employee_id" | "customer_id" | "customer" | "title" | "description" | "status" | "price" | "location" | "created_at" | "start_date" | "end_date" | "is_archived", ExtArgs["result"]["works"]>
+  export type worksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "vehicle_id" | "employee_id" | "customer_id" | "customer" | "title" | "description" | "status" | "price" | "location" | "created_at" | "start_date" | "end_date" | "work_start_time" | "work_end_time" | "is_archived", ExtArgs["result"]["works"]>
   export type worksInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     work_items?: boolean | works$work_itemsArgs<ExtArgs>
     employees?: boolean | works$employeesArgs<ExtArgs>
@@ -34439,6 +34461,8 @@ export namespace Prisma {
       created_at: Date | null
       start_date: Date | null
       end_date: Date | null
+      work_start_time: string | null
+      work_end_time: string | null
       is_archived: number | null
     }, ExtArgs["result"]["works"]>
     composites: {}
@@ -34882,6 +34906,8 @@ export namespace Prisma {
     readonly created_at: FieldRef<"works", 'DateTime'>
     readonly start_date: FieldRef<"works", 'DateTime'>
     readonly end_date: FieldRef<"works", 'DateTime'>
+    readonly work_start_time: FieldRef<"works", 'String'>
+    readonly work_end_time: FieldRef<"works", 'String'>
     readonly is_archived: FieldRef<"works", 'Int'>
   }
     
@@ -39055,6 +39081,8 @@ export namespace Prisma {
     created_at: 'created_at',
     start_date: 'start_date',
     end_date: 'end_date',
+    work_start_time: 'work_start_time',
+    work_end_time: 'work_end_time',
     is_archived: 'is_archived'
   };
 
@@ -41355,6 +41383,8 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableFilter<"works"> | Date | string | null
+    work_start_time?: StringNullableFilter<"works"> | string | null
+    work_end_time?: StringNullableFilter<"works"> | string | null
     is_archived?: IntNullableFilter<"works"> | number | null
     work_items?: Work_itemsListRelationFilter
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
@@ -41378,6 +41408,8 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
+    work_start_time?: SortOrderInput | SortOrder
+    work_end_time?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
     work_items?: work_itemsOrderByRelationAggregateInput
     employees?: employeesOrderByWithRelationInput
@@ -41404,6 +41436,8 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableFilter<"works"> | Date | string | null
+    work_start_time?: StringNullableFilter<"works"> | string | null
+    work_end_time?: StringNullableFilter<"works"> | string | null
     is_archived?: IntNullableFilter<"works"> | number | null
     work_items?: Work_itemsListRelationFilter
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
@@ -41427,6 +41461,8 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
+    work_start_time?: SortOrderInput | SortOrder
+    work_end_time?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
     _count?: worksCountOrderByAggregateInput
     _avg?: worksAvgOrderByAggregateInput
@@ -41453,6 +41489,8 @@ export namespace Prisma {
     created_at?: DateTimeNullableWithAggregatesFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableWithAggregatesFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableWithAggregatesFilter<"works"> | Date | string | null
+    work_start_time?: StringNullableWithAggregatesFilter<"works"> | string | null
+    work_end_time?: StringNullableWithAggregatesFilter<"works"> | string | null
     is_archived?: IntNullableWithAggregatesFilter<"works"> | number | null
   }
 
@@ -43991,6 +44029,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
@@ -44014,6 +44054,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
@@ -44028,6 +44070,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
@@ -44051,6 +44095,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
@@ -44070,6 +44116,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
   }
 
@@ -44083,6 +44131,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -44101,6 +44151,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -46148,6 +46200,8 @@ export namespace Prisma {
     created_at?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
+    work_start_time?: SortOrder
+    work_end_time?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -46176,6 +46230,8 @@ export namespace Prisma {
     created_at?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
+    work_start_time?: SortOrder
+    work_end_time?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -46194,6 +46250,8 @@ export namespace Prisma {
     created_at?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
+    work_start_time?: SortOrder
+    work_end_time?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -48754,6 +48812,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
@@ -48775,6 +48835,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
@@ -49148,6 +49210,8 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"works"> | Date | string | null
     start_date?: DateTimeNullableFilter<"works"> | Date | string | null
     end_date?: DateTimeNullableFilter<"works"> | Date | string | null
+    work_start_time?: StringNullableFilter<"works"> | string | null
+    work_end_time?: StringNullableFilter<"works"> | string | null
     is_archived?: IntNullableFilter<"works"> | number | null
   }
 
@@ -49316,6 +49380,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
@@ -49337,6 +49403,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
@@ -50546,6 +50614,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -50567,6 +50637,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
@@ -52539,6 +52611,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
@@ -52560,6 +52634,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
@@ -52981,6 +53057,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -53003,6 +53081,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
   }
 
@@ -53160,6 +53240,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -53182,6 +53264,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -54025,6 +54109,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
   }
 
@@ -54328,6 +54414,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
@@ -54349,6 +54437,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
@@ -54367,6 +54457,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -54475,6 +54567,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
   }
 
@@ -54488,6 +54582,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
@@ -54509,6 +54605,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
@@ -54527,6 +54625,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -54656,6 +54756,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
   }
 
@@ -54996,6 +55098,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -55017,6 +55121,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
@@ -55035,6 +55141,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -55207,6 +55315,8 @@ export namespace Prisma {
     created_at?: Date | string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
+    work_start_time?: string | null
+    work_end_time?: string | null
     is_archived?: number | null
   }
 
@@ -55507,6 +55617,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
@@ -55528,6 +55640,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
@@ -55546,6 +55660,8 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
+    work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
