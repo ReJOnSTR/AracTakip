@@ -12,6 +12,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import CustomMultiSelect from '../components/CustomMultiSelect'
 import { formatCurrency, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
 import { Clock, Users, User, Building2, Wallet, Banknote, X, Plus, Calendar, Calculator, Trash2, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react'
+import { useToast } from '../context/ToastContext'
 
 const paymentMethods = [
     { value: 'nakit', label: 'Nakit' },
@@ -28,6 +29,7 @@ export default function Overtimes() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
     const { openNewTab } = useTabs()
+    const { showToast } = useToast()
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const saved = localStorage.getItem(`overtimes_selected_month_${currentCompany?.id || 'default'}`)
         return saved || new Date().toISOString().slice(0, 7)
@@ -329,7 +331,6 @@ export default function Overtimes() {
                 amount
             }
         }))
-        showToast('Bilgiler tüm listeye uygulandı', 'success')
     }
 
     const handleBulkOvertimeSubmit = async (e) => {
@@ -357,9 +358,8 @@ export default function Overtimes() {
                 })
             }
 
-            showToast(`${targetItems.length} mesai kaydı başarıyla eklendi`, 'success')
             setOvertimeModalOpen(false)
-            loadData()
+            loadOvertimes()
             setSelectedRows([])
         } catch (error) {
             console.error(error)
@@ -724,7 +724,7 @@ export default function Overtimes() {
 
             {/* Data Table */}
             <DataTable 
-                persistenceKey="overtimes_table_v1"
+                persistenceKey="overtimes_table_v2"
                 columns={columns}
                 data={overtimeData}
                 onFilteredDataChange={setDisplayData}
@@ -812,13 +812,7 @@ export default function Overtimes() {
                         </button>
                     </div>
                 )}
-                onRowClick={(item, e) => {
-                    if (e.ctrlKey || e.metaKey) {
-                        openNewTab(`/employees/${item.id}`, true, `${item.first_name} ${item.last_name}`)
-                    } else {
-                        navigate(`/employees/${item.id}`)
-                    }
-                }}
+                onRowClick={null}
             />
 
             {/* Payment Modal */}

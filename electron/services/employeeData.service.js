@@ -158,6 +158,7 @@ async function updateLeave(data) {
         const result = await prisma.leaves.update({
             where: { id: parseInt(data.id) },
             data: {
+                employee_id: data.employeeId ? parseInt(data.employeeId) : undefined,
                 type: data.type,
                 start_date: new Date(data.startDate),
                 end_date: new Date(data.endDate),

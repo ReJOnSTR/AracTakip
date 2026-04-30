@@ -70,6 +70,8 @@ export default function DataTable({
     const [searchQuery, setSearchQuery] = useState(() => getInitialState('search', ''))
     const [activeFilters, setActiveFilters] = useState(() => getInitialState('filters', {}))
     const [dateRange, setDateRange] = useState(() => getInitialState('dateRange', { start: '', end: '' }))
+    const [focusedIndex, setFocusedIndex] = useState(-1)
+    const [lastSelectedIndex, setLastSelectedIndex] = useState(-1)
 
     // Column Visibility State
     const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -460,18 +462,79 @@ export default function DataTable({
         setSortConfig(initialSort || { key: null, direction: 'asc' })
     }
 
-    const handleSelectRow = (e, id) => {
+    const handleSelectRow = (e, id, index) => {
         e.stopPropagation()
+        
         setSelectedRows(prev => {
             const newSet = new Set(prev)
-            if (newSet.has(id)) {
-                newSet.delete(id)
+            
+            // Handle Shift+Click for range selection
+            if (e.shiftKey && lastSelectedIndex !== -1 && index !== undefined) {
+                const start = Math.min(lastSelectedIndex, index)
+                const end = Math.max(lastSelectedIndex, index)
+                
+                // Determine if we are selecting or deselecting based on the first item's state
+                // Actually, standard behavior is usually to select the range
+                for (let i = start; i <= end; i++) {
+                    const rowId = paginatedData[i]?.id
+                    if (rowId !== undefined) newSet.add(rowId)
+                }
             } else {
-                newSet.add(id)
+                if (newSet.has(id)) {
+                    newSet.delete(id)
+                } else {
+                    newSet.add(id)
+                }
             }
+            
             onSelectionChange?.(Array.from(newSet))
             return newSet
         })
+        
+        if (index !== undefined) {
+            setLastSelectedIndex(index)
+            setFocusedIndex(index)
+        }
+    }
+
+    const handleKeyDown = (e) => {
+        if (!paginatedData.length) return
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            const nextIndex = Math.min(focusedIndex + 1, paginatedData.length - 1)
+            setFocusedIndex(nextIndex)
+            
+            if (e.shiftKey) {
+                const rowId = paginatedData[nextIndex].id
+                setSelectedRows(prev => {
+                    const newSet = new Set(prev)
+                    newSet.add(rowId)
+                    onSelectionChange?.(Array.from(newSet))
+                    return newSet
+                })
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            const prevIndex = Math.max(focusedIndex - 1, 0)
+            setFocusedIndex(prevIndex)
+            
+            if (e.shiftKey) {
+                const rowId = paginatedData[prevIndex].id
+                setSelectedRows(prev => {
+                    const newSet = new Set(prev)
+                    newSet.add(rowId)
+                    onSelectionChange?.(Array.from(newSet))
+                    return newSet
+                })
+            }
+        } else if (e.key === ' ') {
+            e.preventDefault()
+            if (focusedIndex >= 0 && focusedIndex < paginatedData.length) {
+                const rowId = paginatedData[focusedIndex].id
+                handleSelectRow(e, rowId, focusedIndex)
+            }
+        }
     }
 
     const handleSelectAll = () => {
@@ -542,7 +605,9 @@ export default function DataTable({
 
     const hasActiveFilters = Object.values(activeFilters).some(v => v) || searchQuery || dateRange.start || dateRange.end
 
-    const handleRowClick = (row, e) => {
+    const handleRowClick = (row, e, index) => {
+        setFocusedIndex(index)
+        setLastSelectedIndex(index)
         if (onRowClick) {
             onRowClick(row, e)
         }
@@ -858,7 +923,12 @@ export default function DataTable({
 
 
             {/* Table */}
-            <div className={`table-container ${isTransitioning ? 'data-transitioning' : ''}`}>
+            <div 
+                className={`table-container ${isTransitioning ? 'data-transitioning' : ''}`}
+                onKeyDown={handleKeyDown}
+                tabIndex="0"
+                style={{ outline: 'none' }}
+            >
                 <table
                     className="data-table"
                     style={{
@@ -943,8 +1013,8 @@ export default function DataTable({
                             paginatedData.map((row, index) => (
                                 <tr
                                     key={row.id || index}
-                                    className={`${selectedRows.has(row.id) ? 'selected' : ''} ${onRowClick ? 'clickable' : ''} ${rowClassName ? rowClassName(row) : ''}`}
-                                    onClick={(e) => handleRowClick(row, e)}
+                                    className={`${selectedRows.has(row.id) ? 'selected' : ''} ${onRowClick ? 'clickable' : ''} ${rowClassName ? rowClassName(row) : ''} ${focusedIndex === index ? 'focused' : ''}`}
+                                    onClick={(e) => handleRowClick(row, e, index)}
                                     onContextMenu={(e) => {
                                         if (onContextMenu) {
                                             e.preventDefault()
@@ -956,7 +1026,7 @@ export default function DataTable({
                                         <td className="td-checkbox">
                                             <div
                                                 className={`checkbox ${selectedRows.has(row.id) ? 'checked' : ''}`}
-                                                onClick={(e) => handleSelectRow(e, row.id)}
+                                                onClick={(e) => handleSelectRow(e, row.id, index)}
                                             >
                                                 {selectedRows.has(row.id) && <Check size={12} />}
                                             </div>
@@ -982,13 +1052,13 @@ export default function DataTable({
                                             <div className="action-btns">
                                                 {actions && actions(row)}
                                                 {onRowClick && (
-                                                    <button 
-                                                        className="btn-icon row-details-btn" 
-                                                        onClick={(e) => handleRowClick(row, e)}
-                                                        title="Detaya Git"
-                                                    >
-                                                        <ChevronRight size={18} />
-                                                    </button>
+                                                        <button 
+                                                            className="btn-icon row-details-btn" 
+                                                            onClick={(e) => handleRowClick(row, e, index)}
+                                                            title="Detaya Git"
+                                                        >
+                                                            <ChevronRight size={18} />
+                                                        </button>
                                                 )}
                                             </div>
                                         </td>

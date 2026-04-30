@@ -488,7 +488,11 @@ export default function EmployeeDetail() {
         setSaving(true); setError('')
         try {
             const result = await window.electronAPI.updateEmployee({ id: parseInt(id), ...data })
-            if (result.success) { closeModal(); loadEmployeeData() }
+            if (result.success) { 
+                closeModal(); 
+                loadEmployeeData();
+                if (window.showToast) window.showToast('Personel bilgileri güncellendi.', 'success');
+            }
             else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError('Beklenmeyen hata: ' + err.message) }
         setSaving(false)
@@ -532,6 +536,14 @@ export default function EmployeeDetail() {
         const type = formData.type || 'annual'
         let days = parseInt(formData.days) || 0
         let notes = formData.notes || ''
+
+        // Preserve internal tags [OTID:...] if they exist in editingItem
+        if (editingItem && editingItem.notes) {
+            const otidMatch = editingItem.notes.match(/\[OTID:(\d+)\]/);
+            if (otidMatch && !notes.includes(otidMatch[0])) {
+                notes = (notes + ' ' + otidMatch[0]).trim();
+            }
+        }
 
         // Validation for Overtime Leave
         if (type === 'overtime_leave') {
@@ -595,7 +607,11 @@ export default function EmployeeDetail() {
         const data = { employeeId: parseInt(id), type, startDate: formData.startDate, endDate: formData.endDate, days, status: formData.status || 'approved', notes: notes || null }
         try {
             const result = editingItem ? await window.electronAPI.updateLeave({ id: editingItem.id, ...data }) : await window.electronAPI.createLeave(data)
-            if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
+            if (result.success) { 
+                closeModal(); 
+                loadEmployeeData();
+                if (window.showToast) window.showToast(editingItem ? 'İzin güncellendi.' : 'İzin kaydedildi.', 'success');
+            } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
     }

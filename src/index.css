@@ -2130,31 +2130,33 @@ body {
   /* Very subtle depth */
 }
 
+/* Base Actions Column - Background handled specifically for sticky support */
 .td-actions {
   width: 100px;
   min-width: 100px;
   text-align: center;
   position: sticky !important;
   right: 0;
-  background: var(--bg-secondary);
-  /* Match row background */
   z-index: 21;
-  /* Clean separator */
   border-left: 1px solid var(--border-light);
+  background: var(--bg-secondary);
 }
 
-tr:hover .td-actions {
-  background: var(--bg-tertiary);
-  /* Match row hover */
+/* Hover/Selected states MUST be solid for sticky Actions column */
+.data-table tbody tr:hover td.td-actions {
+  background: var(--bg-tertiary) !important;
 }
 
-.data-table tbody tr.clickable:hover .td-actions {
-  background: var(--bg-tertiary);
-  /* Or a solid version of accent-subtle, but tertiary is safe */
+.data-table tbody tr.clickable:hover td.td-actions {
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
 }
 
-.data-table tbody tr.selected .td-actions {
-  background: var(--bg-tertiary);
+.data-table tbody tr.selected td.td-actions {
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
+}
+
+.data-table tbody tr.focused td.td-actions {
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
 }
 
 .data-table td {
@@ -2259,6 +2261,21 @@ tr:hover .td-actions {
 
 .data-table tbody tr.selected td {
   background: var(--accent-subtle);
+}
+
+.data-table tbody tr.focused td {
+  background: var(--accent-subtle);
+  position: relative;
+}
+
+.data-table tbody tr.focused td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent-primary);
 }
 
 /* Pazar Row Highlighting */

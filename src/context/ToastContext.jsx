@@ -32,6 +32,11 @@ export function ToastProvider({ children }) {
         toastApi.current.error = (msg, dur) => addToast(msg, 'error', dur)
         toastApi.current.info = (msg, dur) => addToast(msg, 'info', dur)
         toastApi.current.warning = (msg, dur) => addToast(msg, 'warning', dur)
+        toastApi.current.showToast = (msg, type, dur) => addToast(msg, type, dur)
+        
+        // Also expose to window for legacy modules/utility calls
+        window.showToast = toastApi.current.showToast;
+        window.toast = toastApi.current;
     }, [addToast])
 
     // Stable reference that delegates to latest addToast
@@ -40,6 +45,7 @@ export function ToastProvider({ children }) {
         error: (msg, dur) => toastApi.current.error(msg, dur),
         info: (msg, dur) => toastApi.current.info(msg, dur),
         warning: (msg, dur) => toastApi.current.warning(msg, dur),
+        showToast: (msg, type, dur) => toastApi.current.showToast(msg, type, dur),
     }).current
 
     return (

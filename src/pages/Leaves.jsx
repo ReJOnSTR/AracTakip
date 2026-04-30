@@ -143,6 +143,7 @@ export default function Leaves() {
             if (res.success) {
                 setIsModalOpen(false);
                 loadData();
+                if (window.showToast) window.showToast(editingLeave ? 'İzin güncellendi.' : 'İzin kaydedildi.', 'success');
             } else {
                 setError(res.error || 'İzin kaydedilirken bir hata oluştu.');
             }
