@@ -1,4 +1,14 @@
 /* WorkPdfReport.css */
+ 
+.pdf-viewer-layout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--bg-tertiary);
+    padding: 40px 20px;
+    min-height: 100%;
+}
 
 /* Standard A4 Report Container */
 .pdf-report-container {
@@ -30,15 +40,18 @@
 }
 
 .pdf-title-standard {
-    font-size: 24px;
-    fontWeight: bold;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     margin: 0 0 5px 0;
     color: #000;
 }
 
 .pdf-company-standard {
-    font-size: 14px;
+    font-size: 11px;
     color: #666;
+    letter-spacing: 0.5px;
 }
 
 .pdf-date-standard {
@@ -46,13 +59,16 @@
 }
 
 .pdf-date-label {
-    font-size: 12px;
+    font-size: 9px;
     color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .pdf-date-value {
-    font-weight: bold;
-    font-size: 14px;
+    font-weight: 500;
+    font-size: 10px;
+    color: #000;
 }
 
 .pdf-footer-standard {
@@ -62,13 +78,15 @@
     right: 20mm;
     border-top: 1px solid #ddd;
     padding-top: 10px;
-    font-size: 10px;
+    font-size: 8px;
     color: #999;
     text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .pdf-vehicle-group {
-    margin-bottom: 40px;
+    margin-bottom: 25px;
     page-break-inside: auto;
     background: transparent;
     padding: 0;
@@ -78,7 +96,7 @@
 .pdf-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     background: #fff;
     border-radius: 0;
     overflow: hidden;
@@ -94,8 +112,8 @@
 
 .pdf-table th,
 .pdf-table td {
-    padding: 4px 6px; 
-    line-height: 1.2;
+    padding: 3px 5px; 
+    line-height: 1.1;
     border: 1px solid #ddd; /* Match standard reports */
 }
 
@@ -105,32 +123,32 @@
 }
 
 .pdf-table th {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 8px;
+    font-weight: 500;
     text-align: center;
     vertical-align: middle;
-    color: #000;
+    color: #333;
     background-color: #f7f7f7;
     text-transform: uppercase;
-    letter-spacing: 0.2px;
+    letter-spacing: 1px;
 }
 
 .pdf-table td {
-    font-size: 11px;
+    font-size: 9px;
     color: #000;
 }
 
 .pdf-row-pazar td {
     background-color: #fcebeb !important; 
     color: #000;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 /* Summary Block */
 .pdf-summary-block {
     display: flex;
     justify-content: flex-end;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 .pdf-summary-table {
@@ -142,12 +160,12 @@
 
 .pdf-summary-table th,
 .pdf-summary-table td {
-    padding: 4px 8px;
+    padding: 3px 6px;
     border: 1px solid #ddd;
 }
 
 .pdf-summary-table td {
-    font-size: 10px;
+    font-size: 8.5px;
     color: #000;
 }
 
@@ -161,12 +179,12 @@
 
 .total-text {
     color: #000;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .bold {
-    font-weight: 600;
-    color: #2d3748;
+    font-weight: 500;
+    color: #1a1a1a;
 }
 
 .center {
@@ -187,16 +205,16 @@
 }
 
 .pdf-grand-total td {
-    padding: 6px 10px;
-    font-size: 11.5px;
+    padding: 4px 8px;
+    font-size: 10px;
 }
 
 .pdf-footer-note {
     background: #f8fafc;
     border-left: 3px solid #cbd5e1;
-    padding: 10px 15px;
-    margin-top: 40px;
-    font-size: 11px;
+    padding: 8px 12px;
+    margin-top: 30px;
+    font-size: 9px;
     color: #64748b;
     page-break-inside: avoid;
     border-radius: 0 4px 4px 0;

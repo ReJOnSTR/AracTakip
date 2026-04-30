@@ -326,6 +326,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <td className="right bold total-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
                                         </tr>
                                     )}
+                                    <tr style={{ borderTop: '1px solid #ddd' }}>
+                                        <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
+                                        <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -341,16 +345,16 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                         <col style={{ width: '180px' }} />
                     </colgroup>
                     <tbody>
-                        <tr>
-                            <td className="bold center">TOPLAM</td>
-                            <td className="right bold total-text">{formatCurrency(grandTotalPrice)}</td>
-                        </tr>
+                            <tr style={{ borderTop: '1px solid #ddd' }}>
+                                <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>GENEL TOPLAM</td>
+                                <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}</td>
+                            </tr>
                     </tbody>
                 </table>
             </div>
 
             <div className="pdf-footer-note">
-                <strong>NOT:</strong>
+                <span className="bold" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>NOT:</span>
                 <div style={{ marginLeft: '10px', display: 'inline-block' }}>Oluşturma Tarihi: {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR')} - {work.title}</div>
             </div>
 
