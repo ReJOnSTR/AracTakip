@@ -46,6 +46,7 @@ export default function DataTable({
 
     const [isTransitioning, setIsTransitioning] = useState(false)
     const prevDataRef = useRef(data)
+    const tableContainerRef = useRef(null)
 
     useEffect(() => {
         if (data !== prevDataRef.current) {
@@ -72,6 +73,15 @@ export default function DataTable({
     const [dateRange, setDateRange] = useState(() => getInitialState('dateRange', { start: '', end: '' }))
     const [focusedIndex, setFocusedIndex] = useState(-1)
     const [lastSelectedIndex, setLastSelectedIndex] = useState(-1)
+
+    useEffect(() => {
+        if (focusedIndex !== -1 && tableContainerRef.current) {
+            const focusedRow = tableContainerRef.current.querySelector('.focused')
+            if (focusedRow) {
+                focusedRow.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+            }
+        }
+    }, [focusedIndex])
 
     // Column Visibility State
     const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -924,6 +934,7 @@ export default function DataTable({
 
             {/* Table */}
             <div 
+                ref={tableContainerRef}
                 className={`table-container ${isTransitioning ? 'data-transitioning' : ''}`}
                 onKeyDown={handleKeyDown}
                 tabIndex="0"

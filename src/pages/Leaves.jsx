@@ -158,11 +158,35 @@ export default function Leaves() {
         if (!confirmDelete) return;
         try {
             const res = await window.electronAPI.deleteLeave(confirmDelete.id);
-            if (res.success) loadData();
+            if (res.success) {
+                loadData();
+                showToast('İzin silindi.', 'success');
+            }
         } catch (err) {
             console.error('Failed to delete leave:', err);
         }
         setConfirmDelete(null);
+    };
+
+    const handleBulkDelete = async (ids) => {
+        if (!ids || ids.length === 0) return;
+        if (!confirm('Seçili izinleri silmek istediğinize emin misiniz?')) return;
+
+        setSaving(true);
+        try {
+            let successCount = 0;
+            for (const id of ids) {
+                const res = await window.electronAPI.deleteLeave(id);
+                if (res.success) successCount++;
+            }
+            if (successCount > 0) {
+                loadData();
+                showToast(`${successCount} izin silindi.`, 'success');
+            }
+        } catch (err) {
+            console.error('Bulk delete failed:', err);
+        }
+        setSaving(false);
     };
 
     const updateField = (key, value) => {
@@ -337,7 +361,8 @@ export default function Leaves() {
                 data={leaves}
                 persistenceKey="leaves_table"
                 showSearch={true}
-                showCheckboxes={false}
+                showCheckboxes={true}
+                onBulkDelete={handleBulkDelete}
                 searchPlaceholder="Personel veya notlarda ara..."
                 showDateFilter={true}
                 dateFilterKey="start_date"

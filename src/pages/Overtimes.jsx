@@ -11,7 +11,7 @@ import MonthFilter from '../components/MonthFilter'
 import ConfirmModal from '../components/ConfirmModal'
 import CustomMultiSelect from '../components/CustomMultiSelect'
 import { formatCurrency, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
-import { Clock, Users, User, Building2, Wallet, Banknote, X, Plus, Calendar, Calculator, Trash2, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react'
+import { Clock, Users, User, Building2, Wallet, Banknote, X, Plus, Calendar, Calculator, Trash2, ChevronRight, ChevronLeft, CheckCircle, Pencil } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 
 const paymentMethods = [
@@ -249,38 +249,54 @@ export default function Overtimes() {
     }
 
     const handleOpenOvertimeModal = (row = null) => {
-        const empId = row ? row.id : (selectedRows.length === 1 ? selectedRows[0] : '')
+        // If row has 'employeeId' but no 'id', it's likely a summary row being used to ADD a new entry for that employee
+        // If row has both 'id' and 'employeeId', it's an EXISTING record being EDITED
+        const isEditing = row && row.id && row.employeeId
+        
+        const empId = row ? (isEditing ? row.employeeId : row.id) : (selectedRows.length === 1 ? selectedRows[0] : '')
         const empIds = row ? [] : (selectedRows.length > 1 ? selectedRows : [])
         
         const emp = empId ? (allEmployees.find(e => e.id === empId) || overtimeData.find(e => e.id === empId)) : null
-        const rate = emp ? calcOvertimeRate('weekday', emp) : 0
+        
+        // Determine type for editing
+        let overtimeType = 'weekday'
+        if (isEditing) {
+            const weekdayRate = calcOvertimeRate('weekday', emp)
+            if (Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)) {
+                overtimeType = 'sunday'
+            }
+        }
+
+        const rate = isEditing ? row.rate : (emp ? calcOvertimeRate('weekday', emp) : 0)
 
         setOvertimeFormData({
             employeeId: empId,
             employeeIds: empIds,
-            overtimeType: 'weekday',
-            date: formatDateForInput(new Date()),
-            hours: '',
-            rate,
-            amount: '',
-            notes: '',
-            useAsLeave: false
+            overtimeType: overtimeType,
+            date: isEditing ? formatDateForInput(row.date) : formatDateForInput(new Date()),
+            hours: isEditing ? row.hours : '',
+            rate: rate,
+            amount: isEditing ? row.amount : '',
+            notes: isEditing ? (row.notes || '') : '',
+            useAsLeave: isEditing ? (row.notes && row.notes.includes('[İZİN OLARAK KULLANILDI]')) : false
         })
+        
         setOvertimeQueue([])
         setOvertimeQueueIndex(0)
         setOvertimeModalStep(empId ? 2 : 1)
+        
         if (empId) {
-            // Pre-fill queue with single item if row provided
             setOvertimeQueue([{
+                id: isEditing ? row.id : undefined, // Keep the record ID if editing
                 employeeId: empId,
                 employee: emp,
-                overtimeType: 'weekday',
-                date: formatDateForInput(new Date()),
-                hours: '',
+                overtimeType: overtimeType,
+                date: isEditing ? formatDateForInput(row.date) : formatDateForInput(new Date()),
+                hours: isEditing ? row.hours : '',
                 rate,
-                amount: '',
-                notes: '',
-                useAsLeave: false,
+                amount: isEditing ? row.amount : '',
+                notes: isEditing ? (row.notes || '') : '',
+                useAsLeave: isEditing ? (row.notes && row.notes.includes('[İZİN OLARAK KULLANILDI]')) : false,
                 isSaved: false
             }])
         }
@@ -343,19 +359,28 @@ export default function Overtimes() {
             
             for (const item of targetItems) {
                 let finalNotes = item.notes || ''
-                if (item.useAsLeave && !finalNotes.includes(marker)) {
-                    finalNotes = (marker + ' ' + finalNotes).trim()
+                const leaveMarker = '[İZİN OLARAK KULLANILDI]'
+                
+                if (item.useAsLeave && !finalNotes.includes(leaveMarker)) {
+                    finalNotes = (leaveMarker + ' ' + finalNotes).trim()
+                } else if (!item.useAsLeave && finalNotes.includes(leaveMarker)) {
+                    finalNotes = finalNotes.replace(leaveMarker, '').trim()
                 }
 
-                await window.electronAPI.createOvertime({
+                const payload = {
                     employeeId: item.employeeId,
-                    overtimeType: item.overtimeType,
                     date: item.date,
                     hours: parseFloat(item.hours) || 0,
                     rate: item.rate,
                     amount: item.amount,
                     notes: finalNotes || null
-                })
+                }
+
+                if (item.id) {
+                    await window.electronAPI.updateOvertime({ id: item.id, ...payload })
+                } else {
+                    await window.electronAPI.createOvertime(payload)
+                }
             }
 
             setOvertimeModalOpen(false)
@@ -478,12 +503,36 @@ export default function Overtimes() {
     const handleDelete = async () => {
         if (!deleteConfirm) return
         try {
-            await window.electronAPI.deleteOvertime(deleteConfirm)
-            setDeleteConfirm(null)
-            loadOvertimes()
+            const res = await window.electronAPI.deleteOvertime(deleteConfirm)
+            if (res.success) {
+                setDeleteConfirm(null)
+                loadOvertimes()
+                showToast('Mesai silindi.', 'success')
+            }
         } catch (err) {
             console.error('Failed to delete overtime:', err)
         }
+    }
+
+    const handleBulkDelete = async (ids) => {
+        if (!ids || ids.length === 0) return
+        if (!confirm(`${ids.length} adet mesaiyi silmek istediğinize emin misiniz?`)) return
+
+        setSaving(true)
+        try {
+            let successCount = 0
+            for (const id of ids) {
+                const res = await window.electronAPI.deleteOvertime(id)
+                if (res.success) successCount++
+            }
+            if (successCount > 0) {
+                loadOvertimes()
+                showToast(`${successCount} mesai kaydı silindi.`, 'success')
+            }
+        } catch (err) {
+            console.error('Bulk delete failed:', err)
+        }
+        setSaving(false)
     }
 
     const columns = [
@@ -727,6 +776,7 @@ export default function Overtimes() {
                 persistenceKey="overtimes_table_v2"
                 columns={columns}
                 data={overtimeData}
+                onBulkDelete={handleBulkDelete}
                 onFilteredDataChange={setDisplayData}
                 filters={[
                     {
@@ -779,15 +829,13 @@ export default function Overtimes() {
                     <div style={{ display: 'flex', gap: '4px' }}>
                         <button 
                             className="btn-icon" 
-                            title="Mesai Ekle" 
+                            title="Mesai Düzenle" 
                             onClick={(e) => {
                                 e.stopPropagation()
-                                // Find employee in allEmployees or summaryData
-                                const emp = allEmployees.find(e => e.id === row.employeeId) || row
-                                handleOpenOvertimeModal(emp)
+                                handleOpenOvertimeModal(row)
                             }}
                         >
-                            <Plus size={16} />
+                            <Pencil size={16} />
                         </button>
                         <button 
                             className="btn-icon" 
