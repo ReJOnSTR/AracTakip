@@ -7,7 +7,8 @@ import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import EmployeeForm from '../components/forms/EmployeeForm'
-import { formatCurrency } from '../utils/helpers'
+import { formatCurrency, getEmployeeStatusInfo } from '../utils/helpers'
+import { employeeService } from '../services'
 import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar } from 'lucide-react'
 
 const statusOptions = [
@@ -43,7 +44,7 @@ export default function Employees() {
         setLoading(true)
         try {
             const [empRes, deptRes] = await Promise.all([
-                window.electronAPI.getEmployees(currentCompany.id, showArchived ? 1 : 0),
+                employeeService.getAll(currentCompany.id, showArchived ? 1 : 0),
                 window.electronAPI.getDepartments(currentCompany.id)
             ])
 
@@ -88,12 +89,12 @@ export default function Employees() {
         try {
             let result
             if (editingEmployee) {
-                result = await window.electronAPI.updateEmployee({
+                result = await employeeService.update({
                     id: editingEmployee.id,
                     ...formData
                 })
             } else {
-                result = await window.electronAPI.createEmployee({
+                result = await employeeService.create({
                     companyId: currentCompany.id,
                     ...formData
                 })
@@ -139,10 +140,10 @@ export default function Employees() {
         try {
             if (confirmModal.ids) {
                 for (const id of confirmModal.ids) {
-                    await window.electronAPI.deleteEmployee(id)
+                    await employeeService.delete(id)
                 }
             } else {
-                await window.electronAPI.deleteEmployee(confirmModal.item.id)
+                await employeeService.delete(confirmModal.item.id)
             }
             loadEmployees()
         } catch (err) {
@@ -174,7 +175,7 @@ export default function Employees() {
             key: 'status',
             label: 'Durum',
             render: (value) => {
-                const status = getStatusInfo(value)
+                const status = getEmployeeStatusInfo(value)
                 return <span className={`badge badge-${status.color}`}>{status.label}</span>
             }
         }

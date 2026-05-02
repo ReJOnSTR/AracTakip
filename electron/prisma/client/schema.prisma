@@ -188,6 +188,8 @@ model employees {
   works                   works[]
 
   @@index([company_id], map: "idx_employees_company")
+  @@index([status])
+  @@index([is_archived])
 }
 
 model inspections {
@@ -239,6 +241,8 @@ model leaves {
   employees   employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_leaves_employee")
+  @@index([status])
+  @@index([is_archived])
 }
 
 model maintenances {
@@ -292,6 +296,8 @@ model overtimes {
   employees   employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_overtimes_employee")
+  @@index([date])
+  @@index([is_archived])
 }
 
 model recurring_transactions {
@@ -328,6 +334,9 @@ model salaries {
   employees      employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([employee_id], map: "idx_salaries_employee")
+  @@index([salary_month])
+  @@index([status])
+  @@index([is_archived])
 }
 
 model schema_migrations {
@@ -413,6 +422,8 @@ model vehicles {
   works        works[]
 
   @@index([company_id], map: "idx_vehicles_company")
+  @@index([status])
+  @@index([is_archived])
 }
 
 model work_items {
@@ -466,6 +477,8 @@ model works {
 
   @@index([company_id], map: "idx_works_company")
   @@index([customer_id], map: "idx_works_customer")
+  @@index([status])
+  @@index([is_archived])
 }
 
 model departments {

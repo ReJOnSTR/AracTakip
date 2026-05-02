@@ -7,7 +7,20 @@ async function getVehicles(companyId, isArchived = 0) {
     try {
         const vehicles = await prisma.vehicles.findMany({
             where: { company_id: parseInt(companyId), is_archived: isArchived ? 1 : 0 },
-            include: {
+            select: {
+                id: true,
+                company_id: true,
+                type: true,
+                plate: true,
+                brand: true,
+                model: true,
+                year: true,
+                color: true,
+                status: true,
+                km: true,
+                notes: true,
+                is_archived: true,
+                created_at: true,
                 maintenances: true,
                 inspections: true,
                 insurances: true,

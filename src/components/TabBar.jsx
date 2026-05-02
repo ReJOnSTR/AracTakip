@@ -101,28 +101,30 @@ export default function TabBar() {
 
     return (
         <div className="tab-bar">
-            {/* Left: Draggable Tabs */}
+            {/* Navigation Buttons (Fixed) */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: '-1px', flexShrink: 0 }}>
+                <button
+                    className="tab-nav-btn"
+                    onClick={() => backEnabled && goBack()}
+                    title="Geri Dön"
+                    style={{ opacity: backEnabled ? 1 : 0.3, cursor: backEnabled ? 'pointer' : 'default' }}
+                    disabled={!backEnabled}
+                >
+                    <ArrowLeft size={16} />
+                </button>
+                <button
+                    className="tab-nav-btn forward-btn"
+                    onClick={() => forwardEnabled && goForward()}
+                    title="İleri Git"
+                    style={{ opacity: forwardEnabled ? 1 : 0.3, cursor: forwardEnabled ? 'pointer' : 'default' }}
+                    disabled={!forwardEnabled}
+                >
+                    <ArrowRight size={16} />
+                </button>
+            </div>
+
+            {/* Left: Draggable Tabs (Scrolling) */}
             <div className="tab-bar-left">
-                <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: '-1px' }}>
-                    <button
-                        className="tab-nav-btn"
-                        onClick={() => backEnabled && goBack()}
-                        title="Geri Dön"
-                        style={{ opacity: backEnabled ? 1 : 0.3, cursor: backEnabled ? 'pointer' : 'default' }}
-                        disabled={!backEnabled}
-                    >
-                        <ArrowLeft size={16} />
-                    </button>
-                    <button
-                        className="tab-nav-btn forward-btn"
-                        onClick={() => forwardEnabled && goForward()}
-                        title="İleri Git"
-                        style={{ opacity: forwardEnabled ? 1 : 0.3, cursor: forwardEnabled ? 'pointer' : 'default' }}
-                        disabled={!forwardEnabled}
-                    >
-                        <ArrowRight size={16} />
-                    </button>
-                </div>
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -161,6 +163,7 @@ export default function TabBar() {
                                 color: 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 marginLeft: '8px',
+                                marginRight: '8px',
                                 marginBottom: '4px',
                                 flexShrink: 0
                             }}

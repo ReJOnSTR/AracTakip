@@ -73,6 +73,15 @@ export default function DataTable({
     const [dateRange, setDateRange] = useState(() => getInitialState('dateRange', { start: '', end: '' }))
     const [focusedIndex, setFocusedIndex] = useState(-1)
     const [lastSelectedIndex, setLastSelectedIndex] = useState(-1)
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery)
+
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery)
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
 
     useEffect(() => {
         if (focusedIndex !== -1 && tableContainerRef.current) {
@@ -335,9 +344,9 @@ export default function DataTable({
 
     // Filter by search
     const filteredData = useMemo(() => {
-        if (!searchQuery.trim()) return customFilteredData
+        if (!debouncedSearchQuery.trim()) return customFilteredData
 
-        const query = searchQuery.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+        const query = debouncedSearchQuery.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
         
         return customFilteredData.filter(row => {
             // Collect all searchable content for this row

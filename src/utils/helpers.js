@@ -137,6 +137,28 @@ export function getWorkStatusColor(status) {
     return workStatuses.find(s => s.value === status)?.color || 'neutral'
 }
 
+export const employeeStatuses = [
+    { value: 'active', label: 'Aktif', color: 'success' },
+    { value: 'inactive', label: 'Pasif', color: 'neutral' },
+    { value: 'on_leave', label: 'İzinde', color: 'warning' },
+    { value: 'dismissed', label: 'İşten Ayrıldı', color: 'danger' }
+]
+
+export function getEmployeeStatusInfo(status) {
+    return employeeStatuses.find(s => s.value === status) || { label: status, color: 'neutral' }
+}
+
+export const leaveStatuses = [
+    { value: 'pending', label: 'Bekliyor', color: 'warning' },
+    { value: 'approved', label: 'Onaylandı', color: 'success' },
+    { value: 'rejected', label: 'Reddedildi', color: 'danger' },
+    { value: 'cancelled', label: 'İptal Edildi', color: 'neutral' }
+]
+
+export function getLeaveStatusInfo(status) {
+    return leaveStatuses.find(s => s.value === status) || { label: status, color: 'neutral' }
+}
+
 /**
  * Calculates the active base salary for a given month by evaluating the employee_salary_history timeline.
  * @param {Object} employee - Employee object containing `salary` and `employee_salary_history`

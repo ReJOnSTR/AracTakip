@@ -12,7 +12,25 @@ async function getEmployees(companyId, isArchived = 0) {
 
         const data = await prisma.employees.findMany({
             where: whereClause,
-            include: {
+            select: {
+                id: true,
+                company_id: true,
+                first_name: true,
+                last_name: true,
+                tc_no: true,
+                phone: true,
+                email: true,
+                position: true,
+                department: true,
+                start_date: true,
+                end_date: true,
+                salary: true,
+                status: true,
+                notes: true,
+                is_archived: true,
+                created_at: true,
+                past_used_leaves: true,
+                birth_date: true,
                 salaries: { where: { status: 'pending' } },
                 leaves: { where: { status: 'pending' } },
                 employee_salary_history: { orderBy: { start_date: 'asc' } }
