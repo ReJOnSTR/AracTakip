@@ -6,7 +6,7 @@ import CustomSelect from '../components/CustomSelect'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet, 
-    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff
+    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 
@@ -507,6 +507,48 @@ export default function Settings() {
                                             <span className="toggle-slider"></span>
                                         </label>
                                     </div>
+                                </div>
+
+                                <div className="settings-section-divider" style={{ margin: '30px 0', borderTop: '1px solid var(--border-color)' }}></div>
+
+                                <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Clock size={18} className="text-primary" /> Günlük Hatırlatıcı Özeti
+                                </h3>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                                    Belirlediğiniz saatte, yaklaşan ve geciken tüm işlemlerin toplu özetini bildirim olarak alın.
+                                </p>
+
+                                <div className="settings-list">
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Günlük Özet Bildirimi</div>
+                                            <div className="settings-item-desc">Tüm yaklaşan/gecikmiş işleri tek bildirimde raporlar.</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={settings.notificationSummaryEnabled || false} 
+                                                onChange={(e) => handleSettingChange('notificationSummaryEnabled', e.target.checked)} 
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    {settings.notificationSummaryEnabled && (
+                                        <div className="settings-item card-style">
+                                            <div className="settings-item-content">
+                                                <div className="settings-item-label">Hatırlatma Saati</div>
+                                                <div className="settings-item-desc">Özet bildirimi her gün saat kaçta gönderilsin?</div>
+                                            </div>
+                                            <input 
+                                                type="time" 
+                                                className="form-input" 
+                                                style={{ width: '120px' }}
+                                                value={settings.notificationSummaryTime || '09:00'}
+                                                onChange={(e) => handleSettingChange('notificationSummaryTime', e.target.value)}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

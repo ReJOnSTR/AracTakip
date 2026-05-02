@@ -403,14 +403,73 @@ function HrModuleContent() {
                                     <CalendarCheck size={16} />
                                     <span>İzin Türleri</span>
                                 </div>
-                                <button className="btn btn-icon-sm" onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: null, value: '' })}>
-                                    <Plus size={14} />
-                                </button>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <div className="info-tooltip-container">
+                                        <button className="btn btn-icon-sm info-btn">
+                                            <Info size={14} />
+                                        </button>
+                                        <div className="info-tooltip">
+                                            <div style={{ fontWeight: 800, marginBottom: '10px', color: 'var(--accent-primary)', fontSize: '13px', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <Info size={14} /> 4857 Sayılı Kanun (İzinler)
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: 'var(--text-secondary)' }}>• Evlilik İzni:</span>
+                                                    <span style={{ fontWeight: 600, color: 'var(--accent-secondary)' }}>3 Gün</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: 'var(--text-secondary)' }}>• Ölüm İzni:</span>
+                                                    <span style={{ fontWeight: 600, color: 'var(--accent-secondary)' }}>3 Gün</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: 'var(--text-secondary)' }}>• Babalık İzni:</span>
+                                                    <span style={{ fontWeight: 600, color: 'var(--accent-secondary)' }}>5 Gün</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: 'var(--text-secondary)' }}>• Engelli Çocuk:</span>
+                                                    <span style={{ fontWeight: 600, color: 'var(--accent-secondary)' }}>10 Gün</span>
+                                                </div>
+                                                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--border-light)' }}>
+                                                    <div style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '11px', marginBottom: '4px' }}>Yıllık Ücretli İzin (Kıdem)</div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                                                        <span style={{ color: 'var(--text-muted)' }}>1-5 Yıl:</span>
+                                                        <span style={{ color: 'var(--text-primary)' }}>14 Gün</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                                                        <span style={{ color: 'var(--text-muted)' }}>5-15 Yıl:</span>
+                                                        <span style={{ color: 'var(--text-primary)' }}>20 Gün</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                                                        <span style={{ color: 'var(--text-muted)' }}>15+ Yıl:</span>
+                                                        <span style={{ color: 'var(--text-primary)' }}>26 Gün</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button className="btn btn-icon-sm" onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: null, value: '' })}>
+                                        <Plus size={14} />
+                                    </button>
+                                </div>
                             </div>
                             <div className="settings-list">
                                 {personnelSettings.leaveTypes.map(type => (
                                     <div key={type.id} className="settings-list-item">
-                                        <span>{type.name}</span>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span>{type.name}</span>
+                                            {(() => {
+                                                const lower = type.name.toLowerCase();
+                                                let hint = '';
+                                                if (lower.includes('yıllık')) hint = '1-5 yıl: 14 gün, 5-15 yıl: 20 gün, 15+ yıl: 26 gün';
+                                                else if (lower.includes('evlilik')) hint = 'Yasal: 3 Gün';
+                                                else if (lower.includes('ölüm')) hint = 'Yasal: 3 Gün';
+                                                else if (lower.includes('babalık')) hint = 'Yasal: 5 Gün';
+                                                else if (lower.includes('engelli')) hint = 'Yasal: 10 Gün';
+                                                
+                                                if (hint) return <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{hint}</span>;
+                                                return null;
+                                            })()}
+                                        </div>
                                         <div className="item-actions">
                                             <button onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: type, value: type.name })}>
                                                 <Edit2 size={14} />

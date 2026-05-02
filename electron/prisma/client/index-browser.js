@@ -136,6 +136,8 @@ exports.Prisma.CompaniesScalarFieldEnum = {
   user_id: 'user_id',
   name: 'name',
   tax_number: 'tax_number',
+  tax_office: 'tax_office',
+  sgk_no: 'sgk_no',
   address: 'address',
   phone: 'phone',
   created_at: 'created_at'
@@ -244,6 +246,7 @@ exports.Prisma.EmployeesScalarFieldEnum = {
   status: 'status',
   notes: 'notes',
   image: 'image',
+  is_archived: 'is_archived',
   created_at: 'created_at',
   past_used_leaves: 'past_used_leaves',
   birth_date: 'birth_date'
@@ -413,6 +416,7 @@ exports.Prisma.UsersScalarFieldEnum = {
   full_name: 'full_name',
   password_hash: 'password_hash',
   created_at: 'created_at',
+  role: 'role',
   must_change_password: 'must_change_password'
 };
 

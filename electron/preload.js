@@ -223,5 +223,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // System actions
     saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
-    saveReportPdf: () => ipcRenderer.invoke('save-report-pdf')
+    saveReportPdf: (route) => ipcRenderer.invoke('save-report-pdf', route),
 })

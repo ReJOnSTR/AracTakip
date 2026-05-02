@@ -13,6 +13,7 @@ import MonthFilter from '../components/MonthFilter'
 import EmployeeForm from '../components/forms/EmployeeForm'
 import AssignmentForm from '../components/forms/AssignmentForm'
 import DocumentForm from '../components/forms/DocumentForm'
+import DocumentGeneratorModal from '../components/DocumentGeneratorModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
 import {
@@ -109,7 +110,7 @@ const StatCard = ({ label, value, valueColor }) => (
 export default function EmployeeDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const { currentCompany } = useCompany()
+    const { currentCompany, companies } = useCompany()
     const { updateTabInfo } = useTabs()
 
     const [employee, setEmployee] = useState(null)
@@ -165,6 +166,7 @@ export default function EmployeeDetail() {
     const [previewDoc, setPreviewDoc] = useState(null)
     const [showLoanHistory, setShowLoanHistory] = useState(false)
     const [isDocArchiveView, setIsDocArchiveView] = useState(false)
+    const [isGenModalOpen, setIsGenModalOpen] = useState(false)
     const confettiCanvasRef = useRef(null)
 
     useEffect(() => {
@@ -301,7 +303,31 @@ export default function EmployeeDetail() {
             const rate = calcOvertimeRate('weekday')
             setFormData({ overtimeType: 'weekday', date: today(), hours: '', rate, amount: '', notes: '' })
         } else if (type === 'leave') {
-            setFormData({ type: leaveTypes[0]?.value || 'annual', status: 'approved', startDate: today(), endDate: today(), days: 1, notes: '' })
+            const defaultType = leaveTypes[0]?.value || 'annual';
+            const lower = defaultType.toLowerCase();
+            let autoDays = 1;
+            if (lower.includes('evlilik')) autoDays = 3;
+            else if (lower.includes('ölüm')) autoDays = 3;
+            else if (lower.includes('babalık')) autoDays = 5;
+            else if (lower.includes('engelli')) autoDays = 10;
+            else if (lower.includes('yıllık')) {
+                const start = employee.start_date ? new Date(employee.start_date) : null;
+                const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
+                autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
+            }
+
+            const startDt = today();
+            const endDt = new Date(startDt);
+            endDt.setDate(endDt.getDate() + autoDays - 1);
+
+            setFormData({ 
+                type: defaultType, 
+                status: 'approved', 
+                startDate: startDt, 
+                endDate: formatDateForInput(endDt), 
+                days: autoDays, 
+                notes: '' 
+            });
         } else if (type === 'salary_history') {
             setFormData({ amount: employee.salary || '', startDate: today(), type: 'raise', description: '' })
         } else {
@@ -391,9 +417,33 @@ export default function EmployeeDetail() {
                 const rate = prev.rate || 0
                 return { ...prev, hours: value, amount: hours > 0 ? Math.round(hours * rate * 100) / 100 : '' }
             })
-        } else if (modalType === 'leave' && ['startDate', 'endDate', 'days'].includes(key)) {
+        } else if (modalType === 'leave' && ['startDate', 'endDate', 'days', 'type'].includes(key)) {
             setFormData(prev => {
                 let newData = { ...prev, [key]: value }
+
+                // Auto-set days based on type
+                if (key === 'type') {
+                    const lower = value.toLowerCase()
+                    let autoDays = 0
+                    if (lower.includes('evlilik')) autoDays = 3
+                    else if (lower.includes('ölüm')) autoDays = 3
+                    else if (lower.includes('babalık')) autoDays = 5
+                    else if (lower.includes('engelli')) autoDays = 10
+                    else if (lower.includes('yıllık')) {
+                        const start = employee.start_date ? new Date(employee.start_date) : null
+                        const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0
+                        autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26)
+                    }
+
+                    if (autoDays > 0) {
+                        newData.days = autoDays
+                        if (newData.startDate) {
+                            const start = new Date(newData.startDate)
+                            start.setDate(start.getDate() + autoDays - 1)
+                            newData.endDate = formatDateForInput(start)
+                        }
+                    }
+                }
 
                 if (key === 'startDate' && newData.startDate) {
                     const days = parseInt(newData.days) || 1
@@ -430,6 +480,28 @@ export default function EmployeeDetail() {
             message = `${ids.length} adet kaydı silmek istediğinize emin misiniz?`
         }
         setConfirmModal({ type, item, ids, title, message })
+    }
+
+    const handleConfirmArchive = async (status) => {
+        const title = status === 1 ? 'Personeli Arşivle' : 'Personeli Geri Yükle'
+        const message = status === 1 
+            ? `"${employee.first_name} ${employee.last_name}" personelini arşivlemek istediğinize emin misiniz? Arşivlenen personellere yeni veri girişi yapılamaz.`
+            : `"${employee.first_name} ${employee.last_name}" personelini tekrar aktif etmek istediğinize emin misiniz?`
+        
+        setConfirmModal({ 
+            type: 'archive_employee', 
+            status, 
+            title, 
+            message,
+            onConfirm: async () => {
+                const res = await window.electronAPI.archiveItem('employees', parseInt(id), status)
+                if (res.success) {
+                    loadEmployeeData()
+                    if (window.showToast) window.showToast(status === 1 ? 'Personel arşivlendi.' : 'Personel aktif edildi.', 'success')
+                }
+                setConfirmModal(null)
+            }
+        })
     }
 
     const handleConfirmDelete = async () => {
@@ -1063,7 +1135,8 @@ export default function EmployeeDetail() {
         )
     }
 
-    const statusInfo = employee.status === 'active' ? { label: 'Aktif', color: 'success' } : { label: 'Pasif', color: 'secondary' }
+    const isArchived = employee.status !== 'active'
+    const statusInfo = !isArchived ? { label: 'Aktif', color: 'success' } : { label: 'Arşivlenmiş', color: 'secondary' }
 
     return (
         <div className="page-container fade-in" style={{ paddingBottom: '40px', position: 'relative' }}>
@@ -1302,7 +1375,18 @@ export default function EmployeeDetail() {
                                 />
                             </div>
                         )}
-                        <button className="btn btn-primary" onClick={() => activeTab === 'documents' ? handleOpenUpload() : openAddModal(activeTab)}>
+                        {activeTab === 'documents' && (
+                            <button className="btn btn-secondary" onClick={() => setIsGenModalOpen(true)}>
+                                <FileText size={18} />
+                                Belge Oluştur
+                            </button>
+                        )}
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={() => activeTab === 'documents' ? handleOpenUpload() : openAddModal(activeTab)}
+                            disabled={isArchived && activeTab !== 'documents'}
+                            style={{ opacity: isArchived && activeTab !== 'documents' ? 0.5 : 1, cursor: isArchived && activeTab !== 'documents' ? 'not-allowed' : 'pointer' }}
+                        >
                             <Plus size={18} />
                             Ekle
                         </button>
@@ -1841,7 +1925,33 @@ export default function EmployeeDetail() {
                         {modalType === 'leave' && (
                             <form onSubmit={handleLeaveSubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                    <CustomSelect label="İzin Türü *" value={formData.type || 'annual'} options={leaveTypes} onChange={(val) => updateField('type', val)} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <CustomSelect label="İzin Türü *" value={formData.type || 'annual'} options={leaveTypes} onChange={(val) => updateField('type', val)} />
+                                        {(() => {
+                                            const selectedType = leaveTypes.find(t => t.value === (formData.type || 'annual'));
+                                            const name = selectedType?.label?.toLowerCase() || '';
+                                            let hint = '';
+                                            if (name.includes('yıllık')) {
+                                                const start = employee.start_date ? new Date(employee.start_date) : null;
+                                                const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
+                                                let legalDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
+                                                hint = `Kıdem: ${years} Yıl. Yasal Hak: ${legalDays} Gün`;
+                                            }
+                                            else if (name.includes('evlilik')) hint = 'Yasal Hak: 3 Gün';
+                                            else if (name.includes('ölüm')) hint = 'Yasal Hak: 3 Gün';
+                                            else if (name.includes('babalık')) hint = 'Yasal Hak: 5 Gün';
+                                            else if (name.includes('engelli')) hint = 'Yasal Hak: 10 Gün';
+                                            
+                                            if (hint) return (
+                                                <div style={{ marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div style={{ padding: '3px 8px', background: 'rgba(20, 184, 166, 0.1)', color: 'var(--accent-primary)', borderRadius: '4px', fontSize: '10.5px', fontWeight: 700, border: '1px solid rgba(20, 184, 166, 0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <AlertCircle size={10} /> {hint}
+                                                    </div>
+                                                </div>
+                                            );
+                                            return null;
+                                        })()}
+                                    </div>
                                     <CustomInput label="Gün Sayısı" type="number" value={formData.days || 1} onChange={(val) => updateField('days', val)} min={1} />
                                     <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
                                     <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
@@ -1990,7 +2100,20 @@ export default function EmployeeDetail() {
                 )}
             </Modal>
 
-            <ConfirmModal isOpen={!!confirmModal} onClose={() => setConfirmModal(null)} onConfirm={handleConfirmDelete} title={confirmModal?.title} message={confirmModal?.message} />
+            <DocumentGeneratorModal 
+                isOpen={isGenModalOpen}
+                onClose={() => setIsGenModalOpen(false)}
+                employee={employee}
+                company={companies.find(c => c.id === employee?.company_id) || currentCompany}
+            />
+
+            <ConfirmModal 
+                isOpen={!!confirmModal} 
+                onClose={() => setConfirmModal(null)} 
+                onConfirm={confirmModal?.onConfirm || handleConfirmDelete} 
+                title={confirmModal?.title} 
+                message={confirmModal?.message} 
+            />
 
             {/* Preview Modal */}
             {previewDoc && (

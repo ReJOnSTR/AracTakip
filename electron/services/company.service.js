@@ -35,6 +35,8 @@ async function createCompany(data) {
                 user_id: userId,
                 name: name,
                 tax_number: rest.taxNumber || null,
+                tax_office: rest.taxOffice || null,
+                sgk_no: rest.sgkNo || null,
                 address: rest.address || null,
                 phone: rest.phone || null
             }
@@ -59,6 +61,8 @@ async function updateCompany(data) {
             data: {
                 name: name,
                 tax_number: rest.taxNumber || null,
+                tax_office: rest.taxOffice || null,
+                sgk_no: rest.sgkNo || null,
                 address: rest.address || null,
                 phone: rest.phone || null
             }

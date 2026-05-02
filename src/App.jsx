@@ -55,6 +55,7 @@ const Customers = lazy(() => import('./pages/Customers'))
 const CustomerDetail = lazy(() => import('./pages/CustomerDetail'))
 const ModuleSettings = lazy(() => import('./pages/ModuleSettings'))
 const Profile = lazy(() => import('./pages/Profile'))
+const PrintDocument = lazy(() => import('./pages/PrintDocument'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -75,7 +76,6 @@ function ProtectedRoute({ children }) {
 }
 
 function MainLayout() {
-    useNotification() // Activate notification system
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         return localStorage.getItem('sidebarCollapsed') === 'true'
     })
@@ -116,7 +116,7 @@ function AppRoutes() {
     useDataListener() // Global real-time data listener
     const { user } = useAuth()
     const location = useLocation()
-    const isPrintRoute = location.pathname === '/print' || location.pathname.startsWith('/work-report')
+    const isPrintRoute = location.pathname === '/print' || location.pathname === '/print-document' || location.pathname.startsWith('/work-report')
 
     return (
         <>
@@ -172,6 +172,7 @@ function AppRoutes() {
                     </Route>
 
                     <Route path="/print" element={<PrintPage />} />
+                    <Route path="/print-document" element={<PrintDocument />} />
                     <Route path="/work-report/:id" element={<WorkPdfReport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes >

@@ -777,6 +777,7 @@ ipcMain.handle('employeeDocuments:update', async (event, data) => {
     }
 })
 
+
 // Global Search
 ipcMain.handle('global:search', async (event, companyId, query) => {
     if (!query || query.length < 2) return { success: true, data: [] }
@@ -1312,6 +1313,10 @@ async function checkAndNotify() {
                                 title = `Finans: Çek/Senet`
                                 body = `${event.type} vadesi geldi (${timeStatus}). Tutar: ${event.amount ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(event.amount) : ''}`
                                 break
+                            case 'reminder':
+                                title = event.type
+                                body = `${event.description || 'Hatırlatma zamanı geldi.'} (${timeStatus})`
+                                break
                             default:
                                 title = event.plate || event.employeeName || 'Önemli Hatırlatma'
                                 body = `${event.type} (${timeStatus}). Tarih: ${formattedDate}`
@@ -1335,12 +1340,80 @@ async function checkAndNotify() {
     }
 }
 
+async function checkPeriodicSummary() {
+    // Check for Daily Summary
+    await checkAndNotifySummary()
+}
+
+async function checkAndNotifySummary() {
+    const settings = loadSettings()
+    if (!settings.notificationSummaryEnabled || !settings.notificationSummaryTime || !settings.userId) return
+
+    const now = new Date()
+    const currentHourMin = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+    
+    if (currentHourMin !== settings.notificationSummaryTime) return
+
+    const todayStr = now.toISOString().split('T')[0]
+    const eventKey = `summary-${settings.userId}-${todayStr}`
+    
+    if (notifiedEvents.has(eventKey)) return
+
+    try {
+        const companies = await db.getCompanies(settings.userId)
+        if (!companies.success) return
+
+        let totalUpcoming = 0
+        let summaryLines = []
+
+        for (const company of companies.data) {
+            const result = await db.getUpcomingEvents(company.id)
+            if (result.success && result.data.length > 0) {
+                const criticalCount = result.data.length
+                totalUpcoming += criticalCount
+                
+                // Categorize
+                const categories = {}
+                result.data.forEach(e => {
+                    const cat = e.eventType === 'maintenance' ? 'Bakım' : 
+                                e.eventType === 'inspection' ? 'Muayene' :
+                                e.eventType === 'insurance' ? 'Sigorta' : 'Diğer'
+                    categories[cat] = (categories[cat] || 0) + 1
+                })
+                
+                const catStr = Object.entries(categories).map(([k, v]) => `${v} ${k}`).join(', ')
+                summaryLines.push(`${company.name}: ${criticalCount} işlem (${catStr})`)
+            }
+        }
+
+        if (totalUpcoming > 0) {
+            if (Notification.isSupported()) {
+                new Notification({
+                    title: `Günlük Hatırlatıcı Özeti`,
+                    body: `Takip etmeniz gereken ${totalUpcoming} güncel işlem var.\n${summaryLines.slice(0, 3).join('\n')}${summaryLines.length > 3 ? '\n...' : ''}`,
+                    icon: path.join(__dirname, '../resources/icon.png')
+                }).show()
+            }
+            notifiedEvents.add(eventKey)
+        }
+    } catch (error) {
+        log.error('Summary notification failed:', error)
+    }
+}
+
 function setupNotificationCheck() {
     if (notificationInterval) clearInterval(notificationInterval)
-    // Every 30 minutes
+    // Every 30 minutes for general checks
     notificationInterval = setInterval(checkAndNotify, 30 * 60 * 1000)
-    // Run first check after a short delay
-    setTimeout(checkAndNotify, 10000)
+    
+    // Every 1 minute for daily summary time-check
+    setInterval(checkPeriodicSummary, 60 * 1000)
+
+    // Run first checks after a short delay
+    setTimeout(() => {
+        checkAndNotify()
+        checkPeriodicSummary()
+    }, 10000)
 }
 
 
@@ -1590,15 +1663,15 @@ ipcMain.handle('save-pdf', async (event) => {
 })
 
 // Report PDF - Hidden window approach (no visible window opens)
-ipcMain.handle('save-report-pdf', async (event) => {
+ipcMain.handle('save-report-pdf', async (event, route = '/print') => {
     let hiddenWin = null;
     try {
         const parentWin = BrowserWindow.fromWebContents(event.sender);
 
         // Show save dialog first
         const { canceled, filePath } = await dialog.showSaveDialog(parentWin, {
-            title: 'PDF Olarak Kaydet',
-            defaultPath: `Arac_Raporu_${new Date().toISOString().split('T')[0]}.pdf`,
+            title: 'Belgeyi PDF Olarak Kaydet',
+            defaultPath: `Belge_${new Date().toISOString().split('T')[0]}.pdf`,
             filters: [
                 { name: 'PDF Belgeleri', extensions: ['pdf'] }
             ]
@@ -1620,10 +1693,16 @@ ipcMain.handle('save-report-pdf', async (event) => {
 
         // Load the print page route
         const baseURL = process.env.NODE_ENV === 'development' || !app.isPackaged
-            ? 'http://localhost:5173/#/print'
-            : `file://${path.join(__dirname, '../dist/index.html')}#/print`;
+            ? `http://localhost:5173/#${route}`
+            : `file://${path.join(__dirname, '../dist/index.html')}#${route}`;
 
         await hiddenWin.loadURL(baseURL);
+
+        // Inject the data directly to avoid localStorage sync issues
+        const storedData = await parentWin.webContents.executeJavaScript(`localStorage.getItem('printDocData')`);
+        if (storedData) {
+            await hiddenWin.webContents.executeJavaScript(`localStorage.setItem('printDocData', ${JSON.stringify(storedData)})`);
+        }
 
         // Wait for content to fully render
         await new Promise(resolve => setTimeout(resolve, 1500));

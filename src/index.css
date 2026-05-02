@@ -1199,6 +1199,63 @@ body {
   position: relative;
 }
 
+/* Info Tooltip Styles */
+.info-tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.info-tooltip {
+    visibility: hidden;
+    width: 260px;
+    background-color: var(--bg-elevated);
+    backdrop-filter: blur(12px);
+    color: var(--text-primary);
+    text-align: left;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: absolute;
+    z-index: 1000;
+    top: 130%; 
+    right: 0;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.3s var(--ease-out);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-light);
+    pointer-events: none;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Arrow pointing up */
+.info-tooltip::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    right: 12px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent var(--bg-elevated) transparent;
+}
+
+.info-tooltip-container:hover .info-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.info-btn {
+    color: var(--text-muted) !important;
+    transition: all 0.2s ease;
+}
+
+.info-btn:hover {
+    color: var(--accent-primary) !important;
+    background: var(--accent-subtle) !important;
+}
+
+
 /* Base Input Style */
 .form-input,
 .form-select,
@@ -4777,7 +4834,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }

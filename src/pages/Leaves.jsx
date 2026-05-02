@@ -96,7 +96,7 @@ export default function Leaves() {
             type: 'Yıllık Ücretli İzin',
             startDate: today(),
             endDate: today(),
-            days: 1,
+            days: 14, // Set a safer default or logic-based one later
             status: 'approved',
             notes: ''
         });
@@ -192,6 +192,36 @@ export default function Leaves() {
     const updateField = (key, value) => {
         setFormData(prev => {
             let newData = { ...prev, [key]: value };
+
+            // Auto-set days based on type (and employee seniority if needed)
+            if (key === 'type' || (key === 'employeeId' && prev.type)) {
+                const typeToProcess = key === 'type' ? value : prev.type;
+                const empIdToProcess = key === 'employeeId' ? value : prev.employeeId;
+                
+                const lower = typeToProcess.toLowerCase();
+                let autoDays = 0;
+                if (lower.includes('evlilik')) autoDays = 3;
+                else if (lower.includes('ölüm')) autoDays = 3;
+                else if (lower.includes('babalık')) autoDays = 5;
+                else if (lower.includes('engelli')) autoDays = 10;
+                else if (lower.includes('yıllık')) {
+                    const emp = employees.find(e => e.id === parseInt(empIdToProcess));
+                    if (emp && emp.start_date) {
+                        const start = new Date(emp.start_date);
+                        const years = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25));
+                        autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
+                    }
+                }
+
+                if (autoDays > 0) {
+                    newData.days = autoDays;
+                    if (newData.startDate) {
+                        const start = new Date(newData.startDate);
+                        start.setDate(start.getDate() + autoDays - 1);
+                        newData.endDate = formatDateForInput(start);
+                    }
+                }
+            }
 
             if (key === 'startDate' && newData.startDate) {
                 const days = parseInt(newData.days) || 1;
@@ -418,6 +448,30 @@ export default function Leaves() {
                             options={leaveTypes} 
                             onChange={(val) => updateField('type', val)} 
                         />
+                        {(() => {
+                            const name = formData.type?.toLowerCase() || '';
+                            let hint = '';
+                            if (name.includes('yıllık')) {
+                                const emp = employees.find(e => e.id === parseInt(formData.employeeId));
+                                const start = emp?.start_date ? new Date(emp.start_date) : null;
+                                const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
+                                let legalDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
+                                hint = `Kıdem: ${years} Yıl. Yasal Hak: ${legalDays} Gün`;
+                            }
+                            else if (name.includes('evlilik')) hint = 'Yasal Hak: 3 Gün';
+                            else if (name.includes('ölüm')) hint = 'Yasal Hak: 3 Gün';
+                            else if (name.includes('babalık')) hint = 'Yasal Hak: 5 Gün';
+                            else if (name.includes('engelli')) hint = 'Yasal Hak: 10 Gün';
+                            
+                            if (hint) return (
+                                <div style={{ gridColumn: '1 / -1', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ padding: '4px 10px', background: 'rgba(20, 184, 166, 0.1)', color: 'var(--accent-primary)', borderRadius: '6px', fontSize: '11px', fontWeight: 700, border: '1px solid rgba(20, 184, 166, 0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <AlertCircle size={12} /> {hint}
+                                    </div>
+                                </div>
+                            );
+                            return null;
+                        })()}
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginTop: '16px' }}>

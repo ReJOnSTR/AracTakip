@@ -16,6 +16,8 @@ export default function Companies() {
     const [formData, setFormData] = useState({
         name: '',
         taxNumber: '',
+        taxOffice: '',
+        sgkNo: '',
         address: '',
         phone: ''
     })
@@ -24,7 +26,7 @@ export default function Companies() {
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     const resetForm = () => {
-        setFormData({ name: '', taxNumber: '', address: '', phone: '' })
+        setFormData({ name: '', taxNumber: '', taxOffice: '', sgkNo: '', address: '', phone: '' })
         setEditingCompany(null)
         setError('')
     }
@@ -38,6 +40,8 @@ export default function Companies() {
         setFormData({
             name: company.name,
             taxNumber: company.tax_number || '',
+            taxOffice: company.tax_office || '',
+            sgkNo: company.sgk_no || '',
             address: company.address || '',
             phone: company.phone || ''
         })
@@ -67,6 +71,8 @@ export default function Companies() {
                 id: editingCompany.id,
                 name: formData.name,
                 taxNumber: formData.taxNumber,
+                taxOffice: formData.taxOffice,
+                sgkNo: formData.sgkNo,
                 address: formData.address,
                 phone: formData.phone
             })
@@ -248,6 +254,26 @@ export default function Companies() {
                                 onChange={(value) => setFormData({ ...formData, phone: value })}
                                 format="phone"
                                 placeholder="(5XX) XXX XX XX"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <CustomInput
+                                label="Vergi Dairesi"
+                                value={formData.taxOffice}
+                                onChange={(value) => setFormData({ ...formData, taxOffice: value })}
+                                placeholder="Vergi dairesi"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <CustomInput
+                                label="SGK İşyeri No"
+                                value={formData.sgkNo}
+                                onChange={(value) => setFormData({ ...formData, sgkNo: value })}
+                                placeholder="SGK numarası"
                             />
                         </div>
                     </div>

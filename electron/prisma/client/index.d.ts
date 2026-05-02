@@ -5050,6 +5050,8 @@ export namespace Prisma {
     user_id: number | null
     name: string | null
     tax_number: string | null
+    tax_office: string | null
+    sgk_no: string | null
     address: string | null
     phone: string | null
     created_at: Date | null
@@ -5060,6 +5062,8 @@ export namespace Prisma {
     user_id: number | null
     name: string | null
     tax_number: string | null
+    tax_office: string | null
+    sgk_no: string | null
     address: string | null
     phone: string | null
     created_at: Date | null
@@ -5070,6 +5074,8 @@ export namespace Prisma {
     user_id: number
     name: number
     tax_number: number
+    tax_office: number
+    sgk_no: number
     address: number
     phone: number
     created_at: number
@@ -5092,6 +5098,8 @@ export namespace Prisma {
     user_id?: true
     name?: true
     tax_number?: true
+    tax_office?: true
+    sgk_no?: true
     address?: true
     phone?: true
     created_at?: true
@@ -5102,6 +5110,8 @@ export namespace Prisma {
     user_id?: true
     name?: true
     tax_number?: true
+    tax_office?: true
+    sgk_no?: true
     address?: true
     phone?: true
     created_at?: true
@@ -5112,6 +5122,8 @@ export namespace Prisma {
     user_id?: true
     name?: true
     tax_number?: true
+    tax_office?: true
+    sgk_no?: true
     address?: true
     phone?: true
     created_at?: true
@@ -5209,6 +5221,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number: string | null
+    tax_office: string | null
+    sgk_no: string | null
     address: string | null
     phone: string | null
     created_at: Date | null
@@ -5238,6 +5252,8 @@ export namespace Prisma {
     user_id?: boolean
     name?: boolean
     tax_number?: boolean
+    tax_office?: boolean
+    sgk_no?: boolean
     address?: boolean
     phone?: boolean
     created_at?: boolean
@@ -5261,6 +5277,8 @@ export namespace Prisma {
     user_id?: boolean
     name?: boolean
     tax_number?: boolean
+    tax_office?: boolean
+    sgk_no?: boolean
     address?: boolean
     phone?: boolean
     created_at?: boolean
@@ -5272,6 +5290,8 @@ export namespace Prisma {
     user_id?: boolean
     name?: boolean
     tax_number?: boolean
+    tax_office?: boolean
+    sgk_no?: boolean
     address?: boolean
     phone?: boolean
     created_at?: boolean
@@ -5283,12 +5303,14 @@ export namespace Prisma {
     user_id?: boolean
     name?: boolean
     tax_number?: boolean
+    tax_office?: boolean
+    sgk_no?: boolean
     address?: boolean
     phone?: boolean
     created_at?: boolean
   }
 
-  export type companiesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "name" | "tax_number" | "address" | "phone" | "created_at", ExtArgs["result"]["companies"]>
+  export type companiesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "name" | "tax_number" | "tax_office" | "sgk_no" | "address" | "phone" | "created_at", ExtArgs["result"]["companies"]>
   export type companiesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     users?: boolean | usersDefaultArgs<ExtArgs>
     employees?: boolean | companies$employeesArgs<ExtArgs>
@@ -5332,6 +5354,8 @@ export namespace Prisma {
       user_id: number
       name: string
       tax_number: string | null
+      tax_office: string | null
+      sgk_no: string | null
       address: string | null
       phone: string | null
       created_at: Date | null
@@ -5774,6 +5798,8 @@ export namespace Prisma {
     readonly user_id: FieldRef<"companies", 'Int'>
     readonly name: FieldRef<"companies", 'String'>
     readonly tax_number: FieldRef<"companies", 'String'>
+    readonly tax_office: FieldRef<"companies", 'String'>
+    readonly sgk_no: FieldRef<"companies", 'String'>
     readonly address: FieldRef<"companies", 'String'>
     readonly phone: FieldRef<"companies", 'String'>
     readonly created_at: FieldRef<"companies", 'DateTime'>
@@ -14606,6 +14632,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     salary: number | null
+    is_archived: number | null
     past_used_leaves: number | null
   }
 
@@ -14613,6 +14640,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     salary: number | null
+    is_archived: number | null
     past_used_leaves: number | null
   }
 
@@ -14632,6 +14660,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     image: string | null
+    is_archived: number | null
     created_at: Date | null
     past_used_leaves: number | null
     birth_date: Date | null
@@ -14653,6 +14682,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     image: string | null
+    is_archived: number | null
     created_at: Date | null
     past_used_leaves: number | null
     birth_date: Date | null
@@ -14674,6 +14704,7 @@ export namespace Prisma {
     status: number
     notes: number
     image: number
+    is_archived: number
     created_at: number
     past_used_leaves: number
     birth_date: number
@@ -14685,6 +14716,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     salary?: true
+    is_archived?: true
     past_used_leaves?: true
   }
 
@@ -14692,6 +14724,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     salary?: true
+    is_archived?: true
     past_used_leaves?: true
   }
 
@@ -14711,6 +14744,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     image?: true
+    is_archived?: true
     created_at?: true
     past_used_leaves?: true
     birth_date?: true
@@ -14732,6 +14766,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     image?: true
+    is_archived?: true
     created_at?: true
     past_used_leaves?: true
     birth_date?: true
@@ -14753,6 +14788,7 @@ export namespace Prisma {
     status?: true
     notes?: true
     image?: true
+    is_archived?: true
     created_at?: true
     past_used_leaves?: true
     birth_date?: true
@@ -14861,6 +14897,7 @@ export namespace Prisma {
     status: string | null
     notes: string | null
     image: string | null
+    is_archived: number | null
     created_at: Date | null
     past_used_leaves: number | null
     birth_date: Date | null
@@ -14901,6 +14938,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     image?: boolean
+    is_archived?: boolean
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
@@ -14934,6 +14972,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     image?: boolean
+    is_archived?: boolean
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
@@ -14956,6 +14995,7 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     image?: boolean
+    is_archived?: boolean
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
@@ -14978,12 +15018,13 @@ export namespace Prisma {
     status?: boolean
     notes?: boolean
     image?: boolean
+    is_archived?: boolean
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
   }
 
-  export type employeesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "first_name" | "last_name" | "tc_no" | "phone" | "email" | "position" | "department" | "start_date" | "end_date" | "salary" | "status" | "notes" | "image" | "created_at" | "past_used_leaves" | "birth_date", ExtArgs["result"]["employees"]>
+  export type employeesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "first_name" | "last_name" | "tc_no" | "phone" | "email" | "position" | "department" | "start_date" | "end_date" | "salary" | "status" | "notes" | "image" | "is_archived" | "created_at" | "past_used_leaves" | "birth_date", ExtArgs["result"]["employees"]>
   export type employeesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee_assignments?: boolean | employees$employee_assignmentsArgs<ExtArgs>
     employee_attendance?: boolean | employees$employee_attendanceArgs<ExtArgs>
@@ -15036,6 +15077,7 @@ export namespace Prisma {
       status: string | null
       notes: string | null
       image: string | null
+      is_archived: number | null
       created_at: Date | null
       past_used_leaves: number | null
       birth_date: Date | null
@@ -15488,6 +15530,7 @@ export namespace Prisma {
     readonly status: FieldRef<"employees", 'String'>
     readonly notes: FieldRef<"employees", 'String'>
     readonly image: FieldRef<"employees", 'String'>
+    readonly is_archived: FieldRef<"employees", 'Int'>
     readonly created_at: FieldRef<"employees", 'DateTime'>
     readonly past_used_leaves: FieldRef<"employees", 'Int'>
     readonly birth_date: FieldRef<"employees", 'DateTime'>
@@ -30146,6 +30189,7 @@ export namespace Prisma {
     full_name: string | null
     password_hash: string | null
     created_at: Date | null
+    role: string | null
     must_change_password: number | null
   }
 
@@ -30156,6 +30200,7 @@ export namespace Prisma {
     full_name: string | null
     password_hash: string | null
     created_at: Date | null
+    role: string | null
     must_change_password: number | null
   }
 
@@ -30166,6 +30211,7 @@ export namespace Prisma {
     full_name: number
     password_hash: number
     created_at: number
+    role: number
     must_change_password: number
     _all: number
   }
@@ -30188,6 +30234,7 @@ export namespace Prisma {
     full_name?: true
     password_hash?: true
     created_at?: true
+    role?: true
     must_change_password?: true
   }
 
@@ -30198,6 +30245,7 @@ export namespace Prisma {
     full_name?: true
     password_hash?: true
     created_at?: true
+    role?: true
     must_change_password?: true
   }
 
@@ -30208,6 +30256,7 @@ export namespace Prisma {
     full_name?: true
     password_hash?: true
     created_at?: true
+    role?: true
     must_change_password?: true
     _all?: true
   }
@@ -30305,6 +30354,7 @@ export namespace Prisma {
     full_name: string | null
     password_hash: string
     created_at: Date | null
+    role: string | null
     must_change_password: number | null
     _count: UsersCountAggregateOutputType | null
     _avg: UsersAvgAggregateOutputType | null
@@ -30334,6 +30384,7 @@ export namespace Prisma {
     full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
+    role?: boolean
     must_change_password?: boolean
     companies?: boolean | users$companiesArgs<ExtArgs>
     _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
@@ -30346,6 +30397,7 @@ export namespace Prisma {
     full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
+    role?: boolean
     must_change_password?: boolean
   }, ExtArgs["result"]["users"]>
 
@@ -30356,6 +30408,7 @@ export namespace Prisma {
     full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
+    role?: boolean
     must_change_password?: boolean
   }, ExtArgs["result"]["users"]>
 
@@ -30366,10 +30419,11 @@ export namespace Prisma {
     full_name?: boolean
     password_hash?: boolean
     created_at?: boolean
+    role?: boolean
     must_change_password?: boolean
   }
 
-  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "full_name" | "password_hash" | "created_at" | "must_change_password", ExtArgs["result"]["users"]>
+  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "full_name" | "password_hash" | "created_at" | "role" | "must_change_password", ExtArgs["result"]["users"]>
   export type usersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | users$companiesArgs<ExtArgs>
     _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
@@ -30389,6 +30443,7 @@ export namespace Prisma {
       full_name: string | null
       password_hash: string
       created_at: Date | null
+      role: string | null
       must_change_password: number | null
     }, ExtArgs["result"]["users"]>
     composites: {}
@@ -30820,6 +30875,7 @@ export namespace Prisma {
     readonly full_name: FieldRef<"users", 'String'>
     readonly password_hash: FieldRef<"users", 'String'>
     readonly created_at: FieldRef<"users", 'DateTime'>
+    readonly role: FieldRef<"users", 'String'>
     readonly must_change_password: FieldRef<"users", 'Int'>
   }
     
@@ -38678,6 +38734,8 @@ export namespace Prisma {
     user_id: 'user_id',
     name: 'name',
     tax_number: 'tax_number',
+    tax_office: 'tax_office',
+    sgk_no: 'sgk_no',
     address: 'address',
     phone: 'phone',
     created_at: 'created_at'
@@ -38810,6 +38868,7 @@ export namespace Prisma {
     status: 'status',
     notes: 'notes',
     image: 'image',
+    is_archived: 'is_archived',
     created_at: 'created_at',
     past_used_leaves: 'past_used_leaves',
     birth_date: 'birth_date'
@@ -39018,6 +39077,7 @@ export namespace Prisma {
     full_name: 'full_name',
     password_hash: 'password_hash',
     created_at: 'created_at',
+    role: 'role',
     must_change_password: 'must_change_password'
   };
 
@@ -39266,6 +39326,8 @@ export namespace Prisma {
     user_id?: IntFilter<"companies"> | number
     name?: StringFilter<"companies"> | string
     tax_number?: StringNullableFilter<"companies"> | string | null
+    tax_office?: StringNullableFilter<"companies"> | string | null
+    sgk_no?: StringNullableFilter<"companies"> | string | null
     address?: StringNullableFilter<"companies"> | string | null
     phone?: StringNullableFilter<"companies"> | string | null
     created_at?: DateTimeNullableFilter<"companies"> | Date | string | null
@@ -39288,6 +39350,8 @@ export namespace Prisma {
     user_id?: SortOrder
     name?: SortOrder
     tax_number?: SortOrderInput | SortOrder
+    tax_office?: SortOrderInput | SortOrder
+    sgk_no?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -39313,6 +39377,8 @@ export namespace Prisma {
     user_id?: IntFilter<"companies"> | number
     name?: StringFilter<"companies"> | string
     tax_number?: StringNullableFilter<"companies"> | string | null
+    tax_office?: StringNullableFilter<"companies"> | string | null
+    sgk_no?: StringNullableFilter<"companies"> | string | null
     address?: StringNullableFilter<"companies"> | string | null
     phone?: StringNullableFilter<"companies"> | string | null
     created_at?: DateTimeNullableFilter<"companies"> | Date | string | null
@@ -39335,6 +39401,8 @@ export namespace Prisma {
     user_id?: SortOrder
     name?: SortOrder
     tax_number?: SortOrderInput | SortOrder
+    tax_office?: SortOrderInput | SortOrder
+    sgk_no?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -39353,6 +39421,8 @@ export namespace Prisma {
     user_id?: IntWithAggregatesFilter<"companies"> | number
     name?: StringWithAggregatesFilter<"companies"> | string
     tax_number?: StringNullableWithAggregatesFilter<"companies"> | string | null
+    tax_office?: StringNullableWithAggregatesFilter<"companies"> | string | null
+    sgk_no?: StringNullableWithAggregatesFilter<"companies"> | string | null
     address?: StringNullableWithAggregatesFilter<"companies"> | string | null
     phone?: StringNullableWithAggregatesFilter<"companies"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"companies"> | Date | string | null
@@ -39935,6 +40005,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"employees"> | string | null
     notes?: StringNullableFilter<"employees"> | string | null
     image?: StringNullableFilter<"employees"> | string | null
+    is_archived?: IntNullableFilter<"employees"> | number | null
     created_at?: DateTimeNullableFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableFilter<"employees"> | number | null
     birth_date?: DateTimeNullableFilter<"employees"> | Date | string | null
@@ -39967,6 +40038,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     past_used_leaves?: SortOrderInput | SortOrder
     birth_date?: SortOrderInput | SortOrder
@@ -40002,6 +40074,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"employees"> | string | null
     notes?: StringNullableFilter<"employees"> | string | null
     image?: StringNullableFilter<"employees"> | string | null
+    is_archived?: IntNullableFilter<"employees"> | number | null
     created_at?: DateTimeNullableFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableFilter<"employees"> | number | null
     birth_date?: DateTimeNullableFilter<"employees"> | Date | string | null
@@ -40034,6 +40107,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     past_used_leaves?: SortOrderInput | SortOrder
     birth_date?: SortOrderInput | SortOrder
@@ -40063,6 +40137,7 @@ export namespace Prisma {
     status?: StringNullableWithAggregatesFilter<"employees"> | string | null
     notes?: StringNullableWithAggregatesFilter<"employees"> | string | null
     image?: StringNullableWithAggregatesFilter<"employees"> | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"employees"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableWithAggregatesFilter<"employees"> | number | null
     birth_date?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
@@ -41064,6 +41139,7 @@ export namespace Prisma {
     full_name?: StringNullableFilter<"users"> | string | null
     password_hash?: StringFilter<"users"> | string
     created_at?: DateTimeNullableFilter<"users"> | Date | string | null
+    role?: StringNullableFilter<"users"> | string | null
     must_change_password?: IntNullableFilter<"users"> | number | null
     companies?: CompaniesListRelationFilter
   }
@@ -41075,6 +41151,7 @@ export namespace Prisma {
     full_name?: SortOrderInput | SortOrder
     password_hash?: SortOrder
     created_at?: SortOrderInput | SortOrder
+    role?: SortOrderInput | SortOrder
     must_change_password?: SortOrderInput | SortOrder
     companies?: companiesOrderByRelationAggregateInput
   }
@@ -41089,6 +41166,7 @@ export namespace Prisma {
     full_name?: StringNullableFilter<"users"> | string | null
     password_hash?: StringFilter<"users"> | string
     created_at?: DateTimeNullableFilter<"users"> | Date | string | null
+    role?: StringNullableFilter<"users"> | string | null
     must_change_password?: IntNullableFilter<"users"> | number | null
     companies?: CompaniesListRelationFilter
   }, "id" | "username" | "email">
@@ -41100,6 +41178,7 @@ export namespace Prisma {
     full_name?: SortOrderInput | SortOrder
     password_hash?: SortOrder
     created_at?: SortOrderInput | SortOrder
+    role?: SortOrderInput | SortOrder
     must_change_password?: SortOrderInput | SortOrder
     _count?: usersCountOrderByAggregateInput
     _avg?: usersAvgOrderByAggregateInput
@@ -41118,6 +41197,7 @@ export namespace Prisma {
     full_name?: StringNullableWithAggregatesFilter<"users"> | string | null
     password_hash?: StringWithAggregatesFilter<"users"> | string
     created_at?: DateTimeNullableWithAggregatesFilter<"users"> | Date | string | null
+    role?: StringNullableWithAggregatesFilter<"users"> | string | null
     must_change_password?: IntNullableWithAggregatesFilter<"users"> | number | null
   }
 
@@ -41747,6 +41827,8 @@ export namespace Prisma {
   export type companiesCreateInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -41769,6 +41851,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -41788,6 +41872,8 @@ export namespace Prisma {
   export type companiesUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -41810,6 +41896,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -41831,6 +41919,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -41839,6 +41929,8 @@ export namespace Prisma {
   export type companiesUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -41849,6 +41941,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -42453,6 +42547,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -42485,6 +42580,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -42514,6 +42610,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -42546,6 +42643,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -42577,6 +42675,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -42596,6 +42695,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -42617,6 +42717,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -43680,6 +43781,7 @@ export namespace Prisma {
     full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
+    role?: string | null
     must_change_password?: number | null
     companies?: companiesCreateNestedManyWithoutUsersInput
   }
@@ -43691,6 +43793,7 @@ export namespace Prisma {
     full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
+    role?: string | null
     must_change_password?: number | null
     companies?: companiesUncheckedCreateNestedManyWithoutUsersInput
   }
@@ -43701,6 +43804,7 @@ export namespace Prisma {
     full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUpdateManyWithoutUsersNestedInput
   }
@@ -43712,6 +43816,7 @@ export namespace Prisma {
     full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
   }
@@ -43723,6 +43828,7 @@ export namespace Prisma {
     full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
+    role?: string | null
     must_change_password?: number | null
   }
 
@@ -43732,6 +43838,7 @@ export namespace Prisma {
     full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -43742,6 +43849,7 @@ export namespace Prisma {
     full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -44638,6 +44746,8 @@ export namespace Prisma {
     user_id?: SortOrder
     name?: SortOrder
     tax_number?: SortOrder
+    tax_office?: SortOrder
+    sgk_no?: SortOrder
     address?: SortOrder
     phone?: SortOrder
     created_at?: SortOrder
@@ -44653,6 +44763,8 @@ export namespace Prisma {
     user_id?: SortOrder
     name?: SortOrder
     tax_number?: SortOrder
+    tax_office?: SortOrder
+    sgk_no?: SortOrder
     address?: SortOrder
     phone?: SortOrder
     created_at?: SortOrder
@@ -44663,6 +44775,8 @@ export namespace Prisma {
     user_id?: SortOrder
     name?: SortOrder
     tax_number?: SortOrder
+    tax_office?: SortOrder
+    sgk_no?: SortOrder
     address?: SortOrder
     phone?: SortOrder
     created_at?: SortOrder
@@ -45168,6 +45282,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     image?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
     past_used_leaves?: SortOrder
     birth_date?: SortOrder
@@ -45177,6 +45292,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     salary?: SortOrder
+    is_archived?: SortOrder
     past_used_leaves?: SortOrder
   }
 
@@ -45196,6 +45312,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     image?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
     past_used_leaves?: SortOrder
     birth_date?: SortOrder
@@ -45217,6 +45334,7 @@ export namespace Prisma {
     status?: SortOrder
     notes?: SortOrder
     image?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
     past_used_leaves?: SortOrder
     birth_date?: SortOrder
@@ -45226,6 +45344,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     salary?: SortOrder
+    is_archived?: SortOrder
     past_used_leaves?: SortOrder
   }
 
@@ -45927,6 +46046,7 @@ export namespace Prisma {
     full_name?: SortOrder
     password_hash?: SortOrder
     created_at?: SortOrder
+    role?: SortOrder
     must_change_password?: SortOrder
   }
 
@@ -45942,6 +46062,7 @@ export namespace Prisma {
     full_name?: SortOrder
     password_hash?: SortOrder
     created_at?: SortOrder
+    role?: SortOrder
     must_change_password?: SortOrder
   }
 
@@ -45952,6 +46073,7 @@ export namespace Prisma {
     full_name?: SortOrder
     password_hash?: SortOrder
     created_at?: SortOrder
+    role?: SortOrder
     must_change_password?: SortOrder
   }
 
@@ -48538,6 +48660,7 @@ export namespace Prisma {
     full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
+    role?: string | null
     must_change_password?: number | null
   }
 
@@ -48548,6 +48671,7 @@ export namespace Prisma {
     full_name?: string | null
     password_hash: string
     created_at?: Date | string | null
+    role?: string | null
     must_change_password?: number | null
   }
 
@@ -48570,6 +48694,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -48600,6 +48725,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -48963,6 +49089,7 @@ export namespace Prisma {
     full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -48973,6 +49100,7 @@ export namespace Prisma {
     full_name?: NullableStringFieldUpdateOperationsInput | string | null
     password_hash?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -49011,6 +49139,7 @@ export namespace Prisma {
     status?: StringNullableFilter<"employees"> | string | null
     notes?: StringNullableFilter<"employees"> | string | null
     image?: StringNullableFilter<"employees"> | string | null
+    is_archived?: IntNullableFilter<"employees"> | number | null
     created_at?: DateTimeNullableFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableFilter<"employees"> | number | null
     birth_date?: DateTimeNullableFilter<"employees"> | Date | string | null
@@ -49329,6 +49458,8 @@ export namespace Prisma {
   export type companiesCreateWithoutCustomersInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -49350,6 +49481,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -49432,6 +49565,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutCustomersInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49453,6 +49588,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49608,6 +49745,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -49639,6 +49777,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -49683,6 +49822,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49714,6 +49854,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49742,6 +49883,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -49773,6 +49915,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -49817,6 +49960,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49848,6 +49992,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49876,6 +50021,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -49907,6 +50053,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -49951,6 +50098,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -49982,6 +50130,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50010,6 +50159,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -50041,6 +50191,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -50085,6 +50236,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50116,6 +50268,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50144,6 +50297,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -50175,6 +50329,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -50219,6 +50374,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50250,6 +50406,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50417,6 +50574,8 @@ export namespace Prisma {
   export type companiesCreateWithoutEmployeesInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -50438,6 +50597,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -50821,6 +50982,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutEmployeesInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -50842,6 +51005,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51244,6 +51409,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -51275,6 +51441,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -51319,6 +51486,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51350,6 +51518,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51477,6 +51646,8 @@ export namespace Prisma {
   export type companiesCreateWithoutMeal_settingsInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -51498,6 +51669,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -51532,6 +51705,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutMeal_settingsInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51553,6 +51728,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51571,6 +51748,8 @@ export namespace Prisma {
   export type companiesCreateWithoutMeal_ticketsInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -51592,6 +51771,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -51626,6 +51807,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutMeal_ticketsInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51647,6 +51830,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51676,6 +51861,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -51707,6 +51893,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -51751,6 +51938,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51782,6 +51970,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51799,6 +51988,8 @@ export namespace Prisma {
   export type companiesCreateWithoutRecurring_transactionsInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -51820,6 +52011,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -51854,6 +52047,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutRecurring_transactionsInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51875,6 +52070,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51904,6 +52101,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -51935,6 +52133,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -51979,6 +52178,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52010,6 +52210,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52137,6 +52338,8 @@ export namespace Prisma {
   export type companiesCreateWithoutTransactionsInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -52158,6 +52361,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -52192,6 +52397,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutTransactionsInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52213,6 +52420,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52231,6 +52440,8 @@ export namespace Prisma {
   export type companiesCreateWithoutUsersInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -52251,6 +52462,8 @@ export namespace Prisma {
     id?: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -52300,6 +52513,8 @@ export namespace Prisma {
     user_id?: IntFilter<"companies"> | number
     name?: StringFilter<"companies"> | string
     tax_number?: StringNullableFilter<"companies"> | string | null
+    tax_office?: StringNullableFilter<"companies"> | string | null
+    sgk_no?: StringNullableFilter<"companies"> | string | null
     address?: StringNullableFilter<"companies"> | string | null
     phone?: StringNullableFilter<"companies"> | string | null
     created_at?: DateTimeNullableFilter<"companies"> | Date | string | null
@@ -52516,6 +52731,8 @@ export namespace Prisma {
   export type companiesCreateWithoutVehiclesInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -52537,6 +52754,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -52863,6 +53082,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutVehiclesInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52884,6 +53105,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -52945,6 +53168,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -52976,6 +53200,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -53116,6 +53341,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53147,6 +53373,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53327,6 +53554,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -53358,6 +53586,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -53432,6 +53661,8 @@ export namespace Prisma {
   export type companiesCreateWithoutWorksInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53453,6 +53684,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53546,6 +53779,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53577,6 +53811,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53663,6 +53898,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutWorksInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53684,6 +53921,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53740,6 +53979,8 @@ export namespace Prisma {
   export type companiesCreateWithoutDepartmentsInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53761,6 +54002,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53795,6 +54038,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutDepartmentsInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53816,6 +54061,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53834,6 +54081,8 @@ export namespace Prisma {
   export type companiesCreateWithoutLeave_typesInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53855,6 +54104,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53889,6 +54140,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutLeave_typesInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53910,6 +54163,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -53928,6 +54183,8 @@ export namespace Prisma {
   export type companiesCreateWithoutDocument_categoriesInput = {
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53949,6 +54206,8 @@ export namespace Prisma {
     user_id: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -53983,6 +54242,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutDocument_categoriesInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -54004,6 +54265,8 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -54034,6 +54297,7 @@ export namespace Prisma {
     status?: string | null
     notes?: string | null
     image?: string | null
+    is_archived?: number | null
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
@@ -54159,6 +54423,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -54189,6 +54454,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -54219,6 +54485,7 @@ export namespace Prisma {
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -55150,6 +55417,8 @@ export namespace Prisma {
     id?: number
     name: string
     tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
     address?: string | null
     phone?: string | null
     created_at?: Date | string | null
@@ -55158,6 +55427,8 @@ export namespace Prisma {
   export type companiesUpdateWithoutUsersInput = {
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -55178,6 +55449,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -55198,6 +55471,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

@@ -149,7 +149,13 @@ async function getPayrollSummary(companyId, month) {
         const endDate = new Date(year, parseInt(m), 0, 23, 59, 59);
 
         const employees = await prisma.employees.findMany({
-            where: { company_id: parseInt(companyId), status: 'active' },
+            where: { 
+                company_id: parseInt(companyId),
+                OR: [
+                    { status: 'active' },
+                    { salaries: { some: { salary_month: targetMonth } } }
+                ]
+            },
             include: {
                 salaries: { where: { salary_month: targetMonth } },
                 overtimes: { 
