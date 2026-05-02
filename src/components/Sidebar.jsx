@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { moduleMenus, getActiveModule } from '../config/navigation'
-import logo from '../assets/logos/logo-chatgpt.png'
+import logoCollapsed from '../assets/logos/Group1.svg'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { useTabs } from '../context/TabContext'
 import { useEffect } from 'react'
@@ -24,10 +24,10 @@ export default function Sidebar({ collapsed, onToggle }) {
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''} `}>
             <div className="sidebar-header">
-                <div className="sidebar-logo" style={{ background: 'transparent', boxShadow: 'none' }}>
-                    <img src={logo} alt="Muayen Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <div className="sidebar-logo" style={{ background: 'transparent', boxShadow: 'none', width: '24px', height: '24px' }}>
+                    <img src={logoCollapsed} alt="Kontrol Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
-                <span className="sidebar-title">Muayen</span>
+                {!collapsed && <span className="sidebar-title">Kontrol</span>}
             </div>
 
             <nav className="sidebar-nav">

@@ -70,36 +70,35 @@
 /* Light Theme - High Contrast & Clear */
 [data-theme="light"] {
   /* 
-     MODERN INDIGO CONTRAST (Region-Focused Design)
-     Specifically designed to solve the "too white" problem by using distinct colored regions.
-     Makes it immediately obvious "what is where" (ne nerede belli olmalı).
+     MODERN TEAL CONTRAST (Region-Focused Design)
+     Specifically designed to match the brand color #14b8a6.
   */
 
-  --bg-primary: #f0f2f5;   /* Light Cool Gray - Main canvas */
-  --bg-secondary: #e0e7ff; /* Soft Indigo - Sidebar & Header (Clearly different from white) */
-  --bg-tertiary: #d1d5db;  /* Gray 300 - For inputs and hovers */
-  --bg-card: #ffffff;      /* Pure White - Content cards pop out against the gray/indigo */
+  --bg-primary: #f8fafc;   /* Slate 50 - Clean canvas */
+  --bg-secondary: #f0fdfa; /* Teal 50 - Sidebar & Header (Clearly different from white) */
+  --bg-tertiary: #ccfbf1;  /* Teal 100 - For inputs and hovers */
+  --bg-card: #ffffff;      
   --bg-card-hover: #f9fafb;
   --bg-elevated: #ffffff;
 
-  --text-primary: #1e1b4b;   /* Indigo 950 - Deep Navy for maximum readability */
-  --text-secondary: #312e81; /* Indigo 900 - Strong secondary text */
-  --text-muted: #4f46e5;     /* Indigo 600 - Muted text with color personality */
+  --text-primary: #134e4a;   /* Teal 950 - Deep Navy-Teal for maximum readability */
+  --text-secondary: #0f766e; /* Teal 700 - Strong secondary text */
+  --text-muted: #14b8a6;     /* Teal 500 - Muted text with brand color */
 
-  --border-color: #c7d2fe;   /* Indigo 200 - Very clear boundaries */
-  --border-light: #e0e7ff;   /* Subtle Indigo separator */
+  --border-color: #ccfbf1;   /* Teal 100 - Very clear boundaries */
+  --border-light: #f0fdfa;   
 
-  --shadow-sm: 0 1px 2px rgba(30, 27, 75, 0.05);
-  --shadow-md: 0 4px 12px rgba(30, 27, 75, 0.1);
-  --shadow-lg: 0 12px 30px rgba(30, 27, 75, 0.15);
-  --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.2);
+  --shadow-sm: 0 1px 2px rgba(20, 184, 166, 0.05);
+  --shadow-md: 0 4px 12px rgba(20, 184, 166, 0.1);
+  --shadow-lg: 0 12px 30px rgba(20, 184, 166, 0.15);
+  --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.2);
 
-  /* Accents - Themed for Indigo Light mode */
-  --accent-primary: #4f46e5;   /* Indigo 600 */
-  --accent-secondary: #6366f1; /* Indigo 500 */
-  --accent-primary-glass: rgba(255, 255, 255, 0.05);
-  --accent-glow: rgba(79, 70, 229, 0.25);
-  --accent-subtle: rgba(79, 70, 229, 0.1);
+  /* Accents - Original Teal */
+  --accent-primary: #14b8a6;   
+  --accent-secondary: #0d9488; 
+  --accent-primary-glass: rgba(20, 184, 166, 0.05);
+  --accent-glow: rgba(20, 184, 166, 0.25);
+  --accent-subtle: rgba(20, 184, 166, 0.1);
 }
 
 /* Reset */

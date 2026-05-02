@@ -191,7 +191,7 @@ function createMenu() {
 
 // Set App ID for Windows Notifications
 if (process.platform === 'win32') {
-    app.setAppUserModelId('com.muayen.app') // Must match appId in package.json
+    app.setAppUserModelId('com.kontrol.app') // Must match appId in package.json
 }
 
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Truck, User, Mail, Lock } from 'lucide-react'
+import logo from '../assets/logos/Group5.svg'
 
 export default function Register() {
     const { register } = useAuth()
@@ -44,11 +45,8 @@ export default function Register() {
         <div className="auth-page">
             <div className="auth-container">
                 <div className="auth-card">
-                    <div className="auth-logo" style={{ visibility: 'hidden' }}>
-                        <div className="auth-logo-icon">
-                            <Truck />
-                        </div>
-                        <span className="auth-logo-text">Araç Takip</span>
+                    <div className="auth-logo">
+                        <img src={logo} alt="Kontrol Logo" style={{ height: '48px', marginBottom: '20px' }} />
                     </div>
 
                     <h1 className="auth-title">Hesap Oluştur</h1>

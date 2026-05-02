@@ -1,7 +1,7 @@
 {
   "name": "muayen",
-  "version": "1.0.132",
-  "description": "Muayen - Filo Yönetim Sistemi",
+  "version": "1.0.133",
+  "description": "Kontrol - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
   "scripts": {
@@ -58,8 +58,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.muayen.app",
-    "productName": "Muayen",
+    "appId": "com.kontrol.app",
+    "productName": "Kontrol",
     "directories": {
       "output": "dist-electron"
     },

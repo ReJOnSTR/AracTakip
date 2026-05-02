@@ -206,7 +206,7 @@ export default function EmployeeDetail() {
 
                 const duration = 15 * 1000;
                 const animationEnd = Date.now() + duration;
-                const colors = ['#14b8a6', '#2dd4bf', '#f59e0b', '#0ea5e9', '#ffffff'];
+                const colors = ['#FD6400', '#ff7e2e', '#f59e0b', '#0ea5e9', '#ffffff'];
 
                 const interval = setInterval(() => {
                     const timeLeft = animationEnd - Date.now();
@@ -1206,7 +1206,7 @@ export default function EmployeeDetail() {
                                             if (isBirthday) {
                                                 return (
                                                     <span style={{ 
-                                                        background: 'linear-gradient(135deg, #2dd4bf, #0ea5e9, #a855f7)',
+                                                        background: 'linear-gradient(135deg, #ff7e2e, #0ea5e9, #a855f7)',
                                                         WebkitBackgroundClip: 'text',
                                                         backgroundClip: 'text',
                                                         WebkitTextFillColor: 'transparent',

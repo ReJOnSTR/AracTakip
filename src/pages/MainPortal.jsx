@@ -207,8 +207,8 @@ export default function MainPortal() {
             icon: Building2,
             gradient: 'linear-gradient(145deg, rgba(20,184,166,0.08) 0%, rgba(13,148,136,0.04) 100%)',
             hoverGradient: 'linear-gradient(145deg, rgba(20,184,166,0.14) 0%, rgba(13,148,136,0.08) 100%)',
-            color: '#14b8a6',
-            glowColor: '#14b8a6',
+            color: '#FD6400',
+            glowColor: '#FD6400',
             path: '/customers',
             active: true,
             features: ['Müşteri profili', 'Açık bakiyeler', 'İletişim bilgileri', 'Geçmiş işler']

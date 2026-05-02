@@ -26,7 +26,7 @@ export default function TitleBar() {
             }}
         >
             {/* Title can go here if needed, or left empty for clean look */}
-            <span>Muayen</span>
+            <span>Kontrol</span>
         </div>
     )
 }

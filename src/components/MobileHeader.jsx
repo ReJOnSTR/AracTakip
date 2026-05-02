@@ -35,7 +35,7 @@ export default function MobileHeader() {
         if (location.pathname.startsWith('/works/')) return 'İş Detayı'
         if (location.pathname.startsWith('/customers/')) return 'Müşteri Detayı'
         
-        return pageTitles[location.pathname] || 'Muayen'
+        return pageTitles[location.pathname] || 'Kontrol'
     }
 
     const showBack = !['/portal', '/dashboard', '/personel-dashboard', '/finance-dashboard', '/works'].includes(location.pathname)
