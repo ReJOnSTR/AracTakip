@@ -313,6 +313,37 @@ async function runAutoMigrations() {
         log.error('Migration step 14 (work_start/end_time) error:', error.message);
     }
 
+    // 15. Companies & Customers: tax_office, sgk_no, tax_number (Sync with schema)
+    try {
+        // Companies
+        const cCols = await p.$queryRawUnsafe("PRAGMA table_info('companies')");
+        if (cCols.length > 0) {
+            if (!cCols.some(c => c.name === 'tax_office')) {
+                await p.$executeRawUnsafe('ALTER TABLE companies ADD COLUMN tax_office TEXT');
+                log.info('Migration: Added tax_office to companies');
+            }
+            if (!cCols.some(c => c.name === 'sgk_no')) {
+                await p.$executeRawUnsafe('ALTER TABLE companies ADD COLUMN sgk_no TEXT');
+                log.info('Migration: Added sgk_no to companies');
+            }
+        }
+
+        // Customers
+        const custCols = await p.$queryRawUnsafe("PRAGMA table_info('customers')");
+        if (custCols.length > 0) {
+            if (!custCols.some(c => c.name === 'tax_office')) {
+                await p.$executeRawUnsafe('ALTER TABLE customers ADD COLUMN tax_office TEXT');
+                log.info('Migration: Added tax_office to customers');
+            }
+            if (!custCols.some(c => c.name === 'tax_number')) {
+                await p.$executeRawUnsafe('ALTER TABLE customers ADD COLUMN tax_number TEXT');
+                log.info('Migration: Added tax_number to customers');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 15 (tax/sgk columns) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 
