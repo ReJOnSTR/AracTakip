@@ -1653,7 +1653,13 @@ export default function EmployeeDetail() {
                                      return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
                                  }, 0)
                                  const totalUsedOT = leaves
-                                     .filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset'))
+                                     .filter(l => l.status === 'approved' && (
+                                         l.type === 'overtime_leave' || 
+                                         l.type === 'offset' || 
+                                         l.type === 'Mesai İzni' || 
+                                         l.type === 'Mahsup' || 
+                                         l.type === 'Mesai İzni (Mahsup)'
+                                     ))
                                      .reduce((sum, l) => sum + (l.days || 0), 0)
                                  const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
 
