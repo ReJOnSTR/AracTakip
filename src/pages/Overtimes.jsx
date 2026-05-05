@@ -35,6 +35,7 @@ export default function Overtimes() {
         return saved || new Date().toISOString().slice(0, 7)
     })
     
+    const [viewMode, setViewMode] = useState('entries') // 'entries' or 'summary'
     const [overtimeData, setOvertimeData] = useState([]) // Entries for the table
     const [summaryData, setSummaryData] = useState([]) // Summaries for stats and payments
     const [allEmployees, setAllEmployees] = useState([])
@@ -669,6 +670,72 @@ export default function Overtimes() {
         }
     ]
 
+    const summaryColumns = [
+        {
+            key: 'name',
+            label: 'Personel',
+            searchValue: (row) => `${row.first_name} ${row.last_name}`,
+            render: (_, row) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '12px', fontWeight: 700 }}>
+                        {row.first_name?.[0]}{row.last_name?.[0]}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{row.first_name} {row.last_name}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{row.department || '-'}</span>
+                    </div>
+                </div>
+            )
+        },
+        {
+            key: 'calc_hours',
+            label: 'Toplam Süre',
+            render: (val) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={14} style={{ color: 'var(--text-muted)' }} />
+                    <span style={{ fontWeight: '600' }}>{Math.round(val * 100) / 100} Saat</span>
+                </div>
+            )
+        },
+        {
+            key: 'calc_required',
+            label: 'Hak Edilen',
+            render: (val) => (
+                <span style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{formatCurrency(val)}</span>
+            )
+        },
+        {
+            key: 'calc_paid',
+            label: 'Ödenen',
+            render: (val) => (
+                <span style={{ fontWeight: '600', color: 'var(--success)' }}>{formatCurrency(val)}</span>
+            )
+        },
+        {
+            key: 'calc_remaining',
+            label: 'Kalan Ödeme',
+            render: (val) => (
+                <span style={{ 
+                    fontWeight: '800', 
+                    color: val > 0 ? 'var(--danger)' : 'var(--success)',
+                    fontSize: '14px'
+                }}>
+                    {formatCurrency(val)}
+                </span>
+            )
+        },
+        {
+            key: 'status_summary',
+            label: 'Durum',
+            render: (_, row) => {
+                const val = row.calc_remaining || 0
+                if (val > 0) return <span className="badge badge-danger">Ödeme Bekliyor</span>
+                if (val < 0) return <span className="badge badge-info">Fazla Ödeme</span>
+                return <span className="badge badge-success">Tamamlandı</span>
+            }
+        }
+    ]
+
     const StatCard = ({ title, value, icon: Icon, color, bgColor, isDanger }) => (
         <div style={{
             backgroundColor: 'var(--bg-secondary)',
@@ -738,8 +805,56 @@ export default function Overtimes() {
                 </div>
             </div>
 
+            {/* Tab Navigation */}
+            <div style={{ 
+                display: 'flex', 
+                gap: '8px', 
+                marginBottom: '20px', 
+                borderBottom: '1px solid var(--border-color)',
+                paddingBottom: '2px'
+            }}>
+                <button 
+                    onClick={() => setViewMode('entries')}
+                    style={{
+                        padding: '8px 16px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        backgroundColor: 'transparent',
+                        color: viewMode === 'entries' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderBottom: viewMode === 'entries' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                        borderRadius: 0,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Clock size={16} /> Bireysel Kayıtlar
+                    </div>
+                </button>
+                <button 
+                    onClick={() => setViewMode('summary')}
+                    style={{
+                        padding: '8px 16px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        backgroundColor: 'transparent',
+                        color: viewMode === 'summary' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        border: 'none',
+                        borderBottom: viewMode === 'summary' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                        borderRadius: 0,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Users size={16} /> Personel Özeti
+                    </div>
+                </button>
+            </div>
+
             {/* Top Summaries */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '25px' }}>
                 <StatCard 
                     title="Toplam Mesai Saati" 
                     value={`${displayStats.totalHours} Saat`} 
@@ -772,32 +887,63 @@ export default function Overtimes() {
             </div>
 
             {/* Data Table */}
-            <DataTable 
-                persistenceKey="overtimes_table_v2"
-                columns={columns}
-                data={overtimeData}
-                onBulkDelete={handleBulkDelete}
-                onFilteredDataChange={setDisplayData}
-                filters={[
-                    {
-                        key: 'department',
-                        label: 'Departman',
-                        options: departmentOptions
-                    },
-                    {
-                        key: 'status',
-                        label: 'Ödeme Durumu',
-                        options: [
-                            { value: 'all', label: 'Tüm Mesailer' },
-                            { value: 'weekday', label: 'Hafta İçi' },
-                            { value: 'sunday', label: 'Pazar' }
-                        ],
-                        filterFn: (row, value) => {
-                            if (value === 'all') return true
-                            // Since we don't have a 'type' field in the DB yet, we infer it from hours/rate
-                            // In TR logic we set: 1 sunday = 1 day, weekday = hours
-                            // We can use the note marker if we add it, or just check rate logic
-                            // But for now let's just use the selected month
+            {viewMode === 'entries' ? (
+                <DataTable 
+                    persistenceKey="overtimes_table_v2"
+                    columns={columns}
+                    data={overtimeData}
+                    onBulkDelete={handleBulkDelete}
+                    onFilteredDataChange={setDisplayData}
+                    actions={(row) => (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => handleOpenOvertimeModal(row)} title="Düzenle">
+                                <Pencil size={16} />
+                            </button>
+                            <button className="danger" onClick={() => setDeleteConfirm(row.id)} title="Sil">
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    )}
+                    filters={[
+                        {
+                            key: 'department',
+                            label: 'Departman',
+                            options: departmentOptions
+                        }
+                    ]}
+                />
+            ) : (
+                <DataTable 
+                    persistenceKey="overtimes_summary_table"
+                    columns={summaryColumns}
+                    data={summaryData}
+                    showCheckboxes={false}
+                    actions={(row) => (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                                className="btn-sm" 
+                                onClick={() => handleOpenPaymentModal(row)}
+                                disabled={row.calc_remaining <= 0}
+                                style={{ 
+                                    padding: '4px 10px', 
+                                    fontSize: '12px',
+                                    backgroundColor: row.calc_remaining > 0 ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                                    color: row.calc_remaining > 0 ? 'white' : 'var(--text-muted)'
+                                }}
+                            >
+                                <Banknote size={14} style={{ marginRight: '4px' }} /> Ödeme Yap
+                            </button>
+                            <button 
+                                className="btn-sm btn-secondary" 
+                                onClick={() => navigate(`/employees/${row.id}`)}
+                                style={{ padding: '4px 10px', fontSize: '12px' }}
+                            >
+                                <User size={14} style={{ marginRight: '4px' }} /> Detay
+                            </button>
+                        </div>
+                    )}
+                />
+            )}
                             return true
                         }
                     }
