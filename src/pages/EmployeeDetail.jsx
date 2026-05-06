@@ -259,7 +259,10 @@ export default function EmployeeDetail() {
             }
             if (salRes.success) setSalaries(salRes.data || [])
             if (leaveRes.success) setLeaves(leaveRes.data || [])
-            if (otRes.success) setOvertimes(otRes.data || [])
+            if (otRes.success) {
+                const sortedOvertimes = (otRes.data || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+                setOvertimes(sortedOvertimes);
+            }
             if (assRes.success) setAssignments(assRes.data || [])
             if (docRes.success) setDocuments(docRes.data || [])
             if (ltRes.success) setLeaveTypes(ltRes.data.map(t => ({ value: t.name, label: t.name })))
@@ -496,7 +499,7 @@ export default function EmployeeDetail() {
             onConfirm: async () => {
                 const res = await window.electronAPI.archiveItem('employees', parseInt(id), status)
                 if (res.success) {
-                    loadEmployeeData()
+                    await loadEmployeeData()
                     if (window.showToast) window.showToast(status === 1 ? 'Personel arşivlendi.' : 'Personel aktif edildi.', 'success')
                 }
                 setConfirmModal(null)
@@ -551,7 +554,7 @@ export default function EmployeeDetail() {
             } else {
                 await deleteRecord(type, item.id)
             }
-            loadEmployeeData()
+            await loadEmployeeData()
         } catch (err) { console.error('Delete failed:', err) }
         setConfirmModal(null)
     }
@@ -561,8 +564,8 @@ export default function EmployeeDetail() {
         try {
             const result = await window.electronAPI.updateEmployee({ id: parseInt(id), ...data })
             if (result.success) { 
+                await loadEmployeeData();
                 closeModal(); 
-                loadEmployeeData();
                 if (window.showToast) window.showToast('Personel bilgileri güncellendi.', 'success');
             }
             else setError(result.error || 'Bir hata oluştu.')
@@ -583,7 +586,7 @@ export default function EmployeeDetail() {
         }
         try {
             const result = editingItem ? await window.electronAPI.updateSalaryHistory({ id: editingItem.id, ...data }) : await window.electronAPI.createSalaryHistory(data)
-            if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
+            if (result.success) { await loadEmployeeData(); closeModal(); } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
     }
@@ -596,7 +599,7 @@ export default function EmployeeDetail() {
         const data = { employeeId: parseInt(id), period: formData.paymentType || 'salary', baseSalary: 0, bonus: 0, deduction: 0, netSalary: parseFloat(formData.amount) || 0, paymentDate: formData.paymentDate || null, salaryMonth: formData.salaryMonth || selectedMonth, status: formData.status || 'pending', paymentMethod: formData.paymentMethod || 'nakit', notes: formData.notes || null }
         try {
             const result = editingItem ? await window.electronAPI.updateSalary({ id: editingItem.id, ...data }) : await window.electronAPI.createSalary(data)
-            if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
+            if (result.success) { await loadEmployeeData(); closeModal(); } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
     }
@@ -680,8 +683,8 @@ export default function EmployeeDetail() {
         try {
             const result = editingItem ? await window.electronAPI.updateLeave({ id: editingItem.id, ...data }) : await window.electronAPI.createLeave(data)
             if (result.success) { 
+                await loadEmployeeData();
                 closeModal(); 
-                loadEmployeeData();
                 if (window.showToast) window.showToast(editingItem ? 'İzin güncellendi.' : 'İzin kaydedildi.', 'success');
             } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
@@ -792,8 +795,8 @@ export default function EmployeeDetail() {
                     await window.electronAPI.deleteLeave(linkedLeaveId)
                 }
                 
+                await loadEmployeeData()
                 closeModal()
-                loadEmployeeData()
             } else {
                 setError(result.error || 'Bir hata oluştu.')
             }
@@ -818,7 +821,7 @@ export default function EmployeeDetail() {
         }
         try {
             const result = editingItem ? await window.electronAPI.updateEmployeeAssignment({ id: editingItem.id, ...data }) : await window.electronAPI.createEmployeeAssignment(data)
-            if (result.success) { closeModal(); loadEmployeeData() } else setError(result.error || 'Bir hata oluştu.')
+            if (result.success) { await loadEmployeeData(); closeModal(); } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
     }
@@ -903,8 +906,8 @@ export default function EmployeeDetail() {
             }
             const res = await window.electronAPI.updateEmployeeDocument(updatePayload)
             if (res.success) {
+                await loadEmployeeData()
                 setEditDocModalOpen(false)
-                loadEmployeeData()
             } else {
                 setError(res.error || 'Güncelleme başarısız oldu.')
             }

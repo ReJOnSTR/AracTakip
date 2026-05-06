@@ -208,8 +208,13 @@ export default function CustomerDetail() {
         },
         {
             key: 'total_hours',
-            label: 'Toplam Saat',
-            render: (v) => v ? `${v} sa` : '-'
+            label: 'Toplam Süre',
+            render: (_, row) => {
+                const parts = [];
+                if (row.total_days > 0) parts.push(`${row.total_days} Gün`);
+                if (row.total_hours > 0) parts.push(`${row.total_hours} Saat`);
+                return parts.length > 0 ? parts.join(' ') : '-';
+            }
         },
         {
             key: 'total_price',
