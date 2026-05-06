@@ -27,6 +27,9 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - name: Update npm to fix node-gyp Visual Studio parsing
+        run: npm install -g npm@latest
+
       - name: Install Dependencies
         run: npm install
 
