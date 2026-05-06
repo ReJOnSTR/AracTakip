@@ -444,9 +444,6 @@ export default function CustomerDetail() {
                                     }} title="Düzenle">
                                         <Pencil size={16} />
                                     </button>
-                                    <button className="icon-btn info" onClick={(e) => { e.stopPropagation(); navigate(`/works/${row.id}`) }} title="İş Detayı">
-                                        <Eye size={16} />
-                                    </button>
                                     <button className="icon-btn success" style={{ background: row.status === 'paid' ? 'var(--success-subtle)' : 'var(--bg-secondary)', color: row.status === 'paid' ? 'var(--success)' : 'var(--text-secondary)' }} onClick={(e) => { 
                                         e.stopPropagation(); 
                                         if(row.status !== 'paid') {
