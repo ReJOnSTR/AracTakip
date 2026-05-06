@@ -549,7 +549,7 @@ export default function Overtimes() {
         setSaving(false)
     }
 
-    const columns = [
+    const columns = useMemo(() => [
         {
             key: 'date',
             label: 'Tarih',
@@ -690,9 +690,9 @@ export default function Overtimes() {
                 return <span className="badge badge-success">Tamamlandı</span>
             }
         }
-    ]
+    ], [allEmployees, summaryData, selectedMonth])
 
-    const summaryColumns = [
+    const summaryColumns = useMemo(() => [
         {
             key: 'name',
             label: 'Ad Soyad',
@@ -769,7 +769,7 @@ export default function Overtimes() {
                 return <span className="badge badge-success">Tamamlandı</span>
             }
         }
-    ]
+    ], [])
 
     const StatCard = ({ title, value, icon: Icon, color, bgColor, isDanger }) => (
         <div style={{
