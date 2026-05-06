@@ -559,6 +559,7 @@ export default function Overtimes() {
         {
             key: 'name',
             label: 'Ad Soyad',
+            width: '200px',
             searchValue: (row) => `${row.first_name} ${row.last_name}`,
             render: (_, row) => (
                 <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
@@ -569,6 +570,7 @@ export default function Overtimes() {
         {
             key: 'rate',
             label: 'Tür',
+            width: '100px',
             render: (v, row) => {
                 const emp = allEmployees.find(e => e.id === row.employeeId) || row
                 const weekdayRate = calcOvertimeRate('weekday', emp)
@@ -589,6 +591,7 @@ export default function Overtimes() {
         {
             key: 'department',
             label: 'Departman',
+            width: '150px',
             render: (value) => value ? (
                 <span style={{
                     backgroundColor: 'var(--bg-tertiary)',
@@ -608,6 +611,7 @@ export default function Overtimes() {
         {
             key: 'hours',
             label: 'Süre',
+            width: '120px',
             render: (value, row) => {
                 const emp = allEmployees.find(e => e.id === row.employeeId) || row
                 const weekdayRate = calcOvertimeRate('weekday', emp)
@@ -625,6 +629,7 @@ export default function Overtimes() {
         {
             key: 'amount',
             label: 'Hakediş',
+            width: '120px',
             render: (value) => (
                 <span style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
                     {formatCurrency(value || 0)}
@@ -634,6 +639,7 @@ export default function Overtimes() {
         {
             key: 'notes',
             label: 'Notlar',
+            width: '200px',
             render: (val) => val ? (
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '200px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={val}>
                     {val}
@@ -643,6 +649,7 @@ export default function Overtimes() {
         {
             key: 'calc_paid',
             label: 'Ödenen (Ay)',
+            width: '120px',
             render: (_, row) => {
                 const summary = summaryData.find(s => s.id === row.employeeId)
                 return (
@@ -655,6 +662,7 @@ export default function Overtimes() {
         {
             key: 'calc_remaining',
             label: 'Kalan (Ay)',
+            width: '120px',
             render: (_, row) => {
                 const summary = summaryData.find(s => s.id === row.employeeId)
                 const value = summary?.calc_remaining || 0
@@ -672,6 +680,7 @@ export default function Overtimes() {
         {
             key: 'status',
             label: 'Durum',
+            width: '150px',
             render: (_, row) => {
                 const summary = summaryData.find(s => s.id === row.employeeId)
                 const val = summary?.calc_remaining || 0
@@ -687,6 +696,7 @@ export default function Overtimes() {
         {
             key: 'name',
             label: 'Ad Soyad',
+            width: '250px',
             searchValue: (row) => `${row.first_name} ${row.last_name}`,
             render: (_, row) => (
                 <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
@@ -697,6 +707,7 @@ export default function Overtimes() {
         {
             key: 'calc_hours',
             label: 'Toplam Süre',
+            width: '150px',
             render: (_, row) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {row.calc_hours > 0 && (
@@ -720,6 +731,7 @@ export default function Overtimes() {
         {
             key: 'calc_required',
             label: 'Hak Edilen',
+            width: '150px',
             render: (val) => (
                 <span style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{formatCurrency(val)}</span>
             )
@@ -727,6 +739,7 @@ export default function Overtimes() {
         {
             key: 'calc_paid',
             label: 'Ödenen',
+            width: '150px',
             render: (val) => (
                 <span style={{ fontWeight: '600', color: 'var(--success)' }}>{formatCurrency(val)}</span>
             )
@@ -734,6 +747,7 @@ export default function Overtimes() {
         {
             key: 'calc_remaining',
             label: 'Kalan Ödeme',
+            width: '150px',
             render: (val) => (
                 <span style={{ 
                     fontWeight: '800', 
@@ -747,6 +761,7 @@ export default function Overtimes() {
         {
             key: 'status_summary',
             label: 'Durum',
+            width: '150px',
             render: (_, row) => {
                 const val = row.calc_remaining || 0
                 if (val > 0) return <span className="badge badge-danger">Ödeme Bekliyor</span>
