@@ -621,7 +621,7 @@ export default function EmployeeDetail() {
         }
 
         // Validation for Overtime Leave
-        if (type === 'overtime_leave') {
+        if (type.toLowerCase().includes('mesai')) {
             const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
             const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
             const weekdayRate = calcOvertimeRate('weekday')
@@ -638,7 +638,7 @@ export default function EmployeeDetail() {
 
             const totalEarned = earnedData.reduce((sum, d) => sum + d.days, 0)
             const totalUsedOT = leaves
-                .filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset') && (editingItem ? l.id !== editingItem.id : true))
+                .filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset') && (editingItem ? l.id !== editingItem.id : true))
                 .reduce((sum, l) => sum + (l.days || 0), 0)
             
             const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
@@ -713,7 +713,7 @@ export default function EmployeeDetail() {
             }))
 
             const totalUsedOT = leaves
-                .filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset'))
+                .filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset'))
                 .reduce((sum, l) => sum + (l.days || 0), 0)
 
             let remainingSkip = totalUsedOT
@@ -1034,7 +1034,7 @@ export default function EmployeeDetail() {
             let l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi' }; 
             
             // Custom label for overtime accruals
-            if (v === 'pending' && row.type === 'overtime_leave') {
+            if (v === 'pending' && row.type.toLowerCase().includes('mesai')) {
                 return <span className="badge badge-info" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>Tanımlandı</span>
             }
             
@@ -1608,7 +1608,7 @@ export default function EmployeeDetail() {
                                             const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
                                             return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
                                         }, 0)
-                                        const totalUsedOT = leaves.filter(l => l.status === 'approved' && (l.type === 'overtime_leave' || l.type === 'offset')).reduce((sum, l) => sum + (l.days || 0), 0)
+                                        const totalUsedOT = leaves.filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum, l) => sum + (l.days || 0), 0)
                                         const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
 
                                         return (
@@ -1656,12 +1656,10 @@ export default function EmployeeDetail() {
                                      return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
                                  }, 0)
                                  const totalUsedOT = leaves
-                                     .filter(l => l.status === 'approved' && (
-                                         l.type === 'overtime_leave' || 
-                                         l.type === 'offset' || 
-                                         l.type === 'Mesai İzni' || 
-                                         l.type === 'Mahsup' || 
-                                         l.type === 'Mesai İzni (Mahsup)'
+                                     .filter(l => l.status === 'approved' && l.type && (
+                                         l.type.toLowerCase().includes('mesai') || 
+                                         l.type.toLowerCase().includes('mahsup') || 
+                                         l.type === 'offset'
                                      ))
                                      .reduce((sum, l) => sum + (l.days || 0), 0)
                                  const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100

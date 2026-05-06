@@ -453,33 +453,41 @@ function HrModuleContent() {
                                 </div>
                             </div>
                             <div className="settings-list">
-                                {personnelSettings.leaveTypes.map(type => (
-                                    <div key={type.id} className="settings-list-item">
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span>{type.name}</span>
-                                            {(() => {
-                                                const lower = type.name.toLowerCase();
-                                                let hint = '';
-                                                if (lower.includes('yıllık')) hint = '1-5 yıl: 14 gün, 5-15 yıl: 20 gün, 15+ yıl: 26 gün';
-                                                else if (lower.includes('evlilik')) hint = 'Yasal: 3 Gün';
-                                                else if (lower.includes('ölüm')) hint = 'Yasal: 3 Gün';
-                                                else if (lower.includes('babalık')) hint = 'Yasal: 5 Gün';
-                                                else if (lower.includes('engelli')) hint = 'Yasal: 10 Gün';
-                                                
-                                                if (hint) return <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{hint}</span>;
-                                                return null;
-                                            })()}
+                                {personnelSettings.leaveTypes.map(type => {
+                                    const lower = type.name.toLowerCase();
+                                    let hint = '';
+                                    if (lower.includes('yıllık')) hint = '1-5 yıl: 14 gün, 5-15 yıl: 20 gün, 15+ yıl: 26 gün';
+                                    else if (lower.includes('evlilik')) hint = 'Yasal: 3 Gün';
+                                    else if (lower.includes('ölüm')) hint = 'Yasal: 3 Gün';
+                                    else if (lower.includes('babalık')) hint = 'Yasal: 5 Gün';
+                                    else if (lower.includes('engelli')) hint = 'Yasal: 10 Gün';
+                                    else if (lower.includes('mesai')) hint = 'Sistem: Otomatik mahsup için gereklidir';
+                                    const isOfficial = !!hint;
+
+                                    return (
+                                        <div key={type.id} className="settings-list-item">
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span>{type.name}</span>
+                                                {hint && <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{hint}</span>}
+                                            </div>
+                                            <div className="item-actions">
+                                                <button onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: type, value: type.name })}>
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                {!isOfficial && (
+                                                    <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...type, type: 'leave' })}>
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                                {isOfficial && (
+                                                    <button className="text-muted" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Yasal izinler silinemez">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="item-actions">
-                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: type, value: type.name })}>
-                                                <Edit2 size={14} />
-                                            </button>
-                                            <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...type, type: 'leave' })}>
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 {personnelSettings.leaveTypes.length === 0 && <div className="empty-list-msg">İzin türü tanımlanmamış.</div>}
                             </div>
                         </div>
