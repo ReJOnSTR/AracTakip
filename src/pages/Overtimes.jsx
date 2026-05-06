@@ -673,18 +673,12 @@ export default function Overtimes() {
     const summaryColumns = [
         {
             key: 'name',
-            label: 'Personel',
+            label: 'Ad Soyad',
             searchValue: (row) => `${row.first_name} ${row.last_name}`,
             render: (_, row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '12px', fontWeight: 700 }}>
-                        {row.first_name?.[0]}{row.last_name?.[0]}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{row.first_name} {row.last_name}</span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{row.department || '-'}</span>
-                    </div>
-                </div>
+                <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                    {row.first_name} {row.last_name}
+                </span>
             )
         },
         {
@@ -919,26 +913,21 @@ export default function Overtimes() {
                     data={summaryData}
                     showCheckboxes={false}
                     actions={(row) => (
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '4px' }}>
                             <button 
-                                className="btn-sm" 
+                                className="btn-icon" 
+                                title="Ödeme Yap" 
                                 onClick={() => handleOpenPaymentModal(row)}
                                 disabled={row.calc_remaining <= 0}
-                                style={{ 
-                                    padding: '4px 10px', 
-                                    fontSize: '12px',
-                                    backgroundColor: row.calc_remaining > 0 ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                                    color: row.calc_remaining > 0 ? 'white' : 'var(--text-muted)'
-                                }}
                             >
-                                <Banknote size={14} style={{ marginRight: '4px' }} /> Ödeme Yap
+                                <Banknote size={16} />
                             </button>
                             <button 
-                                className="btn-sm btn-secondary" 
+                                className="btn-icon" 
+                                title="Personel Detayı" 
                                 onClick={() => navigate(`/employees/${row.id}`)}
-                                style={{ padding: '4px 10px', fontSize: '12px' }}
                             >
-                                <User size={14} style={{ marginRight: '4px' }} /> Detay
+                                <User size={16} />
                             </button>
                         </div>
                     )}
