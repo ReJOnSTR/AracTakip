@@ -155,8 +155,20 @@ export default function Overtimes() {
                         })
                     })
 
+                    let otHours = 0;
+                    let otDays = 0;
+                    const weekdayRate = calcOvertimeRate('weekday', emp);
+
+                    otEntries.forEach(o => {
+                        const isSunday = Math.abs(o.rate - weekdayRate) > (weekdayRate * 0.5);
+                        if (isSunday) {
+                            otDays += (o.hours || 0);
+                        } else {
+                            otHours += (o.hours || 0);
+                        }
+                    });
+
                     const otAmount = otEntries.reduce((sum, o) => sum + (o.amount || 0), 0);
-                    const otHours = otEntries.reduce((sum, o) => sum + (o.hours || 0), 0);
                     
                     const paidAmount = (emp.salaries || [])
                         .filter(s => s.status === 'paid' && s.period === 'overtime_pay')
@@ -167,6 +179,7 @@ export default function Overtimes() {
                     return {
                         ...emp,
                         calc_hours: otHours,
+                        calc_days: otDays,
                         calc_required: otAmount,
                         calc_paid: paidAmount,
                         calc_remaining: remainingPay
@@ -684,10 +697,23 @@ export default function Overtimes() {
         {
             key: 'calc_hours',
             label: 'Toplam Süre',
-            render: (val) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Clock size={14} style={{ color: 'var(--text-muted)' }} />
-                    <span style={{ fontWeight: '600' }}>{Math.round(val * 100) / 100} Saat</span>
+            render: (_, row) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {row.calc_hours > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Clock size={14} style={{ color: 'var(--text-muted)' }} />
+                            <span style={{ fontWeight: '600' }}>{Math.round(row.calc_hours * 100) / 100} Saat</span>
+                        </div>
+                    )}
+                    {row.calc_days > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Calendar size={14} style={{ color: 'var(--accent-primary)' }} />
+                            <span style={{ fontWeight: '600', color: 'var(--accent-primary)' }}>{Math.round(row.calc_days * 100) / 100} Pazar</span>
+                        </div>
+                    )}
+                    {(row.calc_hours === 0 && row.calc_days === 0) && (
+                        <span style={{ color: 'var(--text-muted)' }}>-</span>
+                    )}
                 </div>
             )
         },
