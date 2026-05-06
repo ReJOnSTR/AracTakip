@@ -707,17 +707,17 @@ export default function Overtimes() {
         {
             key: 'calc_hours',
             label: 'Toplam Süre',
-            width: '150px',
+            width: '180px',
             render: (_, row) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     {row.calc_hours > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Clock size={14} style={{ color: 'var(--text-muted)' }} />
                             <span style={{ fontWeight: '600' }}>{Math.round(row.calc_hours * 100) / 100} Saat</span>
                         </div>
                     )}
                     {row.calc_days > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Calendar size={14} style={{ color: 'var(--accent-primary)' }} />
                             <span style={{ fontWeight: '600', color: 'var(--accent-primary)' }}>{Math.round(row.calc_days * 100) / 100} Pazar</span>
                         </div>
