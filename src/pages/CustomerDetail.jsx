@@ -27,6 +27,7 @@ export default function CustomerDetail() {
     // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isWorkModalOpen, setIsWorkModalOpen] = useState(false)
+    const [editingWork, setEditingWork] = useState(null)
     const [saving, setSaving] = useState(false)
 
     const [paymentModalOpen, setPaymentModalOpen] = useState(false)
@@ -83,18 +84,27 @@ export default function CustomerDetail() {
     const handleWorkSubmit = async (data) => {
         setSaving(true)
         try {
-            const result = await window.electronAPI.createWork({
-                ...data,
-                companyId: currentCompany.id
-            })
+            let result;
+            if (editingWork) {
+                result = await window.electronAPI.updateWork({
+                    id: editingWork.id,
+                    ...data
+                })
+            } else {
+                result = await window.electronAPI.createWork({
+                    ...data,
+                    companyId: currentCompany.id
+                })
+            }
             if (result.success) {
                 setIsWorkModalOpen(false)
+                setEditingWork(null)
                 loadCustomer() // Reload to see new work
             } else {
                 alert('Hata: ' + result.error)
             }
         } catch (error) {
-            console.error('Error creating work:', error)
+            console.error('Error creating/updating work:', error)
         }
         setSaving(false)
     }
@@ -427,6 +437,13 @@ export default function CustomerDetail() {
                             onRowClick={(row) => navigate(`/works/${row.id}`)}
                             actions={(row) => (
                                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                    <button className="icon-btn" onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        setEditingWork(row); 
+                                        setIsWorkModalOpen(true); 
+                                    }} title="Düzenle">
+                                        <Pencil size={16} />
+                                    </button>
                                     <button className="icon-btn info" onClick={(e) => { e.stopPropagation(); navigate(`/works/${row.id}`) }} title="İş Detayı">
                                         <Eye size={16} />
                                     </button>
@@ -502,17 +519,17 @@ export default function CustomerDetail() {
                     hideCheck={false}
                 />
             </Modal>
-            {/* New Work Modal */}
+            {/* New / Edit Work Modal */}
             <Modal
                 isOpen={isWorkModalOpen}
-                onClose={() => setIsWorkModalOpen(false)}
-                title="Yeni İş Ekle"
+                onClose={() => { setIsWorkModalOpen(false); setEditingWork(null); }}
+                title={editingWork ? "İşi Düzenle" : "Yeni İş Ekle"}
                 footer={null}
             >
                 <WorkForm
-                    initialData={{ customerId: customer.id, customer: customer.name }}
+                    initialData={editingWork ? { ...editingWork, customer_id: customer.id, customer: customer.name } : { customer_id: customer.id, customer: customer.name }}
                     onSubmit={handleWorkSubmit}
-                    onCancel={() => setIsWorkModalOpen(false)}
+                    onCancel={() => { setIsWorkModalOpen(false); setEditingWork(null); }}
                     loading={saving}
                     customers={[customer]} // Current customer as the only option
                     disableCustomerSelect={true}
