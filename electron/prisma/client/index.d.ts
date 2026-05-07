@@ -158,6 +158,11 @@ export type leave_types = $Result.DefaultSelection<Prisma.$leave_typesPayload>
  * 
  */
 export type document_categories = $Result.DefaultSelection<Prisma.$document_categoriesPayload>
+/**
+ * Model vehicle_types
+ * 
+ */
+export type vehicle_types = $Result.DefaultSelection<Prisma.$vehicle_typesPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -569,6 +574,16 @@ export class PrismaClient<
     * ```
     */
   get document_categories(): Prisma.document_categoriesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.vehicle_types`: Exposes CRUD operations for the **vehicle_types** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Vehicle_types
+    * const vehicle_types = await prisma.vehicle_types.findMany()
+    * ```
+    */
+  get vehicle_types(): Prisma.vehicle_typesDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1031,7 +1046,8 @@ export namespace Prisma {
     works: 'works',
     departments: 'departments',
     leave_types: 'leave_types',
-    document_categories: 'document_categories'
+    document_categories: 'document_categories',
+    vehicle_types: 'vehicle_types'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1047,7 +1063,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "vehicle_types"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3197,6 +3213,80 @@ export namespace Prisma {
           }
         }
       }
+      vehicle_types: {
+        payload: Prisma.$vehicle_typesPayload<ExtArgs>
+        fields: Prisma.vehicle_typesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.vehicle_typesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.vehicle_typesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>
+          }
+          findFirst: {
+            args: Prisma.vehicle_typesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.vehicle_typesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>
+          }
+          findMany: {
+            args: Prisma.vehicle_typesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>[]
+          }
+          create: {
+            args: Prisma.vehicle_typesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>
+          }
+          createMany: {
+            args: Prisma.vehicle_typesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.vehicle_typesCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>[]
+          }
+          delete: {
+            args: Prisma.vehicle_typesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>
+          }
+          update: {
+            args: Prisma.vehicle_typesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>
+          }
+          deleteMany: {
+            args: Prisma.vehicle_typesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.vehicle_typesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.vehicle_typesUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>[]
+          }
+          upsert: {
+            args: Prisma.vehicle_typesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$vehicle_typesPayload>
+          }
+          aggregate: {
+            args: Prisma.Vehicle_typesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVehicle_types>
+          }
+          groupBy: {
+            args: Prisma.vehicle_typesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Vehicle_typesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.vehicle_typesCountArgs<ExtArgs>
+            result: $Utils.Optional<Vehicle_typesCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3334,6 +3424,7 @@ export namespace Prisma {
     departments?: departmentsOmit
     leave_types?: leave_typesOmit
     document_categories?: document_categoriesOmit
+    vehicle_types?: vehicle_typesOmit
   }
 
   /* Types for Logging */
@@ -3424,6 +3515,7 @@ export namespace Prisma {
     departments: number
     leave_types: number
     document_categories: number
+    vehicle_types: number
   }
 
   export type CompaniesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3437,6 +3529,7 @@ export namespace Prisma {
     departments?: boolean | CompaniesCountOutputTypeCountDepartmentsArgs
     leave_types?: boolean | CompaniesCountOutputTypeCountLeave_typesArgs
     document_categories?: boolean | CompaniesCountOutputTypeCountDocument_categoriesArgs
+    vehicle_types?: boolean | CompaniesCountOutputTypeCountVehicle_typesArgs
   }
 
   // Custom InputTypes
@@ -3518,6 +3611,13 @@ export namespace Prisma {
    */
   export type CompaniesCountOutputTypeCountDocument_categoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: document_categoriesWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountVehicle_typesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: vehicle_typesWhereInput
   }
 
 
@@ -5269,6 +5369,7 @@ export namespace Prisma {
     departments?: boolean | companies$departmentsArgs<ExtArgs>
     leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
     document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
+    vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
 
@@ -5324,6 +5425,7 @@ export namespace Prisma {
     departments?: boolean | companies$departmentsArgs<ExtArgs>
     leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
     document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
+    vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type companiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5348,6 +5450,7 @@ export namespace Prisma {
       departments: Prisma.$departmentsPayload<ExtArgs>[]
       leave_types: Prisma.$leave_typesPayload<ExtArgs>[]
       document_categories: Prisma.$document_categoriesPayload<ExtArgs>[]
+      vehicle_types: Prisma.$vehicle_typesPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -5765,6 +5868,7 @@ export namespace Prisma {
     departments<T extends companies$departmentsArgs<ExtArgs> = {}>(args?: Subset<T, companies$departmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$departmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     leave_types<T extends companies$leave_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$leave_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     document_categories<T extends companies$document_categoriesArgs<ExtArgs> = {}>(args?: Subset<T, companies$document_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    vehicle_types<T extends companies$vehicle_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$vehicle_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6453,6 +6557,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Document_categoriesScalarFieldEnum | Document_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * companies.vehicle_types
+   */
+  export type companies$vehicle_typesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    where?: vehicle_typesWhereInput
+    orderBy?: vehicle_typesOrderByWithRelationInput | vehicle_typesOrderByWithRelationInput[]
+    cursor?: vehicle_typesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Vehicle_typesScalarFieldEnum | Vehicle_typesScalarFieldEnum[]
   }
 
   /**
@@ -38702,6 +38830,1087 @@ export namespace Prisma {
 
 
   /**
+   * Model vehicle_types
+   */
+
+  export type AggregateVehicle_types = {
+    _count: Vehicle_typesCountAggregateOutputType | null
+    _avg: Vehicle_typesAvgAggregateOutputType | null
+    _sum: Vehicle_typesSumAggregateOutputType | null
+    _min: Vehicle_typesMinAggregateOutputType | null
+    _max: Vehicle_typesMaxAggregateOutputType | null
+  }
+
+  export type Vehicle_typesAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Vehicle_typesSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Vehicle_typesMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Vehicle_typesMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Vehicle_typesCountAggregateOutputType = {
+    id: number
+    company_id: number
+    name: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Vehicle_typesAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Vehicle_typesSumAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Vehicle_typesMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Vehicle_typesMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Vehicle_typesCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Vehicle_typesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which vehicle_types to aggregate.
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of vehicle_types to fetch.
+     */
+    orderBy?: vehicle_typesOrderByWithRelationInput | vehicle_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: vehicle_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` vehicle_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` vehicle_types.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned vehicle_types
+    **/
+    _count?: true | Vehicle_typesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Vehicle_typesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Vehicle_typesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Vehicle_typesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Vehicle_typesMaxAggregateInputType
+  }
+
+  export type GetVehicle_typesAggregateType<T extends Vehicle_typesAggregateArgs> = {
+        [P in keyof T & keyof AggregateVehicle_types]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVehicle_types[P]>
+      : GetScalarType<T[P], AggregateVehicle_types[P]>
+  }
+
+
+
+
+  export type vehicle_typesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: vehicle_typesWhereInput
+    orderBy?: vehicle_typesOrderByWithAggregationInput | vehicle_typesOrderByWithAggregationInput[]
+    by: Vehicle_typesScalarFieldEnum[] | Vehicle_typesScalarFieldEnum
+    having?: vehicle_typesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Vehicle_typesCountAggregateInputType | true
+    _avg?: Vehicle_typesAvgAggregateInputType
+    _sum?: Vehicle_typesSumAggregateInputType
+    _min?: Vehicle_typesMinAggregateInputType
+    _max?: Vehicle_typesMaxAggregateInputType
+  }
+
+  export type Vehicle_typesGroupByOutputType = {
+    id: number
+    company_id: number
+    name: string
+    created_at: Date | null
+    _count: Vehicle_typesCountAggregateOutputType | null
+    _avg: Vehicle_typesAvgAggregateOutputType | null
+    _sum: Vehicle_typesSumAggregateOutputType | null
+    _min: Vehicle_typesMinAggregateOutputType | null
+    _max: Vehicle_typesMaxAggregateOutputType | null
+  }
+
+  type GetVehicle_typesGroupByPayload<T extends vehicle_typesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Vehicle_typesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Vehicle_typesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Vehicle_typesGroupByOutputType[P]>
+            : GetScalarType<T[P], Vehicle_typesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type vehicle_typesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicle_types"]>
+
+  export type vehicle_typesSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicle_types"]>
+
+  export type vehicle_typesSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicle_types"]>
+
+  export type vehicle_typesSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+  }
+
+  export type vehicle_typesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["vehicle_types"]>
+  export type vehicle_typesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type vehicle_typesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type vehicle_typesIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $vehicle_typesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "vehicle_types"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      name: string
+      created_at: Date | null
+    }, ExtArgs["result"]["vehicle_types"]>
+    composites: {}
+  }
+
+  type vehicle_typesGetPayload<S extends boolean | null | undefined | vehicle_typesDefaultArgs> = $Result.GetResult<Prisma.$vehicle_typesPayload, S>
+
+  type vehicle_typesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<vehicle_typesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Vehicle_typesCountAggregateInputType | true
+    }
+
+  export interface vehicle_typesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['vehicle_types'], meta: { name: 'vehicle_types' } }
+    /**
+     * Find zero or one Vehicle_types that matches the filter.
+     * @param {vehicle_typesFindUniqueArgs} args - Arguments to find a Vehicle_types
+     * @example
+     * // Get one Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends vehicle_typesFindUniqueArgs>(args: SelectSubset<T, vehicle_typesFindUniqueArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Vehicle_types that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {vehicle_typesFindUniqueOrThrowArgs} args - Arguments to find a Vehicle_types
+     * @example
+     * // Get one Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends vehicle_typesFindUniqueOrThrowArgs>(args: SelectSubset<T, vehicle_typesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Vehicle_types that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {vehicle_typesFindFirstArgs} args - Arguments to find a Vehicle_types
+     * @example
+     * // Get one Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends vehicle_typesFindFirstArgs>(args?: SelectSubset<T, vehicle_typesFindFirstArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Vehicle_types that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {vehicle_typesFindFirstOrThrowArgs} args - Arguments to find a Vehicle_types
+     * @example
+     * // Get one Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends vehicle_typesFindFirstOrThrowArgs>(args?: SelectSubset<T, vehicle_typesFindFirstOrThrowArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Vehicle_types that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {vehicle_typesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.findMany()
+     * 
+     * // Get first 10 Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const vehicle_typesWithIdOnly = await prisma.vehicle_types.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends vehicle_typesFindManyArgs>(args?: SelectSubset<T, vehicle_typesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Vehicle_types.
+     * @param {vehicle_typesCreateArgs} args - Arguments to create a Vehicle_types.
+     * @example
+     * // Create one Vehicle_types
+     * const Vehicle_types = await prisma.vehicle_types.create({
+     *   data: {
+     *     // ... data to create a Vehicle_types
+     *   }
+     * })
+     * 
+     */
+    create<T extends vehicle_typesCreateArgs>(args: SelectSubset<T, vehicle_typesCreateArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Vehicle_types.
+     * @param {vehicle_typesCreateManyArgs} args - Arguments to create many Vehicle_types.
+     * @example
+     * // Create many Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends vehicle_typesCreateManyArgs>(args?: SelectSubset<T, vehicle_typesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Vehicle_types and returns the data saved in the database.
+     * @param {vehicle_typesCreateManyAndReturnArgs} args - Arguments to create many Vehicle_types.
+     * @example
+     * // Create many Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Vehicle_types and only return the `id`
+     * const vehicle_typesWithIdOnly = await prisma.vehicle_types.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends vehicle_typesCreateManyAndReturnArgs>(args?: SelectSubset<T, vehicle_typesCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Vehicle_types.
+     * @param {vehicle_typesDeleteArgs} args - Arguments to delete one Vehicle_types.
+     * @example
+     * // Delete one Vehicle_types
+     * const Vehicle_types = await prisma.vehicle_types.delete({
+     *   where: {
+     *     // ... filter to delete one Vehicle_types
+     *   }
+     * })
+     * 
+     */
+    delete<T extends vehicle_typesDeleteArgs>(args: SelectSubset<T, vehicle_typesDeleteArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Vehicle_types.
+     * @param {vehicle_typesUpdateArgs} args - Arguments to update one Vehicle_types.
+     * @example
+     * // Update one Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends vehicle_typesUpdateArgs>(args: SelectSubset<T, vehicle_typesUpdateArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Vehicle_types.
+     * @param {vehicle_typesDeleteManyArgs} args - Arguments to filter Vehicle_types to delete.
+     * @example
+     * // Delete a few Vehicle_types
+     * const { count } = await prisma.vehicle_types.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends vehicle_typesDeleteManyArgs>(args?: SelectSubset<T, vehicle_typesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Vehicle_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {vehicle_typesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends vehicle_typesUpdateManyArgs>(args: SelectSubset<T, vehicle_typesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Vehicle_types and returns the data updated in the database.
+     * @param {vehicle_typesUpdateManyAndReturnArgs} args - Arguments to update many Vehicle_types.
+     * @example
+     * // Update many Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Vehicle_types and only return the `id`
+     * const vehicle_typesWithIdOnly = await prisma.vehicle_types.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends vehicle_typesUpdateManyAndReturnArgs>(args: SelectSubset<T, vehicle_typesUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Vehicle_types.
+     * @param {vehicle_typesUpsertArgs} args - Arguments to update or create a Vehicle_types.
+     * @example
+     * // Update or create a Vehicle_types
+     * const vehicle_types = await prisma.vehicle_types.upsert({
+     *   create: {
+     *     // ... data to create a Vehicle_types
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Vehicle_types we want to update
+     *   }
+     * })
+     */
+    upsert<T extends vehicle_typesUpsertArgs>(args: SelectSubset<T, vehicle_typesUpsertArgs<ExtArgs>>): Prisma__vehicle_typesClient<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Vehicle_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {vehicle_typesCountArgs} args - Arguments to filter Vehicle_types to count.
+     * @example
+     * // Count the number of Vehicle_types
+     * const count = await prisma.vehicle_types.count({
+     *   where: {
+     *     // ... the filter for the Vehicle_types we want to count
+     *   }
+     * })
+    **/
+    count<T extends vehicle_typesCountArgs>(
+      args?: Subset<T, vehicle_typesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Vehicle_typesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Vehicle_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Vehicle_typesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Vehicle_typesAggregateArgs>(args: Subset<T, Vehicle_typesAggregateArgs>): Prisma.PrismaPromise<GetVehicle_typesAggregateType<T>>
+
+    /**
+     * Group by Vehicle_types.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {vehicle_typesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends vehicle_typesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: vehicle_typesGroupByArgs['orderBy'] }
+        : { orderBy?: vehicle_typesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, vehicle_typesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVehicle_typesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the vehicle_types model
+   */
+  readonly fields: vehicle_typesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for vehicle_types.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__vehicle_typesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the vehicle_types model
+   */
+  interface vehicle_typesFieldRefs {
+    readonly id: FieldRef<"vehicle_types", 'Int'>
+    readonly company_id: FieldRef<"vehicle_types", 'Int'>
+    readonly name: FieldRef<"vehicle_types", 'String'>
+    readonly created_at: FieldRef<"vehicle_types", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * vehicle_types findUnique
+   */
+  export type vehicle_typesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which vehicle_types to fetch.
+     */
+    where: vehicle_typesWhereUniqueInput
+  }
+
+  /**
+   * vehicle_types findUniqueOrThrow
+   */
+  export type vehicle_typesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which vehicle_types to fetch.
+     */
+    where: vehicle_typesWhereUniqueInput
+  }
+
+  /**
+   * vehicle_types findFirst
+   */
+  export type vehicle_typesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which vehicle_types to fetch.
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of vehicle_types to fetch.
+     */
+    orderBy?: vehicle_typesOrderByWithRelationInput | vehicle_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for vehicle_types.
+     */
+    cursor?: vehicle_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` vehicle_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` vehicle_types.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of vehicle_types.
+     */
+    distinct?: Vehicle_typesScalarFieldEnum | Vehicle_typesScalarFieldEnum[]
+  }
+
+  /**
+   * vehicle_types findFirstOrThrow
+   */
+  export type vehicle_typesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which vehicle_types to fetch.
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of vehicle_types to fetch.
+     */
+    orderBy?: vehicle_typesOrderByWithRelationInput | vehicle_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for vehicle_types.
+     */
+    cursor?: vehicle_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` vehicle_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` vehicle_types.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of vehicle_types.
+     */
+    distinct?: Vehicle_typesScalarFieldEnum | Vehicle_typesScalarFieldEnum[]
+  }
+
+  /**
+   * vehicle_types findMany
+   */
+  export type vehicle_typesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * Filter, which vehicle_types to fetch.
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of vehicle_types to fetch.
+     */
+    orderBy?: vehicle_typesOrderByWithRelationInput | vehicle_typesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing vehicle_types.
+     */
+    cursor?: vehicle_typesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` vehicle_types from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` vehicle_types.
+     */
+    skip?: number
+    distinct?: Vehicle_typesScalarFieldEnum | Vehicle_typesScalarFieldEnum[]
+  }
+
+  /**
+   * vehicle_types create
+   */
+  export type vehicle_typesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * The data needed to create a vehicle_types.
+     */
+    data: XOR<vehicle_typesCreateInput, vehicle_typesUncheckedCreateInput>
+  }
+
+  /**
+   * vehicle_types createMany
+   */
+  export type vehicle_typesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many vehicle_types.
+     */
+    data: vehicle_typesCreateManyInput | vehicle_typesCreateManyInput[]
+  }
+
+  /**
+   * vehicle_types createManyAndReturn
+   */
+  export type vehicle_typesCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * The data used to create many vehicle_types.
+     */
+    data: vehicle_typesCreateManyInput | vehicle_typesCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * vehicle_types update
+   */
+  export type vehicle_typesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * The data needed to update a vehicle_types.
+     */
+    data: XOR<vehicle_typesUpdateInput, vehicle_typesUncheckedUpdateInput>
+    /**
+     * Choose, which vehicle_types to update.
+     */
+    where: vehicle_typesWhereUniqueInput
+  }
+
+  /**
+   * vehicle_types updateMany
+   */
+  export type vehicle_typesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update vehicle_types.
+     */
+    data: XOR<vehicle_typesUpdateManyMutationInput, vehicle_typesUncheckedUpdateManyInput>
+    /**
+     * Filter which vehicle_types to update
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * Limit how many vehicle_types to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * vehicle_types updateManyAndReturn
+   */
+  export type vehicle_typesUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * The data used to update vehicle_types.
+     */
+    data: XOR<vehicle_typesUpdateManyMutationInput, vehicle_typesUncheckedUpdateManyInput>
+    /**
+     * Filter which vehicle_types to update
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * Limit how many vehicle_types to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * vehicle_types upsert
+   */
+  export type vehicle_typesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * The filter to search for the vehicle_types to update in case it exists.
+     */
+    where: vehicle_typesWhereUniqueInput
+    /**
+     * In case the vehicle_types found by the `where` argument doesn't exist, create a new vehicle_types with this data.
+     */
+    create: XOR<vehicle_typesCreateInput, vehicle_typesUncheckedCreateInput>
+    /**
+     * In case the vehicle_types was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<vehicle_typesUpdateInput, vehicle_typesUncheckedUpdateInput>
+  }
+
+  /**
+   * vehicle_types delete
+   */
+  export type vehicle_typesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+    /**
+     * Filter which vehicle_types to delete.
+     */
+    where: vehicle_typesWhereUniqueInput
+  }
+
+  /**
+   * vehicle_types deleteMany
+   */
+  export type vehicle_typesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which vehicle_types to delete
+     */
+    where?: vehicle_typesWhereInput
+    /**
+     * Limit how many vehicle_types to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * vehicle_types without action
+   */
+  export type vehicle_typesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the vehicle_types
+     */
+    select?: vehicle_typesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the vehicle_types
+     */
+    omit?: vehicle_typesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: vehicle_typesInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -39179,6 +40388,16 @@ export namespace Prisma {
   export type Document_categoriesScalarFieldEnum = (typeof Document_categoriesScalarFieldEnum)[keyof typeof Document_categoriesScalarFieldEnum]
 
 
+  export const Vehicle_typesScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    name: 'name',
+    created_at: 'created_at'
+  };
+
+  export type Vehicle_typesScalarFieldEnum = (typeof Vehicle_typesScalarFieldEnum)[keyof typeof Vehicle_typesScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -39343,6 +40562,7 @@ export namespace Prisma {
     departments?: DepartmentsListRelationFilter
     leave_types?: Leave_typesListRelationFilter
     document_categories?: Document_categoriesListRelationFilter
+    vehicle_types?: Vehicle_typesListRelationFilter
   }
 
   export type companiesOrderByWithRelationInput = {
@@ -39367,6 +40587,7 @@ export namespace Prisma {
     departments?: departmentsOrderByRelationAggregateInput
     leave_types?: leave_typesOrderByRelationAggregateInput
     document_categories?: document_categoriesOrderByRelationAggregateInput
+    vehicle_types?: vehicle_typesOrderByRelationAggregateInput
   }
 
   export type companiesWhereUniqueInput = Prisma.AtLeast<{
@@ -39394,6 +40615,7 @@ export namespace Prisma {
     departments?: DepartmentsListRelationFilter
     leave_types?: Leave_typesListRelationFilter
     document_categories?: Document_categoriesListRelationFilter
+    vehicle_types?: Vehicle_typesListRelationFilter
   }, "id">
 
   export type companiesOrderByWithAggregationInput = {
@@ -41730,6 +42952,58 @@ export namespace Prisma {
     created_at?: DateTimeNullableWithAggregatesFilter<"document_categories"> | Date | string | null
   }
 
+  export type vehicle_typesWhereInput = {
+    AND?: vehicle_typesWhereInput | vehicle_typesWhereInput[]
+    OR?: vehicle_typesWhereInput[]
+    NOT?: vehicle_typesWhereInput | vehicle_typesWhereInput[]
+    id?: IntFilter<"vehicle_types"> | number
+    company_id?: IntFilter<"vehicle_types"> | number
+    name?: StringFilter<"vehicle_types"> | string
+    created_at?: DateTimeNullableFilter<"vehicle_types"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type vehicle_typesOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type vehicle_typesWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: vehicle_typesWhereInput | vehicle_typesWhereInput[]
+    OR?: vehicle_typesWhereInput[]
+    NOT?: vehicle_typesWhereInput | vehicle_typesWhereInput[]
+    company_id?: IntFilter<"vehicle_types"> | number
+    name?: StringFilter<"vehicle_types"> | string
+    created_at?: DateTimeNullableFilter<"vehicle_types"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type vehicle_typesOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: vehicle_typesCountOrderByAggregateInput
+    _avg?: vehicle_typesAvgOrderByAggregateInput
+    _max?: vehicle_typesMaxOrderByAggregateInput
+    _min?: vehicle_typesMinOrderByAggregateInput
+    _sum?: vehicle_typesSumOrderByAggregateInput
+  }
+
+  export type vehicle_typesScalarWhereWithAggregatesInput = {
+    AND?: vehicle_typesScalarWhereWithAggregatesInput | vehicle_typesScalarWhereWithAggregatesInput[]
+    OR?: vehicle_typesScalarWhereWithAggregatesInput[]
+    NOT?: vehicle_typesScalarWhereWithAggregatesInput | vehicle_typesScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"vehicle_types"> | number
+    company_id?: IntWithAggregatesFilter<"vehicle_types"> | number
+    name?: StringWithAggregatesFilter<"vehicle_types"> | string
+    created_at?: DateTimeNullableWithAggregatesFilter<"vehicle_types"> | Date | string | null
+  }
+
   export type assignmentsCreateInput = {
     item_name: string
     quantity?: number | null
@@ -41844,6 +43118,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateInput = {
@@ -41867,6 +43142,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUpdateInput = {
@@ -41889,6 +43165,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateInput = {
@@ -41912,6 +43189,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateManyInput = {
@@ -44399,6 +45677,51 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type vehicle_typesCreateInput = {
+    name: string
+    created_at?: Date | string | null
+    companies: companiesCreateNestedOneWithoutVehicle_typesInput
+  }
+
+  export type vehicle_typesUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type vehicle_typesUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneRequiredWithoutVehicle_typesNestedInput
+  }
+
+  export type vehicle_typesUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type vehicle_typesCreateManyInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type vehicle_typesUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type vehicle_typesUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -44701,6 +46024,12 @@ export namespace Prisma {
     none?: document_categoriesWhereInput
   }
 
+  export type Vehicle_typesListRelationFilter = {
+    every?: vehicle_typesWhereInput
+    some?: vehicle_typesWhereInput
+    none?: vehicle_typesWhereInput
+  }
+
   export type employeesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -44738,6 +46067,10 @@ export namespace Prisma {
   }
 
   export type document_categoriesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type vehicle_typesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -46480,6 +47813,37 @@ export namespace Prisma {
     company_id?: SortOrder
   }
 
+  export type vehicle_typesCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type vehicle_typesAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type vehicle_typesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type vehicle_typesMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type vehicle_typesSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {
     create?: XOR<vehiclesCreateWithoutAssignmentsInput, vehiclesUncheckedCreateWithoutAssignmentsInput>
     connectOrCreate?: vehiclesCreateOrConnectWithoutAssignmentsInput
@@ -46610,6 +47974,13 @@ export namespace Prisma {
     connect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
   }
 
+  export type vehicle_typesCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<vehicle_typesCreateWithoutCompaniesInput, vehicle_typesUncheckedCreateWithoutCompaniesInput> | vehicle_typesCreateWithoutCompaniesInput[] | vehicle_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: vehicle_typesCreateOrConnectWithoutCompaniesInput | vehicle_typesCreateOrConnectWithoutCompaniesInput[]
+    createMany?: vehicle_typesCreateManyCompaniesInputEnvelope
+    connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+  }
+
   export type employeesUncheckedCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -46684,6 +48055,13 @@ export namespace Prisma {
     connectOrCreate?: document_categoriesCreateOrConnectWithoutCompaniesInput | document_categoriesCreateOrConnectWithoutCompaniesInput[]
     createMany?: document_categoriesCreateManyCompaniesInputEnvelope
     connect?: document_categoriesWhereUniqueInput | document_categoriesWhereUniqueInput[]
+  }
+
+  export type vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<vehicle_typesCreateWithoutCompaniesInput, vehicle_typesUncheckedCreateWithoutCompaniesInput> | vehicle_typesCreateWithoutCompaniesInput[] | vehicle_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: vehicle_typesCreateOrConnectWithoutCompaniesInput | vehicle_typesCreateOrConnectWithoutCompaniesInput[]
+    createMany?: vehicle_typesCreateManyCompaniesInputEnvelope
+    connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
   }
 
   export type usersUpdateOneRequiredWithoutCompaniesNestedInput = {
@@ -46844,6 +48222,20 @@ export namespace Prisma {
     deleteMany?: document_categoriesScalarWhereInput | document_categoriesScalarWhereInput[]
   }
 
+  export type vehicle_typesUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<vehicle_typesCreateWithoutCompaniesInput, vehicle_typesUncheckedCreateWithoutCompaniesInput> | vehicle_typesCreateWithoutCompaniesInput[] | vehicle_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: vehicle_typesCreateOrConnectWithoutCompaniesInput | vehicle_typesCreateOrConnectWithoutCompaniesInput[]
+    upsert?: vehicle_typesUpsertWithWhereUniqueWithoutCompaniesInput | vehicle_typesUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: vehicle_typesCreateManyCompaniesInputEnvelope
+    set?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    disconnect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    delete?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    update?: vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput | vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: vehicle_typesUpdateManyWithWhereWithoutCompaniesInput | vehicle_typesUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
+  }
+
   export type employeesUncheckedUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -46992,6 +48384,20 @@ export namespace Prisma {
     update?: document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput | document_categoriesUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: document_categoriesUpdateManyWithWhereWithoutCompaniesInput | document_categoriesUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: document_categoriesScalarWhereInput | document_categoriesScalarWhereInput[]
+  }
+
+  export type vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<vehicle_typesCreateWithoutCompaniesInput, vehicle_typesUncheckedCreateWithoutCompaniesInput> | vehicle_typesCreateWithoutCompaniesInput[] | vehicle_typesUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: vehicle_typesCreateOrConnectWithoutCompaniesInput | vehicle_typesCreateOrConnectWithoutCompaniesInput[]
+    upsert?: vehicle_typesUpsertWithWhereUniqueWithoutCompaniesInput | vehicle_typesUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: vehicle_typesCreateManyCompaniesInputEnvelope
+    set?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    disconnect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    delete?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+    update?: vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput | vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: vehicle_typesUpdateManyWithWhereWithoutCompaniesInput | vehicle_typesUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
   }
 
   export type companiesCreateNestedOneWithoutCustomersInput = {
@@ -48324,6 +49730,20 @@ export namespace Prisma {
     update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutDocument_categoriesInput, companiesUpdateWithoutDocument_categoriesInput>, companiesUncheckedUpdateWithoutDocument_categoriesInput>
   }
 
+  export type companiesCreateNestedOneWithoutVehicle_typesInput = {
+    create?: XOR<companiesCreateWithoutVehicle_typesInput, companiesUncheckedCreateWithoutVehicle_typesInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutVehicle_typesInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutVehicle_typesNestedInput = {
+    create?: XOR<companiesCreateWithoutVehicle_typesInput, companiesUncheckedCreateWithoutVehicle_typesInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutVehicle_typesInput
+    upsert?: companiesUpsertWithoutVehicle_typesInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutVehicle_typesInput, companiesUpdateWithoutVehicle_typesInput>, companiesUncheckedUpdateWithoutVehicle_typesInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -49072,6 +50492,26 @@ export namespace Prisma {
     data: document_categoriesCreateManyCompaniesInput | document_categoriesCreateManyCompaniesInput[]
   }
 
+  export type vehicle_typesCreateWithoutCompaniesInput = {
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type vehicle_typesUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type vehicle_typesCreateOrConnectWithoutCompaniesInput = {
+    where: vehicle_typesWhereUniqueInput
+    create: XOR<vehicle_typesCreateWithoutCompaniesInput, vehicle_typesUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type vehicle_typesCreateManyCompaniesInputEnvelope = {
+    data: vehicle_typesCreateManyCompaniesInput | vehicle_typesCreateManyCompaniesInput[]
+  }
+
   export type usersUpsertWithoutCompaniesInput = {
     update: XOR<usersUpdateWithoutCompaniesInput, usersUncheckedUpdateWithoutCompaniesInput>
     create: XOR<usersCreateWithoutCompaniesInput, usersUncheckedCreateWithoutCompaniesInput>
@@ -49455,6 +50895,32 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
   }
 
+  export type vehicle_typesUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: vehicle_typesWhereUniqueInput
+    update: XOR<vehicle_typesUpdateWithoutCompaniesInput, vehicle_typesUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<vehicle_typesCreateWithoutCompaniesInput, vehicle_typesUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: vehicle_typesWhereUniqueInput
+    data: XOR<vehicle_typesUpdateWithoutCompaniesInput, vehicle_typesUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type vehicle_typesUpdateManyWithWhereWithoutCompaniesInput = {
+    where: vehicle_typesScalarWhereInput
+    data: XOR<vehicle_typesUpdateManyMutationInput, vehicle_typesUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type vehicle_typesScalarWhereInput = {
+    AND?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
+    OR?: vehicle_typesScalarWhereInput[]
+    NOT?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
+    id?: IntFilter<"vehicle_types"> | number
+    company_id?: IntFilter<"vehicle_types"> | number
+    name?: StringFilter<"vehicle_types"> | string
+    created_at?: DateTimeNullableFilter<"vehicle_types"> | Date | string | null
+  }
+
   export type companiesCreateWithoutCustomersInput = {
     name: string
     tax_number?: string | null
@@ -49474,6 +50940,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutCustomersInput = {
@@ -49496,6 +50963,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutCustomersInput = {
@@ -49581,6 +51049,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutCustomersInput = {
@@ -49603,6 +51072,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type worksUpsertWithWhereUniqueWithoutCustomersInput = {
@@ -50590,6 +52060,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutEmployeesInput = {
@@ -50612,6 +52083,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutEmployeesInput = {
@@ -50998,6 +52470,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutEmployeesInput = {
@@ -51020,6 +52493,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type leavesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -51662,6 +53136,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_settingsInput = {
@@ -51684,6 +53159,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_settingsInput = {
@@ -51721,6 +53197,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_settingsInput = {
@@ -51743,6 +53220,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutMeal_ticketsInput = {
@@ -51764,6 +53242,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_ticketsInput = {
@@ -51786,6 +53265,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_ticketsInput = {
@@ -51823,6 +53303,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_ticketsInput = {
@@ -51845,6 +53326,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutOvertimesInput = {
@@ -52004,6 +53486,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutRecurring_transactionsInput = {
@@ -52026,6 +53509,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutRecurring_transactionsInput = {
@@ -52063,6 +53547,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutRecurring_transactionsInput = {
@@ -52085,6 +53570,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutSalariesInput = {
@@ -52354,6 +53840,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutTransactionsInput = {
@@ -52376,6 +53863,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutTransactionsInput = {
@@ -52413,6 +53901,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutTransactionsInput = {
@@ -52435,6 +53924,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutUsersInput = {
@@ -52456,6 +53946,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutUsersInput = {
@@ -52478,6 +53969,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutUsersInput = {
@@ -52747,6 +54239,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehiclesInput = {
@@ -52769,6 +54262,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehiclesInput = {
@@ -53098,6 +54592,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehiclesInput = {
@@ -53120,6 +54615,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type work_itemsUpsertWithWhereUniqueWithoutVehiclesInput = {
@@ -53677,6 +55173,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutWorksInput = {
@@ -53699,6 +55196,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutWorksInput = {
@@ -53914,6 +55412,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutWorksInput = {
@@ -53936,6 +55435,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type customersUpsertWithoutWorksInput = {
@@ -53995,6 +55495,7 @@ export namespace Prisma {
     customers?: customersCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDepartmentsInput = {
@@ -54017,6 +55518,7 @@ export namespace Prisma {
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDepartmentsInput = {
@@ -54054,6 +55556,7 @@ export namespace Prisma {
     customers?: customersUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDepartmentsInput = {
@@ -54076,6 +55579,7 @@ export namespace Prisma {
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutLeave_typesInput = {
@@ -54097,6 +55601,7 @@ export namespace Prisma {
     customers?: customersCreateNestedManyWithoutCompaniesInput
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutLeave_typesInput = {
@@ -54119,6 +55624,7 @@ export namespace Prisma {
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutLeave_typesInput = {
@@ -54156,6 +55662,7 @@ export namespace Prisma {
     customers?: customersUpdateManyWithoutCompaniesNestedInput
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutLeave_typesInput = {
@@ -54178,6 +55685,7 @@ export namespace Prisma {
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutDocument_categoriesInput = {
@@ -54199,6 +55707,7 @@ export namespace Prisma {
     customers?: customersCreateNestedManyWithoutCompaniesInput
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDocument_categoriesInput = {
@@ -54221,6 +55730,7 @@ export namespace Prisma {
     customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDocument_categoriesInput = {
@@ -54258,6 +55768,7 @@ export namespace Prisma {
     customers?: customersUpdateManyWithoutCompaniesNestedInput
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDocument_categoriesInput = {
@@ -54280,6 +55791,113 @@ export namespace Prisma {
     customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesCreateWithoutVehicle_typesInput = {
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutVehicle_typesInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutVehicle_typesInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutVehicle_typesInput, companiesUncheckedCreateWithoutVehicle_typesInput>
+  }
+
+  export type companiesUpsertWithoutVehicle_typesInput = {
+    update: XOR<companiesUpdateWithoutVehicle_typesInput, companiesUncheckedUpdateWithoutVehicle_typesInput>
+    create: XOR<companiesCreateWithoutVehicle_typesInput, companiesUncheckedCreateWithoutVehicle_typesInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutVehicle_typesInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutVehicle_typesInput, companiesUncheckedUpdateWithoutVehicle_typesInput>
+  }
+
+  export type companiesUpdateWithoutVehicle_typesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutVehicle_typesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateManyCompaniesInput = {
@@ -54404,6 +56022,12 @@ export namespace Prisma {
   }
 
   export type document_categoriesCreateManyCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type vehicle_typesCreateManyCompaniesInput = {
     id?: number
     name: string
     created_at?: Date | string | null
@@ -54815,6 +56439,23 @@ export namespace Prisma {
   }
 
   export type document_categoriesUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type vehicle_typesUpdateWithoutCompaniesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type vehicle_typesUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type vehicle_typesUncheckedUpdateManyWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -55443,6 +57084,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutUsersInput = {
@@ -55465,6 +57107,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateManyWithoutUsersInput = {

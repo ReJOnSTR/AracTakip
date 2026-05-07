@@ -375,7 +375,7 @@ export default function DataTable({
             const rowContent = searchValues.join(' ').toLocaleLowerCase('tr-TR').replace(/\s/g, '')
             return rowContent.includes(query)
         })
-    }, [customFilteredData, searchQuery, visibleColumnsList, searchKeys])
+    }, [customFilteredData, debouncedSearchQuery, visibleColumnsList, searchKeys])
 
     // Expose filtered data to parent
     useEffect(() => {

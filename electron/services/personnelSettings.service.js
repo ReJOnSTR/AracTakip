@@ -121,8 +121,49 @@ async function deleteDocumentCategory(id) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+// Vehicle Types
+async function getVehicleTypes(companyId) {
+    try {
+        const data = await prisma.vehicle_types.findMany({
+            where: { company_id: parseInt(companyId) },
+            orderBy: { name: 'asc' }
+        });
+        return { success: true, data };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function createVehicleType(data) {
+    try {
+        const result = await prisma.vehicle_types.create({
+            data: {
+                company_id: parseInt(data.companyId),
+                name: data.name
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function updateVehicleType(data) {
+    try {
+        const result = await prisma.vehicle_types.update({
+            where: { id: parseInt(data.id) },
+            data: { name: data.name }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function deleteVehicleType(id) {
+    try {
+        await prisma.vehicle_types.delete({ where: { id: parseInt(id) } });
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
     getDepartments, createDepartment, updateDepartment, deleteDepartment,
     getLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType,
-    getDocumentCategories, createDocumentCategory, updateDocumentCategory, deleteDocumentCategory
+    getDocumentCategories, createDocumentCategory, updateDocumentCategory, deleteDocumentCategory,
+    getVehicleTypes, createVehicleType, updateVehicleType, deleteVehicleType
 };

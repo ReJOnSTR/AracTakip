@@ -57,12 +57,17 @@ export default function PersonelDashboard() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const [empRes, docRes] = await Promise.all([
+            const [empRes, passiveEmpRes, docRes] = await Promise.all([
                 window.electronAPI.getEmployees(currentCompany.id, 0),
+                window.electronAPI.getEmployees(currentCompany.id, 1),
                 window.electronAPI.getUpcomingPersonnelDocuments(currentCompany.id)
             ])
             
-            if (empRes.success) setEmployees(empRes.data || [])
+            let allEmps = []
+            if (empRes.success) allEmps = [...allEmps, ...(empRes.data || [])]
+            if (passiveEmpRes.success) allEmps = [...allEmps, ...(passiveEmpRes.data || [])]
+            
+            setEmployees(allEmps)
             if (docRes.success) setUpcomingDocs(docRes.data || [])
         } catch (error) {
             console.error(error)

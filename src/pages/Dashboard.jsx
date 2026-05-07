@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import TopProgressBar from '../components/TopProgressBar'
 import { useCompany } from '../context/CompanyContext'
-import { formatDate, getDaysUntil, getDaysUntilText, getStatusColor, formatCurrency } from '../utils/helpers'
+import { formatDate, getDaysUntil, getDaysUntilText, getStatusColor, formatCurrency, getVehicleTypeLabel } from '../utils/helpers'
 import {
     Car,
     Activity,
@@ -366,10 +366,22 @@ export default function Dashboard() {
                         </div>
                         <div>
                             <div className="stat-value">{stats?.totalVehicles || 0}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                <span className="text-success" style={{ fontWeight: '600' }}>{stats?.activeVehicles || 0}</span> Aktif
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                    <span className="text-success" style={{ fontWeight: '600' }}>{stats?.activeVehicles || 0}</span> Aktif
+                                </div>
                             </div>
                         </div>
+                        {stats?.typeBreakdown?.length > 0 && (
+                            <div style={{ width: '100%', marginTop: '5px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {stats.typeBreakdown.map(t => (
+                                    <div key={t.type} style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', padding: '3px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span style={{ color: 'var(--accent-primary)', fontWeight: '700' }}>{t.count}</span>
+                                        <span>{getVehicleTypeLabel(t.type)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Monthly Cost */}

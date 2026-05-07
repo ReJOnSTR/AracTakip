@@ -497,6 +497,13 @@ exports.Prisma.Document_categoriesScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.Vehicle_typesScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -537,7 +544,8 @@ exports.Prisma.ModelName = {
   works: 'works',
   departments: 'departments',
   leave_types: 'leave_types',
-  document_categories: 'document_categories'
+  document_categories: 'document_categories',
+  vehicle_types: 'vehicle_types'
 };
 
 /**

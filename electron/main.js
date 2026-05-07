@@ -1240,6 +1240,24 @@ ipcMain.handle('settings:deleteDocumentCategory', async (event, id) => {
     return result
 })
 
+// Vehicle Types
+ipcMain.handle('settings:getVehicleTypes', async (event, companyId) => db.getVehicleTypes(companyId))
+ipcMain.handle('settings:createVehicleType', async (event, data) => {
+    const result = await db.createVehicleType(data)
+    if (result.success) notifyDbUpdate({ table: 'vehicle_types', action: 'create' })
+    return result
+})
+ipcMain.handle('settings:updateVehicleType', async (event, data) => {
+    const result = await db.updateVehicleType(data)
+    if (result.success) notifyDbUpdate({ table: 'vehicle_types', action: 'update' })
+    return result
+})
+ipcMain.handle('settings:deleteVehicleType', async (event, id) => {
+    const result = await db.deleteVehicleType(id)
+    if (result.success) notifyDbUpdate({ table: 'vehicle_types', action: 'delete' })
+    return result
+})
+
 ipcMain.handle('settings:selectFolder', async () => {
     const { filePaths } = await dialog.showOpenDialog(mainWindow, {
         title: 'Yedekleme Klasörü Seç',

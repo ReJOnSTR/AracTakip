@@ -232,6 +232,8 @@ export default function Finance() {
         }
     ], [])
 
+    const searchKeys = useMemo(() => ['description', 'amount', 'method', 'check_number'], [])
+
     return (
         <div className="page-container fade-in">
             <TopProgressBar loading={loading} />
@@ -327,7 +329,7 @@ export default function Finance() {
                 onSelectionChange={setSelectedIds}
                 loading={loading}
                 searchPlaceholder="Açıklama, tutar veya yöntem ile ara..."
-                searchKeys={['description', 'amount', 'method', 'check_number']}
+                searchKeys={searchKeys}
                 emptyMessage={currentCompany ? "Henüz işlem bulunmuyor." : "Lütfen bir şirket seçin."}
                 showSearch={true}
                 showCheckboxes={true}

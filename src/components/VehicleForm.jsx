@@ -1,14 +1,18 @@
 
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { vehicleSchema } from '../schemas/vehicleSchema'
 import CustomInput from './CustomInput'
 import CustomSelect from './CustomSelect'
 import { Car, Building2 } from 'lucide-react'
-import { vehicleTypes, vehicleStatuses } from '../utils/helpers'
+import { vehicleStatuses } from '../utils/helpers'
+import { useCompany } from '../context/CompanyContext'
 
 export default function VehicleForm({ initialData, onSubmit, onCancel, loading }) {
+    const [vehicleTypes, setVehicleTypes] = useState([])
+    const { currentCompany } = useCompany()
+
     const {
         control,
         handleSubmit,
@@ -17,7 +21,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
     } = useForm({
         resolver: zodResolver(vehicleSchema),
         defaultValues: {
-            type: 'automobile',
+            type: '',
             plate: '',
             brand: '',
             model: '',
@@ -31,9 +35,27 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
     })
 
     useEffect(() => {
+        const loadTypes = async () => {
+            if (currentCompany) {
+                const res = await window.electronAPI.getVehicleTypes(currentCompany.id)
+                if (res.success) {
+                    const mapped = res.data.map(t => ({ value: t.name, label: t.name }))
+                    setVehicleTypes(mapped)
+                    
+                    // If adding new, set first type as default if no value
+                    if (!initialData) {
+                        reset(prev => ({ ...prev, type: mapped[0]?.value || '' }))
+                    }
+                }
+            }
+        }
+        loadTypes()
+    }, [currentCompany, initialData, reset])
+
+    useEffect(() => {
         if (initialData) {
             reset({
-                type: initialData.type || 'automobile',
+                type: initialData.type || '',
                 plate: initialData.plate || '',
                 brand: initialData.brand || '',
                 model: initialData.model || '',

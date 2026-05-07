@@ -128,6 +128,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createDocumentCategory: (data) => ipcRenderer.invoke('settings:createDocumentCategory', data),
     updateDocumentCategory: (data) => ipcRenderer.invoke('settings:updateDocumentCategory', data),
     deleteDocumentCategory: (id) => ipcRenderer.invoke('settings:deleteDocumentCategory', id),
+    getVehicleTypes: (companyId) => ipcRenderer.invoke('settings:getVehicleTypes', companyId),
+    createVehicleType: (data) => ipcRenderer.invoke('settings:createVehicleType', data),
+    updateVehicleType: (data) => ipcRenderer.invoke('settings:updateVehicleType', data),
+    deleteVehicleType: (id) => ipcRenderer.invoke('settings:deleteVehicleType', id),
 
     // Auto Updater
     checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),

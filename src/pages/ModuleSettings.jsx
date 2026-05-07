@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { 
     Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, 
     Clock, Calculator, Pencil, Save, CalendarCheck, Users, Plus, Trash2, 
-    Edit2, Briefcase, FileText, AlertCircle 
+    Edit2, Briefcase, FileText, AlertCircle, Car 
 } from 'lucide-react'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -597,6 +597,133 @@ function HrModuleContent() {
     )
 }
 
+// Fleet Module Settings
+function FleetModuleContent() {
+    const { currentCompany } = useCompany()
+    const [vehicleTypes, setVehicleTypes] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [modal, setModal] = useState({ isOpen: false, item: null, value: '' })
+    const [confirmDelete, setConfirmDelete] = useState(null)
+
+    useEffect(() => {
+        loadVehicleTypes()
+    }, [currentCompany])
+
+    const loadVehicleTypes = async () => {
+        if (!currentCompany) return
+        setLoading(true)
+        try {
+            const res = await window.electronAPI.getVehicleTypes(currentCompany.id)
+            if (res.success) setVehicleTypes(res.data)
+        } catch (error) {
+            console.error('Failed to load vehicle types:', error)
+        }
+        setLoading(false)
+    }
+
+    const handleSave = async (e) => {
+        if (e) e.preventDefault()
+        if (!modal.value.trim()) return
+
+        try {
+            const result = modal.item
+                ? await window.electronAPI.updateVehicleType({ id: modal.item.id, name: modal.value })
+                : await window.electronAPI.createVehicleType({ companyId: currentCompany.id, name: modal.value })
+
+            if (result.success) {
+                setModal({ isOpen: false, item: null, value: '' })
+                loadVehicleTypes()
+            }
+        } catch (err) {
+            console.error('Save vehicle type error:', err)
+        }
+    }
+
+    const handleDelete = async () => {
+        if (!confirmDelete) return
+        try {
+            const result = await window.electronAPI.deleteVehicleType(confirmDelete.id)
+            if (result.success) {
+                setConfirmDelete(null)
+                loadVehicleTypes()
+            }
+        } catch (err) {
+            console.error('Delete vehicle type error:', err)
+        }
+    }
+
+    return (
+        <div className="fade-in">
+            <div className="settings-section">
+                <h3 className="settings-section-title">
+                    <Car size={18} />
+                    <span>Araç Tanımlamaları</span>
+                </h3>
+                
+                <div className="personnel-settings-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '600px' }}>
+                    <div className="personnel-card">
+                        <div className="section-header">
+                            <div className="section-title">
+                                <Sliders size={16} />
+                                <span>Araç Türleri</span>
+                            </div>
+                            <button className="btn btn-icon-sm" onClick={() => setModal({ isOpen: true, item: null, value: '' })}>
+                                <Plus size={14} />
+                            </button>
+                        </div>
+                        <div className="settings-list">
+                            {vehicleTypes.map(type => (
+                                <div key={type.id} className="settings-list-item">
+                                    <span>{type.name}</span>
+                                    <div className="item-actions">
+                                        <button onClick={() => setModal({ isOpen: true, item: type, value: type.name })}>
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button className="text-danger" onClick={() => setConfirmDelete(type)}>
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {vehicleTypes.length === 0 && !loading && <div className="empty-list-msg">Araç türü tanımlanmamış.</div>}
+                            {loading && <div className="empty-list-msg">Yükleniyor...</div>}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={() => setModal({ isOpen: false, item: null, value: '' })}
+                title={modal.item ? 'Araç Türünü Düzenle' : 'Yeni Araç Türü Ekle'}
+                size="small"
+            >
+                <form onSubmit={handleSave}>
+                    <CustomInput 
+                        label="Araç Türü Adı"
+                        value={modal.value}
+                        onChange={(val) => setModal(prev => ({ ...prev, value: val }))}
+                        autoFocus
+                        required
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setModal({ isOpen: false, item: null, value: '' })}>Vazgeç</button>
+                        <button type="submit" className="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </Modal>
+
+            <ConfirmModal 
+                isOpen={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={handleDelete}
+                title="Araç Türünü Sil?"
+                message={`"${confirmDelete?.name}" türünü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+            />
+        </div>
+    )
+}
+
 export default function ModuleSettings() {
     const location = useLocation()
 
@@ -615,6 +742,8 @@ export default function ModuleSettings() {
 
             {moduleKey === 'hr' ? (
                 <HrModuleContent />
+            ) : moduleKey === 'fleet' ? (
+                <FleetModuleContent />
             ) : (
                 <DefaultModuleContent config={config} ModuleIcon={ModuleIcon} />
             )}

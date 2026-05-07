@@ -374,6 +374,13 @@ const allTablesSQL = [
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_categories_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
+`CREATE TABLE IF NOT EXISTS "vehicle_types" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "company_id" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "vehicle_types_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+)`,
 `CREATE INDEX IF NOT EXISTS "idx_assignments_vehicle" ON "assignments"("vehicle_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_companies_user" ON "companies"("user_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_customers_company" ON "customers"("company_id")`,

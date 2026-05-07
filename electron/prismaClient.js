@@ -261,6 +261,45 @@ async function runAutoMigrations() {
                     log.info(`Seeding: Added default document categories for company ${company.id}`);
                 }
             }
+
+            if (p.vehicle_types) {
+                // 1. Get existing types in the settings table
+                const existingTypes = await p.vehicle_types.findMany({ where: { company_id: company.id } });
+                const existingNames = existingTypes.map(t => t.name.toLowerCase());
+                
+                // 2. Define defaults
+                const defaultVehicleTypes = ['Otomobil', 'Vinç', 'Kamyon', 'Minibüs', 'Pikap', 'Forklift', 'Ekskavatör', 'Diğer'];
+                
+                // 3. Collect types currently used by actual vehicles in this company
+                const usedTypesRes = await p.vehicles.groupBy({
+                    by: ['type'],
+                    where: { company_id: company.id }
+                });
+                const usedTypes = usedTypesRes.map(ut => {
+                    // Try to map English keys back to Turkish labels for the settings table
+                    const mapping = {
+                        'automobile': 'Otomobil',
+                        'crane': 'Vinç',
+                        'truck': 'Kamyon',
+                        'van': 'Minibüs',
+                        'pickup': 'Pikap',
+                        'forklift': 'Forklift',
+                        'excavator': 'Ekskavatör',
+                        'other': 'Diğer'
+                    };
+                    return mapping[ut.type] || ut.type;
+                });
+
+                // Combine defaults and used types
+                const allToSeed = [...new Set([...defaultVehicleTypes, ...usedTypes])];
+
+                for (const name of allToSeed) {
+                    if (name && !existingNames.includes(name.toLowerCase())) {
+                        await p.vehicle_types.create({ data: { company_id: company.id, name } });
+                        log.info(`Seeding: Added vehicle type "${name}" for company ${company.id}`);
+                    }
+                }
+            }
         }
     } catch (error) {
         log.error('Migration step 12 (seeding settings) error:', error.message);
@@ -342,6 +381,22 @@ async function runAutoMigrations() {
         }
     } catch (error) {
         log.error('Migration step 15 (tax/sgk columns) error:', error.message);
+    }
+
+    // 16. Migrate existing vehicles to use Turkish type labels (for consistency with new dynamic types)
+    try {
+        log.info('Migrating vehicle types to Turkish labels...');
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Otomobil' WHERE type = 'automobile'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Vinç' WHERE type = 'crane'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Kamyon' WHERE type = 'truck'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Minibüs' WHERE type = 'van'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Pikap' WHERE type = 'pickup'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Forklift' WHERE type = 'forklift'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Ekskavatör' WHERE type = 'excavator'");
+        await p.$executeRawUnsafe("UPDATE vehicles SET type = 'Diğer' WHERE type = 'other'");
+        log.info('Vehicle type migration completed.');
+    } catch (error) {
+        log.error('Migration step 16 (vehicle types) error:', error.message);
     }
 
     log.info('Auto-migrations loop completed.');

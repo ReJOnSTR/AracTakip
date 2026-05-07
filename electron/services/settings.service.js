@@ -14,6 +14,17 @@ async function getDashboardStats(companyId) {
         const passiveVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: { in: ['passive', 'sold'] }, is_archived: 0 } });
         const maintenanceVehicles = await prisma.vehicles.count({ where: { company_id: cid, status: 'maintenance', is_archived: 0 } });
 
+        // Vehicle type breakdown
+        const typeBreakdownRaw = await prisma.vehicles.groupBy({
+            by: ['type'],
+            where: { company_id: cid, is_archived: 0 },
+            _count: { _all: true }
+        });
+        const typeBreakdown = typeBreakdownRaw.map(item => ({
+            type: item.type || 'Belirtilmemiş',
+            count: item._count._all
+        })).sort((a, b) => b.count - a.count);
+
         // Current month bounds
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
@@ -73,6 +84,7 @@ async function getDashboardStats(companyId) {
                     passive: passiveVehicles,
                     maintenance: maintenanceVehicles
                 },
+                typeBreakdown,
                 costDistribution: {
                     service: serviceCost,
                     maintenance: maintenanceCost,
