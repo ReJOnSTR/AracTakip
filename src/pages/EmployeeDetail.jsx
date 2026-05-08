@@ -638,6 +638,8 @@ export default function EmployeeDetail() {
                 type: 'cancel_carryover',
                 title: 'Devri İptal Et',
                 message: `Gelecek aya yapılan ${formatCurrency(existing.net_salary)} tutarındaki devri iptal etmek istediğinize emin misiniz?`,
+                confirmText: 'Onaylıyorum',
+                styleType: 'primary',
                 onConfirm: async () => {
                     try {
                         const res = await window.electronAPI.deleteSalary(existing.id)
@@ -663,6 +665,8 @@ export default function EmployeeDetail() {
                 type: 'carryover',
                 title: 'Bakiyeyi Devret',
                 message: `${selectedMonth} ayından kalan ${formatCurrency(netRemaining)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
+                confirmText: 'Onaylıyorum',
+                styleType: 'primary',
                 onConfirm: async () => {
                     try {
                         const data = {
@@ -2238,6 +2242,8 @@ export default function EmployeeDetail() {
                 onConfirm={confirmModal?.onConfirm || handleConfirmDelete} 
                 title={confirmModal?.title} 
                 message={confirmModal?.message} 
+                confirmText={confirmModal?.confirmText}
+                type={confirmModal?.styleType}
             />
 
             {/* Preview Modal */}
