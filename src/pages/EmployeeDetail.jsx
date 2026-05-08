@@ -1515,7 +1515,12 @@ export default function EmployeeDetail() {
 
                             const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanDeduction
                             const remainingOt = totalOtTarget - paidOt
-                            const netRemaining = remainingSalary + remainingOt + carryOverAmount
+                            
+                            const nextMonthForDevir = getNextMonth(selectedMonth)
+                            const outboundCarryOver = salaries.find(s => s.salary_month === nextMonthForDevir && s.period === 'carryover')
+                            const outboundCarryOverAmount = outboundCarryOver ? (outboundCarryOver.net_salary || 0) : 0
+
+                            const netRemaining = remainingSalary + remainingOt + carryOverAmount - outboundCarryOverAmount
 
                             const lastPaidDate = (() => {
                                 const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
