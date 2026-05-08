@@ -634,52 +634,64 @@ export default function EmployeeDetail() {
         const existing = salaries.find(s => s.salary_month === nextMonth && s.period === 'carryover')
 
         if (existing) {
-            if (!confirm(`Gelecek aya yapılan ${formatCurrency(existing.net_salary)} tutarındaki devri iptal etmek istediğinize emin misiniz?`)) return
-            
-            try {
-                const res = await window.electronAPI.deleteSalary(existing.id)
-                if (res.success) {
-                    showToast('Devir işlemi iptal edildi.', 'success')
-                    await loadEmployeeData()
-                } else {
-                    showToast(res.error || 'İptal edilemedi.', 'danger')
+            setConfirmModal({
+                type: 'cancel_carryover',
+                title: 'Devri İptal Et',
+                message: `Gelecek aya yapılan ${formatCurrency(existing.net_salary)} tutarındaki devri iptal etmek istediğinize emin misiniz?`,
+                onConfirm: async () => {
+                    try {
+                        const res = await window.electronAPI.deleteSalary(existing.id)
+                        if (res.success) {
+                            showToast('Devir işlemi iptal edildi.', 'success')
+                            await loadEmployeeData()
+                        } else {
+                            showToast(res.error || 'İptal edilemedi.', 'danger')
+                        }
+                    } catch (e) {
+                        showToast(e.message, 'danger')
+                    }
+                    setConfirmModal(null)
                 }
-            } catch (e) {
-                showToast(e.message, 'danger')
-            }
+            })
         } else {
             if (netRemaining === 0) {
                 showToast('Kalan bakiye 0 olduğu için devredilemez.', 'warning')
                 return
             }
 
-            if (!confirm(`${selectedMonth} ayından kalan ${formatCurrency(netRemaining)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`)) return
+            setConfirmModal({
+                type: 'carryover',
+                title: 'Bakiyeyi Devret',
+                message: `${selectedMonth} ayından kalan ${formatCurrency(netRemaining)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
+                onConfirm: async () => {
+                    try {
+                        const data = {
+                            employeeId: parseInt(id),
+                            period: 'carryover',
+                            baseSalary: 0,
+                            bonus: 0,
+                            deduction: 0,
+                            netSalary: netRemaining,
+                            paymentDate: `${nextMonth}-01`,
+                            salaryMonth: nextMonth,
+                            status: 'paid',
+                            paymentMethod: 'other',
+                            notes: `${selectedMonth} ayından devreden bakiye`
+                        }
 
-            try {
-                const data = {
-                    employeeId: parseInt(id),
-                    period: 'carryover',
-                    baseSalary: 0,
-                    bonus: 0,
-                    deduction: 0,
-                    netSalary: netRemaining,
-                    paymentDate: `${nextMonth}-01`,
-                    salaryMonth: nextMonth,
-                    status: 'paid',
-                    paymentMethod: 'other',
-                    notes: `${selectedMonth} ayından devreden bakiye`
+                        const res = await window.electronAPI.createSalary(data)
+                        if (res.success) {
+                            showToast('Bakiye devredildi.', 'success')
+                            await loadEmployeeData()
+                        } else {
+                            showToast(res.error || 'Devir başarısız.', 'danger')
+                        }
+                    } catch (e) {
+                        showToast(e.message, 'danger')
+                    }
+                    setConfirmModal(null)
                 }
-
-                const res = await window.electronAPI.createSalary(data)
-                if (res.success) {
-                    showToast('Bakiye devredildi.', 'success')
-                    await loadEmployeeData()
-                } else {
-                    showToast(res.error || 'Devir başarısız.', 'danger')
-                }
-            } catch (e) {
-                showToast(e.message, 'danger')
-            }
+            })
         }
     }
 
