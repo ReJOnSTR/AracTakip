@@ -80,6 +80,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                             {listConfig?.phone && <th style={thStyle}>TELEFON</th>}
                             {listConfig?.startDate && <th style={thStyle}>BAŞLANGIÇ T.</th>}
                             {listConfig?.status && <th style={thStyle}>DURUM</th>}
+                            {listConfig?.salary && <th style={thStyle}>MAAŞ</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -90,6 +91,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                 {listConfig?.phone && <td style={tdStyle}>{report.employee.phone || '-'}</td>}
                                 {listConfig?.startDate && <td style={tdStyle}>{formatDate(report.employee.start_date)}</td>}
                                 {listConfig?.status && <td style={tdStyle}>{report.employee.is_archived ? 'Ayrıldı' : 'Aktif'}</td>}
+                                {listConfig?.salary && <td style={tdStyle}>{report.employee.salary ? formatCurrency(report.employee.salary) : '-'}</td>}
                             </tr>
                         ))}
                     </tbody>

@@ -450,6 +450,8 @@ export default function EmployeeDetail() {
                         const start = employee.start_date ? new Date(employee.start_date) : null
                         const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0
                         autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26)
+                    } else {
+                        autoDays = 1
                     }
 
                     if (autoDays > 0) {

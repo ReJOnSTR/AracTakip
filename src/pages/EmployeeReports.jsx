@@ -39,7 +39,8 @@ export default function EmployeeReports() {
         role: true,
         phone: true,
         startDate: true,
-        status: true
+        status: true,
+        salary: true
     })
 
     const [dateRange, setDateRange] = useState({
@@ -378,7 +379,8 @@ export default function EmployeeReports() {
                                                 { key: 'role', label: 'Görev' },
                                                 { key: 'phone', label: 'Telefon' },
                                                 { key: 'startDate', label: 'Başlangıç T.' },
-                                                { key: 'status', label: 'Durum' }
+                                                { key: 'status', label: 'Durum' },
+                                                { key: 'salary', label: 'Maaş' }
                                             ].map(item => (
                                                 <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
                                                     <span style={{ fontSize: '13px' }}>{item.label}</span>
