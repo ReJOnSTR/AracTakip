@@ -31,6 +31,7 @@ const paymentTypes = [
     { value: 'loan_payment', label: 'Borç Ödeme' },
     { value: 'overtime_pay', label: 'Mesai Ücreti' },
     { value: 'expense', label: 'Harcırah' },
+    { value: 'carryover', label: 'Devir Bakiyesi' },
     { value: 'other', label: 'Diğer' }
 ]
 
@@ -618,6 +619,68 @@ export default function EmployeeDetail() {
             if (result.success) { await loadEmployeeData(); closeModal(); } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
+    }
+
+    const getNextMonth = (monthStr) => {
+        const [year, month] = monthStr.split('-').map(Number)
+        const nextDate = new Date(year, month, 1)
+        const y = nextDate.getFullYear()
+        const m = String(nextDate.getMonth() + 1).padStart(2, '0')
+        return `${y}-${m}`
+    }
+
+    const handleCarryOver = async (netRemaining) => {
+        const nextMonth = getNextMonth(selectedMonth)
+        const existing = salaries.find(s => s.salary_month === nextMonth && s.period === 'carryover')
+
+        if (existing) {
+            if (!confirm(`Gelecek aya yapılan ${formatCurrency(existing.net_salary)} tutarındaki devri iptal etmek istediğinize emin misiniz?`)) return
+            
+            try {
+                const res = await window.electronAPI.deleteSalary(existing.id)
+                if (res.success) {
+                    showToast('Devir işlemi iptal edildi.', 'success')
+                    await loadEmployeeData()
+                } else {
+                    showToast(res.error || 'İptal edilemedi.', 'danger')
+                }
+            } catch (e) {
+                showToast(e.message, 'danger')
+            }
+        } else {
+            if (netRemaining === 0) {
+                showToast('Kalan bakiye 0 olduğu için devredilemez.', 'warning')
+                return
+            }
+
+            if (!confirm(`${selectedMonth} ayından kalan ${formatCurrency(netRemaining)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`)) return
+
+            try {
+                const data = {
+                    employeeId: parseInt(id),
+                    period: 'carryover',
+                    baseSalary: 0,
+                    bonus: 0,
+                    deduction: 0,
+                    netSalary: netRemaining,
+                    paymentDate: `${nextMonth}-01`,
+                    salaryMonth: nextMonth,
+                    status: 'paid',
+                    paymentMethod: 'other',
+                    notes: `${selectedMonth} ayından devreden bakiye`
+                }
+
+                const res = await window.electronAPI.createSalary(data)
+                if (res.success) {
+                    showToast('Bakiye devredildi.', 'success')
+                    await loadEmployeeData()
+                } else {
+                    showToast(res.error || 'Devir başarısız.', 'danger')
+                }
+            } catch (e) {
+                showToast(e.message, 'danger')
+            }
+        }
     }
 
     const handleLeaveSubmit = async (e) => {
@@ -1422,7 +1485,10 @@ export default function EmployeeDetail() {
                             )
                             const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
                             const baseSalaryTarget = getHistoricalBaseSalary(employee, selectedMonth) || 0
-                            const netTarget = baseSalaryTarget + totalOtTarget
+                            
+                            const carryOverAmount = monthlySalaries.filter(s => s.period === 'carryover' && s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            
+                            const netTarget = baseSalaryTarget + totalOtTarget + carryOverAmount
 
                             const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
@@ -1433,7 +1499,7 @@ export default function EmployeeDetail() {
 
                             const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanDeduction
                             const remainingOt = totalOtTarget - paidOt
-                            const netRemaining = remainingSalary + remainingOt
+                            const netRemaining = remainingSalary + remainingOt + carryOverAmount
 
                             const lastPaidDate = (() => {
                                 const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
@@ -1473,7 +1539,7 @@ export default function EmployeeDetail() {
                                 <div style={{ display: 'grid', gridTemplateColumns: hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                                     {/* Ödenecek Tutar */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai)</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai+Devir)</div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
                                             {formatCurrency(netTarget)}
                                         </div>
@@ -1481,6 +1547,12 @@ export default function EmployeeDetail() {
                                             <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(baseSalaryTarget)}
                                             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
                                             <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(totalOtTarget)}
+                                            {carryOverAmount !== 0 && (
+                                                <>
+                                                    <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                                    <span style={{ opacity: 0.8 }}>Devir:</span> {formatCurrency(carryOverAmount)}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1499,7 +1571,21 @@ export default function EmployeeDetail() {
 
                                     {/* Kalan Bakiye */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Maaş Bakiyesi</div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Maaş Bakiyesi</div>
+                                            {(() => {
+                                                const nextMonth = getNextMonth(selectedMonth)
+                                                const hasCarryOver = salaries.some(s => s.salary_month === nextMonth && s.period === 'carryover')
+                                                return (
+                                                    <button 
+                                                        style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-primary)', padding: '2px 8px', fontSize: '11px', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, borderRadius: '4px' }}
+                                                        onClick={() => handleCarryOver(netRemaining)}
+                                                    >
+                                                        {hasCarryOver ? 'Devri İptal Et' : 'Devret'}
+                                                    </button>
+                                                )
+                                            })()}
+                                        </div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--warning)' }}>
                                             {formatCurrency(netRemaining)}
                                         </div>
