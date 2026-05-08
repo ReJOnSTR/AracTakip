@@ -133,7 +133,14 @@ export default function TabBar() {
                     onDragCancel={() => setActiveId(null)}
                     modifiers={[restrictToHorizontalAxis]}
                 >
-                    <div className="tab-scroll-container">
+                    <div 
+                        className="tab-scroll-container"
+                        onWheel={(e) => {
+                            if (e.deltaY !== 0) {
+                                e.currentTarget.scrollLeft += e.deltaY;
+                            }
+                        }}
+                    >
                         <SortableContext
                             items={tabs.map(t => t.id)}
                             strategy={horizontalListSortingStrategy}
