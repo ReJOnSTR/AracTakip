@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
-import { formatDateForInput } from '../../utils/helpers'
+import { formatDateForInput, formatCurrency } from '../../utils/helpers'
+import { useTabs } from '../../context/TabContext'
 
 const statusOptions = [
     { value: 'active', label: 'Aktif' },
     { value: 'inactive', label: 'Pasif' }
 ]
 
-export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, departmentOptions = [] }) {
+export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, departmentOptions = [], onEditSalary }) {
+    const { openNewTab } = useTabs()
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -126,12 +128,50 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     value={form.birthDate}
                     onChange={(val) => handleChange('birthDate', val)}
                 />
-                <CustomInput
-                    label="Maaş (₺)"
-                    format="currency"
-                    value={form.salary}
-                    onChange={(val) => handleChange('salary', val)}
-                />
+                {initialData ? (
+                    <div className="form-group floating-label-group has-value" style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className="form-input" style={{ 
+                                flex: 1, 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                background: 'var(--bg-tertiary)', 
+                                opacity: 0.7,
+                                cursor: 'not-allowed',
+                                position: 'relative',
+                                height: '40px'
+                            }}>
+                                {form.salary ? formatCurrency(form.salary) : '-'}
+                                <span style={{ position: 'absolute', right: '12px', color: 'var(--text-muted)' }}>₺</span>
+                            </div>
+                            <button 
+                                type="button" 
+                                className="btn btn-secondary"
+                                style={{ height: '40px' }}
+                                onClick={() => {
+                                    if (onEditSalary) {
+                                        onEditSalary()
+                                    } else {
+                                        openNewTab('/payroll', false, 'Maaş Tablosu')
+                                    }
+                                }}
+                            >
+                                Maaş Düzenle
+                            </button>
+                        </div>
+                        <label className="form-label">Maaş (₺)</label>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                            Maaş güncellemeleri için Maaş Tablosu sayfasını kullanın.
+                        </span>
+                    </div>
+                ) : (
+                    <CustomInput
+                        label="Maaş (₺)"
+                        format="currency"
+                        value={form.salary}
+                        onChange={(val) => handleChange('salary', val)}
+                    />
+                )}
                 {salaryChanged && (
                     <CustomInput
                         label="Maaş Zammı Geçerlilik Tarihi (Hangi Günden İtibaren)"

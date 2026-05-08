@@ -1879,6 +1879,10 @@ export default function EmployeeDetail() {
                         onCancel={closeModal} 
                         loading={saving}
                         departmentOptions={departments.map(d => ({ value: d.name, label: d.name }))}
+                        onEditSalary={() => {
+                            closeModal();
+                            setActiveTab('salary_history');
+                        }}
                     />
                 ) : (
                     <>
