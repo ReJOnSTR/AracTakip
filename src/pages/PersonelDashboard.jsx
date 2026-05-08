@@ -62,11 +62,11 @@ export default function PersonelDashboard() {
                 window.electronAPI.getEmployees(currentCompany.id, 1),
                 window.electronAPI.getUpcomingPersonnelDocuments(currentCompany.id)
             ])
-            
+
             let allEmps = []
             if (empRes.success) allEmps = [...allEmps, ...(empRes.data || [])]
             if (passiveEmpRes.success) allEmps = [...allEmps, ...(passiveEmpRes.data || [])]
-            
+
             setEmployees(allEmps)
             if (docRes.success) setUpcomingDocs(docRes.data || [])
         } catch (error) {
@@ -80,7 +80,7 @@ export default function PersonelDashboard() {
     const stats = useMemo(() => {
         const active = employees.filter(e => e.status === 'active')
         const totalSalary = active.reduce((sum, e) => sum + (parseFloat(e.salary) || 0), 0)
-        
+
         // Upcoming Birthdays (Next 30 days)
         const today = new Date()
         today.setHours(0, 0, 0, 0)
@@ -118,7 +118,7 @@ export default function PersonelDashboard() {
             const monthLabel = d.toLocaleString('tr-TR', { month: 'short' })
             const monthVal = d.getMonth() + 1
             const yearVal = d.getFullYear()
-            
+
             const count = employees.filter(e => {
                 if (!e.start_date) return false
                 const sd = new Date(e.start_date)
@@ -273,7 +273,7 @@ export default function PersonelDashboard() {
     return (
         <div className="page-container fade-in" style={{ paddingBottom: '40px' }}>
             <TopProgressBar loading={loading} />
-            
+
             <div className="page-header mobile-hidden-header" style={{ marginBottom: '25px' }}>
                 <div>
                     <h1 className="page-title">Personel Paneli</h1>
@@ -296,10 +296,10 @@ export default function PersonelDashboard() {
             {/* Quick Actions Grid */}
             <div className={`quick-actions grid-responsive-${Math.min(visibleActions.length, 4)}`} style={{ marginBottom: '30px', gap: '16px' }}>
                 {visibleActions.map(action => (
-                    <button 
+                    <button
                         key={action.id}
-                        className="btn btn-secondary" 
-                        onClick={() => triggerAction(action)} 
+                        className="btn btn-secondary"
+                        onClick={() => triggerAction(action)}
                         style={{ justifyContent: 'center', height: '44px', gap: '10px' }}
                     >
                         <span style={{ display: 'flex', alignItems: 'center' }}>
@@ -317,36 +317,36 @@ export default function PersonelDashboard() {
 
             {/* Stats Grid */}
             <div className="grid-responsive-3" style={{ marginBottom: '30px' }}>
-                <StatCard 
-                    label="Toplam Personel" 
-                    value={stats.total} 
+                <StatCard
+                    label="Toplam Personel"
+                    value={stats.total}
                     subValue={`${stats.active} Aktif / ${stats.passive} Pasif`}
-                    icon={Users} 
+                    icon={Users}
                     type="primary"
                 />
-                <StatCard 
-                    label="Maaş Hakediş Yükü" 
-                    value={formatCurrency(stats.totalSalary)} 
+                <StatCard
+                    label="Maaş Hakediş Yükü"
+                    value={formatCurrency(stats.totalSalary)}
                     subValue="Bu ayki tahmini yük"
-                    icon={Wallet} 
+                    icon={Wallet}
                     type="success"
                 />
-                <StatCard 
-                    label="Ortalama Maaş" 
-                    value={formatCurrency(stats.avgSalary)} 
+                <StatCard
+                    label="Ortalama Maaş"
+                    value={formatCurrency(stats.avgSalary)}
                     subValue="Aktif personel ortalaması"
-                    icon={TrendingUp} 
+                    icon={TrendingUp}
                     type="info"
                 />
             </div>
-            
+
             {/* Middle Row: Documents & Birthdays */}
             <div className="grid-responsive-2-1" style={{ marginBottom: '25px' }}>
                 {/* Upcoming Personnel Documents */}
                 <div className="card" style={{ padding: 0 }}>
                     <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                             Personele Ait Yaklaşan & Gecikmiş Belgeler
+                            Personele Ait Yaklaşan & Gecikmiş Belgeler
                         </h3>
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
@@ -376,8 +376,8 @@ export default function PersonelDashboard() {
                                     upcomingDocs.filter(e => getDaysUntil(e.expiry_date) < 0).map((doc) => {
                                         const days = getDaysUntil(doc.expiry_date)
                                         return (
-                                            <div 
-                                                key={doc.id} 
+                                            <div
+                                                key={doc.id}
                                                 onClick={() => navigate(`/employees?tab=documents&id=${doc.employees?.id}`)}
                                                 style={{
                                                     padding: '12px',
@@ -421,8 +421,8 @@ export default function PersonelDashboard() {
                                     }).map((doc) => {
                                         const days = getDaysUntil(doc.expiry_date)
                                         return (
-                                            <div 
-                                                key={doc.id} 
+                                            <div
+                                                key={doc.id}
                                                 onClick={() => navigate(`/employees?tab=documents&id=${doc.employees?.id}`)}
                                                 style={{
                                                     padding: '12px',
@@ -449,27 +449,27 @@ export default function PersonelDashboard() {
 
                 {/* Upcoming Birthdays */}
                 <div className="card" style={{ padding: 0 }}>
-                    <div style={{ 
-                        padding: '16px 20px', 
-                        borderBottom: '1px solid var(--border-color)', 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                    <div style={{
+                        padding: '16px 20px',
+                        borderBottom: '1px solid var(--border-color)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center'
                     }}>
                         <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Cake size={18} color="var(--accent-primary)" /> Yaklaşan Doğum Günleri
                         </h3>
                         {stats.birthdays.length > 0 && (
-                            <span style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '6px', 
-                                background: 'rgba(59, 130, 246, 0.1)', 
-                                color: 'var(--accent-primary)', 
-                                padding: '6px 12px', 
-                                borderRadius: '8px', 
-                                fontSize: '12px', 
-                                fontWeight: '600' 
+                            <span style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: 'rgba(59, 130, 246, 0.1)',
+                                color: 'var(--accent-primary)',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '600'
                             }}>
                                 <Users size={14} />
                                 Toplam: {stats.birthdays.length}
@@ -486,11 +486,11 @@ export default function PersonelDashboard() {
                                 {stats.birthdays.map((e, i) => {
                                     const isToday = e.daysUntil === 0
                                     const isTomorrow = e.daysUntil === 1
-                                    
+
                                     let statusColor = 'var(--text-muted)'
                                     let bgStyle = 'var(--bg-secondary)'
                                     let borderStyle = '1px solid var(--border-color)'
-                                    
+
                                     if (isToday) {
                                         statusColor = '#ef4444' // Celebrating/Urgent
                                         bgStyle = 'rgba(239, 68, 68, 0.05)'
@@ -502,8 +502,8 @@ export default function PersonelDashboard() {
                                     }
 
                                     return (
-                                        <div 
-                                            key={i} 
+                                        <div
+                                            key={i}
                                             onClick={() => navigate(`/employees?id=${e.id}`)}
                                             style={{
                                                 padding: '12px',
@@ -555,13 +555,13 @@ export default function PersonelDashboard() {
                                     <span style={{ fontSize: '12px', fontWeight: '700' }}>{d.count}</span>
                                 </div>
                                 <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
-                                    <div 
-                                        style={{ 
-                                            width: `${(d.count / stats.active) * 100}%`, 
-                                            height: '100%', 
-                                            background: 'var(--accent-primary)', 
+                                    <div
+                                        style={{
+                                            width: `${(d.count / stats.active) * 100}%`,
+                                            height: '100%',
+                                            background: 'var(--accent-primary)',
                                             borderRadius: '3px'
-                                        }} 
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -584,13 +584,13 @@ export default function PersonelDashboard() {
                                     <span style={{ fontSize: '12px', fontWeight: '700' }}>{s.count} Personel</span>
                                 </div>
                                 <div style={{ width: '100%', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
-                                    <div 
-                                        style={{ 
-                                            width: `${(s.count / stats.active) * 100}%`, 
-                                            height: '100%', 
-                                            background: 'var(--info)', 
+                                    <div
+                                        style={{
+                                            width: `${(s.count / stats.active) * 100}%`,
+                                            height: '100%',
+                                            background: 'var(--info)',
                                             borderRadius: '3px'
-                                        }} 
+                                        }}
                                     />
                                 </div>
                             </div>

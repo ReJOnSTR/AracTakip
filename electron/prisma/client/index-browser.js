@@ -249,7 +249,9 @@ exports.Prisma.EmployeesScalarFieldEnum = {
   is_archived: 'is_archived',
   created_at: 'created_at',
   past_used_leaves: 'past_used_leaves',
-  birth_date: 'birth_date'
+  birth_date: 'birth_date',
+  opening_balance: 'opening_balance',
+  opening_balance_date: 'opening_balance_date'
 };
 
 exports.Prisma.InspectionsScalarFieldEnum = {

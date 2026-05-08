@@ -406,8 +406,22 @@ export default function EmployeeDetail() {
 
     const updateField = (key, value) => {
         if (key === 'paymentType') {
-            const defAmount = getDefaultAmount(value)
-            setFormData(prev => ({ ...prev, paymentType: value, amount: defAmount }))
+            setFormData(prev => {
+                const prevType = prev.paymentType || 'salary';
+                const prevDefault = getDefaultAmount(prevType);
+                const currentAmount = prev.amount;
+                
+                // Check if user modified the amount (it's not empty and differs from previous default)
+                const userModified = currentAmount !== undefined && currentAmount !== null && currentAmount !== '' && String(currentAmount) !== String(prevDefault);
+                
+                const nextDefault = getDefaultAmount(value);
+                
+                return {
+                    ...prev,
+                    paymentType: value,
+                    amount: userModified ? currentAmount : (nextDefault || '')
+                };
+            });
         } else if (key === 'overtimeType') {
             const rate = calcOvertimeRate(value)
             setFormData(prev => {
