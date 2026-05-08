@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus, ArrowLeft, ArrowRight } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTabs } from '../context/TabContext'
@@ -56,6 +56,23 @@ export default function TabBar() {
     React.useEffect(() => {
         forceUpdate(n => n + 1)
     }, [location])
+
+    const scrollRef = useRef(null)
+
+    useEffect(() => {
+        const el = scrollRef.current
+        if (!el) return
+
+        const handleWheel = (e) => {
+            if (e.deltaY !== 0) {
+                e.preventDefault()
+                el.scrollLeft += e.deltaY
+            }
+        }
+
+        el.addEventListener('wheel', handleWheel, { passive: false })
+        return () => el.removeEventListener('wheel', handleWheel)
+    }, [])
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -135,11 +152,7 @@ export default function TabBar() {
                 >
                     <div 
                         className="tab-scroll-container"
-                        onWheel={(e) => {
-                            if (e.deltaY !== 0) {
-                                e.currentTarget.scrollLeft += e.deltaY;
-                            }
-                        }}
+                        ref={scrollRef}
                     >
                         <SortableContext
                             items={tabs.map(t => t.id)}

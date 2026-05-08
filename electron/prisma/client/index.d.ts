@@ -14762,7 +14762,8 @@ export namespace Prisma {
     salary: number | null
     is_archived: number | null
     past_used_leaves: number | null
-    opening_balance: number | null
+    devir_maas_bakiyesi: number | null
+    devir_izin_bakiyesi: number | null
   }
 
   export type EmployeesSumAggregateOutputType = {
@@ -14771,7 +14772,8 @@ export namespace Prisma {
     salary: number | null
     is_archived: number | null
     past_used_leaves: number | null
-    opening_balance: number | null
+    devir_maas_bakiyesi: number | null
+    devir_izin_bakiyesi: number | null
   }
 
   export type EmployeesMinAggregateOutputType = {
@@ -14794,8 +14796,9 @@ export namespace Prisma {
     created_at: Date | null
     past_used_leaves: number | null
     birth_date: Date | null
-    opening_balance: number | null
-    opening_balance_date: Date | null
+    devir_tarihi: Date | null
+    devir_maas_bakiyesi: number | null
+    devir_izin_bakiyesi: number | null
   }
 
   export type EmployeesMaxAggregateOutputType = {
@@ -14818,8 +14821,9 @@ export namespace Prisma {
     created_at: Date | null
     past_used_leaves: number | null
     birth_date: Date | null
-    opening_balance: number | null
-    opening_balance_date: Date | null
+    devir_tarihi: Date | null
+    devir_maas_bakiyesi: number | null
+    devir_izin_bakiyesi: number | null
   }
 
   export type EmployeesCountAggregateOutputType = {
@@ -14842,8 +14846,9 @@ export namespace Prisma {
     created_at: number
     past_used_leaves: number
     birth_date: number
-    opening_balance: number
-    opening_balance_date: number
+    devir_tarihi: number
+    devir_maas_bakiyesi: number
+    devir_izin_bakiyesi: number
     _all: number
   }
 
@@ -14854,7 +14859,8 @@ export namespace Prisma {
     salary?: true
     is_archived?: true
     past_used_leaves?: true
-    opening_balance?: true
+    devir_maas_bakiyesi?: true
+    devir_izin_bakiyesi?: true
   }
 
   export type EmployeesSumAggregateInputType = {
@@ -14863,7 +14869,8 @@ export namespace Prisma {
     salary?: true
     is_archived?: true
     past_used_leaves?: true
-    opening_balance?: true
+    devir_maas_bakiyesi?: true
+    devir_izin_bakiyesi?: true
   }
 
   export type EmployeesMinAggregateInputType = {
@@ -14886,8 +14893,9 @@ export namespace Prisma {
     created_at?: true
     past_used_leaves?: true
     birth_date?: true
-    opening_balance?: true
-    opening_balance_date?: true
+    devir_tarihi?: true
+    devir_maas_bakiyesi?: true
+    devir_izin_bakiyesi?: true
   }
 
   export type EmployeesMaxAggregateInputType = {
@@ -14910,8 +14918,9 @@ export namespace Prisma {
     created_at?: true
     past_used_leaves?: true
     birth_date?: true
-    opening_balance?: true
-    opening_balance_date?: true
+    devir_tarihi?: true
+    devir_maas_bakiyesi?: true
+    devir_izin_bakiyesi?: true
   }
 
   export type EmployeesCountAggregateInputType = {
@@ -14934,8 +14943,9 @@ export namespace Prisma {
     created_at?: true
     past_used_leaves?: true
     birth_date?: true
-    opening_balance?: true
-    opening_balance_date?: true
+    devir_tarihi?: true
+    devir_maas_bakiyesi?: true
+    devir_izin_bakiyesi?: true
     _all?: true
   }
 
@@ -15045,8 +15055,9 @@ export namespace Prisma {
     created_at: Date | null
     past_used_leaves: number | null
     birth_date: Date | null
-    opening_balance: number | null
-    opening_balance_date: Date | null
+    devir_tarihi: Date | null
+    devir_maas_bakiyesi: number | null
+    devir_izin_bakiyesi: number | null
     _count: EmployeesCountAggregateOutputType | null
     _avg: EmployeesAvgAggregateOutputType | null
     _sum: EmployeesSumAggregateOutputType | null
@@ -15088,8 +15099,9 @@ export namespace Prisma {
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
-    opening_balance?: boolean
-    opening_balance_date?: boolean
+    devir_tarihi?: boolean
+    devir_maas_bakiyesi?: boolean
+    devir_izin_bakiyesi?: boolean
     employee_assignments?: boolean | employees$employee_assignmentsArgs<ExtArgs>
     employee_attendance?: boolean | employees$employee_attendanceArgs<ExtArgs>
     employee_documents?: boolean | employees$employee_documentsArgs<ExtArgs>
@@ -15124,8 +15136,9 @@ export namespace Prisma {
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
-    opening_balance?: boolean
-    opening_balance_date?: boolean
+    devir_tarihi?: boolean
+    devir_maas_bakiyesi?: boolean
+    devir_izin_bakiyesi?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employees"]>
 
@@ -15149,8 +15162,9 @@ export namespace Prisma {
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
-    opening_balance?: boolean
-    opening_balance_date?: boolean
+    devir_tarihi?: boolean
+    devir_maas_bakiyesi?: boolean
+    devir_izin_bakiyesi?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employees"]>
 
@@ -15174,11 +15188,12 @@ export namespace Prisma {
     created_at?: boolean
     past_used_leaves?: boolean
     birth_date?: boolean
-    opening_balance?: boolean
-    opening_balance_date?: boolean
+    devir_tarihi?: boolean
+    devir_maas_bakiyesi?: boolean
+    devir_izin_bakiyesi?: boolean
   }
 
-  export type employeesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "first_name" | "last_name" | "tc_no" | "phone" | "email" | "position" | "department" | "start_date" | "end_date" | "salary" | "status" | "notes" | "image" | "is_archived" | "created_at" | "past_used_leaves" | "birth_date" | "opening_balance" | "opening_balance_date", ExtArgs["result"]["employees"]>
+  export type employeesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "first_name" | "last_name" | "tc_no" | "phone" | "email" | "position" | "department" | "start_date" | "end_date" | "salary" | "status" | "notes" | "image" | "is_archived" | "created_at" | "past_used_leaves" | "birth_date" | "devir_tarihi" | "devir_maas_bakiyesi" | "devir_izin_bakiyesi", ExtArgs["result"]["employees"]>
   export type employeesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee_assignments?: boolean | employees$employee_assignmentsArgs<ExtArgs>
     employee_attendance?: boolean | employees$employee_attendanceArgs<ExtArgs>
@@ -15235,8 +15250,9 @@ export namespace Prisma {
       created_at: Date | null
       past_used_leaves: number | null
       birth_date: Date | null
-      opening_balance: number | null
-      opening_balance_date: Date | null
+      devir_tarihi: Date | null
+      devir_maas_bakiyesi: number | null
+      devir_izin_bakiyesi: number | null
     }, ExtArgs["result"]["employees"]>
     composites: {}
   }
@@ -15690,8 +15706,9 @@ export namespace Prisma {
     readonly created_at: FieldRef<"employees", 'DateTime'>
     readonly past_used_leaves: FieldRef<"employees", 'Int'>
     readonly birth_date: FieldRef<"employees", 'DateTime'>
-    readonly opening_balance: FieldRef<"employees", 'Float'>
-    readonly opening_balance_date: FieldRef<"employees", 'DateTime'>
+    readonly devir_tarihi: FieldRef<"employees", 'DateTime'>
+    readonly devir_maas_bakiyesi: FieldRef<"employees", 'Float'>
+    readonly devir_izin_bakiyesi: FieldRef<"employees", 'Int'>
   }
     
 
@@ -40111,8 +40128,9 @@ export namespace Prisma {
     created_at: 'created_at',
     past_used_leaves: 'past_used_leaves',
     birth_date: 'birth_date',
-    opening_balance: 'opening_balance',
-    opening_balance_date: 'opening_balance_date'
+    devir_tarihi: 'devir_tarihi',
+    devir_maas_bakiyesi: 'devir_maas_bakiyesi',
+    devir_izin_bakiyesi: 'devir_izin_bakiyesi'
   };
 
   export type EmployeesScalarFieldEnum = (typeof EmployeesScalarFieldEnum)[keyof typeof EmployeesScalarFieldEnum]
@@ -41263,8 +41281,9 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableFilter<"employees"> | number | null
     birth_date?: DateTimeNullableFilter<"employees"> | Date | string | null
-    opening_balance?: FloatNullableFilter<"employees"> | number | null
-    opening_balance_date?: DateTimeNullableFilter<"employees"> | Date | string | null
+    devir_tarihi?: DateTimeNullableFilter<"employees"> | Date | string | null
+    devir_maas_bakiyesi?: FloatNullableFilter<"employees"> | number | null
+    devir_izin_bakiyesi?: IntNullableFilter<"employees"> | number | null
     employee_assignments?: Employee_assignmentsListRelationFilter
     employee_attendance?: Employee_attendanceListRelationFilter
     employee_documents?: Employee_documentsListRelationFilter
@@ -41298,8 +41317,9 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     past_used_leaves?: SortOrderInput | SortOrder
     birth_date?: SortOrderInput | SortOrder
-    opening_balance?: SortOrderInput | SortOrder
-    opening_balance_date?: SortOrderInput | SortOrder
+    devir_tarihi?: SortOrderInput | SortOrder
+    devir_maas_bakiyesi?: SortOrderInput | SortOrder
+    devir_izin_bakiyesi?: SortOrderInput | SortOrder
     employee_assignments?: employee_assignmentsOrderByRelationAggregateInput
     employee_attendance?: employee_attendanceOrderByRelationAggregateInput
     employee_documents?: employee_documentsOrderByRelationAggregateInput
@@ -41336,8 +41356,9 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableFilter<"employees"> | number | null
     birth_date?: DateTimeNullableFilter<"employees"> | Date | string | null
-    opening_balance?: FloatNullableFilter<"employees"> | number | null
-    opening_balance_date?: DateTimeNullableFilter<"employees"> | Date | string | null
+    devir_tarihi?: DateTimeNullableFilter<"employees"> | Date | string | null
+    devir_maas_bakiyesi?: FloatNullableFilter<"employees"> | number | null
+    devir_izin_bakiyesi?: IntNullableFilter<"employees"> | number | null
     employee_assignments?: Employee_assignmentsListRelationFilter
     employee_attendance?: Employee_attendanceListRelationFilter
     employee_documents?: Employee_documentsListRelationFilter
@@ -41371,8 +41392,9 @@ export namespace Prisma {
     created_at?: SortOrderInput | SortOrder
     past_used_leaves?: SortOrderInput | SortOrder
     birth_date?: SortOrderInput | SortOrder
-    opening_balance?: SortOrderInput | SortOrder
-    opening_balance_date?: SortOrderInput | SortOrder
+    devir_tarihi?: SortOrderInput | SortOrder
+    devir_maas_bakiyesi?: SortOrderInput | SortOrder
+    devir_izin_bakiyesi?: SortOrderInput | SortOrder
     _count?: employeesCountOrderByAggregateInput
     _avg?: employeesAvgOrderByAggregateInput
     _max?: employeesMaxOrderByAggregateInput
@@ -41403,8 +41425,9 @@ export namespace Prisma {
     created_at?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableWithAggregatesFilter<"employees"> | number | null
     birth_date?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
-    opening_balance?: FloatNullableWithAggregatesFilter<"employees"> | number | null
-    opening_balance_date?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
+    devir_tarihi?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
+    devir_maas_bakiyesi?: FloatNullableWithAggregatesFilter<"employees"> | number | null
+    devir_izin_bakiyesi?: IntNullableWithAggregatesFilter<"employees"> | number | null
   }
 
   export type inspectionsWhereInput = {
@@ -43871,8 +43894,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -43906,8 +43930,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -43938,8 +43963,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -43973,8 +43999,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -44007,8 +44034,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
   }
 
   export type employeesUpdateManyMutationInput = {
@@ -44029,8 +44057,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employeesUncheckedUpdateManyInput = {
@@ -44053,8 +44082,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type inspectionsCreateInput = {
@@ -46675,8 +46705,9 @@ export namespace Prisma {
     created_at?: SortOrder
     past_used_leaves?: SortOrder
     birth_date?: SortOrder
-    opening_balance?: SortOrder
-    opening_balance_date?: SortOrder
+    devir_tarihi?: SortOrder
+    devir_maas_bakiyesi?: SortOrder
+    devir_izin_bakiyesi?: SortOrder
   }
 
   export type employeesAvgOrderByAggregateInput = {
@@ -46685,7 +46716,8 @@ export namespace Prisma {
     salary?: SortOrder
     is_archived?: SortOrder
     past_used_leaves?: SortOrder
-    opening_balance?: SortOrder
+    devir_maas_bakiyesi?: SortOrder
+    devir_izin_bakiyesi?: SortOrder
   }
 
   export type employeesMaxOrderByAggregateInput = {
@@ -46708,8 +46740,9 @@ export namespace Prisma {
     created_at?: SortOrder
     past_used_leaves?: SortOrder
     birth_date?: SortOrder
-    opening_balance?: SortOrder
-    opening_balance_date?: SortOrder
+    devir_tarihi?: SortOrder
+    devir_maas_bakiyesi?: SortOrder
+    devir_izin_bakiyesi?: SortOrder
   }
 
   export type employeesMinOrderByAggregateInput = {
@@ -46732,8 +46765,9 @@ export namespace Prisma {
     created_at?: SortOrder
     past_used_leaves?: SortOrder
     birth_date?: SortOrder
-    opening_balance?: SortOrder
-    opening_balance_date?: SortOrder
+    devir_tarihi?: SortOrder
+    devir_maas_bakiyesi?: SortOrder
+    devir_izin_bakiyesi?: SortOrder
   }
 
   export type employeesSumOrderByAggregateInput = {
@@ -46742,7 +46776,8 @@ export namespace Prisma {
     salary?: SortOrder
     is_archived?: SortOrder
     past_used_leaves?: SortOrder
-    opening_balance?: SortOrder
+    devir_maas_bakiyesi?: SortOrder
+    devir_izin_bakiyesi?: SortOrder
   }
 
   export type VehiclesScalarRelationFilter = {
@@ -50182,8 +50217,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -50215,8 +50251,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -50651,8 +50688,9 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"employees"> | Date | string | null
     past_used_leaves?: IntNullableFilter<"employees"> | number | null
     birth_date?: DateTimeNullableFilter<"employees"> | Date | string | null
-    opening_balance?: FloatNullableFilter<"employees"> | number | null
-    opening_balance_date?: DateTimeNullableFilter<"employees"> | Date | string | null
+    devir_tarihi?: DateTimeNullableFilter<"employees"> | Date | string | null
+    devir_maas_bakiyesi?: FloatNullableFilter<"employees"> | number | null
+    devir_izin_bakiyesi?: IntNullableFilter<"employees"> | number | null
   }
 
   export type meal_settingsUpsertWithoutCompaniesInput = {
@@ -51289,8 +51327,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsCreateNestedManyWithoutEmployeesInput
@@ -51323,8 +51362,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -51370,8 +51410,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUpdateManyWithoutEmployeesNestedInput
@@ -51404,8 +51445,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -51435,8 +51477,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsCreateNestedManyWithoutEmployeesInput
@@ -51469,8 +51512,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -51516,8 +51560,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUpdateManyWithoutEmployeesNestedInput
@@ -51550,8 +51595,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -51581,8 +51627,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsCreateNestedManyWithoutEmployeesInput
@@ -51615,8 +51662,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -51662,8 +51710,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUpdateManyWithoutEmployeesNestedInput
@@ -51696,8 +51745,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -51727,8 +51777,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -51761,8 +51812,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -51808,8 +51860,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -51842,8 +51895,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -51873,8 +51927,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -51907,8 +51962,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -51954,8 +52010,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -51988,8 +52045,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -52997,8 +53055,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -53031,8 +53090,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -53078,8 +53138,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -53112,8 +53173,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -53465,8 +53527,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -53499,8 +53562,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -53546,8 +53610,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -53580,8 +53645,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -53717,8 +53783,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -53751,8 +53818,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -53798,8 +53866,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -53832,8 +53901,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -54802,8 +54872,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -54836,8 +54907,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -54979,8 +55051,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -55013,8 +55086,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -55196,8 +55270,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -55230,8 +55305,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -55427,8 +55503,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -55461,8 +55538,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -56069,8 +56147,9 @@ export namespace Prisma {
     created_at?: Date | string | null
     past_used_leaves?: number | null
     birth_date?: Date | string | null
-    opening_balance?: number | null
-    opening_balance_date?: Date | string | null
+    devir_tarihi?: Date | string | null
+    devir_maas_bakiyesi?: number | null
+    devir_izin_bakiyesi?: number | null
   }
 
   export type meal_ticketsCreateManyCompaniesInput = {
@@ -56203,8 +56282,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -56236,8 +56316,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -56269,8 +56350,9 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     past_used_leaves?: NullableIntFieldUpdateOperationsInput | number | null
     birth_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    opening_balance?: NullableFloatFieldUpdateOperationsInput | number | null
-    opening_balance_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
+    devir_izin_bakiyesi?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type meal_ticketsUpdateWithoutCompaniesInput = {
