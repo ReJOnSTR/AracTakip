@@ -1344,8 +1344,7 @@ body {
 .floating-label-group .form-label {
   position: absolute;
   left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 16px;
   font-size: 13px;
   /* Placeholder state size */
   color: var(--text-muted);

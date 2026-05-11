@@ -91,7 +91,15 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                 {listConfig?.phone && <td style={tdStyle}>{report.employee.phone || '-'}</td>}
                                 {listConfig?.startDate && <td style={tdStyle}>{formatDate(report.employee.start_date)}</td>}
                                 {listConfig?.status && <td style={tdStyle}>{report.employee.is_archived ? 'Ayrıldı' : 'Aktif'}</td>}
-                                {listConfig?.salary && <td style={tdStyle}>{report.employee.salary ? formatCurrency(report.employee.salary) : '-'}</td>}
+                                {listConfig?.salary && (
+                                    <td style={tdStyle}>
+                                        {report.employee.salary 
+                                            ? formatCurrency(report.employee.salary) 
+                                            : report.salaries && report.salaries.length > 0 
+                                                ? formatCurrency(report.salaries[0].net_salary || report.salaries[0].amount) 
+                                                : '-'}
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
@@ -148,9 +156,13 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                     <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>TELEFON</div>
                     <div style={{ fontSize: '14px' }}>{report.employee.phone || '-'}</div>
                 </div>
-                <div style={{ gridColumn: 'span 2' }}>
+                <div>
                     <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>E-POSTA</div>
                     <div style={{ fontSize: '14px' }}>{report.employee.email || '-'}</div>
+                </div>
+                <div>
+                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>GÜNCEL MAAŞ</div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{report.employee.salary ? formatCurrency(report.employee.salary) : '-'}</div>
                 </div>
             </div>
 

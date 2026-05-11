@@ -423,6 +423,15 @@ async function createSalaryHistory(data) {
                 description: data.description || null
             }
         });
+
+        // If it's the current salary (end_date is null), update the employee card!
+        if (!data.endDate) {
+            await prisma.employees.update({
+                where: { id: parseInt(data.employeeId) },
+                data: { salary: parseFloat(data.amount) || 0 }
+            });
+        }
+
         return { success: true, data: result };
     } catch (error) { return { success: false, error: error.message }; }
 }
@@ -439,6 +448,15 @@ async function updateSalaryHistory(data) {
                 description: data.description || null
             }
         });
+
+        // If it's the current salary (end_date is null), update the employee card!
+        if (!data.endDate) {
+            await prisma.employees.update({
+                where: { id: parseInt(result.employee_id) },
+                data: { salary: parseFloat(data.amount) || 0 }
+            });
+        }
+
         return { success: true, data: result };
     } catch (error) { return { success: false, error: error.message }; }
 }

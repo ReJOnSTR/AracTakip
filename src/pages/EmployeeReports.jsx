@@ -163,7 +163,8 @@ export default function EmployeeReports() {
             const allReports = []
 
             await Promise.all(employeesToReport.map(async (employee) => {
-                const [leaves, salaries, assignments, documents] = await Promise.all([
+                const [employeeResult, leaves, salaries, assignments, documents] = await Promise.all([
+                    window.electronAPI.getEmployeeById(employee.id),
                     window.electronAPI.getLeaves(employee.id),
                     window.electronAPI.getSalaries(employee.id),
                     window.electronAPI.getEmployeeAssignments(employee.id),
@@ -171,7 +172,7 @@ export default function EmployeeReports() {
                 ])
 
                 allReports.push({
-                    employee: employee,
+                    employee: employeeResult.success ? employeeResult.data : employee,
                     data: {
                         leaves: leaves.data || [],
                         salaries: salaries.data || [],

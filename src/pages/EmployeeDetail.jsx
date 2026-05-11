@@ -285,9 +285,9 @@ export default function EmployeeDetail() {
         return ''
     }
 
-    const calcOvertimeRate = (type) => {
+    const calcOvertimeRate = (type, customSalary) => {
         if (!employee) return 0
-        const activeSalary = getHistoricalBaseSalary(employee, selectedMonth)
+        const activeSalary = customSalary !== undefined ? customSalary : getHistoricalBaseSalary(employee, selectedMonth)
         if (!activeSalary) return 0
         const dailyRate = activeSalary / 30
         const hourlyRate = dailyRate / 10
@@ -1386,16 +1386,16 @@ export default function EmployeeDetail() {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
                         <div style={{ gridColumn: '1 / -1' }}>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Maaş (Net, {selectedMonth} itibariyle)</div>
-                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{getHistoricalBaseSalary(employee, selectedMonth) ? formatCurrency(getHistoricalBaseSalary(employee, selectedMonth)) : '-'}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Güncel Maaş (Net)</div>
+                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hafta İçi Mesai</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{getHistoricalBaseSalary(employee, selectedMonth) ? formatCurrency(calcOvertimeRate('weekday')) + ' / saat' : '-'}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hafta İçi Mesai (Güncel)</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday', employee.salary)) + ' / saat' : '-'}</div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pazar Mesaisi</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{getHistoricalBaseSalary(employee, selectedMonth) ? formatCurrency(calcOvertimeRate('sunday')) + ' / gün' : '-'}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pazar Mesaisi (Güncel)</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday', employee.salary)) + ' / gün' : '-'}</div>
                         </div>
                         {employee.notes && (
                             <div style={{ gridColumn: '1 / -1' }}>
@@ -2086,7 +2086,7 @@ export default function EmployeeDetail() {
                                             return null;
                                         })()}
                                     </div>
-                                    <CustomInput label="Gün Sayısı" type="number" value={formData.days || 1} onChange={(val) => updateField('days', val)} min={1} />
+                                    <CustomInput label="Gün Sayısı" format="numeric" value={formData.days ?? ''} onChange={(val) => updateField('days', val)} />
                                     <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
                                     <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
                                 </div>
@@ -2197,7 +2197,7 @@ export default function EmployeeDetail() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <CustomInput label="Demirbaş Adı *" value={formData.itemName || ''} onChange={(val) => updateField('itemName', val)} required />
                                     <CustomInput label="Seri No" value={formData.serialNumber || ''} onChange={(val) => updateField('serialNumber', val)} />
-                                    <CustomInput label="Adet" type="number" value={formData.quantity || 1} onChange={(val) => updateField('quantity', val)} min={1} />
+                                    <CustomInput label="Adet" format="numeric" value={formData.quantity ?? ''} onChange={(val) => updateField('quantity', val)} />
                                     <div />
                                     <CustomInput label="Teslim Tarihi" type="date" value={formData.assignedDate || ''} onChange={(val) => updateField('assignedDate', val)} />
                                     <CustomInput label="İade Tarihi" type="date" value={formData.returnDate || ''} onChange={(val) => updateField('returnDate', val)} />
