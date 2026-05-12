@@ -336,14 +336,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <td className="right bold total-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
                                         </tr>
                                     )}
-                                    {group.additions && Object.entries(group.additions).map(([type, data]) => (
-                                        <tr key={type} className="bg-light-gray">
-                                            <td className="bold center">{type.toUpperCase()}</td>
-                                            <td className="center">{data.count} ADET</td>
-                                            <td className="right">{formatCurrency(data.price)}</td>
-                                            <td className="right bold total-text">{formatCurrency(data.count * data.price)}</td>
-                                        </tr>
-                                    ))}
                                     {group.totalPazar > 0 && (
                                         <tr className="bg-light-gray">
                                             <td className="bold center">PAZAR</td>
@@ -360,6 +352,14 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <td className="right bold total-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
                                         </tr>
                                     )}
+                                    {group.additions && Object.entries(group.additions).map(([type, data]) => (
+                                        <tr key={type} className="bg-light-gray">
+                                            <td className="bold center">{type.toUpperCase()}</td>
+                                            <td className="center">{data.count} ADET</td>
+                                            <td className="right">{formatCurrency(data.price)}</td>
+                                            <td className="right bold total-text">{formatCurrency(data.count * data.price)}</td>
+                                        </tr>
+                                    ))}
                                     <tr style={{ borderTop: '1px solid #ddd' }}>
                                         <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
                                         <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
