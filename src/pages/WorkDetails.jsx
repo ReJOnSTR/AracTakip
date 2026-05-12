@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
@@ -43,14 +43,17 @@ export default function WorkDetails(props) {
         pricingType: 'daily',
         monthlyPrice: '',
         unitPrice: '',
-        travelEnabled: false,
-        travelPrice: '',
+        additions: [],
         description: ''
     })
+
+    const [curBulkAdditionType, setCurBulkAdditionType] = useState('Yol')
+    const [curBulkAdditionPrice, setCurBulkAdditionPrice] = useState('')
 
     // Confirm Delete State
     const [confirmModal, setConfirmModal] = useState(null)
     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+    const [showPrices, setShowPrices] = useState(true)
     const [generatingPdf, setGeneratingPdf] = useState(false)
 
     // Form State
@@ -65,10 +68,12 @@ export default function WorkDetails(props) {
         overtimeHours: 0,
         pricingType: 'daily',
         unitPrice: '',
-        travelEnabled: false,
-        travelPrice: '',
+        additions: [], // Array of { type: 'Yol', price: 100 }
         description: ''
     })
+
+    const [curAdditionType, setCurAdditionType] = useState('Yol')
+    const [curAdditionPrice, setCurAdditionPrice] = useState('')
 
     useEffect(() => {
         loadData()
@@ -243,7 +248,27 @@ export default function WorkDetails(props) {
             desc = desc.replace('[AYLIK] ', '');
         }
 
+        // Parse custom addition tags
+        const additionMatches = desc.matchAll(/\[EK:([^:]+):([^\]]+)\]/g);
+        const additions = [];
+        
+        for (const match of additionMatches) {
+            additions.push({
+                type: match[1],
+                price: parseFloat(match[2]) || 0
+            });
+            // Remove the tag from description
+            desc = desc.replace(match[0], '').trim();
+        }
+        
+        // Handle legacy travel_price if no additions found
         const hasTravelPrice = (item.travel_price || 0) > 0;
+        if (additions.length === 0 && hasTravelPrice) {
+            additions.push({
+                type: 'Yol',
+                price: item.travel_price
+            });
+        }
 
         setFormData({
             date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -256,8 +281,7 @@ export default function WorkDetails(props) {
             overtimeHours: item.overtime_hours || 0,
             pricingType: determinedPricingType,
             unitPrice: item.unit_price || 0,
-            travelEnabled: hasTravelPrice,
-            travelPrice: hasTravelPrice ? item.travel_price : '',
+            additions: additions,
             description: desc
         })
         setModalError('')
@@ -278,10 +302,18 @@ export default function WorkDetails(props) {
                 finalDesc = '[AYLIK] ' + finalDesc;
             }
 
+            // Append custom addition tags
+            if (formData.additions && formData.additions.length > 0) {
+                formData.additions.forEach(add => {
+                    finalDesc = `[EK:${add.type}:${add.price}] ` + finalDesc;
+                });
+            }
+
             const payload = {
                 ...parsed,
                 description: finalDesc,
-                travelPrice: formData.travelEnabled ? (parseFloat(formData.travelPrice) || 0) : 0,
+                // Still save to travelPrice if 'Yol' is in the list for backward compatibility
+                travelPrice: (formData.additions || []).find(add => add.type === 'Yol')?.price || 0,
                 workId: id
             }
 
@@ -386,6 +418,11 @@ export default function WorkDetails(props) {
                     }
                 }
 
+                // Append custom addition tag if enabled
+                if (bulkFormData.additionEnabled && bulkFormData.additionType && bulkFormData.additionPrice) {
+                    itemDesc = `[EK:${bulkFormData.additionType}:${bulkFormData.additionPrice}] ` + itemDesc;
+                }
+
                 payloadList.push({
                     workId: id,
                     date: currentDate.toISOString().split('T')[0],
@@ -397,7 +434,8 @@ export default function WorkDetails(props) {
                     hours: bulkFormData.hours ? parseFloat(bulkFormData.hours) : 0,
                     overtimeHours: bulkFormData.overtimeHours ? parseFloat(bulkFormData.overtimeHours) : 0,
                     unitPrice: finalUnitPrice,
-                    travelPrice: bulkFormData.travelEnabled ? (parseFloat(bulkFormData.travelPrice) || 0) : 0,
+                    // Still save to travelPrice if type is 'Yol' for backward compatibility
+                    travelPrice: (bulkFormData.additionEnabled && bulkFormData.additionType === 'Yol') ? (parseFloat(bulkFormData.additionPrice) || 0) : 0,
                     description: itemDesc || null
                 })
 
@@ -459,15 +497,21 @@ export default function WorkDetails(props) {
     }
 
     const handleSavePdf = async () => {
-        if (!window.electronAPI?.saveAsPdf) {
+        if (!window.electronAPI?.saveReportPdf) {
             alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.')
             return
         }
 
+        localStorage.setItem('printData', JSON.stringify({
+            isWorkReport: true,
+            work: work,
+            showPrices: showPrices
+        }))
+
         setGeneratingPdf(true)
         setTimeout(async () => {
             try {
-                const res = await window.electronAPI.saveAsPdf()
+                const res = await window.electronAPI.saveReportPdf('/print')
                 if (res && !res.success && !res.canceled) {
                     alert('PDF Kaydedilirken Hata: ' + res.error)
                 }
@@ -482,7 +526,8 @@ export default function WorkDetails(props) {
     const handlePrintReport = () => {
         localStorage.setItem('printData', JSON.stringify({
             isWorkReport: true,
-            work: work
+            work: work,
+            showPrices: showPrices
         }))
         window.open('#/print', '_blank', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
     }
@@ -859,41 +904,110 @@ export default function WorkDetails(props) {
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '16px',
-                        padding: '12px 14px',
-                        background: formData.travelEnabled ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                        border: `1px solid ${formData.travelEnabled ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        transition: 'background 0.15s ease, border-color 0.15s ease'
+                        flexDirection: 'column',
+                        gap: '12px',
+                        padding: '14px',
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: 'var(--shadow-sm)'
                     }}>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                            <input
-                                type="checkbox"
-                                checked={formData.travelEnabled}
-                                onChange={(e) => setFormData({ ...formData, travelEnabled: e.target.checked })}
-                            />
-                            <span className="toggle-slider"></span>
-                        </label>
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Yol Ekle</span>
-                        {formData.travelEnabled && (
-                            <div style={{ marginLeft: 'auto', width: '160px' }}>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Yol Fiyatı ₺"
-                                    value={formData.travelPrice ? String(formData.travelPrice).replace('.', ',') : ''}
-                                    onChange={(e) => {
-                                        let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
-                                        const parts = clean.split(',');
-                                        if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
-                                        if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
-                                        const floatVal = clean.replace(',', '.');
-                                        setFormData({ ...formData, travelPrice: floatVal === '' ? '' : floatVal });
-                                    }}
-                                    style={{ height: '32px', textAlign: 'right' }}
-                                />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                Ek Ödemeler
+                            </span>
+                        </div>
+                        
+                        {/* List of current additions as Clean Rows */}
+                        {formData.additions && formData.additions.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {formData.additions.map((add, idx) => (
+                                    <div key={idx} style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center', 
+                                        background: 'var(--bg-primary)', 
+                                        padding: '8px 12px', 
+                                        borderRadius: 'var(--radius-sm)', 
+                                        border: '1px solid var(--border-color)',
+                                        fontSize: '12px',
+                                        transition: 'all 0.2s'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <DollarSign size={14} style={{ color: 'var(--accent-primary)' }} />
+                                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{add.type}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    const newList = [...formData.additions];
+                                                    newList.splice(idx, 1);
+                                                    setFormData({ ...formData, additions: newList });
+                                                }}
+                                                style={{ 
+                                                    border: 'none', 
+                                                    background: 'none', 
+                                                    color: 'var(--text-error)', 
+                                                    cursor: 'pointer', 
+                                                    fontSize: '16px', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center',
+                                                    padding: '0 4px'
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
+
+                        {/* Unified Input Group for adding new addition */}
+                        <div style={{ display: 'flex', gap: '0', width: '100%', alignItems: 'center', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Tür (Örn: Yol, Yemek)"
+                                value={curAdditionType}
+                                onChange={(e) => setCurAdditionType(e.target.value)}
+                                style={{ flex: 1, height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, paddingLeft: '10px', background: 'var(--bg-primary)' }}
+                            />
+                            <div style={{ width: '1px', height: '20px', background: 'var(--border-color)' }}></div>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Fiyat ₺"
+                                value={curAdditionPrice ? String(curAdditionPrice).replace('.', ',') : ''}
+                                onChange={(e) => {
+                                    let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
+                                    const parts = clean.split(',');
+                                    if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
+                                    if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
+                                    const floatVal = clean.replace(',', '.');
+                                    setCurAdditionPrice(floatVal === '' ? '' : floatVal);
+                                }}
+                                style={{ width: '100px', height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, textAlign: 'right', paddingRight: '10px', background: 'var(--bg-primary)' }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!curAdditionType || !curAdditionPrice) return;
+                                    setFormData({
+                                        ...formData,
+                                        additions: [...(formData.additions || []), { type: curAdditionType, price: parseFloat(curAdditionPrice) || 0 }]
+                                    });
+                                    setCurAdditionType('Yol');
+                                    setCurAdditionPrice('');
+                                }}
+                                style={{ height: '34px', width: '40px', background: 'var(--accent-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
                     </div>
 
                     <CustomInput
@@ -1027,45 +1141,113 @@ export default function WorkDetails(props) {
                         </div>
                     </div>
 
-                    {/* Yol (Travel) Add-on */}
+                    {/* Yol (Travel) Add-on Replaced with Dynamic Additions */}
                     <div style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        padding: '12px 14px',
-                        background: bulkFormData.travelEnabled ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                        border: `1px solid ${bulkFormData.travelEnabled ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        transition: 'background 0.15s ease, border-color 0.15s ease'
+                        flexDirection: 'column',
+                        gap: '12px',
+                        padding: '14px',
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: 'var(--shadow-sm)'
                     }}>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                            <input
-                                type="checkbox"
-                                checked={bulkFormData.travelEnabled}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, travelEnabled: e.target.checked })}
-                            />
-                            <span className="toggle-slider"></span>
-                        </label>
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Yol Ekle</span>
-                        {bulkFormData.travelEnabled && (
-                            <div style={{ marginLeft: 'auto', width: '160px' }}>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Yol Fiyatı ₺"
-                                    value={bulkFormData.travelPrice ? String(bulkFormData.travelPrice).replace('.', ',') : ''}
-                                    onChange={(e) => {
-                                        let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
-                                        const parts = clean.split(',');
-                                        if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
-                                        if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
-                                        const floatVal = clean.replace(',', '.');
-                                        setBulkFormData({ ...bulkFormData, travelPrice: floatVal === '' ? '' : floatVal });
-                                    }}
-                                    style={{ height: '32px', textAlign: 'right' }}
-                                />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                Ek Ödemeler
+                            </span>
+                        </div>
+                        
+                        {/* List of current additions as Clean Rows */}
+                        {bulkFormData.additions && bulkFormData.additions.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {bulkFormData.additions.map((add, idx) => (
+                                    <div key={idx} style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center', 
+                                        background: 'var(--bg-primary)', 
+                                        padding: '8px 12px', 
+                                        borderRadius: 'var(--radius-sm)', 
+                                        border: '1px solid var(--border-color)',
+                                        fontSize: '12px',
+                                        transition: 'all 0.2s'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <DollarSign size={14} style={{ color: 'var(--accent-primary)' }} />
+                                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{add.type}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    const newList = [...bulkFormData.additions];
+                                                    newList.splice(idx, 1);
+                                                    setBulkFormData({ ...bulkFormData, additions: newList });
+                                                }}
+                                                style={{ 
+                                                    border: 'none', 
+                                                    background: 'none', 
+                                                    color: 'var(--text-error)', 
+                                                    cursor: 'pointer', 
+                                                    fontSize: '16px', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center',
+                                                    padding: '0 4px'
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
+
+                        {/* Unified Input Group for adding new addition */}
+                        <div style={{ display: 'flex', gap: '0', width: '100%', alignItems: 'center', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Tür (Örn: Yol, Yemek)"
+                                value={curBulkAdditionType}
+                                onChange={(e) => setCurBulkAdditionType(e.target.value)}
+                                style={{ flex: 1, height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, paddingLeft: '10px', background: 'var(--bg-primary)' }}
+                            />
+                            <div style={{ width: '1px', height: '20px', background: 'var(--border-color)' }}></div>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Fiyat ₺"
+                                value={curBulkAdditionPrice ? String(curBulkAdditionPrice).replace('.', ',') : ''}
+                                onChange={(e) => {
+                                    let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
+                                    const parts = clean.split(',');
+                                    if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
+                                    if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
+                                    const floatVal = clean.replace(',', '.');
+                                    setCurBulkAdditionPrice(floatVal === '' ? '' : floatVal);
+                                }}
+                                style={{ width: '100px', height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, textAlign: 'right', paddingRight: '10px', background: 'var(--bg-primary)' }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!curBulkAdditionType || !curBulkAdditionPrice) return;
+                                    setBulkFormData({
+                                        ...bulkFormData,
+                                        additions: [...(bulkFormData.additions || []), { type: curBulkAdditionType, price: parseFloat(curBulkAdditionPrice) || 0 }]
+                                    });
+                                    setCurBulkAdditionType('Yol');
+                                    setCurBulkAdditionPrice('');
+                                }}
+                                style={{ height: '34px', width: '40px', background: 'var(--accent-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
                     </div>
 
                     <CustomInput
@@ -1111,8 +1293,39 @@ export default function WorkDetails(props) {
                     </>
                 }
             >
-                <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-tertiary)', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.01)' }}>
-                    <WorkPdfReport propWork={work} noHeader={true} isPreview={true} />
+                <div style={{ display: 'flex', gap: '0', height: '100%', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+                    {/* Left: Configuration - Sticky Sidebar */}
+                    <div style={{ width: '280px', minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '0', flexShrink: 0, overflowY: 'auto', background: 'var(--bg-secondary)', borderRight: '1px solid var(--border-color)' }}>
+                        
+                        {/* Content Toggles */}
+                        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Seçenekleri</h4>
+                            </div>
+                            <div style={{ padding: '12px 16px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <span style={{ fontSize: '13px', color: showPrices ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showPrices ? 500 : 400, transition: 'all 0.15s' }}>Tabloda Fiyatları Göster</span>
+                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={showPrices} onChange={e => setShowPrices(e.target.checked)} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Live Preview */}
+                    <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-tertiary)', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.03)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20mm', alignItems: 'center', width: '100%' }}>
+                            <WorkPdfReport propWork={work} noHeader={true} isPreview={true} showPricesProp={showPrices} />
+                        </div>
+                    </div>
                 </div>
             </Modal>
         </div>

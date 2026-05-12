@@ -3,13 +3,14 @@ import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false }) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
+    const showPrices = showPricesProp;
 
     useEffect(() => {
         if (propWork) {
@@ -103,9 +104,33 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             groupedItems[key].isAylik = true;
         }
 
-        // Yol is now from travel_price field, accumulate travel count
-        if (travelPrice > 0) {
-            groupedItems[key].totalYol += 1;
+        // Parse custom additions from description
+        const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g);
+        let hasAddition = false;
+        
+        for (const match of additionMatches) {
+            hasAddition = true;
+            const type = match[1];
+            const price = parseFloat(match[2]) || 0;
+            
+            if (!groupedItems[key].additions) {
+                groupedItems[key].additions = {};
+            }
+            if (!groupedItems[key].additions[type]) {
+                groupedItems[key].additions[type] = { count: 0, price: price };
+            }
+            groupedItems[key].additions[type].count += 1;
+        }
+        
+        // Fallback for legacy Yol data if no additions found
+        if (!hasAddition && travelPrice > 0) {
+            if (!groupedItems[key].additions) {
+                groupedItems[key].additions = {};
+            }
+            if (!groupedItems[key].additions['Yol']) {
+                groupedItems[key].additions['Yol'] = { count: 0, price: travelPrice };
+            }
+            groupedItems[key].additions['Yol'].count += 1;
         }
 
         if (isPazar) {
@@ -150,12 +175,19 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         }
 
         const calculatedPazar = group.totalPazar * samplePazarPrice;
-        // Yol total = sum of all travel_price values in the group
-        const calculatedYol = group.items.reduce((sum, i) => sum + (Number(i.travel_price) || 0), 0);
+        
+        // Calculate additions total
+        let calculatedAdditions = 0;
+        if (group.additions) {
+            Object.values(group.additions).forEach(data => {
+                calculatedAdditions += data.count * data.price;
+            });
+        }
+
         const calculatedSaatlik = group.totalSaatlik * sampleSaatlikPrice;
         const calculatedMesai = group.totalMesai * sampleMesaiPrice;
 
-        const groupGrandTotal = calculatedGun + calculatedPazar + calculatedYol + calculatedSaatlik + calculatedMesai;
+        const groupGrandTotal = calculatedGun + calculatedPazar + calculatedAdditions + calculatedSaatlik + calculatedMesai;
         group.calculatedGrandTotal = groupGrandTotal;
         grandTotalPrice += groupGrandTotal;
 
@@ -210,6 +242,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 </div>
             )}
 
+
+
             <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''}`}>
                 {/* Header */}
                 <div className="pdf-header-standard">
@@ -263,8 +297,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             </td>
                                             <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
                                             <td className="center">{group.machineName}</td>
-                                            <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '')}</td>
-                                            <td className="right">{item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')}</td>
+                                            <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/g, '')}</td>
+                                            <td className="right">{showPrices ? (item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')) : ''}</td>
                                         </tr>
                                     );
                                 })}
@@ -302,14 +336,14 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <td className="right bold total-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
                                         </tr>
                                     )}
-                                    {group.totalYol > 0 && (
-                                        <tr className="bg-light-gray">
-                                            <td className="bold center">YOL</td>
-                                            <td className="center">{group.totalYol} ADET</td>
-                                            <td className="right">{sampleYolPrice ? formatCurrency(sampleYolPrice) : ''}</td>
-                                            <td className="right bold total-text">{sampleYolPrice ? formatCurrency(group.totalYol * sampleYolPrice) : ''}</td>
+                                    {group.additions && Object.entries(group.additions).map(([type, data]) => (
+                                        <tr key={type} className="bg-light-gray">
+                                            <td className="bold center">{type.toUpperCase()}</td>
+                                            <td className="center">{data.count} ADET</td>
+                                            <td className="right">{formatCurrency(data.price)}</td>
+                                            <td className="right bold total-text">{formatCurrency(data.count * data.price)}</td>
                                         </tr>
-                                    )}
+                                    ))}
                                     {group.totalPazar > 0 && (
                                         <tr className="bg-light-gray">
                                             <td className="bold center">PAZAR</td>

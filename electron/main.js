@@ -1718,8 +1718,13 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print') => {
 
         // Inject the data directly to avoid localStorage sync issues
         const storedData = await parentWin.webContents.executeJavaScript(`localStorage.getItem('printDocData')`);
+        const printData = await parentWin.webContents.executeJavaScript(`localStorage.getItem('printData')`);
+        
         if (storedData) {
             await hiddenWin.webContents.executeJavaScript(`localStorage.setItem('printDocData', ${JSON.stringify(storedData)})`);
+        }
+        if (printData) {
+            await hiddenWin.webContents.executeJavaScript(`localStorage.setItem('printData', ${JSON.stringify(printData)})`);
         }
 
         // Wait for content to fully render

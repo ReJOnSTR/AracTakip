@@ -40,7 +40,7 @@ export default function PrintPage() {
                     }
                     `}
                 </style>
-                <WorkPdfReport propWork={data.work} noHeader={true} isPreview={false} />
+                <WorkPdfReport propWork={data.work} noHeader={true} isPreview={false} showPricesProp={data.showPrices} />
             </div>
         )
     }
