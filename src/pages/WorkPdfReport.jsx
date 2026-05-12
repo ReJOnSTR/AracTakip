@@ -233,21 +233,21 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                 return (
                     <div className="pdf-vehicle-group" key={idx}>
-                        <table className="pdf-table">
+                        <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
                             <thead>
                                 <tr>
-                                    <th rowSpan="2" style={{ width: '80px' }}>TARİH</th>
-                                    <th rowSpan="2" style={{ width: '60px' }}>FİŞ NO</th>
-                                    <th colSpan="2">Çalışma Süresi</th>
-                                    <th rowSpan="2" style={{ width: '70px' }}>Süre/Adet</th>
-                                    <th rowSpan="2" style={{ width: '80px' }}>Fazla Mesai</th>
-                                    <th rowSpan="2" style={{ width: '150px' }}>MAKİNA</th>
-                                    <th rowSpan="2">AÇIKLAMA</th>
-                                    <th rowSpan="2" style={{ width: '100px' }}>FİYAT</th>
+                                    <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
+                                    <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
+                                    <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
+                                    <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
+                                    <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
+                                    <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
+                                    <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
+                                    <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
                                 </tr>
                                 <tr>
-                                    <th style={{ width: '60px' }}>Başlama Saati</th>
-                                    <th style={{ width: '60px' }}>Bitiş Saati</th>
+                                    <th style={{ width: '11%' }}>Başlama</th>
+                                    <th style={{ width: '11%' }}>Bitiş</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -261,10 +261,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <td className="center">
                                                 {item.hours || 0} {((item.description || '').toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
                                             </td>
-                                            <td className="center">{item.overtime_hours > 0 ? item.overtime_hours : ''}</td>
+                                            <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
                                             <td className="center">{group.machineName}</td>
                                             <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '')}</td>
-                                            <td className="right">{item.unit_price ? formatCurrency(item.unit_price) : ''}</td>
+                                            <td className="right">{item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')}</td>
                                         </tr>
                                     );
                                 })}
