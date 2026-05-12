@@ -64,7 +64,18 @@ export default function Reports() {
             reportType: reportType
         }
         localStorage.setItem('printData', JSON.stringify(printData))
-        window.open('#/print', '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.left = '-9999px';
+        iframe.src = '#/print';
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 3000);
     }
 
     // Handle PDF download - no extra window
@@ -76,7 +87,8 @@ export default function Reports() {
             listConfig: listConfig,
             dateRange: dateRange,
             companyName: currentCompany.name,
-            reportType: reportType
+            reportType: reportType,
+            isPdfSave: true
         }
         localStorage.setItem('printData', JSON.stringify(printData))
         

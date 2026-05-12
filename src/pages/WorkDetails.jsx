@@ -54,6 +54,8 @@ export default function WorkDetails(props) {
     const [confirmModal, setConfirmModal] = useState(null)
     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
     const [showPrices, setShowPrices] = useState(true)
+    const [showKdv, setShowKdv] = useState(false)
+    const [kdvRate, setKdvRate] = useState(20)
     const [generatingPdf, setGeneratingPdf] = useState(false)
 
     // Form State
@@ -505,7 +507,10 @@ export default function WorkDetails(props) {
         localStorage.setItem('printData', JSON.stringify({
             isWorkReport: true,
             work: work,
-            showPrices: showPrices
+            showPrices: showPrices,
+            showKdv: showKdv,
+            kdvRate: kdvRate,
+            isPdfSave: true
         }))
 
         setGeneratingPdf(true)
@@ -524,12 +529,7 @@ export default function WorkDetails(props) {
     }
 
     const handlePrintReport = () => {
-        localStorage.setItem('printData', JSON.stringify({
-            isWorkReport: true,
-            work: work,
-            showPrices: showPrices
-        }))
-        window.open('#/print', '_blank', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
+        window.print()
     }
 
     // --- Calculations ---
@@ -1315,6 +1315,17 @@ export default function WorkDetails(props) {
                                             <span className="toggle-slider"></span>
                                         </label>
                                     </label>
+
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '4px' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <span style={{ fontSize: '13px', color: showKdv ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showKdv ? 500 : 400, transition: 'all 0.15s' }}>KDV Ekle (+%20)</span>
+                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={showKdv} onChange={e => setShowKdv(e.target.checked)} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -1323,7 +1334,7 @@ export default function WorkDetails(props) {
                     {/* Right: Live Preview */}
                     <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-tertiary)', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.03)' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20mm', alignItems: 'center', width: '100%' }}>
-                            <WorkPdfReport propWork={work} noHeader={true} isPreview={true} showPricesProp={showPrices} />
+                            <WorkPdfReport propWork={work} noHeader={true} isPreview={true} showPricesProp={showPrices} showKdvProp={showKdv} kdvRateProp={kdvRate} />
                         </div>
                     </div>
                 </div>

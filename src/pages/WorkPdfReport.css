@@ -245,7 +245,11 @@
         background: white !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-        zoom: 0.88; /* Reduced zoom further to fit on a single page */
+        zoom: 0.88; /* Default zoom */
+    }
+
+    .pdf-report-container.with-kdv {
+        zoom: 0.80 !important; /* Shrink only when KDV is added */
     }
 
     .pdf-header-standard {

@@ -14,10 +14,12 @@ export default function PrintPage() {
                 setData(parsed)
                 document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
 
-                // Trigger print after render
-                setTimeout(() => {
-                    window.print()
-                }, 500)
+                // Trigger print after render if not saving PDF
+                if (!parsed.isPdfSave) {
+                    setTimeout(() => {
+                        window.print()
+                    }, 500)
+                }
             } catch (e) {
                 console.error('Failed to parse print data', e)
             }
@@ -40,7 +42,7 @@ export default function PrintPage() {
                     }
                     `}
                 </style>
-                <WorkPdfReport propWork={data.work} noHeader={true} isPreview={false} showPricesProp={data.showPrices} />
+                <WorkPdfReport propWork={data.work} noHeader={true} isPreview={false} showPricesProp={data.showPrices} showKdvProp={data.showKdv} kdvRateProp={data.kdvRate} />
             </div>
         )
     }

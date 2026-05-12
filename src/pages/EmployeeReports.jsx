@@ -61,7 +61,18 @@ export default function EmployeeReports() {
             isEmployeeReport: true // Tag for PrintPage
         }
         localStorage.setItem('printData', JSON.stringify(printData))
-        window.open('#/print', '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,titlebar=no')
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.left = '-9999px';
+        iframe.src = '#/print';
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 3000);
     }
 
     const handlePdfDownload = async () => {
@@ -73,7 +84,8 @@ export default function EmployeeReports() {
             dateRange: dateRange,
             companyName: currentCompany.name,
             reportType: reportType,
-            isEmployeeReport: true
+            isEmployeeReport: true,
+            isPdfSave: true
         }
         localStorage.setItem('printData', JSON.stringify(printData))
         

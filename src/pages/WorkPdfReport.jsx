@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true }) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20 }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -244,7 +244,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
 
 
-            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''}`}>
+            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}>
                 {/* Header */}
                 <div className="pdf-header-standard">
                     <div>
@@ -381,8 +381,20 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                     <tbody>
                             <tr style={{ borderTop: '1px solid #ddd' }}>
                                 <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>GENEL TOPLAM</td>
-                                <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}</td>
+                                <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}{showKdvProp ? '' : ' + KDV'}</td>
                             </tr>
+                            {showKdvProp && (
+                                <>
+                                    <tr>
+                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>KDV (%{kdvRateProp})</td>
+                                        <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice * (kdvRateProp / 100))}</td>
+                                    </tr>
+                                    <tr style={{ borderTop: '2px solid #333' }}>
+                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#e2e8f0' }}>TOPLAM (KDV DAHİL)</td>
+                                        <td className="right bold total-text" style={{ fontSize: '13px', padding: '8px 12px', backgroundColor: '#cbd5e1', color: '#000' }}>{formatCurrency(grandTotalPrice * (1 + kdvRateProp / 100))}</td>
+                                    </tr>
+                                </>
+                            )}
                     </tbody>
                 </table>
             </div>
