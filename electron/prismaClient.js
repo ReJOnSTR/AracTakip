@@ -399,6 +399,31 @@ async function runAutoMigrations() {
         log.error('Migration step 16 (vehicle types) error:', error.message);
     }
 
+    // 17. Add iban and devir fields to employees (v1.0.163)
+    try {
+        const empCols = await p.$queryRawUnsafe("PRAGMA table_info('employees')");
+        if (empCols.length > 0) {
+            if (!empCols.some(c => c.name === 'iban')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN iban TEXT');
+                log.info('Migration: Added iban to employees');
+            }
+            if (!empCols.some(c => c.name === 'devir_izin_bakiyesi')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN devir_izin_bakiyesi INTEGER DEFAULT 0');
+                log.info('Migration: Added devir_izin_bakiyesi to employees');
+            }
+            if (!empCols.some(c => c.name === 'devir_maas_bakiyesi')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN devir_maas_bakiyesi REAL DEFAULT 0');
+                log.info('Migration: Added devir_maas_bakiyesi to employees');
+            }
+            if (!empCols.some(c => c.name === 'devir_tarihi')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN devir_tarihi DATETIME');
+                log.info('Migration: Added devir_tarihi to employees');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 17 (employee new fields) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 
