@@ -1338,6 +1338,10 @@ export default function EmployeeDetail() {
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>E-posta</div>
                             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', wordBreak: 'break-all' }}>{employee.email || '-'}</div>
                         </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>IBAN</div>
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>{employee.iban || '-'}</div>
+                        </div>
                     </div>
                 </div>
 

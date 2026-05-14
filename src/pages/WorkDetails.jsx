@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
@@ -54,6 +54,18 @@ export default function WorkDetails(props) {
     const [confirmModal, setConfirmModal] = useState(null)
     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
     const [showPrices, setShowPrices] = useState(true)
+    const [selectedIds, setSelectedIds] = useState([])
+    const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false)
+    const [bulkEditFormData, setBulkEditFormData] = useState({
+        receiptNo: '',
+        vehicleId: '',
+        employeeId: '',
+        hours: '',
+        overtimeHours: '',
+        pricingType: '',
+        unitPrice: '',
+        description: ''
+    })
     const [showKdv, setShowKdv] = useState(false)
     const [kdvRate, setKdvRate] = useState(20)
     const [generatingPdf, setGeneratingPdf] = useState(false)
@@ -214,6 +226,21 @@ export default function WorkDetails(props) {
         })
         setModalError('')
         setIsBulkModalOpen(true)
+    }
+
+    const openBulkEditModal = () => {
+        setBulkEditFormData({
+            receiptNo: '',
+            vehicleId: '',
+            employeeId: '',
+            hours: '',
+            overtimeHours: '',
+            pricingType: '',
+            unitPrice: '',
+            description: ''
+        })
+        setModalError('')
+        setIsBulkEditModalOpen(true)
     }
 
     const openAddModal = () => {
@@ -459,6 +486,74 @@ export default function WorkDetails(props) {
 
     // --- Delete Handlers ---
 
+    const handleBulkEditSubmit = async (e) => {
+        e.preventDefault()
+        setModalError('')
+
+        // Filter out empty fields
+        const updates = {}
+        if (bulkEditFormData.date && bulkEditFormData.date !== '') updates.date = bulkEditFormData.date
+        if (bulkEditFormData.receiptNo !== '') updates.receiptNo = bulkEditFormData.receiptNo
+        if (bulkEditFormData.vehicleId !== '') updates.vehicleId = parseInt(bulkEditFormData.vehicleId)
+        if (bulkEditFormData.employeeId !== '') updates.employeeId = parseInt(bulkEditFormData.employeeId)
+        if (bulkEditFormData.startTime && bulkEditFormData.startTime !== '') updates.startTime = bulkEditFormData.startTime
+        if (bulkEditFormData.endTime && bulkEditFormData.endTime !== '') updates.endTime = bulkEditFormData.endTime
+        if (bulkEditFormData.pricingType !== '') updates.pricingType = bulkEditFormData.pricingType
+        if (bulkEditFormData.unitPrice !== '') updates.unitPrice = parseFloat(bulkEditFormData.unitPrice)
+        if (bulkEditFormData.description !== '') updates.description = bulkEditFormData.description
+
+        if (Object.keys(updates).length === 0) {
+            setModalError('Lütfen en az bir alanı doldurun.')
+            return
+        }
+
+        try {
+            const results = await Promise.all(selectedIds.map(async (id) => {
+                const existingItem = work.items.find(item => item.id === id)
+                if (!existingItem) return { success: false, error: 'Kayıt bulunamadı' }
+
+                let itemDesc = updates.description !== undefined ? updates.description : (existingItem.description || '');
+
+                if (updates.pricingType !== undefined) {
+                    itemDesc = itemDesc.replace(/\[SAATLİK\]\s*/g, '').replace(/\[AYLIK\]\s*/g, '');
+                    if (updates.pricingType === 'hourly') {
+                        itemDesc = '[SAATLİK] ' + itemDesc;
+                    } else if (updates.pricingType === 'monthly') {
+                        itemDesc = '[AYLIK] ' + itemDesc;
+                    }
+                }
+
+                const finalPayload = {
+                    id: id,
+                    date: updates.date !== undefined ? updates.date : existingItem.date,
+                    receiptNo: updates.receiptNo !== undefined ? updates.receiptNo : existingItem.receipt_no,
+                    vehicleId: updates.vehicleId !== undefined ? updates.vehicleId : existingItem.vehicle_id,
+                    employeeId: updates.employeeId !== undefined ? updates.employeeId : existingItem.employee_id,
+                    startTime: updates.startTime !== undefined ? updates.startTime : existingItem.start_time,
+                    endTime: updates.endTime !== undefined ? updates.endTime : existingItem.end_time,
+                    hours: existingItem.hours,
+                    overtimeHours: existingItem.overtime_hours,
+                    unitPrice: updates.unitPrice !== undefined ? updates.unitPrice : existingItem.unit_price,
+                    travelPrice: existingItem.travel_price,
+                    description: itemDesc
+                }
+                
+                return await window.electronAPI.updateWorkItem(finalPayload)
+            }))
+
+            const failed = results.filter(r => !r.success)
+            if (failed.length > 0) {
+                setModalError(`${failed.length} kayıt güncellenemedi.`)
+            } else {
+                setIsBulkEditModalOpen(false)
+                setSelectedIds([]) // Clear selection
+                loadData()
+            }
+        } catch (err) {
+            setModalError(err.message)
+        }
+    }
+
     const handleDeleteClick = (item) => {
         setConfirmModal({
             item,
@@ -537,13 +632,15 @@ export default function WorkDetails(props) {
     const totalHours = work?.items?.reduce((sum, item) => sum + (item.hours || 0), 0) || 0
     const totalOvertime = work?.items?.reduce((sum, item) => sum + (item.overtime_hours || 0), 0) || 0
 
+    // Reliable total calculation for Extra Payments
+    const totalEkOdemeler = work?.items?.reduce((sum, item) => sum + (Number(item.travel_price) || 0), 0) || 0;
+
     // Replicate PDF calculation logic to guarantee "Toplam Tutar" matches exactly.
     let grandTotal = 0;
     let totalMesaiPriceAmount = 0;
     let totalPazarPriceAmount = 0;
     let totalPazarDayCount = 0;
     let totalGunTutar = 0;
-    let totalYolTutar = 0;
     let totalSaatlikTutar = 0;
 
     const uniqueVehicles = new Set();
@@ -557,7 +654,7 @@ export default function WorkDetails(props) {
 
             const key = item.vehicle_id || 'diger';
             if (!groupedItems[key]) {
-                groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalYol: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false };
+                groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false };
             }
             groupedItems[key].items.push(item);
 
@@ -565,14 +662,12 @@ export default function WorkDetails(props) {
             const descUpper = (item.description || '').toUpperCase();
             const dateObj = new Date(item.date);
             const isPazar = dateObj.getDay() === 0 || descUpper.includes('PAZAR');
-            const isYol = descUpper.includes('YOL') || descUpper.includes('[YOL]');
             const isSaatlik = descUpper.includes('[SAATLİK]');
             const isAylik = descUpper.includes('[AYLIK]');
 
             if (isAylik) groupedItems[key].isAylik = true;
 
             if (isPazar) groupedItems[key].totalPazar += gunSayisi;
-            else if (isYol) groupedItems[key].totalYol += gunSayisi;
             else if (isSaatlik) groupedItems[key].totalSaatlik += gunSayisi;
             else groupedItems[key].totalGun += gunSayisi;
 
@@ -581,7 +676,6 @@ export default function WorkDetails(props) {
 
         Object.values(groupedItems).forEach(group => {
             const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-            const sampleYolPrice = group.items.find(i => (i.description || '').toUpperCase().includes('YOL'))?.unit_price || 0;
             const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
             let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
             if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5;
@@ -592,18 +686,21 @@ export default function WorkDetails(props) {
             
             const mesaiTutar = group.totalMesai * sampleMesaiPrice;
             const pazarTutar = group.totalPazar * samplePazarPrice;
-            const yolTutar = group.totalYol * sampleYolPrice;
             const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice;
             
             totalMesaiPriceAmount += mesaiTutar;
             totalPazarPriceAmount += pazarTutar;
             totalPazarDayCount += group.totalPazar;
             totalGunTutar += cg;
-            totalYolTutar += yolTutar;
             totalSaatlikTutar += saatlikTutar;
 
-            grandTotal += cg + pazarTutar + yolTutar + saatlikTutar + mesaiTutar;
+            // Grand Total should exactly match the old calculation + Ek Ödemeler logic
+            // Since we use totalEkOdemeler from travel_price across all items instead of yolTutar, we add it OUTSIDE the group loop.
+            // Wait, we need to add the group-specific stuff here.
+            grandTotal += cg + pazarTutar + saatlikTutar + mesaiTutar;
         });
+
+        grandTotal += totalEkOdemeler;
     }
 
     // Get dynamic date range from work items
@@ -655,74 +752,90 @@ export default function WorkDetails(props) {
                 </div>
             </div>
 
-            {/* Default Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                {/* Mesai Kartı */}
-                <div className="stat-card">
-                    <div className="stat-icon warning">
-                        <Clock />
+            {/* Hero Dashboard Style */}
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', alignItems: 'stretch' }}>
+                {/* Sol Taraf: Finansal Hero Kart */}
+                <div className="stat-card" style={{ flex: '0 0 35%', background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'space-between', padding: '24px', gap: '0' }}>
+                    {/* Arka plan süsü */}
+                    <div style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.05, transform: 'scale(2)', pointerEvents: 'none' }}>
+                        <DollarSign size={100} />
                     </div>
-                    <div className="stat-content" style={{ width: '100%' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{totalOvertime} Saat</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Normal Mesai</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{totalPazarDayCount} Gün</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Pazar Mesai</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>{formatCurrency(totalMesaiPriceAmount)}</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Mesai Tutar</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>{formatCurrency(totalPazarPriceAmount)}</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Pazar Tutar</div>
-                            </div>
+
+                    <div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <DollarSign size={16} className="text-success" />
+                            Genel Toplam Tutar
+                        </div>
+                        <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }} title={formatCurrency(grandTotal)}>
+                            {formatCurrency(grandTotal)}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>Tüm mesai, pazar ve ek ödemeler dahil</div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '32px', position: 'relative', zIndex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-sm)' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Clock size={14} className="text-warning" /> Mesai & Pazar
+                            </span>
+                            <span style={{ fontSize: '14px', color: 'var(--warning)', fontWeight: 700 }}>{formatCurrency(totalMesaiPriceAmount + totalPazarPriceAmount)}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-sm)' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Wallet size={14} style={{ color: '#8b5cf6' }} /> Ek Ödemeler
+                            </span>
+                            <span style={{ fontSize: '14px', color: '#8b5cf6', fontWeight: 700 }}>{formatCurrency(totalEkOdemeler)}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Kayıt Bilgileri Kartı */}
-                <div className="stat-card">
-                    <div className="stat-icon info">
-                        <FileText />
-                    </div>
-                    <div className="stat-content" style={{ width: '100%' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{work.items.length} Adet</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Toplam Kayıt</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{uniqueVehicles.size} Adet</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Aktif Araç</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--info)' }}>{uniqueEmployees.size} Kişi</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Personel</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--info)' }}>{totalHours} Gün</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Toplam Gün</div>
-                            </div>
+                {/* Sağ Taraf: Operasyonel Grid */}
+                <div style={{ flex: '1', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                    {/* Toplam Kayıt */}
+                    <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+                            <FileText size={14} className="text-info" /> Toplam Kayıt
                         </div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{work.items.length} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Adet</span></div>
                     </div>
-                </div>
 
-                {/* Finansal Özet Kartı */}
-                <div className="stat-card">
-                    <div className="stat-icon success">
-                        <DollarSign />
-                    </div>
-                    <div className="stat-content" style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', overflow: 'hidden' }}>
-                            <div style={{ fontSize: '17px', fontWeight: '800', color: 'var(--success)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={formatCurrency(grandTotal)}>
-                                {formatCurrency(grandTotal)}
-                            </div>
-                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.02em', marginTop: '2px' }}>Genel Toplam</div>
+                    {/* Aktif Araç */}
+                    <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+                            <Truck size={14} className="text-info" /> Aktif Araç
                         </div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{uniqueVehicles.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Araç</span></div>
+                    </div>
+
+                    {/* Personel */}
+                    <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+                            <User size={14} className="text-info" /> Personel
+                        </div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{uniqueEmployees.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Kişi</span></div>
+                    </div>
+
+                    {/* Toplam Gün */}
+                    <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+                            <Calendar size={14} className="text-success" /> Toplam Gün
+                        </div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{totalHours} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
+                    </div>
+
+                    {/* Normal Mesai */}
+                    <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+                            <Clock size={14} className="text-warning" /> Normal Mesai
+                        </div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{totalOvertime} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Saat</span></div>
+                    </div>
+
+                    {/* Pazar Mesai */}
+                    <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+                            <Calendar size={14} className="text-danger" /> Pazar Mesai
+                        </div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{totalPazarDayCount} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
                     </div>
                 </div>
             </div>
@@ -809,6 +922,14 @@ export default function WorkDetails(props) {
                 showDateFilter={true}
                 dateFilterKey="date"
                 showRowNumbers={true}
+                selectable={true}
+                onSelectionChange={setSelectedIds}
+                customBulkActions={() => (
+                    <button className="btn-bulk-action secondary" onClick={openBulkEditModal}>
+                        <Pencil size={15} />
+                        Düzenle
+                    </button>
+                )}
                 actions={(row) => (
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
                         <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(row) }}><Pencil size={16} /></button>
@@ -1260,6 +1381,123 @@ export default function WorkDetails(props) {
                     <div className="modal-footer">
                         <button type="button" onClick={() => setIsBulkModalOpen(false)} className="btn btn-secondary">İptal</button>
                         <button type="submit" className="btn btn-primary">Toplu Oluştur</button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Bulk Edit Modal */}
+            <Modal
+                isOpen={isBulkEditModalOpen}
+                onClose={() => setIsBulkEditModalOpen(false)}
+                title={`Toplu Düzenle (${selectedIds.length} Kayıt)`}
+            >
+                <form onSubmit={handleBulkEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
+
+                    <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        ⚠️ Boş bıraktığınız alanlar mevcut kayıtlarda değiştirilmeyecektir.
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <CustomInput
+                            label="Tarih"
+                            type="date"
+                            value=""
+                            disabled={true}
+                        />
+                        <CustomInput
+                            label="Fiş No"
+                            type="text"
+                            value={bulkEditFormData.receiptNo}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, receiptNo: val })}
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <CustomSelect
+                            label="Makina / Araç"
+                            value={bulkEditFormData.vehicleId}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, vehicleId: val })}
+                            options={[
+                                { value: '', label: 'Seçiniz' },
+                                ...vehicles.map(v => ({ value: v.id, label: `${v.plate} (${v.brand})` }))
+                            ]}
+                        />
+                        <CustomSelect
+                            label="Personel"
+                            value={bulkEditFormData.employeeId}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, employeeId: val })}
+                            options={[
+                                { value: '', label: 'Seçiniz' },
+                                ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
+                            ]}
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <CustomInput
+                                type="time"
+                                label="B. Saati"
+                                value=""
+                                disabled={true}
+                            />
+                            <CustomInput
+                                type="time"
+                                label="B. Saati"
+                                value=""
+                                disabled={true}
+                            />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <CustomSelect
+                                label="Fiyatlandırma"
+                                value={bulkEditFormData.pricingType}
+                                onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, pricingType: val })}
+                                options={[
+                                    { value: '', label: 'Seçiniz' },
+                                    { value: 'daily', label: 'Günlük' },
+                                    { value: 'hourly', label: 'Saatlik' },
+                                    { value: 'monthly', label: 'Aylık' }
+                                ]}
+                            />
+                            <CustomInput
+                                label="Birim Fiyat"
+                                type="number"
+                                value={bulkEditFormData.unitPrice}
+                                onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, unitPrice: val })}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Ek Ödemeler (Disabled representation) */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        padding: '14px',
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: 'var(--shadow-sm)',
+                        opacity: 0.6
+                    }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                            Ek Ödemeler (Toplu düzenlemede kullanılamaz)
+                        </span>
+                    </div>
+
+                    <CustomInput
+                        label="Açıklama"
+                        type="textarea"
+                        value={bulkEditFormData.description}
+                        onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, description: val })}
+                    />
+
+                    <div className="modal-footer">
+                        <button type="button" onClick={() => setIsBulkEditModalOpen(false)} className="btn btn-secondary">İptal</button>
+                        <button type="submit" className="btn btn-primary">Toplu Güncelle</button>
                     </div>
                 </form>
             </Modal>

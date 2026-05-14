@@ -31,6 +31,7 @@ async function getEmployees(companyId, isArchived = 0) {
                 created_at: true,
                 past_used_leaves: true,
                 birth_date: true,
+                iban: true,
                 salaries: { where: { status: 'pending' } },
                 leaves: { where: { status: 'pending' } },
                 employee_salary_history: { orderBy: { start_date: 'asc' } }
@@ -81,6 +82,7 @@ async function addEmployee(data) {
                 image: data.image || null,
                 past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : 0,
                 birth_date: data.birthDate ? new Date(data.birthDate) : null,
+                iban: data.iban || null,
                 employee_salary_history: {
                     create: {
                         amount: data.salary ? parseFloat(data.salary) : 0,
@@ -145,6 +147,7 @@ async function updateEmployee(data) {
                 image: data.image || null,
                 past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : 0,
                 birth_date: data.birthDate ? new Date(data.birthDate) : null,
+                iban: data.iban || null,
                 employee_salary_history: salaryHistoryOp ? salaryHistoryOp : undefined
             }
         });

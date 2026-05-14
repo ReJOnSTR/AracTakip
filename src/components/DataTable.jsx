@@ -484,31 +484,27 @@ export default function DataTable({
     const handleSelectRow = (e, id, index) => {
         e.stopPropagation()
         
-        setSelectedRows(prev => {
-            const newSet = new Set(prev)
+        const newSet = new Set(selectedRows)
+        
+        // Handle Shift+Click for range selection
+        if (e.shiftKey && lastSelectedIndex !== -1 && index !== undefined) {
+            const start = Math.min(lastSelectedIndex, index)
+            const end = Math.max(lastSelectedIndex, index)
             
-            // Handle Shift+Click for range selection
-            if (e.shiftKey && lastSelectedIndex !== -1 && index !== undefined) {
-                const start = Math.min(lastSelectedIndex, index)
-                const end = Math.max(lastSelectedIndex, index)
-                
-                // Determine if we are selecting or deselecting based on the first item's state
-                // Actually, standard behavior is usually to select the range
-                for (let i = start; i <= end; i++) {
-                    const rowId = paginatedData[i]?.id
-                    if (rowId !== undefined) newSet.add(rowId)
-                }
-            } else {
-                if (newSet.has(id)) {
-                    newSet.delete(id)
-                } else {
-                    newSet.add(id)
-                }
+            for (let i = start; i <= end; i++) {
+                const rowId = paginatedData[i]?.id
+                if (rowId !== undefined) newSet.add(rowId)
             }
-            
-            onSelectionChange?.(Array.from(newSet))
-            return newSet
-        })
+        } else {
+            if (newSet.has(id)) {
+                newSet.delete(id)
+            } else {
+                newSet.add(id)
+            }
+        }
+        
+        setSelectedRows(newSet)
+        onSelectionChange?.(Array.from(newSet))
         
         if (index !== undefined) {
             setLastSelectedIndex(index)
@@ -526,12 +522,10 @@ export default function DataTable({
             
             if (e.shiftKey) {
                 const rowId = paginatedData[nextIndex].id
-                setSelectedRows(prev => {
-                    const newSet = new Set(prev)
-                    newSet.add(rowId)
-                    onSelectionChange?.(Array.from(newSet))
-                    return newSet
-                })
+                const newSet = new Set(selectedRows)
+                newSet.add(rowId)
+                setSelectedRows(newSet)
+                onSelectionChange?.(Array.from(newSet))
             }
         } else if (e.key === 'ArrowUp') {
             e.preventDefault()
@@ -540,12 +534,10 @@ export default function DataTable({
             
             if (e.shiftKey) {
                 const rowId = paginatedData[prevIndex].id
-                setSelectedRows(prev => {
-                    const newSet = new Set(prev)
-                    newSet.add(rowId)
-                    onSelectionChange?.(Array.from(newSet))
-                    return newSet
-                })
+                const newSet = new Set(selectedRows)
+                newSet.add(rowId)
+                setSelectedRows(newSet)
+                onSelectionChange?.(Array.from(newSet))
             }
         } else if (e.key === ' ') {
             e.preventDefault()

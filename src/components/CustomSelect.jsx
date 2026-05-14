@@ -12,7 +12,8 @@ export default function CustomSelect({
     required = false,
     error,
     floatingLabel = true,
-    icon: Icon
+    icon: Icon,
+    disabled = false
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [placement, setPlacement] = useState('bottom')
@@ -98,8 +99,10 @@ export default function CustomSelect({
 
                 <button
                     type="button"
-                    className={`custom-select-trigger form-input ${isOpen ? 'open' : ''} ${error ? 'input-error' : ''} ${Icon ? 'has-icon' : ''}`}
-                    onClick={toggleOpen}
+                    className={`custom-select-trigger form-input ${isOpen ? 'open' : ''} ${error ? 'input-error' : ''} ${Icon ? 'has-icon' : ''} ${disabled ? 'disabled' : ''}`}
+                    onClick={!disabled ? toggleOpen : undefined}
+                    disabled={disabled}
+                    style={disabled ? { opacity: 0.6, cursor: 'not-allowed', background: 'var(--bg-tertiary)' } : {}}
                 >
                     <span className={selectedOption ? 'value-text' : 'placeholder'} style={{ opacity: isFloating && !selectedOption && !isOpen ? 0 : 1 }}>
                         {selectedOption ? selectedOption.label : (isFloating ? '' : placeholder)}

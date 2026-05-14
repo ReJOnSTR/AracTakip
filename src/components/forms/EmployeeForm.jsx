@@ -25,6 +25,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
         effectiveDate: new Date().toISOString().split('T')[0],
         pastUsedLeaves: '',
         status: 'active',
+        iban: '',
         notes: ''
     })
 
@@ -46,6 +47,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                 effectiveDate: formatDateForInput(new Date()),
                 pastUsedLeaves: initialData.past_used_leaves || '',
                 status: initialData.status || 'active',
+                iban: initialData.iban || '',
                 notes: initialData.notes || ''
             })
             setSalaryChanged(false)
@@ -102,6 +104,13 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     value={form.email}
                     onChange={(val) => handleChange('email', val)}
                     maxLength={100}
+                />
+                <CustomInput
+                    label="IBAN"
+                    format="iban"
+                    value={form.iban}
+                    onChange={(val) => handleChange('iban', val)}
+                    placeholder="TR__ ____ ____ ____ ____ ____ __"
                 />
                 <CustomInput
                     label="Pozisyon / Unvan"

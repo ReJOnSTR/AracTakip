@@ -250,9 +250,10 @@ exports.Prisma.EmployeesScalarFieldEnum = {
   created_at: 'created_at',
   past_used_leaves: 'past_used_leaves',
   birth_date: 'birth_date',
-  devir_tarihi: 'devir_tarihi',
+  devir_izin_bakiyesi: 'devir_izin_bakiyesi',
   devir_maas_bakiyesi: 'devir_maas_bakiyesi',
-  devir_izin_bakiyesi: 'devir_izin_bakiyesi'
+  devir_tarihi: 'devir_tarihi',
+  iban: 'iban'
 };
 
 exports.Prisma.InspectionsScalarFieldEnum = {
