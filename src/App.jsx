@@ -182,6 +182,9 @@ function AppRoutes() {
 }
 
 function App() {
+    const location = useLocation()
+    const isPrintRoute = location.pathname === '/print' || location.pathname === '/print-document' || location.pathname.startsWith('/work-report')
+
     const [lockSettings, setLockSettings] = useState(() => {
         return JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
     })
@@ -215,6 +218,8 @@ function App() {
     }, [])
 
     useEffect(() => {
+        if (isPrintRoute) return
+
         // Startup security check
         const isFreshStart = !sessionStorage.getItem('aractakip_session_active')
         const storedUser = localStorage.getItem('aractakip_user')
@@ -228,16 +233,18 @@ function App() {
         if (storedUser) {
             sessionStorage.setItem('aractakip_session_active', 'true')
         }
-    }, [lockSettings.enabled])
+    }, [lockSettings.enabled, isPrintRoute])
 
     const { user } = useAuth()
 
     useEffect(() => {
+        if (isPrintRoute) return
+
         if (isIdle && user && lockSettings.enabled) {
             setIsLocked(true)
             localStorage.setItem('aractakip_locked', 'true')
         }
-    }, [isIdle, user, lockSettings.enabled])
+    }, [isIdle, user, lockSettings.enabled, isPrintRoute])
 
     useEffect(() => {
         if (!lockSettings.enabled && isLocked) {
@@ -252,7 +259,7 @@ function App() {
 
     return (
         <ErrorBoundary>
-            <LockScreen isLocked={isLocked && !!user && lockSettings.enabled} onUnlock={handleUnlock} />
+            <LockScreen isLocked={!isPrintRoute && isLocked && !!user && lockSettings.enabled} onUnlock={handleUnlock} />
             <AppRoutes />
         </ErrorBoundary>
     )
