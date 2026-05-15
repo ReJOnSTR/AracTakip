@@ -10,7 +10,8 @@ export default function PrintDocument() {
             const stored = localStorage.getItem('printDocData');
             if (stored) {
                 try {
-                    setData(JSON.parse(stored));
+                    const parsed = JSON.parse(stored);
+                    setData(parsed);
                 } catch (err) {
                     console.error("Print doc data parse error", err);
                 }
@@ -19,8 +20,20 @@ export default function PrintDocument() {
 
         load();
         window.addEventListener('storage', load);
-        return () => window.removeEventListener('storage', load);
-    }, []);
+
+        // Fallback interval for hidden windows
+        const interval = setInterval(() => {
+            if (!data) load();
+        }, 300);
+
+        // Global refresh function for Electron
+        window.refreshPrintData = load;
+
+        return () => {
+            window.removeEventListener('storage', load);
+            clearInterval(interval);
+        };
+    }, [data]);
 
     if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
 

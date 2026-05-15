@@ -1721,14 +1721,22 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print') => {
         const printData = await parentWin.webContents.executeJavaScript(`localStorage.getItem('printData')`);
         
         if (storedData) {
-            await hiddenWin.webContents.executeJavaScript(`localStorage.setItem('printDocData', ${JSON.stringify(storedData)})`);
+            await hiddenWin.webContents.executeJavaScript(`
+                localStorage.setItem('printDocData', ${JSON.stringify(storedData)});
+                window.dispatchEvent(new Event('storage'));
+                if (window.refreshPrintData) window.refreshPrintData();
+            `);
         }
         if (printData) {
-            await hiddenWin.webContents.executeJavaScript(`localStorage.setItem('printData', ${JSON.stringify(printData)})`);
+            await hiddenWin.webContents.executeJavaScript(`
+                localStorage.setItem('printData', ${JSON.stringify(printData)});
+                window.dispatchEvent(new Event('storage'));
+                if (window.refreshPrintData) window.refreshPrintData();
+            `);
         }
 
         // Wait for content to fully render
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Generate PDF
         const pdfData = await hiddenWin.webContents.printToPDF({

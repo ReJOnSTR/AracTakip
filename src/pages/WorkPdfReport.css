@@ -211,15 +211,20 @@
 }
 
 @media print {
-    /* Hide everything first */
-    body * {
-        visibility: hidden;
+    /* Hide non-report elements */
+    .pdf-actions-bar,
+    .sidebar,
+    .header,
+    .no-print {
+        display: none !important;
     }
     
-    /* Show the report container and its children */
-    .pdf-report-container, 
-    .pdf-report-container * {
-        visibility: visible;
+    /* Ensure layout doesn't interfere */
+    .pdf-viewer-layout {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+        display: block !important;
     }
 
     .no-print {

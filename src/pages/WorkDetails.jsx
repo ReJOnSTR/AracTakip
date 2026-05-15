@@ -611,6 +611,7 @@ export default function WorkDetails(props) {
         setGeneratingPdf(true)
         setTimeout(async () => {
             try {
+                setIsReportModalOpen(false)
                 const res = await window.electronAPI.saveReportPdf('/print')
                 if (res && !res.success && !res.canceled) {
                     alert('PDF Kaydedilirken Hata: ' + res.error)

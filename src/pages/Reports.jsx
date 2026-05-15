@@ -94,9 +94,10 @@ export default function Reports() {
         
         if (window.electronAPI && window.electronAPI.saveReportPdf) {
             try {
+                setIsModalOpen(false)
                 const result = await window.electronAPI.saveReportPdf()
-                if (result && result.success) {
-                    console.log('PDF saved:', result.filePath)
+                if (result && !result.success && !result.canceled) {
+                    alert('PDF Kaydedilirken Hata: ' + result.error)
                 }
             } catch (e) {
                 console.warn('PDF save failed:', e)

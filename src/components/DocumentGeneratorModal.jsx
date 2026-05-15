@@ -90,12 +90,16 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
             
             localStorage.setItem('printDocData', JSON.stringify(printData))
             
+            // Close the modal FIRST so it doesn't stay as a "lock screen" behind the dialog
+            onClose()
+            
             const result = await window.electronAPI.saveReportPdf('/print-document')
-            if (result.success) {
-                onClose()
+            if (result && !result.success && !result.canceled) {
+                alert('Belge oluşturulurken hata oluştu: ' + result.error)
             }
         } catch (error) {
             console.error('Document generation failed:', error)
+            alert('Beklenmedik bir hata oluştu.')
         }
         setIsGenerating(false)
     }
