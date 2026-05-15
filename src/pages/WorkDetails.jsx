@@ -8,6 +8,7 @@ import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
 import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
+import { calculateWorkStats } from '../utils/workCalculations'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
 
@@ -636,80 +637,10 @@ export default function WorkDetails(props) {
         }
     }, [work?.items])
 
-    // --- Calculations based on filtered items ---
+    // --- Calculations based on filtered items (shared with PDF report) ---
     const stats = useMemo(() => {
         const items = filteredItems.length > 0 ? filteredItems : (work?.items || [])
-        
-        let totalHours = 0
-        let totalOvertime = 0 // Normal day overtime
-        let totalPazarOvertime = 0 // Sunday overtime
-        let totalPazarDayCount = 0
-        let totalEkOdemeler = 0
-        let grandTotal = 0
-        
-        const uniqueVehicles = new Set()
-        const uniqueEmployees = new Set()
-        const groupedItems = {}
-
-        items.forEach(item => {
-            if (item.vehicle_id) uniqueVehicles.add(item.vehicle_id)
-            if (item.employee_id) uniqueEmployees.add(item.employee_id)
-
-            const key = item.vehicle_id || 'diger'
-            if (!groupedItems[key]) {
-                groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false }
-            }
-            groupedItems[key].items.push(item)
-
-            const gunSayisi = Number(item.hours) || 0
-            const mesaiSaatleri = Number(item.overtime_hours) || 0
-            const descUpper = (item.description || '').toUpperCase()
-            const dateObj = new Date(item.date)
-            const isPazar = dateObj.getDay() === 0 || descUpper.includes('PAZAR')
-            const isSaatlik = descUpper.includes('[SAATLİK]')
-            const isAylik = descUpper.includes('[AYLIK]')
-
-            if (isAylik) groupedItems[key].isAylik = true
-            
-            // Increment base hours
-            totalHours += gunSayisi
-            totalEkOdemeler += (Number(item.travel_price) || 0)
-
-            if (isPazar) {
-                groupedItems[key].totalPazar += gunSayisi
-                totalPazarDayCount += gunSayisi
-                totalPazarOvertime += mesaiSaatleri
-            } else {
-                if (isSaatlik) groupedItems[key].totalSaatlik += gunSayisi
-                else groupedItems[key].totalGun += gunSayisi
-                totalOvertime += mesaiSaatleri
-            }
-
-            groupedItems[key].totalMesai += mesaiSaatleri
-        })
-
-        let totalMesaiPriceAmount = 0
-        let totalPazarPriceAmount = 0
-
-        Object.values(groupedItems).forEach(group => {
-            const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0
-            let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0
-            if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5
-            let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0
-            if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2))
-
-            let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
-            
-            const mesaiTutar = group.totalMesai * sampleMesaiPrice
-            const pazarTutar = group.totalPazar * samplePazarPrice
-            const saatlikTutar = group.totalSaatlik * (group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0)
-            
-            totalMesaiPriceAmount += mesaiTutar
-            totalPazarPriceAmount += pazarTutar
-            grandTotal += cg + pazarTutar + saatlikTutar + mesaiTutar
-        })
-
-        grandTotal += totalEkOdemeler
+        const calc = calculateWorkStats(items)
 
         // Date range from filtered items
         let dateRangeText = `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`
@@ -722,20 +653,7 @@ export default function WorkDetails(props) {
             }
         }
 
-        return {
-            totalHours,
-            totalOvertime,
-            totalPazarOvertime,
-            totalPazarDayCount,
-            totalEkOdemeler,
-            grandTotal,
-            totalMesaiPriceAmount,
-            totalPazarPriceAmount,
-            uniqueVehicles,
-            uniqueEmployees,
-            dateRangeText,
-            itemCount: items.length
-        }
+        return { ...calc, dateRangeText }
     }, [filteredItems, work])
 
     if (loading) return <div className="p-8 text-center">Yükleniyor...</div>

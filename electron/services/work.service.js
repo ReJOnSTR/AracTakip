@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../prismaClient')
+const { calculateWorkStats } = require('../utils/workCalculations')
 
 async function getWorks(companyId, isArchived = 0) {
     try {
@@ -28,50 +29,8 @@ async function getWorks(companyId, isArchived = 0) {
                 return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
             })).size;
 
-            // Recalculate total_price using the complex rules (Mesai, Pazar, Aylik, etc.)
-            let totalEkOdemeler = 0;
-            const groupedItems = {};
-            
-            w.work_items.forEach(item => {
-                const key = item.vehicle_id || 'diger';
-                if (!groupedItems[key]) {
-                    groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false };
-                }
-                groupedItems[key].items.push(item);
-
-                const gunSayisi = Number(item.hours) || 0;
-                const descUpper = (item.description || '').toUpperCase();
-                const dateObj = new Date(item.date);
-                const isPazar = dateObj.getDay() === 0 || descUpper.includes('PAZAR');
-                const isSaatlik = descUpper.includes('[SAATLİK]');
-                const isAylik = descUpper.includes('[AYLIK]');
-
-                if (isAylik) groupedItems[key].isAylik = true;
-
-                if (isPazar) groupedItems[key].totalPazar += gunSayisi;
-                else if (isSaatlik) groupedItems[key].totalSaatlik += gunSayisi;
-                else groupedItems[key].totalGun += gunSayisi;
-
-                groupedItems[key].totalMesai += (Number(item.overtime_hours) || 0);
-                totalEkOdemeler += (Number(item.travel_price) || 0);
-            });
-
-            let calculatedTotal = 0;
-            Object.values(groupedItems).forEach(group => {
-                const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-                const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-                let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
-                if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5;
-                let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
-                if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
-
-                let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice);
-                const mesaiTutar = group.totalMesai * sampleMesaiPrice;
-                const pazarTutar = group.totalPazar * samplePazarPrice;
-                const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice;
-                
-                calculatedTotal += cg + pazarTutar + saatlikTutar + mesaiTutar;
-            });
+            // Use shared calculation (same as PDF report)
+            const stats = calculateWorkStats(w.work_items);
 
             return {
                 ...w,
@@ -80,8 +39,8 @@ async function getWorks(companyId, isArchived = 0) {
                 end_date: dynamicEnd,
                 total_days: uniqueDays > 0 ? uniqueDays : 0,
                 item_count: w.work_items.length,
-                total_hours: w.work_items.reduce((sum, i) => sum + (i.hours || 0), 0),
-                total_price: calculatedTotal + totalEkOdemeler
+                total_hours: stats.totalHours,
+                total_price: stats.grandTotal
             };
         })
 
