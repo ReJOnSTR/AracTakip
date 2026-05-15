@@ -3,6 +3,8 @@
  * This is the SINGLE SOURCE OF TRUTH for total price calculations.
  * Used by: WorkDetails.jsx (cards), work.service.js (list), WorkPdfReport.jsx (PDF)
  *
+ * IMPORTANT: Must match WorkPdfReport.jsx logic EXACTLY.
+ *
  * @param {Array} items - work_items array
  * @returns {Object} calculated stats
  */
@@ -33,10 +35,28 @@ export function calculateWorkStats(items) {
     const uniqueEmployees = new Set()
     const groupedItems = {}
 
-    items.forEach(item => {
+    // First pass: mark isPazar on each item (same as PDF report line 88-97)
+    // This ensures sampleGunPrice filter correctly excludes Sunday items
+    const processedItems = items.map(item => {
         if (item.vehicle_id) uniqueVehicles.add(item.vehicle_id)
         if (item.employee_id) uniqueEmployees.add(item.employee_id)
 
+        const descUpper = (item.description || '').toUpperCase()
+        const dateObj = new Date(item.date)
+        const isSunday = dateObj.getDay() === 0
+        const isPazar = isSunday || descUpper.includes('PAZAR')
+
+        // Clone item and normalize description for Pazar detection
+        // (same as PDF: if it's Sunday but description doesn't say PAZAR, add [PAZAR])
+        let normalizedDesc = item.description || ''
+        if (isSunday && !descUpper.includes('PAZAR')) {
+            normalizedDesc = normalizedDesc ? `[PAZAR] ${normalizedDesc}` : '[PAZAR]'
+        }
+
+        return { ...item, isPazar, _normalizedDesc: normalizedDesc }
+    })
+
+    processedItems.forEach(item => {
         const key = item.vehicle_id || 'diger'
         if (!groupedItems[key]) {
             groupedItems[key] = {
@@ -54,10 +74,7 @@ export function calculateWorkStats(items) {
         const gunSayisi = Number(item.hours) || 0
         const mesaiSaatleri = Number(item.overtime_hours) || 0
         const travelPrice = Number(item.travel_price) || 0
-        const descUpper = (item.description || '').toUpperCase()
-        const dateObj = new Date(item.date)
-        const isSunday = dateObj.getDay() === 0
-        const isPazar = isSunday || descUpper.includes('PAZAR')
+        const descUpper = (item._normalizedDesc || '').toUpperCase()
         const isSaatlik = descUpper.includes('[SAATLİK]')
         const isAylik = descUpper.includes('[AYLIK]')
 
@@ -88,7 +105,7 @@ export function calculateWorkStats(items) {
             groupedItems[key].additions['Yol'].count += 1
         }
 
-        if (isPazar) {
+        if (item.isPazar) {
             groupedItems[key].totalPazar += gunSayisi
             totalPazarDayCount += gunSayisi
         } else if (isSaatlik) {
@@ -108,34 +125,31 @@ export function calculateWorkStats(items) {
     let totalEkOdemeler = 0
 
     Object.values(groupedItems).forEach(group => {
-        // sampleGunPrice: normal gün fiyatı (Pazar/Saatlik olmayan, gün sayısı > 0)
+        // sampleGunPrice: normal gün fiyatı
+        // Uses _normalizedDesc so Sunday items are correctly excluded via PAZAR keyword
         const sampleGunPrice = group.items.find(i =>
-            !(i.description || '').toUpperCase().includes('PAZAR') &&
-            !(i.description || '').toUpperCase().includes('[SAATLİK]') &&
+            !(i._normalizedDesc || '').toUpperCase().includes('PAZAR') &&
+            !(i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]') &&
             (Number(i.hours) > 0)
         )?.unit_price || 0
 
         const sampleSaatlikPrice = group.items.find(i =>
-            (i.description || '').toUpperCase().includes('[SAATLİK]')
+            (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
         )?.unit_price || 0
 
-        // Pazar fiyatı: ya explicit tanımlı ya da günlük × 1.5
-        let samplePazarPrice = group.items.find(i =>
-            (i.description || '').toUpperCase().includes('PAZAR')
-        )?.unit_price || 0
+        // Pazar fiyatı: Use isPazar flag (catches both description and date-based Sundays)
+        let samplePazarPrice = group.items.find(i => i.isPazar)?.unit_price || 0
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
             samplePazarPrice = sampleGunPrice * 1.5
         }
 
-        // Mesai fiyatı: ya explicit tanımlı ya da (günlük / 8) × 1.5
+        // Mesai fiyatı
         let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
             sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2))
         }
 
-        // Gün tutarı (Aylık ise 26 × günlük)
         const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
-
         const mesaiTutar = group.totalMesai * sampleMesaiPrice
         const pazarTutar = group.totalPazar * samplePazarPrice
         const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice
@@ -171,12 +185,4 @@ export function calculateWorkStats(items) {
         uniqueEmployees,
         itemCount: items.length
     }
-}
-
-/**
- * Node.js (CommonJS) compatible version for backend use.
- * Exact same logic as calculateWorkStats.
- */
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { calculateWorkStats }
 }

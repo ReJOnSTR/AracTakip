@@ -2,6 +2,8 @@
  * Shared work price calculation logic for Node.js (backend).
  * This is the SINGLE SOURCE OF TRUTH for total price calculations.
  * Mirrors: src/utils/workCalculations.js (frontend ESM version)
+ * 
+ * IMPORTANT: Must match WorkPdfReport.jsx logic EXACTLY.
  */
 
 function calculateWorkStats(items) {
@@ -27,7 +29,25 @@ function calculateWorkStats(items) {
 
     const groupedItems = {}
 
-    items.forEach(item => {
+    // First pass: mark isPazar on each item (same as PDF report line 88-97)
+    // This ensures sampleGunPrice filter correctly excludes Sunday items
+    const processedItems = items.map(item => {
+        const descUpper = (item.description || '').toUpperCase()
+        const dateObj = new Date(item.date)
+        const isSunday = dateObj.getDay() === 0
+        const isPazar = isSunday || descUpper.includes('PAZAR')
+        
+        // Clone item and normalize description for Pazar detection
+        // (same as PDF: if it's Sunday but description doesn't say PAZAR, add [PAZAR])
+        let normalizedDesc = item.description || ''
+        if (isSunday && !descUpper.includes('PAZAR')) {
+            normalizedDesc = normalizedDesc ? `[PAZAR] ${normalizedDesc}` : '[PAZAR]'
+        }
+        
+        return { ...item, isPazar, _normalizedDesc: normalizedDesc }
+    })
+
+    processedItems.forEach(item => {
         const key = item.vehicle_id || 'diger'
         if (!groupedItems[key]) {
             groupedItems[key] = {
@@ -45,10 +65,7 @@ function calculateWorkStats(items) {
         const gunSayisi = Number(item.hours) || 0
         const mesaiSaatleri = Number(item.overtime_hours) || 0
         const travelPrice = Number(item.travel_price) || 0
-        const descUpper = (item.description || '').toUpperCase()
-        const dateObj = new Date(item.date)
-        const isSunday = dateObj.getDay() === 0
-        const isPazar = isSunday || descUpper.includes('PAZAR')
+        const descUpper = (item._normalizedDesc || '').toUpperCase()
         const isSaatlik = descUpper.includes('[SAATLİK]')
         const isAylik = descUpper.includes('[AYLIK]')
 
@@ -79,7 +96,7 @@ function calculateWorkStats(items) {
             groupedItems[key].additions['Yol'].count += 1
         }
 
-        if (isPazar) {
+        if (item.isPazar) {
             groupedItems[key].totalPazar += gunSayisi
             totalPazarDayCount += gunSayisi
         } else if (isSaatlik) {
@@ -99,24 +116,25 @@ function calculateWorkStats(items) {
     let totalEkOdemeler = 0
 
     Object.values(groupedItems).forEach(group => {
-        // sampleGunPrice: normal gün fiyatı (Pazar/Saatlik olmayan, gün sayısı > 0)
+        // sampleGunPrice: normal gün fiyatı 
+        // Uses _normalizedDesc so Sunday items are correctly excluded via PAZAR keyword
         const sampleGunPrice = group.items.find(i =>
-            !(i.description || '').toUpperCase().includes('PAZAR') &&
-            !(i.description || '').toUpperCase().includes('[SAATLİK]') &&
+            !(i._normalizedDesc || '').toUpperCase().includes('PAZAR') &&
+            !(i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]') &&
             (Number(i.hours) > 0)
         )?.unit_price || 0
 
         const sampleSaatlikPrice = group.items.find(i =>
-            (i.description || '').toUpperCase().includes('[SAATLİK]')
+            (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
         )?.unit_price || 0
 
-        let samplePazarPrice = group.items.find(i =>
-            (i.description || '').toUpperCase().includes('PAZAR')
-        )?.unit_price || 0
+        // Pazar fiyatı: Use isPazar flag (catches both description and date-based Sundays)
+        let samplePazarPrice = group.items.find(i => i.isPazar)?.unit_price || 0
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
             samplePazarPrice = sampleGunPrice * 1.5
         }
 
+        // Mesai fiyatı
         let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
             sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2))

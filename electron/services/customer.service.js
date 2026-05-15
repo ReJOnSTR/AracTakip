@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../prismaClient')
+const { calculateWorkStats } = require('../utils/workCalculations')
 
 async function getCustomers(companyId, isArchived = 0) {
     try {
@@ -22,15 +23,21 @@ async function getCustomers(companyId, isArchived = 0) {
         // We might need to add customer_id to transactions later, or just calculate total work price for now and a basic collection from works if we had one.
         // Actually, we can sum the work_items total_price for balances right now.
         const formatted = customersList.map(c => {
-            const totalWorkReceivable = c.works.reduce((sum, w) => {
-                if (w.status === 'paid' || w.status === 'cancelled') return sum;
-                const workTotal = w.work_items.reduce((wSum, item) => wSum + (item.total_price || 0), 0)
-                return sum + workTotal
-            }, 0)
+            let totalWorkReceivable = 0
+            let totalVolume = 0
+
+            c.works.forEach(w => {
+                const stats = calculateWorkStats(w.work_items)
+                totalVolume += stats.grandTotal
+                if (w.status !== 'paid' && w.status !== 'cancelled') {
+                    totalWorkReceivable += stats.grandTotal
+                }
+            })
 
             return {
                 ...c,
                 total_receivable: totalWorkReceivable,
+                total_volume: totalVolume,
                 work_count: c.works.length
             }
         })
@@ -61,12 +68,6 @@ async function getCustomerDetails(id) {
 
         if (!customer) return { success: false, error: 'Müşteri bulunamadı' }
 
-        const totalWorkReceivable = customer.works.reduce((sum, w) => {
-            if (w.status === 'paid' || w.status === 'cancelled') return sum;
-            const workTotal = w.work_items.reduce((wSum, item) => wSum + (item.total_price || 0), 0)
-            return sum + workTotal
-        }, 0)
-
         // Enhance work details for display
         const enhancedWorks = customer.works.map(w => {
             const itemDates = w.work_items.filter(i => i.date).map(i => new Date(i.date).getTime());
@@ -83,14 +84,27 @@ async function getCustomerDetails(id) {
                 return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
             })).size;
 
+            // Use shared calculation (same as PDF report)
+            const workStats = calculateWorkStats(w.work_items)
+
             return {
                 ...w,
                 start_date: dynamicStart,
                 end_date: dynamicEnd,
                 total_days: uniqueDays > 0 ? uniqueDays : 0,
                 item_count: w.work_items.length,
-                total_hours: w.work_items.reduce((sum, i) => sum + (i.hours || 0), 0),
-                total_price: w.work_items.reduce((sum, i) => sum + (i.total_price || 0), 0)
+                total_hours: workStats.totalHours,
+                total_price: workStats.grandTotal
+            }
+        })
+
+        // Calculate totals from enhanced works (already computed via calculateWorkStats)
+        let totalWorkReceivable = 0
+        let totalVolume = 0
+        enhancedWorks.forEach(w => {
+            totalVolume += w.total_price
+            if (w.status !== 'paid' && w.status !== 'cancelled') {
+                totalWorkReceivable += w.total_price
             }
         })
 
@@ -106,7 +120,8 @@ async function getCustomerDetails(id) {
             data: {
                 ...customer,
                 works: enhancedWorks,
-                total_receivable: totalWorkReceivable
+                total_receivable: totalWorkReceivable,
+                total_volume: totalVolume
             }
         }
     } catch (error) {

@@ -242,7 +242,7 @@ export default function CustomerDetail() {
 
     const completedWorks = customer.works?.filter(w => w.status === 'completed' && w.is_archived !== 1) || []
     const pendingWorks = customer.works?.filter(w => w.status !== 'completed' && w.status !== 'cancelled' && w.status !== 'paid' && w.is_archived !== 1) || []
-    const totalEarnings = customer.works?.reduce((sum, w) => sum + (w.total_price || 0), 0) || 0
+    const totalEarnings = customer.total_volume || 0
 
     return (
         <div>

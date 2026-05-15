@@ -128,9 +128,10 @@ export default function Customers() {
     // Stats
     const stats = customers.reduce((acc, c) => {
         acc.totalReceivables += c.total_receivable || 0;
+        acc.totalVolume += c.total_volume || 0;
         acc.totalWorks += c.work_count || 0;
         return acc;
-    }, { totalReceivables: 0, totalWorks: 0 })
+    }, { totalReceivables: 0, totalVolume: 0, totalWorks: 0 })
 
     const columns = [
         {
@@ -162,9 +163,14 @@ export default function Customers() {
             render: (v) => <span className="badge badge-neutral">{v || 0} İş</span>
         },
         {
+            key: 'total_volume',
+            label: 'İşlem Hacmi',
+            render: (v) => <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(v || 0)}</span>
+        },
+        {
             key: 'total_receivable',
-            label: 'Toplam Bakiye',
-            render: (v) => <span className="font-semibold text-warning">{formatCurrency(v || 0)}</span>
+            label: 'Açık Bakiye',
+            render: (v) => <span className="font-semibold" style={{ color: v > 0 ? 'var(--danger)' : 'var(--success)' }}>{formatCurrency(v || 0)}</span>
         }
     ]
 
@@ -183,7 +189,7 @@ export default function Customers() {
             </div>
 
             {/* Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div className="stat-card">
                     <div className="stat-icon primary">
                         <Users />
@@ -207,8 +213,17 @@ export default function Customers() {
                         <DollarSign />
                     </div>
                     <div className="stat-content">
-                        <div className="stat-value text-warning">{formatCurrency(stats.totalReceivables)}</div>
-                        <div className="stat-label">Toplam Bakiye</div>
+                        <div className="stat-value">{formatCurrency(stats.totalVolume)}</div>
+                        <div className="stat-label">Toplam İşlem Hacmi</div>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className={`stat-icon ${stats.totalReceivables > 0 ? 'danger' : 'success'}`}>
+                        <DollarSign />
+                    </div>
+                    <div className="stat-content">
+                        <div className="stat-value" style={{ color: stats.totalReceivables > 0 ? 'var(--danger)' : 'var(--success)' }}>{formatCurrency(stats.totalReceivables)}</div>
+                        <div className="stat-label">Açık Bakiye</div>
                     </div>
                 </div>
             </div>
