@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react' // Re-saved for sync
+import { useState, useEffect, useMemo } from 'react' // Re-saved for sync
 import { useParams, useNavigate, Link } from 'react-router-dom' // Even though we use tabs, we might get ID from props
 import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
@@ -627,95 +627,116 @@ export default function WorkDetails(props) {
     const handlePrintReport = () => {
         window.print()
     }
+    const [filteredItems, setFilteredItems] = useState([])
 
-    // --- Calculations ---
+    // Update filtered items when work.items changes
+    useEffect(() => {
+        if (work?.items) {
+            setFilteredItems(work.items)
+        }
+    }, [work?.items])
 
-    const totalHours = work?.items?.reduce((sum, item) => sum + (item.hours || 0), 0) || 0
-    const totalOvertime = work?.items?.reduce((sum, item) => sum + (item.overtime_hours || 0), 0) || 0
+    // --- Calculations based on filtered items ---
+    const stats = useMemo(() => {
+        const items = filteredItems.length > 0 ? filteredItems : (work?.items || [])
+        
+        let totalHours = 0
+        let totalOvertime = 0 // Normal day overtime
+        let totalPazarOvertime = 0 // Sunday overtime
+        let totalPazarDayCount = 0
+        let totalEkOdemeler = 0
+        let grandTotal = 0
+        
+        const uniqueVehicles = new Set()
+        const uniqueEmployees = new Set()
+        const groupedItems = {}
 
-    // Reliable total calculation for Extra Payments
-    const totalEkOdemeler = work?.items?.reduce((sum, item) => sum + (Number(item.travel_price) || 0), 0) || 0;
+        items.forEach(item => {
+            if (item.vehicle_id) uniqueVehicles.add(item.vehicle_id)
+            if (item.employee_id) uniqueEmployees.add(item.employee_id)
 
-    // Replicate PDF calculation logic to guarantee "Toplam Tutar" matches exactly.
-    let grandTotal = 0;
-    let totalMesaiPriceAmount = 0;
-    let totalPazarPriceAmount = 0;
-    let totalPazarDayCount = 0;
-    let totalGunTutar = 0;
-    let totalSaatlikTutar = 0;
-
-    const uniqueVehicles = new Set();
-    const uniqueEmployees = new Set();
-
-    if (work?.items) {
-        const groupedItems = {};
-        work.items.forEach(item => {
-            if (item.vehicle_id) uniqueVehicles.add(item.vehicle_id);
-            if (item.employee_id) uniqueEmployees.add(item.employee_id);
-
-            const key = item.vehicle_id || 'diger';
+            const key = item.vehicle_id || 'diger'
             if (!groupedItems[key]) {
-                groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false };
+                groupedItems[key] = { items: [], totalGun: 0, totalPazar: 0, totalSaatlik: 0, totalMesai: 0, isAylik: false }
             }
-            groupedItems[key].items.push(item);
+            groupedItems[key].items.push(item)
 
-            const gunSayisi = Number(item.hours) || 0;
-            const descUpper = (item.description || '').toUpperCase();
-            const dateObj = new Date(item.date);
-            const isPazar = dateObj.getDay() === 0 || descUpper.includes('PAZAR');
-            const isSaatlik = descUpper.includes('[SAATLİK]');
-            const isAylik = descUpper.includes('[AYLIK]');
+            const gunSayisi = Number(item.hours) || 0
+            const mesaiSaatleri = Number(item.overtime_hours) || 0
+            const descUpper = (item.description || '').toUpperCase()
+            const dateObj = new Date(item.date)
+            const isPazar = dateObj.getDay() === 0 || descUpper.includes('PAZAR')
+            const isSaatlik = descUpper.includes('[SAATLİK]')
+            const isAylik = descUpper.includes('[AYLIK]')
 
-            if (isAylik) groupedItems[key].isAylik = true;
+            if (isAylik) groupedItems[key].isAylik = true
+            
+            // Increment base hours
+            totalHours += gunSayisi
+            totalEkOdemeler += (Number(item.travel_price) || 0)
 
-            if (isPazar) groupedItems[key].totalPazar += gunSayisi;
-            else if (isSaatlik) groupedItems[key].totalSaatlik += gunSayisi;
-            else groupedItems[key].totalGun += gunSayisi;
+            if (isPazar) {
+                groupedItems[key].totalPazar += gunSayisi
+                totalPazarDayCount += gunSayisi
+                totalPazarOvertime += mesaiSaatleri
+            } else {
+                if (isSaatlik) groupedItems[key].totalSaatlik += gunSayisi
+                else groupedItems[key].totalGun += gunSayisi
+                totalOvertime += mesaiSaatleri
+            }
 
-            groupedItems[key].totalMesai += (Number(item.overtime_hours) || 0);
-        });
+            groupedItems[key].totalMesai += mesaiSaatleri
+        })
+
+        let totalMesaiPriceAmount = 0
+        let totalPazarPriceAmount = 0
 
         Object.values(groupedItems).forEach(group => {
-            const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-            const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
-            let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
-            if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5;
-            let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
-            if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
+            const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('YOL') && !(i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0
+            let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0
+            if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) samplePazarPrice = sampleGunPrice * 1.5
+            let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0
+            if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2))
 
-            let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice);
+            let cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
             
-            const mesaiTutar = group.totalMesai * sampleMesaiPrice;
-            const pazarTutar = group.totalPazar * samplePazarPrice;
-            const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice;
+            const mesaiTutar = group.totalMesai * sampleMesaiPrice
+            const pazarTutar = group.totalPazar * samplePazarPrice
+            const saatlikTutar = group.totalSaatlik * (group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0)
             
-            totalMesaiPriceAmount += mesaiTutar;
-            totalPazarPriceAmount += pazarTutar;
-            totalPazarDayCount += group.totalPazar;
-            totalGunTutar += cg;
-            totalSaatlikTutar += saatlikTutar;
+            totalMesaiPriceAmount += mesaiTutar
+            totalPazarPriceAmount += pazarTutar
+            grandTotal += cg + pazarTutar + saatlikTutar + mesaiTutar
+        })
 
-            // Grand Total should exactly match the old calculation + Ek Ödemeler logic
-            // Since we use totalEkOdemeler from travel_price across all items instead of yolTutar, we add it OUTSIDE the group loop.
-            // Wait, we need to add the group-specific stuff here.
-            grandTotal += cg + pazarTutar + saatlikTutar + mesaiTutar;
-        });
+        grandTotal += totalEkOdemeler
 
-        grandTotal += totalEkOdemeler;
-    }
-
-    // Get dynamic date range from work items
-    const getDynamicDateRange = () => {
-        if (!work?.items || work.items.length === 0) {
-            return `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`;
+        // Date range from filtered items
+        let dateRangeText = `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`
+        if (items.length > 0) {
+            const dates = items.filter(item => item.date).map(item => new Date(item.date).getTime())
+            if (dates.length > 0) {
+                const minDate = new Date(Math.min(...dates))
+                const maxDate = new Date(Math.max(...dates))
+                dateRangeText = `${formatDate(minDate)} - ${formatDate(maxDate)}`
+            }
         }
-        const dates = work.items.filter(item => item.date).map(item => new Date(item.date).getTime());
-        if (dates.length === 0) return `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`;
 
-        const minDate = new Date(Math.min(...dates));
-        const maxDate = new Date(Math.max(...dates));
-        return `${formatDate(minDate)} - ${formatDate(maxDate)}`;
-    }
+        return {
+            totalHours,
+            totalOvertime,
+            totalPazarOvertime,
+            totalPazarDayCount,
+            totalEkOdemeler,
+            grandTotal,
+            totalMesaiPriceAmount,
+            totalPazarPriceAmount,
+            uniqueVehicles,
+            uniqueEmployees,
+            dateRangeText,
+            itemCount: items.length
+        }
+    }, [filteredItems, work])
 
     if (loading) return <div className="p-8 text-center">Yükleniyor...</div>
     if (!work) return <div className="p-8 text-center">İş bulunamadı.</div>
@@ -741,7 +762,7 @@ export default function WorkDetails(props) {
                                 )}
                             </span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Calendar size={14} /> {getDynamicDateRange()}
+                                <Calendar size={14} /> {stats.dateRangeText}
                             </span>
                             <span className={`badge badge-${getStatusColor(work.status)}`}>
                                 {work.status === 'pending' ? 'Bekliyor' :
@@ -767,8 +788,8 @@ export default function WorkDetails(props) {
                             <DollarSign size={16} className="text-success" />
                             Genel Toplam Tutar
                         </div>
-                        <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }} title={formatCurrency(grandTotal)}>
-                            {formatCurrency(grandTotal)}
+                        <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }} title={formatCurrency(stats.grandTotal)}>
+                            {formatCurrency(stats.grandTotal)}
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>Tüm mesai, pazar ve ek ödemeler dahil</div>
                     </div>
@@ -778,13 +799,13 @@ export default function WorkDetails(props) {
                             <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <Clock size={14} className="text-warning" /> Mesai & Pazar
                             </span>
-                            <span style={{ fontSize: '14px', color: 'var(--warning)', fontWeight: 700 }}>{formatCurrency(totalMesaiPriceAmount + totalPazarPriceAmount)}</span>
+                            <span style={{ fontSize: '14px', color: 'var(--warning)', fontWeight: 700 }}>{formatCurrency(stats.totalMesaiPriceAmount + stats.totalPazarPriceAmount)}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-sm)' }}>
                             <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <Wallet size={14} style={{ color: '#8b5cf6' }} /> Ek Ödemeler
                             </span>
-                            <span style={{ fontSize: '14px', color: '#8b5cf6', fontWeight: 700 }}>{formatCurrency(totalEkOdemeler)}</span>
+                            <span style={{ fontSize: '14px', color: '#8b5cf6', fontWeight: 700 }}>{formatCurrency(stats.totalEkOdemeler)}</span>
                         </div>
                     </div>
                 </div>
@@ -796,7 +817,7 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
                             <FileText size={14} className="text-info" /> Toplam Kayıt
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{work.items.length} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Adet</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.itemCount} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Adet</span></div>
                     </div>
 
                     {/* Aktif Araç */}
@@ -804,7 +825,7 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
                             <Truck size={14} className="text-info" /> Aktif Araç
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{uniqueVehicles.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Araç</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.uniqueVehicles.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Araç</span></div>
                     </div>
 
                     {/* Personel */}
@@ -812,7 +833,7 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
                             <User size={14} className="text-info" /> Personel
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{uniqueEmployees.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Kişi</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.uniqueEmployees.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Kişi</span></div>
                     </div>
 
                     {/* Toplam Gün */}
@@ -820,7 +841,7 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
                             <Calendar size={14} className="text-success" /> Toplam Gün
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{totalHours} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.totalHours} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
                     </div>
 
                     {/* Normal Mesai */}
@@ -828,7 +849,7 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
                             <Clock size={14} className="text-warning" /> Normal Mesai
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{totalOvertime} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Saat</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.totalOvertime} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Saat</span></div>
                     </div>
 
                     {/* Pazar Mesai */}
@@ -836,7 +857,7 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
                             <Calendar size={14} className="text-danger" /> Pazar Mesai
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{totalPazarDayCount} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.totalPazarDayCount} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
                     </div>
                 </div>
             </div>
@@ -938,6 +959,7 @@ export default function WorkDetails(props) {
                     </div>
                 )}
                 onBulkDelete={handleBulkDelete}
+                onFilteredDataChange={setFilteredItems}
                 rowClassName={(row) => row.date && new Date(row.date).getDay() === 0 ? 'pazar-row' : ''}
             />
 
