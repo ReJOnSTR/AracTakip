@@ -21,7 +21,14 @@ export default function Settings() {
         autoBackup: false,
         frequency: 'daily',
         backupPath: '',
-        lastBackup: {}
+        lastBackup: {},
+        arvento: {
+            enabled: false,
+            username: '',
+            pin1: '',
+            pin2: '',
+            language: 'tr'
+        }
     })
 
     const [appVersion, setAppVersion] = useState('1.0.0')
@@ -42,6 +49,25 @@ export default function Settings() {
         employee_document: localStorage.getItem('notify_employee_document') !== 'false',
         finance_check: localStorage.getItem('notify_finance_check') !== 'false'
     })
+
+    const [testingConnection, setTestingConnection] = useState(false)
+    const [connectionTestResult, setConnectionTestResult] = useState(null)
+
+    const testArventoConnection = async () => {
+        setTestingConnection(true)
+        setConnectionTestResult(null)
+        try {
+            const result = await window.electronAPI.arventoTestConnection(settings.arvento)
+            if (result.success) {
+                setConnectionTestResult({ success: true, message: 'Bağlantı başarılı!' })
+            } else {
+                setConnectionTestResult({ success: false, message: `Bağlantı başarısız: ${result.error || 'Geçersiz kimlik bilgileri'}` })
+            }
+        } catch (error) {
+            setConnectionTestResult({ success: false, message: `Hata: ${error.message}` })
+        }
+        setTestingConnection(false)
+    }
 
     const handleLockSettingChange = (key, value) => {
         const newLockSettings = { ...lockSettings, [key]: value }
@@ -84,7 +110,10 @@ export default function Settings() {
 
     const loadSettings = async () => {
         const data = await window.electronAPI.getSettings()
-        setSettings(data)
+        setSettings({
+            ...data,
+            arvento: data.arvento || { enabled: false, username: '', pin1: '', pin2: '', language: 'tr' }
+        })
     }
 
     const loadAppVersion = async () => {
@@ -96,6 +125,20 @@ export default function Settings() {
         const newSettings = {
             ...settings,
             [key]: value,
+            userId: user?.id
+        }
+        setSettings(newSettings)
+        await window.electronAPI.saveSettings(newSettings)
+    }
+
+    const handleArventoChange = async (key, value) => {
+        const newArvento = {
+            ...settings.arvento,
+            [key]: value
+        }
+        const newSettings = {
+            ...settings,
+            arvento: newArvento,
             userId: user?.id
         }
         setSettings(newSettings)
@@ -204,6 +247,7 @@ export default function Settings() {
         { id: 'security', label: 'Güvenlik', icon: <Shield size={18} /> },
         { id: 'notifications', label: 'Bildirimler', icon: <Bell size={18} /> },
         { id: 'data', label: 'Veri Yönetimi', icon: <Database size={18} /> },
+        { id: 'arvento', label: 'Arvento Entegrasyonu', icon: <Globe size={18} /> },
     ]
 
     return (
@@ -633,6 +677,111 @@ export default function Settings() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'arvento' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <h2 className="settings-card-title"><Globe size={20} className="text-primary" style={{ verticalAlign: 'middle', marginRight: '8px' }} /> Arvento Entegrasyonu</h2>
+                                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                                    Arvento API hizmetini kullanarak araçlarınızın konum, hız ve alarm bilgilerini sisteme aktarın.
+                                </p>
+
+                                <div className="settings-list">
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Entegrasyonu Etkinleştir</div>
+                                            <div className="settings-item-desc">Arvento servisinin arka planda çalışmasını sağlar.</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={settings.arvento?.enabled || false} 
+                                                onChange={(e) => handleArventoChange('enabled', e.target.checked)} 
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    {settings.arvento?.enabled && (
+                                        <div style={{ 
+                                            marginTop: '20px', 
+                                            background: 'rgba(0, 0, 0, 0.02)', 
+                                            padding: '24px', 
+                                            borderRadius: '16px',
+                                            border: '1px solid var(--border-color)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '20px'
+                                        }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-input" 
+                                                        value={settings.arvento?.username || ''} 
+                                                        onChange={(e) => handleArventoChange('username', e.target.value)}
+                                                        placeholder="Arvento kullanıcı adınız"
+                                                    />
+                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>Kullanıcı Adı</label>
+                                                </div>
+
+                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-input" 
+                                                        value={settings.arvento?.language || 'tr'} 
+                                                        onChange={(e) => handleArventoChange('language', e.target.value)}
+                                                        placeholder="Örn: tr, en"
+                                                    />
+                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>Dil Kodu</label>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
+                                                    <input 
+                                                        type="password" 
+                                                        className="form-input" 
+                                                        value={settings.arvento?.pin1 || ''} 
+                                                        onChange={(e) => handleArventoChange('pin1', e.target.value)}
+                                                        placeholder="PIN 1 kodu"
+                                                    />
+                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>PIN 1</label>
+                                                </div>
+
+                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
+                                                    <input 
+                                                        type="password" 
+                                                        className="form-input" 
+                                                        value={settings.arvento?.pin2 || ''} 
+                                                        onChange={(e) => handleArventoChange('pin2', e.target.value)}
+                                                        placeholder="PIN 2 kodu"
+                                                    />
+                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>PIN 2</label>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+                                                <button 
+                                                    className="btn btn-secondary" 
+                                                    onClick={testArventoConnection}
+                                                    disabled={testingConnection || !settings.arvento?.username || !settings.arvento?.pin1}
+                                                >
+                                                    {testingConnection ? 'Bağlantı Test Ediliyor...' : 'Bağlantıyı Test Et'}
+                                                </button>
+                                                
+                                                {connectionTestResult && (
+                                                    <span className={connectionTestResult.success ? 'text-success' : 'text-danger'} style={{ fontSize: '13px', fontWeight: 500 }}>
+                                                        {connectionTestResult.message}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}

@@ -1188,6 +1188,26 @@ ipcMain.handle('settings:save', (event, newSettings) => {
     return saveSettings(newSettings)
 })
 
+// Arvento API Handlers
+ipcMain.handle('arvento:testConnection', async (event, credentials) => {
+    return await db.testArventoConnection(credentials)
+})
+ipcMain.handle('arvento:getStatus', async () => {
+    return await db.getArventoVehicleStatus()
+})
+ipcMain.handle('arvento:getMappings', async () => {
+    return await db.getArventoLicensePlateNodeMappings()
+})
+ipcMain.handle('arvento:getInfo', async () => {
+    return await db.getArventoVehicleInfo()
+})
+ipcMain.handle('arvento:getDailyReport', async (event, date) => {
+    return await db.getArventoVehicleDailyStatus(date)
+})
+ipcMain.handle('arvento:getAlarms', async () => {
+    return await db.getArventoAlarms()
+})
+
 // Personnel Settings
 ipcMain.handle('settings:getDepartments', async (event, companyId) => db.getDepartments(companyId))
 ipcMain.handle('settings:createDepartment', async (event, data) => {

@@ -28,6 +28,7 @@ const Checks = lazy(() => import('./pages/Checks'))
 const Companies = lazy(() => import('./pages/Companies'))
 const Vehicles = lazy(() => import('./pages/Vehicles'))
 const VehicleDetail = lazy(() => import('./pages/VehicleDetail'))
+const ArventoTracking = lazy(() => import('./pages/ArventoTracking'))
 const Maintenance = lazy(() => import('./pages/Maintenance'))
 const Inspections = lazy(() => import('./pages/Inspections'))
 const PeriodicInspections = lazy(() => import('./pages/PeriodicInspections'))
@@ -148,6 +149,7 @@ function AppRoutes() {
                         <Route path="/companies" element={<Companies />} />
                         <Route path="/vehicles" element={<Vehicles />} />
                         <Route path="/vehicles/:id" element={<VehicleDetail />} />
+                        <Route path="/arvento-tracking" element={<ArventoTracking />} />
                         <Route path="/maintenance" element={<Maintenance />} />
                         <Route path="/inspections" element={<Inspections />} />
                         <Route path="/periodic-inspections" element={<PeriodicInspections />} />

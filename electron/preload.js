@@ -228,4 +228,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // System actions
     saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
     saveReportPdf: (route) => ipcRenderer.invoke('save-report-pdf', route),
+
+    // Arvento API
+    arventoTestConnection: (credentials) => ipcRenderer.invoke('arvento:testConnection', credentials),
+    arventoGetStatus: () => ipcRenderer.invoke('arvento:getStatus'),
+    arventoGetMappings: () => ipcRenderer.invoke('arvento:getMappings'),
+    arventoGetInfo: () => ipcRenderer.invoke('arvento:getInfo'),
+    arventoGetDailyReport: (date) => ipcRenderer.invoke('arvento:getDailyReport', date),
+    arventoGetAlarms: () => ipcRenderer.invoke('arvento:getAlarms'),
 })

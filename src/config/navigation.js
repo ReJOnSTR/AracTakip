@@ -20,7 +20,8 @@ import {
     Building2,
     User,
     Calendar,
-    Clock
+    Clock,
+    Globe
 } from 'lucide-react'
 
 // Define menus per module
@@ -36,7 +37,8 @@ export const moduleMenus = {
         {
             title: 'Araç Yönetimi',
             items: [
-                { path: '/vehicles', icon: Car, label: 'Araçlar' }
+                { path: '/vehicles', icon: Car, label: 'Araçlar' },
+                { path: '/arvento-tracking', icon: Globe, label: 'Araç Takip (Arvento)' }
             ]
         },
         {
@@ -200,6 +202,7 @@ export const getRouteInfo = (path) => {
 
     // Fallback for detail pages
     if (path.startsWith('/vehicles/')) return { label: 'Araç Detay', icon: Car }
+    if (path === '/arvento-tracking') return { label: 'Araç Takip', icon: Globe }
     if (path === '/personel-dashboard') return { label: 'Personel Dashboard', icon: LayoutDashboard }
     if (path.startsWith('/employees/')) return { label: 'Personel Detay', icon: Users }
     if (path === '/payroll') return { label: 'Maaş & Ödeme Tablosu', icon: Banknote }

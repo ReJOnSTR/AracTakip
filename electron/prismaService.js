@@ -8,6 +8,7 @@ const financeService = require('./services/finance.service');
 const settingsService = require('./services/settings.service');
 const documentService = require('./services/document.service');
 const backupService = require('./services/backup.service');
+const arventoService = require('./services/arvento.service');
 
 module.exports = {
     // Auth
@@ -43,5 +44,8 @@ module.exports = {
     ...require('./services/customer.service'),
 
     // Personnel Settings (Departments, Leaves, Doc Categories)
-    ...require('./services/personnelSettings.service')
+    ...require('./services/personnelSettings.service'),
+
+    // Arvento Tracking API
+    ...arventoService
 };
