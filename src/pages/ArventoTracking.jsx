@@ -234,6 +234,7 @@ export default function ArventoTracking() {
                 mapInstance.current.remove()
                 mapInstance.current = null
             }
+            markersRef.current = {}
         }
     }, [leafletLoaded, activeTab])
 
@@ -417,7 +418,7 @@ export default function ArventoTracking() {
                 delete markersRef.current[plate]
             }
         })
-    }, [vehicles, leafletLoaded])
+    }, [vehicles, leafletLoaded, activeTab])
 
     // Pan to vehicle on selection
     const handleSelectVehicle = (v) => {
@@ -977,7 +978,7 @@ export default function ArventoTracking() {
                                     )}
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                        <span>Konum: {selectedVehicle.lat.toFixed(6)}, {selectedVehicle.lng.toFixed(6)}</span>
+                                        <span>Konum: {selectedVehicle.lat?.toFixed(6) || '0.000000'}, {selectedVehicle.lng?.toFixed(6) || '0.000000'}</span>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Info size={12} /> Harita OpenStreetMap tabanlıdır.
                                         </span>
