@@ -29,6 +29,28 @@ function formatAlarmDate(gmtDateStr) {
     return gmtDateStr
 }
 
+function translateAlarmType(type) {
+    if (!type) return 'Sistem Alarmı'
+    const translations = {
+        'Accident Possibility': 'Kaza İhtimali / Sert Fren',
+        'Map Speed Alarm': 'Harita Hız Sınırı Aşımı',
+        'Speed Alarm': 'Hız Sınırı Aşımı',
+        'Idle Alarm': 'Gereksiz Rölanti',
+        'Sudden Acceleration': 'Ani Hızlanma',
+        'Sudden Deceleration': 'Ani Fren / Sert Yavaşlama',
+        'GeoFence Violation': 'Güvenli Bölge İhlali',
+        'Route Violation': 'Güzergah İhlali',
+        'Ignition Alarm': 'Kontak Alarmı',
+        'Power Cut': 'Cihaz Güç Kesintisi',
+        'Low Battery': 'Cihaz Düşük Batarya',
+        'Emergency Button': 'Acil SOS Butonu',
+        'Towing Alarm': 'Çekilme/Çekici Alarmı',
+        'GPS Signal Cut': 'GPS Sinyal Kesintisi',
+        'No Communication': 'Haberleşme Kesintisi'
+    }
+    return translations[type] || type
+}
+
 export default function ArventoTracking() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
@@ -300,7 +322,7 @@ export default function ArventoTracking() {
                     // Determine if vehicle has active alarms in alarms list
                     const vehicleAlarms = alarmsList
                         .filter(a => a.DeviceNo === item.Node)
-                        .map(a => a.AlarmType)
+                        .map(a => translateAlarmType(a.AlarmType))
 
                     return {
                         plate: plateClean,
@@ -1076,7 +1098,7 @@ export default function ArventoTracking() {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                 <AlertTriangle size={24} style={{ color: 'var(--warning)' }} />
                                                 <div>
-                                                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{plateClean} - {alarm.AlarmType || 'Sistem Alarmı'}</h4>
+                                                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{plateClean} - {translateAlarmType(alarm.AlarmType)}</h4>
                                                     <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                                                         {alarm.Address || 'Detay açıklaması sağlanmadı.'}
                                                     </p>
