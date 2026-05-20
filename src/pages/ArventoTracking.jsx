@@ -620,13 +620,13 @@ export default function ArventoTracking() {
                                         <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Eşleşen araç bulunamadı.</span>
                                     </div>
                                 ) : (
-                                    filteredVehicles.map(v => {
+                                    filteredVehicles.map((v, idx) => {
                                         const isSelected = selectedVehicle?.plate === v.plate
                                         const hasAlarm = v.alarms && v.alarms.length > 0
                                         
                                         return (
                                             <div 
-                                                key={v.plate}
+                                                key={`${v.plate}-${idx}`}
                                                 style={{ 
                                                     padding: '12px', 
                                                     borderRadius: '12px', 
