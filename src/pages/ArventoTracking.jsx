@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
+import DataTable from '../components/DataTable'
 import { 
     Search, MapPin, Navigation, AlertTriangle, RefreshCw, 
     Calendar, List, ShieldAlert, CheckCircle2, XCircle, Info, Car, Loader2
@@ -80,6 +81,75 @@ export default function ArventoTracking() {
             try {
                 document.head.removeChild(link)
                 document.body.removeChild(script)
+            } catch (e) {}
+        }
+    }, [])
+
+    // Inject custom styling for Leaflet markers
+    useEffect(() => {
+        const style = document.createElement('style')
+        style.type = 'text/css'
+        style.innerHTML = `
+            @keyframes markerPulse {
+                0% { transform: scale(0.6); opacity: 1; }
+                100% { transform: scale(1.6); opacity: 0; }
+            }
+            .custom-vehicle-marker {
+                background: transparent !important;
+                border: none !important;
+            }
+            .plate-badge-container {
+                background: rgba(15, 23, 42, 0.95);
+                color: #f8fafc;
+                padding: 3px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+                border: 1px solid rgba(255,255,255,0.15);
+                white-space: nowrap;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                margin-bottom: 6px;
+                text-align: center;
+                letter-spacing: 0.5px;
+            }
+            .marker-pin-wrapper {
+                position: relative;
+                width: 40px;
+                height: 40px;
+                background: #ffffff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                transition: all 0.3s ease;
+            }
+            .marker-direction-arrow {
+                width: 26px;
+                height: 26px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.4s ease;
+            }
+            .marker-pulse-ring {
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+                border-radius: 50%;
+                opacity: 0;
+                pointer-events: none;
+            }
+            .marker-pulse-active {
+                animation: markerPulse 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            }
+        `
+        document.head.appendChild(style)
+        return () => {
+            try {
+                document.head.removeChild(style)
             } catch (e) {}
         }
     }, [])
@@ -283,22 +353,32 @@ export default function ArventoTracking() {
             if (!v.lat || !v.lng) return
 
             // Determine Pin Color
-            let pinColor = '#22c55e' // Green for moving
+            let pinColor = '#10b981' // Green for moving
             if (v.alarms && v.alarms.length > 0) {
-                pinColor = '#f97316' // Orange for alarms
+                pinColor = '#f59e0b' // Amber/orange for alarms
             } else if (!v.ignition) {
                 pinColor = '#ef4444' // Red for stopped
             }
 
             // Creating SVG DivIcon for premium custom design
             const svgIcon = `
-                <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-                    <div style="position: absolute; width: 12px; height: 12px; border-radius: 50%; background: ${pinColor}; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3); z-index: 2;"></div>
-                    <div style="position: absolute; width: 36px; height: 36px; border-radius: 50%; background: ${pinColor}; opacity: 0.2; transform: scale(${v.ignition && v.speed > 0 ? 1 : 0}); transition: transform 0.5s ease-out; animation: pulse 2s infinite;"></div>
-                    <div style="transform: rotate(${v.heading}deg); z-index: 1;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="${pinColor}" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-                        </svg>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100px; height: 80px;">
+                    <!-- Plate Badge -->
+                    <div class="plate-badge-container">
+                        ${v.plate}
+                    </div>
+                    <!-- Marker Circle -->
+                    <div class="marker-pin-wrapper" style="border: 3.5px solid ${pinColor};">
+                        <!-- Direction Arrow inside -->
+                        <div class="marker-direction-arrow" style="transform: rotate(${v.heading}deg);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="${pinColor}" />
+                            </svg>
+                        </div>
+                        <!-- Pulse Rings if ignition is active -->
+                        ${(v.ignition && v.speed > 0) ? `
+                        <div class="marker-pulse-ring marker-pulse-active" style="border: 3px solid ${pinColor};"></div>
+                        ` : ''}
                     </div>
                 </div>
             `
@@ -306,8 +386,8 @@ export default function ArventoTracking() {
             const icon = L.divIcon({
                 html: svgIcon,
                 className: 'custom-vehicle-marker',
-                iconSize: [36, 36],
-                iconAnchor: [18, 18]
+                iconSize: [100, 80],
+                iconAnchor: [50, 60] // Centered horizontally (100/2=50), and vertically aligned at the center of the pin
             })
 
             if (markersRef.current[v.plate]) {
@@ -379,6 +459,122 @@ export default function ArventoTracking() {
             fetchDailyReports()
         }
     }, [activeTab, dailyReportDate])
+
+    // Columns definition for the premium DataTable
+    const dailyReportColumns = useMemo(() => [
+        { 
+            key: 'plate', 
+            label: 'Araç Plakası', 
+            sortable: true,
+            render: (value) => <span style={{ fontWeight: 700 }}>{value}</span>
+        },
+        { key: 'deviceNo', label: 'Cihaz No', sortable: true },
+        { key: 'brand', label: 'Marka', sortable: true },
+        { key: 'model', label: 'Model/Yıl', sortable: true },
+        { 
+            key: 'distance', 
+            label: 'Katettiği Toplam Yol', 
+            sortable: true,
+            render: (value) => `${parseFloat(value || 0).toFixed(2)} km`
+        },
+        { 
+            key: 'speed', 
+            label: 'Ulaştığı Max Hız', 
+            sortable: true,
+            render: (value) => `${parseInt(value || 0)} km/h`
+        },
+        { 
+            key: 'location', 
+            label: 'Son Koordinat', 
+            sortable: true,
+            render: (value, row) => {
+                if (!value || value === 'Veri Yok') return <span style={{ color: 'var(--text-muted)' }}>Veri Yok</span>
+                return (
+                    <span 
+                        style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            const cleanPlate = row.plate
+                            const vehicleData = {
+                                plate: row.plate,
+                                brand: row.brand,
+                                model: row.model,
+                                driver: 'Bilinmiyor',
+                                lat: row.rawLocation ? row.rawLocation[0] : 0,
+                                lng: row.rawLocation ? row.rawLocation[1] : 0,
+                                speed: row.speed,
+                                ignition: false,
+                                heading: 0,
+                                gpsDate: 'Son Raporlanan Konum',
+                                alarms: []
+                            }
+                            
+                            setSelectedVehicle(vehicleData)
+                            setActiveTab('live')
+                            
+                            setTimeout(() => {
+                                if (mapInstance.current && vehicleData.lat && vehicleData.lng) {
+                                    mapInstance.current.setView([vehicleData.lat, vehicleData.lng], 16)
+                                }
+                            }, 300)
+                        }}
+                    >
+                        {value}
+                    </span>
+                )
+            }
+        }
+    ], [mappings])
+
+    // Merge report data to display ALL vehicles from mappings
+    const combinedDailyReports = useMemo(() => {
+        const reportMap = {}
+        dailyReports.forEach(r => {
+            const rawPlate = r.licensePlate || r.Plate || r.plate || ''
+            if (rawPlate) {
+                const clean = rawPlate.split('-')[0].trim().replace(/\s+/g, '').toUpperCase()
+                reportMap[clean] = r
+            }
+        })
+
+        return mappings.map((mapping, idx) => {
+            const plateFull = mapping['License Plate'] || ''
+            const plateClean = plateFull.split('-')[0].trim()
+            const cleanKey = plateClean.replace(/\s+/g, '').toUpperCase()
+            const deviceNo = mapping['Device No'] || ''
+
+            const report = reportMap[cleanKey]
+            
+            let distanceVal = 0.0
+            if (report && report.DailyTrip !== undefined) {
+                distanceVal = parseFloat(report.DailyTrip)
+            } else if (report && (report.TotalDistance || report.totalDistance)) {
+                distanceVal = parseFloat(report.TotalDistance || report.totalDistance || 0)
+            }
+            
+            let maxSpeedVal = 0
+            if (report && report.Speed !== undefined) {
+                maxSpeedVal = parseInt(report.Speed)
+            } else if (report && (report.MaxSpeed || report.maxSpeed)) {
+                maxSpeedVal = parseInt(report.MaxSpeed || report.maxSpeed || 0)
+            }
+
+            const latVal = report ? parseFloat(report.LatitudeY || report.Latitude || 0) : 0
+            const lngVal = report ? parseFloat(report.LongitudeX || report.Longitude || 0) : 0
+
+            return {
+                id: deviceNo || `v-${idx}-${plateClean}`,
+                plate: plateClean,
+                deviceNo,
+                brand: mapping['Vehicle Brand'] || 'Bilinmiyor',
+                model: mapping['Vehicle Model (Year)'] || 'Belirtilmedi',
+                distance: distanceVal,
+                speed: maxSpeedVal,
+                location: latVal && lngVal ? `${latVal.toFixed(6)}, ${lngVal.toFixed(6)}` : 'Veri Yok',
+                rawLocation: latVal && lngVal ? [latVal, lngVal] : null
+            }
+        })
+    }, [mappings, dailyReports])
 
     if (settings && (!settings.arvento?.enabled || !settings.arvento?.username)) {
         return (
@@ -807,8 +1003,8 @@ export default function ArventoTracking() {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Günlük Çalışma & Mesafe Raporu</h2>
-                                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Araçların seçilen gündeki toplam çalışma süresi ve mesafe bilgileri.</p>
+                                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Günlük Mesafe Raporu</h2>
+                                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Araçların seçilen gündeki toplam katettikleri mesafe ve ulaştıkları maksimum hız bilgileri.</p>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <span style={{ fontSize: '14px', fontWeight: 500 }}>Tarih:</span>
@@ -818,61 +1014,21 @@ export default function ArventoTracking() {
                                     value={dailyReportDate}
                                     onChange={(e) => setDailyReportDate(e.target.value)}
                                     style={{ width: '180px', height: '36px' }}
+                                    max={new Date().toISOString().split('T')[0]} // prevent future dates
                                 />
                             </div>
                         </div>
 
-                        <div className="table-responsive" style={{ border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
-                            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                                <thead>
-                                    <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
-                                        <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 700 }}>Araç Plakası</th>
-                                        <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 700 }}>Katettiği Toplam Yol</th>
-                                        <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 700 }}>Toplam Kontak Süresi</th>
-                                        <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 700 }}>Ulaştığı Max Hız</th>
-                                        <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 700 }}>Oluşan Alarm Sayısı</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dailyReports.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                                Rapor verisi yükleniyor veya bu tarihte veri bulunmuyor.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        dailyReports.map((report, idx) => {
-                                            const rawPlate = report.licensePlate || report.Plate || report.plate || ''
-                                            const plateClean = rawPlate.split('-')[0].trim()
-                                            const distance = report.DailyTrip !== undefined ? (parseFloat(report.DailyTrip).toFixed(2) + ' km') : (report.TotalDistance || report.totalDistance || '0 km')
-                                            const speed = report.Speed !== undefined ? (report.Speed + ' km/h') : (report.MaxSpeed || report.maxSpeed || '0 km/h')
-                                            const workingTime = report.WorkingTime || report.workingTime || 'Belirtilmedi'
-                                            
-                                            return (
-                                                <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                                    <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: 700 }}>{plateClean}</td>
-                                                    <td style={{ padding: '12px 16px', fontSize: '14px' }}>{distance}</td>
-                                                    <td style={{ padding: '12px 16px', fontSize: '14px' }}>{workingTime}</td>
-                                                    <td style={{ padding: '12px 16px', fontSize: '14px' }}>{speed}</td>
-                                                    <td style={{ padding: '12px 16px', fontSize: '14px' }}>
-                                                        <span style={{ 
-                                                            padding: '2px 8px', 
-                                                            borderRadius: '12px', 
-                                                            fontSize: '11px', 
-                                                            fontWeight: 600,
-                                                            background: parseInt(report.AlarmCount || 0) > 0 ? 'var(--warning-bg)' : 'var(--success-bg)',
-                                                            color: parseInt(report.AlarmCount || 0) > 0 ? 'var(--warning)' : 'var(--success)'
-                                                        }}>
-                                                            {report.AlarmCount || 0} Alarm
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                        <DataTable 
+                            persistenceKey="ArventoDailyReportTable"
+                            columns={dailyReportColumns}
+                            data={combinedDailyReports}
+                            showSearch={true}
+                            showCheckboxes={false}
+                            emptyMessage="Yükleniyor veya seçilen tarihte herhangi bir çalışma verisi bulunmuyor."
+                            searchPlaceholder="Plaka, cihaz no veya marka ara..."
+                            searchKeys={['plate', 'deviceNo', 'brand', 'model']}
+                        />
                     </div>
                 )}
 
