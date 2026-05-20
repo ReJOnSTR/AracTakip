@@ -1,19 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import { 
     Search, MapPin, Navigation, AlertTriangle, RefreshCw, 
-    Calendar, List, ShieldAlert, CheckCircle2, XCircle, Info, Car
+    Calendar, List, ShieldAlert, CheckCircle2, XCircle, Info, Car, Loader2
 } from 'lucide-react'
-
-// Mock coordinates in Istanbul Kadikoy area for Demo Mode simulation
-const MOCK_ROADS = [
-    { plate: '34 ARV 101', brand: 'Ford', model: 'Transit', driver: 'Ahmet Yılmaz', lat: 40.9915, lng: 29.0267, speed: 45, ignition: true, heading: 45, alarms: [] },
-    { plate: '34 ARV 202', brand: 'Fiat', model: 'Doblo', driver: 'Mehmet Kaya', lat: 40.9982, lng: 29.0142, speed: 0, ignition: false, heading: 180, alarms: [] },
-    { plate: '34 ARV 303', brand: 'Renault', model: 'Megane', driver: 'Ali Demir', lat: 40.9854, lng: 29.0335, speed: 78, ignition: true, heading: 290, alarms: ['Hız Aşımı (78 km/h)'] },
-    { plate: '34 ARV 404', brand: 'Mercedes', model: 'Sprinter', driver: 'Can Aksoy', lat: 41.0025, lng: 29.0068, speed: 55, ignition: true, heading: 120, alarms: [] },
-    { plate: '34 ARV 505', brand: 'Volkswagen', model: 'Caddy', driver: 'Mustafa Yıldız', lat: 40.9781, lng: 29.0221, speed: 0, ignition: false, heading: 90, alarms: [] }
-]
 
 function formatArventoDate(dateStr) {
     if (!dateStr || dateStr.length < 14) return dateStr
@@ -38,9 +30,10 @@ function formatAlarmDate(gmtDateStr) {
 
 export default function ArventoTracking() {
     const { currentCompany } = useCompany()
+    const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
     const [leafletLoaded, setLeafletLoaded] = useState(false)
-    const [isDemoMode, setIsDemoMode] = useState(true)
+    const isDemoMode = false
     const [settings, setSettings] = useState(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState('all') // all, active, stopped, alarm
@@ -56,7 +49,7 @@ export default function ArventoTracking() {
     const mapRef = useRef(null)
     const mapInstance = useRef(null)
     const markersRef = useRef({})
-    const simulationTimer = useRef(null)
+    const hasInitialFit = useRef(false)
     const pollingTimer = useRef(null)
 
     // Load Leaflet Assets
@@ -103,14 +96,11 @@ export default function ArventoTracking() {
             
             // Check if Arvento is enabled
             if (sett?.arvento?.enabled && sett?.arvento?.username) {
-                setIsDemoMode(false)
                 // Fetch initial mappings
                 const mappingsRes = await window.electronAPI.arventoGetMappings()
                 if (mappingsRes.success && Array.isArray(mappingsRes.data)) {
                     setMappings(mappingsRes.data)
                 }
-            } else {
-                setIsDemoMode(true)
             }
 
             if (currentCompany) {
@@ -128,8 +118,9 @@ export default function ArventoTracking() {
     useEffect(() => {
         if (!leafletLoaded || !mapRef.current) return
 
+        let timer1, timer2, timer3
         if (!mapInstance.current) {
-            // Istanbul coordinates by default
+            // Istanbul coordinates by default (overridden by fitBounds once data loads)
             mapInstance.current = window.L.map(mapRef.current, {
                 zoomControl: false
             }).setView([40.993, 29.02], 13)
@@ -141,104 +132,56 @@ export default function ArventoTracking() {
             window.L.control.zoom({
                 position: 'topright'
             }).addTo(mapInstance.current)
+
+            // Force invalidateSize after delays to ensure container has full width/height
+            timer1 = setTimeout(() => {
+                if (mapInstance.current) mapInstance.current.invalidateSize()
+            }, 100)
+
+            timer2 = setTimeout(() => {
+                if (mapInstance.current) mapInstance.current.invalidateSize()
+            }, 500)
+
+            timer3 = setTimeout(() => {
+                if (mapInstance.current) mapInstance.current.invalidateSize()
+            }, 1200)
         }
 
+        // Handle resize events
+        const handleResize = () => {
+            if (mapInstance.current) {
+                mapInstance.current.invalidateSize()
+            }
+        }
+        window.addEventListener('resize', handleResize)
+
         return () => {
+            window.removeEventListener('resize', handleResize)
+            clearTimeout(timer1)
+            clearTimeout(timer2)
+            clearTimeout(timer3)
             if (mapInstance.current) {
                 mapInstance.current.remove()
                 mapInstance.current = null
             }
         }
-    }, [leafletLoaded])
+    }, [leafletLoaded, activeTab])
 
-    // Load Status Data (Simulated or Real API)
+    // Load Status Data (Real API polling only)
     useEffect(() => {
+        if (!leafletLoaded) return
+        
         fetchStatusData()
 
-        if (isDemoMode) {
-            // Start simulation movement timer
-            startDemoSimulation()
-            if (pollingTimer.current) {
-                clearInterval(pollingTimer.current)
-                pollingTimer.current = null
-            }
-        } else {
-            // Poll real API every 30 seconds
-            if (simulationTimer.current) {
-                clearInterval(simulationTimer.current)
-                simulationTimer.current = null
-            }
-            pollingTimer.current = setInterval(fetchStatusData, 30000)
-        }
+        // Poll real API every 30 seconds
+        pollingTimer.current = setInterval(fetchStatusData, 30000)
 
         return () => {
-            if (simulationTimer.current) clearInterval(simulationTimer.current)
             if (pollingTimer.current) clearInterval(pollingTimer.current)
         }
-    }, [isDemoMode, leafletLoaded, localVehicles])
-
-    // Handle simulation movement
-    const startDemoSimulation = () => {
-        if (simulationTimer.current) clearInterval(simulationTimer.current)
-        
-        let simData = [...MOCK_ROADS]
-        // If we have database vehicles, use them in simulation with mock plates
-        if (localVehicles.length > 0) {
-            simData = localVehicles.map((lv, idx) => {
-                const mock = MOCK_ROADS[idx % MOCK_ROADS.length]
-                return {
-                    plate: lv.plate,
-                    brand: lv.brand,
-                    model: lv.model,
-                    driver: lv.assignments?.[0]?.employees ? `${lv.assignments[0].employees.first_name} ${lv.assignments[0].employees.last_name}` : 'Atanmamış',
-                    lat: mock.lat + (Math.random() - 0.5) * 0.005,
-                    lng: mock.lng + (Math.random() - 0.5) * 0.005,
-                    speed: mock.ignition ? Math.floor(25 + Math.random() * 50) : 0,
-                    ignition: mock.ignition,
-                    heading: Math.floor(Math.random() * 360),
-                    alarms: mock.alarms
-                }
-            })
-        }
-        
-        setVehicles(simData)
-        
-        simulationTimer.current = setInterval(() => {
-            setVehicles(prev => {
-                const updated = prev.map(v => {
-                    if (!v.ignition) return v
-                    // Move slightly in direction
-                    const rad = (v.heading * Math.PI) / 180
-                    const speedFactor = v.speed * 0.0000002
-                    const newLat = v.lat + Math.sin(rad) * speedFactor + (Math.random() - 0.5) * 0.0002
-                    const newLng = v.lng + Math.cos(rad) * speedFactor + (Math.random() - 0.5) * 0.0002
-                    
-                    // Small chance to trigger/remove alarms in simulation
-                    let alarms = [...v.alarms]
-                    if (Math.random() > 0.95) {
-                        if (alarms.length === 0) {
-                            alarms.push('Hız Limiti Aşımı')
-                        } else {
-                            alarms = []
-                        }
-                    }
-
-                    return {
-                        ...v,
-                        lat: newLat,
-                        lng: newLng,
-                        heading: (v.heading + Math.floor((Math.random() - 0.5) * 20)) % 360,
-                        speed: Math.floor(30 + Math.random() * 45),
-                        alarms
-                    }
-                })
-                return updated
-            })
-        }, 3000)
-    }
+    }, [leafletLoaded, localVehicles])
 
     const fetchStatusData = async () => {
-        if (isDemoMode) return
         setLoading(true)
         try {
             // Fetch mappings if they are not already loaded
@@ -303,24 +246,30 @@ export default function ArventoTracking() {
                     }
                 })
                 setVehicles(mappedData)
+
+                // Auto fit bounds on initial load
+                if (mapInstance.current && !hasInitialFit.current) {
+                    mapInstance.current.invalidateSize()
+                    const validCoords = mappedData
+                        .filter(v => v.lat && v.lng)
+                        .map(v => [v.lat, v.lng])
+                    if (validCoords.length > 0) {
+                        mapInstance.current.fitBounds(validCoords, { maxZoom: 14, padding: [30, 30] })
+                        hasInitialFit.current = true
+                    }
+                }
             } else {
-                console.warn('Arvento API returned failure status, falling back to Demo Mode:', result.error)
-                setIsDemoMode(true)
+                console.warn('Arvento API returned failure status:', result.error)
             }
         } catch (e) {
-            console.error('Arvento API fetch error, falling back to Demo Mode:', e)
-            setIsDemoMode(true)
+            console.error('Arvento API fetch error:', e)
         }
         setLoading(false)
     }
 
     // Refresh Handlers
     const handleRefresh = async () => {
-        if (isDemoMode) {
-            startDemoSimulation()
-        } else {
-            await fetchStatusData()
-        }
+        await fetchStatusData()
     }
 
     // Update map markers when vehicle positions change
@@ -414,25 +363,13 @@ export default function ArventoTracking() {
     // Fetch Daily Reports
     const fetchDailyReports = async () => {
         setLoading(true)
-        if (isDemoMode) {
-            // Generate dummy reports based on active vehicles
-            const reports = vehicles.map(v => ({
-                Plate: v.plate,
-                TotalDistance: Math.floor(40 + Math.random() * 260) + ' km',
-                WorkingTime: Math.floor(2 + Math.random() * 7) + ' saat ' + Math.floor(Math.random() * 60) + ' dk',
-                MaxSpeed: Math.floor(80 + Math.random() * 50) + ' km/h',
-                AlarmCount: v.alarms.length
-            }))
-            setDailyReports(reports)
-        } else {
-            try {
-                const result = await window.electronAPI.arventoGetDailyReport(dailyReportDate)
-                if (result.success) {
-                    setDailyReports(result.data || [])
-                }
-            } catch (e) {
-                console.error(e)
+        try {
+            const result = await window.electronAPI.arventoGetDailyReport(dailyReportDate)
+            if (result.success) {
+                setDailyReports(result.data || [])
             }
+        } catch (e) {
+            console.error(e)
         }
         setLoading(false)
     }
@@ -443,6 +380,58 @@ export default function ArventoTracking() {
         }
     }, [activeTab, dailyReportDate])
 
+    if (settings && (!settings.arvento?.enabled || !settings.arvento?.username)) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', gap: '15px' }}>
+                <div className="page-header" style={{ marginBottom: 0 }}>
+                    <div>
+                        <h1 className="page-title">Araç Takip (Arvento)</h1>
+                        <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>Araçlarınızı canlı harita üzerinde takip edin.</p>
+                    </div>
+                </div>
+                <div style={{
+                    flex: 1,
+                    background: 'var(--bg-primary)',
+                    borderRadius: '16px',
+                    border: '1px solid var(--border-color)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '40px',
+                    textAlign: 'center',
+                    gap: '20px'
+                }}>
+                    <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'rgba(0, 82, 204, 0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--primary)'
+                    }}>
+                        <Car size={40} />
+                    </div>
+                    <div>
+                        <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>Arvento Entegrasyonu Devre Dışı</h2>
+                        <p style={{ color: 'var(--text-secondary)', maxWidth: '450px', margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
+                            Araçlarınızın canlı konumlarını, günlük çalışma sürelerini ve aktif alarmlarını görüntülemek için Arvento entegrasyonunu etkinleştirmeniz gerekmektedir.
+                        </p>
+                    </div>
+                    <button 
+                        className="btn btn-primary" 
+                        onClick={() => navigate('/settings')}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        Ayarlar Sayfasına Git
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', gap: '15px' }}>
             <TopProgressBar loading={loading} />
@@ -452,40 +441,52 @@ export default function ArventoTracking() {
                 <div>
                     <h1 className="page-title">Araç Takip (Arvento)</h1>
                     <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                        {isDemoMode ? 'Simülasyon Modu: Sanal araç hareketleri gösteriliyor.' : 'Arvento API üzerinden canlı araç konumları alınıyor.'}
+                        Arvento API üzerinden canlı araç konumları alınıyor.
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ 
-                        background: isDemoMode ? 'var(--warning-bg)' : 'var(--success-bg)',
-                        color: isDemoMode ? 'var(--warning)' : 'var(--success)',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                    }}>
-                        <span style={{ 
-                            width: '8px', 
-                            height: '8px', 
-                            borderRadius: '50%', 
-                            background: isDemoMode ? 'var(--warning)' : 'var(--success)',
-                            display: 'inline-block'
-                        }}></span>
-                        {isDemoMode ? 'Sanal Mod (Simüle)' : 'Arvento Bağlı'}
-                    </div>
-
-                    {/* Quick switch to demo mode for presentation */}
-                    {settings?.arvento?.enabled && (
-                        <button 
-                            className="btn btn-secondary" 
-                            style={{ height: '36px', padding: '0 12px', fontSize: '13px' }}
-                            onClick={() => setIsDemoMode(!isDemoMode)}
-                        >
-                            {isDemoMode ? 'Gerçek API\'ye Bağlan' : 'Simülasyon Modunu Aç'}
-                        </button>
+                    {settings?.arvento?.enabled ? (
+                        <div style={{ 
+                            background: 'var(--success-bg)',
+                            color: 'var(--success)',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}>
+                            <span style={{ 
+                                width: '8px', 
+                                height: '8px', 
+                                borderRadius: '50%', 
+                                background: 'var(--success)',
+                                display: 'inline-block'
+                            }}></span>
+                            Arvento Bağlı
+                        </div>
+                    ) : (
+                        <div style={{ 
+                            background: 'var(--danger-bg)',
+                            color: 'var(--danger)',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}>
+                            <span style={{ 
+                                width: '8px', 
+                                height: '8px', 
+                                borderRadius: '50%', 
+                                background: 'var(--danger)',
+                                display: 'inline-block'
+                            }}></span>
+                            Arvento Devre Dışı
+                        </div>
                     )}
 
                     <button className="btn btn-secondary btn-icon" onClick={handleRefresh} title="Yenile">
@@ -515,7 +516,7 @@ export default function ArventoTracking() {
                     onClick={() => setActiveTab('alarms')}
                 >
                     <ShieldAlert size={15} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-                    Alarmlar ({isDemoMode ? vehicles.filter(v => v.alarms.length > 0).length : activeAlarms.length})
+                    Alarmlar ({activeAlarms.length})
                 </button>
             </div>
 
@@ -614,7 +615,12 @@ export default function ArventoTracking() {
 
                             {/* Vehicle lists */}
                             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {filteredVehicles.length === 0 ? (
+                                {loading && vehicles.length === 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px', textAlign: 'center' }}>
+                                        <Loader2 className="spin" size={24} style={{ color: 'var(--primary)', marginBottom: '8px' }} />
+                                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Araçlar yükleniyor...</span>
+                                    </div>
+                                ) : filteredVehicles.length === 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px', textAlign: 'center' }}>
                                         <Car size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
                                         <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Eşleşen araç bulunamadı.</span>
@@ -889,72 +895,40 @@ export default function ArventoTracking() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {/* Filter moving vs alarm state info */}
-                            {isDemoMode ? (
-                                vehicles.filter(v => v.alarms.length > 0).map((v, idx) => (
-                                    <div key={idx} style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'space-between', 
-                                        padding: '16px', 
-                                        borderRadius: '12px', 
-                                        background: 'var(--warning-bg)', 
-                                        border: '1px solid var(--warning)' 
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                            <AlertTriangle size={24} style={{ color: 'var(--warning)' }} />
-                                            <div>
-                                                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{v.plate} - Hız Limiti Aşımı</h4>
-                                                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                                    Araç hızı {v.speed} km/h olarak tespit edildi ve hız eşiği aşıldı.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date().toLocaleTimeString()}</span>
-                                    </div>
-                                ))
-                            ) : (
-                                activeAlarms.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                                        Aktif alarm bildirim bulunmuyor.
-                                    </div>
-                                ) : (
-                                    activeAlarms.map((alarm, idx) => {
-                                        // Match DeviceNo to find plate
-                                        const mapping = mappings.find(m => m['Device No'] === alarm.DeviceNo)
-                                        const plateFull = mapping ? mapping['License Plate'] : alarm.DeviceNo
-                                        const plateClean = plateFull ? plateFull.split('-')[0].trim() : (alarm.DeviceNo || 'Bilinmiyor')
-                                        
-                                        return (
-                                            <div key={idx} style={{ 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                justifyContent: 'space-between', 
-                                                padding: '16px', 
-                                                borderRadius: '12px', 
-                                                background: 'var(--warning-bg)', 
-                                                border: '1px solid var(--warning)' 
-                                            }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                                    <AlertTriangle size={24} style={{ color: 'var(--warning)' }} />
-                                                    <div>
-                                                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{plateClean} - {alarm.AlarmType || 'Sistem Alarmı'}</h4>
-                                                        <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                                            {alarm.Address || 'Detay açıklaması sağlanmadı.'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatAlarmDate(alarm.GmtDateTime)}</span>
-                                            </div>
-                                        )
-                                    })
-                                )
-                            )}
-
-                            {isDemoMode && vehicles.filter(v => v.alarms.length > 0).length === 0 && (
+                            {activeAlarms.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                                    Aktif simüle alarm bildirim bulunmuyor.
+                                    Aktif alarm bildirim bulunmuyor.
                                 </div>
+                            ) : (
+                                activeAlarms.map((alarm, idx) => {
+                                    // Match DeviceNo to find plate
+                                    const mapping = mappings.find(m => m['Device No'] === alarm.DeviceNo)
+                                    const plateFull = mapping ? mapping['License Plate'] : alarm.DeviceNo
+                                    const plateClean = plateFull ? plateFull.split('-')[0].trim() : (alarm.DeviceNo || 'Bilinmiyor')
+                                    
+                                    return (
+                                        <div key={idx} style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'space-between', 
+                                            padding: '16px', 
+                                            borderRadius: '12px', 
+                                            background: 'var(--warning-bg)', 
+                                            border: '1px solid var(--warning)' 
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                <AlertTriangle size={24} style={{ color: 'var(--warning)' }} />
+                                                <div>
+                                                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{plateClean} - {alarm.AlarmType || 'Sistem Alarmı'}</h4>
+                                                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                                        {alarm.Address || 'Detay açıklaması sağlanmadı.'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatAlarmDate(alarm.GmtDateTime)}</span>
+                                        </div>
+                                    )
+                                })
                             )}
                         </div>
                     </div>
