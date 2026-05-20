@@ -92,6 +92,23 @@ async function runAutoMigrations() {
         log.error('Migration step 2 (transactions) error:', error.message);
     }
 
+    // 2b. Users: role, must_change_password (missing in older versions)
+    try {
+        const uCols = await p.$queryRawUnsafe("PRAGMA table_info('users')");
+        if (uCols.length > 0) {
+            if (!uCols.some(c => c.name === 'role')) {
+                await p.$executeRawUnsafe("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+                log.info('Migration: Added role to users');
+            }
+            if (!uCols.some(c => c.name === 'must_change_password')) {
+                await p.$executeRawUnsafe("ALTER TABLE users ADD COLUMN must_change_password INTEGER DEFAULT 0");
+                log.info('Migration: Added must_change_password to users');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 2b (users) error:', error.message);
+    }
+
     // 3. Create ALL tables IF NOT EXISTS (Fresh Database Bootstrap & Missing tables support)
     try {
         const { allTablesSQL } = require('./schema_script');
