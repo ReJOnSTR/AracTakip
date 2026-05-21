@@ -163,6 +163,11 @@ export type document_categories = $Result.DefaultSelection<Prisma.$document_cate
  * 
  */
 export type vehicle_types = $Result.DefaultSelection<Prisma.$vehicle_typesPayload>
+/**
+ * Model arvento_history
+ * 
+ */
+export type arvento_history = $Result.DefaultSelection<Prisma.$arvento_historyPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -584,6 +589,16 @@ export class PrismaClient<
     * ```
     */
   get vehicle_types(): Prisma.vehicle_typesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.arvento_history`: Exposes CRUD operations for the **arvento_history** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Arvento_histories
+    * const arvento_histories = await prisma.arvento_history.findMany()
+    * ```
+    */
+  get arvento_history(): Prisma.arvento_historyDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1047,7 +1062,8 @@ export namespace Prisma {
     departments: 'departments',
     leave_types: 'leave_types',
     document_categories: 'document_categories',
-    vehicle_types: 'vehicle_types'
+    vehicle_types: 'vehicle_types',
+    arvento_history: 'arvento_history'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1063,7 +1079,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "vehicle_types"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "vehicle_types" | "arvento_history"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3287,6 +3303,80 @@ export namespace Prisma {
           }
         }
       }
+      arvento_history: {
+        payload: Prisma.$arvento_historyPayload<ExtArgs>
+        fields: Prisma.arvento_historyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.arvento_historyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.arvento_historyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>
+          }
+          findFirst: {
+            args: Prisma.arvento_historyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.arvento_historyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>
+          }
+          findMany: {
+            args: Prisma.arvento_historyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>[]
+          }
+          create: {
+            args: Prisma.arvento_historyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>
+          }
+          createMany: {
+            args: Prisma.arvento_historyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.arvento_historyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>[]
+          }
+          delete: {
+            args: Prisma.arvento_historyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>
+          }
+          update: {
+            args: Prisma.arvento_historyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>
+          }
+          deleteMany: {
+            args: Prisma.arvento_historyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.arvento_historyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.arvento_historyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>[]
+          }
+          upsert: {
+            args: Prisma.arvento_historyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$arvento_historyPayload>
+          }
+          aggregate: {
+            args: Prisma.Arvento_historyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateArvento_history>
+          }
+          groupBy: {
+            args: Prisma.arvento_historyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Arvento_historyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.arvento_historyCountArgs<ExtArgs>
+            result: $Utils.Optional<Arvento_historyCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3425,6 +3515,7 @@ export namespace Prisma {
     leave_types?: leave_typesOmit
     document_categories?: document_categoriesOmit
     vehicle_types?: vehicle_typesOmit
+    arvento_history?: arvento_historyOmit
   }
 
   /* Types for Logging */
@@ -39971,6 +40062,1118 @@ export namespace Prisma {
 
 
   /**
+   * Model arvento_history
+   */
+
+  export type AggregateArvento_history = {
+    _count: Arvento_historyCountAggregateOutputType | null
+    _avg: Arvento_historyAvgAggregateOutputType | null
+    _sum: Arvento_historySumAggregateOutputType | null
+    _min: Arvento_historyMinAggregateOutputType | null
+    _max: Arvento_historyMaxAggregateOutputType | null
+  }
+
+  export type Arvento_historyAvgAggregateOutputType = {
+    id: number | null
+    lat: number | null
+    lng: number | null
+    speed: number | null
+    ignition: number | null
+    heading: number | null
+  }
+
+  export type Arvento_historySumAggregateOutputType = {
+    id: number | null
+    lat: number | null
+    lng: number | null
+    speed: number | null
+    ignition: number | null
+    heading: number | null
+  }
+
+  export type Arvento_historyMinAggregateOutputType = {
+    id: number | null
+    plate: string | null
+    device_no: string | null
+    lat: number | null
+    lng: number | null
+    speed: number | null
+    ignition: number | null
+    heading: number | null
+    gps_date: Date | null
+    created_at: Date | null
+  }
+
+  export type Arvento_historyMaxAggregateOutputType = {
+    id: number | null
+    plate: string | null
+    device_no: string | null
+    lat: number | null
+    lng: number | null
+    speed: number | null
+    ignition: number | null
+    heading: number | null
+    gps_date: Date | null
+    created_at: Date | null
+  }
+
+  export type Arvento_historyCountAggregateOutputType = {
+    id: number
+    plate: number
+    device_no: number
+    lat: number
+    lng: number
+    speed: number
+    ignition: number
+    heading: number
+    gps_date: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Arvento_historyAvgAggregateInputType = {
+    id?: true
+    lat?: true
+    lng?: true
+    speed?: true
+    ignition?: true
+    heading?: true
+  }
+
+  export type Arvento_historySumAggregateInputType = {
+    id?: true
+    lat?: true
+    lng?: true
+    speed?: true
+    ignition?: true
+    heading?: true
+  }
+
+  export type Arvento_historyMinAggregateInputType = {
+    id?: true
+    plate?: true
+    device_no?: true
+    lat?: true
+    lng?: true
+    speed?: true
+    ignition?: true
+    heading?: true
+    gps_date?: true
+    created_at?: true
+  }
+
+  export type Arvento_historyMaxAggregateInputType = {
+    id?: true
+    plate?: true
+    device_no?: true
+    lat?: true
+    lng?: true
+    speed?: true
+    ignition?: true
+    heading?: true
+    gps_date?: true
+    created_at?: true
+  }
+
+  export type Arvento_historyCountAggregateInputType = {
+    id?: true
+    plate?: true
+    device_no?: true
+    lat?: true
+    lng?: true
+    speed?: true
+    ignition?: true
+    heading?: true
+    gps_date?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Arvento_historyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which arvento_history to aggregate.
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of arvento_histories to fetch.
+     */
+    orderBy?: arvento_historyOrderByWithRelationInput | arvento_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: arvento_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` arvento_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` arvento_histories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned arvento_histories
+    **/
+    _count?: true | Arvento_historyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Arvento_historyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Arvento_historySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Arvento_historyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Arvento_historyMaxAggregateInputType
+  }
+
+  export type GetArvento_historyAggregateType<T extends Arvento_historyAggregateArgs> = {
+        [P in keyof T & keyof AggregateArvento_history]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateArvento_history[P]>
+      : GetScalarType<T[P], AggregateArvento_history[P]>
+  }
+
+
+
+
+  export type arvento_historyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: arvento_historyWhereInput
+    orderBy?: arvento_historyOrderByWithAggregationInput | arvento_historyOrderByWithAggregationInput[]
+    by: Arvento_historyScalarFieldEnum[] | Arvento_historyScalarFieldEnum
+    having?: arvento_historyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Arvento_historyCountAggregateInputType | true
+    _avg?: Arvento_historyAvgAggregateInputType
+    _sum?: Arvento_historySumAggregateInputType
+    _min?: Arvento_historyMinAggregateInputType
+    _max?: Arvento_historyMaxAggregateInputType
+  }
+
+  export type Arvento_historyGroupByOutputType = {
+    id: number
+    plate: string
+    device_no: string
+    lat: number
+    lng: number
+    speed: number
+    ignition: number
+    heading: number
+    gps_date: Date
+    created_at: Date
+    _count: Arvento_historyCountAggregateOutputType | null
+    _avg: Arvento_historyAvgAggregateOutputType | null
+    _sum: Arvento_historySumAggregateOutputType | null
+    _min: Arvento_historyMinAggregateOutputType | null
+    _max: Arvento_historyMaxAggregateOutputType | null
+  }
+
+  type GetArvento_historyGroupByPayload<T extends arvento_historyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Arvento_historyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Arvento_historyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Arvento_historyGroupByOutputType[P]>
+            : GetScalarType<T[P], Arvento_historyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type arvento_historySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    plate?: boolean
+    device_no?: boolean
+    lat?: boolean
+    lng?: boolean
+    speed?: boolean
+    ignition?: boolean
+    heading?: boolean
+    gps_date?: boolean
+    created_at?: boolean
+  }, ExtArgs["result"]["arvento_history"]>
+
+  export type arvento_historySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    plate?: boolean
+    device_no?: boolean
+    lat?: boolean
+    lng?: boolean
+    speed?: boolean
+    ignition?: boolean
+    heading?: boolean
+    gps_date?: boolean
+    created_at?: boolean
+  }, ExtArgs["result"]["arvento_history"]>
+
+  export type arvento_historySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    plate?: boolean
+    device_no?: boolean
+    lat?: boolean
+    lng?: boolean
+    speed?: boolean
+    ignition?: boolean
+    heading?: boolean
+    gps_date?: boolean
+    created_at?: boolean
+  }, ExtArgs["result"]["arvento_history"]>
+
+  export type arvento_historySelectScalar = {
+    id?: boolean
+    plate?: boolean
+    device_no?: boolean
+    lat?: boolean
+    lng?: boolean
+    speed?: boolean
+    ignition?: boolean
+    heading?: boolean
+    gps_date?: boolean
+    created_at?: boolean
+  }
+
+  export type arvento_historyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "plate" | "device_no" | "lat" | "lng" | "speed" | "ignition" | "heading" | "gps_date" | "created_at", ExtArgs["result"]["arvento_history"]>
+
+  export type $arvento_historyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "arvento_history"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      plate: string
+      device_no: string
+      lat: number
+      lng: number
+      speed: number
+      ignition: number
+      heading: number
+      gps_date: Date
+      created_at: Date
+    }, ExtArgs["result"]["arvento_history"]>
+    composites: {}
+  }
+
+  type arvento_historyGetPayload<S extends boolean | null | undefined | arvento_historyDefaultArgs> = $Result.GetResult<Prisma.$arvento_historyPayload, S>
+
+  type arvento_historyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<arvento_historyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Arvento_historyCountAggregateInputType | true
+    }
+
+  export interface arvento_historyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['arvento_history'], meta: { name: 'arvento_history' } }
+    /**
+     * Find zero or one Arvento_history that matches the filter.
+     * @param {arvento_historyFindUniqueArgs} args - Arguments to find a Arvento_history
+     * @example
+     * // Get one Arvento_history
+     * const arvento_history = await prisma.arvento_history.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends arvento_historyFindUniqueArgs>(args: SelectSubset<T, arvento_historyFindUniqueArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Arvento_history that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {arvento_historyFindUniqueOrThrowArgs} args - Arguments to find a Arvento_history
+     * @example
+     * // Get one Arvento_history
+     * const arvento_history = await prisma.arvento_history.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends arvento_historyFindUniqueOrThrowArgs>(args: SelectSubset<T, arvento_historyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Arvento_history that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {arvento_historyFindFirstArgs} args - Arguments to find a Arvento_history
+     * @example
+     * // Get one Arvento_history
+     * const arvento_history = await prisma.arvento_history.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends arvento_historyFindFirstArgs>(args?: SelectSubset<T, arvento_historyFindFirstArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Arvento_history that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {arvento_historyFindFirstOrThrowArgs} args - Arguments to find a Arvento_history
+     * @example
+     * // Get one Arvento_history
+     * const arvento_history = await prisma.arvento_history.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends arvento_historyFindFirstOrThrowArgs>(args?: SelectSubset<T, arvento_historyFindFirstOrThrowArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Arvento_histories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {arvento_historyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Arvento_histories
+     * const arvento_histories = await prisma.arvento_history.findMany()
+     * 
+     * // Get first 10 Arvento_histories
+     * const arvento_histories = await prisma.arvento_history.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const arvento_historyWithIdOnly = await prisma.arvento_history.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends arvento_historyFindManyArgs>(args?: SelectSubset<T, arvento_historyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Arvento_history.
+     * @param {arvento_historyCreateArgs} args - Arguments to create a Arvento_history.
+     * @example
+     * // Create one Arvento_history
+     * const Arvento_history = await prisma.arvento_history.create({
+     *   data: {
+     *     // ... data to create a Arvento_history
+     *   }
+     * })
+     * 
+     */
+    create<T extends arvento_historyCreateArgs>(args: SelectSubset<T, arvento_historyCreateArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Arvento_histories.
+     * @param {arvento_historyCreateManyArgs} args - Arguments to create many Arvento_histories.
+     * @example
+     * // Create many Arvento_histories
+     * const arvento_history = await prisma.arvento_history.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends arvento_historyCreateManyArgs>(args?: SelectSubset<T, arvento_historyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Arvento_histories and returns the data saved in the database.
+     * @param {arvento_historyCreateManyAndReturnArgs} args - Arguments to create many Arvento_histories.
+     * @example
+     * // Create many Arvento_histories
+     * const arvento_history = await prisma.arvento_history.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Arvento_histories and only return the `id`
+     * const arvento_historyWithIdOnly = await prisma.arvento_history.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends arvento_historyCreateManyAndReturnArgs>(args?: SelectSubset<T, arvento_historyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Arvento_history.
+     * @param {arvento_historyDeleteArgs} args - Arguments to delete one Arvento_history.
+     * @example
+     * // Delete one Arvento_history
+     * const Arvento_history = await prisma.arvento_history.delete({
+     *   where: {
+     *     // ... filter to delete one Arvento_history
+     *   }
+     * })
+     * 
+     */
+    delete<T extends arvento_historyDeleteArgs>(args: SelectSubset<T, arvento_historyDeleteArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Arvento_history.
+     * @param {arvento_historyUpdateArgs} args - Arguments to update one Arvento_history.
+     * @example
+     * // Update one Arvento_history
+     * const arvento_history = await prisma.arvento_history.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends arvento_historyUpdateArgs>(args: SelectSubset<T, arvento_historyUpdateArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Arvento_histories.
+     * @param {arvento_historyDeleteManyArgs} args - Arguments to filter Arvento_histories to delete.
+     * @example
+     * // Delete a few Arvento_histories
+     * const { count } = await prisma.arvento_history.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends arvento_historyDeleteManyArgs>(args?: SelectSubset<T, arvento_historyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Arvento_histories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {arvento_historyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Arvento_histories
+     * const arvento_history = await prisma.arvento_history.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends arvento_historyUpdateManyArgs>(args: SelectSubset<T, arvento_historyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Arvento_histories and returns the data updated in the database.
+     * @param {arvento_historyUpdateManyAndReturnArgs} args - Arguments to update many Arvento_histories.
+     * @example
+     * // Update many Arvento_histories
+     * const arvento_history = await prisma.arvento_history.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Arvento_histories and only return the `id`
+     * const arvento_historyWithIdOnly = await prisma.arvento_history.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends arvento_historyUpdateManyAndReturnArgs>(args: SelectSubset<T, arvento_historyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Arvento_history.
+     * @param {arvento_historyUpsertArgs} args - Arguments to update or create a Arvento_history.
+     * @example
+     * // Update or create a Arvento_history
+     * const arvento_history = await prisma.arvento_history.upsert({
+     *   create: {
+     *     // ... data to create a Arvento_history
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Arvento_history we want to update
+     *   }
+     * })
+     */
+    upsert<T extends arvento_historyUpsertArgs>(args: SelectSubset<T, arvento_historyUpsertArgs<ExtArgs>>): Prisma__arvento_historyClient<$Result.GetResult<Prisma.$arvento_historyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Arvento_histories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {arvento_historyCountArgs} args - Arguments to filter Arvento_histories to count.
+     * @example
+     * // Count the number of Arvento_histories
+     * const count = await prisma.arvento_history.count({
+     *   where: {
+     *     // ... the filter for the Arvento_histories we want to count
+     *   }
+     * })
+    **/
+    count<T extends arvento_historyCountArgs>(
+      args?: Subset<T, arvento_historyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Arvento_historyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Arvento_history.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Arvento_historyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Arvento_historyAggregateArgs>(args: Subset<T, Arvento_historyAggregateArgs>): Prisma.PrismaPromise<GetArvento_historyAggregateType<T>>
+
+    /**
+     * Group by Arvento_history.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {arvento_historyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends arvento_historyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: arvento_historyGroupByArgs['orderBy'] }
+        : { orderBy?: arvento_historyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, arvento_historyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetArvento_historyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the arvento_history model
+   */
+  readonly fields: arvento_historyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for arvento_history.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__arvento_historyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the arvento_history model
+   */
+  interface arvento_historyFieldRefs {
+    readonly id: FieldRef<"arvento_history", 'Int'>
+    readonly plate: FieldRef<"arvento_history", 'String'>
+    readonly device_no: FieldRef<"arvento_history", 'String'>
+    readonly lat: FieldRef<"arvento_history", 'Float'>
+    readonly lng: FieldRef<"arvento_history", 'Float'>
+    readonly speed: FieldRef<"arvento_history", 'Int'>
+    readonly ignition: FieldRef<"arvento_history", 'Int'>
+    readonly heading: FieldRef<"arvento_history", 'Int'>
+    readonly gps_date: FieldRef<"arvento_history", 'DateTime'>
+    readonly created_at: FieldRef<"arvento_history", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * arvento_history findUnique
+   */
+  export type arvento_historyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * Filter, which arvento_history to fetch.
+     */
+    where: arvento_historyWhereUniqueInput
+  }
+
+  /**
+   * arvento_history findUniqueOrThrow
+   */
+  export type arvento_historyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * Filter, which arvento_history to fetch.
+     */
+    where: arvento_historyWhereUniqueInput
+  }
+
+  /**
+   * arvento_history findFirst
+   */
+  export type arvento_historyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * Filter, which arvento_history to fetch.
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of arvento_histories to fetch.
+     */
+    orderBy?: arvento_historyOrderByWithRelationInput | arvento_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for arvento_histories.
+     */
+    cursor?: arvento_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` arvento_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` arvento_histories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of arvento_histories.
+     */
+    distinct?: Arvento_historyScalarFieldEnum | Arvento_historyScalarFieldEnum[]
+  }
+
+  /**
+   * arvento_history findFirstOrThrow
+   */
+  export type arvento_historyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * Filter, which arvento_history to fetch.
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of arvento_histories to fetch.
+     */
+    orderBy?: arvento_historyOrderByWithRelationInput | arvento_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for arvento_histories.
+     */
+    cursor?: arvento_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` arvento_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` arvento_histories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of arvento_histories.
+     */
+    distinct?: Arvento_historyScalarFieldEnum | Arvento_historyScalarFieldEnum[]
+  }
+
+  /**
+   * arvento_history findMany
+   */
+  export type arvento_historyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * Filter, which arvento_histories to fetch.
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of arvento_histories to fetch.
+     */
+    orderBy?: arvento_historyOrderByWithRelationInput | arvento_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing arvento_histories.
+     */
+    cursor?: arvento_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` arvento_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` arvento_histories.
+     */
+    skip?: number
+    distinct?: Arvento_historyScalarFieldEnum | Arvento_historyScalarFieldEnum[]
+  }
+
+  /**
+   * arvento_history create
+   */
+  export type arvento_historyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * The data needed to create a arvento_history.
+     */
+    data: XOR<arvento_historyCreateInput, arvento_historyUncheckedCreateInput>
+  }
+
+  /**
+   * arvento_history createMany
+   */
+  export type arvento_historyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many arvento_histories.
+     */
+    data: arvento_historyCreateManyInput | arvento_historyCreateManyInput[]
+  }
+
+  /**
+   * arvento_history createManyAndReturn
+   */
+  export type arvento_historyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * The data used to create many arvento_histories.
+     */
+    data: arvento_historyCreateManyInput | arvento_historyCreateManyInput[]
+  }
+
+  /**
+   * arvento_history update
+   */
+  export type arvento_historyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * The data needed to update a arvento_history.
+     */
+    data: XOR<arvento_historyUpdateInput, arvento_historyUncheckedUpdateInput>
+    /**
+     * Choose, which arvento_history to update.
+     */
+    where: arvento_historyWhereUniqueInput
+  }
+
+  /**
+   * arvento_history updateMany
+   */
+  export type arvento_historyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update arvento_histories.
+     */
+    data: XOR<arvento_historyUpdateManyMutationInput, arvento_historyUncheckedUpdateManyInput>
+    /**
+     * Filter which arvento_histories to update
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * Limit how many arvento_histories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * arvento_history updateManyAndReturn
+   */
+  export type arvento_historyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * The data used to update arvento_histories.
+     */
+    data: XOR<arvento_historyUpdateManyMutationInput, arvento_historyUncheckedUpdateManyInput>
+    /**
+     * Filter which arvento_histories to update
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * Limit how many arvento_histories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * arvento_history upsert
+   */
+  export type arvento_historyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * The filter to search for the arvento_history to update in case it exists.
+     */
+    where: arvento_historyWhereUniqueInput
+    /**
+     * In case the arvento_history found by the `where` argument doesn't exist, create a new arvento_history with this data.
+     */
+    create: XOR<arvento_historyCreateInput, arvento_historyUncheckedCreateInput>
+    /**
+     * In case the arvento_history was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<arvento_historyUpdateInput, arvento_historyUncheckedUpdateInput>
+  }
+
+  /**
+   * arvento_history delete
+   */
+  export type arvento_historyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+    /**
+     * Filter which arvento_history to delete.
+     */
+    where: arvento_historyWhereUniqueInput
+  }
+
+  /**
+   * arvento_history deleteMany
+   */
+  export type arvento_historyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which arvento_histories to delete
+     */
+    where?: arvento_historyWhereInput
+    /**
+     * Limit how many arvento_histories to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * arvento_history without action
+   */
+  export type arvento_historyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the arvento_history
+     */
+    select?: arvento_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the arvento_history
+     */
+    omit?: arvento_historyOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -40460,6 +41663,22 @@ export namespace Prisma {
   };
 
   export type Vehicle_typesScalarFieldEnum = (typeof Vehicle_typesScalarFieldEnum)[keyof typeof Vehicle_typesScalarFieldEnum]
+
+
+  export const Arvento_historyScalarFieldEnum: {
+    id: 'id',
+    plate: 'plate',
+    device_no: 'device_no',
+    lat: 'lat',
+    lng: 'lng',
+    speed: 'speed',
+    ignition: 'ignition',
+    heading: 'heading',
+    gps_date: 'gps_date',
+    created_at: 'created_at'
+  };
+
+  export type Arvento_historyScalarFieldEnum = (typeof Arvento_historyScalarFieldEnum)[keyof typeof Arvento_historyScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -43086,6 +44305,85 @@ export namespace Prisma {
     company_id?: IntWithAggregatesFilter<"vehicle_types"> | number
     name?: StringWithAggregatesFilter<"vehicle_types"> | string
     created_at?: DateTimeNullableWithAggregatesFilter<"vehicle_types"> | Date | string | null
+  }
+
+  export type arvento_historyWhereInput = {
+    AND?: arvento_historyWhereInput | arvento_historyWhereInput[]
+    OR?: arvento_historyWhereInput[]
+    NOT?: arvento_historyWhereInput | arvento_historyWhereInput[]
+    id?: IntFilter<"arvento_history"> | number
+    plate?: StringFilter<"arvento_history"> | string
+    device_no?: StringFilter<"arvento_history"> | string
+    lat?: FloatFilter<"arvento_history"> | number
+    lng?: FloatFilter<"arvento_history"> | number
+    speed?: IntFilter<"arvento_history"> | number
+    ignition?: IntFilter<"arvento_history"> | number
+    heading?: IntFilter<"arvento_history"> | number
+    gps_date?: DateTimeFilter<"arvento_history"> | Date | string
+    created_at?: DateTimeFilter<"arvento_history"> | Date | string
+  }
+
+  export type arvento_historyOrderByWithRelationInput = {
+    id?: SortOrder
+    plate?: SortOrder
+    device_no?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
+    gps_date?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type arvento_historyWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: arvento_historyWhereInput | arvento_historyWhereInput[]
+    OR?: arvento_historyWhereInput[]
+    NOT?: arvento_historyWhereInput | arvento_historyWhereInput[]
+    plate?: StringFilter<"arvento_history"> | string
+    device_no?: StringFilter<"arvento_history"> | string
+    lat?: FloatFilter<"arvento_history"> | number
+    lng?: FloatFilter<"arvento_history"> | number
+    speed?: IntFilter<"arvento_history"> | number
+    ignition?: IntFilter<"arvento_history"> | number
+    heading?: IntFilter<"arvento_history"> | number
+    gps_date?: DateTimeFilter<"arvento_history"> | Date | string
+    created_at?: DateTimeFilter<"arvento_history"> | Date | string
+  }, "id">
+
+  export type arvento_historyOrderByWithAggregationInput = {
+    id?: SortOrder
+    plate?: SortOrder
+    device_no?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
+    gps_date?: SortOrder
+    created_at?: SortOrder
+    _count?: arvento_historyCountOrderByAggregateInput
+    _avg?: arvento_historyAvgOrderByAggregateInput
+    _max?: arvento_historyMaxOrderByAggregateInput
+    _min?: arvento_historyMinOrderByAggregateInput
+    _sum?: arvento_historySumOrderByAggregateInput
+  }
+
+  export type arvento_historyScalarWhereWithAggregatesInput = {
+    AND?: arvento_historyScalarWhereWithAggregatesInput | arvento_historyScalarWhereWithAggregatesInput[]
+    OR?: arvento_historyScalarWhereWithAggregatesInput[]
+    NOT?: arvento_historyScalarWhereWithAggregatesInput | arvento_historyScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"arvento_history"> | number
+    plate?: StringWithAggregatesFilter<"arvento_history"> | string
+    device_no?: StringWithAggregatesFilter<"arvento_history"> | string
+    lat?: FloatWithAggregatesFilter<"arvento_history"> | number
+    lng?: FloatWithAggregatesFilter<"arvento_history"> | number
+    speed?: IntWithAggregatesFilter<"arvento_history"> | number
+    ignition?: IntWithAggregatesFilter<"arvento_history"> | number
+    heading?: IntWithAggregatesFilter<"arvento_history"> | number
+    gps_date?: DateTimeWithAggregatesFilter<"arvento_history"> | Date | string
+    created_at?: DateTimeWithAggregatesFilter<"arvento_history"> | Date | string
   }
 
   export type assignmentsCreateInput = {
@@ -45834,6 +47132,94 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type arvento_historyCreateInput = {
+    plate: string
+    device_no: string
+    lat: number
+    lng: number
+    speed: number
+    ignition: number
+    heading: number
+    gps_date: Date | string
+    created_at?: Date | string
+  }
+
+  export type arvento_historyUncheckedCreateInput = {
+    id?: number
+    plate: string
+    device_no: string
+    lat: number
+    lng: number
+    speed: number
+    ignition: number
+    heading: number
+    gps_date: Date | string
+    created_at?: Date | string
+  }
+
+  export type arvento_historyUpdateInput = {
+    plate?: StringFieldUpdateOperationsInput | string
+    device_no?: StringFieldUpdateOperationsInput | string
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    speed?: IntFieldUpdateOperationsInput | number
+    ignition?: IntFieldUpdateOperationsInput | number
+    heading?: IntFieldUpdateOperationsInput | number
+    gps_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type arvento_historyUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    plate?: StringFieldUpdateOperationsInput | string
+    device_no?: StringFieldUpdateOperationsInput | string
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    speed?: IntFieldUpdateOperationsInput | number
+    ignition?: IntFieldUpdateOperationsInput | number
+    heading?: IntFieldUpdateOperationsInput | number
+    gps_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type arvento_historyCreateManyInput = {
+    id?: number
+    plate: string
+    device_no: string
+    lat: number
+    lng: number
+    speed: number
+    ignition: number
+    heading: number
+    gps_date: Date | string
+    created_at?: Date | string
+  }
+
+  export type arvento_historyUpdateManyMutationInput = {
+    plate?: StringFieldUpdateOperationsInput | string
+    device_no?: StringFieldUpdateOperationsInput | string
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    speed?: IntFieldUpdateOperationsInput | number
+    ignition?: IntFieldUpdateOperationsInput | number
+    heading?: IntFieldUpdateOperationsInput | number
+    gps_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type arvento_historyUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    plate?: StringFieldUpdateOperationsInput | string
+    device_no?: StringFieldUpdateOperationsInput | string
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    speed?: IntFieldUpdateOperationsInput | number
+    ignition?: IntFieldUpdateOperationsInput | number
+    heading?: IntFieldUpdateOperationsInput | number
+    gps_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -47970,6 +49356,63 @@ export namespace Prisma {
   export type vehicle_typesSumOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
+  }
+
+  export type arvento_historyCountOrderByAggregateInput = {
+    id?: SortOrder
+    plate?: SortOrder
+    device_no?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
+    gps_date?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type arvento_historyAvgOrderByAggregateInput = {
+    id?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
+  }
+
+  export type arvento_historyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    plate?: SortOrder
+    device_no?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
+    gps_date?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type arvento_historyMinOrderByAggregateInput = {
+    id?: SortOrder
+    plate?: SortOrder
+    device_no?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
+    gps_date?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type arvento_historySumOrderByAggregateInput = {
+    id?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    speed?: SortOrder
+    ignition?: SortOrder
+    heading?: SortOrder
   }
 
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {

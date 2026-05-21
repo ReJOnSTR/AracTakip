@@ -236,4 +236,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     arventoGetInfo: () => ipcRenderer.invoke('arvento:getInfo'),
     arventoGetDailyReport: (date) => ipcRenderer.invoke('arvento:getDailyReport', date),
     arventoGetAlarms: () => ipcRenderer.invoke('arvento:getAlarms'),
+    arventoGetHistory: (filters) => ipcRenderer.invoke('arvento:getHistory', filters),
 })

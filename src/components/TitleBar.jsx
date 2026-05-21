@@ -8,14 +8,14 @@ export default function TitleBar() {
             style={{
                 height: '38px',
                 boxSizing: 'content-box',
-                background: '#18181b', // var(--bg-secondary)
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--bg-secondary)',
+                borderBottom: '1px solid var(--border-color)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 WebkitAppRegion: 'drag',
                 userSelect: 'none',
-                color: '#71717a', // var(--text-muted)
+                color: 'var(--text-muted)',
                 fontSize: '12px',
                 fontWeight: 500,
                 position: 'fixed',

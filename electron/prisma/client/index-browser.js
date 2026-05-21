@@ -508,6 +508,19 @@ exports.Prisma.Vehicle_typesScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.Arvento_historyScalarFieldEnum = {
+  id: 'id',
+  plate: 'plate',
+  device_no: 'device_no',
+  lat: 'lat',
+  lng: 'lng',
+  speed: 'speed',
+  ignition: 'ignition',
+  heading: 'heading',
+  gps_date: 'gps_date',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -549,7 +562,8 @@ exports.Prisma.ModelName = {
   departments: 'departments',
   leave_types: 'leave_types',
   document_categories: 'document_categories',
-  vehicle_types: 'vehicle_types'
+  vehicle_types: 'vehicle_types',
+  arvento_history: 'arvento_history'
 };
 
 /**

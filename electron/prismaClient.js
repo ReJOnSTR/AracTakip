@@ -441,6 +441,16 @@ async function runAutoMigrations() {
         log.error('Migration step 17 (employee new fields) error:', error.message);
     }
 
+    // 18. Fix plate numbers in arvento_history for devices with hyphenated plates
+    try {
+        log.info('Fixing plate numbers in arvento_history for devices with hyphenated plates...');
+        await p.$executeRawUnsafe("UPDATE arvento_history SET plate = '55-09-13' WHERE device_no = 'K1200246883' AND plate = '55'");
+        await p.$executeRawUnsafe("UPDATE arvento_history SET plate = '55-09-27' WHERE device_no = 'K1200246889' AND plate = '55'");
+        log.info('Plate number fix completed.');
+    } catch (error) {
+        log.error('Migration step 18 (arvento_history plate fix) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function CustomInput({
     label,
@@ -12,10 +13,12 @@ export default function CustomInput({
     error,
     multiline,
     floatingLabel, // Extract floatingLabel so it's not in ...props
+    disabled,
     ...props
 }) {
     const [touched, setTouched] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     const handleChange = (e) => {
         let val = e.target.value
@@ -164,21 +167,24 @@ export default function CustomInput({
                     placeholder={isFloating ? '' : placeholder} // Hide placeholder if floating to avoid clash
                     rows={props.rows || 3}
                     style={isInvalid ? { borderColor: 'var(--danger)' } : {}}
+                    disabled={disabled}
                     {...props}
                 />
             ) : (
                 <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
                     <input
-                        type={isCurrency ? 'text' : type}
+                        type={isCurrency ? 'text' : (type === 'password' && showPassword ? 'text' : type)}
                         className={`form-input ${isInvalid ? 'input-error' : ''} ${isCurrency ? 'has-currency' : ''}`}
                         value={displayValue}
                         onChange={handleChange}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                         placeholder={isFloating ? '' : placeholder}
+                        disabled={disabled}
                         style={{
                             ...(isInvalid ? { borderColor: 'var(--danger)' } : {}),
-                            ...(isCurrency ? { paddingRight: '28px' } : {}) // Make room for ₺ symbol
+                            ...(isCurrency ? { paddingRight: '28px' } : {}), // Make room for ₺ symbol
+                            ...(type === 'password' ? { paddingRight: '40px' } : {}) // Make room for Eye icon
                         }}
                         {...props}
                     />
@@ -193,6 +199,29 @@ export default function CustomInput({
                         }}>
                             ₺
                         </span>
+                    )}
+                    {type === 'password' && (
+                        <button
+                            type="button"
+                            className="password-toggle-btn"
+                            onClick={() => !disabled && setShowPassword(!showPassword)}
+                            disabled={disabled}
+                            style={{
+                                position: 'absolute',
+                                right: '12px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: disabled ? 'not-allowed' : 'pointer',
+                                color: 'var(--text-secondary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: 0,
+                                opacity: disabled ? 0.5 : 1
+                            }}
+                            title={showPassword ? "Gizle" : "Göster"}
+                        >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
                     )}
                 </div>
             )}

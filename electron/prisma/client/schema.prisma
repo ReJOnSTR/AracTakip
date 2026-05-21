@@ -517,3 +517,19 @@ model vehicle_types {
   created_at DateTime? @default(now())
   companies  companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
+
+model arvento_history {
+  id         Int      @id @default(autoincrement())
+  plate      String
+  device_no  String
+  lat        Float
+  lng        Float
+  speed      Int
+  ignition   Int
+  heading    Int
+  gps_date   DateTime
+  created_at DateTime @default(now())
+
+  @@index([plate], map: "idx_arvento_history_plate")
+  @@index([gps_date], map: "idx_arvento_history_gps_date")
+}

@@ -1055,6 +1055,7 @@ function saveSettings(settings) {
     try {
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
         setupAutoBackup(settings) // Re-setup when saved
+        setupArventoPolling(settings) // Re-setup Arvento polling when settings are saved
         return { success: true }
     } catch (error) {
         return { success: false, error: error.message }
@@ -1180,6 +1181,40 @@ function setupAutoBackup(settings) {
     }, 60 * 60 * 1000) // Check every hour
 }
 
+let arventoPollingInterval = null
+
+function setupArventoPolling(settings) {
+    if (arventoPollingInterval) {
+        clearInterval(arventoPollingInterval)
+        arventoPollingInterval = null
+    }
+
+    if (!settings.arvento || !settings.arvento.enabled) {
+        log.info('Arvento background polling is disabled')
+        return
+    }
+
+    const intervalMinutes = parseInt(settings.arvento.interval || 3)
+    log.info(`Setting up Arvento background polling (every ${intervalMinutes} minutes)`)
+    // Run once immediately
+    db.getArventoVehicleStatus().catch(err => {
+        log.error('Arvento background polling immediate run error:', err.message)
+    })
+
+    // Check and fetch every X minutes
+    arventoPollingInterval = setInterval(async () => {
+        try {
+            const currentSettings = loadSettings()
+            if (currentSettings && currentSettings.arvento && currentSettings.arvento.enabled) {
+                log.info('Arvento background polling run...')
+                await db.getArventoVehicleStatus()
+            }
+        } catch (err) {
+            log.error('Arvento background polling error:', err.message)
+        }
+    }, intervalMinutes * 60 * 1000)
+}
+
 ipcMain.handle('settings:get', () => {
     return loadSettings()
 })
@@ -1206,6 +1241,9 @@ ipcMain.handle('arvento:getDailyReport', async (event, date) => {
 })
 ipcMain.handle('arvento:getAlarms', async () => {
     return await db.getArventoAlarms()
+})
+ipcMain.handle('arvento:getHistory', async (event, filters) => {
+    return await db.getArventoHistory(filters)
 })
 
 // Personnel Settings
@@ -1290,6 +1328,7 @@ ipcMain.handle('settings:selectFolder', async () => {
 app.on('ready', () => {
     const settings = loadSettings()
     setupAutoBackup(settings)
+    setupArventoPolling(settings)
     setupNotificationCheck()
 })
 

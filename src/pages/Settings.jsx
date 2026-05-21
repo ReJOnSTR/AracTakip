@@ -3,6 +3,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import CustomSelect from '../components/CustomSelect'
+import CustomInput from '../components/CustomInput'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet, 
@@ -27,7 +28,8 @@ export default function Settings() {
             username: '',
             pin1: '',
             pin2: '',
-            language: 'tr'
+            language: 'tr',
+            interval: 3
         }
     })
 
@@ -112,7 +114,15 @@ export default function Settings() {
         const data = await window.electronAPI.getSettings()
         setSettings({
             ...data,
-            arvento: data.arvento || { enabled: false, username: '', pin1: '', pin2: '', language: 'tr' }
+            arvento: {
+                enabled: false,
+                username: '',
+                pin1: '',
+                pin2: '',
+                language: 'tr',
+                interval: 3,
+                ...(data.arvento || {})
+            }
         })
     }
 
@@ -705,82 +715,101 @@ export default function Settings() {
                                         </label>
                                     </div>
 
-                                    {settings.arvento?.enabled && (
-                                        <div style={{ 
-                                            marginTop: '20px', 
-                                            background: 'rgba(0, 0, 0, 0.02)', 
-                                            padding: '24px', 
-                                            borderRadius: '16px',
-                                            border: '1px solid var(--border-color)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '20px'
-                                        }}>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-input" 
-                                                        value={settings.arvento?.username || ''} 
-                                                        onChange={(e) => handleArventoChange('username', e.target.value)}
-                                                        placeholder="Arvento kullanıcı adınız"
-                                                    />
-                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>Kullanıcı Adı</label>
-                                                </div>
+                                    <div style={{ 
+                                        marginTop: '12px', 
+                                        background: 'rgba(0, 0, 0, 0.02)', 
+                                        padding: '16px 20px', 
+                                        borderRadius: '16px',
+                                        border: '1px solid var(--border-color)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '12px',
+                                        opacity: settings.arvento?.enabled ? 1 : 0.5,
+                                        pointerEvents: settings.arvento?.enabled ? 'auto' : 'none',
+                                        transition: 'all 0.3s ease',
+                                        userSelect: settings.arvento?.enabled ? 'auto' : 'none'
+                                    }}>
+                                        {/* Row 1: Username, Language, Interval */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', alignItems: 'end' }}>
+                                            <CustomInput
+                                                label="Kullanıcı Adı"
+                                                value={settings.arvento?.username || ''}
+                                                onChange={(val) => handleArventoChange('username', val)}
+                                                required
+                                                disabled={!settings.arvento?.enabled}
+                                            />
 
-                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-input" 
-                                                        value={settings.arvento?.language || 'tr'} 
-                                                        onChange={(e) => handleArventoChange('language', e.target.value)}
-                                                        placeholder="Örn: tr, en"
-                                                    />
-                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>Dil Kodu</label>
-                                                </div>
-                                            </div>
+                                            <CustomInput
+                                                label="Dil Kodu"
+                                                value={settings.arvento?.language || 'tr'}
+                                                onChange={(val) => handleArventoChange('language', val)}
+                                                placeholder="Örn: tr, en"
+                                                disabled={!settings.arvento?.enabled}
+                                            />
 
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
-                                                    <input 
-                                                        type="password" 
-                                                        className="form-input" 
-                                                        value={settings.arvento?.pin1 || ''} 
-                                                        onChange={(e) => handleArventoChange('pin1', e.target.value)}
-                                                        placeholder="PIN 1 kodu"
-                                                    />
-                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>PIN 1</label>
-                                                </div>
+                                            <CustomSelect 
+                                                label="Veri Çekme Sıklığı"
+                                                options={[
+                                                    { value: 1, label: '1 Dakika' },
+                                                    { value: 2, label: '2 Dakika' },
+                                                    { value: 3, label: '3 Dakika' },
+                                                    { value: 5, label: '5 Dakika' },
+                                                    { value: 10, label: '10 Dakika' }
+                                                ]}
+                                                value={settings.arvento?.interval || 3}
+                                                onChange={(val) => handleArventoChange('interval', parseInt(val))}
+                                                required
+                                                disabled={!settings.arvento?.enabled}
+                                            />
+                                        </div>
 
-                                                <div className="form-group floating-label-group has-value" style={{ margin: 0 }}>
-                                                    <input 
-                                                        type="password" 
-                                                        className="form-input" 
-                                                        value={settings.arvento?.pin2 || ''} 
-                                                        onChange={(e) => handleArventoChange('pin2', e.target.value)}
-                                                        placeholder="PIN 2 kodu"
-                                                    />
-                                                    <label className="form-label" style={{ background: 'var(--bg-primary)' }}>PIN 2</label>
-                                                </div>
-                                            </div>
+                                        {/* Row 2: PIN 1, PIN 2, Test Button */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', alignItems: 'end' }}>
+                                            <CustomInput
+                                                type="password"
+                                                label="PIN 1"
+                                                value={settings.arvento?.pin1 || ''}
+                                                onChange={(val) => handleArventoChange('pin1', val)}
+                                                required
+                                                disabled={!settings.arvento?.enabled}
+                                            />
 
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+                                            <CustomInput
+                                                type="password"
+                                                label="PIN 2"
+                                                value={settings.arvento?.pin2 || ''}
+                                                onChange={(val) => handleArventoChange('pin2', val)}
+                                                required
+                                                disabled={!settings.arvento?.enabled}
+                                            />
+
+                                            <div style={{ width: '100%', marginBottom: '16px' }}>
                                                 <button 
                                                     className="btn btn-secondary" 
                                                     onClick={testArventoConnection}
-                                                    disabled={testingConnection || !settings.arvento?.username || !settings.arvento?.pin1}
+                                                    disabled={testingConnection || !settings.arvento?.username || !settings.arvento?.pin1 || !settings.arvento?.enabled}
+                                                    style={{ height: '36px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                                 >
-                                                    {testingConnection ? 'Bağlantı Test Ediliyor...' : 'Bağlantıyı Test Et'}
+                                                    {testingConnection ? 'Test Ediliyor...' : 'Bağlantıyı Test Et'}
                                                 </button>
-                                                
-                                                {connectionTestResult && (
-                                                    <span className={connectionTestResult.success ? 'text-success' : 'text-danger'} style={{ fontSize: '13px', fontWeight: 500 }}>
-                                                        {connectionTestResult.message}
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
-                                    )}
+
+                                        {/* Row 3: Test Status Message */}
+                                        {connectionTestResult && (
+                                            <div style={{ 
+                                                marginTop: '-4px', 
+                                                fontSize: '12px', 
+                                                fontWeight: 500, 
+                                                color: connectionTestResult.success ? 'var(--success)' : 'var(--danger)',
+                                                display: 'flex',
+                                                justifyContent: 'flex-start',
+                                                animation: 'fadeIn 0.2s ease'
+                                            }}>
+                                                {connectionTestResult.message}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

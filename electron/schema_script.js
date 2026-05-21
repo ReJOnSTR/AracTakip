@@ -406,6 +406,20 @@ const allTablesSQL = [
 `CREATE INDEX IF NOT EXISTS "idx_work_items_work" ON "work_items"("work_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_works_company" ON "works"("company_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_works_customer" ON "works"("customer_id")`,
+`CREATE TABLE IF NOT EXISTS "arvento_history" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "plate" TEXT NOT NULL,
+    "device_no" TEXT NOT NULL,
+    "lat" REAL NOT NULL,
+    "lng" REAL NOT NULL,
+    "speed" INTEGER NOT NULL,
+    "ignition" INTEGER NOT NULL,
+    "heading" INTEGER NOT NULL,
+    "gps_date" DATETIME NOT NULL,
+    "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP
+)`,
+`CREATE INDEX IF NOT EXISTS "idx_arvento_history_plate" ON "arvento_history"("plate")`,
+`CREATE INDEX IF NOT EXISTS "idx_arvento_history_gps_date" ON "arvento_history"("gps_date")`,
 ];
 
 module.exports = { allTablesSQL };

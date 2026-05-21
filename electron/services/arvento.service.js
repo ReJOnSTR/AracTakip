@@ -1,6 +1,8 @@
 const path = require('path')
 const fs = require('fs')
 const { app } = require('electron')
+const { getPrismaClient } = require('../prismaClient')
+const log = require('../logger')
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 
@@ -190,6 +192,17 @@ async function getArventoData(methodName, params = {}, isJsonExplicit = null, cr
             return { success: true, data: parsedJson }
         }
 
+        // Check for specific error tag in XML or standard SOAP faults
+        const errorMatch = xml.match(/<Error[^>]*>([^<]+)<\/Error>/) || xml.match(/<faultstring>([^<]+)<\/faultstring>/)
+        if (errorMatch) {
+            return { success: false, error: errorMatch[1] }
+        }
+
+        // If JSON was expected but not found/parsed
+        if (isJsonExplicit) {
+            return { success: false, error: 'Geçersiz kimlik bilgileri veya sunucu hatası (Boş yanıt)' }
+        }
+
         // Fallback to XML table parsing
         let resultText
         try {
@@ -217,7 +230,123 @@ async function testArventoConnection(credentials) {
 }
 
 async function getArventoVehicleStatus() {
-    return await getArventoData('GetVehicleStatusJSON', {}, true)
+    const result = await getArventoData('GetVehicleStatusJSON', {}, true)
+    if (result.success && Array.isArray(result.data)) {
+        savePositionsToHistory(result.data).catch(err => {
+            console.error('Error saving positions to history:', err)
+        })
+    }
+    return result
+}
+
+function parseLocalDateTime(dateStr) {
+    if (!dateStr || dateStr.length < 14) return new Date()
+    const yyyy = parseInt(dateStr.substring(0, 4))
+    const mm = parseInt(dateStr.substring(4, 6))
+    const dd = parseInt(dateStr.substring(6, 8))
+    const hh = parseInt(dateStr.substring(8, 10))
+    const min = parseInt(dateStr.substring(10, 12))
+    const ss = parseInt(dateStr.substring(12, 14))
+    return new Date(yyyy, mm - 1, dd, hh, min, ss)
+}
+
+async function savePositionsToHistory(items) {
+    const prisma = getPrismaClient()
+    
+    // 1. Fetch plate mappings to resolve plate names
+    const mappingsRes = await getArventoLicensePlateNodeMappings()
+    const mappings = mappingsRes.success && Array.isArray(mappingsRes.data) ? mappingsRes.data : []
+    
+    // 2. Loop through each item and insert to db if doesn't exist
+    for (const item of items) {
+        if (!item.Node || !item.LatitudeY || !item.LongitudeX) continue
+        
+        const mapping = mappings.find(m => m['Device No'] === item.Node)
+        const plateFull = mapping ? mapping['License Plate'] : item.Node
+        const plateClean = plateFull ? plateFull.split(/\s+-/)[0].trim() : item.Node
+        
+        const lat = parseFloat(item.LatitudeY || 0)
+        const lng = parseFloat(item.LongitudeX || 0)
+        const speed = parseInt(item.Speed || 0)
+        const heading = parseInt(item.Course || 0)
+        
+        // Ignition state
+        const ignition = (item.Ignition === true || item.Ignition === '1' || item.Ignition === 1 || speed > 0) ? 1 : 0
+        
+        // Parse date
+        const gpsDate = parseLocalDateTime(item.LocalDateTime)
+        
+        // Check if this record already exists to avoid duplicates
+        const existing = await prisma.arvento_history.findFirst({
+            where: {
+                plate: plateClean,
+                gps_date: gpsDate
+            }
+        })
+        
+        if (!existing) {
+            await prisma.arvento_history.create({
+                data: {
+                    plate: plateClean,
+                    device_no: item.Node,
+                    lat,
+                    lng,
+                    speed,
+                    ignition,
+                    heading,
+                    gps_date: gpsDate
+                }
+            })
+        }
+    }
+}
+
+async function getArventoHistory(filters) {
+    try {
+        const prisma = getPrismaClient()
+        const { plate, plates, startDate, endDate } = filters
+        
+        log.info('[getArventoHistory] Received filters:', filters)
+        
+        const where = {}
+        
+        if (startDate || endDate) {
+            where.gps_date = {}
+            if (startDate) {
+                where.gps_date.gte = new Date(startDate)
+            }
+            if (endDate) {
+                where.gps_date.lte = new Date(endDate)
+            }
+        }
+        
+        log.info('[getArventoHistory] Query where:', JSON.stringify(where))
+        
+        const history = await prisma.arvento_history.findMany({
+            where,
+            orderBy: {
+                gps_date: 'asc'
+            }
+        })
+        
+        log.info('[getArventoHistory] Total records in date range:', history.length)
+        
+        // Filter by plate in Javascript (case, hyphen & whitespace insensitive!)
+        const targetPlates = (plates || (plate ? [plate] : [])).map(p => p.replace(/[\s-]+/g, '').toUpperCase())
+        
+        const filteredHistory = history.filter(h => {
+            if (targetPlates.length === 0) return true
+            const normPlate = h.plate ? h.plate.replace(/[\s-]+/g, '').toUpperCase() : ''
+            return targetPlates.includes(normPlate)
+        })
+        
+        log.info('[getArventoHistory] Filtered records count:', filteredHistory.length)
+        
+        return { success: true, data: filteredHistory }
+    } catch (error) {
+        log.error('[getArventoHistory] Error fetching Arvento history:', error)
+        return { success: false, error: error.message }
+    }
 }
 
 async function getArventoLicensePlateNodeMappings() {
@@ -247,5 +376,6 @@ module.exports = {
     getArventoLicensePlateNodeMappings,
     getArventoVehicleInfo,
     getArventoVehicleDailyStatus,
-    getArventoAlarms
+    getArventoAlarms,
+    getArventoHistory
 }
