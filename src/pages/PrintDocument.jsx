@@ -4,11 +4,13 @@ import './PrintDocument.css';
 
 const DEFAULT_STAMP_SETTINGS = {
     stampSize: 110,
+    stampOffsetX: 0,
+    stampOffsetY: 0,
+    stampOpacity: 0.85,
     signatureSize: 80,
     signatureOffsetX: 0,
     signatureOffsetY: 0,
     signatureOpacity: 0.9,
-    stampOpacity: 0.85,
 }
 
 export default function PrintDocument() {
@@ -68,7 +70,10 @@ export default function PrintDocument() {
 
     // Merge saved settings with defaults
     const ss = { ...DEFAULT_STAMP_SETTINGS, ...(data.stampSettings || {}) };
-    const containerH = Math.max(ss.stampSize, ss.signatureSize) + 20;
+    // Compute container height so all images fit regardless of offsets
+    const stampExt = Math.abs(ss.stampOffsetY ?? 0) + ss.stampSize / 2;
+    const sigExt   = Math.abs(ss.signatureOffsetY ?? 0) + ss.signatureSize / 2;
+    const containerH = Math.max(stampExt, sigExt) * 2 + 30;
 
     return (
         <div className="a4-page">
@@ -170,8 +175,8 @@ export default function PrintDocument() {
                                     objectFit: 'contain',
                                     opacity: ss.stampOpacity,
                                     position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
+                                    top: `calc(50% + ${ss.stampOffsetY ?? 0}px)`,
+                                    left: `calc(50% + ${ss.stampOffsetX ?? 0}px)`,
                                     transform: 'translate(-50%, -50%)',
                                     zIndex: 1,
                                 }}

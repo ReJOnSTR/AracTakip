@@ -1,254 +1,341 @@
-import { useState, useEffect } from 'react'
-import { ZoomIn, ZoomOut, RotateCcw, Move, Layers } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { formatDate } from '../utils/helpers'
+import { RotateCcw } from 'lucide-react'
 
-export default function StampSignaturePreview({ company, settings, onChange }) {
+const SCALE = 0.65
+const A4W = 794   // 210mm @ 96dpi
+const A4H = 1122  // 297mm @ 96dpi
+const PAD = 68    // 18mm padding
+
+export const STAMP_DEFAULTS = {
+    stampSize: 110,
+    stampOffsetX: 0,
+    stampOffsetY: 0,
+    stampOpacity: 0.85,
+    signatureSize: 80,
+    signatureOffsetX: 0,
+    signatureOffsetY: 0,
+    signatureOpacity: 0.9,
+}
+
+function InfoTable({ title, rows }) {
+    const thStyle = {
+        background: '#f1f5f9', color: '#334155', fontSize: '11px', fontWeight: 800,
+        textAlign: 'left', padding: '8px 12px', border: '1px solid #e2e8f0',
+        textTransform: 'uppercase', letterSpacing: '0.05em',
+    }
+    const tdLabel = {
+        width: '200px', fontSize: '11px', fontWeight: 700, color: '#475569',
+        padding: '10px 12px', border: '1px solid #e2e8f0', background: '#f8fafc',
+    }
+    const tdVal = {
+        fontSize: '12px', fontWeight: 500, color: '#000',
+        padding: '10px 12px', border: '1px solid #e2e8f0',
+    }
+    return (
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', tableLayout: 'fixed' }}>
+            <thead>
+                <tr><th colSpan="2" style={thStyle}>{title}</th></tr>
+            </thead>
+            <tbody>
+                {rows.map(([label, value], i) => (
+                    <tr key={i}>
+                        <td style={tdLabel}>{label}</td>
+                        <td style={tdVal}>{value || '-'}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    )
+}
+
+export default function StampSignaturePreview({ docData, company, settings, onChange }) {
     const [stampSrc, setStampSrc] = useState(null)
     const [signatureSrc, setSignatureSrc] = useState(null)
+    const scrollRef = useRef(null)
 
-    // Local copies of settings with defaults
-    const stampSize = settings.stampSize ?? 110
-    const signatureSize = settings.signatureSize ?? 80
-    const signatureOffsetX = settings.signatureOffsetX ?? 0
-    const signatureOffsetY = settings.signatureOffsetY ?? 0
-    const signatureOpacity = settings.signatureOpacity ?? 0.9
-    const stampOpacity = settings.stampOpacity ?? 0.85
+    const ss = { ...STAMP_DEFAULTS, ...settings }
 
     useEffect(() => {
         if (company?.stamp_path) {
-            window.electronAPI.readDocumentData(company.stamp_path).then(res => {
-                if (res.success) setStampSrc(res.data)
+            window.electronAPI.readDocumentData(company.stamp_path).then(r => {
+                if (r.success) setStampSrc(r.data); else setStampSrc(null)
             })
-        } else {
-            setStampSrc(null)
-        }
+        } else setStampSrc(null)
+
         if (company?.signature_path) {
-            window.electronAPI.readDocumentData(company.signature_path).then(res => {
-                if (res.success) setSignatureSrc(res.data)
+            window.electronAPI.readDocumentData(company.signature_path).then(r => {
+                if (r.success) setSignatureSrc(r.data); else setSignatureSrc(null)
             })
-        } else {
-            setSignatureSrc(null)
-        }
+        } else setSignatureSrc(null)
     }, [company])
 
-    const update = (key, val) => onChange({ ...settings, [key]: val })
+    // Auto-scroll to footer when component mounts
+    useEffect(() => {
+        if (scrollRef.current) {
+            setTimeout(() => {
+                scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+            }, 150)
+        }
+    }, [])
 
-    const sliderStyle = {
-        width: '100%',
-        accentColor: 'var(--accent-primary)',
-        cursor: 'pointer',
-        height: '4px',
+    // --- Drag handler ---
+    const startDrag = (e, which) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const sx = e.clientX, sy = e.clientY
+        const ox = ss[which + 'OffsetX'], oy = ss[which + 'OffsetY']
+        const onMove = (ev) => {
+            onChange({
+                ...settings,
+                [which + 'OffsetX']: ox + (ev.clientX - sx) / SCALE,
+                [which + 'OffsetY']: oy + (ev.clientY - sy) / SCALE,
+            })
+        }
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove)
+            document.removeEventListener('mouseup', onUp)
+        }
+        document.addEventListener('mousemove', onMove)
+        document.addEventListener('mouseup', onUp)
     }
 
-    const labelStyle = {
-        fontSize: '11px',
-        fontWeight: 700,
-        color: 'var(--text-muted)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        marginBottom: '6px',
+    // --- Resize handler ---
+    const startResize = (e, which) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const sx = e.clientX, sy = e.clientY
+        const startSize = ss[which + 'Size']
+        const onMove = (ev) => {
+            const delta = ((ev.clientX - sx) + (ev.clientY - sy)) / 2 / SCALE
+            onChange({
+                ...settings,
+                [which + 'Size']: Math.max(20, Math.min(260, Math.round(startSize + delta))),
+            })
+        }
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove)
+            document.removeEventListener('mouseup', onUp)
+        }
+        document.addEventListener('mousemove', onMove)
+        document.addEventListener('mouseup', onUp)
+    }
+
+    // Compute footer box height to accommodate all offsets + sizes
+    const stampExt = Math.abs(ss.stampOffsetY) + ss.stampSize / 2
+    const sigExt   = Math.abs(ss.signatureOffsetY) + ss.signatureSize / 2
+    const containerH = Math.max(stampExt, sigExt) * 2 + 30
+
+    const renderInteractive = (which, src, zIndex) => {
+        const size    = Math.round(ss[which + 'Size'])
+        const ox      = ss[which + 'OffsetX']
+        const oy      = ss[which + 'OffsetY']
+        const opacity = ss[which === 'stamp' ? 'stampOpacity' : 'signatureOpacity']
+        const color   = which === 'stamp' ? '#3b82f6' : '#10b981'
+
+        const centerStyle = {
+            position: 'absolute',
+            top:  `calc(50% + ${oy}px)`,
+            left: `calc(50% + ${ox}px)`,
+            transform: 'translate(-50%, -50%)',
+        }
+
+        return (
+            <>
+                {/* Image */}
+                <img
+                    key={which + '-img'}
+                    src={src}
+                    alt={which}
+                    draggable={false}
+                    onMouseDown={(e) => startDrag(e, which)}
+                    style={{
+                        ...centerStyle,
+                        width: `${size}px`,
+                        height: `${size}px`,
+                        objectFit: 'contain',
+                        opacity,
+                        cursor: 'move',
+                        zIndex,
+                        userSelect: 'none',
+                        pointerEvents: 'auto',
+                    }}
+                />
+                {/* Selection border */}
+                <div
+                    key={which + '-border'}
+                    style={{
+                        ...centerStyle,
+                        width:  `${size}px`,
+                        height: `${size}px`,
+                        border: `2px dashed ${color}`,
+                        borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        pointerEvents: 'none',
+                        zIndex: zIndex + 2,
+                    }}
+                />
+                {/* Resize handle at bottom-right corner */}
+                <div
+                    key={which + '-resize'}
+                    onMouseDown={(e) => startResize(e, which)}
+                    title="Boyutlandır"
+                    style={{
+                        position: 'absolute',
+                        top:  `calc(50% + ${oy}px + ${size / 2}px)`,
+                        left: `calc(50% + ${ox}px + ${size / 2}px)`,
+                        transform: 'translate(-50%, -50%)',
+                        width: '14px',
+                        height: '14px',
+                        background: color,
+                        border: '2px solid white',
+                        borderRadius: '3px',
+                        cursor: 'nwse-resize',
+                        zIndex: zIndex + 4,
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                    }}
+                />
+            </>
+        )
+    }
+
+    // The actual scaled document
+    const scaledDocStyle = {
+        width: `${A4W}px`,
+        minHeight: `${A4H}px`,
+        transform: `scale(${SCALE})`,
+        transformOrigin: 'top left',
+        background: 'white',
+        padding: `${PAD}px`,
+        boxSizing: 'border-box',
+        boxShadow: '0 6px 40px rgba(0,0,0,0.5)',
+        fontFamily: "'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        color: '#1a1a1a',
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: 'column',
     }
-
-    const noImages = !stampSrc && !signatureSrc
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: '20px', minHeight: '340px' }}>
-            {/* Preview Area */}
-            <div style={{
-                background: '#f8fafc',
-                border: '1px solid var(--border-color)',
-                borderRadius: '12px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                padding: '20px',
-                gap: '12px',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Belge arka plan çizgiler (dekoratif) */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: '180px', opacity: 0.25 }}>
-                    {[...Array(8)].map((_, i) => (
-                        <div key={i} style={{
-                            height: '1px', background: '#94a3b8',
-                            margin: `${12 + i * 14}px 20px 0`
-                        }} />
-                    ))}
-                </div>
+        <div>
+            {/* Scrollable A4 preview */}
+            <div
+                ref={scrollRef}
+                style={{
+                    overflow: 'auto',
+                    maxHeight: '62vh',
+                    background: '#3d3d3d',
+                    borderRadius: '10px',
+                    padding: '20px',
+                    border: '1px solid var(--border-color)',
+                }}
+            >
+                {/* Wrapper that matches the SCALED document size so the container doesn't collapse */}
+                <div style={{ width: `${A4W * SCALE}px`, height: `${A4H * SCALE}px`, margin: '0 auto', position: 'relative' }}>
+                    <div style={scaledDocStyle}>
 
-                {/* Belge köşe etiketi */}
-                <div style={{
-                    position: 'absolute', top: '14px', right: '16px',
-                    fontSize: '9px', fontWeight: 700, color: '#94a3b8',
-                    textTransform: 'uppercase', letterSpacing: '1px'
-                }}>
-                    YETKİLİ ONAYI
-                </div>
+                        {/* ── HEADER ── */}
+                        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: 800, textTransform: 'uppercase', color: '#000', margin: 0, letterSpacing: '-0.2px' }}>
+                                {docData?.companyName}
+                            </h2>
+                            <div style={{ textAlign: 'right' }}>
+                                <p style={{ fontSize: '12px', fontWeight: 600, color: '#888', margin: '0 0 8px' }}>
+                                    Tarih: {formatDate(new Date())}
+                                </p>
+                                <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-1px', margin: 0 }}>
+                                    {docData?.title}
+                                </h1>
+                            </div>
+                        </div>
 
-                {/* Önizleme kutusu */}
-                {noImages ? (
-                    <div style={{
-                        width: '260px', height: '160px',
-                        border: '2px dashed var(--border-color)',
-                        borderRadius: '10px',
-                        display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center',
-                        color: 'var(--text-muted)', gap: '8px'
-                    }}>
-                        <Layers size={28} strokeWidth={1.5} />
-                        <span style={{ fontSize: '12px', textAlign: 'center' }}>
-                            Şirket yönetiminden kaşe ve<br />imza görseli yükleyin
-                        </span>
-                    </div>
-                ) : (
-                    <div style={{
-                        width: '260px',
-                        height: '160px',
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        background: 'white',
-                    }}>
-                        {stampSrc && (
-                            <img
-                                src={stampSrc}
-                                alt="Kaşe"
-                                style={{
-                                    width: `${stampSize}px`,
-                                    height: `${stampSize}px`,
-                                    objectFit: 'contain',
-                                    opacity: stampOpacity,
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    zIndex: 1,
-                                }}
-                            />
-                        )}
-                        {signatureSrc && (
-                            <img
-                                src={signatureSrc}
-                                alt="İmza"
-                                style={{
-                                    width: `${signatureSize}px`,
-                                    height: `${signatureSize}px`,
-                                    objectFit: 'contain',
-                                    opacity: signatureOpacity,
-                                    position: 'absolute',
-                                    top: `calc(50% + ${signatureOffsetY}px)`,
-                                    left: `calc(50% + ${signatureOffsetX}px)`,
-                                    transform: 'translate(-50%, -50%)',
-                                    zIndex: 2,
-                                }}
-                            />
-                        )}
-                    </div>
-                )}
+                        {/* ── CONTENT ── */}
+                        <div style={{ fontSize: '13.5px', lineHeight: 1.7, color: '#333', flexGrow: 1, marginBottom: '40px' }}>
+                            {docData?.templateId === 'assignment' ? (
+                                <div>
+                                    <InfoTable title="İŞVEREN BİLGİLERİ" rows={[
+                                        ['ADI-SOYADI / ÜNVANI', docData?.companyName],
+                                        ['İŞYERİ ADRESİ', docData?.companyAddress],
+                                        ['İŞYERİ SGK NO', docData?.companySgk],
+                                        ['VERGİ DAİRESİ / NO', docData?.companyTax],
+                                    ]} />
+                                    <InfoTable title="PERSONEL BİLGİLERİ" rows={[
+                                        ['ADI - SOYADI', docData?.employeeName],
+                                        ['T.C. KİMLİK NO', docData?.tcNo || '-'],
+                                    ]} />
+                                    <InfoTable title="GÖREVLENDİRME DETAYLARI" rows={[
+                                        ['GİDİLECEK İŞYERİ', docData?.placeholders?.workplaceName],
+                                        ['İŞYERİ ADRESİ', docData?.placeholders?.workplaceAddress],
+                                        ['YAPILACAK İŞ', docData?.placeholders?.workType],
+                                        ['GİDİŞ TARİHİ', docData?.placeholders?.startDate ? formatDate(docData.placeholders.startDate) : null],
+                                        ['DÖNÜŞ TARİHİ', docData?.placeholders?.endDate ? formatDate(docData.placeholders.endDate) : null],
+                                    ]} />
+                                    <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px', fontSize: '12px', fontStyle: 'italic', whiteSpace: 'pre-wrap', textAlign: 'justify' }}>
+                                        {docData?.content}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ whiteSpace: 'pre-wrap', textAlign: 'justify' }}>{docData?.content}</div>
+                            )}
+                        </div>
 
-                {/* Çizgi ve isim */}
-                <div style={{ width: '260px', textAlign: 'center' }}>
-                    <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '8px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
-                            {company?.name || 'Şirket Adı'}
-                        </span>
+                        {/* ── FOOTER / SIGNATURES ── */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', marginTop: 'auto' }}>
+                            {/* Personel İmzası (static) */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ fontSize: '11px', fontWeight: 700, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
+                                    PERSONEL İMZASI
+                                </p>
+                                <div style={{ height: `${containerH}px` }} />
+                                <p style={{ fontSize: '12px', fontWeight: 600, margin: 0 }}>{docData?.employeeName}</p>
+                            </div>
+
+                            {/* Yetkili Onayi — INTERACTIVE */}
+                            <div style={{ textAlign: 'center', position: 'relative' }}>
+                                <p style={{ fontSize: '11px', fontWeight: 700, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
+                                    YETKİLİ ONAYI
+                                </p>
+                                <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
+                                    {stampSrc    && renderInteractive('stamp',     stampSrc,     1)}
+                                    {signatureSrc && renderInteractive('signature', signatureSrc, 2)}
+                                    {!stampSrc && !signatureSrc && (
+                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
+                                            Kaşe / imza yüklenmemiş
+                                        </div>
+                                    )}
+                                </div>
+                                <p style={{ fontSize: '12px', fontWeight: 600, margin: 0 }}>{docData?.companyName}</p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
-            {/* Controls */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', paddingTop: '4px' }}>
-                {/* Kaşe Boyutu */}
-                <div>
-                    <div style={labelStyle}>
-                        <span>Kaşe Boyutu</span>
-                        <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>{stampSize}px</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ZoomOut size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                        <input type="range" min={40} max={200} value={stampSize}
-                            onChange={e => update('stampSize', Number(e.target.value))}
-                            style={sliderStyle} />
-                        <ZoomIn size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                    </div>
+            {/* Legend + Reset */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                <div style={{ display: 'flex', gap: '20px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ width: '14px', height: '14px', border: '2px dashed #3b82f6', borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
+                        Kaşe — sürükle · köşeden boyutlandır
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ width: '14px', height: '14px', border: '2px dashed #10b981', borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
+                        İmza — sürükle · köşeden boyutlandır
+                    </span>
                 </div>
-
-                {/* İmza Boyutu */}
-                <div>
-                    <div style={labelStyle}>
-                        <span>İmza Boyutu</span>
-                        <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>{signatureSize}px</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ZoomOut size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                        <input type="range" min={30} max={160} value={signatureSize}
-                            onChange={e => update('signatureSize', Number(e.target.value))}
-                            style={sliderStyle} />
-                        <ZoomIn size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                    </div>
-                </div>
-
-                {/* İmza Yatay Konum */}
-                <div>
-                    <div style={labelStyle}>
-                        <span>İmza Yatay Konum</span>
-                        <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>{signatureOffsetX > 0 ? '+' : ''}{signatureOffsetX}px</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Move size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                        <input type="range" min={-80} max={80} value={signatureOffsetX}
-                            onChange={e => update('signatureOffsetX', Number(e.target.value))}
-                            style={sliderStyle} />
-                        <Move size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                    </div>
-                </div>
-
-                {/* İmza Dikey Konum */}
-                <div>
-                    <div style={labelStyle}>
-                        <span>İmza Dikey Konum</span>
-                        <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>{signatureOffsetY > 0 ? '+' : ''}{signatureOffsetY}px</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Move size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, transform: 'rotate(90deg)' }} />
-                        <input type="range" min={-80} max={80} value={signatureOffsetY}
-                            onChange={e => update('signatureOffsetY', Number(e.target.value))}
-                            style={sliderStyle} />
-                        <Move size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, transform: 'rotate(90deg)' }} />
-                    </div>
-                </div>
-
-                {/* Opaklık */}
-                <div>
-                    <div style={labelStyle}>
-                        <span>İmza Opaklığı</span>
-                        <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>{Math.round(signatureOpacity * 100)}%</span>
-                    </div>
-                    <input type="range" min={20} max={100} value={Math.round(signatureOpacity * 100)}
-                        onChange={e => update('signatureOpacity', Number(e.target.value) / 100)}
-                        style={sliderStyle} />
-                </div>
-
-                {/* Sıfırla */}
                 <button
                     type="button"
-                    onClick={() => onChange({ stampSize: 110, signatureSize: 80, signatureOffsetX: 0, signatureOffsetY: 0, signatureOpacity: 0.9, stampOpacity: 0.85 })}
+                    onClick={() => onChange({ ...STAMP_DEFAULTS })}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         fontSize: '12px', color: 'var(--text-muted)',
                         background: 'none', border: '1px solid var(--border-color)',
-                        borderRadius: '8px', padding: '7px 12px', cursor: 'pointer',
-                        transition: 'all 0.15s', marginTop: 'auto'
+                        borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
+                        whiteSpace: 'nowrap', flexShrink: 0,
                     }}
                 >
                     <RotateCcw size={13} />
-                    Varsayılana Sıfırla
+                    Varsayılana sıfırla
                 </button>
             </div>
         </div>

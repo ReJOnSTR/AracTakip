@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react'
 import Modal from './Modal'
 import CustomInput from './CustomInput'
-import StampSignaturePreview from './StampSignaturePreview'
+import StampSignaturePreview, { STAMP_DEFAULTS } from './StampSignaturePreview'
 import { FileText, Download, Check, ArrowLeft, Stamp } from 'lucide-react'
 import { documentTemplates } from '../utils/documentTemplates'
 import { formatDate, formatDateForInput } from '../utils/helpers'
 
-const DEFAULT_STAMP_SETTINGS = {
-    stampSize: 110,
-    signatureSize: 80,
-    signatureOffsetX: 0,
-    signatureOffsetY: 0,
-    signatureOpacity: 0.9,
-    stampOpacity: 0.85,
-}
+
 
 export default function DocumentGeneratorModal({ isOpen, onClose, employee, company }) {
     const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0])
@@ -23,7 +16,7 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
     const [isGenerating, setIsGenerating] = useState(false)
     // 'edit' | 'stamp-preview'
     const [step, setStep] = useState('edit')
-    const [stampSettings, setStampSettings] = useState(DEFAULT_STAMP_SETTINGS)
+    const [stampSettings, setStampSettings] = useState(STAMP_DEFAULTS)
 
     useEffect(() => {
         if (selectedTemplate && employee && company) {
@@ -133,8 +126,8 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={step === 'stamp-preview' ? 'Kaşe & İmza Konumlandırma' : 'Personel Belgesi Oluştur'}
-            size="xl"
+            title={step === 'stamp-preview' ? 'Kaşe & İmza Konumlandırma — PDF Önizleme' : 'Personel Belgesi Oluştur'}
+            size={step === 'stamp-preview' ? 'fullscreen' : 'xl'}
             footer={null}
         >
             {step === 'edit' && (
@@ -287,12 +280,20 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
             )}
 
             {step === 'stamp-preview' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                        Kaşe ve imzanın belgede nasıl görüneceğini ayarlayın. Sliderları kullanarak boyut ve konumunu düzenleyin.
-                    </div>
-
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <StampSignaturePreview
+                        docData={{
+                            templateId: selectedTemplate.id,
+                            title,
+                            content,
+                            employeeName: `${employee.first_name} ${employee.last_name}`,
+                            companyName: company.name,
+                            companyAddress: company.address,
+                            companySgk: company.sgk_no,
+                            companyTax: company.tax_office ? `${company.tax_office} / ${company.tax_number || ''}` : company.tax_number,
+                            tcNo: employee.tc_no,
+                            placeholders,
+                        }}
                         company={company}
                         settings={stampSettings}
                         onChange={setStampSettings}
