@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { formatDate } from '../utils/helpers'
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, Sliders, Move, Eye, HelpCircle, Check, Info } from 'lucide-react'
 
-const SCALE = 0.65
+const SCALE = 0.7 // Perfect scale for side-by-side view
 const A4W = 794   // 210mm @ 96dpi
 const A4H = 1122  // 297mm @ 96dpi
 const PAD = 68    // 18mm padding
@@ -71,14 +71,14 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         } else setSignatureSrc(null)
     }, [company])
 
-    // Auto-scroll to footer when component mounts
+    // Auto-scroll to footer when component mounts (in footer mode)
     useEffect(() => {
-        if (scrollRef.current) {
+        if (scrollRef.current && ss.placementMode === 'footer') {
             setTimeout(() => {
                 scrollRef.current.scrollTop = scrollRef.current.scrollHeight
             }, 150)
         }
-    }, [])
+    }, [ss.placementMode])
 
     // --- Drag handler ---
     const startDrag = (e, which) => {
@@ -211,112 +211,281 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         )
     }
 
-    // The actual scaled document
     const scaledDocStyle = {
         width: `${A4W}px`,
         minHeight: `${A4H}px`,
         transform: `scale(${SCALE})`,
-        transformOrigin: 'top left',
+        transformOrigin: 'top center',
         background: 'white',
         padding: `${PAD}px`,
         boxSizing: 'border-box',
-        boxShadow: '0 6px 40px rgba(0,0,0,0.5)',
+        boxShadow: '0 12px 36px rgba(0,0,0,0.25)',
         fontFamily: "'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
         color: '#1a1a1a',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative', // ensures absolute positioned children map to top-left of this container
+        position: 'relative',
     }
 
     return (
-        <div>
-            {/* Yerleşim Modu Seçici */}
+        <div style={{ display: 'flex', gap: '24px', height: '68vh', minHeight: '520px' }}>
+            
+            {/* ── LEFT PANEL: CONFIGURATION ── */}
             <div style={{
+                width: '330px',
+                flexShrink: 0,
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '10px',
-                padding: '12px 16px',
-                marginBottom: '15px',
+                borderRadius: '12px',
+                padding: '20px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '16px',
-                flexWrap: 'wrap'
+                flexDirection: 'column',
+                gap: '20px',
+                overflowY: 'auto',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
             }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Kaşe & İmza Yerleşimi</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Belge boyutu uzamasın diye metin üzerine veya serbest bir yere yerleştirebilirsiniz.</span>
+                <div>
+                    <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Sliders size={18} className="text-primary" /> Yerleşim &amp; Boyut
+                    </h3>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>Belge kaşe/imza yerleşimini özelleştirin.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            onChange({
-                                ...settings,
-                                placementMode: 'footer',
-                                stampOffsetX: 0,
-                                stampOffsetY: 0,
-                                signatureOffsetX: 0,
-                                signatureOffsetY: 0
-                            })
-                        }}
-                        style={{
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            background: ss.placementMode === 'footer' ? 'var(--accent-primary)' : 'transparent',
-                            color: ss.placementMode === 'footer' ? '#fff' : 'var(--text-muted)'
-                        }}
-                    >
-                        Alt Bölüm (Sabit)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            onChange({
-                                ...settings,
-                                placementMode: 'free',
-                                stampOffsetX: 530,
-                                stampOffsetY: 900,
-                                signatureOffsetX: 640,
-                                signatureOffsetY: 940
-                            })
-                        }}
-                        style={{
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            background: ss.placementMode === 'free' ? 'var(--accent-primary)' : 'transparent',
-                            color: ss.placementMode === 'free' ? '#fff' : 'var(--text-muted)'
-                        }}
-                    >
-                        Serbest Yerleşim (Metin Üzeri)
-                    </button>
+
+                {/* Mod Seçici */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Yerleşim Modu
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onChange({
+                                    ...settings,
+                                    placementMode: 'footer',
+                                    stampOffsetX: 0,
+                                    stampOffsetY: 0,
+                                    signatureOffsetX: 0,
+                                    signatureOffsetY: 0
+                                })
+                            }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border-color)',
+                                background: ss.placementMode === 'footer' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                color: ss.placementMode === 'footer' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                textAlign: 'left'
+                            }}
+                        >
+                            <span style={{
+                                width: '16px', height: '16px', borderRadius: '50%',
+                                border: `2px solid ${ss.placementMode === 'footer' ? 'var(--accent-primary)' : '#888'}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                            }}>
+                                {ss.placementMode === 'footer' && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-primary)' }} />}
+                            </span>
+                            <div>
+                                <div style={{ fontWeight: 700 }}>Alt Bölüm (Sabit)</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Klasik imza kutusuna sabitler.</div>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onChange({
+                                    ...settings,
+                                    placementMode: 'free',
+                                    stampOffsetX: 530,
+                                    stampOffsetY: 900,
+                                    signatureOffsetX: 640,
+                                    signatureOffsetY: 940
+                                })
+                            }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border-color)',
+                                background: ss.placementMode === 'free' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                color: ss.placementMode === 'free' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                textAlign: 'left'
+                            }}
+                        >
+                            <span style={{
+                                width: '16px', height: '16px', borderRadius: '50%',
+                                border: `2px solid ${ss.placementMode === 'free' ? 'var(--accent-primary)' : '#888'}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                            }}>
+                                {ss.placementMode === 'free' && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-primary)' }} />}
+                            </span>
+                            <div>
+                                <div style={{ fontWeight: 700 }}>Serbest Yerleşim (Metin Üzeri)</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>A4 boyutu uzamaz, her yere sürüklenebilir.</div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
+
+                {/* Kaşe Ayarları (Varsa) */}
+                {stampSrc && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }} />
+                            <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                Kaşe Ayarları
+                            </label>
+                        </div>
+                        
+                        {/* Size */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                <span>Boyut</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ss.stampSize}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="40"
+                                max="240"
+                                value={ss.stampSize}
+                                onChange={(e) => onChange({ ...settings, stampSize: parseInt(e.target.value) })}
+                                style={{ width: '100%', accentColor: '#3b82f6', cursor: 'pointer' }}
+                            />
+                        </div>
+
+                        {/* Opacity */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                <span>Saydamlık</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>%{Math.round(ss.stampOpacity * 100)}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="1.0"
+                                step="0.05"
+                                value={ss.stampOpacity}
+                                onChange={(e) => onChange({ ...settings, stampOpacity: parseFloat(e.target.value) })}
+                                style={{ width: '100%', accentColor: '#3b82f6', cursor: 'pointer' }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* İmza Ayarları (Varsa) */}
+                {signatureSrc && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+                            <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                İmza Ayarları
+                            </label>
+                        </div>
+
+                        {/* Size */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                <span>Boyut</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ss.signatureSize}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="30"
+                                max="200"
+                                value={ss.signatureSize}
+                                onChange={(e) => onChange({ ...settings, signatureSize: parseInt(e.target.value) })}
+                                style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }}
+                            />
+                        </div>
+
+                        {/* Opacity */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                <span>Saydamlık</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>%{Math.round(ss.signatureOpacity * 100)}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="1.0"
+                                step="0.05"
+                                value={ss.signatureOpacity}
+                                onChange={(e) => onChange({ ...settings, signatureOpacity: parseFloat(e.target.value) })}
+                                style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Bilgi Kutusu */}
+                <div style={{
+                    marginTop: 'auto',
+                    background: 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    display: 'flex',
+                    gap: '10px',
+                }}>
+                    <Info size={16} className="text-primary" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <p style={{ fontSize: '11px', lineHeight: 1.5, color: 'var(--text-muted)', margin: 0 }}>
+                        Kaşe ve imzayı sağdaki önizleme belgesi üzerinde <strong>sürükleyip bırakarak</strong> yerleştirebilir, köşelerindeki tutamaçlardan <strong>boyutlandırabilirsiniz.</strong>
+                    </p>
+                </div>
+
+                {/* Reset Butonu */}
+                <button
+                    type="button"
+                    onClick={() => onChange({ ...STAMP_DEFAULTS })}
+                    style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                        fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)',
+                        background: 'none', border: '1px solid var(--border-color)',
+                        borderRadius: '8px', padding: '8px 12px', cursor: 'pointer',
+                        transition: 'all 0.2s', width: '100%'
+                    }}
+                >
+                    <RotateCcw size={14} />
+                    Varsayılana Sıfırla
+                </button>
             </div>
 
-            {/* Scrollable A4 preview */}
-            <div
-                ref={scrollRef}
-                style={{
-                    overflow: 'auto',
-                    maxHeight: '62vh',
-                    background: '#3d3d3d',
-                    borderRadius: '10px',
-                    padding: '20px',
-                    border: '1px solid var(--border-color)',
-                }}
-            >
-                {/* Wrapper that matches the SCALED document size so the container doesn't collapse */}
-                <div style={{ width: `${A4W * SCALE}px`, height: `${A4H * SCALE}px`, margin: '0 auto', position: 'relative' }}>
+            {/* ── RIGHT PANEL: INTERACTIVE A4 PREVIEW ── */}
+            <div style={{
+                flexGrow: 1,
+                background: '#2d2d30', // Acrobat style dark layout background
+                border: '1px solid var(--border-color)',
+                borderRadius: '12px',
+                overflow: 'auto',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '40px 20px',
+                boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.3)'
+            }} ref={scrollRef}>
+                
+                {/* Document wrapper that matches scaled A4 bounds */}
+                <div style={{
+                    width: `${A4W * SCALE}px`,
+                    height: `${A4H * SCALE}px`,
+                    position: 'relative',
+                    flexShrink: 0
+                }}>
                     <div style={scaledDocStyle}>
 
                         {/* ── HEADER ── */}
@@ -389,8 +558,8 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                         </div>
                                     )}
                                     {ss.placementMode === 'free' && (
-                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
-                                            Serbest Yerleşim Aktif
+                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px', fontStyle: 'italic' }}>
+                                            (Serbest Yerleşim Aktif)
                                         </div>
                                     )}
                                 </div>
@@ -406,33 +575,6 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                 </div>
             </div>
 
-            {/* Legend + Reset */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                <div style={{ display: 'flex', gap: '20px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ width: '14px', height: '14px', border: '2px dashed #3b82f6', borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
-                        Kaşe — sürükle · köşeden boyutlandır
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ width: '14px', height: '14px', border: '2px dashed #10b981', borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
-                        İmza — sürükle · köşeden boyutlandır
-                    </span>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => onChange({ ...STAMP_DEFAULTS })}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                        fontSize: '12px', color: 'var(--text-muted)',
-                        background: 'none', border: '1px solid var(--border-color)',
-                        borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
-                        whiteSpace: 'nowrap', flexShrink: 0,
-                    }}
-                >
-                    <RotateCcw size={13} />
-                    Varsayılana sıfırla
-                </button>
-            </div>
         </div>
     )
 }
