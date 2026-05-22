@@ -140,6 +140,8 @@ exports.Prisma.CompaniesScalarFieldEnum = {
   sgk_no: 'sgk_no',
   address: 'address',
   phone: 'phone',
+  signature_path: 'signature_path',
+  stamp_path: 'stamp_path',
   created_at: 'created_at'
 };
 

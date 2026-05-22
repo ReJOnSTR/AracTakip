@@ -260,6 +260,62 @@ process.on('uncaughtException', (error) => {
     log.error('Uncaught Exception:', error)
 })
 
+const withTimeout = (promise, ms) => {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+            const err = new Error('ETIMEDOUT: operation timed out');
+            err.code = 'ETIMEDOUT';
+            reject(err);
+        }, ms);
+    });
+    return Promise.race([
+        promise.then(val => {
+            clearTimeout(timeoutId);
+            return val;
+        }),
+        timeoutPromise
+    ]);
+};
+
+async function copyOrCloneFile(sourcePath, destPath) {
+    const isCloudPath = /cloud|onedrive|icloud|dropbox|google/i.test(sourcePath) || 
+                        sourcePath.toLowerCase().includes('cloudstorage') ||
+                        sourcePath.includes('Library/Mobile Documents/com~apple~CloudDocs');
+
+    const isTimeoutOrIOError = (err) => {
+        if (!err) return false;
+        const errMsg = String(err.message || '').toUpperCase();
+        const errCode = String(err.code || '').toUpperCase();
+        return errMsg.includes('ETIMEDOUT') || errMsg.includes('EIO') || errMsg.includes('TIMEDOUT') ||
+               errCode.includes('ETIMEDOUT') || errCode.includes('EIO') || errCode.includes('TIMEDOUT');
+    };
+
+    try {
+        await withTimeout(fs.promises.copyFile(sourcePath, destPath), 15000)
+    } catch (copyError) {
+        log.warn(`copyFile failed for ${sourcePath}:`, copyError.message)
+        
+        // If it is a cloud path or a timeout/IO error, throw the user-friendly error immediately.
+        // Doing a fallback to readFile/writeFile will just time out again, wasting time.
+        if (isCloudPath || isTimeoutOrIOError(copyError)) {
+            throw new Error(`Bulut (OneDrive/iCloud) dosya indirme zaman aşımına uğradı veya dosya okunamadı. Lütfen Finder'dan dosyaya çift tıklayarak bilgisayarınıza indirildiğinden emin olun veya dosyayı yerel bir klasöre (Masaüstü, İndirilenler vb.) kopyalayıp oradan seçin.`)
+        }
+
+        log.info(`Falling back to readFile/writeFile for ${sourcePath}`)
+        try {
+            const buffer = await withTimeout(fs.promises.readFile(sourcePath), 15000)
+            await fs.promises.writeFile(destPath, buffer)
+        } catch (readError) {
+            log.error(`Fallback readFile/writeFile failed for ${sourcePath}:`, readError.message)
+            if (isCloudPath || isTimeoutOrIOError(readError)) {
+                throw new Error(`Bulut (OneDrive/iCloud) dosya indirme zaman aşımına uğradı veya dosya okunamadı. Lütfen Finder'dan dosyaya çift tıklayarak bilgisayarınıza indirildiğinden emin olun veya dosyayı yerel bir klasöre (Masaüstü, İndirilenler vb.) kopyalayıp oradan seçin.`)
+            }
+            throw readError
+        }
+    }
+}
+
 // ============ IPC HANDLERS ============
 
 // Auth handlers
@@ -709,7 +765,7 @@ ipcMain.handle('employeeDocuments:create', async (event, data) => {
         const destPath = path.join(filesDir, fileName)
 
         // Copy file
-        fs.copyFileSync(sourcePath, destPath)
+        await copyOrCloneFile(sourcePath, destPath)
 
         // Save to DB with the NEW path (the filename in our storage)
         const result = await db.addEmployeeDocument({
@@ -763,7 +819,7 @@ ipcMain.handle('employeeDocuments:update', async (event, data) => {
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
             const destPath = path.join(filesDir, fileName)
 
-            fs.copyFileSync(data.filePath, destPath)
+            await copyOrCloneFile(data.filePath, destPath)
             finalData.fileName = path.basename(data.filePath)
             finalData.filePath = fileName
         }
@@ -1561,7 +1617,9 @@ ipcMain.handle('files:select', async () => {
     const result = await dialog.showOpenDialog({
         properties: ['openFile', 'multiSelections'],
         filters: [
-            { name: 'Belgeler', extensions: ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx'] }
+            { name: 'Tüm Desteklenen Dosyalar', extensions: ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'doc', 'docx', 'xls', 'xlsx'] },
+            { name: 'Görseller (PNG, JPG, SVG, WEBP, BMP)', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'] },
+            { name: 'Belgeler (PDF, Word, Excel)', extensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx'] }
         ]
     })
     return result
@@ -1580,11 +1638,11 @@ ipcMain.handle('files:save', async (event, sourcePath) => {
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
         const destPath = path.join(filesDir, fileName)
 
-        fs.copyFileSync(sourcePath, destPath)
+        await copyOrCloneFile(sourcePath, destPath)
         return fileName
     } catch (error) {
         console.error('File save error:', error)
-        return null
+        throw new Error(error.message)
     }
 })
 
@@ -1614,7 +1672,7 @@ ipcMain.handle('documents:add', async (event, data) => {
         const destPath = path.join(filesDir, fileName)
 
         // Copy file
-        fs.copyFileSync(sourcePath, destPath)
+        await copyOrCloneFile(sourcePath, destPath)
 
         // Add to DB
         const result = await db.addDocument({
@@ -1694,6 +1752,8 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
             '.jpeg': 'image/jpeg',
             '.gif': 'image/gif',
             '.webp': 'image/webp',
+            '.svg': 'image/svg+xml',
+            '.bmp': 'image/bmp',
             '.pdf': 'application/pdf'
         }
 
@@ -1702,7 +1762,7 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
             return { success: false, error: 'Preview not supported for this file type' }
         }
 
-        const fileData = fs.readFileSync(filePath, { encoding: 'base64' })
+        const fileData = await fs.promises.readFile(filePath, { encoding: 'base64' })
         return { success: true, data: `data:${mimeType};base64,${fileData}`, type: mimeType }
     } catch (error) {
         console.error('Read data error:', error)

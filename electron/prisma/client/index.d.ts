@@ -5245,6 +5245,8 @@ export namespace Prisma {
     sgk_no: string | null
     address: string | null
     phone: string | null
+    signature_path: string | null
+    stamp_path: string | null
     created_at: Date | null
   }
 
@@ -5257,6 +5259,8 @@ export namespace Prisma {
     sgk_no: string | null
     address: string | null
     phone: string | null
+    signature_path: string | null
+    stamp_path: string | null
     created_at: Date | null
   }
 
@@ -5269,6 +5273,8 @@ export namespace Prisma {
     sgk_no: number
     address: number
     phone: number
+    signature_path: number
+    stamp_path: number
     created_at: number
     _all: number
   }
@@ -5293,6 +5299,8 @@ export namespace Prisma {
     sgk_no?: true
     address?: true
     phone?: true
+    signature_path?: true
+    stamp_path?: true
     created_at?: true
   }
 
@@ -5305,6 +5313,8 @@ export namespace Prisma {
     sgk_no?: true
     address?: true
     phone?: true
+    signature_path?: true
+    stamp_path?: true
     created_at?: true
   }
 
@@ -5317,6 +5327,8 @@ export namespace Prisma {
     sgk_no?: true
     address?: true
     phone?: true
+    signature_path?: true
+    stamp_path?: true
     created_at?: true
     _all?: true
   }
@@ -5416,6 +5428,8 @@ export namespace Prisma {
     sgk_no: string | null
     address: string | null
     phone: string | null
+    signature_path: string | null
+    stamp_path: string | null
     created_at: Date | null
     _count: CompaniesCountAggregateOutputType | null
     _avg: CompaniesAvgAggregateOutputType | null
@@ -5447,6 +5461,8 @@ export namespace Prisma {
     sgk_no?: boolean
     address?: boolean
     phone?: boolean
+    signature_path?: boolean
+    stamp_path?: boolean
     created_at?: boolean
     users?: boolean | usersDefaultArgs<ExtArgs>
     employees?: boolean | companies$employeesArgs<ExtArgs>
@@ -5473,6 +5489,8 @@ export namespace Prisma {
     sgk_no?: boolean
     address?: boolean
     phone?: boolean
+    signature_path?: boolean
+    stamp_path?: boolean
     created_at?: boolean
     users?: boolean | usersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
@@ -5486,6 +5504,8 @@ export namespace Prisma {
     sgk_no?: boolean
     address?: boolean
     phone?: boolean
+    signature_path?: boolean
+    stamp_path?: boolean
     created_at?: boolean
     users?: boolean | usersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
@@ -5499,10 +5519,12 @@ export namespace Prisma {
     sgk_no?: boolean
     address?: boolean
     phone?: boolean
+    signature_path?: boolean
+    stamp_path?: boolean
     created_at?: boolean
   }
 
-  export type companiesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "name" | "tax_number" | "tax_office" | "sgk_no" | "address" | "phone" | "created_at", ExtArgs["result"]["companies"]>
+  export type companiesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "name" | "tax_number" | "tax_office" | "sgk_no" | "address" | "phone" | "signature_path" | "stamp_path" | "created_at", ExtArgs["result"]["companies"]>
   export type companiesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     users?: boolean | usersDefaultArgs<ExtArgs>
     employees?: boolean | companies$employeesArgs<ExtArgs>
@@ -5552,6 +5574,8 @@ export namespace Prisma {
       sgk_no: string | null
       address: string | null
       phone: string | null
+      signature_path: string | null
+      stamp_path: string | null
       created_at: Date | null
     }, ExtArgs["result"]["companies"]>
     composites: {}
@@ -5997,6 +6021,8 @@ export namespace Prisma {
     readonly sgk_no: FieldRef<"companies", 'String'>
     readonly address: FieldRef<"companies", 'String'>
     readonly phone: FieldRef<"companies", 'String'>
+    readonly signature_path: FieldRef<"companies", 'String'>
+    readonly stamp_path: FieldRef<"companies", 'String'>
     readonly created_at: FieldRef<"companies", 'DateTime'>
   }
     
@@ -41210,6 +41236,8 @@ export namespace Prisma {
     sgk_no: 'sgk_no',
     address: 'address',
     phone: 'phone',
+    signature_path: 'signature_path',
+    stamp_path: 'stamp_path',
     created_at: 'created_at'
   };
 
@@ -41832,6 +41860,8 @@ export namespace Prisma {
     sgk_no?: StringNullableFilter<"companies"> | string | null
     address?: StringNullableFilter<"companies"> | string | null
     phone?: StringNullableFilter<"companies"> | string | null
+    signature_path?: StringNullableFilter<"companies"> | string | null
+    stamp_path?: StringNullableFilter<"companies"> | string | null
     created_at?: DateTimeNullableFilter<"companies"> | Date | string | null
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
     employees?: EmployeesListRelationFilter
@@ -41857,6 +41887,8 @@ export namespace Prisma {
     sgk_no?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
+    signature_path?: SortOrderInput | SortOrder
+    stamp_path?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     users?: usersOrderByWithRelationInput
     employees?: employeesOrderByRelationAggregateInput
@@ -41885,6 +41917,8 @@ export namespace Prisma {
     sgk_no?: StringNullableFilter<"companies"> | string | null
     address?: StringNullableFilter<"companies"> | string | null
     phone?: StringNullableFilter<"companies"> | string | null
+    signature_path?: StringNullableFilter<"companies"> | string | null
+    stamp_path?: StringNullableFilter<"companies"> | string | null
     created_at?: DateTimeNullableFilter<"companies"> | Date | string | null
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
     employees?: EmployeesListRelationFilter
@@ -41910,6 +41944,8 @@ export namespace Prisma {
     sgk_no?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
+    signature_path?: SortOrderInput | SortOrder
+    stamp_path?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: companiesCountOrderByAggregateInput
     _avg?: companiesAvgOrderByAggregateInput
@@ -41930,6 +41966,8 @@ export namespace Prisma {
     sgk_no?: StringNullableWithAggregatesFilter<"companies"> | string | null
     address?: StringNullableWithAggregatesFilter<"companies"> | string | null
     phone?: StringNullableWithAggregatesFilter<"companies"> | string | null
+    signature_path?: StringNullableWithAggregatesFilter<"companies"> | string | null
+    stamp_path?: StringNullableWithAggregatesFilter<"companies"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"companies"> | Date | string | null
   }
 
@@ -44487,6 +44525,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -44512,6 +44552,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -44534,6 +44576,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -44559,6 +44603,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -44583,6 +44629,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
   }
 
@@ -44593,6 +44641,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -44605,6 +44655,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -47581,6 +47633,8 @@ export namespace Prisma {
     sgk_no?: SortOrder
     address?: SortOrder
     phone?: SortOrder
+    signature_path?: SortOrder
+    stamp_path?: SortOrder
     created_at?: SortOrder
   }
 
@@ -47598,6 +47652,8 @@ export namespace Prisma {
     sgk_no?: SortOrder
     address?: SortOrder
     phone?: SortOrder
+    signature_path?: SortOrder
+    stamp_path?: SortOrder
     created_at?: SortOrder
   }
 
@@ -47610,6 +47666,8 @@ export namespace Prisma {
     sgk_no?: SortOrder
     address?: SortOrder
     phone?: SortOrder
+    signature_path?: SortOrder
+    stamp_path?: SortOrder
     created_at?: SortOrder
   }
 
@@ -52511,6 +52569,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -52535,6 +52595,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -52620,6 +52682,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -52644,6 +52708,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -53711,6 +53777,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
@@ -53735,6 +53803,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
     meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
@@ -54121,6 +54191,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
@@ -54145,6 +54217,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
     meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
@@ -54803,6 +54877,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -54827,6 +54903,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
@@ -54864,6 +54942,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -54888,6 +54968,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
@@ -54909,6 +54991,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -54933,6 +55017,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -54970,6 +55056,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -54994,6 +55082,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -55169,6 +55259,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -55193,6 +55285,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -55230,6 +55324,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -55254,6 +55350,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -55539,6 +55637,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -55563,6 +55663,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -55600,6 +55702,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -55624,6 +55728,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -55645,6 +55751,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
@@ -55668,6 +55776,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -55720,6 +55830,8 @@ export namespace Prisma {
     sgk_no?: StringNullableFilter<"companies"> | string | null
     address?: StringNullableFilter<"companies"> | string | null
     phone?: StringNullableFilter<"companies"> | string | null
+    signature_path?: StringNullableFilter<"companies"> | string | null
+    stamp_path?: StringNullableFilter<"companies"> | string | null
     created_at?: DateTimeNullableFilter<"companies"> | Date | string | null
   }
 
@@ -55938,6 +56050,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -55962,6 +56076,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -56291,6 +56407,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -56315,6 +56433,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -56896,6 +57016,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -56920,6 +57042,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -57143,6 +57267,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -57167,6 +57293,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -57226,6 +57354,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -57250,6 +57380,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -57287,6 +57419,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -57311,6 +57445,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -57332,6 +57468,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -57356,6 +57494,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -57393,6 +57533,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -57417,6 +57559,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -57438,6 +57582,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -57462,6 +57608,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -57499,6 +57647,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -57523,6 +57673,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -57544,6 +57696,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     users: usersCreateNestedOneWithoutCompaniesInput
     employees?: employeesCreateNestedManyWithoutCompaniesInput
@@ -57568,6 +57722,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
     employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
@@ -57605,6 +57761,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
@@ -57629,6 +57787,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -58821,6 +58981,8 @@ export namespace Prisma {
     sgk_no?: string | null
     address?: string | null
     phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
     created_at?: Date | string | null
   }
 
@@ -58831,6 +58993,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
@@ -58854,6 +59018,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
@@ -58877,6 +59043,8 @@ export namespace Prisma {
     sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

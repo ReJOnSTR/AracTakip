@@ -6,7 +6,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import DataTable from '../components/DataTable'
 import CustomInput from '../components/CustomInput'
 import { formatDate } from '../utils/helpers'
-import { Plus, Pencil, Trash2, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Building2, Upload, X, Loader2 } from 'lucide-react'
 
 export default function Companies() {
     const { user } = useAuth()
@@ -19,14 +19,33 @@ export default function Companies() {
         taxOffice: '',
         sgkNo: '',
         address: '',
-        phone: ''
+        phone: '',
+        signaturePath: '',
+        stampPath: ''
     })
+    const [signaturePreview, setSignaturePreview] = useState(null)
+    const [stampPreview, setStampPreview] = useState(null)
+    const [stampLoading, setStampLoading] = useState(false)
+    const [signatureLoading, setSignatureLoading] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
 
     const resetForm = () => {
-        setFormData({ name: '', taxNumber: '', taxOffice: '', sgkNo: '', address: '', phone: '' })
+        setFormData({
+            name: '',
+            taxNumber: '',
+            taxOffice: '',
+            sgkNo: '',
+            address: '',
+            phone: '',
+            signaturePath: '',
+            stampPath: ''
+        })
+        setSignaturePreview(null)
+        setStampPreview(null)
+        setStampLoading(false)
+        setSignatureLoading(false)
         setEditingCompany(null)
         setError('')
     }
@@ -36,22 +55,95 @@ export default function Companies() {
         setIsModalOpen(true)
     }
 
-    const openEditModal = (company) => {
+    const openEditModal = async (company) => {
         setFormData({
             name: company.name,
             taxNumber: company.tax_number || '',
             taxOffice: company.tax_office || '',
             sgkNo: company.sgk_no || '',
             address: company.address || '',
-            phone: company.phone || ''
+            phone: company.phone || '',
+            signaturePath: company.signature_path || '',
+            stampPath: company.stamp_path || ''
         })
         setEditingCompany(company)
         setIsModalOpen(true)
+
+        if (company.signature_path) {
+            window.electronAPI.readDocumentData(company.signature_path).then(res => {
+                if (res.success) setSignaturePreview(res.data)
+            })
+        }
+        if (company.stamp_path) {
+            window.electronAPI.readDocumentData(company.stamp_path).then(res => {
+                if (res.success) setStampPreview(res.data)
+            })
+        }
     }
 
     const closeModal = () => {
         setIsModalOpen(false)
         resetForm()
+    }
+
+    const handleSelectSignature = async () => {
+        setError('')
+        try {
+            const result = await window.electronAPI.selectFile()
+            if (!result || result.canceled || (Array.isArray(result) && result.length === 0)) return
+            const filePath = Array.isArray(result) ? result[0] : result.filePaths?.[0]
+            if (!filePath) return
+
+            setSignatureLoading(true)
+            const savedName = await window.electronAPI.saveFile(filePath)
+            if (savedName) {
+                setFormData(prev => ({ ...prev, signaturePath: savedName }))
+                const previewRes = await window.electronAPI.readDocumentData(savedName)
+                if (previewRes.success) {
+                    setSignaturePreview(previewRes.data)
+                } else {
+                    setError('İmza görseli yüklenemedi: ' + (previewRes.error || 'Önizleme alınamadı'))
+                }
+            } else {
+                setError('İmza dosyası diske kaydedilemedi.')
+            }
+        } catch (err) {
+            console.error('Signature select error:', err)
+            const cleanMessage = err.message.replace(/Error invoking remote method '.*?':\s*Error:\s*/, '')
+            setError('İmza seçerken bir hata oluştu: ' + cleanMessage)
+        } finally {
+            setSignatureLoading(false)
+        }
+    }
+
+    const handleSelectStamp = async () => {
+        setError('')
+        try {
+            const result = await window.electronAPI.selectFile()
+            if (!result || result.canceled || (Array.isArray(result) && result.length === 0)) return
+            const filePath = Array.isArray(result) ? result[0] : result.filePaths?.[0]
+            if (!filePath) return
+
+            setStampLoading(true)
+            const savedName = await window.electronAPI.saveFile(filePath)
+            if (savedName) {
+                setFormData(prev => ({ ...prev, stampPath: savedName }))
+                const previewRes = await window.electronAPI.readDocumentData(savedName)
+                if (previewRes.success) {
+                    setStampPreview(previewRes.data)
+                } else {
+                    setError('Kaşe görseli yüklenemedi: ' + (previewRes.error || 'Önizleme alınamadı'))
+                }
+            } else {
+                setError('Kaşe dosyası diske kaydedilemedi.')
+            }
+        } catch (err) {
+            console.error('Stamp select error:', err)
+            const cleanMessage = err.message.replace(/Error invoking remote method '.*?':\s*Error:\s*/, '')
+            setError('Kaşe seçerken bir hata oluştu: ' + cleanMessage)
+        } finally {
+            setStampLoading(false)
+        }
     }
 
     const handleSubmit = async (e) => {
@@ -74,7 +166,9 @@ export default function Companies() {
                 taxOffice: formData.taxOffice,
                 sgkNo: formData.sgkNo,
                 address: formData.address,
-                phone: formData.phone
+                phone: formData.phone,
+                signaturePath: formData.signaturePath,
+                stampPath: formData.stampPath
             })
         } else {
             result = await createCompany(formData)
@@ -288,6 +382,102 @@ export default function Companies() {
                             rows={3}
                             floatingLabel={true}
                         />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', marginBottom: '16px' }}>
+                        {/* Kaşe Yükleme Kartı */}
+                        <div style={{
+                            border: '1px dashed var(--border-color)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minHeight: '130px',
+                            background: 'var(--bg-secondary)',
+                            position: 'relative'
+                        }}>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>Şirket Kaşesi</span>
+                            {stampLoading ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                    <Loader2 className="spin" size={24} style={{ color: 'var(--primary)' }} />
+                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Yükleniyor...</span>
+                                </div>
+                            ) : stampPreview ? (
+                                <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <img src={stampPreview} alt="Kaşe" style={{ maxHeight: '60px', maxWidth: '100%', objectFit: 'contain', marginBottom: '8px', borderRadius: '4px' }} />
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-secondary btn-sm" 
+                                        onClick={() => {
+                                            setFormData(prev => ({ ...prev, stampPath: '' }))
+                                            setStampPreview(null)
+                                        }}
+                                        style={{ fontSize: '11px', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    >
+                                        <X size={12} /> Kaldır
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={handleSelectStamp}
+                                    style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}
+                                >
+                                    <Upload size={14} /> Kaşe Yükle
+                                </button>
+                            )}
+                        </div>
+
+                        {/* İmza Yükleme Kartı */}
+                        <div style={{
+                            border: '1px dashed var(--border-color)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minHeight: '130px',
+                            background: 'var(--bg-secondary)',
+                            position: 'relative'
+                        }}>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>Yetkili İmzası</span>
+                            {signatureLoading ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                    <Loader2 className="spin" size={24} style={{ color: 'var(--primary)' }} />
+                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Yükleniyor...</span>
+                                </div>
+                            ) : signaturePreview ? (
+                                <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <img src={signaturePreview} alt="İmza" style={{ maxHeight: '60px', maxWidth: '100%', objectFit: 'contain', marginBottom: '8px', borderRadius: '4px' }} />
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-secondary btn-sm" 
+                                        onClick={() => {
+                                            setFormData(prev => ({ ...prev, signaturePath: '' }))
+                                            setSignaturePreview(null)
+                                        }}
+                                        style={{ fontSize: '11px', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    >
+                                        <X size={12} /> Kaldır
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={handleSelectSignature}
+                                    style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}
+                                >
+                                    <Upload size={14} /> İmza Yükle
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {error && <div className="form-error">{error}</div>}

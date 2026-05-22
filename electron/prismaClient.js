@@ -224,6 +224,23 @@ async function runAutoMigrations() {
         log.error('Migration step 11 (employee_documents) error:', error.message);
     }
 
+    // 11b. Companies: signature_path, stamp_path (for existing DBs) - must run before Step 12
+    try {
+        const cCols = await p.$queryRawUnsafe("PRAGMA table_info('companies')");
+        if (cCols.length > 0) {
+            if (!cCols.some(c => c.name === 'signature_path')) {
+                await p.$executeRawUnsafe('ALTER TABLE companies ADD COLUMN signature_path TEXT');
+                log.info('Migration: Added signature_path to companies');
+            }
+            if (!cCols.some(c => c.name === 'stamp_path')) {
+                await p.$executeRawUnsafe('ALTER TABLE companies ADD COLUMN stamp_path TEXT');
+                log.info('Migration: Added stamp_path to companies');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11b (signature/stamp columns) error:', error.message);
+    }
+
     // 12. Seed Default Personnel Settings for all companies
     try {
         const companies = await p.companies.findMany();

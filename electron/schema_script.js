@@ -18,8 +18,12 @@ const allTablesSQL = [
     "user_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "tax_number" TEXT,
+    "tax_office" TEXT,
+    "sgk_no" TEXT,
     "address" TEXT,
     "phone" TEXT,
+    "signature_path" TEXT,
+    "stamp_path" TEXT,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "companies_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
@@ -291,6 +295,7 @@ const allTablesSQL = [
     "email" TEXT NOT NULL,
     "full_name" TEXT,
     "password_hash" TEXT NOT NULL,
+    "role" TEXT DEFAULT 'user',
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "must_change_password" INTEGER DEFAULT 0
 )`,

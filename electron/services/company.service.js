@@ -38,7 +38,9 @@ async function createCompany(data) {
                 tax_office: rest.taxOffice || null,
                 sgk_no: rest.sgkNo || null,
                 address: rest.address || null,
-                phone: rest.phone || null
+                phone: rest.phone || null,
+                signature_path: rest.signaturePath || null,
+                stamp_path: rest.stampPath || null
             }
         });
         return { success: true, data: newCompany };
@@ -64,7 +66,9 @@ async function updateCompany(data) {
                 tax_office: rest.taxOffice || null,
                 sgk_no: rest.sgkNo || null,
                 address: rest.address || null,
-                phone: rest.phone || null
+                phone: rest.phone || null,
+                signature_path: rest.signaturePath || null,
+                stamp_path: rest.stampPath || null
             }
         });
 

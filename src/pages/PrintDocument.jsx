@@ -4,6 +4,8 @@ import './PrintDocument.css';
 
 export default function PrintDocument() {
     const [data, setData] = useState(null);
+    const [signatureSrc, setSignatureSrc] = useState(null);
+    const [stampSrc, setStampSrc] = useState(null);
 
     useEffect(() => {
         const load = () => {
@@ -33,6 +35,24 @@ export default function PrintDocument() {
             window.removeEventListener('storage', load);
             clearInterval(interval);
         };
+    }, [data]);
+
+    useEffect(() => {
+        if (data?.companySignaturePath) {
+            window.electronAPI.readDocumentData(data.companySignaturePath).then(res => {
+                if (res.success) setSignatureSrc(res.data);
+            });
+        } else {
+            setSignatureSrc(null);
+        }
+
+        if (data?.companyStampPath) {
+            window.electronAPI.readDocumentData(data.companyStampPath).then(res => {
+                if (res.success) setStampSrc(res.data);
+            });
+        } else {
+            setStampSrc(null);
+        }
     }, [data]);
 
     if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
@@ -110,17 +130,55 @@ export default function PrintDocument() {
             {/* Footer / Signatures */}
             <div className="doc-footer" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', marginTop: 'auto' }}>
                 <div className="signature-box" style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '30px', textTransform: 'uppercase' }}>
+                    <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                         PERSONEL İMZASI
                     </p>
-                    <div style={{ height: '40px' }}></div>
+                    <div style={{ height: '70px' }}></div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.employeeName}</p>
                 </div>
-                <div className="signature-box" style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '30px', textTransform: 'uppercase' }}>
+                <div className="signature-box" style={{ textAlign: 'center', position: 'relative' }}>
+                    <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                         YETKİLİ ONAYI
                     </p>
-                    <div style={{ height: '40px' }}></div>
+                    <div style={{ 
+                        height: '70px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '15px',
+                        position: 'relative',
+                        marginBottom: '10px'
+                    }}>
+                        {stampSrc && (
+                            <img 
+                                src={stampSrc} 
+                                alt="Kaşe" 
+                                style={{ 
+                                    maxHeight: '65px', 
+                                    maxWidth: '100px', 
+                                    objectFit: 'contain',
+                                    opacity: 0.85
+                                }} 
+                            />
+                        )}
+                        {signatureSrc && (
+                            <img 
+                                src={signatureSrc} 
+                                alt="İmza" 
+                                style={{ 
+                                    maxHeight: '55px', 
+                                    maxWidth: '100px', 
+                                    objectFit: 'contain',
+                                    position: stampSrc ? 'absolute' : 'static',
+                                    left: stampSrc ? '50%' : 'auto',
+                                    top: stampSrc ? '50%' : 'auto',
+                                    transform: stampSrc ? 'translate(-50%, -50%)' : 'none',
+                                    zIndex: 2
+                                }} 
+                            />
+                        )}
+                        {!stampSrc && !signatureSrc && <div style={{ height: '70px' }}></div>}
+                    </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.companyName}</p>
                 </div>
             </div>

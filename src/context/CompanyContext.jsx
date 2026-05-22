@@ -94,8 +94,12 @@ export function CompanyProvider({ children }) {
                 userId: user.id,
                 name: data.name,
                 taxNumber: data.taxNumber,
+                taxOffice: data.taxOffice,
+                sgkNo: data.sgkNo,
                 address: data.address,
-                phone: data.phone
+                phone: data.phone,
+                signaturePath: data.signaturePath,
+                stampPath: data.stampPath
             })
 
             if (result.success) {
