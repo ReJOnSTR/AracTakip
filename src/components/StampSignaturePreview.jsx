@@ -8,6 +8,7 @@ const A4H = 1122  // 297mm @ 96dpi
 const PAD = 68    // 18mm padding
 
 export const STAMP_DEFAULTS = {
+    placementMode: 'footer',
     stampSize: 110,
     stampOffsetX: 0,
     stampOffsetY: 0,
@@ -86,11 +87,22 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         const sx = e.clientX, sy = e.clientY
         const ox = ss[which + 'OffsetX'], oy = ss[which + 'OffsetY']
         const onMove = (ev) => {
-            onChange({
-                ...settings,
-                [which + 'OffsetX']: ox + (ev.clientX - sx) / SCALE,
-                [which + 'OffsetY']: oy + (ev.clientY - sy) / SCALE,
-            })
+            const nextX = ox + (ev.clientX - sx) / SCALE
+            const nextY = oy + (ev.clientY - sy) / SCALE
+            
+            if (ss.placementMode === 'free') {
+                onChange({
+                    ...settings,
+                    [which + 'OffsetX']: Math.max(0, Math.min(A4W, Math.round(nextX))),
+                    [which + 'OffsetY']: Math.max(0, Math.min(A4H, Math.round(nextY))),
+                })
+            } else {
+                onChange({
+                    ...settings,
+                    [which + 'OffsetX']: nextX,
+                    [which + 'OffsetY']: nextY,
+                })
+            }
         }
         const onUp = () => {
             document.removeEventListener('mousemove', onMove)
@@ -124,7 +136,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
     // Compute footer box height to accommodate all offsets + sizes
     const stampExt = Math.abs(ss.stampOffsetY) + ss.stampSize / 2
     const sigExt   = Math.abs(ss.signatureOffsetY) + ss.signatureSize / 2
-    const containerH = Math.max(stampExt, sigExt) * 2 + 30
+    const containerH = ss.placementMode === 'free' ? 40 : (Math.max(stampExt, sigExt) * 2 + 30)
 
     const renderInteractive = (which, src, zIndex) => {
         const size    = Math.round(ss[which + 'Size'])
@@ -135,8 +147,8 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
 
         const centerStyle = {
             position: 'absolute',
-            top:  `calc(50% + ${oy}px)`,
-            left: `calc(50% + ${ox}px)`,
+            top:  ss.placementMode === 'free' ? `${oy}px` : `calc(50% + ${oy}px)`,
+            left: ss.placementMode === 'free' ? `${ox}px` : `calc(50% + ${ox}px)`,
             transform: 'translate(-50%, -50%)',
         }
 
@@ -182,8 +194,8 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                     title="Boyutlandır"
                     style={{
                         position: 'absolute',
-                        top:  `calc(50% + ${oy}px + ${size / 2}px)`,
-                        left: `calc(50% + ${ox}px + ${size / 2}px)`,
+                        top:  ss.placementMode === 'free' ? `${Math.round(oy + size / 2)}px` : `calc(50% + ${oy}px + ${size / 2}px)`,
+                        left: ss.placementMode === 'free' ? `${Math.round(ox + size / 2)}px` : `calc(50% + ${ox}px + ${size / 2}px)`,
                         transform: 'translate(-50%, -50%)',
                         width: '14px',
                         height: '14px',
@@ -213,10 +225,84 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         color: '#1a1a1a',
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative', // ensures absolute positioned children map to top-left of this container
     }
 
     return (
         <div>
+            {/* Yerleşim Modu Seçici */}
+            <div style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+                flexWrap: 'wrap'
+            }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Kaşe & İmza Yerleşimi</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Belge boyutu uzamasın diye metin üzerine veya serbest bir yere yerleştirebilirsiniz.</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onChange({
+                                ...settings,
+                                placementMode: 'footer',
+                                stampOffsetX: 0,
+                                stampOffsetY: 0,
+                                signatureOffsetX: 0,
+                                signatureOffsetY: 0
+                            })
+                        }}
+                        style={{
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            background: ss.placementMode === 'footer' ? 'var(--accent-primary)' : 'transparent',
+                            color: ss.placementMode === 'footer' ? '#fff' : 'var(--text-muted)'
+                        }}
+                    >
+                        Alt Bölüm (Sabit)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onChange({
+                                ...settings,
+                                placementMode: 'free',
+                                stampOffsetX: 530,
+                                stampOffsetY: 900,
+                                signatureOffsetX: 640,
+                                signatureOffsetY: 940
+                            })
+                        }}
+                        style={{
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            background: ss.placementMode === 'free' ? 'var(--accent-primary)' : 'transparent',
+                            color: ss.placementMode === 'free' ? '#fff' : 'var(--text-muted)'
+                        }}
+                    >
+                        Serbest Yerleşim (Metin Üzeri)
+                    </button>
+                </div>
+            </div>
+
             {/* Scrollable A4 preview */}
             <div
                 ref={scrollRef}
@@ -295,17 +381,26 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     YETKİLİ ONAYI
                                 </p>
                                 <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
-                                    {stampSrc    && renderInteractive('stamp',     stampSrc,     1)}
-                                    {signatureSrc && renderInteractive('signature', signatureSrc, 2)}
-                                    {!stampSrc && !signatureSrc && (
+                                    {ss.placementMode !== 'free' && stampSrc    && renderInteractive('stamp',     stampSrc,     1)}
+                                    {ss.placementMode !== 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 2)}
+                                    {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && (
                                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
                                             Kaşe / imza yüklenmemiş
+                                        </div>
+                                    )}
+                                    {ss.placementMode === 'free' && (
+                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
+                                            Serbest Yerleşim Aktif
                                         </div>
                                     )}
                                 </div>
                                 <p style={{ fontSize: '12px', fontWeight: 600, margin: 0 }}>{docData?.companyName}</p>
                             </div>
                         </div>
+
+                        {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzayı A4 sayfasının relative scope'unda render et */}
+                        {ss.placementMode === 'free' && stampSrc && renderInteractive('stamp', stampSrc, 10)}
+                        {ss.placementMode === 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 11)}
 
                     </div>
                 </div>

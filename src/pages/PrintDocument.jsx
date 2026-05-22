@@ -3,6 +3,7 @@ import { formatDate } from '../utils/helpers';
 import './PrintDocument.css';
 
 const DEFAULT_STAMP_SETTINGS = {
+    placementMode: 'footer',
     stampSize: 110,
     stampOffsetX: 0,
     stampOffsetY: 0,
@@ -73,7 +74,7 @@ export default function PrintDocument() {
     // Compute container height so all images fit regardless of offsets
     const stampExt = Math.abs(ss.stampOffsetY ?? 0) + ss.stampSize / 2;
     const sigExt   = Math.abs(ss.signatureOffsetY ?? 0) + ss.signatureSize / 2;
-    const containerH = Math.max(stampExt, sigExt) * 2 + 30;
+    const containerH = ss.placementMode === 'free' ? 40 : (Math.max(stampExt, sigExt) * 2 + 30);
 
     return (
         <div className="a4-page">
@@ -165,7 +166,7 @@ export default function PrintDocument() {
                         position: 'relative',
                         marginBottom: '10px'
                     }}>
-                        {stampSrc && (
+                        {ss.placementMode !== 'free' && stampSrc && (
                             <img
                                 src={stampSrc}
                                 alt="Kaşe"
@@ -182,7 +183,7 @@ export default function PrintDocument() {
                                 }}
                             />
                         )}
-                        {signatureSrc && (
+                        {ss.placementMode !== 'free' && signatureSrc && (
                             <img
                                 src={signatureSrc}
                                 alt="İmza"
@@ -199,11 +200,47 @@ export default function PrintDocument() {
                                 }}
                             />
                         )}
-                        {!stampSrc && !signatureSrc && <div style={{ height: `${containerH}px` }}></div>}
+                        {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.companyName}</p>
                 </div>
             </div>
+
+            {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzayı A4 sayfasının (a4-page) relative scope'unda render et */}
+            {ss.placementMode === 'free' && stampSrc && (
+                <img
+                    src={stampSrc}
+                    alt="Kaşe"
+                    style={{
+                        width: `${ss.stampSize}px`,
+                        height: `${ss.stampSize}px`,
+                        objectFit: 'contain',
+                        opacity: ss.stampOpacity,
+                        position: 'absolute',
+                        top: `${ss.stampOffsetY ?? 0}px`,
+                        left: `${ss.stampOffsetX ?? 0}px`,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 10,
+                    }}
+                />
+            )}
+            {ss.placementMode === 'free' && signatureSrc && (
+                <img
+                    src={signatureSrc}
+                    alt="İmza"
+                    style={{
+                        width: `${ss.signatureSize}px`,
+                        height: `${ss.signatureSize}px`,
+                        objectFit: 'contain',
+                        opacity: ss.signatureOpacity,
+                        position: 'absolute',
+                        top: `${ss.signatureOffsetY ?? 0}px`,
+                        left: `${ss.signatureOffsetX ?? 0}px`,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 11,
+                    }}
+                />
+            )}
 
         </div>
     );

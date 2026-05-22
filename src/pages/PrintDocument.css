@@ -9,6 +9,7 @@
     font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 @media print {
