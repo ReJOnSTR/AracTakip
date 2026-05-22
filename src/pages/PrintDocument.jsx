@@ -133,7 +133,7 @@ export default function PrintDocument() {
                     <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                         PERSONEL İMZASI
                     </p>
-                    <div style={{ height: '70px' }}></div>
+                    <div style={{ height: '120px' }}></div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.employeeName}</p>
                 </div>
                 <div className="signature-box" style={{ textAlign: 'center', position: 'relative' }}>
@@ -141,7 +141,7 @@ export default function PrintDocument() {
                         YETKİLİ ONAYI
                     </p>
                     <div style={{ 
-                        height: '70px', 
+                        height: '120px', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
@@ -154,8 +154,8 @@ export default function PrintDocument() {
                                 src={stampSrc} 
                                 alt="Kaşe" 
                                 style={{ 
-                                    maxHeight: '65px', 
-                                    maxWidth: '100px', 
+                                    maxHeight: '110px', 
+                                    maxWidth: '180px', 
                                     objectFit: 'contain',
                                     opacity: 0.85
                                 }} 
@@ -166,8 +166,8 @@ export default function PrintDocument() {
                                 src={signatureSrc} 
                                 alt="İmza" 
                                 style={{ 
-                                    maxHeight: '55px', 
-                                    maxWidth: '100px', 
+                                    maxHeight: '85px', 
+                                    maxWidth: '150px', 
                                     objectFit: 'contain',
                                     position: stampSrc ? 'absolute' : 'static',
                                     left: stampSrc ? '50%' : 'auto',
@@ -177,7 +177,7 @@ export default function PrintDocument() {
                                 }} 
                             />
                         )}
-                        {!stampSrc && !signatureSrc && <div style={{ height: '70px' }}></div>}
+                        {!stampSrc && !signatureSrc && <div style={{ height: '120px' }}></div>}
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.companyName}</p>
                 </div>
