@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { formatDate } from '../utils/helpers';
 import './PrintDocument.css';
 
+const DEFAULT_STAMP_SETTINGS = {
+    stampSize: 110,
+    signatureSize: 80,
+    signatureOffsetX: 0,
+    signatureOffsetY: 0,
+    signatureOpacity: 0.9,
+    stampOpacity: 0.85,
+}
+
 export default function PrintDocument() {
     const [data, setData] = useState(null);
     const [signatureSrc, setSignatureSrc] = useState(null);
@@ -57,6 +66,10 @@ export default function PrintDocument() {
 
     if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
 
+    // Merge saved settings with defaults
+    const ss = { ...DEFAULT_STAMP_SETTINGS, ...(data.stampSettings || {}) };
+    const containerH = Math.max(ss.stampSize, ss.signatureSize) + 20;
+
     return (
         <div className="a4-page">
             {/* Header / Logo */}
@@ -76,7 +89,6 @@ export default function PrintDocument() {
                 </div>
             </div>
 
-            {/* Content */}
             {/* Content Section */}
             <div className="doc-content">
                 {data.templateId === 'assignment' ? (
@@ -133,51 +145,56 @@ export default function PrintDocument() {
                     <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                         PERSONEL İMZASI
                     </p>
-                    <div style={{ height: '120px' }}></div>
+                    <div style={{ height: `${containerH}px` }}></div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.employeeName}</p>
                 </div>
                 <div className="signature-box" style={{ textAlign: 'center', position: 'relative' }}>
                     <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                         YETKİLİ ONAYI
                     </p>
-                    <div style={{ 
-                        height: '120px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        gap: '15px',
+                    <div style={{
+                        height: `${containerH}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         position: 'relative',
                         marginBottom: '10px'
                     }}>
                         {stampSrc && (
-                            <img 
-                                src={stampSrc} 
-                                alt="Kaşe" 
-                                style={{ 
-                                    maxHeight: '110px', 
-                                    maxWidth: '180px', 
+                            <img
+                                src={stampSrc}
+                                alt="Kaşe"
+                                style={{
+                                    width: `${ss.stampSize}px`,
+                                    height: `${ss.stampSize}px`,
                                     objectFit: 'contain',
-                                    opacity: 0.85
-                                }} 
+                                    opacity: ss.stampOpacity,
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    zIndex: 1,
+                                }}
                             />
                         )}
                         {signatureSrc && (
-                            <img 
-                                src={signatureSrc} 
-                                alt="İmza" 
-                                style={{ 
-                                    maxHeight: '85px', 
-                                    maxWidth: '150px', 
+                            <img
+                                src={signatureSrc}
+                                alt="İmza"
+                                style={{
+                                    width: `${ss.signatureSize}px`,
+                                    height: `${ss.signatureSize}px`,
                                     objectFit: 'contain',
-                                    position: stampSrc ? 'absolute' : 'static',
-                                    left: stampSrc ? '50%' : 'auto',
-                                    top: stampSrc ? '50%' : 'auto',
-                                    transform: stampSrc ? 'translate(-50%, -50%)' : 'none',
-                                    zIndex: 2
-                                }} 
+                                    opacity: ss.signatureOpacity,
+                                    position: 'absolute',
+                                    top: `calc(50% + ${ss.signatureOffsetY}px)`,
+                                    left: `calc(50% + ${ss.signatureOffsetX}px)`,
+                                    transform: 'translate(-50%, -50%)',
+                                    zIndex: 2,
+                                }}
                             />
                         )}
-                        {!stampSrc && !signatureSrc && <div style={{ height: '120px' }}></div>}
+                        {!stampSrc && !signatureSrc && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.companyName}</p>
                 </div>
