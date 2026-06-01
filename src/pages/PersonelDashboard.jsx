@@ -115,7 +115,7 @@ export default function PersonelDashboard() {
         for (let i = 5; i >= 0; i--) {
             const d = new Date()
             d.setMonth(d.getMonth() - i)
-            const monthLabel = d.toLocaleString('tr-TR', { month: 'short' })
+            const monthLabel = d.toLocaleString('tr-TR', { month: '2-digit' })
             const monthVal = d.getMonth() + 1
             const yearVal = d.getFullYear()
 
@@ -524,7 +524,7 @@ export default function PersonelDashboard() {
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '0' }}>
                                                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                                    {new Date(e.birth_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}
+                                                    {new Date(e.birth_date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
                                                 </span>
                                                 <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                                                     {e.department || 'Genel'}

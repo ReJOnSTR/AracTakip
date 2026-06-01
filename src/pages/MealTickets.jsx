@@ -207,7 +207,7 @@ export default function MealTickets() {
         }
     ], [stats.pricePerPerson])
 
-    const currentMonthName = new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
+    const currentMonthName = new Date().toLocaleDateString('tr-TR', { month: '2-digit', year: 'numeric' })
 
     return (
         <div className="page-container fade-in">

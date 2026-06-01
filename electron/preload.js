@@ -227,7 +227,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // System actions
     saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
-    saveReportPdf: (route) => ipcRenderer.invoke('save-report-pdf', route),
+    saveReportPdf: (route, options) => ipcRenderer.invoke('save-report-pdf', route, options),
 
     // Arvento API
     arventoTestConnection: (credentials) => ipcRenderer.invoke('arvento:testConnection', credentials),

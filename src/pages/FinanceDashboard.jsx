@@ -216,7 +216,7 @@ export default function FinanceDashboard() {
             months.push({
                 month: d.getMonth(),
                 year: d.getFullYear(),
-                label: d.toLocaleDateString('tr-TR', { month: 'short' }),
+                label: d.toLocaleDateString('tr-TR', { month: '2-digit' }),
                 Gelir: 0,
                 Gider: 0,
             })

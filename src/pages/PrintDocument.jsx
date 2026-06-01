@@ -25,7 +25,12 @@ export default function PrintDocument() {
             if (stored) {
                 try {
                     const parsed = JSON.parse(stored);
-                    setData(parsed);
+                    setData(prev => {
+                        if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) {
+                            return prev;
+                        }
+                        return parsed;
+                    });
                 } catch (err) {
                     console.error("Print doc data parse error", err);
                 }
@@ -37,7 +42,21 @@ export default function PrintDocument() {
 
         // Fallback interval for hidden windows
         const interval = setInterval(() => {
-            if (!data) load();
+            setData(prev => {
+                if (prev) {
+                    clearInterval(interval);
+                    return prev;
+                }
+                const stored = localStorage.getItem('printDocData');
+                if (stored) {
+                    try {
+                        return JSON.parse(stored);
+                    } catch (err) {
+                        return prev;
+                    }
+                }
+                return prev;
+            });
         }, 300);
 
         // Global refresh function for Electron
@@ -47,7 +66,7 @@ export default function PrintDocument() {
             window.removeEventListener('storage', load);
             clearInterval(interval);
         };
-    }, [data]);
+    }, []);
 
     useEffect(() => {
         if (data?.companySignaturePath) {
@@ -71,10 +90,8 @@ export default function PrintDocument() {
 
     // Merge saved settings with defaults
     const ss = { ...DEFAULT_STAMP_SETTINGS, ...(data.stampSettings || {}) };
-    // Compute container height so all images fit regardless of offsets
-    const stampExt = Math.abs(ss.stampOffsetY ?? 0) + ss.stampSize / 2;
-    const sigExt   = Math.abs(ss.signatureOffsetY ?? 0) + ss.signatureSize / 2;
-    const containerH = ss.placementMode === 'free' ? 40 : (Math.max(stampExt, sigExt) * 2 + 30);
+    // Use fixed container height so that dragging offsets does not push layout or cause 2-page overflow
+    const containerH = ss.placementMode === 'free' ? 40 : 80;
 
     return (
         <div className="a4-page">
@@ -111,7 +128,7 @@ export default function PrintDocument() {
                             </tbody>
                         </table>
 
-                        <table className="info-table" style={{ marginTop: '20px' }}>
+                        <table className="info-table" style={{ marginTop: '15px' }}>
                             <thead>
                                 <tr><th colSpan="2" className="section-title">PERSONEL BİLGİLERİ</th></tr>
                             </thead>
@@ -121,7 +138,7 @@ export default function PrintDocument() {
                             </tbody>
                         </table>
 
-                        <table className="info-table" style={{ marginTop: '20px' }}>
+                        <table className="info-table" style={{ marginTop: '15px' }}>
                             <thead>
                                 <tr><th colSpan="2" className="section-title">GÖREVLENDİRME DETAYLARI</th></tr>
                             </thead>
@@ -134,7 +151,7 @@ export default function PrintDocument() {
                             </tbody>
                         </table>
 
-                        <div className="assignment-text" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px', fontSize: '12px', fontStyle: 'italic' }}>
+                        <div className="assignment-text" style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '12px', fontSize: '12px', fontStyle: 'italic' }}>
                             {data.content}
                         </div>
                     </div>

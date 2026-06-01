@@ -1016,7 +1016,7 @@ export default function Salaries() {
                         <div className="company-name">{currentCompany?.name || 'FİRMA ADI'}</div>
                         <div className="doc-title">
                             MAAŞ BORDROSU<br />
-                            <span style={{ fontSize: '14px', fontWeight: 400 }}>{new Date(selectedMonth + '-01').toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }).toLocaleUpperCase('tr-TR')}</span>
+                            <span style={{ fontSize: '14px', fontWeight: 400 }}>{new Date(selectedMonth + '-01').toLocaleDateString('tr-TR', { month: '2-digit', year: 'numeric' }).toLocaleUpperCase('tr-TR')}</span>
                         </div>
                     </div>
 
@@ -1031,11 +1031,11 @@ export default function Salaries() {
                         </div>
                         <div className="info-item">
                             <span className="info-label">Dönem</span>
-                            <span className="info-value">{new Date(selectedMonth + '-01').toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</span>
+                            <span className="info-value">{new Date(selectedMonth + '-01').toLocaleDateString('tr-TR', { month: '2-digit', year: 'numeric' })}</span>
                         </div>
                         <div className="info-item">
-                            <span className="info-label">Düzenleme Tarihi</span>
-                            <span className="info-value">{new Date().toLocaleDateString('tr-TR')}</span>
+                            <span className="info-label">Düzenleme Tarihi & Saati</span>
+                            <span className="info-value">{new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                     </div>
 

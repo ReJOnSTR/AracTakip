@@ -215,7 +215,7 @@ export default function MainPortal() {
         }
     ]
 
-    const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
 
     // Split into main (active, first row large) and secondary
     const activeModules = modules.filter(m => m.active)

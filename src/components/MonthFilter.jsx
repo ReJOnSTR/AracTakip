@@ -61,14 +61,14 @@ const MonthFilter = ({ value, onChange, minDate }) => {
     }
 
     const months = [
-        'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
-        'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
+        '01', '02', '03', '04', '05', '06',
+        '07', '08', '09', '10', '11', '12'
     ]
 
     const currentMonthIndex = value ? parseInt(value.split('-')[1]) - 1 : -1
     const currentYear = value ? parseInt(value.split('-')[0]) : -1
 
-    const displayDate = value ? new Date(value + '-01').toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }) : 'Dönem Seç'
+    const displayDate = value ? new Date(value + '-01').toLocaleDateString('tr-TR', { month: '2-digit', year: 'numeric' }) : 'Dönem Seç'
 
     return (
         <div className="month-pager-wrapper" ref={containerRef} style={{ position: 'relative' }}>

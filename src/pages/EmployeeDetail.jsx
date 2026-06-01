@@ -15,7 +15,7 @@ import AssignmentForm from '../components/forms/AssignmentForm'
 import DocumentForm from '../components/forms/DocumentForm'
 import DocumentGeneratorModal from '../components/DocumentGeneratorModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput, formatDateTime } from '../utils/helpers'
 import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -1200,7 +1200,7 @@ export default function EmployeeDetail() {
     const documentColumns = [
         { key: 'category', label: 'Kategori', render: (v) => <span style={{ fontWeight: 600 }}>{v || 'Belirtilmedi'}</span> },
         { key: 'file_name', label: 'Dosya Adı', render: (v) => <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{v}</span> },
-        { key: 'issue_date', label: 'Düzenlenme', render: (v) => v ? formatDate(v) : '-' },
+        { key: 'issue_date', label: 'Düzenlenme', render: (v) => v ? formatDateTime(v) : '-' },
         { key: 'start_date', label: 'Başlangıç Tarihi', render: (v) => v ? formatDate(v) : '-' },
         { 
             key: 'expiry_date', 
@@ -2411,7 +2411,7 @@ export default function EmployeeDetail() {
                             />
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginTop: '-8px', fontWeight: 500 }}>
-                            * Kaydedildiğinde Düzenlenme tarihi otomatik olarak bugünün tarihi (<strong>{new Date().toLocaleDateString('tr-TR')}</strong>) ile güncellenecektir.
+                            * Kaydedildiğinde Düzenlenme tarihi otomatik olarak bugünün tarihi ve saati (<strong>{new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>) ile güncellenecektir.
                         </div>
                     </div>
 

@@ -12,7 +12,12 @@ export default function PrintPage() {
             if (storedData) {
                 try {
                     const parsed = JSON.parse(storedData)
-                    setData(parsed)
+                    setData(prev => {
+                        if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) {
+                            return prev;
+                        }
+                        return parsed;
+                    });
                     document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
 
                     // Trigger print after render if not saving PDF
@@ -34,7 +39,30 @@ export default function PrintPage() {
         
         // Also a small interval for 5 seconds to ensure we catch it in hidden windows
         const interval = setInterval(() => {
-            if (!data) load()
+            setData(prev => {
+                if (prev) {
+                    clearInterval(interval)
+                    return prev
+                }
+                const storedData = localStorage.getItem('printData')
+                if (storedData) {
+                    try {
+                        const parsed = JSON.parse(storedData)
+                        document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
+                        
+                        // Trigger print after render if not saving PDF
+                        if (!parsed.isPdfSave) {
+                            setTimeout(() => {
+                                window.print()
+                            }, 500)
+                        }
+                        return parsed
+                    } catch (e) {
+                        return prev
+                    }
+                }
+                return prev
+            })
         }, 300)
 
         // Custom global function that Electron main.js can call
@@ -44,7 +72,7 @@ export default function PrintPage() {
             window.removeEventListener('storage', load)
             clearInterval(interval)
         }
-    }, [data])
+    }, [])
 
     if (!data) return <div style={{ padding: '20px' }}>Yükleniyor veya veri bulunamadı...</div>
 

@@ -44,7 +44,7 @@ export default function DateRangePicker({
     const formatDateDisplay = (dateStr) => {
         if (!dateStr) return ''
         const date = new Date(dateStr)
-        return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })
+        return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
     }
 
     const getDisplayText = () => {

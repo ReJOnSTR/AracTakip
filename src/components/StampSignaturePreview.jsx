@@ -22,16 +22,16 @@ export const STAMP_DEFAULTS = {
 function InfoTable({ title, rows }) {
     const thStyle = {
         background: '#f1f5f9', color: '#334155', fontSize: '11px', fontWeight: 800,
-        textAlign: 'left', padding: '8px 12px', border: '1px solid #e2e8f0',
+        textAlign: 'left', padding: '6px 10px', border: '1px solid #e2e8f0',
         textTransform: 'uppercase', letterSpacing: '0.05em',
     }
     const tdLabel = {
         width: '200px', fontSize: '11px', fontWeight: 700, color: '#475569',
-        padding: '10px 12px', border: '1px solid #e2e8f0', background: '#f8fafc',
+        padding: '6px 10px', border: '1px solid #e2e8f0', background: '#f8fafc',
     }
     const tdVal = {
         fontSize: '12px', fontWeight: 500, color: '#000',
-        padding: '10px 12px', border: '1px solid #e2e8f0',
+        padding: '6px 10px', border: '1px solid #e2e8f0',
     }
     return (
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', tableLayout: 'fixed' }}>
@@ -133,10 +133,8 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         document.addEventListener('mouseup', onUp)
     }
 
-    // Compute footer box height to accommodate all offsets + sizes
-    const stampExt = Math.abs(ss.stampOffsetY) + ss.stampSize / 2
-    const sigExt   = Math.abs(ss.signatureOffsetY) + ss.signatureSize / 2
-    const containerH = ss.placementMode === 'free' ? 40 : (Math.max(stampExt, sigExt) * 2 + 30)
+    // Use fixed container height so that dragging offsets does not push layout or cause 2-page overflow
+    const containerH = ss.placementMode === 'free' ? 40 : 80
 
     const renderInteractive = (which, src, zIndex) => {
         const size    = Math.round(ss[which + 'Size'])
@@ -489,7 +487,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                     <div style={scaledDocStyle}>
 
                         {/* ── HEADER ── */}
-                        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: 800, textTransform: 'uppercase', color: '#000', margin: 0, letterSpacing: '-0.2px' }}>
                                 {docData?.companyName}
                             </h2>
@@ -504,7 +502,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                         </div>
 
                         {/* ── CONTENT ── */}
-                        <div style={{ fontSize: '13.5px', lineHeight: 1.7, color: '#333', flexGrow: 1, marginBottom: '40px' }}>
+                        <div style={{ fontSize: '13.5px', lineHeight: 1.7, color: '#333', flexGrow: 1, marginBottom: '20px' }}>
                             {docData?.templateId === 'assignment' ? (
                                 <div>
                                     <InfoTable title="İŞVEREN BİLGİLERİ" rows={[
@@ -524,7 +522,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                         ['GİDİŞ TARİHİ', docData?.placeholders?.startDate ? formatDate(docData.placeholders.startDate) : null],
                                         ['DÖNÜŞ TARİHİ', docData?.placeholders?.endDate ? formatDate(docData.placeholders.endDate) : null],
                                     ]} />
-                                    <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px', fontSize: '12px', fontStyle: 'italic', whiteSpace: 'pre-wrap', textAlign: 'justify' }}>
+                                    <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '12px', fontSize: '12px', fontStyle: 'italic', whiteSpace: 'pre-wrap', textAlign: 'justify' }}>
                                         {docData?.content}
                                     </div>
                                 </div>

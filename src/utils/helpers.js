@@ -4,8 +4,8 @@ export function formatDate(dateString) {
     const date = new Date(dateString)
     return date.toLocaleDateString('tr-TR', {
         year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        month: '2-digit',
+        day: '2-digit'
     })
 }
 
@@ -16,6 +16,18 @@ export function formatShortDate(dateString) {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
+    })
+}
+
+export function formatDateTime(dateString) {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    return date.toLocaleString('tr-TR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
     })
 }
 

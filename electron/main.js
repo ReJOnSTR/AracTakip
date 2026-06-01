@@ -1800,21 +1800,28 @@ ipcMain.handle('save-pdf', async (event) => {
 })
 
 // Report PDF - Hidden window approach (no visible window opens)
-ipcMain.handle('save-report-pdf', async (event, route = '/print') => {
+ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) => {
     let hiddenWin = null;
     try {
         const parentWin = BrowserWindow.fromWebContents(event.sender);
+        let filePath = '';
 
-        // Show save dialog first
-        const { canceled, filePath } = await dialog.showSaveDialog(parentWin, {
-            title: 'Belgeyi PDF Olarak Kaydet',
-            defaultPath: `Belge_${new Date().toISOString().split('T')[0]}.pdf`,
-            filters: [
-                { name: 'PDF Belgeleri', extensions: ['pdf'] }
-            ]
-        });
+        if (options.silent) {
+            const tempDir = app.getPath('temp');
+            const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+            filePath = path.join(tempDir, fileName);
+        } else {
+            const { canceled, filePath: chosenPath } = await dialog.showSaveDialog(parentWin, {
+                title: 'Belgeyi PDF Olarak Kaydet',
+                defaultPath: options.defaultPath || `Belge_${new Date().toISOString().split('T')[0]}.pdf`,
+                filters: [
+                    { name: 'PDF Belgeleri', extensions: ['pdf'] }
+                ]
+            });
 
-        if (canceled || !filePath) return { success: false, canceled: true };
+            if (canceled || !chosenPath) return { success: false, canceled: true };
+            filePath = chosenPath;
+        }
 
         // Create hidden window
         hiddenWin = new BrowserWindow({
