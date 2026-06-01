@@ -60,7 +60,8 @@ const assignmentStatuses = [
 
 const overtimeTypes = [
     { value: 'weekday', label: 'Hafta İçi Mesai' },
-    { value: 'sunday', label: 'Pazar Mesaisi' }
+    { value: 'sunday', label: 'Pazar Mesaisi' },
+    { value: 'holiday', label: 'Bayram Mesaisi' }
 ]
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -293,8 +294,10 @@ export default function EmployeeDetail() {
         const hourlyRate = dailyRate / 10
         const weekdayMultiplier = parseFloat(localStorage.getItem('hr_overtime_weekday_multiplier')) || 1.5
         const sundayMultiplier = parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
+        const holidayMultiplier = parseFloat(localStorage.getItem('hr_overtime_holiday_multiplier')) || 2.0
         if (type === 'weekday') return Math.round(hourlyRate * weekdayMultiplier * 100) / 100
         if (type === 'sunday') return Math.round(dailyRate * sundayMultiplier * 100) / 100
+        if (type === 'holiday') return Math.round(dailyRate * holidayMultiplier * 100) / 100
         return 0
     }
 
@@ -365,9 +368,10 @@ export default function EmployeeDetail() {
                 notes: strippedNotes 
             })
         } else if (type === 'overtime') {
-            const otType = Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday'
+            const isHoliday = item.notes && item.notes.includes('[BAYRAM]')
+            const otType = isHoliday ? 'holiday' : (Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday')
             const isUsedAsLeave = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
-            const strippedNotes = (item.notes || '').replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[LID:\d+\]/g, '').trim()
+            const strippedNotes = (item.notes || '').replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[LID:\d+\]/g, '').trim()
             setFormData({ 
                 overtimeType: otType, 
                 date: formatDateForInput(item.date), 
@@ -857,6 +861,13 @@ export default function EmployeeDetail() {
         
         let finalNotes = formData.notes || ''
         const marker = '[İZİN OLARAK KULLANILDI]'
+        const holidayMarker = '[BAYRAM]'
+        
+        // Ensure holiday marker is in sync
+        finalNotes = finalNotes.replace(holidayMarker, '').trim()
+        if (formData.overtimeType === 'holiday') {
+            finalNotes = (holidayMarker + ' ' + finalNotes).trim()
+        }
         
         const lidMatch = editingItem?.notes?.match(/\[LID:(\d+)\]/)
         const linkedLeaveId = lidMatch ? parseInt(lidMatch[1]) : null
@@ -1142,9 +1153,17 @@ export default function EmployeeDetail() {
         {
             key: 'rate', label: 'Tür', render: (v, row) => {
                 if (!getHistoricalBaseSalary(employee, selectedMonth)) return '-'
-                const weekdayRate = calcOvertimeRate('weekday')
+                const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
                 const isUsedAsLeave = row.notes && row.notes.includes('[İZİN OLARAK KULLANILDI]')
-                const typeLabel = Math.abs(v - weekdayRate) < 1 ? 'Hafta İçi' : 'Pazar'
+                let typeLabel = 'Hafta İçi'
+                if (isHoliday) {
+                    typeLabel = 'Bayram'
+                } else {
+                    const weekdayRate = calcOvertimeRate('weekday')
+                    if (Math.abs(v - weekdayRate) >= (weekdayRate * 0.5)) {
+                        typeLabel = 'Pazar'
+                    }
+                }
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{typeLabel}</span>
@@ -1158,13 +1177,14 @@ export default function EmployeeDetail() {
             key: 'hours', 
             label: 'Süre', 
             render: (v, row) => {
+                const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
                 const weekdayRate = calcOvertimeRate('weekday')
-                const isSunday = Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)
-                return `${v} ${isSunday ? 'Gün' : 'Saat'}`
+                const isSunday = !isHoliday && Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)
+                return `${v} ${isSunday || isHoliday ? 'Gün' : 'Saat'}`
             }
         },
         { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
-        { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
+        { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
     const assignmentColumns = [
@@ -1388,7 +1408,7 @@ export default function EmployeeDetail() {
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Wallet size={13} /> Finansal Bilgiler
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 20px' }}>
                         <div style={{ gridColumn: '1 / -1' }}>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Güncel Maaş (Net)</div>
                             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
@@ -1400,6 +1420,10 @@ export default function EmployeeDetail() {
                         <div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pazar Mesaisi (Güncel)</div>
                             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday', employee.salary)) + ' / gün' : '-'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Bayram Mesaisi (Güncel)</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('holiday', employee.salary)) + ' / gün' : '-'}</div>
                         </div>
                         {employee.notes && (
                             <div style={{ gridColumn: '1 / -1' }}>
@@ -1722,21 +1746,26 @@ export default function EmployeeDetail() {
                                             l.status === 'approved' && 
                                             (l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık')))
                                         ).reduce((acc, l) => acc + (l.days || 0), 0)
-                                        const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type === 'offset').reduce((acc, l) => acc + (l.days || 0), 0)
-                                        
-                                        const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
                                         
                                         // Calculate OT balance for the offset button
                                         const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
                                         const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                                        const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
                                         const weekdayRate = calcOvertimeRate('weekday')
                                         const earnedOts = overtimes.filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
                                         const totalEarned = earnedOts.reduce((sum, o) => {
+                                            const isHoliday = o.notes && o.notes.includes('[BAYRAM]')
+                                            if (isHoliday) {
+                                                return sum + ((o.hours || 0) / hdpl)
+                                            }
                                             const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
                                             return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
                                         }, 0)
                                         const totalUsedOT = leaves.filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum, l) => sum + (l.days || 0), 0)
                                         const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
+
+                                        const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type === 'offset').reduce((acc, l) => acc + (l.days || 0), 0)
+                                        const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
 
                                         return (
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -1776,9 +1805,14 @@ export default function EmployeeDetail() {
                              {(() => {
                                  const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
                                  const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                                 const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
                                  const weekdayRate = calcOvertimeRate('weekday')
                                  const earnedOts = overtimes.filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
                                  const totalEarned = earnedOts.reduce((sum, o) => {
+                                     const isHoliday = o.notes && o.notes.includes('[BAYRAM]')
+                                     if (isHoliday) {
+                                         return sum + ((o.hours || 0) / hdpl)
+                                     }
                                      const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
                                      return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
                                  }, 0)
@@ -2127,7 +2161,7 @@ export default function EmployeeDetail() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                                     <CustomSelect label="Mesai Türü *" value={formData.overtimeType || 'weekday'} options={overtimeTypes} onChange={(val) => updateField('overtimeType', val)} />
                                     <CustomInput label="Tarih *" type="date" value={formData.date || ''} onChange={(val) => updateField('date', val)} required />
-                                    <CustomInput label={formData.overtimeType === 'sunday' ? 'Süre (Gün) *' : 'Süre (Saat) *'} type="number" value={formData.hours || ''} onChange={(val) => updateField('hours', val)} step="0.5" min={0} required />
+                                    <CustomInput label={formData.overtimeType === 'weekday' ? 'Süre (Saat) *' : 'Süre (Gün) *'} type="number" value={formData.hours || ''} onChange={(val) => updateField('hours', val)} step="0.5" min={0} required />
                                 </div>
 
                                 <div style={{
@@ -2148,8 +2182,12 @@ export default function EmployeeDetail() {
                                                     + {(() => {
                                                         const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
                                                         const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
+                                                        const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
                                                         const hours = parseFloat(formData.hours) || 0
-                                                        const days = formData.overtimeType === 'weekday' ? hours / whpl : hours / sdpl
+                                                        let days = 0
+                                                        if (formData.overtimeType === 'weekday') days = hours / whpl
+                                                        else if (formData.overtimeType === 'holiday') days = hours / hdpl
+                                                        else days = hours / sdpl
                                                         return Math.round(days * 100) / 100
                                                     })()} Gün İzin
                                                 </span>
@@ -2178,7 +2216,7 @@ export default function EmployeeDetail() {
                                 {employee?.salary && !formData.useAsLeave && (
                                     <div style={{ marginTop: '16px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)' }}>
                                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                                            <strong>Birim Ücret:</strong> {formData.overtimeType === 'sunday' ? `${formatCurrency(calcOvertimeRate('sunday'))} / gün` : `${formatCurrency(calcOvertimeRate('weekday'))} / saat`} (Maaş üzerinden otomatik hesaplandı)
+                                            <strong>Birim Ücret:</strong> {formData.overtimeType === 'sunday' ? `${formatCurrency(calcOvertimeRate('sunday'))} / gün` : formData.overtimeType === 'holiday' ? `${formatCurrency(calcOvertimeRate('holiday'))} / gün` : `${formatCurrency(calcOvertimeRate('weekday'))} / saat`} (Maaş üzerinden otomatik hesaplandı)
                                         </div>
                                         <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '10px', marginTop: '4px' }}>
                                             <span>Toplam Hak Ediş:</span>
