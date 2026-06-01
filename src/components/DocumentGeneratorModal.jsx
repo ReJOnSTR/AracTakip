@@ -8,12 +8,13 @@ import { formatDate, formatDateForInput } from '../utils/helpers'
 
 
 
-export default function DocumentGeneratorModal({ isOpen, onClose, employee, company }) {
+export default function DocumentGeneratorModal({ isOpen, onClose, employee, company, onSuccess }) {
     const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0])
     const [placeholders, setPlaceholders] = useState({})
     const [content, setContent] = useState('')
     const [title, setTitle] = useState('')
     const [isGenerating, setIsGenerating] = useState(false)
+    const [saveToDocs, setSaveToDocs] = useState(true)
     // 'edit' | 'stamp-preview'
     const [step, setStep] = useState('edit')
     const [stampSettings, setStampSettings] = useState(STAMP_DEFAULTS)
@@ -108,7 +109,31 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
             onClose()
             
             const result = await window.electronAPI.saveReportPdf('/print-document')
-            if (result && !result.success && !result.canceled) {
+            if (result && result.success && result.filePath) {
+                if (saveToDocs) {
+                    const ext = 'pdf'
+                    const baseName = result.filePath.split('/').pop().split('\\').pop()
+                    const docName = baseName || `${title}.pdf`
+                    
+                    try {
+                        const createResult = await window.electronAPI.createEmployeeDocument({
+                            employeeId: employee.id,
+                            fileName: docName,
+                            filePath: result.filePath,
+                            fileType: ext,
+                            category: selectedTemplate.name || 'Diğer',
+                            issueDate: new Date().toISOString().split('T')[0],
+                            startDate: new Date().toISOString().split('T')[0]
+                        })
+                        if (createResult.success && onSuccess) {
+                            onSuccess()
+                        }
+                    } catch (err) {
+                        console.error('Failed to create employee document:', err)
+                        alert('Belge, PDF olarak kaydedildi ancak belge kayıtlarına eklenemedi.')
+                    }
+                }
+            } else if (result && !result.success && !result.canceled) {
                 alert('Belge oluşturulurken hata oluştu: ' + result.error)
             }
         } catch (error) {
@@ -248,32 +273,43 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                         </div>
 
                         {/* Footer Butonları */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-                            <button onClick={onClose} className="btn btn-secondary">İptal</button>
-                            {hasStampOrSig && (
-                                <button
-                                    type="button"
-                                    onClick={() => setStep('stamp-preview')}
-                                    className="btn btn-secondary"
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setSaveToDocs(!saveToDocs)}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={saveToDocs} 
+                                    onChange={(e) => setSaveToDocs(e.target.checked)} 
+                                    style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }} 
+                                />
+                                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>Belge Kayıtlarına Ekle (Arşive Kaydet)</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button onClick={onClose} className="btn btn-secondary">İptal</button>
+                                {hasStampOrSig && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setStep('stamp-preview')}
+                                        className="btn btn-secondary"
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    >
+                                        <Stamp size={16} />
+                                        Kaşe &amp; İmza Ayarla
+                                    </button>
+                                )}
+                                <button 
+                                    onClick={handleGenerate} 
+                                    disabled={isGenerating} 
+                                    className="btn btn-primary"
                                     style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                 >
-                                    <Stamp size={16} />
-                                    Kaşe &amp; İmza Ayarla
+                                    {isGenerating ? 'Hazırlanıyor...' : (
+                                        <>
+                                            <Download size={18} />
+                                            PDF Olarak Kaydet
+                                        </>
+                                    )}
                                 </button>
-                            )}
-                            <button 
-                                onClick={handleGenerate} 
-                                disabled={isGenerating} 
-                                className="btn btn-primary"
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                            >
-                                {isGenerating ? 'Hazırlanıyor...' : (
-                                    <>
-                                        <Download size={18} />
-                                        PDF Olarak Kaydet
-                                    </>
-                                )}
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -300,28 +336,39 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                     />
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-                        <button
-                            type="button"
-                            onClick={() => setStep('edit')}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            <ArrowLeft size={16} />
-                            Geri Dön
-                        </button>
-                        <button
-                            onClick={handleGenerate}
-                            disabled={isGenerating}
-                            className="btn btn-primary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            {isGenerating ? 'Hazırlanıyor...' : (
-                                <>
-                                    <Download size={18} />
-                                    PDF Olarak Kaydet
-                                </>
-                            )}
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setSaveToDocs(!saveToDocs)}>
+                            <input 
+                                type="checkbox" 
+                                checked={saveToDocs} 
+                                onChange={(e) => setSaveToDocs(e.target.checked)} 
+                                style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }} 
+                            />
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>Belge Kayıtlarına Ekle (Arşive Kaydet)</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                type="button"
+                                onClick={() => setStep('edit')}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <ArrowLeft size={16} />
+                                Geri Dön
+                            </button>
+                            <button
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                className="btn btn-primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating ? 'Hazırlanıyor...' : (
+                                    <>
+                                        <Download size={18} />
+                                        PDF Olarak Kaydet
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

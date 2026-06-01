@@ -2281,6 +2281,7 @@ export default function EmployeeDetail() {
                 onClose={() => setIsGenModalOpen(false)}
                 employee={employee}
                 company={companies.find(c => c.id === employee?.company_id) || currentCompany}
+                onSuccess={loadEmployeeData}
             />
 
             <ConfirmModal 
