@@ -68,7 +68,7 @@ function extractResult(xml, methodName) {
 
 function parseXmlTable(xml) {
     // Matches <Table> ... </Table> or similar rows
-    const tableRegex = /<(Table|TableRow|Vehicle|Record|Mapping|tblPlaka)[\s>][\s\S]*?<\/\1>/g
+    const tableRegex = /<(Table|TableRow|Vehicle|Record|Mapping|tblPlaka|General_x0020_Report)[\s>][\s\S]*?<\/\1>/g
     const matches = xml.match(tableRegex)
     if (!matches) {
         // Try finding direct children inside a list tag
@@ -90,6 +90,7 @@ function parseXmlTable(xml) {
                             .replace(/_x0020_/g, ' ')
                             .replace(/_x0028_/g, '(')
                             .replace(/_x0029_/g, ')')
+                            .replace(/_x002F_/g, '/')
                         fields[key] = decodeXml(fm[2])
                     }
                     return fields
@@ -108,6 +109,7 @@ function parseXmlTable(xml) {
                 .replace(/_x0020_/g, ' ')
                 .replace(/_x0028_/g, '(')
                 .replace(/_x0029_/g, ')')
+                .replace(/_x002F_/g, '/')
             const val = decodeXml(match[2])
             fields[key] = val
         }
@@ -120,13 +122,15 @@ async function makeArventoRequest(methodName, params = {}, credentialsOverride =
     const username = creds.username
     const pin1 = creds.pin1
     const pin2 = creds.pin2
-    const language = creds.language || 'tr'
+    const rawLanguage = creds.language || 'tr'
+    // Convert 'tr' to 86, else default to 0 for English, as ASMX reports require integer Language parameter
+    const language = (rawLanguage === 'tr' || rawLanguage === 'TR') ? 86 : 0
 
     let methodParamsXml = `
       <Username>${escapeXml(username)}</Username>
       <PIN1>${escapeXml(pin1)}</PIN1>
       <PIN2>${escapeXml(pin2)}</PIN2>
-      <Language>${escapeXml(language)}</Language>
+      <Language>${language}</Language>
     `
 
     for (const [key, value] of Object.entries(params)) {
@@ -214,12 +218,15 @@ async function getArventoData(methodName, params = {}, isJsonExplicit = null, cr
 
         const data = parseXmlTable(resultText)
         if (data.length === 0) {
+            if (resultText && (resultText.includes('<xs:schema') || resultText.includes('<diffgr:diffgram'))) {
+                return { success: true, data: [] }
+            }
             return { success: true, data: resultText.trim() }
         }
         return { success: true, data }
     } catch (error) {
         console.error(`Arvento error in ${methodName}:`, error)
-        return { success: false, error: error.message }
+        return { success: false, error: error ? (error.message || String(error)) : 'Unknown error' }
     }
 }
 
@@ -240,7 +247,11 @@ async function getArventoVehicleStatus() {
 }
 
 function parseLocalDateTime(dateStr) {
-    if (!dateStr || dateStr.length < 14) return new Date()
+    if (!dateStr) return new Date()
+    if (dateStr.includes('-') || dateStr.includes(':')) {
+        return new Date(dateStr)
+    }
+    if (dateStr.length < 14) return new Date()
     const yyyy = parseInt(dateStr.substring(0, 4))
     const mm = parseInt(dateStr.substring(4, 6))
     const dd = parseInt(dateStr.substring(6, 8))
@@ -248,6 +259,19 @@ function parseLocalDateTime(dateStr) {
     const min = parseInt(dateStr.substring(10, 12))
     const ss = parseInt(dateStr.substring(12, 14))
     return new Date(yyyy, mm - 1, dd, hh, min, ss)
+}
+
+function formatDateForArvento(isoStr) {
+    if (!isoStr) return ''
+    const d = new Date(isoStr)
+    if (isNaN(d.getTime())) return isoStr
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    const hh = String(d.getHours()).padStart(2, '0')
+    const min = String(d.getMinutes()).padStart(2, '0')
+    const ss = String(d.getSeconds()).padStart(2, '0')
+    return `${yyyy}${mm}${dd}${hh}${min}${ss}`
 }
 
 async function savePositionsToHistory(items) {
@@ -303,46 +327,95 @@ async function savePositionsToHistory(items) {
 
 async function getArventoHistory(filters) {
     try {
-        const prisma = getPrismaClient()
         const { plate, plates, startDate, endDate } = filters
-        
-        log.info('[getArventoHistory] Received filters:', filters)
-        
-        const where = {}
-        
-        if (startDate || endDate) {
-            where.gps_date = {}
-            if (startDate) {
-                where.gps_date.gte = new Date(startDate)
-            }
-            if (endDate) {
-                where.gps_date.lte = new Date(endDate)
-            }
-        }
-        
-        log.info('[getArventoHistory] Query where:', JSON.stringify(where))
-        
-        const history = await prisma.arvento_history.findMany({
-            where,
-            orderBy: {
-                gps_date: 'asc'
-            }
-        })
-        
-        log.info('[getArventoHistory] Total records in date range:', history.length)
-        
-        // Filter by plate in Javascript (case, hyphen & whitespace insensitive!)
+        log.info('[getArventoHistory] Fetching directly from Arvento GeneralReport API with filters:', filters)
+
+        // 1. Get plate mappings
+        const mappingsRes = await getArventoLicensePlateNodeMappings()
+        const mappings = mappingsRes.success && Array.isArray(mappingsRes.data) ? mappingsRes.data : []
+
+        // 2. Normalize and resolve selected plates to Node IDs
         const targetPlates = (plates || (plate ? [plate] : [])).map(p => p.replace(/[\s-]+/g, '').toUpperCase())
         
-        const filteredHistory = history.filter(h => {
-            if (targetPlates.length === 0) return true
-            const normPlate = h.plate ? h.plate.replace(/[\s-]+/g, '').toUpperCase() : ''
-            return targetPlates.includes(normPlate)
-        })
-        
-        log.info('[getArventoHistory] Filtered records count:', filteredHistory.length)
-        
-        return { success: true, data: filteredHistory }
+        const resolvedVehicles = targetPlates.map(tp => {
+            const mapping = mappings.find(m => {
+                const normMappingPlate = m['License Plate'] ? m['License Plate'].split(/\s+-/)[0].replace(/[\s-]+/g, '').toUpperCase() : ''
+                return normMappingPlate === tp
+            })
+            return {
+                plateClean: tp,
+                deviceNo: mapping ? mapping['Device No'] : null
+            }
+        }).filter(r => r.deviceNo !== null)
+
+        if (resolvedVehicles.length === 0) {
+            log.info('[getArventoHistory] No matching vehicles mapped to Arvento Device Nos.')
+            return { success: true, data: [] }
+        }
+
+        const allPoints = []
+
+        // 3. Query GeneralReport for each resolved vehicle
+        for (const veh of resolvedVehicles) {
+            log.info(`[getArventoHistory] Requesting GeneralReport for plate ${veh.plateClean} (Device: ${veh.deviceNo})`)
+            const params = {
+                Node: veh.deviceNo,
+                StartDate: formatDateForArvento(startDate),
+                EndDate: formatDateForArvento(endDate),
+                chkLocation: "1",
+                chkSpeed: "1",
+                chkPause: "1",
+                chkMotion: "1",
+                chkContactAlarm: "1"
+            }
+
+            const reportResult = await getArventoData('GeneralReport', params, false)
+            if (reportResult.success && Array.isArray(reportResult.data)) {
+                log.info(`[getArventoHistory] Successfully fetched ${reportResult.data.length} records for ${veh.plateClean}`)
+                reportResult.data.forEach(item => {
+                    const latStr = (item.Latitude || item.LatitudeY || item.lat || '0').replace(',', '.')
+                    const lat = parseFloat(latStr)
+                    
+                    const lngStr = (item.Longitude || item.LongitudeX || item.lng || '0').replace(',', '.')
+                    const lng = parseFloat(lngStr)
+                    
+                    const rawSpeed = item['Speed km/h'] || item.Speed || item.speed || 0
+                    const speed = parseInt(rawSpeed)
+                    
+                    const heading = parseInt(item.Course || item.Heading || 0)
+                    const ignition = (
+                        item.Ignition === true || 
+                        item.Ignition === '1' || 
+                        item.Ignition === 1 || 
+                        speed > 0 || 
+                        item['Ignition On Duration'] !== undefined ||
+                        item['Idling Duration'] !== undefined
+                    ) ? 1 : 0
+                    
+                    const gpsDateStr = item['Date/Time'] || item.LocalDateTime || item.GPSDate || item.Date || item.DateTime
+                    if (lat && lng && gpsDateStr) {
+                        const parsedDate = parseLocalDateTime(gpsDateStr)
+                        const gpsDateISO = isNaN(parsedDate.getTime()) ? gpsDateStr : parsedDate.toISOString()
+                        
+                        allPoints.push({
+                            plate: veh.plateClean,
+                            lat,
+                            lng,
+                            speed,
+                            ignition,
+                            heading,
+                            gps_date: gpsDateISO
+                        })
+                    }
+                })
+            } else {
+                const errDetail = reportResult.success ? 'No records returned from API' : (reportResult.error || 'Unknown error')
+                log.error(`[getArventoHistory] GeneralReport request failed or empty for device ${veh.deviceNo}:`, errDetail)
+            }
+        }
+
+        log.info(`[getArventoHistory] Total compiled historical points: ${allPoints.length}`)
+        return { success: true, data: allPoints }
     } catch (error) {
         log.error('[getArventoHistory] Error fetching Arvento history:', error)
         return { success: false, error: error.message }
