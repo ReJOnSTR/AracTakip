@@ -261,10 +261,61 @@ function parseLocalDateTime(dateStr) {
     return new Date(yyyy, mm - 1, dd, hh, min, ss)
 }
 
-function formatDateForArvento(isoStr) {
-    if (!isoStr) return ''
-    const d = new Date(isoStr)
-    if (isNaN(d.getTime())) return isoStr
+function formatDateForArvento(val) {
+    if (!val) return ''
+    
+    // If it's already a Date object
+    if (val instanceof Date) {
+        if (isNaN(val.getTime())) return ''
+        const yyyy = val.getFullYear()
+        const mm = String(val.getMonth() + 1).padStart(2, '0')
+        const dd = String(val.getDate()).padStart(2, '0')
+        const hh = String(val.getHours()).padStart(2, '0')
+        const min = String(val.getMinutes()).padStart(2, '0')
+        const ss = String(val.getSeconds()).padStart(2, '0')
+        return `${yyyy}${mm}${dd}${hh}${min}${ss}`
+    }
+    
+    const str = String(val).trim()
+    
+    // 1. If it's already 14 digits (YYYYMMDDHHmmss)
+    if (/^\d{14}$/.test(str)) {
+        return str
+    }
+    
+    // 2. If it's 8 digits (YYYYMMDD), append 000000
+    if (/^\d{8}$/.test(str)) {
+        return str + '000000'
+    }
+    
+    // 3. Simple date formats: YYYY-MM-DD
+    const ymdMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (ymdMatch) {
+        return `${ymdMatch[1]}${ymdMatch[2]}${ymdMatch[3]}000000`
+    }
+    
+    // 4. Simple date formats: DD.MM.YYYY
+    const dmyDotMatch = str.match(/^(\d{2})\.(\d{2})\.(\d{4})$/)
+    if (dmyDotMatch) {
+        return `${dmyDotMatch[3]}${dmyDotMatch[2]}${dmyDotMatch[1]}000000`
+    }
+    
+    // 5. Simple date formats: DD/MM/YYYY
+    const dmySlashMatch = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (dmySlashMatch) {
+        return `${dmySlashMatch[3]}${dmySlashMatch[2]}${dmySlashMatch[1]}000000`
+    }
+    
+    // Fallback: parse as date and format
+    const d = new Date(str)
+    if (isNaN(d.getTime())) {
+        // If parsing failed, remove all non-digits and see if it's 14 digits
+        const clean = str.replace(/\D/g, '')
+        if (clean.length === 14) return clean
+        if (clean.length === 8) return clean + '000000'
+        return str // return original if we can't do anything
+    }
+    
     const yyyy = d.getFullYear()
     const mm = String(d.getMonth() + 1).padStart(2, '0')
     const dd = String(d.getDate()).padStart(2, '0')
