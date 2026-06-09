@@ -95,7 +95,19 @@ export default function DataTable({
     // Column Visibility State
     const [visibleColumns, setVisibleColumns] = useState(() => {
         const defaultVisible = new Set(columns.map(col => col.key))
-        return getInitialState('visibleCols', Array.from(defaultVisible))
+        const saved = getInitialState('visibleCols', null)
+        if (saved) {
+            const savedColOrder = getInitialState('colOrder', [])
+            const knownKeys = new Set(savedColOrder)
+            const merged = new Set(saved)
+            columns.forEach(col => {
+                if (!knownKeys.has(col.key)) {
+                    merged.add(col.key)
+                }
+            })
+            return merged
+        }
+        return defaultVisible
     })
 
     // Column Resizing State
@@ -105,7 +117,13 @@ export default function DataTable({
     // Column Ordering State
     const [columnOrder, setColumnOrder] = useState(() => {
         const defaultOrder = columns.map(col => col.key)
-        return getInitialState('colOrder', defaultOrder)
+        const saved = getInitialState('colOrder', null)
+        if (saved) {
+            const savedKeys = new Set(saved)
+            const newCols = defaultOrder.filter(k => !savedKeys.has(k))
+            return [...saved, ...newCols]
+        }
+        return defaultOrder
     })
     const [draggedColumn, setDraggedColumn] = useState(null)
 
@@ -232,10 +250,25 @@ export default function DataTable({
         setDateRange(loadState('dateRange', { start: '', end: '' }))
         
         const savedColOrder = loadState('colOrder', null)
-        if (savedColOrder) setColumnOrder(savedColOrder)
+        const defaultOrder = columns.map(col => col.key)
+        let mergedOrder = defaultOrder
+        if (savedColOrder) {
+            const savedKeys = new Set(savedColOrder)
+            const newCols = defaultOrder.filter(k => !savedKeys.has(k))
+            mergedOrder = [...savedColOrder, ...newCols]
+            setColumnOrder(mergedOrder)
+        } else {
+            setColumnOrder(defaultOrder)
+        }
         
         const savedVisible = loadState('visibleCols', null)
-        if (savedVisible) setVisibleColumns(new Set(savedVisible))
+        if (savedVisible) {
+            const savedKeys = new Set(savedColOrder || [])
+            const newVisibleCols = defaultOrder.filter(k => !savedKeys.has(k))
+            setVisibleColumns(new Set([...savedVisible, ...newVisibleCols]))
+        } else {
+            setVisibleColumns(new Set(defaultOrder))
+        }
         
         const savedWidths = loadState('colWidths', null)
         if (savedWidths) setColumnWidths(prev => ({ ...prev, ...savedWidths }))
