@@ -315,6 +315,81 @@ export default function Salaries() {
         }
     }
 
+    const handleCarryOver = async (emp, remainingAmount) => {
+        const getNextMonth = (monthStr) => {
+            const [year, month] = monthStr.split('-').map(Number)
+            const nextDate = new Date(year, month, 1)
+            const y = nextDate.getFullYear()
+            const m = String(nextDate.getMonth() + 1).padStart(2, '0')
+            return `${y}-${m}`
+        }
+        const nextMonth = getNextMonth(selectedMonth)
+        const existing = salaries.find(s => s.employee_id === emp.id && s.salary_month === nextMonth && s.period === 'carryover')
+
+        if (existing) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Devri İptal Et',
+                message: `Gelecek aya yapılan ${formatCurrency(existing.net_salary)} tutarındaki devri iptal etmek istediğinize emin misiniz?`,
+                onConfirm: async () => {
+                    try {
+                        const res = await window.electronAPI.deleteSalary(existing.id)
+                        if (res.success) {
+                            showToast('Devir işlemi iptal edildi.', 'success')
+                            loadData()
+                            setSelectedPayroll(null)
+                        } else {
+                            showToast(res.error || 'İptal edilemedi.', 'error')
+                        }
+                    } catch (e) {
+                        showToast(e.message, 'error')
+                    }
+                    setConfirmModal({ isOpen: false })
+                }
+            })
+        } else {
+            if (remainingAmount === 0) {
+                showToast('Kalan bakiye 0 olduğu için devredilemez.', 'warning')
+                return
+            }
+
+            setConfirmModal({
+                isOpen: true,
+                title: 'Bakiyeyi Devret',
+                message: `${selectedMonth} ayından kalan ${formatCurrency(remainingAmount)} bakiye ${nextMonth} ayına devredilecek. Onaylıyor musunuz?`,
+                onConfirm: async () => {
+                    try {
+                        const data = {
+                            employeeId: parseInt(emp.id),
+                            period: 'carryover',
+                            baseSalary: 0,
+                            bonus: 0,
+                            deduction: 0,
+                            netSalary: remainingAmount,
+                            paymentDate: `${nextMonth}-01`,
+                            salaryMonth: nextMonth,
+                            status: 'paid',
+                            paymentMethod: 'other',
+                            notes: `${selectedMonth} ayından devreden bakiye`
+                        }
+
+                        const res = await window.electronAPI.createSalary(data)
+                        if (res.success) {
+                            showToast('Bakiye devredildi.', 'success')
+                            loadData()
+                            setSelectedPayroll(null)
+                        } else {
+                            showToast(res.error || 'Devir başarısız.', 'error')
+                        }
+                    } catch (e) {
+                        showToast(e.message, 'error')
+                    }
+                    setConfirmModal({ isOpen: false })
+                }
+            })
+        }
+    }
+
     useEffect(() => {
         loadData()
         const unsub = window.electronAPI.onDbUpdate((change) => {
@@ -604,6 +679,17 @@ export default function Salaries() {
                             }
                         },
                         {
+                            key: 'outboundCarryOverAmount',
+                            label: 'Sonraki Devir',
+                            render: (v) => {
+                                if (!v) return <span style={{ color: 'var(--text-muted)' }}>-</span>
+                                const isNegative = v < 0
+                                return <span style={{ fontWeight: 600, color: isNegative ? 'var(--danger)' : 'var(--success)' }}>
+                                    {v > 0 ? '+' : ''}{formatCurrency(v)}
+                                </span>
+                            }
+                        },
+                        {
                             key: 'totalTarget',
                             label: 'Toplam Tutar',
                             render: (v) => <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(v)}</span>
@@ -627,6 +713,9 @@ export default function Salaries() {
                             key: 'status',
                             label: 'Durum',
                             render: (_, r) => {
+                                if (r.outboundCarryOverAmount !== 0) {
+                                    return <span className="badge badge-info" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)' }}>Devredildi</span>
+                                }
                                 if (r.remaining <= 0) {
                                     return <span className="badge badge-success">Tamamlandı</span>
                                 }
@@ -645,12 +734,14 @@ export default function Salaries() {
                             options: [
                                 { value: 'Tamamlandı', label: 'Tamamlandı' },
                                 { value: 'Kısmi Ödeme', label: 'Kısmi Ödeme' },
-                                { value: 'Ödenmedi', label: 'Ödenmedi' }
+                                { value: 'Ödenmedi', label: 'Ödenmedi' },
+                                { value: 'Devredildi', label: 'Devredildi' }
                             ],
                             // Custom filter function for the calculated status
                             filterFn: (row, value) => {
                                 let statusStr = 'Ödenmedi';
-                                if (row.remaining <= 0) statusStr = 'Tamamlandı';
+                                if (row.outboundCarryOverAmount !== 0) statusStr = 'Devredildi';
+                                else if (row.remaining <= 0) statusStr = 'Tamamlandı';
                                 else if (row.bankPaid > 0 || row.cashPaid > 0) statusStr = 'Kısmi Ödeme';
                                 return statusStr === value;
                             }
@@ -835,12 +926,46 @@ export default function Salaries() {
                             .btn-icon-tiny.danger:hover { background: var(--danger-bg); color: var(--danger); }
                         `}</style>
 
+                        {selectedPayroll.outboundCarryOverAmount !== 0 && (
+                            <div className="detail-row warning-text" style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '4px' }}>
+                                <span>Sonraki Aya Devredilen:</span>
+                                <span>{formatCurrency(selectedPayroll.outboundCarryOverAmount)}</span>
+                            </div>
+                        )}
+
                         <div className="detail-row total-row" style={{ marginTop: '12px', fontSize: '18px', color: selectedPayroll.remaining > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
                             <span>Kalan Ödeme:</span>
                             <span>{formatCurrency(selectedPayroll.remaining)}</span>
                         </div>
 
-                        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px', alignItems: 'center' }}>
+                            {(() => {
+                                const getNextMonth = (monthStr) => {
+                                    const [year, month] = monthStr.split('-').map(Number)
+                                    const nextDate = new Date(year, month, 1)
+                                    const y = nextDate.getFullYear()
+                                    const m = String(nextDate.getMonth() + 1).padStart(2, '0')
+                                    return `${y}-${m}`
+                                }
+                                const nextMonth = getNextMonth(selectedMonth)
+                                const hasCarryOver = salaries.some(s => s.employee_id === selectedPayroll.id && s.salary_month === nextMonth && s.period === 'carryover')
+                                const remainingBeforeCarry = selectedPayroll.totalTarget - (selectedPayroll.bankPaid + selectedPayroll.cashPaid)
+                                
+                                return (
+                                    <button 
+                                        className="btn"
+                                        style={{ 
+                                            marginRight: 'auto', 
+                                            background: hasCarryOver ? 'rgba(239, 68, 68, 0.1)' : 'var(--accent-subtle)', 
+                                            color: hasCarryOver ? 'var(--danger)' : 'var(--accent-primary)',
+                                            border: `1px solid ${hasCarryOver ? 'var(--danger)' : 'var(--accent-primary)'}`
+                                        }}
+                                        onClick={() => handleCarryOver(selectedPayroll, remainingBeforeCarry)}
+                                    >
+                                        {hasCarryOver ? 'Devri İptal Et' : 'Sonraki Aya Devret'}
+                                    </button>
+                                )
+                            })()}
                             <button className="btn btn-secondary" onClick={() => window.print()}>
                                 <Printer size={16} /> Yazdır
                             </button>
@@ -1188,6 +1313,12 @@ export default function Salaries() {
                                 <span>TOPLAM ÖDENEN</span>
                                 <span>{formatCurrency(selectedPayroll.totalPaid)}</span>
                             </div>
+                            {selectedPayroll.outboundCarryOverAmount !== 0 && (
+                                <div className="summary-row">
+                                    <span>SONRAKİ AYA DEVREDİLEN</span>
+                                    <span>{formatCurrency(selectedPayroll.outboundCarryOverAmount)}</span>
+                                </div>
+                            )}
                             <div className="summary-row final">
                                 <span>KALAN BAKİYE</span>
                                 <span>{formatCurrency(selectedPayroll.remaining)}</span>
