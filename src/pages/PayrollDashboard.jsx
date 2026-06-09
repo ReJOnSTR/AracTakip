@@ -9,7 +9,7 @@ import CustomInput from '../components/CustomInput'
 import CustomSelect from '../components/CustomSelect'
 import MonthFilter from '../components/MonthFilter'
 import { formatCurrency, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
-import { Banknote, Users, Building2, Wallet, Clock, X, Plus } from 'lucide-react'
+import { Banknote, Users, Building2, Wallet, Clock, X, Plus, ArrowDownRight, ArrowUpRight } from 'lucide-react'
 
 const paymentTypes = [
     { value: 'salary', label: 'Maaş' },
@@ -81,8 +81,10 @@ export default function PayrollDashboard() {
             totalCurrentSalary: acc.totalCurrentSalary + (item.calc_base || 0),
             totalOvertimes: acc.totalOvertimes + (item.calc_overtimes || 0),
             totalPaid: acc.totalPaid + (item.calc_paid || 0),
-            totalPending: acc.totalPending + (item.calc_remaining || 0)
-        }), { totalCurrentSalary: 0, totalOvertimes: 0, totalPaid: 0, totalPending: 0 })
+            totalPending: acc.totalPending + (item.calc_remaining || 0),
+            totalIncomingCarryover: acc.totalIncomingCarryover + (item.calc_incoming_carryover || 0),
+            totalOutboundCarryover: acc.totalOutboundCarryover + (item.calc_outbound_carryover || 0)
+        }), { totalCurrentSalary: 0, totalOvertimes: 0, totalPaid: 0, totalPending: 0, totalIncomingCarryover: 0, totalOutboundCarryover: 0 })
     }, [displayData])
 
     useEffect(() => {
@@ -95,50 +97,75 @@ export default function PayrollDashboard() {
         }
     }, [currentCompany, selectedMonth])
 
+    const getNextMonth = (monthStr) => {
+        const [year, month] = monthStr.split('-').map(Number)
+        const nextDate = new Date(year, month, 1)
+        const y = nextDate.getFullYear()
+        const m = String(nextDate.getMonth() + 1).padStart(2, '0')
+        return `${y}-${m}`
+    }
+
     const loadPayroll = async () => {
         setLoading(true)
         try {
-            const result = await window.electronAPI.getPayrollSummary(currentCompany.id, selectedMonth)
+            const nextMonth = getNextMonth(selectedMonth)
+            // Fetch current month data + next month data (for outbound carryover)
+            const [result, nextMonthResult] = await Promise.all([
+                window.electronAPI.getPayrollSummary(currentCompany.id, selectedMonth),
+                window.electronAPI.getPayrollSummary(currentCompany.id, nextMonth)
+            ])
+
             if (result.success && result.data) {
-                
-                let tBase = 0;
-                let tOt = 0;
-                let tPaid = 0;
-                let tPending = 0;
+                // Build a map of next month's carryover records per employee
+                const nextMonthCarryoverMap = {}
+                if (nextMonthResult.success && nextMonthResult.data) {
+                    nextMonthResult.data.forEach(emp => {
+                        const carryovers = (emp.salaries || []).filter(s => s.period === 'carryover' && s.status === 'paid')
+                        if (carryovers.length > 0) {
+                            nextMonthCarryoverMap[emp.id] = carryovers.reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                        }
+                    })
+                }
 
                 const processedData = result.data.map(emp => {
                     const historicalBase = getHistoricalBaseSalary(emp, selectedMonth);
                     const otAmount = (emp.overtimes || [])
                         .filter(o => !(o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]')))
                         .reduce((sum, o) => sum + (o.amount || 0), 0);
-                    const requiredPay = historicalBase + otAmount;
+                    
+                    // Incoming carryover (devir from previous month into this month)
+                    const incomingCarryover = (emp.salaries || [])
+                        .filter(s => s.period === 'carryover' && s.status === 'paid')
+                        .reduce((sum, s) => sum + (s.net_salary || 0), 0)
+
+                    const requiredPay = historicalBase + otAmount + incomingCarryover;
                     
                     const paidAmount = (emp.salaries || [])
                         .filter(s => s.status === 'paid')
                         .filter(s => {
                             // Borç alma (loan) maaş ödemesi değildir, yansıtma.
                             if (s.period === 'loan') return false;
-                            
+                            // Carryover gelen devir - ödenmişten hariç tut (hedefte zaten var)
+                            if (s.period === 'carryover') return false;
                             // Borç ödeme (loan_payment) sadece maaştan düşülüyorsa yansıt.
                             if (s.period === 'loan_payment') {
                                 return s.payment_method === 'salary_deduction';
                             }
-                            
                             return true;
                         })
                         .reduce((sum, s) => sum + (s.net_salary || 0), 0);
                     
-                    const remainingPay = requiredPay - paidAmount;
+                    // Outbound carryover (devir to next month)
+                    const outboundCarryover = nextMonthCarryoverMap[emp.id] || 0
 
-                    tBase += historicalBase;
-                    tOt += otAmount;
-                    tPaid += paidAmount;
-                    tPending += remainingPay;
+                    const remainingPay = requiredPay - paidAmount - outboundCarryover;
 
                     return {
                         ...emp,
                         calc_base: historicalBase,
                         calc_overtimes: otAmount,
+                        calc_incoming_carryover: incomingCarryover,
+                        calc_outbound_carryover: outboundCarryover,
                         calc_required: requiredPay,
                         calc_paid: paidAmount,
                         calc_remaining: remainingPay
@@ -285,6 +312,19 @@ export default function PayrollDashboard() {
             )
         },
         {
+            key: 'calc_incoming_carryover',
+            label: 'Gelen Devir',
+            render: (value) => {
+                if (!value) return <span style={{ color: 'var(--text-muted)' }}>-</span>
+                return (
+                    <span style={{ fontWeight: '600', color: 'var(--info)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <ArrowDownRight size={13} />
+                        {formatCurrency(value)}
+                    </span>
+                )
+            }
+        },
+        {
             key: 'calc_required',
             label: 'Hak Ediş',
             render: (value) => (
@@ -303,9 +343,31 @@ export default function PayrollDashboard() {
             )
         },
         {
+            key: 'calc_outbound_carryover',
+            label: 'Giden Devir',
+            render: (value) => {
+                if (!value) return <span style={{ color: 'var(--text-muted)' }}>-</span>
+                return (
+                    <span style={{ fontWeight: '600', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <ArrowUpRight size={13} />
+                        {formatCurrency(value)}
+                    </span>
+                )
+            }
+        },
+        {
             key: 'calc_remaining',
             label: 'Durum / Bakiye',
-            render: (value) => {
+            render: (value, row) => {
+                // If there's outbound carryover and remaining is near 0, show "Devredildi"
+                if (row.calc_outbound_carryover > 0 && Math.abs(value) < 0.1) {
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)' }}>
+                            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                            <span style={{ fontSize: '12px', fontWeight: '500' }}>Devredildi</span>
+                        </div>
+                    )
+                }
                 if (value > 0) {
                     return (
                         <span style={{ color: 'var(--danger)', fontWeight: '600', fontSize: '13px' }}>
@@ -333,7 +395,7 @@ export default function PayrollDashboard() {
     ]
 
     // Summary Card Component
-    const StatCard = ({ title, value, icon: Icon, color, bgColor, isDanger }) => (
+    const StatCard = ({ title, value, icon: Icon, color, bgColor, isDanger, subtitle }) => (
         <div style={{
             backgroundColor: 'var(--bg-secondary)',
             borderRadius: '16px',
@@ -363,6 +425,11 @@ export default function PayrollDashboard() {
                 <div style={{ fontSize: '22px', fontWeight: '700', color: isDanger ? 'var(--danger)' : 'var(--text-primary)', letterSpacing: '-0.3px' }}>
                     {value}
                 </div>
+                {subtitle && (
+                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '3px', fontWeight: 500 }}>
+                        {subtitle}
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -407,6 +474,7 @@ export default function PayrollDashboard() {
                     icon={Users} 
                     color="var(--accent-primary)" 
                     bgColor="var(--accent-subtle)"
+                    subtitle={displayStats.totalIncomingCarryover > 0 ? `Gelen Devir: +${formatCurrency(displayStats.totalIncomingCarryover)}` : null}
                 />
                 <StatCard 
                     title="Seçili Mesai" 
@@ -421,6 +489,7 @@ export default function PayrollDashboard() {
                     icon={Wallet} 
                     color="var(--success)" 
                     bgColor="var(--success-bg)"
+                    subtitle={displayStats.totalOutboundCarryover > 0 ? `Giden Devir: ${formatCurrency(displayStats.totalOutboundCarryover)}` : null}
                 />
                 <StatCard 
                     title="Seçili Kalan" 
@@ -428,7 +497,8 @@ export default function PayrollDashboard() {
                     icon={Banknote} 
                     color="var(--warning)" 
                     bgColor="var(--warning-bg)"
-                    isDanger={displayStats.totalPending > 0} 
+                    isDanger={displayStats.totalPending > 0}
+                    subtitle={displayStats.totalOutboundCarryover > 0 ? `Aktarılan: ${formatCurrency(displayStats.totalOutboundCarryover)}` : null}
                 />
             </div>
 
@@ -451,9 +521,11 @@ export default function PayrollDashboard() {
                         options: [
                             { value: 'pending', label: 'Eksik Ödeme' },
                             { value: 'paid', label: 'Ödenenler' },
-                            { value: 'overpaid', label: 'Fazla Ödeme' }
+                            { value: 'overpaid', label: 'Fazla Ödeme' },
+                            { value: 'carried', label: 'Devredildi' }
                         ],
                         filterFn: (row, value) => {
+                            if (value === 'carried') return row.calc_outbound_carryover > 0 && Math.abs(row.calc_remaining) < 0.1
                             if (value === 'pending') return row.calc_remaining > 0
                             if (value === 'paid') return row.calc_remaining === 0
                             if (value === 'overpaid') return row.calc_remaining < 0
