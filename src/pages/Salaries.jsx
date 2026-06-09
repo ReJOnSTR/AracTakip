@@ -554,6 +554,9 @@ export default function Salaries() {
     // Stats for the selected MONTH
     const stats = {
         totalTarget: payrollData.reduce((acc, curr) => acc + curr.totalTarget, 0),
+        totalBaseTarget: payrollData.reduce((acc, curr) => acc + (curr.salaryAmount + curr.bonuses + curr.overtime_amount + curr.expenses), 0),
+        totalInboundCarryOver: payrollData.reduce((acc, curr) => acc + curr.carryOverAmount, 0),
+        totalOutboundCarryOver: payrollData.reduce((acc, curr) => acc + curr.outboundCarryOverAmount, 0),
         totalPaid: payrollData.reduce((acc, curr) => acc + (curr.bankPaid + curr.cashPaid), 0),
         totalBank: payrollData.reduce((acc, curr) => acc + curr.bankPaid, 0),
         totalCash: payrollData.reduce((acc, curr) => acc + curr.cashPaid, 0),
@@ -590,6 +593,11 @@ export default function Salaries() {
                     <div className="stat-content">
                         <div className="stat-value">{formatCurrency(stats.totalTarget)}</div>
                         <div className="stat-label">Ödenmesi Gereken</div>
+                        {stats.totalInboundCarryOver !== 0 && (
+                            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 500 }}>
+                                Gelen Devir: {stats.totalInboundCarryOver > 0 ? '+' : ''}{formatCurrency(stats.totalInboundCarryOver)}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="stat-card">
@@ -599,6 +607,11 @@ export default function Salaries() {
                     <div className="stat-content">
                         <div className="stat-value" style={{ color: 'var(--success)' }}>{formatCurrency(stats.totalPaid)}</div>
                         <div className="stat-label">Toplam Ödenen</div>
+                        {stats.totalOutboundCarryOver !== 0 && (
+                            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 500 }}>
+                                Giden Devir: {formatCurrency(stats.totalOutboundCarryOver)}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="stat-card">
@@ -628,6 +641,11 @@ export default function Salaries() {
                             {formatCurrency(stats.totalRemaining)}
                         </div>
                         <div className="stat-label">Kalan Ödeme</div>
+                        {stats.totalOutboundCarryOver !== 0 && (
+                            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 500 }}>
+                                Aktarılan: {formatCurrency(stats.totalOutboundCarryOver)}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
