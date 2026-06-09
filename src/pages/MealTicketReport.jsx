@@ -65,12 +65,17 @@ export default function MealTicketReport() {
         const monthLabel = `${monthNames[selectedMonth]} ${selectedYear}`
         const today = new Date().toLocaleDateString('tr-TR')
 
+        const prices = report.tickets.map(t => t.price_per_person || report.pricePerPerson || 0)
+        const allSamePrice = prices.every(p => p === prices[0])
+        const priceLabel = allSamePrice && prices.length > 0 ? formatCurrency(prices[0]) : 'Çeşitli'
+        const subLabel = allSamePrice && prices.length > 0 ? `${report.totalPersons} × ${formatCurrency(prices[0])}` : 'Birim fiyatlar değişkenlik gösterebilir'
+
         const rowsHtml = report.tickets.map((ticket, idx) => `
             <tr class="${idx % 2 === 1 ? 'alt' : ''}">
                 <td class="cell c-center c-muted">${idx + 1}</td>
                 <td class="cell">${formatDate(ticket.date)}</td>
                 <td class="cell c-center c-bold">${ticket.person_count}</td>
-                <td class="cell c-right c-bold">${formatCurrency(ticket.person_count * report.pricePerPerson)}</td>
+                <td class="cell c-right c-bold">${formatCurrency(ticket.person_count * (ticket.price_per_person || report.pricePerPerson || 0))}</td>
                 <td class="cell c-muted">${ticket.notes || '—'}</td>
             </tr>
         `).join('')
@@ -146,13 +151,13 @@ export default function MealTicketReport() {
             </div>
             <div class="summary-item">
                 <div class="s-label">Birim Fiyat</div>
-                <div class="s-value">${formatCurrency(report.pricePerPerson)}</div>
+                <div class="s-value">${priceLabel}</div>
                 <div class="s-sub">kişi başı</div>
             </div>
             <div class="summary-item">
                 <div class="s-label">Toplam Tutar</div>
                 <div class="s-value">${formatCurrency(report.totalCost)}</div>
-                <div class="s-sub">${report.totalPersons} × ${formatCurrency(report.pricePerPerson)}</div>
+                <div class="s-sub">${subLabel}</div>
             </div>
         </div>
 
@@ -260,7 +265,11 @@ export default function MealTicketReport() {
                                 <div className="stat-label">KİŞİ BAŞI ÜCRET</div>
                                 <div className="stat-icon warning" style={{ width: '32px', height: '32px' }}><UtensilsCrossed size={16} /></div>
                             </div>
-                            <div className="stat-value" style={{ fontSize: '20px' }}>{formatCurrency(report.pricePerPerson)}</div>
+                            <div className="stat-value" style={{ fontSize: '20px' }}>
+                                {report.tickets.length > 0 && report.tickets.every(t => t.price_per_person === report.tickets[0].price_per_person)
+                                    ? formatCurrency(report.tickets[0].price_per_person)
+                                    : 'Çeşitli'}
+                            </div>
                         </div>
 
                         <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
@@ -305,14 +314,21 @@ export default function MealTicketReport() {
                                         <td style={{ padding: '10px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{idx + 1}</td>
                                         <td style={{ padding: '10px 16px', fontSize: '13px', fontWeight: '500' }}>{formatDate(ticket.date)}</td>
                                         <td style={{ padding: '10px 16px', fontSize: '13px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <Users size={13} style={{ color: 'var(--primary)' }} />
-                                                <span style={{ fontWeight: '600' }}>{ticket.person_count}</span>
-                                                <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>kişi</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <Users size={13} style={{ color: 'var(--primary)' }} />
+                                                    <span style={{ fontWeight: '600' }}>{ticket.person_count}</span>
+                                                    <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>kişi</span>
+                                                </div>
+                                                {ticket.price_per_person > 0 && (
+                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', paddingLeft: '19px' }}>
+                                                        Birim: {formatCurrency(ticket.price_per_person)}
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                         <td style={{ padding: '10px 16px', fontSize: '13px', fontWeight: '600', color: 'var(--primary)', textAlign: 'right' }}>
-                                            {formatCurrency(ticket.person_count * report.pricePerPerson)}
+                                            {formatCurrency(ticket.person_count * (ticket.price_per_person || report.pricePerPerson || 0))}
                                         </td>
                                         <td style={{ padding: '10px 16px', fontSize: '12px', color: 'var(--text-muted)' }}>
                                             {ticket.notes || '-'}

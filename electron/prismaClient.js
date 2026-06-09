@@ -468,6 +468,28 @@ async function runAutoMigrations() {
         log.error('Migration step 18 (arvento_history plate fix) error:', error.message);
     }
 
+    // 19. Add price_per_person to meal_tickets and backfill from meal_settings
+    try {
+        const mtCols = await p.$queryRawUnsafe("PRAGMA table_info('meal_tickets')");
+        if (mtCols.length > 0) {
+            if (!mtCols.some(c => c.name === 'price_per_person')) {
+                await p.$executeRawUnsafe('ALTER TABLE meal_tickets ADD COLUMN price_per_person REAL DEFAULT 0');
+                log.info('Migration: Added price_per_person to meal_tickets');
+                
+                // Backfill existing meal_tickets with the price_per_person from meal_settings
+                const settings = await p.meal_settings.findMany();
+                for (const setting of settings) {
+                    await p.$executeRawUnsafe(`UPDATE meal_tickets SET price_per_person = ${setting.price_per_person} WHERE company_id = ${setting.company_id} AND price_per_person IS NULL`);
+                }
+                // Set default 0 for any remaining nulls
+                await p.$executeRawUnsafe('UPDATE meal_tickets SET price_per_person = 0 WHERE price_per_person IS NULL');
+                log.info('Migration: Backfilled price_per_person in meal_tickets');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 19 (meal_tickets price_per_person) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

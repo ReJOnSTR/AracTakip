@@ -611,6 +611,22 @@ ipcMain.handle('mealTickets:setPrice', async (event, data) => {
     return result
 })
 
+ipcMain.handle('mealTickets:getPriceHistory', async (event, companyId) => {
+    return await db.getMealPriceHistory(companyId)
+})
+
+ipcMain.handle('mealTickets:deletePriceHistory', async (event, id) => {
+    const result = await db.deleteMealPriceHistory(id)
+    if (result.success) notifyDbUpdate({ table: 'meal_settings', action: 'delete' })
+    return result
+})
+
+ipcMain.handle('mealTickets:updatePriceHistory', async (event, data) => {
+    const result = await db.updateMealPriceHistory(data)
+    if (result.success) notifyDbUpdate({ table: 'meal_settings', action: 'update' })
+    return result
+})
+
 ipcMain.handle('mealTickets:getReport', async (event, { companyId, month, year }) => {
     return await db.getMealTicketReport(companyId, month, year)
 })
@@ -660,6 +676,31 @@ ipcMain.handle('salaries:delete', async (event, id) => {
     const result = await db.deleteSalary(id)
     if (result.success) notifyDbUpdate({ table: 'salaries', action: 'delete' })
     return result
+})
+
+// Employee Movements
+ipcMain.handle('employeeMovements:getAll', async (event, companyId) => {
+    return await db.getAllEmployeeMovements(companyId)
+})
+ipcMain.handle('employeeMovements:create', async (event, data) => {
+    const result = await db.addEmployeeMovement(data)
+    if (result.success) notifyDbUpdate({ table: 'employee_movements', action: 'create' })
+    return result
+})
+ipcMain.handle('employeeMovements:update', async (event, data) => {
+    const result = await db.updateEmployeeMovement(data)
+    if (result.success) notifyDbUpdate({ table: 'employee_movements', action: 'update' })
+    return result
+})
+ipcMain.handle('employeeMovements:delete', async (event, id) => {
+    const result = await db.deleteEmployeeMovement(id)
+    if (result.success) notifyDbUpdate({ table: 'employee_movements', action: 'delete' })
+    return result
+})
+
+// Overtimes Company-wide
+ipcMain.handle('overtimes:getAllByCompany', async (event, companyId) => {
+    return await db.getAllOvertimes(companyId)
 })
 
 // Salary History

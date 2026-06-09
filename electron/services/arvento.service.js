@@ -481,13 +481,134 @@ async function getArventoVehicleInfo() {
     return await getArventoData('GetVehicleInfo', {}, false)
 }
 
+function getTurkeyTodayString() {
+    const utcDate = new Date()
+    const tzOffset = 3 * 60 // Turkey is GMT+3
+    const turkeyDate = new Date(utcDate.getTime() + tzOffset * 60 * 1000)
+    return turkeyDate.toISOString().split('T')[0]
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371 // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+}
+
 async function getArventoVehicleDailyStatus(date) {
-    // Format date if passed as object or string
     let dateStr = date
-    if (date instanceof Date) {
-        dateStr = date.toISOString().split('T')[0]
+    if (!dateStr) {
+        dateStr = getTurkeyTodayString()
+    } else if (dateStr instanceof Date) {
+        dateStr = dateStr.toISOString().split('T')[0]
     }
-    return await getArventoData('VehicleDailyStatusReport', { Date: dateStr }, false)
+    
+    try {
+        const mappingsRes = await getArventoLicensePlateNodeMappings()
+        if (!mappingsRes.success || !Array.isArray(mappingsRes.data)) {
+            return { success: false, error: 'Araç eşleştirmeleri alınamadı.' }
+        }
+        
+        const mappings = mappingsRes.data
+        const cleanDateStr = dateStr.replace(/[^0-9]/g, '')
+        const startDate = cleanDateStr + '000000'
+        const endDate = cleanDateStr + '235959'
+        
+        const promises = mappings.map(async (mapping) => {
+            const deviceNo = mapping['Device No']
+            const plateFull = mapping['License Plate']
+            if (!deviceNo) return null
+            
+            try {
+                const params = {
+                    Node: deviceNo,
+                    StartDate: startDate,
+                    EndDate: endDate,
+                    chkLocation: "1",
+                    chkSpeed: "1",
+                    chkPause: "1",
+                    chkMotion: "1",
+                    chkContactAlarm: "1"
+                }
+                const reportResult = await getArventoData('GeneralReport', params, false)
+                if (reportResult.success && Array.isArray(reportResult.data) && reportResult.data.length > 0) {
+                    const sortedRecords = reportResult.data
+                        .map(item => {
+                            const latStr = (item.Latitude || item.LatitudeY || '0').replace(',', '.')
+                            const lat = parseFloat(latStr)
+                            const lngStr = (item.Longitude || item.LongitudeX || '0').replace(',', '.')
+                            const lng = parseFloat(lngStr)
+                            const speed = parseInt(item['Speed km/h'] || item.Speed || 0)
+                            const recordNo = parseInt(item['Record No'] || 0)
+                            const timeStr = item['Date/Time'] || ''
+                            const segmentDistanceStr = (item.Distance || item['Distance km'] || '0').replace(',', '.')
+                            const segmentDistance = parseFloat(segmentDistanceStr)
+                            return { lat, lng, speed, recordNo, timeStr, segmentDistance }
+                        })
+                        .filter(item => item.lat && item.lng)
+                        .sort((a, b) => a.recordNo - b.recordNo || new Date(a.timeStr) - new Date(b.timeStr))
+                    
+                    let dailyTrip = 0
+                    const hasDirectDistance = reportResult.data.some(item => item.Distance !== undefined)
+                    
+                    if (hasDirectDistance) {
+                        sortedRecords.forEach(r => {
+                            dailyTrip += r.segmentDistance
+                        })
+                    } else {
+                        for (let i = 1; i < sortedRecords.length; i++) {
+                            const p1 = sortedRecords[i - 1]
+                            const p2 = sortedRecords[i]
+                            const dist = calculateDistance(p1.lat, p1.lng, p2.lat, p2.lng)
+                            if (dist < 2.0) { // filter out GPS jumps
+                                if (dist > 0.02 || p2.speed > 0 || p1.speed > 0) {
+                                    dailyTrip += dist
+                                }
+                            }
+                        }
+                    }
+                    
+                    let maxSpeed = 0
+                    sortedRecords.forEach(r => {
+                        if (r.speed > maxSpeed) maxSpeed = r.speed
+                    })
+                    
+                    const lastRecord = sortedRecords[sortedRecords.length - 1]
+                    
+                    return {
+                        licensePlate: plateFull,
+                        DailyTrip: dailyTrip,
+                        Speed: maxSpeed,
+                        LatitudeY: lastRecord ? lastRecord.lat : 0,
+                        LongitudeX: lastRecord ? lastRecord.lng : 0
+                    }
+                }
+            } catch (err) {
+                log.error(`[getArventoVehicleDailyStatus] Error calculating daily status for device ${deviceNo}:`, err)
+            }
+            
+            return {
+                licensePlate: plateFull,
+                DailyTrip: 0,
+                Speed: 0,
+                LatitudeY: 0,
+                LongitudeX: 0
+            }
+        })
+        
+        const results = await Promise.all(promises)
+        const filteredResults = results.filter(r => r !== null)
+        
+        return { success: true, data: filteredResults }
+    } catch (error) {
+        log.error('[getArventoVehicleDailyStatus] Error in daily status:', error)
+        return { success: false, error: error.message }
+    }
 }
 
 async function getArventoAlarms() {

@@ -328,9 +328,18 @@ exports.Prisma.Meal_ticketsScalarFieldEnum = {
   company_id: 'company_id',
   date: 'date',
   person_count: 'person_count',
+  price_per_person: 'price_per_person',
   notes: 'notes',
   created_at: 'created_at',
   is_archived: 'is_archived'
+};
+
+exports.Prisma.Meal_price_historyScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  old_price: 'old_price',
+  new_price: 'new_price',
+  change_date: 'change_date'
 };
 
 exports.Prisma.OvertimesScalarFieldEnum = {
@@ -551,6 +560,7 @@ exports.Prisma.ModelName = {
   maintenances: 'maintenances',
   meal_settings: 'meal_settings',
   meal_tickets: 'meal_tickets',
+  meal_price_history: 'meal_price_history',
   overtimes: 'overtimes',
   recurring_transactions: 'recurring_transactions',
   salaries: 'salaries',

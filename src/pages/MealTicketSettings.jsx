@@ -4,7 +4,8 @@ import TopProgressBar from '../components/TopProgressBar'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import CustomInput from '../components/CustomInput'
-import { Save, CircleDollarSign, Pencil } from 'lucide-react'
+import ConfirmModal from '../components/ConfirmModal'
+import { Save, CircleDollarSign, Pencil, Trash2 } from 'lucide-react'
 
 export default function MealTicketSettings() {
     const { currentCompany } = useCompany()
@@ -13,14 +14,45 @@ export default function MealTicketSettings() {
     const [pricePerPerson, setPricePerPerson] = useState(0)
     const [showModal, setShowModal] = useState(false)
     const [editValue, setEditValue] = useState('')
+    const [editDate, setEditDate] = useState('')
+    const [editingRecord, setEditingRecord] = useState(null) // null for new, 'active' for active, log object for past
+    const [priceHistory, setPriceHistory] = useState([])
+    const [confirmModal, setConfirmModal] = useState(null)
+
+    const handleDeleteClick = (item) => {
+        setConfirmModal({
+            item,
+            title: 'Fiyat Geçmişi Silme',
+            message: `${new Date(item.change_date).toLocaleDateString('tr-TR')} tarihli fiyat geçmişi kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+        try {
+            const result = await window.electronAPI.deleteMealPriceHistory(confirmModal.item.id)
+            if (result.success) {
+                setConfirmModal(null)
+                loadSettings()
+            }
+        } catch (err) {
+            console.error('Failed to delete price history:', err)
+        }
+    }
 
     const loadSettings = useCallback(async () => {
         if (!currentCompany) return
         setLoading(true)
         try {
-            const result = await window.electronAPI.getMealPrice(currentCompany.id)
-            if (result.success) {
-                setPricePerPerson(result.data.price_per_person || 0)
+            const [priceRes, historyRes] = await Promise.all([
+                window.electronAPI.getMealPrice(currentCompany.id),
+                window.electronAPI.getMealPriceHistory(currentCompany.id)
+            ])
+            if (priceRes.success) {
+                setPricePerPerson(priceRes.data.price_per_person || 0)
+            }
+            if (historyRes.success) {
+                setPriceHistory(historyRes.data || [])
             }
         } catch (err) {
             console.error('Failed to load meal settings:', err)
@@ -32,8 +64,32 @@ export default function MealTicketSettings() {
         if (currentCompany) loadSettings()
     }, [currentCompany, loadSettings])
 
-    const openEdit = () => {
+    useEffect(() => {
+        const unsub = window.electronAPI.onDbUpdate((change) => {
+            if (change?.table === 'meal_settings') loadSettings()
+        })
+        return () => { if (unsub) unsub() }
+    }, [loadSettings])
+
+    const openCreate = () => {
+        setEditingRecord(null)
+        setEditValue('')
+        setEditDate(new Date().toISOString().split('T')[0])
+        setShowModal(true)
+    }
+
+    const openEditActive = () => {
+        setEditingRecord('active')
         setEditValue(String(pricePerPerson || ''))
+        const activeDate = priceHistory.length > 0 ? priceHistory[0].change_date : (currentCompany?.created_at || new Date())
+        setEditDate(new Date(activeDate).toISOString().split('T')[0])
+        setShowModal(true)
+    }
+
+    const openEditPast = (record) => {
+        setEditingRecord(record)
+        setEditValue(String(record.old_price))
+        setEditDate(new Date(record.change_date).toISOString().split('T')[0])
         setShowModal(true)
     }
 
@@ -42,13 +98,23 @@ export default function MealTicketSettings() {
         setSaving(true)
         try {
             const price = parseFloat(editValue) || 0
-            const result = await window.electronAPI.setMealPrice({
-                companyId: currentCompany.id,
-                pricePerPerson: price
-            })
+            let result
+            if (editingRecord === 'active' || editingRecord === null) {
+                result = await window.electronAPI.setMealPrice({
+                    companyId: currentCompany.id,
+                    pricePerPerson: price,
+                    changeDate: editDate
+                })
+            } else {
+                result = await window.electronAPI.updateMealPriceHistory({
+                    id: editingRecord.id,
+                    price: price,
+                    date: editDate
+                })
+            }
             if (result.success) {
-                setPricePerPerson(price)
                 setShowModal(false)
+                loadSettings()
             }
         } catch (err) {
             console.error('Failed to save meal price:', err)
@@ -59,34 +125,54 @@ export default function MealTicketSettings() {
     const formatCurrency = (val) =>
         new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(val || 0)
 
-    const settingsData = [
-        {
-            id: 'price_per_person',
-            label: 'Kişi Başı Yemek Ücreti',
-            description: 'Yemek fişlerinde maliyet hesaplaması için kullanılır',
-            value: pricePerPerson,
-        }
-    ]
+    // Construct unified pricing history table data
+    const tableData = []
+    if (pricePerPerson !== undefined && pricePerPerson !== null) {
+        const activeDate = priceHistory.length > 0 ? priceHistory[0].change_date : (currentCompany?.created_at || new Date())
+        tableData.push({
+            id: 'active',
+            price: pricePerPerson,
+            date: activeDate,
+            status: 'active',
+            statusLabel: 'Aktif'
+        })
+    }
+
+    priceHistory.forEach((hist) => {
+        tableData.push({
+            id: hist.id,
+            price: hist.old_price,
+            date: hist.change_date,
+            status: 'past',
+            statusLabel: 'Geçmiş',
+            dbRecord: hist
+        })
+    })
 
     const columns = [
         {
-            key: 'label',
-            label: 'Ayar',
+            key: 'price',
+            label: 'Birim Ücret',
             sortable: false,
-            render: (val, item) => (
-                <div>
-                    <div style={{ fontWeight: '500' }}>{val}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{item.description}</div>
-                </div>
+            render: (val) => (
+                <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '15px' }}>
+                    {formatCurrency(val)}
+                </span>
             )
         },
         {
-            key: 'value',
-            label: 'Değer',
+            key: 'date',
+            label: 'Tarih',
             sortable: false,
-            render: (val) => (
-                <span style={{ fontWeight: '600', color: val > 0 ? 'var(--primary)' : 'var(--text-muted)', fontSize: '15px' }}>
-                    {val > 0 ? formatCurrency(val) : '—'}
+            render: (val) => new Date(val).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        },
+        {
+            key: 'statusLabel',
+            label: 'Durum',
+            sortable: false,
+            render: (val, item) => (
+                <span className={`badge badge-${item.status === 'active' ? 'success' : 'neutral'}`}>
+                    {val}
                 </span>
             )
         }
@@ -100,6 +186,12 @@ export default function MealTicketSettings() {
                 <div>
                     <h1 className="page-title">Ücret Ayarları</h1>
                     <p className="page-subtitle">Kişi başı yemek ücreti ve maliyet hesaplama</p>
+                </div>
+                <div className="header-actions">
+                    <button className="btn btn-primary" onClick={openCreate}>
+                        <Pencil size={15} style={{ marginRight: '6px' }} />
+                        Yeni Fiyat Ekle
+                    </button>
                 </div>
             </div>
 
@@ -117,16 +209,26 @@ export default function MealTicketSettings() {
                 </div>
             </div>
 
-            <DataTable persistenceKey="MealTicketSettings_table_0"
+            <DataTable persistenceKey="MealTicketSettings_table_unified"
                 storageKey="meal_ticket_settings_table_cols"
                 columns={columns}
-                data={settingsData}
+                data={tableData}
                 loading={loading}
-                emptyMessage="Ayar bulunamadı."
+                emptyMessage="Kayıt bulunamadı."
                 searchable={false}
-                paginated={false}
+                paginated={true}
+                pageSize={10}
                 actions={(item) => (
-                    <button title="Düzenle" onClick={openEdit}><Pencil size={16} /></button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {item.status === 'active' ? (
+                            <button title="Düzenle / Güncelle" onClick={openEditActive}><Pencil size={16} /></button>
+                        ) : (
+                            <>
+                                <button title="Düzenle" onClick={() => openEditPast(item.dbRecord)}><Pencil size={16} /></button>
+                                <button title="Sil" className="danger" onClick={() => handleDeleteClick(item.dbRecord)}><Trash2 size={16} /></button>
+                            </>
+                        )}
+                    </div>
                 )}
             />
 
@@ -134,21 +236,30 @@ export default function MealTicketSettings() {
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title="Kişi Başı Ücret Düzenle"
+                title={editingRecord === null ? "Yeni Fiyat Ekle" : "Fiyat Ayarlarını Düzenle"}
             >
                 <form onSubmit={handleSave}>
-                    <div className="form-group">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <CustomInput
-                            label="Kişi Başı Ücret (₺)"
+                            label="Birim Ücret (₺)"
                             format="currency"
                             value={editValue}
                             onChange={(val) => setEditValue(val)}
                             placeholder="Örn: 250.00"
                             autoFocus
+                            required
+                        />
+
+                        <CustomInput
+                            label="Değişim Tarihi"
+                            type="date"
+                            value={editDate}
+                            onChange={(val) => setEditDate(val)}
+                            required
                         />
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
                         <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>İptal</button>
                         <button type="submit" className="btn btn-primary" disabled={saving}>
                             <Save size={15} />
@@ -157,6 +268,19 @@ export default function MealTicketSettings() {
                     </div>
                 </form>
             </Modal>
+
+            {confirmModal && (
+                <ConfirmModal
+                    isOpen={true}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    onConfirm={handleConfirmDelete}
+                    onClose={() => setConfirmModal(null)}
+                    confirmText="Evet, Sil"
+                    cancelText="İptal"
+                    type="danger"
+                />
+            )}
         </div>
     )
 }

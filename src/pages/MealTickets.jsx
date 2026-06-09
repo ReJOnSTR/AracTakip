@@ -180,11 +180,18 @@ export default function MealTickets() {
             key: 'person_count',
             label: 'Kişi Sayısı',
             sortable: true,
-            render: (val) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={14} style={{ color: 'var(--primary)' }} />
-                    <span style={{ fontWeight: '600', fontSize: '15px' }}>{val}</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>kişi</span>
+            render: (val, item) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Users size={14} style={{ color: 'var(--primary)' }} />
+                        <span style={{ fontWeight: '600', fontSize: '15px' }}>{val}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>kişi</span>
+                    </div>
+                    {item.price_per_person > 0 && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', paddingLeft: '20px' }}>
+                            Birim: {formatCurrency(item.price_per_person)}
+                        </div>
+                    )}
                 </div>
             )
         },
@@ -193,7 +200,10 @@ export default function MealTickets() {
             label: 'Tutar',
             sortable: false,
             render: (_val, item) => {
-                const cost = (item.person_count || 0) * (stats.pricePerPerson || 0)
+                const price = item.price_per_person !== undefined && item.price_per_person !== null
+                    ? item.price_per_person
+                    : (stats.pricePerPerson || 0)
+                const cost = (item.person_count || 0) * price
                 return cost > 0
                     ? <span style={{ fontWeight: '600', color: 'var(--primary)' }}>{formatCurrency(cost)}</span>
                     : <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>—</span>

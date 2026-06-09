@@ -468,6 +468,79 @@ async function deleteSalaryHistory(id) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+// ========== EMPLOYEE MOVEMENTS (PAYMENTS/ADVANCES) ==========
+async function getAllEmployeeMovements(companyId) {
+    try {
+        const data = await prisma.employee_movements.findMany({
+            where: {
+                employees: {
+                    company_id: parseInt(companyId)
+                }
+            },
+            orderBy: { date: 'desc' }
+        });
+        return { success: true, data: JSON.parse(JSON.stringify(data)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function addEmployeeMovement(data) {
+    try {
+        const result = await prisma.employee_movements.create({
+            data: {
+                employee_id: parseInt(data.employeeId),
+                type: data.type,
+                amount: parseFloat(data.amount) || 0,
+                date: new Date(data.date),
+                description: data.description || null,
+                is_paid: 1, // Default to paid for movements created via Salaries page
+                payment_method: data.paymentMethod || 'cash'
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function updateEmployeeMovement(data) {
+    try {
+        const result = await prisma.employee_movements.update({
+            where: { id: parseInt(data.id) },
+            data: {
+                type: data.type,
+                amount: parseFloat(data.amount) || 0,
+                date: new Date(data.date),
+                description: data.description || null,
+                payment_method: data.paymentMethod || 'cash'
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function deleteEmployeeMovement(id) {
+    try {
+        await prisma.employee_movements.delete({
+            where: { id: parseInt(id) }
+        });
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+// ========== ALL OVERTIMES (COMPANY LEVEL) ==========
+async function getAllOvertimes(companyId) {
+    try {
+        const data = await prisma.overtimes.findMany({
+            where: {
+                employees: {
+                    company_id: parseInt(companyId)
+                },
+                is_archived: 0
+            },
+            orderBy: { date: 'desc' }
+        });
+        return { success: true, data: JSON.parse(JSON.stringify(data)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
     getSalariesByEmployee, createSalary, updateSalary, deleteSalary,
     getLeavesByEmployee, getAllLeaves, createLeave, updateLeave, deleteLeave,
@@ -475,5 +548,6 @@ module.exports = {
     getEmployeeAssignments, addEmployeeAssignment, updateEmployeeAssignment, deleteEmployeeAssignment,
     getEmployeeDocuments, addEmployeeDocument, deleteEmployeeDocument, updateEmployeeDocument,
     getUpcomingDocuments, getEmployeeDocumentById,
-    createSalaryHistory, updateSalaryHistory, deleteSalaryHistory
+    createSalaryHistory, updateSalaryHistory, deleteSalaryHistory,
+    getAllEmployeeMovements, addEmployeeMovement, updateEmployeeMovement, deleteEmployeeMovement, getAllOvertimes
 };

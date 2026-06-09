@@ -213,7 +213,9 @@ export default function ArventoTracking() {
 
     // Historical tracking states
     const [selectedHistoryVehicles, setSelectedHistoryVehicles] = useState([])
-    const [historyDate, setHistoryDate] = useState(new Date().toLocaleDateString('sv-SE'))
+    const [historyStartDate, setHistoryStartDate] = useState(new Date().toLocaleDateString('sv-SE'))
+    const [historyEndDate, setHistoryEndDate] = useState(new Date().toLocaleDateString('sv-SE'))
+    const [vehicleSearchQuery, setVehicleSearchQuery] = useState('')
     const [historyDataMap, setHistoryDataMap] = useState({}) // { [plate]: [...] }
     const [historyLoading, setHistoryLoading] = useState(false)
     const [intersections, setIntersections] = useState([])
@@ -237,6 +239,46 @@ export default function ArventoTracking() {
     const [isMapFullscreen, setIsMapFullscreen] = useState(false)
     const [mapReady, setMapReady] = useState(false)
     const isMapTab = activeTab === 'live' || activeTab === 'history'
+
+    // Calculate route distance in km for history playback
+    const historyDistances = useMemo(() => {
+        const distances = {}
+        Object.keys(historyDataMap).forEach(plate => {
+            const points = historyDataMap[plate] || []
+            if (points.length < 2) {
+                distances[plate] = 0
+                return
+            }
+            let totalMeters = 0
+            for (let i = 0; i < points.length - 1; i++) {
+                totalMeters += getDistanceMeters(points[i].lat, points[i].lng, points[i+1].lat, points[i+1].lng)
+            }
+            distances[plate] = totalMeters / 1000
+        })
+        return distances
+    }, [historyDataMap])
+
+    const formatTimelineTime = (timestamp) => {
+        if (!timestamp) return '--:--:--'
+        const date = new Date(timestamp)
+        const isSingleDay = historyStartDate === historyEndDate
+        if (isSingleDay) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        } else {
+            return `${date.toLocaleDateString([], { day: '2-digit', month: '2-digit' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+        }
+    }
+
+    const formatTimelineEdge = (timestamp) => {
+        if (!timestamp) return ''
+        const date = new Date(timestamp)
+        const isSingleDay = historyStartDate === historyEndDate
+        if (isSingleDay) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        } else {
+            return `${date.toLocaleDateString([], { day: '2-digit', month: '2-digit' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        }
+    }
 
     // Trigger leaflet resize on fullscreen toggle
     useEffect(() => {
@@ -1195,9 +1237,9 @@ export default function ArventoTracking() {
         
         setHistoryLoading(true)
         try {
-            // Get start and end of selected date
-            const startDate = new Date(`${historyDate}T00:00:00`).toISOString()
-            const endDate = new Date(`${historyDate}T23:59:59`).toISOString()
+            // Get start and end of selected date range
+            const startDate = new Date(`${historyStartDate}T00:00:00`).toISOString()
+            const endDate = new Date(`${historyEndDate}T23:59:59`).toISOString()
             
             const result = await window.electronAPI.arventoGetHistory({
                 plates: selectedHistoryVehicles,
@@ -1247,8 +1289,8 @@ export default function ArventoTracking() {
                         return minT
                     })
                 } else {
-                    const dayStart = new Date(`${historyDate}T00:00:00`).getTime()
-                    const dayEnd = new Date(`${historyDate}T23:59:59`).getTime()
+                    const dayStart = new Date(`${historyStartDate}T00:00:00`).getTime()
+                    const dayEnd = new Date(`${historyEndDate}T23:59:59`).getTime()
                     setHistoryTimelineRange({ min: dayStart, max: dayEnd })
                     setCurrentTime(dayStart)
                 }
@@ -1272,7 +1314,7 @@ export default function ArventoTracking() {
         if (activeTab === 'history') {
             fetchHistoryData()
         }
-    }, [selectedHistoryVehicles, historyDate, activeTab])
+    }, [selectedHistoryVehicles, historyStartDate, historyEndDate, activeTab])
 
     // Playback Timer Effect
     useEffect(() => {
@@ -1767,6 +1809,40 @@ export default function ArventoTracking() {
         })
     }, [mappings, dailyReports])
 
+    const dailyStats = useMemo(() => {
+        let totalDist = 0
+        let maxDist = 0
+        let maxDistancePlate = 'Yok'
+        let maxSpd = 0
+        let maxSpeedPlate = 'Yok'
+        let activeCount = 0
+        
+        combinedDailyReports.forEach(v => {
+            totalDist += v.distance
+            if (v.distance > maxDist) {
+                maxDist = v.distance
+                maxDistancePlate = v.plate
+            }
+            if (v.speed > maxSpd) {
+                maxSpd = v.speed
+                maxSpeedPlate = v.plate
+            }
+            if (v.distance > 0.1) {
+                activeCount++
+            }
+        })
+        
+        return {
+            totalDistance: totalDist,
+            maxDistance: maxDist,
+            maxDistancePlate,
+            maxSpeed: maxSpd,
+            maxSpeedPlate,
+            activeCount,
+            totalCount: combinedDailyReports.length
+        }
+    }, [combinedDailyReports])
+
     if (settings && (!settings.arvento?.enabled || !settings.arvento?.username)) {
         return (
             <div className="tracking-page-wrapper">
@@ -2051,169 +2127,236 @@ export default function ArventoTracking() {
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Geçmiş Rota Takibi</h3>
                                     <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                        Seçilen güne ait araç konumlarını ve hareket geçmişini zaman çizgisi üzerinden izleyin.
+                                        Seçilen tarih aralığına ait araç konumlarını ve hareket geçmişini zaman çizgisi üzerinden izleyin.
                                     </p>
                                 </div>
 
-                                {/* Tarih Seçici */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tarih Seçin</span>
+                                {/* Tarih Aralığı Seçici */}
+                                <div className="history-date-picker-group">
+                                    <div className="date-input-wrapper">
+                                        <label className="date-input-label">Başlangıç Tarihi</label>
+                                        <div className="date-input-container">
+                                            <Calendar size={13} className="date-icon" />
+                                            <input 
+                                                type="date" 
+                                                className="form-input history-date-input" 
+                                                value={historyStartDate}
+                                                onChange={(e) => {
+                                                    setHistoryStartDate(e.target.value)
+                                                    if (new Date(e.target.value) > new Date(historyEndDate)) {
+                                                        setHistoryEndDate(e.target.value)
+                                                    }
+                                                }}
+                                                max={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="date-input-wrapper">
+                                        <label className="date-input-label">Bitiş Tarihi</label>
+                                        <div className="date-input-container">
+                                            <Calendar size={13} className="date-icon" />
+                                            <input 
+                                                type="date" 
+                                                className="form-input history-date-input" 
+                                                value={historyEndDate}
+                                                onChange={(e) => setHistoryEndDate(e.target.value)}
+                                                min={historyStartDate}
+                                                max={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Araç Arama Çubuğu */}
+                                <div className="history-search-container">
+                                    <Search size={14} className="search-icon" />
                                     <input 
-                                        type="date" 
-                                        className="form-input" 
-                                        value={historyDate}
-                                        onChange={(e) => setHistoryDate(e.target.value)}
-                                        max={new Date().toISOString().split('T')[0]}
-                                        style={{ height: '38px' }}
+                                        type="text" 
+                                        className="form-input history-search-input" 
+                                        placeholder="Araç plaka veya markası ara..." 
+                                        value={vehicleSearchQuery}
+                                        onChange={(e) => setVehicleSearchQuery(e.target.value)}
                                     />
+                                    {vehicleSearchQuery && (
+                                        <button className="search-clear-btn" onClick={() => setVehicleSearchQuery('')}>✕</button>
+                                    )}
                                 </div>
 
                                 {/* Araç Seçim Listesi */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minHeight: 0 }}>
-                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                                        Araçlar ({selectedHistoryVehicles.length} Seçili)
-                                    </span>
-                                    <div style={{ 
-                                        flex: 1, 
-                                        overflowY: 'auto', 
-                                        border: '1px solid var(--border-color)', 
-                                        borderRadius: '8px', 
-                                        padding: '8px', 
-                                        background: 'var(--bg-secondary)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '6px'
-                                    }}>
-                                        {vehicles.map((v, idx) => {
-                                            const isSelected = selectedHistoryVehicles.includes(v.plate)
-                                            const points = historyDataMap[v.plate] || []
-                                            const pointsCount = points.length
-                                            const colorIndex = selectedHistoryVehicles.indexOf(v.plate)
-                                            const pathColor = colorIndex !== -1 ? getHistoryColor(colorIndex) : null
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                            Araçlar ({selectedHistoryVehicles.length} Seçili)
+                                        </span>
+                                        {selectedHistoryVehicles.length > 0 && (
+                                            <button 
+                                                onClick={() => setSelectedHistoryVehicles([])}
+                                                style={{ 
+                                                    background: 'none', 
+                                                    border: 'none', 
+                                                    color: 'var(--danger)', 
+                                                    fontSize: '11px', 
+                                                    cursor: 'pointer',
+                                                    padding: 0,
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                Seçimleri Kaldır
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="history-vehicles-list-wrapper">
+                                        {(() => {
+                                            const query = vehicleSearchQuery.toLowerCase().trim()
+                                            const filtered = vehicles.filter(v => {
+                                                if (!query) return true
+                                                return v.plate.toLowerCase().includes(query) ||
+                                                       (v.brand && v.brand.toLowerCase().includes(query)) ||
+                                                       (v.model && v.model.toLowerCase().includes(query))
+                                            })
 
-                                            return (
-                                                <div 
-                                                    key={`${v.plate}-${idx}`}
-                                                    style={{ 
-                                                        display: 'flex', 
-                                                        alignItems: 'center', 
-                                                        justifyContent: 'space-between',
-                                                        padding: '8px',
-                                                        borderRadius: '6px',
-                                                        background: 'var(--bg-primary)',
-                                                        border: isSelected ? `1px solid ${pathColor}` : '1px solid var(--border-color)',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                    onClick={() => {
-                                                        if (isSelected) {
-                                                            setSelectedHistoryVehicles(prev => prev.filter(p => p !== v.plate))
-                                                        } else {
-                                                            setSelectedHistoryVehicles(prev => [...prev, v.plate])
-                                                        }
-                                                    }}
-                                                >
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={isSelected}
-                                                            onChange={() => {}} // click handled by parent container
-                                                            style={{ pointerEvents: 'none' }}
-                                                        />
-                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <span style={{ fontSize: '13px', fontWeight: 700 }}>{v.plate}</span>
-                                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{v.brand} {v.model}</span>
+                                            if (filtered.length === 0) {
+                                                return (
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                                                        Aramanızla eşleşen araç bulunamadı.
+                                                    </div>
+                                                )
+                                            }
+
+                                            return filtered.map((v, idx) => {
+                                                const isSelected = selectedHistoryVehicles.includes(v.plate)
+                                                const points = historyDataMap[v.plate] || []
+                                                const pointsCount = points.length
+                                                const distanceKm = historyDistances[v.plate] || 0
+                                                const colorIndex = selectedHistoryVehicles.indexOf(v.plate)
+                                                const pathColor = colorIndex !== -1 ? getHistoryColor(colorIndex) : null
+
+                                                return (
+                                                    <div 
+                                                        key={`${v.plate}-${idx}`}
+                                                        className={`history-vehicle-card ${isSelected ? 'selected' : ''}`}
+                                                        style={{ 
+                                                            borderLeft: isSelected && pathColor ? `4px solid ${pathColor}` : '1px solid var(--border-color)'
+                                                        }}
+                                                        onClick={() => {
+                                                            if (isSelected) {
+                                                                setSelectedHistoryVehicles(prev => prev.filter(p => p !== v.plate))
+                                                            } else {
+                                                                setSelectedHistoryVehicles(prev => [...prev, v.plate])
+                                                            }
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                            <div className={`custom-checkbox-wrapper ${isSelected ? 'checked' : ''}`} style={{ borderColor: isSelected && pathColor ? pathColor : 'var(--border-color)', backgroundColor: isSelected && pathColor ? `${pathColor}1a` : 'transparent' }}>
+                                                                {isSelected && <span style={{ backgroundColor: pathColor }}></span>}
+                                                            </div>
+                                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                <span className="history-vehicle-plate">{v.plate}</span>
+                                                                <span className="history-vehicle-info">{v.brand} {v.model}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                                                            {pointsCount > 0 ? (
+                                                                <>
+                                                                    <span className="history-vehicle-status success">
+                                                                        {pointsCount} konum
+                                                                    </span>
+                                                                    {distanceKm > 0 && (
+                                                                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                                                                            {distanceKm.toFixed(1)} km
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <span className="history-vehicle-status empty">
+                                                                    Kayıt yok
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
-
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <span style={{ fontSize: '11px', color: pointsCount > 0 ? 'var(--success)' : 'var(--text-muted)' }}>
-                                                            {pointsCount > 0 ? `${pointsCount} konum` : 'Kayıt yok'}
-                                                        </span>
-                                                        {isSelected && pathColor && (
-                                                            <span style={{ 
-                                                                width: '12px', 
-                                                                height: '12px', 
-                                                                borderRadius: '3px', 
-                                                                background: pathColor 
-                                                            }}></span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
+                                                )
+                                            })
+                                        })()}
                                     </div>
                                 </div>
 
-                                {/* Oynatıcı Detay Paneli */}
-                                <div style={{ 
-                                    background: 'var(--bg-secondary)', 
-                                    borderRadius: '8px', 
-                                    padding: '12px', 
-                                    border: '1px solid var(--border-color)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '12px', fontWeight: 700 }}>Oynatıcı Durumu</span>
+                                {/* Oynatıcı Canlı Detay Paneli */}
+                                <div className="history-playback-details-panel">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', marginBottom: '8px' }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <Activity size={14} style={{ color: 'var(--primary)' }} />
+                                            Canlı Oynatıcı Durumu
+                                        </span>
                                         {isPlaying ? (
-                                            <span style={{ fontSize: '11px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                                                🟢 Oynatılıyor
+                                            <span className="playback-pulse-badge">
+                                                <span className="pulse-dot-inner success"></span>
+                                                Oynatılıyor
                                             </span>
                                         ) : (
-                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Durduruldu</span>
+                                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>Durduruldu</span>
                                         )}
                                     </div>
 
                                     {selectedHistoryVehicles.length === 0 ? (
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>
-                                            Araç seçtiğinizde konum bilgileri ve hız durumu burada listelenecektir.
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '15px 0' }}>
+                                            Harita üzerinde geçmiş rotayı oynatmak ve canlı değerleri izlemek için yukarıdan araç seçin.
+                                        </div>
+                                    ) : historyLoading ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '15px 0', gap: '8px' }}>
+                                            <Loader2 className="spinner" size={20} style={{ color: 'var(--primary)' }} />
+                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Veriler yükleniyor...</span>
                                         </div>
                                     ) : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto', paddingRight: '2px' }}>
                                             {selectedHistoryVehicles.map((plate, idx) => {
                                                 const points = historyDataMap[plate] || []
                                                 const pos = currentTime ? getInterpolatedPosition(points, currentTime) : null
                                                 const pathColor = getHistoryColor(idx)
+                                                const totalKm = historyDistances[plate] || 0
 
                                                 return (
                                                     <div 
                                                         key={`${plate}-${idx}`}
-                                                        style={{ 
-                                                            padding: '8px', 
-                                                            background: 'var(--bg-primary)', 
-                                                            borderRadius: '6px', 
-                                                            border: '1px solid var(--border-color)',
-                                                            fontSize: '11px',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            gap: '4px'
-                                                        }}
+                                                        className="history-active-vehicle-card"
+                                                        style={{ borderLeftColor: pathColor }}
                                                     >
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: pathColor }}></span>
-                                                                <span style={{ fontWeight: 700 }}>{plate}</span>
+                                                                <span className="vehicle-color-indicator" style={{ backgroundColor: pathColor }}></span>
+                                                                <span style={{ fontWeight: 800, fontSize: '12px' }}>{plate}</span>
                                                             </div>
                                                             {pos ? (
-                                                                <span style={{ 
-                                                                    fontWeight: 700, 
-                                                                    color: pos.ignition ? '#22c55e' : '#ef4444',
-                                                                    fontSize: '10px',
-                                                                    background: pos.ignition ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                                                    padding: '2px 6px',
-                                                                    borderRadius: '4px'
-                                                                }}>
+                                                                <span className={`ignition-status-badge ${pos.ignition ? 'on' : 'off'}`}>
+                                                                    <span className={`pulsate-dot ${pos.ignition ? 'success' : 'danger'}`}></span>
                                                                     {pos.ignition ? 'Kontak Açık' : 'Kontak Kapalı'}
                                                                 </span>
                                                             ) : (
-                                                                <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>Bağlantı Yok</span>
+                                                                <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>Kayıt Yok</span>
                                                             )}
                                                         </div>
                                                         {pos && (
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                                                <span>Hız: <strong style={{ color: 'var(--text-primary)' }}>{Math.round(pos.speed)} km/h</strong></span>
-                                                                <span>Saat: <strong style={{ color: 'var(--text-primary)' }}>{new Date(pos.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</strong></span>
+                                                            <div className="active-vehicle-stats-row">
+                                                                <div className="active-stat-item">
+                                                                    <Gauge size={11} />
+                                                                    <span>
+                                                                        Hız: <strong style={{ color: 'var(--text-primary)' }}>{Math.round(pos.speed)} km/s</strong>
+                                                                    </span>
+                                                                </div>
+                                                                <div className="active-stat-item" style={{ justifyContent: 'flex-end' }}>
+                                                                    <Clock size={11} />
+                                                                    <span>
+                                                                        Saat: <strong style={{ color: 'var(--text-primary)' }}>
+                                                                            {new Date(pos.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}
+                                                                        </strong>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {points.length > 0 && (
+                                                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span>Toplam Konum: {points.length}</span>
+                                                                <span>Kapsam: {totalKm.toFixed(1)} km</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -2305,7 +2448,6 @@ export default function ArventoTracking() {
                                 >
                                     {isMapFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                                 </button>
-
                                 {/* Fit Bounds Button */}
                                 <button 
                                     onClick={handleFitBounds}
@@ -2337,67 +2479,64 @@ export default function ArventoTracking() {
                             {/* 3. Zaman Çizelgesi Oynatıcı Kontrol Paneli (Timeline Playback Overlay) */}
                             {activeTab === 'history' && selectedHistoryVehicles.length > 0 && historyTimelineRange.min < historyTimelineRange.max && (
                                 <div className="timeline-playback-panel">
-                                    {/* Üst Satır: Oynatma Butonları ve Hız Göstergesi */}
+                                    {/* Üst Satır: Oynatma Butonları, İstatistikler ve Zaman */}
                                     <div className="timeline-playback-row">
                                         <div className="timeline-playback-controls">
                                             <button 
-                                                className={`btn ${isPlaying ? 'btn-secondary' : 'btn-primary'}`}
+                                                className={`playback-play-btn ${isPlaying ? 'playing' : ''}`}
                                                 onClick={() => setIsPlaying(!isPlaying)}
-                                                style={{ 
-                                                    height: '36px', 
-                                                    padding: '0 16px', 
-                                                    display: 'flex', 
-                                                    alignItems: 'center', 
-                                                    gap: '8px',
-                                                    fontWeight: 700,
-                                                    borderRadius: '8px'
-                                                }}
+                                                title={isPlaying ? 'Durdur' : 'Oynat'}
                                             >
-                                                {isPlaying ? '⏸ Durdur' : '▶ Oynat'}
+                                                {isPlaying ? <span className="pause-icon"></span> : <span className="play-icon"></span>}
+                                                <span>{isPlaying ? 'Durdur' : 'Oynat'}</span>
                                             </button>
 
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Hız:</span>
-                                                <select 
-                                                    className="form-input"
-                                                    value={playbackSpeed}
-                                                    onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-                                                    style={{ height: '36px', padding: '0 10px', width: '100px', fontSize: '13px', borderRadius: '8px' }}
-                                                >
-                                                    <option value={10}>10x</option>
-                                                    <option value={60}>60x (1dk/s)</option>
-                                                    <option value={300}>300x (5dk/s)</option>
-                                                    <option value={600}>600x (10dk/s)</option>
-                                                    <option value={1200}>1200x (20dk/s)</option>
-                                                </select>
+                                            <div className="playback-speed-wrapper">
+                                                <span className="playback-label">Hız:</span>
+                                                <div className="speed-pills-container">
+                                                    {[10, 60, 300, 600, 1200].map(speed => (
+                                                        <button 
+                                                            key={speed}
+                                                            className={`speed-pill-btn ${playbackSpeed === speed ? 'active' : ''}`}
+                                                            onClick={() => setPlaybackSpeed(speed)}
+                                                        >
+                                                            {speed}x
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
 
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '10px' }}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    id="toggleTrackLines" 
-                                                    checked={showTrackLines} 
-                                                    onChange={(e) => setShowTrackLines(e.target.checked)}
-                                                    style={{ cursor: 'pointer', width: '15px', height: '15px' }}
-                                                />
-                                                <label htmlFor="toggleTrackLines" style={{ fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
+                                            <div className="playback-option-wrapper">
+                                                <label className="playback-checkbox-label">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={showTrackLines} 
+                                                        onChange={(e) => setShowTrackLines(e.target.checked)}
+                                                        className="playback-checkbox-input"
+                                                    />
+                                                    <span className="custom-checkbox"></span>
                                                     Rotayı Çizgilerle Göster
                                                 </label>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            {/* Rota İstatistik Rozeti */}
+                                            <div className="timeline-stats-badge">
+                                                <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                                                    {Object.values(historyDistances).reduce((sum, km) => sum + km, 0).toFixed(1)} km
+                                                </span>
+                                                <span style={{ opacity: 0.5 }}>|</span>
+                                                <span>
+                                                    {Object.values(historyDataMap).reduce((sum, pts) => sum + pts.length, 0)} Konum
+                                                </span>
+                                            </div>
+
                                             {/* Anlık Zaman Göstergesi */}
                                             <div className="timeline-playback-time">
-                                                <Clock size={16} style={{ color: 'var(--primary)' }} />
-                                                <span style={{ 
-                                                    fontFamily: 'monospace', 
-                                                    fontSize: '18px', 
-                                                    fontWeight: 800, 
-                                                    color: 'var(--text-primary)',
-                                                    letterSpacing: '0.5px'
-                                                }}>
-                                                    {currentTime ? new Date(currentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : '--:--:--'}
+                                                <Clock size={15} style={{ color: 'var(--primary)' }} />
+                                                <span className="playback-time-text">
+                                                    {formatTimelineTime(currentTime)}
                                                 </span>
                                             </div>
 
@@ -2413,9 +2552,9 @@ export default function ArventoTracking() {
                                     </div>
 
                                     {/* Alt Satır: Zaman Sürgüsü (Timeline Slider) */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)', width: '45px' }}>
-                                            {new Date(historyTimelineRange.min).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    <div className="timeline-slider-wrapper">
+                                        <span className="timeline-edge-label left">
+                                            {formatTimelineEdge(historyTimelineRange.min)}
                                         </span>
 
                                         <input 
@@ -2427,19 +2566,11 @@ export default function ArventoTracking() {
                                                 setCurrentTime(Number(e.target.value))
                                                 setIsPlaying(false)
                                             }}
-                                            style={{ 
-                                                flex: 1, 
-                                                cursor: 'pointer',
-                                                height: '6px',
-                                                borderRadius: '3px',
-                                                accentColor: 'var(--primary)',
-                                                background: 'var(--border-color)',
-                                                outline: 'none'
-                                            }}
+                                            className="timeline-range-slider"
                                         />
 
-                                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)', width: '45px', textAlign: 'right' }}>
-                                            {new Date(historyTimelineRange.max).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        <span className="timeline-edge-label right">
+                                            {formatTimelineEdge(historyTimelineRange.max)}
                                         </span>
                                     </div>
                                 </div>
@@ -2773,6 +2904,52 @@ export default function ArventoTracking() {
                             </div>
                         </div>
 
+                        {/* Premium Stats Grid */}
+                        <div className="daily-stats-grid">
+                            <div className="daily-stat-card">
+                                <div className="daily-stat-icon-wrapper blue">
+                                    <Navigation size={20} />
+                                </div>
+                                <div className="daily-stat-info">
+                                    <span className="daily-stat-label">Toplam Mesafe</span>
+                                    <span className="daily-stat-value">{dailyStats.totalDistance.toFixed(2)} km</span>
+                                </div>
+                            </div>
+                            
+                            <div className="daily-stat-card">
+                                <div className="daily-stat-icon-wrapper green">
+                                    <Car size={20} />
+                                </div>
+                                <div className="daily-stat-info">
+                                    <span className="daily-stat-label">En Çok Yol Yapan</span>
+                                    <span className="daily-stat-value">{dailyStats.maxDistance > 0 ? `${dailyStats.maxDistance.toFixed(2)} km` : '0.00 km'}</span>
+                                    {dailyStats.maxDistance > 0 && <span className="daily-stat-subtext">{dailyStats.maxDistancePlate}</span>}
+                                </div>
+                            </div>
+                            
+                            <div className="daily-stat-card">
+                                <div className="daily-stat-icon-wrapper orange">
+                                    <Gauge size={20} />
+                                </div>
+                                <div className="daily-stat-info">
+                                    <span className="daily-stat-label">En Yüksek Hız</span>
+                                    <span className="daily-stat-value">{dailyStats.maxSpeed} km/h</span>
+                                    {dailyStats.maxSpeed > 0 && <span className="daily-stat-subtext">{dailyStats.maxSpeedPlate}</span>}
+                                </div>
+                            </div>
+                            
+                            <div className="daily-stat-card">
+                                <div className="daily-stat-icon-wrapper purple">
+                                    <Activity size={20} />
+                                </div>
+                                <div className="daily-stat-info">
+                                    <span className="daily-stat-label">Aktif Araç Sayısı</span>
+                                    <span className="daily-stat-value">{dailyStats.activeCount} / {dailyStats.totalCount}</span>
+                                    <span className="daily-stat-subtext">Çalışan / Kayıtlı</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <DataTable 
                             persistenceKey="ArventoDailyReportTable"
                             columns={dailyReportColumns}
@@ -2785,7 +2962,6 @@ export default function ArventoTracking() {
                         />
                     </div>
                 )}
-
 
             </div>
         </div>

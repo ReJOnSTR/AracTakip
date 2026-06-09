@@ -84,6 +84,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createOvertime: (data) => ipcRenderer.invoke('overtimes:create', data),
     updateOvertime: (data) => ipcRenderer.invoke('overtimes:update', data),
     deleteOvertime: (id) => ipcRenderer.invoke('overtimes:delete', id),
+    getAllOvertimes: (companyId) => ipcRenderer.invoke('overtimes:getAllByCompany', companyId),
 
     // Employee Assignments
     getEmployeeAssignments: (employeeId) => ipcRenderer.invoke('employeeAssignments:getAll', employeeId),
@@ -97,6 +98,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createEmployeeDocument: (data) => ipcRenderer.invoke('employeeDocuments:create', data),
     updateEmployeeDocument: (data) => ipcRenderer.invoke('employeeDocuments:update', data),
     deleteEmployeeDocument: (id) => ipcRenderer.invoke('employeeDocuments:delete', id),
+
+    // Employee Movements
+    getAllEmployeeMovements: (companyId) => ipcRenderer.invoke('employeeMovements:getAll', companyId),
+    addEmployeeMovement: (data) => ipcRenderer.invoke('employeeMovements:create', data),
+    updateEmployeeMovement: (data) => ipcRenderer.invoke('employeeMovements:update', data),
+    deleteEmployeeMovement: (id) => ipcRenderer.invoke('employeeMovements:delete', id),
 
     // Archive
     archiveItem: (table, id, isArchived) => ipcRenderer.invoke('archive:item', table, id, isArchived),
@@ -193,6 +200,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getMealTicketStats: (companyId) => ipcRenderer.invoke('mealTickets:getStats', companyId),
     getMealPrice: (companyId) => ipcRenderer.invoke('mealTickets:getPrice', companyId),
     setMealPrice: (data) => ipcRenderer.invoke('mealTickets:setPrice', data),
+    getMealPriceHistory: (companyId) => ipcRenderer.invoke('mealTickets:getPriceHistory', companyId),
+    deleteMealPriceHistory: (id) => ipcRenderer.invoke('mealTickets:deletePriceHistory', id),
+    updateMealPriceHistory: (data) => ipcRenderer.invoke('mealTickets:updatePriceHistory', data),
     getMealTicketReport: (data) => ipcRenderer.invoke('mealTickets:getReport', data),
 
     // Works API

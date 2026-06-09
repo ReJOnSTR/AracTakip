@@ -312,10 +312,17 @@ export default function Salaries() {
 
     useEffect(() => {
         loadData()
-        const cleanup = window.electronAPI.on('data-changed', () => {
-            loadData()
+        const unsub = window.electronAPI.onDbUpdate((change) => {
+            if (
+                change?.table === 'salaries' ||
+                change?.table === 'employee_movements' ||
+                change?.table === 'overtimes' ||
+                change?.table === 'employees'
+            ) {
+                loadData()
+            }
         })
-        return () => cleanup && cleanup()
+        return () => { if (unsub) unsub() }
     }, [currentCompany])
 
     // Process Data for Payroll Table

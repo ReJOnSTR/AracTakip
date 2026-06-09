@@ -203,10 +203,19 @@ const allTablesSQL = [
     "company_id" INTEGER NOT NULL,
     "date" DATETIME NOT NULL,
     "person_count" INTEGER NOT NULL DEFAULT 1,
+    "price_per_person" REAL DEFAULT 0,
     "notes" TEXT,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "is_archived" INTEGER DEFAULT 0,
     CONSTRAINT "meal_tickets_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+)`,
+`CREATE TABLE IF NOT EXISTS "meal_price_history" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "company_id" INTEGER NOT NULL,
+    "old_price" REAL NOT NULL DEFAULT 0,
+    "new_price" REAL NOT NULL DEFAULT 0,
+    "change_date" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "meal_price_history_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE TABLE IF NOT EXISTS "overtimes" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

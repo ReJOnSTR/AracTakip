@@ -5232,5 +5232,854 @@ body {
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
 }
 
+/* Daily Distance Report Redesign Styles */
+.daily-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .daily-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .daily-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.daily-stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.daily-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-md);
+  background: var(--bg-tertiary);
+}
+
+.daily-stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.daily-stat-card:hover::after {
+  background: var(--primary);
+}
+
+.daily-stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.daily-stat-icon-wrapper.blue {
+  background: rgba(0, 82, 204, 0.08);
+  color: #0052cc;
+}
+.daily-stat-icon-wrapper.green {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+.daily-stat-icon-wrapper.orange {
+  background: rgba(245, 158, 11, 0.08);
+  color: #f59e0b;
+}
+.daily-stat-icon-wrapper.purple {
+  background: rgba(139, 92, 246, 0.08);
+  color: #8b5cf6;
+}
+
+.daily-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daily-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.daily-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.daily-stat-subtext {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+  border: 1px solid var(--border-color);
+}
+
+/* History Step-by-Step Styling */
+.history-step-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.history-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-step-number {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 82, 204, 0.08);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid rgba(0, 82, 204, 0.2);
+}
+
+.history-step-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.history-step-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(0, 82, 204, 0.08);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.history-step-input {
+  height: 36px;
+  font-size: 13px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+}
+
+.history-vehicles-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 2px;
+}
+
+.history-vehicle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-vehicle-item:hover {
+  background: var(--bg-tertiary);
+  transform: translateX(2px);
+}
+
+.history-vehicle-item.selected {
+  background: var(--bg-secondary);
+}
+
+.history-vehicle-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.history-vehicle-checkbox .checkmark {
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.history-vehicle-plate {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.history-vehicle-info {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.history-vehicle-status {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.history-vehicle-status.success {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.history-vehicle-status.empty {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.history-vehicle-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Timeline playback design enhancements */
+.timeline-playback-panel {
+  position: absolute !important;
+  bottom: 20px !important;
+  left: 20px !important;
+  right: 20px !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5) !important;
+  padding: 16px 20px !important;
+  z-index: 999 !important;
+}
+
+/* History Date Picker Group */
+.history-date-picker-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.date-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-input-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.date-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input-container .date-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.history-date-input {
+  padding-left: 28px !important;
+  font-size: 11.5px !important;
+  height: 36px !important;
+  width: 100% !important;
+  border-radius: 8px !important;
+}
+
+/* History Search Bar */
+.history-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.history-search-container .search-icon {
+  position: absolute;
+  left: 10px;
+  top: 11px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.history-search-input {
+  padding-left: 28px !important;
+  font-size: 12px !important;
+  height: 36px !important;
+  width: 100% !important;
+  border-radius: 8px !important;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 9px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.search-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* Premium History Vehicle Card */
+.history-vehicle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-vehicle-card:hover {
+  background: var(--bg-tertiary);
+  transform: translateX(3px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.history-vehicle-card.selected {
+  background: var(--bg-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom Checkbox */
+.custom-checkbox-wrapper {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.custom-checkbox-wrapper.checked {
+  border-color: var(--primary);
+}
+
+.custom-checkbox-wrapper span {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+/* Live Detail Dashboard in Sidebar */
+.history-playback-details-panel {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.playback-pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--success);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.pulse-dot-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  display: inline-block;
+  animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 5px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.history-active-vehicle-card {
+  padding: 10px;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.vehicle-color-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.ignition-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ignition-status-badge.on {
+  color: var(--success);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.ignition-status-badge.off {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.pulsate-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.pulsate-dot.success {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: active-glow 1.5s infinite;
+}
+
+.pulsate-dot.danger {
+  background: var(--danger);
+  box-shadow: 0 0 6px var(--danger);
+}
+
+@keyframes active-glow {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.active-vehicle-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  color: var(--text-secondary);
+  border-top: 1px dashed var(--border-color);
+  padding-top: 5px;
+  font-size: 10px;
+}
+
+.active-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Timeline Playback Overlay Components */
+.playback-play-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent-gradient);
+  color: #0f0f11 !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.playback-play-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.playback-play-btn .play-icon {
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent currentColor;
+  width: 0;
+  height: 0;
+  display: inline-block;
+}
+
+.playback-play-btn .pause-icon {
+  display: inline-flex;
+  gap: 2px;
+  width: 8px;
+  height: 10px;
+  border-left: 2.5px solid currentColor;
+  border-right: 2.5px solid currentColor;
+}
+
+.playback-speed-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playback-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.speed-pills-container {
+  display: flex;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.speed-pill-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.speed-pill-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.speed-pill-btn.active {
+  color: #0f0f11 !important;
+  background: var(--accent-secondary) !important;
+  box-shadow: 0 2px 6px rgba(45, 212, 191, 0.4);
+  font-weight: 800;
+}
+
+.playback-option-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.playback-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+}
+
+.playback-checkbox-input {
+  display: none;
+}
+
+.playback-checkbox-label .custom-checkbox {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  display: inline-block;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.playback-checkbox-input:checked + .custom-checkbox {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.playback-checkbox-input:checked + .custom-checkbox::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 7px;
+  border: solid #0f0f11;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.timeline-stats-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  height: 26px;
+}
+
+.playback-time-text {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(20, 184, 166, 0.2);
+}
+
+.timeline-slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.timeline-edge-label {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--text-muted);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.timeline-edge-label.left {
+  text-align: left;
+}
+
+.timeline-edge-label.right {
+  text-align: right;
+}
+
+/* Custom Slider Styling */
+.timeline-range-slider {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  flex: 1 !important;
+  height: 6px !important;
+  border-radius: 3px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  outline: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+}
+
+.timeline-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  height: 16px !important;
+  width: 16px !important;
+  border-radius: 50% !important;
+  background: var(--primary) !important;
+  box-shadow: 0 0 10px var(--accent-glow) !important;
+  transition: transform 0.1s, background-color 0.2s !important;
+}
+
+.timeline-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2) !important;
+  background: var(--accent-secondary) !important;
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.7) !important;
+}
+
+/* Responsive adjustments for timeline playback overlay */
+@media (max-width: 992px) {
+  .timeline-playback-panel {
+    bottom: 10px !important;
+    left: 10px !important;
+    right: 10px !important;
+    padding: 12px 16px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+  }
+  
+  .timeline-playback-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .timeline-playback-controls {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+  }
+
+  .speed-pills-container {
+    margin-top: 2px !important;
+  }
+
+  .playback-option-wrapper {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-playback-row > div:last-child {
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  
+  .timeline-stats-badge {
+    flex: 1 !important;
+    justify-content: center !important;
+    height: 32px !important;
+  }
+  
+  .timeline-playback-time {
+    flex: 1.2 !important;
+    justify-content: center !important;
+    height: 32px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .timeline-playback-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  
+  .playback-speed-wrapper {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+  
+  .playback-play-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .speed-pills-container {
+    flex-grow: 1 !important;
+    justify-content: space-around !important;
+  }
+
+  .speed-pill-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 4px 0 !important;
+  }
+
+  .playback-option-wrapper {
+    justify-content: center !important;
+    padding: 6px 0 !important;
+    border-top: 1px dashed var(--border-color) !important;
+    margin-top: 4px !important;
+  }
+  
+  .timeline-playback-row > div:last-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding-top: 8px !important;
+    border-top: 1px solid var(--border-color) !important;
+  }
+
+  .timeline-stats-badge {
+    width: 100% !important;
+  }
+
+  .timeline-playback-time {
+    width: 100% !important;
+    height: 34px !important;
+  }
+
+  .timeline-playback-panel .panel-close-btn {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+}
 
 

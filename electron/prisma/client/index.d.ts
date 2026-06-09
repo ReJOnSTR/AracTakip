@@ -94,6 +94,11 @@ export type meal_settings = $Result.DefaultSelection<Prisma.$meal_settingsPayloa
  */
 export type meal_tickets = $Result.DefaultSelection<Prisma.$meal_ticketsPayload>
 /**
+ * Model meal_price_history
+ * 
+ */
+export type meal_price_history = $Result.DefaultSelection<Prisma.$meal_price_historyPayload>
+/**
  * Model overtimes
  * 
  */
@@ -449,6 +454,16 @@ export class PrismaClient<
     * ```
     */
   get meal_tickets(): Prisma.meal_ticketsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.meal_price_history`: Exposes CRUD operations for the **meal_price_history** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Meal_price_histories
+    * const meal_price_histories = await prisma.meal_price_history.findMany()
+    * ```
+    */
+  get meal_price_history(): Prisma.meal_price_historyDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.overtimes`: Exposes CRUD operations for the **overtimes** model.
@@ -1049,6 +1064,7 @@ export namespace Prisma {
     maintenances: 'maintenances',
     meal_settings: 'meal_settings',
     meal_tickets: 'meal_tickets',
+    meal_price_history: 'meal_price_history',
     overtimes: 'overtimes',
     recurring_transactions: 'recurring_transactions',
     salaries: 'salaries',
@@ -1079,7 +1095,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "vehicle_types" | "arvento_history"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "vehicle_types" | "arvento_history"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2264,6 +2280,80 @@ export namespace Prisma {
           count: {
             args: Prisma.meal_ticketsCountArgs<ExtArgs>
             result: $Utils.Optional<Meal_ticketsCountAggregateOutputType> | number
+          }
+        }
+      }
+      meal_price_history: {
+        payload: Prisma.$meal_price_historyPayload<ExtArgs>
+        fields: Prisma.meal_price_historyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.meal_price_historyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.meal_price_historyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>
+          }
+          findFirst: {
+            args: Prisma.meal_price_historyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.meal_price_historyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>
+          }
+          findMany: {
+            args: Prisma.meal_price_historyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>[]
+          }
+          create: {
+            args: Prisma.meal_price_historyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>
+          }
+          createMany: {
+            args: Prisma.meal_price_historyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.meal_price_historyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>[]
+          }
+          delete: {
+            args: Prisma.meal_price_historyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>
+          }
+          update: {
+            args: Prisma.meal_price_historyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>
+          }
+          deleteMany: {
+            args: Prisma.meal_price_historyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.meal_price_historyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.meal_price_historyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>[]
+          }
+          upsert: {
+            args: Prisma.meal_price_historyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$meal_price_historyPayload>
+          }
+          aggregate: {
+            args: Prisma.Meal_price_historyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMeal_price_history>
+          }
+          groupBy: {
+            args: Prisma.meal_price_historyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Meal_price_historyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.meal_price_historyCountArgs<ExtArgs>
+            result: $Utils.Optional<Meal_price_historyCountAggregateOutputType> | number
           }
         }
       }
@@ -3501,6 +3591,7 @@ export namespace Prisma {
     maintenances?: maintenancesOmit
     meal_settings?: meal_settingsOmit
     meal_tickets?: meal_ticketsOmit
+    meal_price_history?: meal_price_historyOmit
     overtimes?: overtimesOmit
     recurring_transactions?: recurring_transactionsOmit
     salaries?: salariesOmit
@@ -3607,6 +3698,7 @@ export namespace Prisma {
     leave_types: number
     document_categories: number
     vehicle_types: number
+    meal_price_history: number
   }
 
   export type CompaniesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3621,6 +3713,7 @@ export namespace Prisma {
     leave_types?: boolean | CompaniesCountOutputTypeCountLeave_typesArgs
     document_categories?: boolean | CompaniesCountOutputTypeCountDocument_categoriesArgs
     vehicle_types?: boolean | CompaniesCountOutputTypeCountVehicle_typesArgs
+    meal_price_history?: boolean | CompaniesCountOutputTypeCountMeal_price_historyArgs
   }
 
   // Custom InputTypes
@@ -3709,6 +3802,13 @@ export namespace Prisma {
    */
   export type CompaniesCountOutputTypeCountVehicle_typesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: vehicle_typesWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountMeal_price_historyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: meal_price_historyWhereInput
   }
 
 
@@ -5477,6 +5577,7 @@ export namespace Prisma {
     leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
     document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
     vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
+    meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
 
@@ -5539,6 +5640,7 @@ export namespace Prisma {
     leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
     document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
     vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
+    meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type companiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5564,6 +5666,7 @@ export namespace Prisma {
       leave_types: Prisma.$leave_typesPayload<ExtArgs>[]
       document_categories: Prisma.$document_categoriesPayload<ExtArgs>[]
       vehicle_types: Prisma.$vehicle_typesPayload<ExtArgs>[]
+      meal_price_history: Prisma.$meal_price_historyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -5984,6 +6087,7 @@ export namespace Prisma {
     leave_types<T extends companies$leave_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$leave_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     document_categories<T extends companies$document_categoriesArgs<ExtArgs> = {}>(args?: Subset<T, companies$document_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     vehicle_types<T extends companies$vehicle_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$vehicle_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    meal_price_history<T extends companies$meal_price_historyArgs<ExtArgs> = {}>(args?: Subset<T, companies$meal_price_historyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6698,6 +6802,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Vehicle_typesScalarFieldEnum | Vehicle_typesScalarFieldEnum[]
+  }
+
+  /**
+   * companies.meal_price_history
+   */
+  export type companies$meal_price_historyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    where?: meal_price_historyWhereInput
+    orderBy?: meal_price_historyOrderByWithRelationInput | meal_price_historyOrderByWithRelationInput[]
+    cursor?: meal_price_historyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Meal_price_historyScalarFieldEnum | Meal_price_historyScalarFieldEnum[]
   }
 
   /**
@@ -22346,6 +22474,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     person_count: number | null
+    price_per_person: number | null
     is_archived: number | null
   }
 
@@ -22353,6 +22482,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     person_count: number | null
+    price_per_person: number | null
     is_archived: number | null
   }
 
@@ -22361,6 +22491,7 @@ export namespace Prisma {
     company_id: number | null
     date: Date | null
     person_count: number | null
+    price_per_person: number | null
     notes: string | null
     created_at: Date | null
     is_archived: number | null
@@ -22371,6 +22502,7 @@ export namespace Prisma {
     company_id: number | null
     date: Date | null
     person_count: number | null
+    price_per_person: number | null
     notes: string | null
     created_at: Date | null
     is_archived: number | null
@@ -22381,6 +22513,7 @@ export namespace Prisma {
     company_id: number
     date: number
     person_count: number
+    price_per_person: number
     notes: number
     created_at: number
     is_archived: number
@@ -22392,6 +22525,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     person_count?: true
+    price_per_person?: true
     is_archived?: true
   }
 
@@ -22399,6 +22533,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     person_count?: true
+    price_per_person?: true
     is_archived?: true
   }
 
@@ -22407,6 +22542,7 @@ export namespace Prisma {
     company_id?: true
     date?: true
     person_count?: true
+    price_per_person?: true
     notes?: true
     created_at?: true
     is_archived?: true
@@ -22417,6 +22553,7 @@ export namespace Prisma {
     company_id?: true
     date?: true
     person_count?: true
+    price_per_person?: true
     notes?: true
     created_at?: true
     is_archived?: true
@@ -22427,6 +22564,7 @@ export namespace Prisma {
     company_id?: true
     date?: true
     person_count?: true
+    price_per_person?: true
     notes?: true
     created_at?: true
     is_archived?: true
@@ -22524,6 +22662,7 @@ export namespace Prisma {
     company_id: number
     date: Date
     person_count: number
+    price_per_person: number | null
     notes: string | null
     created_at: Date | null
     is_archived: number | null
@@ -22553,6 +22692,7 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     person_count?: boolean
+    price_per_person?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
@@ -22564,6 +22704,7 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     person_count?: boolean
+    price_per_person?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
@@ -22575,6 +22716,7 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     person_count?: boolean
+    price_per_person?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
@@ -22586,12 +22728,13 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     person_count?: boolean
+    price_per_person?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
   }
 
-  export type meal_ticketsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "person_count" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["meal_tickets"]>
+  export type meal_ticketsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "person_count" | "price_per_person" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["meal_tickets"]>
   export type meal_ticketsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -22612,6 +22755,7 @@ export namespace Prisma {
       company_id: number
       date: Date
       person_count: number
+      price_per_person: number | null
       notes: string | null
       created_at: Date | null
       is_archived: number | null
@@ -23043,6 +23187,7 @@ export namespace Prisma {
     readonly company_id: FieldRef<"meal_tickets", 'Int'>
     readonly date: FieldRef<"meal_tickets", 'DateTime'>
     readonly person_count: FieldRef<"meal_tickets", 'Int'>
+    readonly price_per_person: FieldRef<"meal_tickets", 'Float'>
     readonly notes: FieldRef<"meal_tickets", 'String'>
     readonly created_at: FieldRef<"meal_tickets", 'DateTime'>
     readonly is_archived: FieldRef<"meal_tickets", 'Int'>
@@ -23455,6 +23600,1108 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: meal_ticketsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model meal_price_history
+   */
+
+  export type AggregateMeal_price_history = {
+    _count: Meal_price_historyCountAggregateOutputType | null
+    _avg: Meal_price_historyAvgAggregateOutputType | null
+    _sum: Meal_price_historySumAggregateOutputType | null
+    _min: Meal_price_historyMinAggregateOutputType | null
+    _max: Meal_price_historyMaxAggregateOutputType | null
+  }
+
+  export type Meal_price_historyAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    old_price: number | null
+    new_price: number | null
+  }
+
+  export type Meal_price_historySumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    old_price: number | null
+    new_price: number | null
+  }
+
+  export type Meal_price_historyMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    old_price: number | null
+    new_price: number | null
+    change_date: Date | null
+  }
+
+  export type Meal_price_historyMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    old_price: number | null
+    new_price: number | null
+    change_date: Date | null
+  }
+
+  export type Meal_price_historyCountAggregateOutputType = {
+    id: number
+    company_id: number
+    old_price: number
+    new_price: number
+    change_date: number
+    _all: number
+  }
+
+
+  export type Meal_price_historyAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+    old_price?: true
+    new_price?: true
+  }
+
+  export type Meal_price_historySumAggregateInputType = {
+    id?: true
+    company_id?: true
+    old_price?: true
+    new_price?: true
+  }
+
+  export type Meal_price_historyMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    old_price?: true
+    new_price?: true
+    change_date?: true
+  }
+
+  export type Meal_price_historyMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    old_price?: true
+    new_price?: true
+    change_date?: true
+  }
+
+  export type Meal_price_historyCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    old_price?: true
+    new_price?: true
+    change_date?: true
+    _all?: true
+  }
+
+  export type Meal_price_historyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which meal_price_history to aggregate.
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of meal_price_histories to fetch.
+     */
+    orderBy?: meal_price_historyOrderByWithRelationInput | meal_price_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: meal_price_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` meal_price_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` meal_price_histories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned meal_price_histories
+    **/
+    _count?: true | Meal_price_historyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Meal_price_historyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Meal_price_historySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Meal_price_historyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Meal_price_historyMaxAggregateInputType
+  }
+
+  export type GetMeal_price_historyAggregateType<T extends Meal_price_historyAggregateArgs> = {
+        [P in keyof T & keyof AggregateMeal_price_history]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMeal_price_history[P]>
+      : GetScalarType<T[P], AggregateMeal_price_history[P]>
+  }
+
+
+
+
+  export type meal_price_historyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: meal_price_historyWhereInput
+    orderBy?: meal_price_historyOrderByWithAggregationInput | meal_price_historyOrderByWithAggregationInput[]
+    by: Meal_price_historyScalarFieldEnum[] | Meal_price_historyScalarFieldEnum
+    having?: meal_price_historyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Meal_price_historyCountAggregateInputType | true
+    _avg?: Meal_price_historyAvgAggregateInputType
+    _sum?: Meal_price_historySumAggregateInputType
+    _min?: Meal_price_historyMinAggregateInputType
+    _max?: Meal_price_historyMaxAggregateInputType
+  }
+
+  export type Meal_price_historyGroupByOutputType = {
+    id: number
+    company_id: number
+    old_price: number
+    new_price: number
+    change_date: Date
+    _count: Meal_price_historyCountAggregateOutputType | null
+    _avg: Meal_price_historyAvgAggregateOutputType | null
+    _sum: Meal_price_historySumAggregateOutputType | null
+    _min: Meal_price_historyMinAggregateOutputType | null
+    _max: Meal_price_historyMaxAggregateOutputType | null
+  }
+
+  type GetMeal_price_historyGroupByPayload<T extends meal_price_historyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Meal_price_historyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Meal_price_historyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Meal_price_historyGroupByOutputType[P]>
+            : GetScalarType<T[P], Meal_price_historyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type meal_price_historySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    old_price?: boolean
+    new_price?: boolean
+    change_date?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["meal_price_history"]>
+
+  export type meal_price_historySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    old_price?: boolean
+    new_price?: boolean
+    change_date?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["meal_price_history"]>
+
+  export type meal_price_historySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    old_price?: boolean
+    new_price?: boolean
+    change_date?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["meal_price_history"]>
+
+  export type meal_price_historySelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    old_price?: boolean
+    new_price?: boolean
+    change_date?: boolean
+  }
+
+  export type meal_price_historyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "old_price" | "new_price" | "change_date", ExtArgs["result"]["meal_price_history"]>
+  export type meal_price_historyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type meal_price_historyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type meal_price_historyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $meal_price_historyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "meal_price_history"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      old_price: number
+      new_price: number
+      change_date: Date
+    }, ExtArgs["result"]["meal_price_history"]>
+    composites: {}
+  }
+
+  type meal_price_historyGetPayload<S extends boolean | null | undefined | meal_price_historyDefaultArgs> = $Result.GetResult<Prisma.$meal_price_historyPayload, S>
+
+  type meal_price_historyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<meal_price_historyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Meal_price_historyCountAggregateInputType | true
+    }
+
+  export interface meal_price_historyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['meal_price_history'], meta: { name: 'meal_price_history' } }
+    /**
+     * Find zero or one Meal_price_history that matches the filter.
+     * @param {meal_price_historyFindUniqueArgs} args - Arguments to find a Meal_price_history
+     * @example
+     * // Get one Meal_price_history
+     * const meal_price_history = await prisma.meal_price_history.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends meal_price_historyFindUniqueArgs>(args: SelectSubset<T, meal_price_historyFindUniqueArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Meal_price_history that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {meal_price_historyFindUniqueOrThrowArgs} args - Arguments to find a Meal_price_history
+     * @example
+     * // Get one Meal_price_history
+     * const meal_price_history = await prisma.meal_price_history.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends meal_price_historyFindUniqueOrThrowArgs>(args: SelectSubset<T, meal_price_historyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Meal_price_history that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {meal_price_historyFindFirstArgs} args - Arguments to find a Meal_price_history
+     * @example
+     * // Get one Meal_price_history
+     * const meal_price_history = await prisma.meal_price_history.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends meal_price_historyFindFirstArgs>(args?: SelectSubset<T, meal_price_historyFindFirstArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Meal_price_history that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {meal_price_historyFindFirstOrThrowArgs} args - Arguments to find a Meal_price_history
+     * @example
+     * // Get one Meal_price_history
+     * const meal_price_history = await prisma.meal_price_history.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends meal_price_historyFindFirstOrThrowArgs>(args?: SelectSubset<T, meal_price_historyFindFirstOrThrowArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Meal_price_histories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {meal_price_historyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Meal_price_histories
+     * const meal_price_histories = await prisma.meal_price_history.findMany()
+     * 
+     * // Get first 10 Meal_price_histories
+     * const meal_price_histories = await prisma.meal_price_history.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const meal_price_historyWithIdOnly = await prisma.meal_price_history.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends meal_price_historyFindManyArgs>(args?: SelectSubset<T, meal_price_historyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Meal_price_history.
+     * @param {meal_price_historyCreateArgs} args - Arguments to create a Meal_price_history.
+     * @example
+     * // Create one Meal_price_history
+     * const Meal_price_history = await prisma.meal_price_history.create({
+     *   data: {
+     *     // ... data to create a Meal_price_history
+     *   }
+     * })
+     * 
+     */
+    create<T extends meal_price_historyCreateArgs>(args: SelectSubset<T, meal_price_historyCreateArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Meal_price_histories.
+     * @param {meal_price_historyCreateManyArgs} args - Arguments to create many Meal_price_histories.
+     * @example
+     * // Create many Meal_price_histories
+     * const meal_price_history = await prisma.meal_price_history.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends meal_price_historyCreateManyArgs>(args?: SelectSubset<T, meal_price_historyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Meal_price_histories and returns the data saved in the database.
+     * @param {meal_price_historyCreateManyAndReturnArgs} args - Arguments to create many Meal_price_histories.
+     * @example
+     * // Create many Meal_price_histories
+     * const meal_price_history = await prisma.meal_price_history.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Meal_price_histories and only return the `id`
+     * const meal_price_historyWithIdOnly = await prisma.meal_price_history.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends meal_price_historyCreateManyAndReturnArgs>(args?: SelectSubset<T, meal_price_historyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Meal_price_history.
+     * @param {meal_price_historyDeleteArgs} args - Arguments to delete one Meal_price_history.
+     * @example
+     * // Delete one Meal_price_history
+     * const Meal_price_history = await prisma.meal_price_history.delete({
+     *   where: {
+     *     // ... filter to delete one Meal_price_history
+     *   }
+     * })
+     * 
+     */
+    delete<T extends meal_price_historyDeleteArgs>(args: SelectSubset<T, meal_price_historyDeleteArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Meal_price_history.
+     * @param {meal_price_historyUpdateArgs} args - Arguments to update one Meal_price_history.
+     * @example
+     * // Update one Meal_price_history
+     * const meal_price_history = await prisma.meal_price_history.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends meal_price_historyUpdateArgs>(args: SelectSubset<T, meal_price_historyUpdateArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Meal_price_histories.
+     * @param {meal_price_historyDeleteManyArgs} args - Arguments to filter Meal_price_histories to delete.
+     * @example
+     * // Delete a few Meal_price_histories
+     * const { count } = await prisma.meal_price_history.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends meal_price_historyDeleteManyArgs>(args?: SelectSubset<T, meal_price_historyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Meal_price_histories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {meal_price_historyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Meal_price_histories
+     * const meal_price_history = await prisma.meal_price_history.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends meal_price_historyUpdateManyArgs>(args: SelectSubset<T, meal_price_historyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Meal_price_histories and returns the data updated in the database.
+     * @param {meal_price_historyUpdateManyAndReturnArgs} args - Arguments to update many Meal_price_histories.
+     * @example
+     * // Update many Meal_price_histories
+     * const meal_price_history = await prisma.meal_price_history.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Meal_price_histories and only return the `id`
+     * const meal_price_historyWithIdOnly = await prisma.meal_price_history.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends meal_price_historyUpdateManyAndReturnArgs>(args: SelectSubset<T, meal_price_historyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Meal_price_history.
+     * @param {meal_price_historyUpsertArgs} args - Arguments to update or create a Meal_price_history.
+     * @example
+     * // Update or create a Meal_price_history
+     * const meal_price_history = await prisma.meal_price_history.upsert({
+     *   create: {
+     *     // ... data to create a Meal_price_history
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Meal_price_history we want to update
+     *   }
+     * })
+     */
+    upsert<T extends meal_price_historyUpsertArgs>(args: SelectSubset<T, meal_price_historyUpsertArgs<ExtArgs>>): Prisma__meal_price_historyClient<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Meal_price_histories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {meal_price_historyCountArgs} args - Arguments to filter Meal_price_histories to count.
+     * @example
+     * // Count the number of Meal_price_histories
+     * const count = await prisma.meal_price_history.count({
+     *   where: {
+     *     // ... the filter for the Meal_price_histories we want to count
+     *   }
+     * })
+    **/
+    count<T extends meal_price_historyCountArgs>(
+      args?: Subset<T, meal_price_historyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Meal_price_historyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Meal_price_history.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Meal_price_historyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Meal_price_historyAggregateArgs>(args: Subset<T, Meal_price_historyAggregateArgs>): Prisma.PrismaPromise<GetMeal_price_historyAggregateType<T>>
+
+    /**
+     * Group by Meal_price_history.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {meal_price_historyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends meal_price_historyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: meal_price_historyGroupByArgs['orderBy'] }
+        : { orderBy?: meal_price_historyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, meal_price_historyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMeal_price_historyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the meal_price_history model
+   */
+  readonly fields: meal_price_historyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for meal_price_history.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__meal_price_historyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the meal_price_history model
+   */
+  interface meal_price_historyFieldRefs {
+    readonly id: FieldRef<"meal_price_history", 'Int'>
+    readonly company_id: FieldRef<"meal_price_history", 'Int'>
+    readonly old_price: FieldRef<"meal_price_history", 'Float'>
+    readonly new_price: FieldRef<"meal_price_history", 'Float'>
+    readonly change_date: FieldRef<"meal_price_history", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * meal_price_history findUnique
+   */
+  export type meal_price_historyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * Filter, which meal_price_history to fetch.
+     */
+    where: meal_price_historyWhereUniqueInput
+  }
+
+  /**
+   * meal_price_history findUniqueOrThrow
+   */
+  export type meal_price_historyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * Filter, which meal_price_history to fetch.
+     */
+    where: meal_price_historyWhereUniqueInput
+  }
+
+  /**
+   * meal_price_history findFirst
+   */
+  export type meal_price_historyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * Filter, which meal_price_history to fetch.
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of meal_price_histories to fetch.
+     */
+    orderBy?: meal_price_historyOrderByWithRelationInput | meal_price_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for meal_price_histories.
+     */
+    cursor?: meal_price_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` meal_price_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` meal_price_histories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of meal_price_histories.
+     */
+    distinct?: Meal_price_historyScalarFieldEnum | Meal_price_historyScalarFieldEnum[]
+  }
+
+  /**
+   * meal_price_history findFirstOrThrow
+   */
+  export type meal_price_historyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * Filter, which meal_price_history to fetch.
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of meal_price_histories to fetch.
+     */
+    orderBy?: meal_price_historyOrderByWithRelationInput | meal_price_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for meal_price_histories.
+     */
+    cursor?: meal_price_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` meal_price_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` meal_price_histories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of meal_price_histories.
+     */
+    distinct?: Meal_price_historyScalarFieldEnum | Meal_price_historyScalarFieldEnum[]
+  }
+
+  /**
+   * meal_price_history findMany
+   */
+  export type meal_price_historyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * Filter, which meal_price_histories to fetch.
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of meal_price_histories to fetch.
+     */
+    orderBy?: meal_price_historyOrderByWithRelationInput | meal_price_historyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing meal_price_histories.
+     */
+    cursor?: meal_price_historyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` meal_price_histories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` meal_price_histories.
+     */
+    skip?: number
+    distinct?: Meal_price_historyScalarFieldEnum | Meal_price_historyScalarFieldEnum[]
+  }
+
+  /**
+   * meal_price_history create
+   */
+  export type meal_price_historyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a meal_price_history.
+     */
+    data: XOR<meal_price_historyCreateInput, meal_price_historyUncheckedCreateInput>
+  }
+
+  /**
+   * meal_price_history createMany
+   */
+  export type meal_price_historyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many meal_price_histories.
+     */
+    data: meal_price_historyCreateManyInput | meal_price_historyCreateManyInput[]
+  }
+
+  /**
+   * meal_price_history createManyAndReturn
+   */
+  export type meal_price_historyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * The data used to create many meal_price_histories.
+     */
+    data: meal_price_historyCreateManyInput | meal_price_historyCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * meal_price_history update
+   */
+  export type meal_price_historyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a meal_price_history.
+     */
+    data: XOR<meal_price_historyUpdateInput, meal_price_historyUncheckedUpdateInput>
+    /**
+     * Choose, which meal_price_history to update.
+     */
+    where: meal_price_historyWhereUniqueInput
+  }
+
+  /**
+   * meal_price_history updateMany
+   */
+  export type meal_price_historyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update meal_price_histories.
+     */
+    data: XOR<meal_price_historyUpdateManyMutationInput, meal_price_historyUncheckedUpdateManyInput>
+    /**
+     * Filter which meal_price_histories to update
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * Limit how many meal_price_histories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * meal_price_history updateManyAndReturn
+   */
+  export type meal_price_historyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * The data used to update meal_price_histories.
+     */
+    data: XOR<meal_price_historyUpdateManyMutationInput, meal_price_historyUncheckedUpdateManyInput>
+    /**
+     * Filter which meal_price_histories to update
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * Limit how many meal_price_histories to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * meal_price_history upsert
+   */
+  export type meal_price_historyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the meal_price_history to update in case it exists.
+     */
+    where: meal_price_historyWhereUniqueInput
+    /**
+     * In case the meal_price_history found by the `where` argument doesn't exist, create a new meal_price_history with this data.
+     */
+    create: XOR<meal_price_historyCreateInput, meal_price_historyUncheckedCreateInput>
+    /**
+     * In case the meal_price_history was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<meal_price_historyUpdateInput, meal_price_historyUncheckedUpdateInput>
+  }
+
+  /**
+   * meal_price_history delete
+   */
+  export type meal_price_historyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
+    /**
+     * Filter which meal_price_history to delete.
+     */
+    where: meal_price_historyWhereUniqueInput
+  }
+
+  /**
+   * meal_price_history deleteMany
+   */
+  export type meal_price_historyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which meal_price_histories to delete
+     */
+    where?: meal_price_historyWhereInput
+    /**
+     * Limit how many meal_price_histories to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * meal_price_history without action
+   */
+  export type meal_price_historyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the meal_price_history
+     */
+    select?: meal_price_historySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the meal_price_history
+     */
+    omit?: meal_price_historyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: meal_price_historyInclude<ExtArgs> | null
   }
 
 
@@ -41466,12 +42713,24 @@ export namespace Prisma {
     company_id: 'company_id',
     date: 'date',
     person_count: 'person_count',
+    price_per_person: 'price_per_person',
     notes: 'notes',
     created_at: 'created_at',
     is_archived: 'is_archived'
   };
 
   export type Meal_ticketsScalarFieldEnum = (typeof Meal_ticketsScalarFieldEnum)[keyof typeof Meal_ticketsScalarFieldEnum]
+
+
+  export const Meal_price_historyScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    old_price: 'old_price',
+    new_price: 'new_price',
+    change_date: 'change_date'
+  };
+
+  export type Meal_price_historyScalarFieldEnum = (typeof Meal_price_historyScalarFieldEnum)[keyof typeof Meal_price_historyScalarFieldEnum]
 
 
   export const OvertimesScalarFieldEnum: {
@@ -41876,6 +43135,7 @@ export namespace Prisma {
     leave_types?: Leave_typesListRelationFilter
     document_categories?: Document_categoriesListRelationFilter
     vehicle_types?: Vehicle_typesListRelationFilter
+    meal_price_history?: Meal_price_historyListRelationFilter
   }
 
   export type companiesOrderByWithRelationInput = {
@@ -41903,6 +43163,7 @@ export namespace Prisma {
     leave_types?: leave_typesOrderByRelationAggregateInput
     document_categories?: document_categoriesOrderByRelationAggregateInput
     vehicle_types?: vehicle_typesOrderByRelationAggregateInput
+    meal_price_history?: meal_price_historyOrderByRelationAggregateInput
   }
 
   export type companiesWhereUniqueInput = Prisma.AtLeast<{
@@ -41933,6 +43194,7 @@ export namespace Prisma {
     leave_types?: Leave_typesListRelationFilter
     document_categories?: Document_categoriesListRelationFilter
     vehicle_types?: Vehicle_typesListRelationFilter
+    meal_price_history?: Meal_price_historyListRelationFilter
   }, "id">
 
   export type companiesOrderByWithAggregationInput = {
@@ -43124,6 +44386,7 @@ export namespace Prisma {
     company_id?: IntFilter<"meal_tickets"> | number
     date?: DateTimeFilter<"meal_tickets"> | Date | string
     person_count?: IntFilter<"meal_tickets"> | number
+    price_per_person?: FloatNullableFilter<"meal_tickets"> | number | null
     notes?: StringNullableFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableFilter<"meal_tickets"> | Date | string | null
     is_archived?: IntNullableFilter<"meal_tickets"> | number | null
@@ -43135,6 +44398,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
@@ -43149,6 +44413,7 @@ export namespace Prisma {
     company_id?: IntFilter<"meal_tickets"> | number
     date?: DateTimeFilter<"meal_tickets"> | Date | string
     person_count?: IntFilter<"meal_tickets"> | number
+    price_per_person?: FloatNullableFilter<"meal_tickets"> | number | null
     notes?: StringNullableFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableFilter<"meal_tickets"> | Date | string | null
     is_archived?: IntNullableFilter<"meal_tickets"> | number | null
@@ -43160,6 +44425,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
@@ -43178,9 +44444,67 @@ export namespace Prisma {
     company_id?: IntWithAggregatesFilter<"meal_tickets"> | number
     date?: DateTimeWithAggregatesFilter<"meal_tickets"> | Date | string
     person_count?: IntWithAggregatesFilter<"meal_tickets"> | number
+    price_per_person?: FloatNullableWithAggregatesFilter<"meal_tickets"> | number | null
     notes?: StringNullableWithAggregatesFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"meal_tickets"> | Date | string | null
     is_archived?: IntNullableWithAggregatesFilter<"meal_tickets"> | number | null
+  }
+
+  export type meal_price_historyWhereInput = {
+    AND?: meal_price_historyWhereInput | meal_price_historyWhereInput[]
+    OR?: meal_price_historyWhereInput[]
+    NOT?: meal_price_historyWhereInput | meal_price_historyWhereInput[]
+    id?: IntFilter<"meal_price_history"> | number
+    company_id?: IntFilter<"meal_price_history"> | number
+    old_price?: FloatFilter<"meal_price_history"> | number
+    new_price?: FloatFilter<"meal_price_history"> | number
+    change_date?: DateTimeFilter<"meal_price_history"> | Date | string
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type meal_price_historyOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
+    change_date?: SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type meal_price_historyWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: meal_price_historyWhereInput | meal_price_historyWhereInput[]
+    OR?: meal_price_historyWhereInput[]
+    NOT?: meal_price_historyWhereInput | meal_price_historyWhereInput[]
+    company_id?: IntFilter<"meal_price_history"> | number
+    old_price?: FloatFilter<"meal_price_history"> | number
+    new_price?: FloatFilter<"meal_price_history"> | number
+    change_date?: DateTimeFilter<"meal_price_history"> | Date | string
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type meal_price_historyOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
+    change_date?: SortOrder
+    _count?: meal_price_historyCountOrderByAggregateInput
+    _avg?: meal_price_historyAvgOrderByAggregateInput
+    _max?: meal_price_historyMaxOrderByAggregateInput
+    _min?: meal_price_historyMinOrderByAggregateInput
+    _sum?: meal_price_historySumOrderByAggregateInput
+  }
+
+  export type meal_price_historyScalarWhereWithAggregatesInput = {
+    AND?: meal_price_historyScalarWhereWithAggregatesInput | meal_price_historyScalarWhereWithAggregatesInput[]
+    OR?: meal_price_historyScalarWhereWithAggregatesInput[]
+    NOT?: meal_price_historyScalarWhereWithAggregatesInput | meal_price_historyScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"meal_price_history"> | number
+    company_id?: IntWithAggregatesFilter<"meal_price_history"> | number
+    old_price?: FloatWithAggregatesFilter<"meal_price_history"> | number
+    new_price?: FloatWithAggregatesFilter<"meal_price_history"> | number
+    change_date?: DateTimeWithAggregatesFilter<"meal_price_history"> | Date | string
   }
 
   export type overtimesWhereInput = {
@@ -44541,6 +45865,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateInput = {
@@ -44567,6 +45892,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUpdateInput = {
@@ -44592,6 +45918,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateInput = {
@@ -44618,6 +45945,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateManyInput = {
@@ -45901,6 +47229,7 @@ export namespace Prisma {
   export type meal_ticketsCreateInput = {
     date: Date | string
     person_count?: number
+    price_per_person?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -45912,6 +47241,7 @@ export namespace Prisma {
     company_id: number
     date: Date | string
     person_count?: number
+    price_per_person?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -45920,6 +47250,7 @@ export namespace Prisma {
   export type meal_ticketsUpdateInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -45931,6 +47262,7 @@ export namespace Prisma {
     company_id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -45941,6 +47273,7 @@ export namespace Prisma {
     company_id: number
     date: Date | string
     person_count?: number
+    price_per_person?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -45949,6 +47282,7 @@ export namespace Prisma {
   export type meal_ticketsUpdateManyMutationInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -45959,9 +47293,62 @@ export namespace Prisma {
     company_id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type meal_price_historyCreateInput = {
+    old_price?: number
+    new_price?: number
+    change_date?: Date | string
+    companies: companiesCreateNestedOneWithoutMeal_price_historyInput
+  }
+
+  export type meal_price_historyUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    old_price?: number
+    new_price?: number
+    change_date?: Date | string
+  }
+
+  export type meal_price_historyUpdateInput = {
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: companiesUpdateOneRequiredWithoutMeal_price_historyNestedInput
+  }
+
+  export type meal_price_historyUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type meal_price_historyCreateManyInput = {
+    id?: number
+    company_id: number
+    old_price?: number
+    new_price?: number
+    change_date?: Date | string
+  }
+
+  export type meal_price_historyUpdateManyMutationInput = {
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type meal_price_historyUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type overtimesCreateInput = {
@@ -47580,6 +48967,12 @@ export namespace Prisma {
     none?: vehicle_typesWhereInput
   }
 
+  export type Meal_price_historyListRelationFilter = {
+    every?: meal_price_historyWhereInput
+    some?: meal_price_historyWhereInput
+    none?: meal_price_historyWhereInput
+  }
+
   export type employeesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -47621,6 +49014,10 @@ export namespace Prisma {
   }
 
   export type vehicle_typesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type meal_price_historyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -48557,6 +49954,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
@@ -48566,6 +49964,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -48574,6 +49973,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
@@ -48584,6 +49984,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
@@ -48593,7 +49994,46 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     person_count?: SortOrder
+    price_per_person?: SortOrder
     is_archived?: SortOrder
+  }
+
+  export type meal_price_historyCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
+    change_date?: SortOrder
+  }
+
+  export type meal_price_historyAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
+  }
+
+  export type meal_price_historyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
+    change_date?: SortOrder
+  }
+
+  export type meal_price_historyMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
+    change_date?: SortOrder
+  }
+
+  export type meal_price_historySumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    old_price?: SortOrder
+    new_price?: SortOrder
   }
 
   export type overtimesCountOrderByAggregateInput = {
@@ -49610,6 +51050,13 @@ export namespace Prisma {
     connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
   }
 
+  export type meal_price_historyCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput> | meal_price_historyCreateWithoutCompaniesInput[] | meal_price_historyUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
+    createMany?: meal_price_historyCreateManyCompaniesInputEnvelope
+    connect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+  }
+
   export type employeesUncheckedCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -49691,6 +51138,13 @@ export namespace Prisma {
     connectOrCreate?: vehicle_typesCreateOrConnectWithoutCompaniesInput | vehicle_typesCreateOrConnectWithoutCompaniesInput[]
     createMany?: vehicle_typesCreateManyCompaniesInputEnvelope
     connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+  }
+
+  export type meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput> | meal_price_historyCreateWithoutCompaniesInput[] | meal_price_historyUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
+    createMany?: meal_price_historyCreateManyCompaniesInputEnvelope
+    connect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
   }
 
   export type usersUpdateOneRequiredWithoutCompaniesNestedInput = {
@@ -49865,6 +51319,20 @@ export namespace Prisma {
     deleteMany?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
   }
 
+  export type meal_price_historyUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput> | meal_price_historyCreateWithoutCompaniesInput[] | meal_price_historyUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
+    upsert?: meal_price_historyUpsertWithWhereUniqueWithoutCompaniesInput | meal_price_historyUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: meal_price_historyCreateManyCompaniesInputEnvelope
+    set?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    disconnect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    delete?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    connect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    update?: meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput | meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: meal_price_historyUpdateManyWithWhereWithoutCompaniesInput | meal_price_historyUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: meal_price_historyScalarWhereInput | meal_price_historyScalarWhereInput[]
+  }
+
   export type employeesUncheckedUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -50027,6 +51495,20 @@ export namespace Prisma {
     update?: vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput | vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: vehicle_typesUpdateManyWithWhereWithoutCompaniesInput | vehicle_typesUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
+  }
+
+  export type meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput> | meal_price_historyCreateWithoutCompaniesInput[] | meal_price_historyUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
+    upsert?: meal_price_historyUpsertWithWhereUniqueWithoutCompaniesInput | meal_price_historyUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: meal_price_historyCreateManyCompaniesInputEnvelope
+    set?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    disconnect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    delete?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    connect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+    update?: meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput | meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: meal_price_historyUpdateManyWithWhereWithoutCompaniesInput | meal_price_historyUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: meal_price_historyScalarWhereInput | meal_price_historyScalarWhereInput[]
   }
 
   export type companiesCreateNestedOneWithoutCustomersInput = {
@@ -50703,6 +52185,20 @@ export namespace Prisma {
     upsert?: companiesUpsertWithoutMeal_ticketsInput
     connect?: companiesWhereUniqueInput
     update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutMeal_ticketsInput, companiesUpdateWithoutMeal_ticketsInput>, companiesUncheckedUpdateWithoutMeal_ticketsInput>
+  }
+
+  export type companiesCreateNestedOneWithoutMeal_price_historyInput = {
+    create?: XOR<companiesCreateWithoutMeal_price_historyInput, companiesUncheckedCreateWithoutMeal_price_historyInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutMeal_price_historyInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutMeal_price_historyNestedInput = {
+    create?: XOR<companiesCreateWithoutMeal_price_historyInput, companiesUncheckedCreateWithoutMeal_price_historyInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutMeal_price_historyInput
+    upsert?: companiesUpsertWithoutMeal_price_historyInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutMeal_price_historyInput, companiesUpdateWithoutMeal_price_historyInput>, companiesUncheckedUpdateWithoutMeal_price_historyInput>
   }
 
   export type employeesCreateNestedOneWithoutOvertimesInput = {
@@ -51828,6 +53324,7 @@ export namespace Prisma {
   export type meal_ticketsCreateWithoutCompaniesInput = {
     date: Date | string
     person_count?: number
+    price_per_person?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -51837,6 +53334,7 @@ export namespace Prisma {
     id?: number
     date: Date | string
     person_count?: number
+    price_per_person?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -52149,6 +53647,28 @@ export namespace Prisma {
     data: vehicle_typesCreateManyCompaniesInput | vehicle_typesCreateManyCompaniesInput[]
   }
 
+  export type meal_price_historyCreateWithoutCompaniesInput = {
+    old_price?: number
+    new_price?: number
+    change_date?: Date | string
+  }
+
+  export type meal_price_historyUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    old_price?: number
+    new_price?: number
+    change_date?: Date | string
+  }
+
+  export type meal_price_historyCreateOrConnectWithoutCompaniesInput = {
+    where: meal_price_historyWhereUniqueInput
+    create: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type meal_price_historyCreateManyCompaniesInputEnvelope = {
+    data: meal_price_historyCreateManyCompaniesInput | meal_price_historyCreateManyCompaniesInput[]
+  }
+
   export type usersUpsertWithoutCompaniesInput = {
     update: XOR<usersUpdateWithoutCompaniesInput, usersUncheckedUpdateWithoutCompaniesInput>
     create: XOR<usersCreateWithoutCompaniesInput, usersUncheckedCreateWithoutCompaniesInput>
@@ -52274,6 +53794,7 @@ export namespace Prisma {
     company_id?: IntFilter<"meal_tickets"> | number
     date?: DateTimeFilter<"meal_tickets"> | Date | string
     person_count?: IntFilter<"meal_tickets"> | number
+    price_per_person?: FloatNullableFilter<"meal_tickets"> | number | null
     notes?: StringNullableFilter<"meal_tickets"> | string | null
     created_at?: DateTimeNullableFilter<"meal_tickets"> | Date | string | null
     is_archived?: IntNullableFilter<"meal_tickets"> | number | null
@@ -52562,6 +54083,33 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"vehicle_types"> | Date | string | null
   }
 
+  export type meal_price_historyUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: meal_price_historyWhereUniqueInput
+    update: XOR<meal_price_historyUpdateWithoutCompaniesInput, meal_price_historyUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: meal_price_historyWhereUniqueInput
+    data: XOR<meal_price_historyUpdateWithoutCompaniesInput, meal_price_historyUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type meal_price_historyUpdateManyWithWhereWithoutCompaniesInput = {
+    where: meal_price_historyScalarWhereInput
+    data: XOR<meal_price_historyUpdateManyMutationInput, meal_price_historyUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type meal_price_historyScalarWhereInput = {
+    AND?: meal_price_historyScalarWhereInput | meal_price_historyScalarWhereInput[]
+    OR?: meal_price_historyScalarWhereInput[]
+    NOT?: meal_price_historyScalarWhereInput | meal_price_historyScalarWhereInput[]
+    id?: IntFilter<"meal_price_history"> | number
+    company_id?: IntFilter<"meal_price_history"> | number
+    old_price?: FloatFilter<"meal_price_history"> | number
+    new_price?: FloatFilter<"meal_price_history"> | number
+    change_date?: DateTimeFilter<"meal_price_history"> | Date | string
+  }
+
   export type companiesCreateWithoutCustomersInput = {
     name: string
     tax_number?: string | null
@@ -52584,6 +54132,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutCustomersInput = {
@@ -52609,6 +54158,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutCustomersInput = {
@@ -52697,6 +54247,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutCustomersInput = {
@@ -52722,6 +54273,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type worksUpsertWithWhereUniqueWithoutCustomersInput = {
@@ -53792,6 +55344,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutEmployeesInput = {
@@ -53817,6 +55370,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutEmployeesInput = {
@@ -54206,6 +55760,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutEmployeesInput = {
@@ -54231,6 +55786,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type leavesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -54892,6 +56448,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_settingsInput = {
@@ -54917,6 +56474,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_settingsInput = {
@@ -54957,6 +56515,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_settingsInput = {
@@ -54982,6 +56541,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutMeal_ticketsInput = {
@@ -55006,6 +56566,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_ticketsInput = {
@@ -55031,6 +56592,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_ticketsInput = {
@@ -55071,6 +56633,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_ticketsInput = {
@@ -55087,6 +56650,125 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesCreateWithoutMeal_price_historyInput = {
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutMeal_price_historyInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutMeal_price_historyInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutMeal_price_historyInput, companiesUncheckedCreateWithoutMeal_price_historyInput>
+  }
+
+  export type companiesUpsertWithoutMeal_price_historyInput = {
+    update: XOR<companiesUpdateWithoutMeal_price_historyInput, companiesUncheckedUpdateWithoutMeal_price_historyInput>
+    create: XOR<companiesCreateWithoutMeal_price_historyInput, companiesUncheckedCreateWithoutMeal_price_historyInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutMeal_price_historyInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutMeal_price_historyInput, companiesUncheckedUpdateWithoutMeal_price_historyInput>
+  }
+
+  export type companiesUpdateWithoutMeal_price_historyInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutMeal_price_historyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
     recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
@@ -55274,6 +56956,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutRecurring_transactionsInput = {
@@ -55299,6 +56982,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutRecurring_transactionsInput = {
@@ -55339,6 +57023,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutRecurring_transactionsInput = {
@@ -55364,6 +57049,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutSalariesInput = {
@@ -55652,6 +57338,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutTransactionsInput = {
@@ -55677,6 +57364,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutTransactionsInput = {
@@ -55717,6 +57405,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutTransactionsInput = {
@@ -55742,6 +57431,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutUsersInput = {
@@ -55766,6 +57456,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutUsersInput = {
@@ -55791,6 +57482,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutUsersInput = {
@@ -56065,6 +57757,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehiclesInput = {
@@ -56090,6 +57783,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehiclesInput = {
@@ -56422,6 +58116,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehiclesInput = {
@@ -56447,6 +58142,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type work_itemsUpsertWithWhereUniqueWithoutVehiclesInput = {
@@ -57031,6 +58727,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutWorksInput = {
@@ -57056,6 +58753,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutWorksInput = {
@@ -57282,6 +58980,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutWorksInput = {
@@ -57307,6 +59006,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type customersUpsertWithoutWorksInput = {
@@ -57369,6 +59069,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDepartmentsInput = {
@@ -57394,6 +59095,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDepartmentsInput = {
@@ -57434,6 +59136,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDepartmentsInput = {
@@ -57459,6 +59162,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutLeave_typesInput = {
@@ -57483,6 +59187,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutLeave_typesInput = {
@@ -57508,6 +59213,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutLeave_typesInput = {
@@ -57548,6 +59254,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutLeave_typesInput = {
@@ -57573,6 +59280,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutDocument_categoriesInput = {
@@ -57597,6 +59305,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDocument_categoriesInput = {
@@ -57622,6 +59331,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDocument_categoriesInput = {
@@ -57662,6 +59372,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDocument_categoriesInput = {
@@ -57687,6 +59398,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutVehicle_typesInput = {
@@ -57711,6 +59423,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehicle_typesInput = {
@@ -57736,6 +59449,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehicle_typesInput = {
@@ -57776,6 +59490,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehicle_typesInput = {
@@ -57801,6 +59516,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateManyCompaniesInput = {
@@ -57832,6 +59548,7 @@ export namespace Prisma {
     id?: number
     date: Date | string
     person_count?: number
+    price_per_person?: number | null
     notes?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
@@ -57940,6 +59657,13 @@ export namespace Prisma {
     created_at?: Date | string | null
   }
 
+  export type meal_price_historyCreateManyCompaniesInput = {
+    id?: number
+    old_price?: number
+    new_price?: number
+    change_date?: Date | string
+  }
+
   export type employeesUpdateWithoutCompaniesInput = {
     first_name?: StringFieldUpdateOperationsInput | string
     last_name?: StringFieldUpdateOperationsInput | string
@@ -58037,6 +59761,7 @@ export namespace Prisma {
   export type meal_ticketsUpdateWithoutCompaniesInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -58046,6 +59771,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -58055,6 +59781,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     person_count?: IntFieldUpdateOperationsInput | number
+    price_per_person?: NullableFloatFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
@@ -58378,6 +60105,26 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type meal_price_historyUpdateWithoutCompaniesInput = {
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type meal_price_historyUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type meal_price_historyUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    old_price?: FloatFieldUpdateOperationsInput | number
+    new_price?: FloatFieldUpdateOperationsInput | number
+    change_date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type worksCreateManyCustomersInput = {
@@ -59008,6 +60755,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutUsersInput = {
@@ -59033,6 +60781,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateManyWithoutUsersInput = {

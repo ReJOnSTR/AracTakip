@@ -1,6 +1,20 @@
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
+function getMealPriceAtDate(dateStr, history, activePrice) {
+    if (!history || history.length === 0) {
+        return activePrice;
+    }
+    const targetDate = new Date(dateStr);
+    for (const log of history) {
+        const changeDate = new Date(log.change_date);
+        if (changeDate > targetDate) {
+            return log.old_price;
+        }
+    }
+    return activePrice;
+}
+
 async function getTransactions(companyId, isArchived = 0) {
     try {
         let data = await prisma.transactions.findMany({
@@ -99,11 +113,22 @@ async function getMealTickets(companyId, isArchived = 0) {
         const settings = await prisma.meal_settings.findUnique({
             where: { company_id: parseInt(companyId) }
         });
+        const pricePerPerson = settings ? settings.price_per_person : 0;
 
-        const mapped = tickets.map(ticket => ({
-            ...ticket,
-            price_per_person: settings ? settings.price_per_person : 0
-        }));
+        const history = await prisma.meal_price_history.findMany({
+            where: { company_id: parseInt(companyId) },
+            orderBy: { change_date: 'asc' }
+        });
+
+        const mapped = tickets.map(ticket => {
+            const histPrice = getMealPriceAtDate(ticket.date, history, pricePerPerson);
+            return {
+                ...ticket,
+                price_per_person: ticket.price_per_person !== null && ticket.price_per_person !== undefined && ticket.price_per_person !== 0
+                    ? ticket.price_per_person
+                    : histPrice
+            };
+        });
 
         return { success: true, data: JSON.parse(JSON.stringify(mapped)) };
     } catch (error) { return { success: false, error: error.message }; }
@@ -111,11 +136,26 @@ async function getMealTickets(companyId, isArchived = 0) {
 
 async function addMealTicket(data) {
     try {
+        const history = await prisma.meal_price_history.findMany({
+            where: { company_id: parseInt(data.companyId) },
+            orderBy: { change_date: 'asc' }
+        });
+        const settings = await prisma.meal_settings.findUnique({
+            where: { company_id: parseInt(data.companyId) }
+        });
+        const activePrice = settings ? settings.price_per_person : 0;
+        const histPrice = getMealPriceAtDate(data.date, history, activePrice);
+
+        const price = data.pricePerPerson !== undefined && data.pricePerPerson !== null && parseFloat(data.pricePerPerson) !== 0
+            ? parseFloat(data.pricePerPerson)
+            : histPrice;
+
         const result = await prisma.meal_tickets.create({
             data: {
                 company_id: parseInt(data.companyId),
                 date: new Date(data.date),
                 person_count: parseInt(data.personCount),
+                price_per_person: price,
                 notes: data.notes || null,
                 created_at: new Date()
             }
@@ -126,13 +166,41 @@ async function addMealTicket(data) {
 
 async function updateMealTicket(data) {
     try {
+        const existing = await prisma.meal_tickets.findUnique({
+            where: { id: parseInt(data.id) }
+        });
+        if (!existing) {
+            return { success: false, error: 'Kayıt bulunamadı' };
+        }
+
+        const date = new Date(data.date);
+        const history = await prisma.meal_price_history.findMany({
+            where: { company_id: existing.company_id },
+            orderBy: { change_date: 'asc' }
+        });
+        const settings = await prisma.meal_settings.findUnique({
+            where: { company_id: existing.company_id }
+        });
+        const activePrice = settings ? settings.price_per_person : 0;
+        const histPrice = getMealPriceAtDate(date, history, activePrice);
+
+        const updateData = {
+            date: date,
+            person_count: parseInt(data.personCount),
+            notes: data.notes || null
+        };
+
+        if (existing.price_per_person === 0 || existing.price_per_person === null || existing.date.getTime() !== date.getTime()) {
+            updateData.price_per_person = histPrice;
+        }
+
+        if (data.pricePerPerson !== undefined && data.pricePerPerson !== null) {
+            updateData.price_per_person = parseFloat(data.pricePerPerson);
+        }
+
         await prisma.meal_tickets.update({
             where: { id: parseInt(data.id) },
-            data: {
-                date: new Date(data.date),
-                person_count: parseInt(data.personCount),
-                notes: data.notes || null
-            }
+            data: updateData
         });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
@@ -158,10 +226,64 @@ async function setMealPrice(data) {
     try {
         const cid = parseInt(data.companyId);
         const price = parseFloat(data.pricePerPerson);
+        const changeDate = data.changeDate ? new Date(data.changeDate) : new Date();
+        
+        // Find existing price to record history
+        const existing = await prisma.meal_settings.findUnique({
+            where: { company_id: cid }
+        });
+        const oldPrice = existing ? existing.price_per_person : 0;
+        
+        // Update price
         await prisma.meal_settings.upsert({
             where: { company_id: cid },
-            create: { company_id: cid, price_per_person: price },
-            update: { price_per_person: price }
+            create: { company_id: cid, price_per_person: price, created_at: changeDate },
+            update: { price_per_person: price, created_at: changeDate }
+        });
+        
+        // Record price history if price changed
+        if (oldPrice !== price) {
+            await prisma.meal_price_history.create({
+                data: {
+                    company_id: cid,
+                    old_price: oldPrice,
+                    new_price: price,
+                    change_date: changeDate
+                }
+            });
+        }
+        
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function updateMealPriceHistory(data) {
+    try {
+        await prisma.meal_price_history.update({
+            where: { id: parseInt(data.id) },
+            data: {
+                old_price: parseFloat(data.price),
+                change_date: new Date(data.date)
+            }
+        });
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function getMealPriceHistory(companyId) {
+    try {
+        const history = await prisma.meal_price_history.findMany({
+            where: { company_id: parseInt(companyId) },
+            orderBy: { change_date: 'desc' }
+        });
+        return { success: true, data: JSON.parse(JSON.stringify(history)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function deleteMealPriceHistory(id) {
+    try {
+        await prisma.meal_price_history.delete({
+            where: { id: parseInt(id) }
         });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
@@ -182,15 +304,27 @@ async function getMealTicketStats(companyId) {
         });
         const pricePerPerson = settings ? settings.price_per_person : 0;
 
+        const history = await prisma.meal_price_history.findMany({
+            where: { company_id: parseInt(companyId) },
+            orderBy: { change_date: 'asc' }
+        });
+
         let totalThisMonth = 0;
         let todayCount = 0;
         let ticketCountThisMonth = 0;
+        let totalCostThisMonth = 0;
 
         allTickets.forEach(ticket => {
             const tDate = new Date(ticket.date);
+            const histPrice = getMealPriceAtDate(ticket.date, history, pricePerPerson);
+            const ticketPrice = ticket.price_per_person !== null && ticket.price_per_person !== undefined && ticket.price_per_person !== 0
+                ? ticket.price_per_person
+                : histPrice;
+
             if (tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear) {
                 totalThisMonth += ticket.person_count;
                 ticketCountThisMonth++;
+                totalCostThisMonth += ticket.person_count * ticketPrice;
             }
             const dateStr = tDate.toISOString().split('T')[0];
             if (dateStr === todayStr) {
@@ -205,7 +339,7 @@ async function getMealTicketStats(companyId) {
                 todayCount,
                 ticketCountThisMonth,
                 pricePerPerson,
-                totalCostThisMonth: totalThisMonth * pricePerPerson
+                totalCostThisMonth
             }
         };
     } catch (error) { return { success: false, error: error.message }; }
@@ -214,7 +348,7 @@ async function getMealTicketStats(companyId) {
 async function getMealTicketReport(companyId, month, year) {
     try {
         const allTickets = await prisma.meal_tickets.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: { company_id: parseInt(companyId), is_archived: 0 },
             orderBy: [{ date: 'asc' }, { id: 'asc' }]
         });
         const settings = await prisma.meal_settings.findUnique({
@@ -222,21 +356,41 @@ async function getMealTicketReport(companyId, month, year) {
         });
         const pricePerPerson = settings ? settings.price_per_person : 0;
 
+        const history = await prisma.meal_price_history.findMany({
+            where: { company_id: parseInt(companyId) },
+            orderBy: { change_date: 'asc' }
+        });
+
         const filtered = allTickets.filter(ticket => {
             const d = new Date(ticket.date);
             return d.getMonth() === parseInt(month) && d.getFullYear() === parseInt(year);
         });
 
         let totalPersons = 0;
-        filtered.forEach(t => { totalPersons += t.person_count; });
+        let totalCost = 0;
+
+        const mappedFiltered = filtered.map(ticket => {
+            const histPrice = getMealPriceAtDate(ticket.date, history, pricePerPerson);
+            const ticketPrice = ticket.price_per_person !== null && ticket.price_per_person !== undefined && ticket.price_per_person !== 0
+                ? ticket.price_per_person
+                : histPrice;
+
+            totalPersons += ticket.person_count;
+            totalCost += ticket.person_count * ticketPrice;
+
+            return {
+                ...ticket,
+                price_per_person: ticketPrice
+            };
+        });
 
         return {
             success: true,
             data: {
-                tickets: filtered,
+                tickets: mappedFiltered,
                 totalPersons,
                 pricePerPerson,
-                totalCost: totalPersons * pricePerPerson,
+                totalCost,
                 ticketCount: filtered.length,
                 month,
                 year
@@ -330,6 +484,6 @@ async function getTransactionById(id) {
 module.exports = {
     getTransactions, getTransactionById, createTransaction, updateTransaction, deleteTransaction,
     getMealTickets, addMealTicket, updateMealTicket, deleteMealTicket,
-    getMealPrice, setMealPrice, getMealTicketStats, getMealTicketReport,
+    getMealPrice, setMealPrice, getMealPriceHistory, deleteMealPriceHistory, updateMealPriceHistory, getMealTicketStats, getMealTicketReport,
     getFinanceStats, getChecksAndNotes, updateCheckStatus
 };
