@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { 
     Settings, Info, ToggleLeft, Sliders, Bell, Database, Shield, Palette, 
     Clock, Calculator, Pencil, Save, CalendarCheck, Users, Plus, Trash2, 
-    Edit2, Briefcase, FileText, AlertCircle, Car 
+    Edit2, Briefcase, FileText, AlertCircle, Car, Wallet 
 } from 'lucide-react'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -121,6 +121,9 @@ function HrModuleContent() {
     const [holidayDaysPerLeave, setHolidayDaysPerLeave] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
     })
+    const [defaultAdvanceAmount, setDefaultAdvanceAmount] = useState(() => {
+        return parseFloat(localStorage.getItem('hr_default_advance_amount')) || 0
+    })
 
     // Personnel Data States
     const [personnelSettings, setPersonnelSettings] = useState({
@@ -190,6 +193,14 @@ function HrModuleContent() {
             value: holidayDaysPerLeave,
             unit: ' gün',
             storageKey: 'hr_overtime_holiday_days_per_leave'
+        },
+        {
+            id: 'default_advance',
+            label: 'Varsayılan Avans Tutarı',
+            description: 'Ödeme eklerken avans seçildiğinde otomatik doldurulan tutar',
+            value: defaultAdvanceAmount,
+            unit: ' ₺',
+            storageKey: 'hr_default_advance_amount'
         }
     ]
 
@@ -306,6 +317,7 @@ function HrModuleContent() {
         if (editingItem.id === 'weekday_leave') setWeekdayHoursPerLeave(numVal)
         if (editingItem.id === 'sunday_leave') setSundayDaysPerLeave(numVal)
         if (editingItem.id === 'holiday_leave') setHolidayDaysPerLeave(numVal)
+        if (editingItem.id === 'default_advance') setDefaultAdvanceAmount(numVal)
 
         setShowModal(false)
         setEditingItem(null)
@@ -373,6 +385,16 @@ function HrModuleContent() {
                     <div>
                         <div className="stat-value" style={{ fontSize: '22px' }}>{holidayDaysPerLeave} gün</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>= 1 gün izin</div>
+                    </div>
+                </div>
+                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <div className="stat-label">AVANS TUTARI</div>
+                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><Wallet size={16} /></div>
+                    </div>
+                    <div>
+                        <div className="stat-value" style={{ fontSize: '22px' }}>{defaultAdvanceAmount > 0 ? `₺${defaultAdvanceAmount.toLocaleString('tr-TR')}` : 'Belirlenmedi'}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Varsayılan avans</div>
                     </div>
                 </div>
             </div>
@@ -595,6 +617,7 @@ function HrModuleContent() {
                                 {editingItem.id === 'weekday_leave' && <><strong>{editValue || '?'}</strong> saat hafta içi mesai yapan personel 1 gün izin hak eder</>}
                                 {editingItem.id === 'sunday_leave' && <><strong>{editValue || '?'}</strong> gün pazar mesai yapan personel 1 gün izin hak eder</>}
                                 {editingItem.id === 'holiday_leave' && <><strong>{editValue || '?'}</strong> gün bayram mesai yapan personel 1 gün izin hak eder</>}
+                                {editingItem.id === 'default_advance' && <>Avans işlemi eklerken tutar otomatik olarak <strong>₺{editValue || '0'}</strong> olarak doldurulacaktır. Değiştirilebilir.</>}
                             </div>
                         )}
                     </div>

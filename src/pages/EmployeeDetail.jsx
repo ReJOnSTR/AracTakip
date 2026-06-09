@@ -283,6 +283,9 @@ export default function EmployeeDetail() {
             const monthlyOvertimes = overtimes.filter(o => o.date && o.date.startsWith(selectedMonth))
             return monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
         }
+        if (paymentType === 'advance') {
+            return parseFloat(localStorage.getItem('hr_default_advance_amount')) || 0
+        }
         return ''
     }
 

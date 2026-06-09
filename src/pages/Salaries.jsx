@@ -1021,7 +1021,18 @@ export default function Salaries() {
                             <CustomSelect
                                 label="Ödeme Türü"
                                 value={paymentModal.type}
-                                onChange={(val) => setPaymentModal({ ...paymentModal, type: val })}
+                                onChange={(val) => {
+                                    const isAdvance = val === 'advance'
+                                    const defaultAdvance = parseFloat(localStorage.getItem('hr_default_advance_amount')) || 0
+                                    const suggested = isAdvance 
+                                        ? (defaultAdvance > 0 ? defaultAdvance : '') 
+                                        : calculateSuggestedAmount(paymentModal.employee, paymentModal.subType)
+                                    setPaymentModal({ 
+                                        ...paymentModal, 
+                                        type: val,
+                                        amount: suggested
+                                    })
+                                }}
                                 options={[
                                     { value: 'payment', label: 'Ödeme Yap' },
                                     { value: 'advance', label: 'Avans Ver' }

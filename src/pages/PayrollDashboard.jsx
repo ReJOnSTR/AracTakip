@@ -41,7 +41,7 @@ export default function PayrollDashboard() {
     const [payrollData, setPayrollData] = useState([])
     const [displayData, setDisplayData] = useState([]) // Data after table-top filters
     const [loading, setLoading] = useState(true)
-    const [advanceStats, setAdvanceStats] = useState({ currentMonth: 0, avg3Month: 0, months: [] })
+    const [advanceStats, setAdvanceStats] = useState({ currentMonth: 0, avg3Month: 0, months: [], potentialTotal: 0, activeCount: 0 })
 
     const [selectedRows, setSelectedRows] = useState([])
     const [modalOpen, setModalOpen] = useState(false)
@@ -129,17 +129,20 @@ export default function PayrollDashboard() {
             ])
 
             // --- Calculate advance stats from previous months ---
+            let currentMonthAdvance = 0
+            let avg = 0
+            let monthlyAdvances = []
             if (allSalariesResult.success && allSalariesResult.data) {
                 const allSalaries = allSalariesResult.data
                 const prev3Months = getPrevMonths(selectedMonth, 3)
 
                 // Current month advance total
-                const currentMonthAdvance = allSalaries
+                currentMonthAdvance = allSalaries
                     .filter(s => s.salary_month === selectedMonth && s.period === 'advance' && s.status === 'paid')
                     .reduce((sum, s) => sum + (s.net_salary || 0), 0)
 
                 // Previous months advance totals
-                const monthlyAdvances = prev3Months.map(m => {
+                monthlyAdvances = prev3Months.map(m => {
                     const total = allSalaries
                         .filter(s => s.salary_month === m && s.period === 'advance' && s.status === 'paid')
                         .reduce((sum, s) => sum + (s.net_salary || 0), 0)
@@ -147,16 +150,22 @@ export default function PayrollDashboard() {
                 })
 
                 const monthsWithData = monthlyAdvances.filter(m => m.total > 0)
-                const avg = monthsWithData.length > 0
+                avg = monthsWithData.length > 0
                     ? monthsWithData.reduce((sum, m) => sum + m.total, 0) / monthsWithData.length
                     : 0
-
-                setAdvanceStats({
-                    currentMonth: currentMonthAdvance,
-                    avg3Month: avg,
-                    months: monthlyAdvances
-                })
             }
+
+            const defaultAdvance = parseFloat(localStorage.getItem('hr_default_advance_amount')) || 0
+            const activeCount = (result.success && result.data) ? result.data.length : 0
+            const potentialTotal = activeCount * defaultAdvance
+
+            setAdvanceStats({
+                currentMonth: currentMonthAdvance,
+                avg3Month: avg,
+                months: monthlyAdvances,
+                potentialTotal,
+                activeCount
+            })
 
             if (result.success && result.data) {
                 // Build a map of next month's carryover records per employee
@@ -238,9 +247,10 @@ export default function PayrollDashboard() {
                 salary_month: selectedMonth
             })
         } else {
+            const defaultAdvance = parseFloat(localStorage.getItem('hr_default_advance_amount')) || 0
             setFormData({
                 period: 'advance',
-                amount: '',
+                amount: defaultAdvance > 0 ? defaultAdvance : '',
                 paymentDate: formatDateForInput(new Date()),
                 paymentMethod: 'kasa',
                 status: 'paid',
@@ -255,11 +265,21 @@ export default function PayrollDashboard() {
     const handlePeriodChange = (val) => {
         setFormData(prev => {
             const isSalaryOrOvertime = val === 'salary' || val === 'overtime_pay'
+            const isAdvance = val === 'advance'
+            let newAmount = prev.amount
+            
+            if (isAdvance) {
+                const defaultAdvance = parseFloat(localStorage.getItem('hr_default_advance_amount')) || 0
+                newAmount = defaultAdvance > 0 ? defaultAdvance : prev.amount
+            } else if (isSalaryOrOvertime) {
+                newAmount = ''
+            }
+            
             return {
                 ...prev,
                 period: val,
                 useRemaining: isSalaryOrOvertime ? true : false,
-                amount: isSalaryOrOvertime ? '' : prev.amount
+                amount: newAmount
             }
         })
     }
@@ -549,7 +569,16 @@ export default function PayrollDashboard() {
                     icon={TrendingUp} 
                     color="var(--secondary-color)" 
                     bgColor="var(--secondary-bg, rgba(139, 92, 246, 0.1))"
-                    subtitle={advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok'}
+                    subtitle={
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                            <div>{advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok'}</div>
+                            {advanceStats.potentialTotal > 0 && (
+                                <div style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                                    Alınabilir Toplam: {formatCurrency(advanceStats.potentialTotal)} ({advanceStats.activeCount} Kişi)
+                                </div>
+                            )}
+                        </div>
+                    }
                 />
             </div>
 
