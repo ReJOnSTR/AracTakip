@@ -16,6 +16,7 @@ export default function Salaries() {
     const [employees, setEmployees] = useState([])
     const [movements, setMovements] = useState([])
     const [overtimes, setOvertimes] = useState([])
+    const [salaries, setSalaries] = useState([])
     const [loading, setLoading] = useState(true)
 
     // Month Selection (YYYY-MM)
@@ -61,10 +62,11 @@ export default function Salaries() {
         if (!currentCompany) return
         setLoading(true)
         try {
-            const [empResult, moveResult, overtimeResult] = await Promise.all([
+            const [empResult, moveResult, overtimeResult, salaryResult] = await Promise.all([
                 window.electronAPI.getEmployees(currentCompany.id),
                 window.electronAPI.getAllEmployeeMovements(currentCompany.id),
-                window.electronAPI.getAllOvertimes(currentCompany.id)
+                window.electronAPI.getAllOvertimes(currentCompany.id),
+                window.electronAPI.getSalariesByCompany(currentCompany.id)
             ])
 
             if (empResult.success) {
@@ -75,6 +77,9 @@ export default function Salaries() {
             }
             if (overtimeResult.success) {
                 setOvertimes(overtimeResult.data)
+            }
+            if (salaryResult.success) {
+                setSalaries(salaryResult.data)
             }
         } catch (error) {
             console.error(error)
@@ -332,9 +337,32 @@ export default function Salaries() {
             return
         }
 
-        // 1. Filter movements for selected month
+        // 1. Filter movements and salaries for selected month
         const monthlyMovements = movements.filter(m => m.date.startsWith(selectedMonth))
         const monthlyOvertimes = overtimes.filter(o => o.date.startsWith(selectedMonth))
+        
+        const monthlySalaries = salaries.filter(s => {
+            if (s.salary_month) {
+                return s.salary_month === selectedMonth
+            }
+            if (!s.payment_date && !s.created_at) return false
+            try {
+                const d = s.payment_date || s.created_at
+                const dStr = typeof d === 'string' ? d : new Date(d).toISOString()
+                return dStr.startsWith(selectedMonth)
+            } catch (e) {
+                return false
+            }
+        })
+
+        const getNextMonth = (monthStr) => {
+            const [year, month] = monthStr.split('-').map(Number)
+            const nextDate = new Date(year, month, 1)
+            const y = nextDate.getFullYear()
+            const m = String(nextDate.getMonth() + 1).padStart(2, '0')
+            return `${y}-${m}`
+        }
+        const nextMonth = getNextMonth(selectedMonth)
 
         const data = employees.map(emp => {
             // Stats buckets
@@ -363,16 +391,12 @@ export default function Salaries() {
             }
 
             // --- 1. Calculate TARGET (Borç) ---
-            // Salary + Bonus + Overtime
+            // Salary + Bonus + Overtime + Carryover
 
             // Sum Bonuses (Accruals)
             monthlyMovements.filter(m => m.employee_id === emp.id && m.type === 'bonus').forEach(m => {
                 bonuses += m.amount
                 items.push(m)
-                // Legacy: if bonus is marked paid, count it? 
-                // Logic update: Bonus is an ADDITION to target. 
-                // If it is 'paid', it should ideally be matched by a payment or be a self-paid record.
-                // For legacy compat: if is_paid, we add to PAID bucket too.
                 if (m.is_paid) {
                     addToPaidBucket(m.amount, m.payment_method)
                 }
@@ -383,11 +407,9 @@ export default function Salaries() {
                 overtimeAmount += o.amount
                 overtimeHours += o.hours
                 items.push({ ...o, type: 'overtime' })
-                // Overtimes usually don't have is_paid flag in their own table unless we added it?
-                // Assuming Overtimes are just accruals. Payments cover them.
             })
 
-            // Sum Expenses (Personel Harcamaları -> Şirketin Borcu)
+            // Sum Expenses
             monthlyMovements.filter(m => m.employee_id === emp.id && m.type === 'expense').forEach(m => {
                 expenses += m.amount
                 items.push(m)
@@ -396,7 +418,13 @@ export default function Salaries() {
                 }
             })
 
-            const totalTarget = baseSalary + bonuses + overtimeAmount + expenses
+            // Carryover (incoming devir from previous month)
+            const empSalaries = monthlySalaries.filter(s => s.employee_id === emp.id)
+            const carryOverAmount = empSalaries
+                .filter(s => s.period === 'carryover' && s.status === 'paid')
+                .reduce((sum, s) => sum + (s.net_salary || 0), 0)
+
+            const totalTarget = baseSalary + bonuses + overtimeAmount + expenses + carryOverAmount
 
             // --- 2. Calculate PAID (Alacak/Ödenen) ---
 
@@ -407,17 +435,19 @@ export default function Salaries() {
                 items.push(m)
             })
 
-            // B. 'advance' records (Avans) - Counts as Paid (early)
+            // B. 'advance' records (Avans)
             monthlyMovements.filter(m => m.employee_id === emp.id && m.type === 'advance').forEach(m => {
                 advances += m.amount
                 addToPaidBucket(m.amount, m.payment_method)
                 items.push(m)
             })
 
-
+            // Carryover outbound (transferred out to the next month)
+            const outboundCarryOver = salaries.find(s => s.employee_id === emp.id && s.salary_month === nextMonth && s.period === 'carryover')
+            const outboundCarryOverAmount = outboundCarryOver ? (outboundCarryOver.net_salary || 0) : 0
 
             const totalPaid = bankPaid + cashPaid
-            const remaining = totalTarget - totalPaid
+            const remaining = totalTarget - totalPaid - outboundCarryOverAmount
 
             return {
                 id: emp.id,
@@ -431,6 +461,8 @@ export default function Salaries() {
                 expenses,
                 overtime_amount: overtimeAmount,
                 overtime_hours: overtimeHours,
+                carryOverAmount,
+                outboundCarryOverAmount,
                 totalTarget,
                 remaining,
                 isPaid: remaining <= 0.1, // Float tolerance
@@ -442,7 +474,7 @@ export default function Salaries() {
 
         setPayrollData(data)
 
-    }, [employees, movements, overtimes, selectedMonth])
+    }, [employees, movements, overtimes, salaries, selectedMonth])
 
     // Stats for the selected MONTH
     const stats = {
@@ -559,6 +591,17 @@ export default function Salaries() {
                             key: 'expenses',
                             label: 'Harcama',
                             render: (v) => <span style={{ color: 'var(--success)' }}>{v > 0 ? '+' : ''}{formatCurrency(v)}</span>
+                        },
+                        {
+                            key: 'carryOverAmount',
+                            label: 'Devir',
+                            render: (v) => {
+                                if (!v) return <span style={{ color: 'var(--text-muted)' }}>-</span>
+                                const isNegative = v < 0
+                                return <span style={{ fontWeight: 600, color: isNegative ? 'var(--danger)' : 'var(--success)' }}>
+                                    {v > 0 ? '+' : ''}{formatCurrency(v)}
+                                </span>
+                            }
                         },
                         {
                             key: 'totalTarget',
@@ -682,6 +725,12 @@ export default function Salaries() {
                                 <span>+{formatCurrency(item.amount)}</span>
                             </div>
                         ))}
+                        {selectedPayroll.carryOverAmount !== 0 && (
+                            <div className={`detail-row ${selectedPayroll.carryOverAmount > 0 ? 'success-text' : 'danger-text'}`}>
+                                <span>Devreden Bakiye:</span>
+                                <span>{selectedPayroll.carryOverAmount > 0 ? '+' : ''}{formatCurrency(selectedPayroll.carryOverAmount)}</span>
+                            </div>
+                        )}
                         <div className="detail-row total-row" style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '4px' }}>
                             <span>Toplam Hakediş:</span>
                             <span>{formatCurrency(selectedPayroll.totalTarget)}</span>
@@ -969,6 +1018,7 @@ export default function Salaries() {
                 .detail-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 4px 0; }
                 .divider { border-color: var(--border-color); margin: 8px 0; opacity: 0.5; }
                 .success-text { color: var(--success); }
+                .danger-text { color: var(--danger); }
                 .warning-text { color: var(--warning); }
                 .text-muted { color: var(--text-muted); }
                 .total-row { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 4px; }
@@ -1078,6 +1128,12 @@ export default function Salaries() {
                                         <tr>
                                             <td>Harcama İadesi</td>
                                             <td className="amount-col">{formatCurrency(selectedPayroll.expenses)}</td>
+                                        </tr>
+                                    )}
+                                    {selectedPayroll.carryOverAmount !== 0 && (
+                                        <tr>
+                                            <td>Devreden Bakiye</td>
+                                            <td className="amount-col">{selectedPayroll.carryOverAmount > 0 ? '+' : ''}{formatCurrency(selectedPayroll.carryOverAmount)}</td>
                                         </tr>
                                     )}
                                     <tr style={{ fontWeight: 700, backgroundColor: '#f0f0f0' }}>

@@ -662,6 +662,9 @@ ipcMain.handle('employees:delete', async (event, id) => {
 ipcMain.handle('salaries:getAll', async (event, employeeId) => {
     return await db.getSalariesByEmployee(employeeId) // Correct function name mapped from EmployeeDataService
 })
+ipcMain.handle('salaries:getAllForCompany', async (event, companyId) => {
+    return await db.getAllSalariesForCompany(companyId)
+})
 ipcMain.handle('salaries:create', async (event, data) => {
     const result = await db.createSalary(data)
     if (result.success) notifyDbUpdate({ table: 'salaries', action: 'create' })

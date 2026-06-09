@@ -65,6 +65,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Salaries
     getSalaries: (employeeId) => ipcRenderer.invoke('salaries:getAll', employeeId),
+    getSalariesByCompany: (companyId) => ipcRenderer.invoke('salaries:getAllForCompany', companyId),
     createSalary: (data) => ipcRenderer.invoke('salaries:create', data),
     updateSalary: (data) => ipcRenderer.invoke('salaries:update', data),
     deleteSalary: (id) => ipcRenderer.invoke('salaries:delete', id),

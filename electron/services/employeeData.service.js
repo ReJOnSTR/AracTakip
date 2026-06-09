@@ -541,8 +541,22 @@ async function getAllOvertimes(companyId) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+async function getAllSalariesForCompany(companyId) {
+    try {
+        const data = await prisma.salaries.findMany({
+            where: {
+                employees: {
+                    company_id: parseInt(companyId)
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+        return { success: true, data: JSON.parse(JSON.stringify(data)) };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
-    getSalariesByEmployee, createSalary, updateSalary, deleteSalary,
+    getSalariesByEmployee, createSalary, updateSalary, deleteSalary, getAllSalariesForCompany,
     getLeavesByEmployee, getAllLeaves, createLeave, updateLeave, deleteLeave,
     getOvertimes, addOvertime, updateOvertime, deleteOvertime,
     getEmployeeAssignments, addEmployeeAssignment, updateEmployeeAssignment, deleteEmployeeAssignment,
@@ -551,3 +565,4 @@ module.exports = {
     createSalaryHistory, updateSalaryHistory, deleteSalaryHistory,
     getAllEmployeeMovements, addEmployeeMovement, updateEmployeeMovement, deleteEmployeeMovement, getAllOvertimes
 };
+
