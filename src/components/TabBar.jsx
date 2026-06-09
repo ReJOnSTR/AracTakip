@@ -141,7 +141,7 @@ export default function TabBar() {
             </div>
 
             {/* Left: Draggable Tabs (Scrolling) */}
-            <div className="tab-bar-left">
+            <div className="tab-bar-left" ref={scrollRef}>
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -152,7 +152,6 @@ export default function TabBar() {
                 >
                     <div 
                         className="tab-scroll-container"
-                        ref={scrollRef}
                     >
                         <SortableContext
                             items={tabs.map(t => t.id)}
