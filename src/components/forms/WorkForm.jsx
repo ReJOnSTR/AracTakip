@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { workHeaderSchema } from '../../schemas/workSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import SearchableSelect from '../SearchableSelect'
+import Modal from '../Modal'
+import { Settings } from 'lucide-react'
 
 const statusOptions = [
     { value: 'pending', label: 'Bekliyor' },
@@ -14,6 +16,7 @@ const statusOptions = [
 ]
 
 export default function WorkForm({ initialData, onSubmit, onCancel, loading, customers = [], disableCustomerSelect = false }) {
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false)
     const {
         control,
         handleSubmit,
@@ -182,44 +185,72 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                 </div>
             </div>
 
-            <div className="form-row">
-                <div className="form-group">
-                    <Controller
-                        name="pazar_multiplier"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomInput
-                                label="Pazar Mesai Katsayısı"
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                value={field.value}
-                                onChange={field.onChange}
-                                error={errors.pazar_multiplier?.message}
-                                placeholder="Örn: 1.5"
-                            />
-                        )}
-                    />
-                </div>
-                <div className="form-group">
-                    <Controller
-                        name="mesai_multiplier"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomInput
-                                label="Mesai Farkı Katsayısı"
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                value={field.value}
-                                onChange={field.onChange}
-                                error={errors.mesai_multiplier?.message}
-                                placeholder="Örn: 1.5"
-                            />
-                        )}
-                    />
+            <div className="form-row" style={{ marginBottom: '16px' }}>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center' }}>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'auto', padding: '8px 16px' }}
+                    >
+                        <Settings size={16} /> Katsayı Ayarları
+                    </button>
                 </div>
             </div>
+
+            <Modal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                title="İş Katsayı Ayarları"
+                size="sm"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                        Bu işe özel olarak pazar günü mesai katsayısını ve fazla mesai farkı katsayısını değiştirebilirsiniz.
+                    </div>
+                    <div className="form-group">
+                        <Controller
+                            name="pazar_multiplier"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomInput
+                                    label="Pazar Mesai Katsayısı"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.pazar_multiplier?.message}
+                                    placeholder="Örn: 1.5"
+                                />
+                            )}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <Controller
+                            name="mesai_multiplier"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomInput
+                                    label="Mesai Farkı Katsayısı"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.mesai_multiplier?.message}
+                                    placeholder="Örn: 1.5"
+                                />
+                            )}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                        <button type="button" className="btn btn-primary" onClick={() => setIsSettingsOpen(false)}>
+                            Uygula
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             <div className="form-group">
                 <Controller
