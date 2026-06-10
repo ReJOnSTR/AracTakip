@@ -570,14 +570,9 @@ export default function PayrollDashboard() {
                     color="var(--secondary-color)" 
                     bgColor="var(--secondary-bg, rgba(139, 92, 246, 0.1))"
                     subtitle={
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                            <div>{advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok'}</div>
-                            {advanceStats.potentialTotal > 0 && (
-                                <div style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
-                                    Alınabilir Toplam: {formatCurrency(advanceStats.potentialTotal)} ({advanceStats.activeCount} Kişi)
-                                </div>
-                            )}
-                        </div>
+                        advanceStats.potentialTotal > 0 
+                            ? `${advanceStats.avg3Month > 0 ? `Ort. (3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Ort. yok'} | Limit: ${formatCurrency(advanceStats.potentialTotal)} (${advanceStats.activeCount} Kişi)`
+                            : (advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok')
                     }
                 />
             </div>
