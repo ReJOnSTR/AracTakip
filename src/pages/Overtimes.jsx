@@ -11,7 +11,7 @@ import MonthFilter from '../components/MonthFilter'
 import ConfirmModal from '../components/ConfirmModal'
 import CustomMultiSelect from '../components/CustomMultiSelect'
 import { formatCurrency, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
-import { Clock, Users, User, Building2, Wallet, Banknote, X, Plus, Calendar, Calculator, Trash2, ChevronRight, ChevronLeft, CheckCircle, Pencil } from 'lucide-react'
+import { Clock, Users, User, Building2, Wallet, Banknote, X, Plus, Calendar, Calculator, Trash2, ChevronRight, ChevronLeft, CheckCircle, Pencil, Search, Check } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 
 const paymentMethods = [
@@ -31,6 +31,10 @@ export default function Overtimes() {
     const navigate = useNavigate()
     const { openNewTab } = useTabs()
     const { showToast } = useToast()
+
+    const getInitials = (name, surname) => {
+        return `${(name || '').charAt(0)}${(surname || '').charAt(0)}`.toUpperCase()
+    }
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const saved = localStorage.getItem(`overtimes_selected_month_${currentCompany?.id || 'default'}`)
         return saved || new Date().toISOString().slice(0, 7)
@@ -72,6 +76,50 @@ export default function Overtimes() {
         notes: '',
         useAsLeave: false
     })
+
+    const [searchFilter, setSearchFilter] = useState('')
+    const [deptFilter, setDeptFilter] = useState('')
+
+    const employeeDepartmentOptions = useMemo(() => {
+        const depts = [...new Set(allEmployees.map(item => item.department).filter(Boolean))].sort()
+        return depts.map(d => ({ value: d, label: d }))
+    }, [allEmployees])
+
+    const filteredEmployeesForSelection = useMemo(() => {
+        return allEmployees.filter(emp => {
+            const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.toLocaleLowerCase('tr-TR')
+            const search = searchFilter.toLocaleLowerCase('tr-TR')
+            const matchesSearch = fullName.includes(search) || (emp.department || '').toLocaleLowerCase('tr-TR').includes(search)
+            const matchesDept = !deptFilter || emp.department === deptFilter
+            return matchesSearch && matchesDept
+        })
+    }, [allEmployees, searchFilter, deptFilter])
+
+    const handleSelectEmployee = (empId) => {
+        setOvertimeFormData(prev => {
+            const isSelected = prev.employeeIds.includes(empId)
+            const newIds = isSelected 
+                ? prev.employeeIds.filter(id => id !== empId) 
+                : [...prev.employeeIds, empId]
+            return { ...prev, employeeIds: newIds }
+        })
+    }
+
+    const handleToggleAllEmployees = () => {
+        setOvertimeFormData(prev => {
+            const allFilteredIds = filteredEmployeesForSelection.map(e => e.id)
+            const allSelected = allFilteredIds.every(id => prev.employeeIds.includes(id))
+            
+            let newIds
+            if (allSelected) {
+                newIds = prev.employeeIds.filter(id => !allFilteredIds.includes(id))
+            } else {
+                const missing = allFilteredIds.filter(id => !prev.employeeIds.includes(id))
+                newIds = [...prev.employeeIds, ...missing]
+            }
+            return { ...prev, employeeIds: newIds }
+        })
+    }
 
     // Restore Month Persistence
     useEffect(() => {
@@ -273,6 +321,8 @@ export default function Overtimes() {
     }
 
     const handleOpenOvertimeModal = (row = null) => {
+        setSearchFilter('')
+        setDeptFilter('')
         // If row has 'employeeId' but no 'id', it's likely a summary row being used to ADD a new entry for that employee
         // If row has both 'id' and 'employeeId', it's an EXISTING record being EDITED
         const isEditing = row && row.id && row.employeeId
@@ -1159,33 +1209,48 @@ export default function Overtimes() {
                 <div style={{ overflow: 'hidden', position: 'relative' }}>
                     {/* Stepper Header */}
                     {!overtimeFormData.employeeId && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '25px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '40px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ 
-                                        width: '32px', height: '32px', borderRadius: '50%', 
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: overtimeModalStep === 1 ? 1 : 0.6, transition: 'opacity 0.2s' }}>
+                                    <span style={{ 
+                                        fontSize: '11px', 
+                                        fontWeight: 700, 
                                         background: overtimeModalStep === 1 ? 'var(--accent-primary)' : 'var(--success)', 
-                                        color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontWeight: 'bold', fontSize: '14px', transition: 'all 0.3s'
+                                        color: '#fff', 
+                                        width: '20px', 
+                                        height: '20px', 
+                                        borderRadius: '50%', 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center' 
                                     }}>
-                                        {overtimeModalStep > 1 ? <CheckCircle size={18} /> : '1'}
-                                    </div>
-                                    <span style={{ fontSize: '12px', fontWeight: 600, color: overtimeModalStep === 1 ? 'var(--text-primary)' : 'var(--text-muted)' }}>Personel Seçimi</span>
+                                        {overtimeModalStep > 1 ? '✓' : '1'}
+                                    </span>
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: overtimeModalStep === 1 ? 'var(--text-primary)' : 'var(--text-muted)' }}>Personel Seçimi</span>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ 
-                                        width: '32px', height: '32px', borderRadius: '50%', 
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: overtimeModalStep === 2 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
+                                    <span style={{ 
+                                        fontSize: '11px', 
+                                        fontWeight: 700, 
                                         background: overtimeModalStep === 2 ? 'var(--accent-primary)' : 'var(--bg-tertiary)', 
-                                        color: overtimeModalStep === 2 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontWeight: 'bold', fontSize: '14px', transition: 'all 0.3s',
+                                        color: overtimeModalStep === 2 ? '#fff' : 'var(--text-secondary)', 
+                                        width: '20px', 
+                                        height: '20px', 
+                                        borderRadius: '50%', 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
                                         border: overtimeModalStep === 2 ? 'none' : '1px solid var(--border-color)'
-                                    }}>2</div>
-                                    <span style={{ fontSize: '12px', fontWeight: 600, color: overtimeModalStep === 2 ? 'var(--text-primary)' : 'var(--text-muted)' }}>Mesai Girişi</span>
+                                    }}>
+                                        2
+                                    </span>
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: overtimeModalStep === 2 ? 'var(--text-primary)' : 'var(--text-muted)' }}>Mesai Girişi</span>
                                 </div>
                             </div>
                             {overtimeModalStep === 2 && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 4px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600 }}>
                                         <span style={{ color: 'var(--text-secondary)' }}>İşlem Sırası: {overtimeQueueIndex + 1} / {overtimeQueue.length}</span>
                                         <span style={{ color: 'var(--accent-primary)' }}>%{Math.round(((overtimeQueueIndex + 1) / overtimeQueue.length) * 100)}</span>
                                     </div>
@@ -1205,26 +1270,154 @@ export default function Overtimes() {
                         {/* Step 1: Selection */}
                         <div style={{ minWidth: '100%', padding: '2px' }}>
                             <form onSubmit={(e) => { e.preventDefault(); startProcessingQueue(); }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    <CustomMultiSelect 
-                                        label="Personelleri Seçin *" 
-                                        placeholder="İsim veya departman ara..."
-                                        value={overtimeFormData.employeeIds} 
-                                        options={allEmployees.map(e => ({ 
-                                            value: e.id, 
-                                            label: `${e.first_name} ${e.last_name}${e.department ? ` (${e.department})` : ''}` 
-                                        }))} 
-                                        onChange={(val) => updateOvertimeField('employeeIds', val)} 
-                                        required
-                                    />
-                                    
-                                    <div style={{ padding: '20px', borderRadius: '16px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Users size={24} />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px', alignItems: 'center' }}>
+                                        <div className="search-box" style={{ height: '42px', minWidth: 'auto' }}>
+                                            <Search size={16} />
+                                            <input 
+                                                type="text"
+                                                placeholder="İsim veya departman ara..."
+                                                value={searchFilter}
+                                                onChange={(e) => setSearchFilter(e.target.value)}
+                                            />
+                                            {searchFilter && (
+                                                <button type="button" className="search-clear" onClick={() => setSearchFilter('')} style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <X size={14} />
+                                                </button>
+                                            )}
                                         </div>
-                                        <div>
-                                            <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>Toplam Seçilen</div>
-                                            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{overtimeFormData.employeeIds.length} Personel</div>
+                                        <CustomSelect 
+                                            value={deptFilter}
+                                            options={[
+                                                { value: '', label: 'Tüm Departmanlar' },
+                                                ...employeeDepartmentOptions
+                                            ]}
+                                            onChange={setDeptFilter}
+                                        />
+                                    </div>
+
+                                    {/* Scrollable list of employees with checkboxes */}
+                                    <div 
+                                        className="custom-select-dropdown" 
+                                        style={{ 
+                                            position: 'relative', 
+                                            width: '100%', 
+                                            border: '1px solid var(--border-color)', 
+                                            borderRadius: 'var(--radius-md)', 
+                                            maxHeight: '220px', 
+                                            overflowY: 'auto', 
+                                            background: 'var(--bg-secondary)', 
+                                            boxShadow: 'none' 
+                                        }}
+                                    >
+                                        <div style={{ 
+                                            padding: '10px 14px', 
+                                            borderBottom: '1px solid var(--border-color)', 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            backgroundColor: 'var(--bg-tertiary)',
+                                            fontSize: '13px',
+                                            position: 'sticky',
+                                            top: 0,
+                                            zIndex: 2
+                                        }}>
+                                            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Personel Listesi ({filteredEmployeesForSelection.length})</span>
+                                            <button 
+                                                type="button" 
+                                                onClick={handleToggleAllEmployees}
+                                                style={{ 
+                                                    background: 'none', 
+                                                    border: 'none', 
+                                                    color: 'var(--accent-primary)', 
+                                                    fontWeight: 600, 
+                                                    fontSize: '12px', 
+                                                    cursor: 'pointer' 
+                                                }}
+                                            >
+                                                {overtimeFormData.employeeIds.length === filteredEmployeesForSelection.length ? 'Tümünü Kaldır' : 'Tümünü Seç'}
+                                            </button>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            {filteredEmployeesForSelection.map(emp => {
+                                                const isChecked = overtimeFormData.employeeIds.includes(emp.id)
+                                                return (
+                                                    <div 
+                                                        key={emp.id}
+                                                        className={`custom-select-option ${isChecked ? 'selected' : ''}`}
+                                                        onClick={() => handleSelectEmployee(emp.id)}
+                                                        style={{ 
+                                                            display: 'flex', 
+                                                            alignItems: 'center', 
+                                                            gap: '12px', 
+                                                            padding: '10px 14px', 
+                                                            borderBottom: '1px solid var(--border-color)',
+                                                            justifyContent: 'flex-start',
+                                                            borderRadius: 0
+                                                        }}
+                                                    >
+                                                        <div 
+                                                            className={`checkbox ${isChecked ? 'checked' : ''}`}
+                                                            style={{ flexShrink: 0 }}
+                                                        >
+                                                            {isChecked && <Check size={12} style={{ color: '#fff' }} />}
+                                                        </div>
+                                                        
+                                                        <div style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '50%',
+                                                            background: isChecked ? 'rgba(20, 184, 166, 0.15)' : 'var(--bg-tertiary)',
+                                                            color: 'var(--accent-primary)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '11px',
+                                                            fontWeight: 700,
+                                                            flexShrink: 0,
+                                                            border: '1px solid var(--border-color)'
+                                                        }}>
+                                                            {getInitials(emp.first_name, emp.last_name)}
+                                                        </div>
+
+                                                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                                            <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>
+                                                                {emp.first_name} {emp.last_name}
+                                                            </span>
+                                                            {emp.department && (
+                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                                    {emp.department}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                            {filteredEmployeesForSelection.length === 0 && (
+                                                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                                    Personel bulunamadı
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Selection Stats */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '12px',
+                                        padding: '12px 16px', 
+                                        borderRadius: 'var(--radius-md)', 
+                                        background: 'var(--accent-subtle)', 
+                                        border: '1px solid rgba(20, 184, 166, 0.2)',
+                                    }}>
+                                        <Users size={20} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                                        <div style={{ flex: 1 }}>
+                                            <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                                                {overtimeFormData.employeeIds.length > 0 
+                                                    ? `${overtimeFormData.employeeIds.length} personel seçildi.` 
+                                                    : 'Lütfen mesai eklemek istediğiniz personelleri seçin.'}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -1242,16 +1435,42 @@ export default function Overtimes() {
                         <div style={{ minWidth: '100%', padding: '2px' }}>
                             {overtimeQueue.length > 0 && (
                                 <form onSubmit={handleBulkOvertimeSubmit}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                         {/* Navigation and Current Employee Header */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                                                <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'var(--accent-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                                    <User size={20} />
+                                                <div style={{ 
+                                                    width: '40px', 
+                                                    height: '40px', 
+                                                    borderRadius: 'var(--radius-sm)', 
+                                                    background: 'var(--accent-subtle)', 
+                                                    color: 'var(--accent-primary)', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center', 
+                                                    fontWeight: 700,
+                                                    fontSize: '13px',
+                                                    flexShrink: 0,
+                                                    border: '1px solid rgba(20, 184, 166, 0.2)'
+                                                }}>
+                                                    {getInitials(overtimeQueue[overtimeQueueIndex].employee?.first_name, overtimeQueue[overtimeQueueIndex].employee?.last_name)}
                                                 </div>
                                                 <div style={{ minWidth: 0 }}>
-                                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>İşlenen Personel</div>
-                                                    <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İşlenen Personel</span>
+                                                        {overtimeQueue[overtimeQueueIndex].employee?.department && (
+                                                            <span style={{ 
+                                                                fontSize: '10px', 
+                                                                fontWeight: 600, 
+                                                                color: 'var(--text-secondary)', 
+                                                                background: 'var(--bg-tertiary)', 
+                                                                padding: '2px 6px', 
+                                                                borderRadius: 'var(--radius-xs)', 
+                                                                border: '1px solid var(--border-color)' 
+                                                            }}>{overtimeQueue[overtimeQueueIndex].employee.department}</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                         {overtimeQueue[overtimeQueueIndex].employee?.first_name} {overtimeQueue[overtimeQueueIndex].employee?.last_name}
                                                     </div>
                                                 </div>
@@ -1281,6 +1500,7 @@ export default function Overtimes() {
                                             )}
                                         </div>
 
+                                        {/* Standard Inputs */}
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                                             <CustomSelect 
                                                 label="Mesai Türü *" 
@@ -1306,33 +1526,36 @@ export default function Overtimes() {
                                             />
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '16px', alignItems: 'center' }}>
+                                        {/* Payment style toggle & earnings */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
+                                            {/* Toggle Card */}
                                             <div style={{
-                                                display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
+                                                display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px',
                                                 background: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
                                                 border: `1px solid ${overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                                                borderRadius: '10px', transition: 'all 0.2s ease', cursor: 'pointer'
+                                                borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
                                             }} onClick={() => updateOvertimeField('useAsLeave', !overtimeQueue[overtimeQueueIndex].useAsLeave)}>
                                                 <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                                                     <input type="checkbox" checked={overtimeQueue[overtimeQueueIndex].useAsLeave} onChange={(e) => updateOvertimeField('useAsLeave', e.target.checked)} />
                                                     <span className="toggle-slider"></span>
                                                 </label>
                                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Ödeme Şekli</span>
-                                                    <span style={{ fontSize: '13px', fontWeight: 600, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ödeme Şekli</span>
+                                                    <span style={{ fontSize: '14px', fontWeight: 600, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                                                         {overtimeQueue[overtimeQueueIndex].useAsLeave ? 'İzin Olarak' : 'Nakit Hakediş'}
                                                     </span>
                                                 </div>
                                             </div>
                                             
+                                            {/* Hakediş Display */}
                                             <div style={{ 
-                                                padding: '10px 14px', borderRadius: '10px', background: 'var(--bg-tertiary)',
-                                                border: '1px solid var(--border-color)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center'
+                                                padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-tertiary)',
+                                                border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center'
                                             }}>
-                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Hakediş</div>
-                                                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent-primary)' }}>
-                                                    {formatCurrency(overtimeQueue[overtimeQueueIndex].amount || 0)}
-                                                </div>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hakediş</span>
+                                                <span style={{ fontSize: '14px', fontWeight: 700, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-muted)' : 'var(--accent-primary)' }}>
+                                                    {overtimeQueue[overtimeQueueIndex].useAsLeave ? 'İzin Hakedişi' : formatCurrency(overtimeQueue[overtimeQueueIndex].amount || 0)}
+                                                </span>
                                             </div>
                                         </div>
 

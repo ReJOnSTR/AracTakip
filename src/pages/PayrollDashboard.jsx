@@ -461,35 +461,35 @@ export default function PayrollDashboard() {
     const StatCard = ({ title, value, icon: Icon, color, bgColor, isDanger, subtitle }) => (
         <div style={{
             backgroundColor: 'var(--bg-secondary)',
-            borderRadius: '16px',
-            padding: '20px',
+            borderRadius: '12px',
+            padding: '12px 16px',
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: '16px',
+            alignItems: 'center',
+            gap: '12px',
             border: `1px solid var(--border-color)`
         }}>
             <div style={{
                 backgroundColor: isDanger ? 'var(--danger-bg)' : (bgColor || 'var(--accent-subtle)'),
                 color: isDanger ? 'var(--danger)' : color,
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0
             }}>
-                <Icon size={22} />
+                <Icon size={20} />
             </div>
-            <div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 500 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 500 }}>
                     {title}
                 </div>
-                <div style={{ fontSize: '22px', fontWeight: '700', color: isDanger ? 'var(--danger)' : 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+                <div style={{ fontSize: '20px', fontWeight: '700', color: isDanger ? 'var(--danger)' : 'var(--text-primary)', letterSpacing: '-0.3px' }}>
                     {value}
                 </div>
                 {subtitle && (
-                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '3px', fontWeight: 500 }}>
+                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 500 }}>
                         {subtitle}
                     </div>
                 )}
@@ -564,21 +564,12 @@ export default function PayrollDashboard() {
                     subtitle={displayStats.totalOutboundCarryover > 0 ? `Aktarılan: ${formatCurrency(displayStats.totalOutboundCarryover)}` : null}
                 />
                 <StatCard 
-                    title="Toplam Avans" 
-                    value={
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
-                            <span>{formatCurrency(advanceStats.currentMonth)}</span>
-                            {advanceStats.potentialTotal > 0 && (
-                                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }} title="Alınabilir Toplam Limit">
-                                    / {formatCurrency(advanceStats.potentialTotal)} <span style={{ fontSize: '11px', opacity: 0.8 }}>({advanceStats.activeCount} Kişi)</span>
-                                </span>
-                            )}
-                        </div>
-                    } 
+                    title="Toplam Avans"
+                    value={formatCurrency(advanceStats.currentMonth)} 
                     icon={TrendingUp} 
                     color="var(--secondary-color)" 
                     bgColor="var(--secondary-bg, rgba(139, 92, 246, 0.1))"
-                    subtitle={advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok'}
+                    subtitle={`Alınabilir Toplam: ${formatCurrency(advanceStats.potentialTotal || 0).replace(',00', '')}`}
                 />
             </div>
 

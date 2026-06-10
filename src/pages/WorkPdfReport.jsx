@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20 }) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = 1.5, mesaiMultiplierProp = 1.5 }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -155,16 +155,16 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
         const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
 
-        // Pazar is 50% more than daily
+        // Pazar is calculated using the configured pazarMultiplierProp multiplier
         let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            samplePazarPrice = sampleGunPrice * 1.5;
+            samplePazarPrice = sampleGunPrice * pazarMultiplierProp;
         }
 
-        // Mesai is 50% more than hourly wage (hourly wage = daily / 8)
+        // Mesai is calculated using the configured mesaiMultiplierProp multiplier (hourly wage = daily / 8)
         let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2));
+            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplierProp).toFixed(2));
         }
 
         let calculatedGun = 0;

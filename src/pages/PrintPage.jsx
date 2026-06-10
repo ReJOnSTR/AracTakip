@@ -90,7 +90,16 @@ export default function PrintPage() {
                     }
                     `}
                 </style>
-                <WorkPdfReport propWork={data.work} noHeader={true} isPreview={false} showPricesProp={data.showPrices} showKdvProp={data.showKdv} kdvRateProp={data.kdvRate} />
+                <WorkPdfReport 
+                    propWork={data.work} 
+                    noHeader={true} 
+                    isPreview={false} 
+                    showPricesProp={data.showPrices} 
+                    showKdvProp={data.showKdv} 
+                    kdvRateProp={data.kdvRate} 
+                    pazarMultiplierProp={data.pazarMultiplier}
+                    mesaiMultiplierProp={data.mesaiMultiplier}
+                />
             </div>
         )
     }

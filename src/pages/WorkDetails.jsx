@@ -70,6 +70,8 @@ export default function WorkDetails(props) {
     const [showKdv, setShowKdv] = useState(false)
     const [kdvRate, setKdvRate] = useState(20)
     const [generatingPdf, setGeneratingPdf] = useState(false)
+    const [pazarMultiplier, setPazarMultiplier] = useState(1.5)
+    const [mesaiMultiplier, setMesaiMultiplier] = useState(1.5)
 
     // Form State
     const [formData, setFormData] = useState({
@@ -606,6 +608,8 @@ export default function WorkDetails(props) {
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,
+            pazarMultiplier: pazarMultiplier,
+            mesaiMultiplier: mesaiMultiplier,
             isPdfSave: true
         }))
 
@@ -626,6 +630,16 @@ export default function WorkDetails(props) {
     }
 
     const handlePrintReport = () => {
+        localStorage.setItem('printData', JSON.stringify({
+            isWorkReport: true,
+            work: work,
+            showPrices: showPrices,
+            showKdv: showKdv,
+            kdvRate: kdvRate,
+            pazarMultiplier: pazarMultiplier,
+            mesaiMultiplier: mesaiMultiplier,
+            isPdfSave: false
+        }))
         window.print()
     }
     const [filteredItems, setFilteredItems] = useState([])
@@ -1508,12 +1522,55 @@ export default function WorkDetails(props) {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Katsayı Ayarları */}
+                        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mesai Katsayıları</h4>
+                            </div>
+                            <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div>
+                                    <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Pazar Katsayısı</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        className="form-input"
+                                        value={pazarMultiplier}
+                                        onChange={e => setPazarMultiplier(parseFloat(e.target.value) || 0)}
+                                        style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Mesai Farkı Katsayısı</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        className="form-input"
+                                        value={mesaiMultiplier}
+                                        onChange={e => setMesaiMultiplier(parseFloat(e.target.value) || 0)}
+                                        style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Right: Live Preview */}
                     <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-tertiary)', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.03)' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20mm', alignItems: 'center', width: '100%' }}>
-                            <WorkPdfReport propWork={work} noHeader={true} isPreview={true} showPricesProp={showPrices} showKdvProp={showKdv} kdvRateProp={kdvRate} />
+                            <WorkPdfReport 
+                                propWork={work} 
+                                noHeader={true} 
+                                isPreview={true} 
+                                showPricesProp={showPrices} 
+                                showKdvProp={showKdv} 
+                                kdvRateProp={kdvRate}
+                                pazarMultiplierProp={pazarMultiplier}
+                                mesaiMultiplierProp={mesaiMultiplier}
+                            />
                         </div>
                     </div>
                 </div>
