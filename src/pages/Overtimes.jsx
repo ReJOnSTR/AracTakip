@@ -1248,37 +1248,46 @@ export default function Overtimes() {
                                     <span style={{ fontSize: '13px', fontWeight: 600, color: overtimeModalStep === 2 ? 'var(--text-primary)' : 'var(--text-muted)' }}>Mesai Girişi</span>
                                 </div>
                             </div>
-                            {overtimeModalStep === 2 && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 4px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600 }}>
-                                        <span style={{ color: 'var(--text-secondary)' }}>İşlem Sırası: {overtimeQueueIndex + 1} / {overtimeQueue.length}</span>
-                                        <span style={{ color: 'var(--accent-primary)' }}>%{Math.round(((overtimeQueueIndex + 1) / overtimeQueue.length) * 100)}</span>
-                                    </div>
-                                    <div style={{ height: '4px', background: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', background: 'var(--accent-primary)', width: `${((overtimeQueueIndex + 1) / overtimeQueue.length) * 100}%`, transition: 'width 0.3s' }} />
-                                    </div>
+                            <div style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                gap: '8px', 
+                                padding: '0 4px',
+                                opacity: overtimeModalStep === 2 ? 1 : 0,
+                                visibility: overtimeModalStep === 2 ? 'visible' : 'hidden',
+                                transition: 'all 0.3s ease',
+                                height: '28px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600 }}>
+                                    <span style={{ color: 'var(--text-secondary)' }}>İşlem Sırası: {overtimeQueueIndex + 1} / {Math.max(overtimeQueue.length, 1)}</span>
+                                    <span style={{ color: 'var(--accent-primary)' }}>%{Math.round(((overtimeQueueIndex + 1) / Math.max(overtimeQueue.length, 1)) * 100)}</span>
                                 </div>
-                            )}
+                                <div style={{ height: '4px', background: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', background: 'var(--accent-primary)', width: `${((overtimeQueueIndex + 1) / Math.max(overtimeQueue.length, 1)) * 100}%`, transition: 'width 0.3s' }} />
+                                </div>
+                            </div>
                         </div>
                     )}
 
                     <div style={{ 
                         display: 'flex', 
                         transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                        transform: overtimeModalStep === 1 ? 'translateX(0)' : 'translateX(-100%)'
+                        transform: overtimeModalStep === 1 ? 'translateX(0)' : 'translateX(-100%)',
+                        height: '430px'
                     }}>
                         {/* Step 1: Selection */}
-                        <div style={{ minWidth: '100%', padding: '2px' }}>
-                            <form onSubmit={(e) => { e.preventDefault(); startProcessingQueue(); }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ minWidth: '100%', padding: '2px', height: '100%' }}>
+                            <form onSubmit={(e) => { e.preventDefault(); startProcessingQueue(); }} style={{ height: '100%' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px', alignItems: 'center' }}>
-                                        <div className="search-box" style={{ height: '42px', minWidth: 'auto' }}>
+                                        <div className="search-box" style={{ height: '36px', minWidth: 'auto', boxSizing: 'border-box' }}>
                                             <Search size={16} />
                                             <input 
                                                 type="text"
                                                 placeholder="İsim veya departman ara..."
                                                 value={searchFilter}
                                                 onChange={(e) => setSearchFilter(e.target.value)}
+                                                style={{ height: '100%', padding: 0 }}
                                             />
                                             {searchFilter && (
                                                 <button type="button" className="search-clear" onClick={() => setSearchFilter('')} style={{ display: 'flex', alignItems: 'center' }}>
@@ -1293,21 +1302,23 @@ export default function Overtimes() {
                                                 ...employeeDepartmentOptions
                                             ]}
                                             onChange={setDeptFilter}
+                                            floatingLabel={false}
+                                            style={{ marginBottom: 0 }}
                                         />
                                     </div>
 
-                                    {/* Scrollable list of employees with checkboxes */}
                                     <div 
-                                        className="custom-select-dropdown" 
+                                        className="employee-select-list" 
                                         style={{ 
                                             position: 'relative', 
                                             width: '100%', 
                                             border: '1px solid var(--border-color)', 
                                             borderRadius: 'var(--radius-md)', 
-                                            maxHeight: '220px', 
+                                            height: '220px', 
                                             overflowY: 'auto', 
                                             background: 'var(--bg-secondary)', 
-                                            boxShadow: 'none' 
+                                            boxShadow: 'none',
+                                            flexShrink: 0
                                         }}
                                     >
                                         <div style={{ 
@@ -1363,23 +1374,6 @@ export default function Overtimes() {
                                                             {isChecked && <Check size={12} style={{ color: '#fff' }} />}
                                                         </div>
                                                         
-                                                        <div style={{
-                                                            width: '32px',
-                                                            height: '32px',
-                                                            borderRadius: '50%',
-                                                            background: isChecked ? 'rgba(20, 184, 166, 0.15)' : 'var(--bg-tertiary)',
-                                                            color: 'var(--accent-primary)',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '11px',
-                                                            fontWeight: 700,
-                                                            flexShrink: 0,
-                                                            border: '1px solid var(--border-color)'
-                                                        }}>
-                                                            {getInitials(emp.first_name, emp.last_name)}
-                                                        </div>
-
                                                         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
                                                             <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>
                                                                 {emp.first_name} {emp.last_name}
@@ -1421,7 +1415,7 @@ export default function Overtimes() {
                                         </div>
                                     </div>
 
-                                    <div className="modal-actions" style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                    <div className="modal-actions" style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '20px' }}>
                                         <button type="button" className="btn btn-secondary" onClick={() => setOvertimeModalOpen(false)}>Vazgeç</button>
                                         <button type="submit" className="btn btn-primary" disabled={overtimeFormData.employeeIds.length === 0} style={{ padding: '0 25px', gap: '10px' }}>
                                             İşleme Başla <ChevronRight size={18} />
@@ -1432,10 +1426,10 @@ export default function Overtimes() {
                         </div>
 
                         {/* Step 2: Individual Processing Queue */}
-                        <div style={{ minWidth: '100%', padding: '2px' }}>
+                        <div style={{ minWidth: '100%', padding: '2px', height: '100%' }}>
                             {overtimeQueue.length > 0 && (
-                                <form onSubmit={handleBulkOvertimeSubmit}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <form onSubmit={handleBulkOvertimeSubmit} style={{ height: '100%' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
                                         {/* Navigation and Current Employee Header */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
@@ -1575,7 +1569,7 @@ export default function Overtimes() {
                                             justifyContent: 'space-between', 
                                             alignItems: 'center',
                                             paddingTop: '15px',
-                                            marginTop: '10px',
+                                            marginTop: 'auto',
                                             borderTop: '1px solid var(--border-color)' 
                                         }}>
                                             <div style={{ display: 'flex', gap: '10px' }}>

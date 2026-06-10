@@ -13,7 +13,8 @@ export default function CustomSelect({
     error,
     floatingLabel = true,
     icon: Icon,
-    disabled = false
+    disabled = false,
+    style
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [placement, setPlacement] = useState('bottom')
@@ -87,7 +88,7 @@ export default function CustomSelect({
     const wrapperClass = isFloating ? `custom-select form-group floating-label-group ${hasValue ? 'has-value' : ''}` : `custom-select form-group`
 
     return (
-        <div className={`${wrapperClass} ${className}`} ref={ref}>
+        <div className={`${wrapperClass} ${className}`} ref={ref} style={style}>
             {!isFloating && label && (
                 <label className="form-label">
                     {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
