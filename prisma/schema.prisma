@@ -487,6 +487,8 @@ model works {
   work_start_time String?      @default("08:00")
   work_end_time   String?      @default("17:00")
   is_archived     Int?         @default(0)
+  pazar_multiplier Float?      @default(1.5)
+  mesai_multiplier Float?      @default(1.5)
   work_items      work_items[]
   employees   employees?   @relation(fields: [employee_id], references: [id], onUpdate: NoAction)
   vehicles    vehicles?    @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction)

@@ -180,6 +180,8 @@ export default function WorkDetails(props) {
             const workRes = await window.electronAPI.getWorkDetails(id)
             if (workRes.success) {
                 setWork(workRes.data)
+                setPazarMultiplier(workRes.data.pazar_multiplier !== undefined && workRes.data.pazar_multiplier !== null ? workRes.data.pazar_multiplier : 1.5)
+                setMesaiMultiplier(workRes.data.mesai_multiplier !== undefined && workRes.data.mesai_multiplier !== null ? workRes.data.mesai_multiplier : 1.5)
                 updateTabInfo(`/works/${id}`, { label: workRes.data.title || 'İş Detayı' })
 
                 // Load Resources for Dropdowns using companyId
@@ -654,7 +656,7 @@ export default function WorkDetails(props) {
     // --- Calculations based on filtered items (shared with PDF report) ---
     const stats = useMemo(() => {
         const items = filteredItems.length > 0 ? filteredItems : (work?.items || [])
-        const calc = calculateWorkStats(items)
+        const calc = calculateWorkStats(items, pazarMultiplier, mesaiMultiplier)
 
         // Date range from filtered items
         let dateRangeText = `${formatDate(work?.start_date)} - ${formatDate(work?.end_date)}`

@@ -8,7 +8,7 @@
  * @param {Array} items - work_items array
  * @returns {Object} calculated stats
  */
-export function calculateWorkStats(items) {
+export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5) {
     if (!items || items.length === 0) {
         return {
             totalHours: 0,
@@ -140,13 +140,13 @@ export function calculateWorkStats(items) {
         // Pazar fiyatı: Use isPazar flag (catches both description and date-based Sundays)
         let samplePazarPrice = group.items.find(i => i.isPazar)?.unit_price || 0
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            samplePazarPrice = sampleGunPrice * 1.5
+            samplePazarPrice = sampleGunPrice * pazarMultiplier
         }
 
         // Mesai fiyatı
         let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * 1.5).toFixed(2))
+            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplier).toFixed(2))
         }
 
         const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)

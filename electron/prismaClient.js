@@ -490,6 +490,23 @@ async function runAutoMigrations() {
         log.error('Migration step 19 (meal_tickets price_per_person) error:', error.message);
     }
 
+    // 20. Add pazar_multiplier and mesai_multiplier to works
+    try {
+        const wCols3 = await p.$queryRawUnsafe("PRAGMA table_info('works')");
+        if (wCols3.length > 0) {
+            if (!wCols3.some(c => c.name === 'pazar_multiplier')) {
+                await p.$executeRawUnsafe('ALTER TABLE works ADD COLUMN pazar_multiplier REAL DEFAULT 1.5');
+                log.info('Migration: Added pazar_multiplier to works');
+            }
+            if (!wCols3.some(c => c.name === 'mesai_multiplier')) {
+                await p.$executeRawUnsafe('ALTER TABLE works ADD COLUMN mesai_multiplier REAL DEFAULT 1.5');
+                log.info('Migration: Added mesai_multiplier to works');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 20 (works multipliers) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

@@ -29,7 +29,9 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
             status: 'pending',
             location: '',
             work_start_time: '08:00',
-            work_end_time: '17:00'
+            work_end_time: '17:00',
+            pazar_multiplier: 1.5,
+            mesai_multiplier: 1.5
         }
     })
 
@@ -43,7 +45,9 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                 status: initialData.status || 'pending',
                 location: initialData.location || '',
                 work_start_time: initialData.work_start_time || '08:00',
-                work_end_time: initialData.work_end_time || '17:00'
+                work_end_time: initialData.work_end_time || '17:00',
+                pazar_multiplier: initialData.pazar_multiplier !== undefined && initialData.pazar_multiplier !== null ? initialData.pazar_multiplier : 1.5,
+                mesai_multiplier: initialData.mesai_multiplier !== undefined && initialData.mesai_multiplier !== null ? initialData.mesai_multiplier : 1.5
             })
         } else {
             reset({
@@ -54,7 +58,9 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                 status: 'pending',
                 location: '',
                 work_start_time: '08:00',
-                work_end_time: '17:00'
+                work_end_time: '17:00',
+                pazar_multiplier: 1.5,
+                mesai_multiplier: 1.5
             })
         }
     }, [initialData, reset])
@@ -170,6 +176,45 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.work_end_time?.message}
+                            />
+                        )}
+                    />
+                </div>
+            </div>
+
+            <div className="form-row">
+                <div className="form-group">
+                    <Controller
+                        name="pazar_multiplier"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomInput
+                                label="Pazar Mesai Katsayısı"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={errors.pazar_multiplier?.message}
+                                placeholder="Örn: 1.5"
+                            />
+                        )}
+                    />
+                </div>
+                <div className="form-group">
+                    <Controller
+                        name="mesai_multiplier"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomInput
+                                label="Mesai Farkı Katsayısı"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={errors.mesai_multiplier?.message}
+                                placeholder="Örn: 1.5"
                             />
                         )}
                     />

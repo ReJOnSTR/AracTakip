@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = 1.5, mesaiMultiplierProp = 1.5 }) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -150,21 +150,28 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
     let grandTotalPrice = 0;
 
+    const pazarMultiplier = pazarMultiplierProp !== null && pazarMultiplierProp !== undefined 
+        ? pazarMultiplierProp 
+        : (work?.pazar_multiplier !== undefined && work?.pazar_multiplier !== null ? work.pazar_multiplier : 1.5);
+    const mesaiMultiplier = mesaiMultiplierProp !== null && mesaiMultiplierProp !== undefined 
+        ? mesaiMultiplierProp 
+        : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
+
     const groups = Object.values(groupedItems).map(group => {
         const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
         const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
         const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
 
-        // Pazar is calculated using the configured pazarMultiplierProp multiplier
+        // Pazar is calculated using the configured pazarMultiplier multiplier
         let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            samplePazarPrice = sampleGunPrice * pazarMultiplierProp;
+            samplePazarPrice = sampleGunPrice * pazarMultiplier;
         }
 
-        // Mesai is calculated using the configured mesaiMultiplierProp multiplier (hourly wage = daily / 8)
+        // Mesai is calculated using the configured mesaiMultiplier multiplier (hourly wage = daily / 8)
         let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplierProp).toFixed(2));
+            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplier).toFixed(2));
         }
 
         let calculatedGun = 0;

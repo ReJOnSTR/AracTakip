@@ -30,7 +30,7 @@ async function getWorks(companyId, isArchived = 0) {
             })).size;
 
             // Use shared calculation (same as PDF report)
-            const stats = calculateWorkStats(w.work_items);
+            const stats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5);
 
             return {
                 ...w,
@@ -106,7 +106,9 @@ async function createWork(data) {
                 work_start_time: data.work_start_time || '08:00',
                 work_end_time: data.work_end_time || '17:00',
                 start_date: data.startDate ? new Date(data.startDate) : null,
-                end_date: data.endDate ? new Date(data.endDate) : null
+                end_date: data.endDate ? new Date(data.endDate) : null,
+                pazar_multiplier: data.pazar_multiplier !== undefined ? parseFloat(data.pazar_multiplier) : 1.5,
+                mesai_multiplier: data.mesai_multiplier !== undefined ? parseFloat(data.mesai_multiplier) : 1.5
             }
         })
         return { success: true, data: newWork }
@@ -130,7 +132,9 @@ async function updateWork(data) {
                 work_start_time: data.work_start_time !== undefined ? data.work_start_time : undefined,
                 work_end_time: data.work_end_time !== undefined ? data.work_end_time : undefined,
                 start_date: data.startDate !== undefined ? (data.startDate ? new Date(data.startDate) : null) : undefined,
-                end_date: data.endDate !== undefined ? (data.endDate ? new Date(data.endDate) : null) : undefined
+                end_date: data.endDate !== undefined ? (data.endDate ? new Date(data.endDate) : null) : undefined,
+                pazar_multiplier: data.pazar_multiplier !== undefined ? parseFloat(data.pazar_multiplier) : undefined,
+                mesai_multiplier: data.mesai_multiplier !== undefined ? parseFloat(data.mesai_multiplier) : undefined
             }
         })
         return { success: true, data: updated }
@@ -153,7 +157,7 @@ async function deleteWork(id) {
 
 // ====== WORK ITEMS ======
 
-function calculateItemTotalPrice(data) {
+function calculateItemTotalPrice(data, pazarMultiplier = 1.5, mesaiMultiplier = 1.5) {
     const descUpper = (data.description || '').toUpperCase();
     const isSaatlik = descUpper.includes('[SAATLİK]');
 
@@ -178,15 +182,15 @@ function calculateItemTotalPrice(data) {
 
         if (isAylik) {
             if (isPazar) {
-                gunRate = unitPrice + (unitPrice * 1.5);
+                gunRate = unitPrice + (unitPrice * pazarMultiplier);
             }
         } else {
             if (isPazar) {
-                gunRate = unitPrice * 1.5;
+                gunRate = unitPrice * pazarMultiplier;
             }
         }
 
-        const mesaiRate = (unitPrice / 8) * 1.5;
+        const mesaiRate = (unitPrice / 8) * mesaiMultiplier;
         baseTotal = (hours * gunRate) + (overtimeHours * mesaiRate);
     }
 
@@ -198,7 +202,14 @@ async function addWorkItem(data) {
     try {
         const prisma = getPrismaClient()
 
-        let totalPrice = calculateItemTotalPrice(data);
+        const work = await prisma.works.findUnique({
+            where: { id: parseInt(data.workId) },
+            select: { pazar_multiplier: true, mesai_multiplier: true }
+        });
+        const pazarMult = work?.pazar_multiplier ?? 1.5;
+        const mesaiMult = work?.mesai_multiplier ?? 1.5;
+
+        let totalPrice = calculateItemTotalPrice(data, pazarMult, mesaiMult);
 
         const newItem = await prisma.work_items.create({
             data: {
@@ -227,9 +238,18 @@ async function addBulkWorkItems(itemsData) {
     try {
         const prisma = getPrismaClient()
 
+        const firstWorkId = itemsData[0]?.workId;
+        const work = firstWorkId ? await prisma.works.findUnique({
+            where: { id: parseInt(firstWorkId) },
+            select: { pazar_multiplier: true, mesai_multiplier: true }
+        }) : null;
+        
+        const pazarMult = work?.pazar_multiplier ?? 1.5;
+        const mesaiMult = work?.mesai_multiplier ?? 1.5;
+
         // Prepare array for createMany
         const formattedItems = itemsData.map(data => {
-            let totalPrice = calculateItemTotalPrice(data);
+            let totalPrice = calculateItemTotalPrice(data, pazarMult, mesaiMult);
             return {
                 work_id: parseInt(data.workId),
                 date: new Date(data.date),
@@ -261,7 +281,24 @@ async function updateWorkItem(data) {
     try {
         const prisma = getPrismaClient()
 
-        let totalPrice = calculateItemTotalPrice(data);
+        let workId = data.workId;
+        if (!workId) {
+            const existing = await prisma.work_items.findUnique({
+                where: { id: parseInt(data.id) },
+                select: { work_id: true }
+            });
+            workId = existing?.work_id;
+        }
+
+        const work = workId ? await prisma.works.findUnique({
+            where: { id: parseInt(workId) },
+            select: { pazar_multiplier: true, mesai_multiplier: true }
+        }) : null;
+        
+        const pazarMult = work?.pazar_multiplier ?? 1.5;
+        const mesaiMult = work?.mesai_multiplier ?? 1.5;
+
+        let totalPrice = calculateItemTotalPrice(data, pazarMult, mesaiMult);
 
         const updated = await prisma.work_items.update({
             where: { id: parseInt(data.id) },

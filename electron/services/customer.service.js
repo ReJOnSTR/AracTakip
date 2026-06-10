@@ -27,7 +27,7 @@ async function getCustomers(companyId, isArchived = 0) {
             let totalVolume = 0
 
             c.works.forEach(w => {
-                const stats = calculateWorkStats(w.work_items)
+                const stats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5)
                 totalVolume += stats.grandTotal
                 if (w.status !== 'paid' && w.status !== 'cancelled') {
                     totalWorkReceivable += stats.grandTotal
@@ -85,7 +85,7 @@ async function getCustomerDetails(id) {
             })).size;
 
             // Use shared calculation (same as PDF report)
-            const workStats = calculateWorkStats(w.work_items)
+            const workStats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5)
 
             return {
                 ...w,

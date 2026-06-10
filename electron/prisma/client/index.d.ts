@@ -35649,6 +35649,8 @@ export namespace Prisma {
     customer_id: number | null
     price: number | null
     is_archived: number | null
+    pazar_multiplier: number | null
+    mesai_multiplier: number | null
   }
 
   export type WorksSumAggregateOutputType = {
@@ -35659,6 +35661,8 @@ export namespace Prisma {
     customer_id: number | null
     price: number | null
     is_archived: number | null
+    pazar_multiplier: number | null
+    mesai_multiplier: number | null
   }
 
   export type WorksMinAggregateOutputType = {
@@ -35679,6 +35683,8 @@ export namespace Prisma {
     work_start_time: string | null
     work_end_time: string | null
     is_archived: number | null
+    pazar_multiplier: number | null
+    mesai_multiplier: number | null
   }
 
   export type WorksMaxAggregateOutputType = {
@@ -35699,6 +35705,8 @@ export namespace Prisma {
     work_start_time: string | null
     work_end_time: string | null
     is_archived: number | null
+    pazar_multiplier: number | null
+    mesai_multiplier: number | null
   }
 
   export type WorksCountAggregateOutputType = {
@@ -35719,6 +35727,8 @@ export namespace Prisma {
     work_start_time: number
     work_end_time: number
     is_archived: number
+    pazar_multiplier: number
+    mesai_multiplier: number
     _all: number
   }
 
@@ -35731,6 +35741,8 @@ export namespace Prisma {
     customer_id?: true
     price?: true
     is_archived?: true
+    pazar_multiplier?: true
+    mesai_multiplier?: true
   }
 
   export type WorksSumAggregateInputType = {
@@ -35741,6 +35753,8 @@ export namespace Prisma {
     customer_id?: true
     price?: true
     is_archived?: true
+    pazar_multiplier?: true
+    mesai_multiplier?: true
   }
 
   export type WorksMinAggregateInputType = {
@@ -35761,6 +35775,8 @@ export namespace Prisma {
     work_start_time?: true
     work_end_time?: true
     is_archived?: true
+    pazar_multiplier?: true
+    mesai_multiplier?: true
   }
 
   export type WorksMaxAggregateInputType = {
@@ -35781,6 +35797,8 @@ export namespace Prisma {
     work_start_time?: true
     work_end_time?: true
     is_archived?: true
+    pazar_multiplier?: true
+    mesai_multiplier?: true
   }
 
   export type WorksCountAggregateInputType = {
@@ -35801,6 +35819,8 @@ export namespace Prisma {
     work_start_time?: true
     work_end_time?: true
     is_archived?: true
+    pazar_multiplier?: true
+    mesai_multiplier?: true
     _all?: true
   }
 
@@ -35908,6 +35928,8 @@ export namespace Prisma {
     work_start_time: string | null
     work_end_time: string | null
     is_archived: number | null
+    pazar_multiplier: number | null
+    mesai_multiplier: number | null
     _count: WorksCountAggregateOutputType | null
     _avg: WorksAvgAggregateOutputType | null
     _sum: WorksSumAggregateOutputType | null
@@ -35947,6 +35969,8 @@ export namespace Prisma {
     work_start_time?: boolean
     work_end_time?: boolean
     is_archived?: boolean
+    pazar_multiplier?: boolean
+    mesai_multiplier?: boolean
     work_items?: boolean | works$work_itemsArgs<ExtArgs>
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
@@ -35973,6 +35997,8 @@ export namespace Prisma {
     work_start_time?: boolean
     work_end_time?: boolean
     is_archived?: boolean
+    pazar_multiplier?: boolean
+    mesai_multiplier?: boolean
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -35997,6 +36023,8 @@ export namespace Prisma {
     work_start_time?: boolean
     work_end_time?: boolean
     is_archived?: boolean
+    pazar_multiplier?: boolean
+    mesai_multiplier?: boolean
     employees?: boolean | works$employeesArgs<ExtArgs>
     vehicles?: boolean | works$vehiclesArgs<ExtArgs>
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -36021,9 +36049,11 @@ export namespace Prisma {
     work_start_time?: boolean
     work_end_time?: boolean
     is_archived?: boolean
+    pazar_multiplier?: boolean
+    mesai_multiplier?: boolean
   }
 
-  export type worksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "vehicle_id" | "employee_id" | "customer_id" | "customer" | "title" | "description" | "status" | "price" | "location" | "created_at" | "start_date" | "end_date" | "work_start_time" | "work_end_time" | "is_archived", ExtArgs["result"]["works"]>
+  export type worksOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "vehicle_id" | "employee_id" | "customer_id" | "customer" | "title" | "description" | "status" | "price" | "location" | "created_at" | "start_date" | "end_date" | "work_start_time" | "work_end_time" | "is_archived" | "pazar_multiplier" | "mesai_multiplier", ExtArgs["result"]["works"]>
   export type worksInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     work_items?: boolean | works$work_itemsArgs<ExtArgs>
     employees?: boolean | works$employeesArgs<ExtArgs>
@@ -36072,6 +36102,8 @@ export namespace Prisma {
       work_start_time: string | null
       work_end_time: string | null
       is_archived: number | null
+      pazar_multiplier: number | null
+      mesai_multiplier: number | null
     }, ExtArgs["result"]["works"]>
     composites: {}
   }
@@ -36517,6 +36549,8 @@ export namespace Prisma {
     readonly work_start_time: FieldRef<"works", 'String'>
     readonly work_end_time: FieldRef<"works", 'String'>
     readonly is_archived: FieldRef<"works", 'Int'>
+    readonly pazar_multiplier: FieldRef<"works", 'Float'>
+    readonly mesai_multiplier: FieldRef<"works", 'Float'>
   }
     
 
@@ -42906,7 +42940,9 @@ export namespace Prisma {
     end_date: 'end_date',
     work_start_time: 'work_start_time',
     work_end_time: 'work_end_time',
-    is_archived: 'is_archived'
+    is_archived: 'is_archived',
+    pazar_multiplier: 'pazar_multiplier',
+    mesai_multiplier: 'mesai_multiplier'
   };
 
   export type WorksScalarFieldEnum = (typeof WorksScalarFieldEnum)[keyof typeof WorksScalarFieldEnum]
@@ -45353,6 +45389,8 @@ export namespace Prisma {
     work_start_time?: StringNullableFilter<"works"> | string | null
     work_end_time?: StringNullableFilter<"works"> | string | null
     is_archived?: IntNullableFilter<"works"> | number | null
+    pazar_multiplier?: FloatNullableFilter<"works"> | number | null
+    mesai_multiplier?: FloatNullableFilter<"works"> | number | null
     work_items?: Work_itemsListRelationFilter
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
@@ -45378,6 +45416,8 @@ export namespace Prisma {
     work_start_time?: SortOrderInput | SortOrder
     work_end_time?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
+    pazar_multiplier?: SortOrderInput | SortOrder
+    mesai_multiplier?: SortOrderInput | SortOrder
     work_items?: work_itemsOrderByRelationAggregateInput
     employees?: employeesOrderByWithRelationInput
     vehicles?: vehiclesOrderByWithRelationInput
@@ -45406,6 +45446,8 @@ export namespace Prisma {
     work_start_time?: StringNullableFilter<"works"> | string | null
     work_end_time?: StringNullableFilter<"works"> | string | null
     is_archived?: IntNullableFilter<"works"> | number | null
+    pazar_multiplier?: FloatNullableFilter<"works"> | number | null
+    mesai_multiplier?: FloatNullableFilter<"works"> | number | null
     work_items?: Work_itemsListRelationFilter
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
@@ -45431,6 +45473,8 @@ export namespace Prisma {
     work_start_time?: SortOrderInput | SortOrder
     work_end_time?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
+    pazar_multiplier?: SortOrderInput | SortOrder
+    mesai_multiplier?: SortOrderInput | SortOrder
     _count?: worksCountOrderByAggregateInput
     _avg?: worksAvgOrderByAggregateInput
     _max?: worksMaxOrderByAggregateInput
@@ -45459,6 +45503,8 @@ export namespace Prisma {
     work_start_time?: StringNullableWithAggregatesFilter<"works"> | string | null
     work_end_time?: StringNullableWithAggregatesFilter<"works"> | string | null
     is_archived?: IntNullableWithAggregatesFilter<"works"> | number | null
+    pazar_multiplier?: FloatNullableWithAggregatesFilter<"works"> | number | null
+    mesai_multiplier?: FloatNullableWithAggregatesFilter<"works"> | number | null
   }
 
   export type departmentsWhereInput = {
@@ -48267,6 +48313,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -48292,6 +48340,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -48308,6 +48358,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -48333,6 +48385,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -48354,6 +48408,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
   }
 
   export type worksUpdateManyMutationInput = {
@@ -48369,6 +48425,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type worksUncheckedUpdateManyInput = {
@@ -48389,6 +48447,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type departmentsCreateInput = {
@@ -50670,6 +50730,8 @@ export namespace Prisma {
     work_start_time?: SortOrder
     work_end_time?: SortOrder
     is_archived?: SortOrder
+    pazar_multiplier?: SortOrder
+    mesai_multiplier?: SortOrder
   }
 
   export type worksAvgOrderByAggregateInput = {
@@ -50680,6 +50742,8 @@ export namespace Prisma {
     customer_id?: SortOrder
     price?: SortOrder
     is_archived?: SortOrder
+    pazar_multiplier?: SortOrder
+    mesai_multiplier?: SortOrder
   }
 
   export type worksMaxOrderByAggregateInput = {
@@ -50700,6 +50764,8 @@ export namespace Prisma {
     work_start_time?: SortOrder
     work_end_time?: SortOrder
     is_archived?: SortOrder
+    pazar_multiplier?: SortOrder
+    mesai_multiplier?: SortOrder
   }
 
   export type worksMinOrderByAggregateInput = {
@@ -50720,6 +50786,8 @@ export namespace Prisma {
     work_start_time?: SortOrder
     work_end_time?: SortOrder
     is_archived?: SortOrder
+    pazar_multiplier?: SortOrder
+    mesai_multiplier?: SortOrder
   }
 
   export type worksSumOrderByAggregateInput = {
@@ -50730,6 +50798,8 @@ export namespace Prisma {
     customer_id?: SortOrder
     price?: SortOrder
     is_archived?: SortOrder
+    pazar_multiplier?: SortOrder
+    mesai_multiplier?: SortOrder
   }
 
   export type departmentsCountOrderByAggregateInput = {
@@ -53496,6 +53566,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -53519,6 +53591,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -53944,6 +54018,8 @@ export namespace Prisma {
     work_start_time?: StringNullableFilter<"works"> | string | null
     work_end_time?: StringNullableFilter<"works"> | string | null
     is_archived?: IntNullableFilter<"works"> | number | null
+    pazar_multiplier?: FloatNullableFilter<"works"> | number | null
+    mesai_multiplier?: FloatNullableFilter<"works"> | number | null
   }
 
   export type customersUpsertWithWhereUniqueWithoutCompaniesInput = {
@@ -54179,6 +54255,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
@@ -54202,6 +54280,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -55537,6 +55617,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
     companies: companiesCreateNestedOneWithoutWorksInput
@@ -55560,6 +55642,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -57848,6 +57932,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsCreateNestedManyWithoutWorksInput
     employees?: employeesCreateNestedOneWithoutWorksInput
     companies: companiesCreateNestedOneWithoutWorksInput
@@ -57871,6 +57957,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     work_items?: work_itemsUncheckedCreateNestedManyWithoutWorksInput
   }
 
@@ -58316,6 +58404,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
     employees?: employeesCreateNestedOneWithoutWorksInput
     vehicles?: vehiclesCreateNestedOneWithoutWorksInput
     companies: companiesCreateNestedOneWithoutWorksInput
@@ -58340,6 +58430,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
   }
 
   export type worksCreateOrConnectWithoutWork_itemsInput = {
@@ -58509,6 +58601,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
     companies?: companiesUpdateOneRequiredWithoutWorksNestedInput
@@ -58533,6 +58627,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsCreateWithoutWorksInput = {
@@ -59618,6 +59714,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
   }
 
   export type customersCreateManyCompaniesInput = {
@@ -59954,6 +60052,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -59977,6 +60077,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -59997,6 +60099,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type customersUpdateWithoutCompaniesInput = {
@@ -60144,6 +60248,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
   }
 
   export type worksUpdateWithoutCustomersInput = {
@@ -60159,6 +60265,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
@@ -60182,6 +60290,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -60202,6 +60312,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsCreateManyEmployeesInput = {
@@ -60333,6 +60445,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
   }
 
   export type employee_assignmentsUpdateWithoutEmployeesInput = {
@@ -60675,6 +60789,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     vehicles?: vehiclesUpdateOneWithoutWorksNestedInput
     companies?: companiesUpdateOneRequiredWithoutWorksNestedInput
@@ -60698,6 +60814,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -60718,6 +60836,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type companiesCreateManyUsersInput = {
@@ -60912,6 +61032,8 @@ export namespace Prisma {
     work_start_time?: string | null
     work_end_time?: string | null
     is_archived?: number | null
+    pazar_multiplier?: number | null
+    mesai_multiplier?: number | null
   }
 
   export type assignmentsUpdateWithoutVehiclesInput = {
@@ -61214,6 +61336,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUpdateManyWithoutWorksNestedInput
     employees?: employeesUpdateOneWithoutWorksNestedInput
     companies?: companiesUpdateOneRequiredWithoutWorksNestedInput
@@ -61237,6 +61361,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     work_items?: work_itemsUncheckedUpdateManyWithoutWorksNestedInput
   }
 
@@ -61257,6 +61383,8 @@ export namespace Prisma {
     work_start_time?: NullableStringFieldUpdateOperationsInput | string | null
     work_end_time?: NullableStringFieldUpdateOperationsInput | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
+    pazar_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    mesai_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type work_itemsCreateManyWorksInput = {

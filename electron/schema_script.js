@@ -362,6 +362,8 @@ const allTablesSQL = [
     "start_date" DATETIME,
     "end_date" DATETIME,
     "is_archived" INTEGER DEFAULT 0,
+    "pazar_multiplier" REAL DEFAULT 1.5,
+    "mesai_multiplier" REAL DEFAULT 1.5,
     CONSTRAINT "works_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     CONSTRAINT "works_vehicle_id_fkey" FOREIGN KEY ("vehicle_id") REFERENCES "vehicles" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     CONSTRAINT "works_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION,

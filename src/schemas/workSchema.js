@@ -10,7 +10,9 @@ export const workHeaderSchema = z.object({
     location: z.string().optional(),
     work_start_time: z.string().optional().default('08:00'),
     work_end_time: z.string().optional().default('17:00'),
-    status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).default('pending')
+    status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).default('pending'),
+    pazar_multiplier: z.union([z.string(), z.number()]).optional().default(1.5).transform((val) => Number(val) || 1.5),
+    mesai_multiplier: z.union([z.string(), z.number()]).optional().default(1.5).transform((val) => Number(val) || 1.5)
 });
 
 export const workItemSchema = z.object({
