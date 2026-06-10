@@ -70,8 +70,8 @@ export default function WorkDetails(props) {
     const [showKdv, setShowKdv] = useState(false)
     const [kdvRate, setKdvRate] = useState(20)
     const [generatingPdf, setGeneratingPdf] = useState(false)
-    const [pazarMultiplier, setPazarMultiplier] = useState(1.5)
-    const [mesaiMultiplier, setMesaiMultiplier] = useState(1.5)
+    const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
+    const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
 
     // Form State
     const [formData, setFormData] = useState({
@@ -180,8 +180,8 @@ export default function WorkDetails(props) {
             const workRes = await window.electronAPI.getWorkDetails(id)
             if (workRes.success) {
                 setWork(workRes.data)
-                setPazarMultiplier(workRes.data.pazar_multiplier !== undefined && workRes.data.pazar_multiplier !== null ? workRes.data.pazar_multiplier : 1.5)
-                setMesaiMultiplier(workRes.data.mesai_multiplier !== undefined && workRes.data.mesai_multiplier !== null ? workRes.data.mesai_multiplier : 1.5)
+                setPazarMultiplier(workRes.data.pazar_multiplier !== undefined && workRes.data.pazar_multiplier !== null ? String(workRes.data.pazar_multiplier) : "1.5")
+                setMesaiMultiplier(workRes.data.mesai_multiplier !== undefined && workRes.data.mesai_multiplier !== null ? String(workRes.data.mesai_multiplier) : "1.5")
                 updateTabInfo(`/works/${id}`, { label: workRes.data.title || 'İş Detayı' })
 
                 // Load Resources for Dropdowns using companyId
@@ -642,7 +642,18 @@ export default function WorkDetails(props) {
             mesaiMultiplier: mesaiMultiplier,
             isPdfSave: false
         }))
-        window.print()
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.left = '-9999px';
+        iframe.src = '#/print';
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 3000);
     }
     const [filteredItems, setFilteredItems] = useState([])
 
@@ -1540,7 +1551,7 @@ export default function WorkDetails(props) {
                                         min="0"
                                         className="form-input"
                                         value={pazarMultiplier}
-                                        onChange={e => setPazarMultiplier(parseFloat(e.target.value) || 0)}
+                                        onChange={e => setPazarMultiplier(e.target.value)}
                                         style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
                                     />
                                 </div>
@@ -1552,7 +1563,7 @@ export default function WorkDetails(props) {
                                         min="0"
                                         className="form-input"
                                         value={mesaiMultiplier}
-                                        onChange={e => setMesaiMultiplier(parseFloat(e.target.value) || 0)}
+                                        onChange={e => setMesaiMultiplier(e.target.value)}
                                         style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
                                     />
                                 </div>

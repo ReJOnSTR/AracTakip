@@ -4,6 +4,13 @@ import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
 export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
+    const [collapsedGroups, setCollapsedGroups] = useState({});
+    const toggleGroup = (idx) => {
+        setCollapsedGroups(prev => ({
+            ...prev,
+            [idx]: !prev[idx]
+        }));
+    };
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -150,11 +157,14 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
     let grandTotalPrice = 0;
 
-    const pazarMultiplier = pazarMultiplierProp !== null && pazarMultiplierProp !== undefined 
-        ? pazarMultiplierProp 
+    const parsedPazarProp = pazarMultiplierProp !== null && pazarMultiplierProp !== undefined && pazarMultiplierProp !== "" ? parseFloat(pazarMultiplierProp) : NaN;
+    const pazarMultiplier = !isNaN(parsedPazarProp)
+        ? parsedPazarProp 
         : (work?.pazar_multiplier !== undefined && work?.pazar_multiplier !== null ? work.pazar_multiplier : 1.5);
-    const mesaiMultiplier = mesaiMultiplierProp !== null && mesaiMultiplierProp !== undefined 
-        ? mesaiMultiplierProp 
+
+    const parsedMesaiProp = mesaiMultiplierProp !== null && mesaiMultiplierProp !== undefined && mesaiMultiplierProp !== "" ? parseFloat(mesaiMultiplierProp) : NaN;
+    const mesaiMultiplier = !isNaN(parsedMesaiProp)
+        ? parsedMesaiProp 
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
     const groups = Object.values(groupedItems).map(group => {
@@ -263,10 +273,33 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                         <div className="pdf-date-value">{new Date().toLocaleDateString('tr-TR')}</div>
                     </div>
                 </div>
-
                 <div style={{ marginBottom: '15px' }}>
-                    {/* Header info removed as requested */}
                 </div>
+            <style dangerouslySetInnerHTML={{ __html: `
+              .report-section-header {
+                cursor: pointer;
+                user-select: none;
+                transition: opacity 0.2s;
+              }
+              .report-section-header:hover {
+                opacity: 0.8;
+              }
+              .report-collapse-icon {
+                font-size: 10px;
+                margin-right: 8px;
+              }
+              @media print {
+                .report-collapsible-body {
+                  display: block !important;
+                }
+                .report-collapse-icon {
+                  display: none !important;
+                }
+                .pdf-group-title {
+                  cursor: default !important;
+                }
+              }
+            `}} />
 
             {/* Tables grouped by vehicle */}
             {groups.map((group, idx) => {
@@ -274,105 +307,127 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                 return (
                     <div className="pdf-vehicle-group" key={idx}>
-                        <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
-                            <thead>
-                                <tr>
-                                    <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
-                                    <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
-                                    <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
-                                    <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
-                                    <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
-                                    <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
-                                    <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
-                                    <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
-                                </tr>
-                                <tr>
-                                    <th style={{ width: '11%' }}>Başlama</th>
-                                    <th style={{ width: '11%' }}>Bitiş</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {group.items.map((item, itemIdx) => {
-                                    return (
-                                        <tr key={itemIdx} className={item.isPazar ? "pdf-row-pazar" : ""}>
-                                            <td className="center">{formatDate(item.date)}</td>
-                                            <td className="center">{item.receipt_no || '-'}</td>
-                                            <td className="center">{item.start_time || '-'}</td>
-                                            <td className="center">{item.end_time || '-'}</td>
-                                            <td className="center">
-                                                {item.hours || 0} {((item.description || '').toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
-                                            </td>
-                                            <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
-                                            <td className="center">{group.machineName}</td>
-                                            <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/g, '')}</td>
-                                            <td className="right">{showPrices ? (item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')) : ''}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-
-                        {/* Summary Block */}
-                        <div className="pdf-summary-block">
-                            <table className="pdf-summary-table" style={{ width: '550px' }}>
-                                <colgroup>
-                                    <col style={{ width: '125px' }} />
-                                    <col style={{ width: '125px' }} />
-                                    <col style={{ width: '150px' }} />
-                                    <col style={{ width: '150px' }} />
-                                </colgroup>
+                        <h3 
+                            className="pdf-group-title report-section-header" 
+                            onClick={() => toggleGroup(idx)} 
+                            style={{ 
+                                fontSize: '13px', 
+                                fontWeight: 'bold', 
+                                borderBottom: '1px solid #ccc', 
+                                paddingBottom: '5px', 
+                                marginBottom: '10px', 
+                                marginTop: '15px', 
+                                cursor: 'pointer', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '8px', 
+                                userSelect: 'none' 
+                            }}
+                        >
+                            <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedGroups[idx] ? 'rotate(-90deg)' : 'none' }}>▼</span>
+                            <span>{group.machineName.toUpperCase()} DETAYLARI</span>
+                        </h3>
+                        <div className="report-collapsible-body" style={{ display: collapsedGroups[idx] ? 'none' : 'block' }}>
+                            <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
+                                <thead>
+                                    <tr>
+                                        <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
+                                        <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
+                                        <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
+                                        <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
+                                        <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
+                                        <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
+                                        <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
+                                        <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
+                                    </tr>
+                                    <tr>
+                                        <th style={{ width: '11%' }}>Başlama</th>
+                                        <th style={{ width: '11%' }}>Bitiş</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
-                                    <tr className="bg-light-gray">
-                                        <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
-                                            {group.machineName.toUpperCase()}
-                                        </td>
-                                    </tr>
-                                    {(group.totalGun > 0 || group.isAylik) && (
-                                        <tr className="bg-light-gray">
-                                            <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
-                                            <td className="center">{group.isAylik ? '1 AY' : (group.totalGun > 0 ? `${group.totalGun} GÜN` : '')}</td>
-                                            <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
-                                            <td className="right bold total-text">{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
-                                        </tr>
-                                    )}
-                                    {group.totalSaatlik > 0 && (
-                                        <tr className="bg-light-gray">
-                                            <td className="bold center">SAAT</td>
-                                            <td className="center">{group.totalSaatlik} SAAT</td>
-                                            <td className="right">{sampleSaatlikPrice ? formatCurrency(sampleSaatlikPrice) : ''}</td>
-                                            <td className="right bold total-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
-                                        </tr>
-                                    )}
-                                    {group.totalPazar > 0 && (
-                                        <tr className="bg-light-gray">
-                                            <td className="bold center">PAZAR</td>
-                                            <td className="center">{group.totalPazar} GÜN</td>
-                                            <td className="right">{samplePazarPrice ? formatCurrency(samplePazarPrice) : ''}</td>
-                                            <td className="right bold total-text">{samplePazarPrice ? formatCurrency(group.totalPazar * samplePazarPrice) : ''}</td>
-                                        </tr>
-                                    )}
-                                    {group.totalMesai > 0 && (
-                                        <tr className="bg-light-gray">
-                                            <td className="bold center">MESAİ</td>
-                                            <td className="center">{group.totalMesai} SAAT</td>
-                                            <td className="right">{sampleMesaiPrice ? formatCurrency(sampleMesaiPrice) : ''}</td>
-                                            <td className="right bold total-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
-                                        </tr>
-                                    )}
-                                    {group.additions && Object.entries(group.additions).map(([type, data]) => (
-                                        <tr key={type} className="bg-light-gray">
-                                            <td className="bold center">{type.toUpperCase()}</td>
-                                            <td className="center">{data.count} ADET</td>
-                                            <td className="right">{formatCurrency(data.price)}</td>
-                                            <td className="right bold total-text">{formatCurrency(data.count * data.price)}</td>
-                                        </tr>
-                                    ))}
-                                    <tr style={{ borderTop: '1px solid #ddd' }}>
-                                        <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
-                                        <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
-                                    </tr>
+                                    {group.items.map((item, itemIdx) => {
+                                        return (
+                                            <tr key={itemIdx} className={item.isPazar ? "pdf-row-pazar" : ""}>
+                                                <td className="center">{formatDate(item.date)}</td>
+                                                <td className="center">{item.receipt_no || '-'}</td>
+                                                <td className="center">{item.start_time || '-'}</td>
+                                                <td className="center">{item.end_time || '-'}</td>
+                                                <td className="center">
+                                                    {item.hours || 0} {((item.description || '').toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
+                                                </td>
+                                                <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
+                                                <td className="center">{group.machineName}</td>
+                                                <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/g, '')}</td>
+                                                <td className="right">{showPrices ? (item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')) : ''}</td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
+
+                            {/* Summary Block */}
+                            <div className="pdf-summary-block">
+                                <table className="pdf-summary-table" style={{ width: '550px' }}>
+                                    <colgroup>
+                                        <col style={{ width: '125px' }} />
+                                        <col style={{ width: '125px' }} />
+                                        <col style={{ width: '150px' }} />
+                                        <col style={{ width: '150px' }} />
+                                    </colgroup>
+                                    <tbody>
+                                        <tr className="bg-light-gray">
+                                            <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
+                                                {group.machineName.toUpperCase()}
+                                            </td>
+                                        </tr>
+                                        {(group.totalGun > 0 || group.isAylik) && (
+                                            <tr className="bg-light-gray">
+                                                <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
+                                                <td className="center">{group.isAylik ? '1 AY' : (group.totalGun > 0 ? `${group.totalGun} GÜN` : '')}</td>
+                                                <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
+                                                <td className="right bold total-text">{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
+                                            </tr>
+                                        )}
+                                        {group.totalSaatlik > 0 && (
+                                            <tr className="bg-light-gray">
+                                                <td className="bold center">SAAT</td>
+                                                <td className="center">{group.totalSaatlik} SAAT</td>
+                                                <td className="right">{sampleSaatlikPrice ? formatCurrency(sampleSaatlikPrice) : ''}</td>
+                                                <td className="right bold total-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
+                                            </tr>
+                                        )}
+                                        {group.totalPazar > 0 && (
+                                            <tr className="bg-light-gray">
+                                                <td className="bold center">PAZAR</td>
+                                                <td className="center">{group.totalPazar} GÜN</td>
+                                                <td className="right">{samplePazarPrice ? formatCurrency(samplePazarPrice) : ''}</td>
+                                                <td className="right bold total-text">{samplePazarPrice ? formatCurrency(group.totalPazar * samplePazarPrice) : ''}</td>
+                                            </tr>
+                                        )}
+                                        {group.totalMesai > 0 && (
+                                            <tr className="bg-light-gray">
+                                                <td className="bold center">MESAİ</td>
+                                                <td className="center">{group.totalMesai} SAAT</td>
+                                                <td className="right">{sampleMesaiPrice ? formatCurrency(sampleMesaiPrice) : ''}</td>
+                                                <td className="right bold total-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
+                                            </tr>
+                                        )}
+                                        {group.additions && Object.entries(group.additions).map(([type, data]) => (
+                                            <tr key={type} className="bg-light-gray">
+                                                <td className="bold center">{type.toUpperCase()}</td>
+                                                <td className="center">{data.count} ADET</td>
+                                                <td className="right">{formatCurrency(data.price)}</td>
+                                                <td className="right bold total-text">{formatCurrency(data.count * data.price)}</td>
+                                            </tr>
+                                        ))}
+                                        <tr style={{ borderTop: '1px solid #ddd' }}>
+                                            <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
+                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 );

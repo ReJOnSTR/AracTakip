@@ -85,8 +85,12 @@ export default function PrintPage() {
                         size: A4;
                         margin: 0mm;
                     }
-                    body {
-                        margin: 0px;
+                    body, html {
+                        margin: 0px !important;
+                        padding: 0px !important;
+                        background: white !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     `}
                 </style>
@@ -114,8 +118,38 @@ export default function PrintPage() {
                     size: A4;
                     margin: 0mm;
                 }
-                body {
-                    margin: 0px;
+                body, html {
+                    margin: 0px !important;
+                    padding: 0px !important;
+                    background: white !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .report-print-container {
+                    width: 210mm !important;
+                    min-height: 297mm !important;
+                    margin: 0 auto !important;
+                    padding: 10mm !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                    background: white !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    zoom: 0.88 !important;
+                    page-break-after: always !important;
+                    box-sizing: border-box !important;
+                }
+                .report-print-container table {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                }
+                .report-print-container th {
+                    background-color: #eee !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .report-print-container tr {
+                    page-break-inside: avoid !important;
                 }
                 `}
             </style>
