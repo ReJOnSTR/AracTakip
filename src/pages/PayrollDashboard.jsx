@@ -565,15 +565,20 @@ export default function PayrollDashboard() {
                 />
                 <StatCard 
                     title="Toplam Avans" 
-                    value={formatCurrency(advanceStats.currentMonth)} 
+                    value={
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
+                            <span>{formatCurrency(advanceStats.currentMonth)}</span>
+                            {advanceStats.potentialTotal > 0 && (
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }} title="Alınabilir Toplam Limit">
+                                    / {formatCurrency(advanceStats.potentialTotal)} <span style={{ fontSize: '11px', opacity: 0.8 }}>({advanceStats.activeCount} Kişi)</span>
+                                </span>
+                            )}
+                        </div>
+                    } 
                     icon={TrendingUp} 
                     color="var(--secondary-color)" 
                     bgColor="var(--secondary-bg, rgba(139, 92, 246, 0.1))"
-                    subtitle={
-                        advanceStats.potentialTotal > 0 
-                            ? `${advanceStats.avg3Month > 0 ? `Ort. (3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Ort. yok'} | Limit: ${formatCurrency(advanceStats.potentialTotal)} (${advanceStats.activeCount} Kişi)`
-                            : (advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok')
-                    }
+                    subtitle={advanceStats.avg3Month > 0 ? `Ort. (Son 3 Ay): ${formatCurrency(advanceStats.avg3Month)}` : 'Önceki aylarda avans yok'}
                 />
             </div>
 
