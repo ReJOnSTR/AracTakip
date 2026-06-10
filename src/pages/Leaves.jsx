@@ -698,7 +698,7 @@ export default function Leaves() {
                         display: 'flex', 
                         transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                         transform: leaveModalStep === 1 ? 'translateX(0)' : 'translateX(-100%)',
-                        height: '430px'
+                        height: '480px'
                     }}>
                         {/* Step 1: Selection */}
                         <div style={{ minWidth: '100%', padding: '2px', height: '100%' }}>
@@ -854,7 +854,7 @@ export default function Leaves() {
                         <div style={{ minWidth: '100%', padding: '2px', height: '100%' }}>
                             {leaveQueue.length > 0 && (
                                 <form onSubmit={handleSubmit} style={{ height: '100%' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', height: '100%', overflowY: 'auto' }}>
                                         {/* Navigation and Current Employee Header */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
