@@ -920,40 +920,48 @@ export default function Leaves() {
                                         </div>
 
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                            <CustomSelect 
-                                                label="İzin Türü *" 
-                                                value={leaveQueue[leaveQueueIndex].type} 
-                                                options={leaveTypes} 
-                                                onChange={(val) => updateLeaveQueueField('type', val)} 
-                                            />
-                                            {/* Seniority Hint */}
-                                            {(() => {
-                                                const name = leaveQueue[leaveQueueIndex].type?.toLowerCase() || '';
-                                                let hint = '';
-                                                if (name.includes('yıllık')) {
-                                                    const emp = leaveQueue[leaveQueueIndex].employee;
-                                                    const start = emp?.start_date ? new Date(emp.start_date) : null;
-                                                    const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
-                                                    let legalDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
-                                                    hint = `Kıdem: ${years} Yıl. Yasal Hak: ${legalDays} Gün`;
-                                                }
-                                                else if (name.includes('evlilik')) hint = 'Yasal Hak: 3 Gün';
-                                                else if (name.includes('ölüm')) hint = 'Yasal Hak: 3 Gün';
-                                                else if (name.includes('babalık')) hint = 'Yasal Hak: 5 Gün';
-                                                else if (name.includes('engelli')) hint = 'Yasal Hak: 10 Gün';
-                                                
-                                                if (hint) return (
-                                                    <div style={{ gridColumn: '2', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <div style={{ padding: '4px 10px', background: 'rgba(20, 184, 166, 0.1)', color: 'var(--accent-primary)', borderRadius: '6px', fontSize: '11px', fontWeight: 700, border: '1px solid rgba(20, 184, 166, 0.2)', display: 'flex', alignItems: 'center', gap: '4px', height: 'fit-content' }}>
-                                                            <AlertCircle size={12} /> {hint}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <CustomSelect 
+                                                    label="İzin Türü *" 
+                                                    value={leaveQueue[leaveQueueIndex].type} 
+                                                    options={leaveTypes} 
+                                                    onChange={(val) => updateLeaveQueueField('type', val)} 
+                                                />
+                                                {(() => {
+                                                    const name = leaveQueue[leaveQueueIndex].type?.toLowerCase() || '';
+                                                    let hint = '';
+                                                    if (name.includes('yıllık')) {
+                                                        const emp = leaveQueue[leaveQueueIndex].employee;
+                                                        const start = emp?.start_date ? new Date(emp.start_date) : null;
+                                                        const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
+                                                        let legalDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
+                                                        hint = `Kıdem: ${years} Yıl. Yasal Hak: ${legalDays} Gün`;
+                                                    }
+                                                    else if (name.includes('evlilik')) hint = 'Yasal Hak: 3 Gün';
+                                                    else if (name.includes('ölüm')) hint = 'Yasal Hak: 3 Gün';
+                                                    else if (name.includes('babalık')) hint = 'Yasal Hak: 5 Gün';
+                                                    else if (name.includes('engelli')) hint = 'Yasal Hak: 10 Gün';
+                                                    
+                                                    if (hint) return (
+                                                        <div style={{ marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            <div style={{ padding: '3px 8px', background: 'rgba(20, 184, 166, 0.1)', color: 'var(--accent-primary)', borderRadius: '4px', fontSize: '10.5px', fontWeight: 700, border: '1px solid rgba(20, 184, 166, 0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <AlertCircle size={10} /> {hint}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                                return null;
-                                            })()}
-                                        </div>
+                                                    );
+                                                    return null;
+                                                })()}
+                                            </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                                            <CustomInput 
+                                                label="Gün Sayısı *" 
+                                                type="number" 
+                                                value={leaveQueue[leaveQueueIndex].days} 
+                                                onChange={(val) => updateLeaveQueueField('days', val)} 
+                                                min={1}
+                                                required 
+                                            />
+
                                             <CustomInput 
                                                 label="Başlangıç Tarihi *" 
                                                 type="date" 
@@ -961,14 +969,7 @@ export default function Leaves() {
                                                 onChange={(val) => updateLeaveQueueField('startDate', val)} 
                                                 required 
                                             />
-                                            <CustomInput 
-                                                label="Gün Sayısı" 
-                                                type="number" 
-                                                value={leaveQueue[leaveQueueIndex].days} 
-                                                onChange={(val) => updateLeaveQueueField('days', val)} 
-                                                min={1}
-                                                required 
-                                            />
+
                                             <CustomInput 
                                                 label="Bitiş Tarihi *" 
                                                 type="date" 
@@ -976,36 +977,35 @@ export default function Leaves() {
                                                 onChange={(val) => updateLeaveQueueField('endDate', val)} 
                                                 required 
                                             />
-                                        </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
                                             <div style={{
                                                 display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px',
                                                 background: leaveQueue[leaveQueueIndex].status === 'approved' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
                                                 border: `1px solid ${leaveQueue[leaveQueueIndex].status === 'approved' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                                                borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                                borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer',
+                                                height: '54px', boxSizing: 'border-box'
                                             }} onClick={() => updateLeaveQueueField('status', leaveQueue[leaveQueueIndex].status === 'approved' ? 'pending' : 'approved')}>
                                                 <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                                                     <input type="checkbox" checked={leaveQueue[leaveQueueIndex].status === 'approved'} onChange={(e) => updateLeaveQueueField('status', e.target.checked ? 'approved' : 'pending')} />
                                                     <span className="toggle-slider"></span>
                                                 </label>
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İzin Durumu</span>
-                                                    <span style={{ fontSize: '14px', fontWeight: 600, color: leaveQueue[leaveQueueIndex].status === 'approved' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1 }}>İzin Durumu</span>
+                                                    <span style={{ fontSize: '14px', fontWeight: 600, color: leaveQueue[leaveQueueIndex].status === 'approved' ? 'var(--text-primary)' : 'var(--text-secondary)', marginTop: '4px', lineHeight: 1 }}>
                                                         {leaveQueue[leaveQueueIndex].status === 'approved' ? 'Onaylandı' : 'Bekliyor'}
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div>
-                                            <CustomInput 
-                                                label="Notlar" 
-                                                value={leaveQueue[leaveQueueIndex].notes} 
-                                                onChange={(val) => updateLeaveQueueField('notes', val)} 
-                                                type="textarea" 
-                                                rows={1} 
-                                            />
+                                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '54px' }}>
+                                                <CustomInput 
+                                                    label="Notlar" 
+                                                    value={leaveQueue[leaveQueueIndex].notes} 
+                                                    onChange={(val) => updateLeaveQueueField('notes', val)} 
+                                                    type="text" 
+                                                    style={{ marginBottom: 0 }}
+                                                />
+                                            </div>
                                         </div>
 
                                         {error && (
