@@ -229,7 +229,15 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                 <tbody>
                                     {report.leaves.map((item, i) => (
                                         <tr key={i}>
-                                            <td style={tdStyle}>{item.type === 'annual' ? 'Yıllık İzin' : item.type === 'sick' ? 'Rapor' : 'Diğer'}</td>
+                                            <td style={tdStyle}>
+                                                {item.type === 'annual' || item.type === 'Yıllık İzin' || item.type === 'Yıllık Ücretli İzin'
+                                                    ? 'Yıllık İzin'
+                                                    : item.type === 'sick' || item.type === 'Hastalık / Rapor' || item.type === 'Hastalık / Rapor (İstirahat)'
+                                                        ? 'Rapor'
+                                                        : item.type === 'offset' || item.type === 'Mahsup'
+                                                            ? 'Mahsup'
+                                                            : item.type || 'Diğer'}
+                                            </td>
                                             <td style={tdStyle}>{formatDate(item.start_date)}</td>
                                             <td style={tdStyle}>{formatDate(item.end_date)}</td>
                                             <td style={tdStyle}>{item.days} Gün</td>

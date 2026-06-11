@@ -840,7 +840,7 @@ export default function EmployeeDetail() {
             // Create a single "offset" record
             await window.electronAPI.createLeave({
                 employeeId: parseInt(id),
-                type: 'offset',
+                type: 'Mahsup',
                 startDate: today,
                 endDate: today,
                 days: amount,
@@ -1132,7 +1132,7 @@ export default function EmployeeDetail() {
     const leaveColumns = [
         { key: 'type', label: 'Tür', render: (v) => {
             const lt = leaveTypes.find(t => t.value === v)
-            if (v === 'offset') return <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Mahsup</span>
+            if (v === 'offset' || v === 'Mahsup') return <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Mahsup</span>
             return lt?.label || v
         }},
         { key: 'start_date', label: 'Başlangıç', render: (v) => formatDate(v) },
@@ -1767,7 +1767,7 @@ export default function EmployeeDetail() {
                                         const totalUsedOT = leaves.filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum, l) => sum + (l.days || 0), 0)
                                         const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
 
-                                        const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type === 'offset').reduce((acc, l) => acc + (l.days || 0), 0)
+                                        const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup')).reduce((acc, l) => acc + (l.days || 0), 0)
                                         const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
 
                                         return (
