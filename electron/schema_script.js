@@ -336,6 +336,8 @@ const allTablesSQL = [
     "receipt_no" TEXT,
     "vehicle_id" INTEGER,
     "employee_id" INTEGER,
+    "custom_vehicle" TEXT,
+    "custom_employee" TEXT,
     "start_time" TEXT,
     "end_time" TEXT,
     "hours" REAL DEFAULT 0,

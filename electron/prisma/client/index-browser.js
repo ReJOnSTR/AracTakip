@@ -464,6 +464,8 @@ exports.Prisma.Work_itemsScalarFieldEnum = {
   receipt_no: 'receipt_no',
   vehicle_id: 'vehicle_id',
   employee_id: 'employee_id',
+  custom_vehicle: 'custom_vehicle',
+  custom_employee: 'custom_employee',
   start_time: 'start_time',
   end_time: 'end_time',
   hours: 'hours',

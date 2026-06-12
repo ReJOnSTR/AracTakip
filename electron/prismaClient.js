@@ -533,6 +533,23 @@ async function runAutoMigrations() {
         log.error('Migration step 20 (works multipliers) error:', error.message);
     }
 
+    // 21. Add custom_vehicle and custom_employee to work_items
+    try {
+        const wiCols3 = await p.$queryRawUnsafe("PRAGMA table_info('work_items')");
+        if (wiCols3.length > 0) {
+            if (!wiCols3.some(c => c.name === 'custom_vehicle')) {
+                await p.$executeRawUnsafe('ALTER TABLE work_items ADD COLUMN custom_vehicle TEXT');
+                log.info('Migration: Added custom_vehicle to work_items');
+            }
+            if (!wiCols3.some(c => c.name === 'custom_employee')) {
+                await p.$executeRawUnsafe('ALTER TABLE work_items ADD COLUMN custom_employee TEXT');
+                log.info('Migration: Added custom_employee to work_items');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 21 (custom fields in work_items) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

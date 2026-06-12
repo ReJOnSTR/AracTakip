@@ -76,11 +76,11 @@ async function getWorkDetails(id) {
             customer_name: work.customers?.name || work.customer,
             items: work.work_items.map(item => ({
                 ...item,
-                plate: item.vehicles?.plate || '',
+                plate: item.vehicles?.plate || item.custom_vehicle || '',
                 brand: item.vehicles?.brand || '',
                 model: item.vehicles?.model || '',
-                employee_name: item.employees?.first_name || '',
-                employee_surname: item.employees?.last_name || ''
+                employee_name: item.employees ? item.employees.first_name : (item.custom_employee || ''),
+                employee_surname: item.employees ? item.employees.last_name : ''
             }))
         }
 
@@ -216,8 +216,10 @@ async function addWorkItem(data) {
                 work_id: parseInt(data.workId),
                 date: new Date(data.date),
                 receipt_no: data.receiptNo || null,
-                vehicle_id: data.vehicleId ? parseInt(data.vehicleId) : null,
-                employee_id: data.employeeId ? parseInt(data.employeeId) : null,
+                vehicle_id: (data.vehicleId && !isNaN(Number(data.vehicleId))) ? parseInt(data.vehicleId) : null,
+                employee_id: (data.employeeId && !isNaN(Number(data.employeeId))) ? parseInt(data.employeeId) : null,
+                custom_vehicle: (data.vehicleId && isNaN(Number(data.vehicleId))) ? String(data.vehicleId) : null,
+                custom_employee: (data.employeeId && isNaN(Number(data.employeeId))) ? String(data.employeeId) : null,
                 start_time: data.startTime || null,
                 end_time: data.endTime || null,
                 hours: parseFloat(data.hours || 0),
@@ -254,8 +256,10 @@ async function addBulkWorkItems(itemsData) {
                 work_id: parseInt(data.workId),
                 date: new Date(data.date),
                 receipt_no: data.receiptNo || null,
-                vehicle_id: data.vehicleId ? parseInt(data.vehicleId) : null,
-                employee_id: data.employeeId ? parseInt(data.employeeId) : null,
+                vehicle_id: (data.vehicleId && !isNaN(Number(data.vehicleId))) ? parseInt(data.vehicleId) : null,
+                employee_id: (data.employeeId && !isNaN(Number(data.employeeId))) ? parseInt(data.employeeId) : null,
+                custom_vehicle: (data.vehicleId && isNaN(Number(data.vehicleId))) ? String(data.vehicleId) : null,
+                custom_employee: (data.employeeId && isNaN(Number(data.employeeId))) ? String(data.employeeId) : null,
                 start_time: data.startTime || null,
                 end_time: data.endTime || null,
                 hours: parseFloat(data.hours || 0),
@@ -300,22 +304,48 @@ async function updateWorkItem(data) {
 
         let totalPrice = calculateItemTotalPrice(data, pazarMult, mesaiMult);
 
+        const updateData = {
+            date: new Date(data.date),
+            receipt_no: data.receiptNo !== undefined ? (data.receiptNo || null) : undefined,
+            start_time: data.startTime !== undefined ? (data.startTime || null) : undefined,
+            end_time: data.endTime !== undefined ? (data.endTime || null) : undefined,
+            hours: data.hours !== undefined ? parseFloat(data.hours || 0) : undefined,
+            overtime_hours: data.overtimeHours !== undefined ? parseFloat(data.overtimeHours || 0) : undefined,
+            unit_price: data.unitPrice !== undefined ? parseFloat(data.unitPrice || 0) : undefined,
+            travel_price: data.travelPrice !== undefined ? parseFloat(data.travelPrice || 0) : undefined,
+            total_price: totalPrice,
+            description: data.description !== undefined ? (data.description || null) : undefined
+        };
+
+        if (data.vehicleId !== undefined) {
+            if (!data.vehicleId) {
+                updateData.vehicle_id = null;
+                updateData.custom_vehicle = null;
+            } else if (!isNaN(Number(data.vehicleId))) {
+                updateData.vehicle_id = parseInt(data.vehicleId);
+                updateData.custom_vehicle = null;
+            } else {
+                updateData.vehicle_id = null;
+                updateData.custom_vehicle = String(data.vehicleId);
+            }
+        }
+
+        if (data.employeeId !== undefined) {
+            if (!data.employeeId) {
+                updateData.employee_id = null;
+                updateData.custom_employee = null;
+            } else if (!isNaN(Number(data.employeeId))) {
+                updateData.employee_id = parseInt(data.employeeId);
+                updateData.custom_employee = null;
+            } else {
+                updateData.employee_id = null;
+                updateData.custom_employee = String(data.employeeId);
+            }
+        }
+
         const updated = await prisma.work_items.update({
             where: { id: parseInt(data.id) },
-            data: {
-                date: new Date(data.date),
-                receipt_no: data.receiptNo || null,
-                vehicle_id: data.vehicleId ? parseInt(data.vehicleId) : null,
-                employee_id: data.employeeId ? parseInt(data.employeeId) : null,
-                start_time: data.startTime || null,
-                end_time: data.endTime || null,
-                hours: parseFloat(data.hours || 0),
-                overtime_hours: parseFloat(data.overtimeHours || 0),
-                unit_price: parseFloat(data.unitPrice || 0),
-                travel_price: parseFloat(data.travelPrice || 0),
-                total_price: totalPrice,
-                description: data.description || null
-            }
+            data: updateData
         })
         return { success: true, data: updated }
     } catch (error) {

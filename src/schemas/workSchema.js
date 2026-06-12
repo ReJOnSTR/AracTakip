@@ -18,8 +18,16 @@ export const workHeaderSchema = z.object({
 export const workItemSchema = z.object({
     date: z.string().min(1, 'Tarih zorunludur'),
     receiptNo: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : ''),
-    vehicleId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => (val === '' ? null : Number(val))),
-    employeeId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => (val === '' ? null : Number(val))),
+    vehicleId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => {
+        if (val === '' || val === null || val === undefined) return null;
+        const num = Number(val);
+        return isNaN(num) ? val : num;
+    }),
+    employeeId: z.union([z.string(), z.number()]).optional().nullable().transform((val) => {
+        if (val === '' || val === null || val === undefined) return null;
+        const num = Number(val);
+        return isNaN(num) ? val : num;
+    }),
     startTime: z.string().optional(),
     endTime: z.string().optional(),
     hours: z.union([z.string(), z.number()]).optional().transform((val) => Number(val) || 0),

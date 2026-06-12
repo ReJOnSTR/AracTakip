@@ -34548,6 +34548,8 @@ export namespace Prisma {
     receipt_no: string | null
     vehicle_id: number | null
     employee_id: number | null
+    custom_vehicle: string | null
+    custom_employee: string | null
     start_time: string | null
     end_time: string | null
     hours: number | null
@@ -34567,6 +34569,8 @@ export namespace Prisma {
     receipt_no: string | null
     vehicle_id: number | null
     employee_id: number | null
+    custom_vehicle: string | null
+    custom_employee: string | null
     start_time: string | null
     end_time: string | null
     hours: number | null
@@ -34586,6 +34590,8 @@ export namespace Prisma {
     receipt_no: number
     vehicle_id: number
     employee_id: number
+    custom_vehicle: number
+    custom_employee: number
     start_time: number
     end_time: number
     hours: number
@@ -34633,6 +34639,8 @@ export namespace Prisma {
     receipt_no?: true
     vehicle_id?: true
     employee_id?: true
+    custom_vehicle?: true
+    custom_employee?: true
     start_time?: true
     end_time?: true
     hours?: true
@@ -34652,6 +34660,8 @@ export namespace Prisma {
     receipt_no?: true
     vehicle_id?: true
     employee_id?: true
+    custom_vehicle?: true
+    custom_employee?: true
     start_time?: true
     end_time?: true
     hours?: true
@@ -34671,6 +34681,8 @@ export namespace Prisma {
     receipt_no?: true
     vehicle_id?: true
     employee_id?: true
+    custom_vehicle?: true
+    custom_employee?: true
     start_time?: true
     end_time?: true
     hours?: true
@@ -34777,6 +34789,8 @@ export namespace Prisma {
     receipt_no: string | null
     vehicle_id: number | null
     employee_id: number | null
+    custom_vehicle: string | null
+    custom_employee: string | null
     start_time: string | null
     end_time: string | null
     hours: number | null
@@ -34815,6 +34829,8 @@ export namespace Prisma {
     receipt_no?: boolean
     vehicle_id?: boolean
     employee_id?: boolean
+    custom_vehicle?: boolean
+    custom_employee?: boolean
     start_time?: boolean
     end_time?: boolean
     hours?: boolean
@@ -34837,6 +34853,8 @@ export namespace Prisma {
     receipt_no?: boolean
     vehicle_id?: boolean
     employee_id?: boolean
+    custom_vehicle?: boolean
+    custom_employee?: boolean
     start_time?: boolean
     end_time?: boolean
     hours?: boolean
@@ -34859,6 +34877,8 @@ export namespace Prisma {
     receipt_no?: boolean
     vehicle_id?: boolean
     employee_id?: boolean
+    custom_vehicle?: boolean
+    custom_employee?: boolean
     start_time?: boolean
     end_time?: boolean
     hours?: boolean
@@ -34881,6 +34901,8 @@ export namespace Prisma {
     receipt_no?: boolean
     vehicle_id?: boolean
     employee_id?: boolean
+    custom_vehicle?: boolean
+    custom_employee?: boolean
     start_time?: boolean
     end_time?: boolean
     hours?: boolean
@@ -34893,7 +34915,7 @@ export namespace Prisma {
     is_archived?: boolean
   }
 
-  export type work_itemsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "work_id" | "date" | "receipt_no" | "vehicle_id" | "employee_id" | "start_time" | "end_time" | "hours" | "overtime_hours" | "unit_price" | "travel_price" | "total_price" | "description" | "created_at" | "is_archived", ExtArgs["result"]["work_items"]>
+  export type work_itemsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "work_id" | "date" | "receipt_no" | "vehicle_id" | "employee_id" | "custom_vehicle" | "custom_employee" | "start_time" | "end_time" | "hours" | "overtime_hours" | "unit_price" | "travel_price" | "total_price" | "description" | "created_at" | "is_archived", ExtArgs["result"]["work_items"]>
   export type work_itemsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | work_items$employeesArgs<ExtArgs>
     vehicles?: boolean | work_items$vehiclesArgs<ExtArgs>
@@ -34924,6 +34946,8 @@ export namespace Prisma {
       receipt_no: string | null
       vehicle_id: number | null
       employee_id: number | null
+      custom_vehicle: string | null
+      custom_employee: string | null
       start_time: string | null
       end_time: string | null
       hours: number | null
@@ -35366,6 +35390,8 @@ export namespace Prisma {
     readonly receipt_no: FieldRef<"work_items", 'String'>
     readonly vehicle_id: FieldRef<"work_items", 'Int'>
     readonly employee_id: FieldRef<"work_items", 'Int'>
+    readonly custom_vehicle: FieldRef<"work_items", 'String'>
+    readonly custom_employee: FieldRef<"work_items", 'String'>
     readonly start_time: FieldRef<"work_items", 'String'>
     readonly end_time: FieldRef<"work_items", 'String'>
     readonly hours: FieldRef<"work_items", 'Float'>
@@ -44191,6 +44217,8 @@ export namespace Prisma {
     receipt_no: 'receipt_no',
     vehicle_id: 'vehicle_id',
     employee_id: 'employee_id',
+    custom_vehicle: 'custom_vehicle',
+    custom_employee: 'custom_employee',
     start_time: 'start_time',
     end_time: 'end_time',
     hours: 'hours',
@@ -46581,6 +46609,8 @@ export namespace Prisma {
     receipt_no?: StringNullableFilter<"work_items"> | string | null
     vehicle_id?: IntNullableFilter<"work_items"> | number | null
     employee_id?: IntNullableFilter<"work_items"> | number | null
+    custom_vehicle?: StringNullableFilter<"work_items"> | string | null
+    custom_employee?: StringNullableFilter<"work_items"> | string | null
     start_time?: StringNullableFilter<"work_items"> | string | null
     end_time?: StringNullableFilter<"work_items"> | string | null
     hours?: FloatNullableFilter<"work_items"> | number | null
@@ -46603,6 +46633,8 @@ export namespace Prisma {
     receipt_no?: SortOrderInput | SortOrder
     vehicle_id?: SortOrderInput | SortOrder
     employee_id?: SortOrderInput | SortOrder
+    custom_vehicle?: SortOrderInput | SortOrder
+    custom_employee?: SortOrderInput | SortOrder
     start_time?: SortOrderInput | SortOrder
     end_time?: SortOrderInput | SortOrder
     hours?: SortOrderInput | SortOrder
@@ -46628,6 +46660,8 @@ export namespace Prisma {
     receipt_no?: StringNullableFilter<"work_items"> | string | null
     vehicle_id?: IntNullableFilter<"work_items"> | number | null
     employee_id?: IntNullableFilter<"work_items"> | number | null
+    custom_vehicle?: StringNullableFilter<"work_items"> | string | null
+    custom_employee?: StringNullableFilter<"work_items"> | string | null
     start_time?: StringNullableFilter<"work_items"> | string | null
     end_time?: StringNullableFilter<"work_items"> | string | null
     hours?: FloatNullableFilter<"work_items"> | number | null
@@ -46650,6 +46684,8 @@ export namespace Prisma {
     receipt_no?: SortOrderInput | SortOrder
     vehicle_id?: SortOrderInput | SortOrder
     employee_id?: SortOrderInput | SortOrder
+    custom_vehicle?: SortOrderInput | SortOrder
+    custom_employee?: SortOrderInput | SortOrder
     start_time?: SortOrderInput | SortOrder
     end_time?: SortOrderInput | SortOrder
     hours?: SortOrderInput | SortOrder
@@ -46677,6 +46713,8 @@ export namespace Prisma {
     receipt_no?: StringNullableWithAggregatesFilter<"work_items"> | string | null
     vehicle_id?: IntNullableWithAggregatesFilter<"work_items"> | number | null
     employee_id?: IntNullableWithAggregatesFilter<"work_items"> | number | null
+    custom_vehicle?: StringNullableWithAggregatesFilter<"work_items"> | string | null
+    custom_employee?: StringNullableWithAggregatesFilter<"work_items"> | string | null
     start_time?: StringNullableWithAggregatesFilter<"work_items"> | string | null
     end_time?: StringNullableWithAggregatesFilter<"work_items"> | string | null
     hours?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
@@ -49588,6 +49626,8 @@ export namespace Prisma {
   export type work_itemsCreateInput = {
     date: Date | string
     receipt_no?: string | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -49610,6 +49650,8 @@ export namespace Prisma {
     receipt_no?: string | null
     vehicle_id?: number | null
     employee_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -49625,6 +49667,8 @@ export namespace Prisma {
   export type work_itemsUpdateInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -49647,6 +49691,8 @@ export namespace Prisma {
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     vehicle_id?: NullableIntFieldUpdateOperationsInput | number | null
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -49666,6 +49712,8 @@ export namespace Prisma {
     receipt_no?: string | null
     vehicle_id?: number | null
     employee_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -49681,6 +49729,8 @@ export namespace Prisma {
   export type work_itemsUpdateManyMutationInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -49700,6 +49750,8 @@ export namespace Prisma {
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     vehicle_id?: NullableIntFieldUpdateOperationsInput | number | null
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -52115,6 +52167,8 @@ export namespace Prisma {
     receipt_no?: SortOrder
     vehicle_id?: SortOrder
     employee_id?: SortOrder
+    custom_vehicle?: SortOrder
+    custom_employee?: SortOrder
     start_time?: SortOrder
     end_time?: SortOrder
     hours?: SortOrder
@@ -52147,6 +52201,8 @@ export namespace Prisma {
     receipt_no?: SortOrder
     vehicle_id?: SortOrder
     employee_id?: SortOrder
+    custom_vehicle?: SortOrder
+    custom_employee?: SortOrder
     start_time?: SortOrder
     end_time?: SortOrder
     hours?: SortOrder
@@ -52166,6 +52222,8 @@ export namespace Prisma {
     receipt_no?: SortOrder
     vehicle_id?: SortOrder
     employee_id?: SortOrder
+    custom_vehicle?: SortOrder
+    custom_employee?: SortOrder
     start_time?: SortOrder
     end_time?: SortOrder
     hours?: SortOrder
@@ -57188,6 +57246,8 @@ export namespace Prisma {
   export type work_itemsCreateWithoutEmployeesInput = {
     date: Date | string
     receipt_no?: string | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -57208,6 +57268,8 @@ export namespace Prisma {
     date: Date | string
     receipt_no?: string | null
     vehicle_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -57626,6 +57688,8 @@ export namespace Prisma {
     receipt_no?: StringNullableFilter<"work_items"> | string | null
     vehicle_id?: IntNullableFilter<"work_items"> | number | null
     employee_id?: IntNullableFilter<"work_items"> | number | null
+    custom_vehicle?: StringNullableFilter<"work_items"> | string | null
+    custom_employee?: StringNullableFilter<"work_items"> | string | null
     start_time?: StringNullableFilter<"work_items"> | string | null
     end_time?: StringNullableFilter<"work_items"> | string | null
     hours?: FloatNullableFilter<"work_items"> | number | null
@@ -59538,6 +59602,8 @@ export namespace Prisma {
   export type work_itemsCreateWithoutVehiclesInput = {
     date: Date | string
     receipt_no?: string | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -59558,6 +59624,8 @@ export namespace Prisma {
     date: Date | string
     receipt_no?: string | null
     employee_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -60300,6 +60368,8 @@ export namespace Prisma {
   export type work_itemsCreateWithoutWorksInput = {
     date: Date | string
     receipt_no?: string | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -60320,6 +60390,8 @@ export namespace Prisma {
     receipt_no?: string | null
     vehicle_id?: number | null
     employee_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -62248,6 +62320,8 @@ export namespace Prisma {
     date: Date | string
     receipt_no?: string | null
     vehicle_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -62561,6 +62635,8 @@ export namespace Prisma {
   export type work_itemsUpdateWithoutEmployeesInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -62581,6 +62657,8 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     vehicle_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -62599,6 +62677,8 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     vehicle_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -62844,6 +62924,8 @@ export namespace Prisma {
     date: Date | string
     receipt_no?: string | null
     employee_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -63126,6 +63208,8 @@ export namespace Prisma {
   export type work_itemsUpdateWithoutVehiclesInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -63146,6 +63230,8 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -63164,6 +63250,8 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -63246,6 +63334,8 @@ export namespace Prisma {
     receipt_no?: string | null
     vehicle_id?: number | null
     employee_id?: number | null
+    custom_vehicle?: string | null
+    custom_employee?: string | null
     start_time?: string | null
     end_time?: string | null
     hours?: number | null
@@ -63261,6 +63351,8 @@ export namespace Prisma {
   export type work_itemsUpdateWithoutWorksInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -63281,6 +63373,8 @@ export namespace Prisma {
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     vehicle_id?: NullableIntFieldUpdateOperationsInput | number | null
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -63299,6 +63393,8 @@ export namespace Prisma {
     receipt_no?: NullableStringFieldUpdateOperationsInput | string | null
     vehicle_id?: NullableIntFieldUpdateOperationsInput | number | null
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
+    custom_vehicle?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_employee?: NullableStringFieldUpdateOperationsInput | string | null
     start_time?: NullableStringFieldUpdateOperationsInput | string | null
     end_time?: NullableStringFieldUpdateOperationsInput | string | null
     hours?: NullableFloatFieldUpdateOperationsInput | number | null

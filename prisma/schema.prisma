@@ -457,6 +457,8 @@ model work_items {
   receipt_no     String?
   vehicle_id     Int?
   employee_id    Int?
+  custom_vehicle String?
+  custom_employee String?
   start_time     String?
   end_time       String?
   hours          Float?     @default(0)

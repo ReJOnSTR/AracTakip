@@ -361,8 +361,8 @@ export default function WorkDetails(props) {
         setFormData({
             date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             receiptNo: item.receipt_no || '',
-            vehicleId: item.vehicle_id || '',
-            employeeId: item.employee_id || '',
+            vehicleId: item.vehicle_id || item.custom_vehicle || '',
+            employeeId: item.employee_id || item.custom_employee || '',
             startTime: item.start_time || '',
             endTime: item.end_time || '',
             hours: item.hours || 0,
@@ -553,8 +553,14 @@ export default function WorkDetails(props) {
         const updates = {}
         if (bulkEditFormData.date && bulkEditFormData.date !== '') updates.date = bulkEditFormData.date
         if (bulkEditFormData.receiptNo !== '') updates.receiptNo = bulkEditFormData.receiptNo
-        if (bulkEditFormData.vehicleId !== '') updates.vehicleId = parseInt(bulkEditFormData.vehicleId)
-        if (bulkEditFormData.employeeId !== '') updates.employeeId = parseInt(bulkEditFormData.employeeId)
+        if (bulkEditFormData.vehicleId !== '') {
+            const num = Number(bulkEditFormData.vehicleId)
+            updates.vehicleId = isNaN(num) ? bulkEditFormData.vehicleId : num
+        }
+        if (bulkEditFormData.employeeId !== '') {
+            const num = Number(bulkEditFormData.employeeId)
+            updates.employeeId = isNaN(num) ? bulkEditFormData.employeeId : num
+        }
         if (bulkEditFormData.startTime && bulkEditFormData.startTime !== '') updates.startTime = bulkEditFormData.startTime
         if (bulkEditFormData.endTime && bulkEditFormData.endTime !== '') updates.endTime = bulkEditFormData.endTime
         if (bulkEditFormData.pricingType !== '') updates.pricingType = bulkEditFormData.pricingType
@@ -586,8 +592,8 @@ export default function WorkDetails(props) {
                     id: id,
                     date: updates.date !== undefined ? updates.date : existingItem.date,
                     receiptNo: updates.receiptNo !== undefined ? updates.receiptNo : existingItem.receipt_no,
-                    vehicleId: updates.vehicleId !== undefined ? updates.vehicleId : existingItem.vehicle_id,
-                    employeeId: updates.employeeId !== undefined ? updates.employeeId : existingItem.employee_id,
+                    vehicleId: updates.vehicleId !== undefined ? updates.vehicleId : (existingItem.vehicle_id || existingItem.custom_vehicle),
+                    employeeId: updates.employeeId !== undefined ? updates.employeeId : (existingItem.employee_id || existingItem.custom_employee),
                     startTime: updates.startTime !== undefined ? updates.startTime : existingItem.start_time,
                     endTime: updates.endTime !== undefined ? updates.endTime : existingItem.end_time,
                     hours: existingItem.hours,
@@ -993,12 +999,14 @@ export default function WorkDetails(props) {
                             value={formData.vehicleId}
                             onChange={(val) => setFormData({ ...formData, vehicleId: val })}
                             options={vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))}
+                            creatable={true}
                         />
                         <CustomSelect
                             label="Personel"
                             value={formData.employeeId}
                             onChange={(val) => setFormData({ ...formData, employeeId: val })}
                             options={employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))}
+                            creatable={true}
                         />
                     </div>
 
@@ -1218,12 +1226,14 @@ export default function WorkDetails(props) {
                             value={bulkFormData.vehicleId}
                             onChange={(val) => setBulkFormData({ ...bulkFormData, vehicleId: val })}
                             options={vehicles.filter(v => v.type !== 'automobile').map(v => ({ value: v.id, label: `${v.plate} - ${v.brand || ''} ${v.model || ''}` }))}
+                            creatable={true}
                         />
                         <CustomSelect
                             label="Personel"
                             value={bulkFormData.employeeId}
                             onChange={(val) => setBulkFormData({ ...bulkFormData, employeeId: val })}
                             options={employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))}
+                            creatable={true}
                         />
                     </div>
 
@@ -1444,6 +1454,7 @@ export default function WorkDetails(props) {
                                 { value: '', label: 'Seçiniz' },
                                 ...vehicles.map(v => ({ value: v.id, label: `${v.plate} (${v.brand})` }))
                             ]}
+                            creatable={true}
                         />
                         <CustomSelect
                             label="Personel"
@@ -1453,6 +1464,7 @@ export default function WorkDetails(props) {
                                 { value: '', label: 'Seçiniz' },
                                 ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
                             ]}
+                            creatable={true}
                         />
                     </div>
 
