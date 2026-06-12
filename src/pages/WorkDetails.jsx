@@ -1054,24 +1054,62 @@ export default function WorkDetails(props) {
                     {/* Yol (Travel) Add-on */}
                     <div style={{
                         display: 'flex',
-                        alignItems: 'center',
                         flexDirection: 'column',
                         gap: '12px',
-                        padding: '14px',
+                        padding: '16px',
                         background: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-md)',
                         boxShadow: 'var(--shadow-sm)'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '4px' }}>
                             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                Ek Ödemeler
+                                <Wallet size={15} style={{ color: '#8b5cf6' }} /> Ek Ödemeler
                             </span>
+                            <span style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: 'white',
+                                background: '#8b5cf6',
+                                padding: '3px 8px',
+                                borderRadius: 'var(--radius-full)',
+                                display: 'inline-flex',
+                                alignItems: 'center'
+                            }}>
+                                Toplam: {formatCurrency((formData.additions || []).reduce((sum, add) => sum + (parseFloat(add.price) || 0), 0))}
+                            </span>
+                        </div>
+
+                        {/* Quick Selection Tags */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '2px 0 6px 0' }}>
+                            {['Yol', 'Yemek', 'Mesai', 'Prim', 'Avans', 'Diğer'].map(type => {
+                                const isActive = curAdditionType === type;
+                                return (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setCurAdditionType(type)}
+                                        style={{
+                                            padding: '4px 10px',
+                                            fontSize: '11px',
+                                            borderRadius: 'var(--radius-full)',
+                                            border: '1px solid ' + (isActive ? '#8b5cf6' : 'var(--border-color)'),
+                                            background: isActive ? '#8b5cf6' : 'var(--bg-primary)',
+                                            color: isActive ? 'white' : 'var(--text-secondary)',
+                                            cursor: 'pointer',
+                                            fontWeight: isActive ? '600' : '500',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                    >
+                                        {type}
+                                    </button>
+                                );
+                            })}
                         </div>
                         
                         {/* List of current additions as Clean Rows */}
-                        {formData.additions && formData.additions.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {formData.additions && formData.additions.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto', paddingRight: '4px' }}>
                                 {formData.additions.map((add, idx) => (
                                     <div key={idx} style={{ 
                                         display: 'flex', 
@@ -1081,15 +1119,16 @@ export default function WorkDetails(props) {
                                         padding: '8px 12px', 
                                         borderRadius: 'var(--radius-sm)', 
                                         border: '1px solid var(--border-color)',
+                                        borderLeft: '3px solid #8b5cf6',
                                         fontSize: '12px',
                                         transition: 'all 0.2s'
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <DollarSign size={14} style={{ color: 'var(--accent-primary)' }} />
+                                            <DollarSign size={14} style={{ color: 'var(--text-secondary)' }} />
                                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{add.type}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
+                                            <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
                                             <button 
                                                 type="button" 
                                                 onClick={() => {
@@ -1100,49 +1139,59 @@ export default function WorkDetails(props) {
                                                 style={{ 
                                                     border: 'none', 
                                                     background: 'none', 
-                                                    color: 'var(--text-error)', 
+                                                    color: 'var(--text-muted)', 
                                                     cursor: 'pointer', 
-                                                    fontSize: '16px', 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
                                                     justifyContent: 'center',
-                                                    padding: '0 4px'
+                                                    padding: '2px',
+                                                    borderRadius: '4px',
+                                                    transition: 'color 0.2s'
                                                 }}
+                                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-error)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
                                             >
-                                                ×
+                                                <Trash2 size={13} />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        ) : (
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-primary)' }}>
+                                Ek ödeme bulunmuyor.
+                            </div>
                         )}
 
-                        {/* Unified Input Group for adding new addition */}
-                        <div style={{ display: 'flex', gap: '0', width: '100%', alignItems: 'center', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Tür (Örn: Yol, Yemek)"
-                                value={curAdditionType}
-                                onChange={(e) => setCurAdditionType(e.target.value)}
-                                style={{ flex: 1, height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, paddingLeft: '10px', background: 'var(--bg-primary)' }}
-                            />
-                            <div style={{ width: '1px', height: '20px', background: 'var(--border-color)' }}></div>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Fiyat ₺"
-                                value={curAdditionPrice ? String(curAdditionPrice).replace('.', ',') : ''}
-                                onChange={(e) => {
-                                    let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
-                                    const parts = clean.split(',');
-                                    if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
-                                    if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
-                                    const floatVal = clean.replace(',', '.');
-                                    setCurAdditionPrice(floatVal === '' ? '' : floatVal);
-                                }}
-                                style={{ width: '100px', height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, textAlign: 'right', paddingRight: '10px', background: 'var(--bg-primary)' }}
-                            />
+                        {/* Modern Input Group for adding new addition */}
+                        <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center', marginTop: '4px' }}>
+                            <div style={{ flex: 1, position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Tür (Örn: Yol, Yemek)"
+                                    value={curAdditionType}
+                                    onChange={(e) => setCurAdditionType(e.target.value)}
+                                    style={{ height: '36px', fontSize: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', paddingLeft: '10px', width: '100%' }}
+                                />
+                            </div>
+                            <div style={{ width: '100px', position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Fiyat ₺"
+                                    value={curAdditionPrice ? String(curAdditionPrice).replace('.', ',') : ''}
+                                    onChange={(e) => {
+                                        let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
+                                        const parts = clean.split(',');
+                                        if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
+                                        if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
+                                        const floatVal = clean.replace(',', '.');
+                                        setCurAdditionPrice(floatVal === '' ? '' : floatVal);
+                                    }}
+                                    style={{ height: '36px', fontSize: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', paddingRight: '10px', textAlign: 'right', width: '100%' }}
+                                />
+                            </div>
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1154,9 +1203,25 @@ export default function WorkDetails(props) {
                                     setCurAdditionType('Yol');
                                     setCurAdditionPrice('');
                                 }}
-                                style={{ height: '34px', width: '40px', background: 'var(--accent-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                style={{
+                                    height: '36px',
+                                    padding: '0 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    background: 'var(--accent-primary)',
+                                    color: 'white',
+                                    border: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: 'var(--shadow-sm)',
+                                    transition: 'background-color 0.2s'
+                                }}
                             >
-                                <Plus size={16} />
+                                <Plus size={14} /> Ekle
                             </button>
                         </div>
                     </div>
@@ -1299,21 +1364,60 @@ export default function WorkDetails(props) {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '12px',
-                        padding: '14px',
+                        padding: '16px',
                         background: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-md)',
                         boxShadow: 'var(--shadow-sm)'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '4px' }}>
                             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                Ek Ödemeler
+                                <Wallet size={15} style={{ color: '#8b5cf6' }} /> Ek Ödemeler
                             </span>
+                            <span style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: 'white',
+                                background: '#8b5cf6',
+                                padding: '3px 8px',
+                                borderRadius: 'var(--radius-full)',
+                                display: 'inline-flex',
+                                alignItems: 'center'
+                            }}>
+                                Toplam: {formatCurrency((bulkFormData.additions || []).reduce((sum, add) => sum + (parseFloat(add.price) || 0), 0))}
+                            </span>
+                        </div>
+
+                        {/* Quick Selection Tags */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '2px 0 6px 0' }}>
+                            {['Yol', 'Yemek', 'Mesai', 'Prim', 'Avans', 'Diğer'].map(type => {
+                                const isActive = curBulkAdditionType === type;
+                                return (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setCurBulkAdditionType(type)}
+                                        style={{
+                                            padding: '4px 10px',
+                                            fontSize: '11px',
+                                            borderRadius: 'var(--radius-full)',
+                                            border: '1px solid ' + (isActive ? '#8b5cf6' : 'var(--border-color)'),
+                                            background: isActive ? '#8b5cf6' : 'var(--bg-primary)',
+                                            color: isActive ? 'white' : 'var(--text-secondary)',
+                                            cursor: 'pointer',
+                                            fontWeight: isActive ? '600' : '500',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                    >
+                                        {type}
+                                    </button>
+                                );
+                            })}
                         </div>
                         
                         {/* List of current additions as Clean Rows */}
-                        {bulkFormData.additions && bulkFormData.additions.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {bulkFormData.additions && bulkFormData.additions.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto', paddingRight: '4px' }}>
                                 {bulkFormData.additions.map((add, idx) => (
                                     <div key={idx} style={{ 
                                         display: 'flex', 
@@ -1323,15 +1427,16 @@ export default function WorkDetails(props) {
                                         padding: '8px 12px', 
                                         borderRadius: 'var(--radius-sm)', 
                                         border: '1px solid var(--border-color)',
+                                        borderLeft: '3px solid #8b5cf6',
                                         fontSize: '12px',
                                         transition: 'all 0.2s'
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <DollarSign size={14} style={{ color: 'var(--accent-primary)' }} />
+                                            <DollarSign size={14} style={{ color: 'var(--text-secondary)' }} />
                                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{add.type}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
+                                            <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
                                             <button 
                                                 type="button" 
                                                 onClick={() => {
@@ -1342,49 +1447,59 @@ export default function WorkDetails(props) {
                                                 style={{ 
                                                     border: 'none', 
                                                     background: 'none', 
-                                                    color: 'var(--text-error)', 
+                                                    color: 'var(--text-muted)', 
                                                     cursor: 'pointer', 
-                                                    fontSize: '16px', 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
                                                     justifyContent: 'center',
-                                                    padding: '0 4px'
+                                                    padding: '2px',
+                                                    borderRadius: '4px',
+                                                    transition: 'color 0.2s'
                                                 }}
+                                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-error)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
                                             >
-                                                ×
+                                                <Trash2 size={13} />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        ) : (
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-primary)' }}>
+                                Ek ödeme bulunmuyor.
+                            </div>
                         )}
 
-                        {/* Unified Input Group for adding new addition */}
-                        <div style={{ display: 'flex', gap: '0', width: '100%', alignItems: 'center', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Tür (Örn: Yol, Yemek)"
-                                value={curBulkAdditionType}
-                                onChange={(e) => setCurBulkAdditionType(e.target.value)}
-                                style={{ flex: 1, height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, paddingLeft: '10px', background: 'var(--bg-primary)' }}
-                            />
-                            <div style={{ width: '1px', height: '20px', background: 'var(--border-color)' }}></div>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="Fiyat ₺"
-                                value={curBulkAdditionPrice ? String(curBulkAdditionPrice).replace('.', ',') : ''}
-                                onChange={(e) => {
-                                    let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
-                                    const parts = clean.split(',');
-                                    if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
-                                    if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
-                                    const floatVal = clean.replace(',', '.');
-                                    setCurBulkAdditionPrice(floatVal === '' ? '' : floatVal);
-                                }}
-                                style={{ width: '100px', height: '34px', fontSize: '12px', border: 'none', borderRadius: 0, textAlign: 'right', paddingRight: '10px', background: 'var(--bg-primary)' }}
-                            />
+                        {/* Modern Input Group for adding new addition */}
+                        <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center', marginTop: '4px' }}>
+                            <div style={{ flex: 1, position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Tür (Örn: Yol, Yemek)"
+                                    value={curBulkAdditionType}
+                                    onChange={(e) => setCurBulkAdditionType(e.target.value)}
+                                    style={{ height: '36px', fontSize: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', paddingLeft: '10px', width: '100%' }}
+                                />
+                            </div>
+                            <div style={{ width: '100px', position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Fiyat ₺"
+                                    value={curBulkAdditionPrice ? String(curBulkAdditionPrice).replace('.', ',') : ''}
+                                    onChange={(e) => {
+                                        let clean = e.target.value.replace(/\./g, '').replace(/[^0-9,]/g, '');
+                                        const parts = clean.split(',');
+                                        if (parts.length > 2) clean = parts[0] + ',' + parts.slice(1).join('');
+                                        if (parts.length === 2 && parts[1].length > 2) clean = parts[0] + ',' + parts[1].substring(0, 2);
+                                        const floatVal = clean.replace(',', '.');
+                                        setCurBulkAdditionPrice(floatVal === '' ? '' : floatVal);
+                                    }}
+                                    style={{ height: '36px', fontSize: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', paddingRight: '10px', textAlign: 'right', width: '100%' }}
+                                />
+                            </div>
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1396,9 +1511,25 @@ export default function WorkDetails(props) {
                                     setCurBulkAdditionType('Yol');
                                     setCurBulkAdditionPrice('');
                                 }}
-                                style={{ height: '34px', width: '40px', background: 'var(--accent-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                style={{
+                                    height: '36px',
+                                    padding: '0 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    background: 'var(--accent-primary)',
+                                    color: 'white',
+                                    border: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: 'var(--shadow-sm)',
+                                    transition: 'background-color 0.2s'
+                                }}
                             >
-                                <Plus size={16} />
+                                <Plus size={14} /> Ekle
                             </button>
                         </div>
                     </div>
@@ -1507,19 +1638,20 @@ export default function WorkDetails(props) {
                     {/* Ek Ödemeler (Disabled representation) */}
                     <div style={{
                         display: 'flex',
-                        alignItems: 'center',
                         flexDirection: 'column',
                         gap: '12px',
-                        padding: '14px',
+                        padding: '16px',
                         background: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-color)',
+                        border: '1px dashed var(--border-color)',
                         borderRadius: 'var(--radius-md)',
-                        boxShadow: 'var(--shadow-sm)',
                         opacity: 0.6
                     }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            Ek Ödemeler (Toplu düzenlemede kullanılamaz)
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Wallet size={15} style={{ color: 'var(--text-muted)' }} />
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                                Ek Ödemeler (Toplu düzenlemede kullanılamaz)
+                            </span>
+                        </div>
                     </div>
 
                     <CustomInput
