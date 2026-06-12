@@ -47,11 +47,28 @@ async function getDocumentsByVehicle(vehicleId) {
 
 async function getDocumentsByCompany(companyId) {
     try {
+        // Get all work IDs for this company to filter work-related documents
+        const companyWorks = await prisma.works.findMany({
+            where: { company_id: parseInt(companyId) },
+            select: { id: true }
+        });
+        const workIds = companyWorks.map(w => w.id);
+
         const docs = await prisma.documents.findMany({
             where: {
-                vehicles: {
-                    company_id: parseInt(companyId)
-                }
+                OR: [
+                    {
+                        vehicles: {
+                            company_id: parseInt(companyId)
+                        }
+                    },
+                    {
+                        related_type: 'work',
+                        related_id: {
+                            in: workIds
+                        }
+                    }
+                ]
             },
             orderBy: { created_at: 'desc' }
         });

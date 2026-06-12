@@ -6,11 +6,13 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet, ChevronDown, Save, Eye } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { calculateWorkStats } from '../utils/workCalculations'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
+import DocumentUploadModal from '../components/DocumentUploadModal'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
 
 export default function WorkDetails(props) {
     const { id: urlId } = useParams()
@@ -54,6 +56,10 @@ export default function WorkDetails(props) {
     // Confirm Delete State
     const [confirmModal, setConfirmModal] = useState(null)
     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+    const [documents, setDocuments] = useState([])
+    const [previewDoc, setPreviewDoc] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [savingToSystem, setSavingToSystem] = useState(false)
     const [showPrices, setShowPrices] = useState(true)
     const [selectedIds, setSelectedIds] = useState([])
     const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false)
@@ -177,6 +183,19 @@ export default function WorkDetails(props) {
 
 
 
+    const loadDocuments = async (companyId = work?.company_id) => {
+        if (!companyId) return
+        try {
+            const docsRes = await window.electronAPI.getAllDocuments(companyId)
+            if (docsRes.success) {
+                const workDocs = docsRes.data.filter(d => d.related_type === 'work' && d.related_id === parseInt(id))
+                setDocuments(workDocs)
+            }
+        } catch (error) {
+            console.error('Failed to load documents:', error)
+        }
+    }
+
     const loadData = async () => {
         setLoading(true)
         try {
@@ -197,6 +216,9 @@ export default function WorkDetails(props) {
 
                     if (vehiclesRes.success) setVehicles(vehiclesRes.data)
                     if (employeesRes.success) setEmployees(employeesRes.data)
+
+                    // Load documents
+                    await loadDocuments(workRes.data.company_id)
                 }
             } else {
                 console.error('Failed to load work:', workRes.error)
@@ -206,6 +228,98 @@ export default function WorkDetails(props) {
             console.error('Error loading data:', error)
         }
         setLoading(false)
+    }
+
+    const handleDocumentOpen = async (doc) => {
+        if (!doc) return
+        const ext = doc.file_type?.toLowerCase() || doc.file_path.split('.').pop()?.toLowerCase()
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', 'jpg', 'jpeg', 'png', 'webp', 'gif']
+        if (imageExtensions.includes(ext)) {
+            try {
+                const res = await window.electronAPI.readDocumentData(doc.file_path)
+                if (res.success && res.data) {
+                    setPreviewDoc({ data: res.data, name: doc.file_name, path: doc.file_path, doc })
+                } else {
+                    await window.electronAPI.openDocument(doc.file_path)
+                }
+            } catch (error) {
+                console.error('Failed to preview image:', error)
+                await window.electronAPI.openDocument(doc.file_path)
+            }
+        } else {
+            const error = await window.electronAPI.openDocument(doc.file_path)
+            if (error) alert('Dosya açılamadı: ' + error)
+        }
+    }
+
+    const handleUploadConfirm = async (file) => {
+        if (!work) return
+
+        const result = await window.electronAPI.addDocument({
+            vehicleId: work.vehicle_id || null,
+            relatedType: 'work',
+            relatedId: work.id,
+            filePath: file.path,
+            fileName: file.name
+        })
+
+        if (result.success) {
+            loadDocuments()
+            setUploadModalOpen(false)
+        } else {
+            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        }
+    }
+
+    const handleSaveToSystem = async () => {
+        if (!window.electronAPI?.saveReportPdf) {
+            alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.')
+            return
+        }
+
+        // Store the print configuration in localStorage
+        localStorage.setItem('printData', JSON.stringify({
+            isWorkReport: true,
+            work: work,
+            showPrices: showPrices,
+            showKdv: showKdv,
+            kdvRate: kdvRate,
+            pazarMultiplier: pazarMultiplier,
+            mesaiMultiplier: mesaiMultiplier,
+            isPdfSave: true
+        }))
+
+        setSavingToSystem(true)
+        try {
+            // Generate PDF silently in temp folder
+            const res = await window.electronAPI.saveReportPdf('/print', { silent: true })
+            if (res && res.success && res.filePath) {
+                // Save the PDF as a document linked to this work
+                const docRes = await window.electronAPI.addDocument({
+                    vehicleId: work.vehicle_id || null,
+                    relatedType: 'work',
+                    relatedId: work.id,
+                    filePath: res.filePath,
+                    fileName: `${work.title}_Raporu_${new Date().toISOString().split('T')[0]}.pdf`
+                })
+
+                if (docRes.success) {
+                    setIsReportModalOpen(false)
+                    // Refresh documents
+                    loadDocuments()
+                    alert('Rapor sisteme başarıyla kaydedildi.')
+                } else {
+                    alert('Rapor sisteme eklenirken hata: ' + docRes.error)
+                }
+            } else {
+                alert('PDF Raporu oluşturulurken hata: ' + (res?.error || 'Bilinmeyen hata'))
+            }
+        } catch (err) {
+            console.error('Save report to system error:', err)
+            alert('Hata: ' + err.message)
+        } finally {
+            setSavingToSystem(false)
+        }
     }
 
     const handleBack = () => {
@@ -574,7 +688,16 @@ export default function WorkDetails(props) {
     const handleConfirmDelete = async () => {
         if (!confirmModal) return
 
-        if (confirmModal.isBulk) {
+        if (confirmModal.type === 'document') {
+            const result = await window.electronAPI.deleteDocument(confirmModal.item.id)
+            if (result.success) {
+                setConfirmModal(null)
+                loadDocuments()
+                setPreviewDoc(null)
+            } else {
+                alert('Belge silinirken hata: ' + result.error)
+            }
+        } else if (confirmModal.isBulk) {
             const result = await window.electronAPI.deleteBulkWorkItems(confirmModal.ids)
             if (result.success) {
                 setConfirmModal(null)
@@ -911,6 +1034,116 @@ export default function WorkDetails(props) {
                 onFilteredDataChange={setFilteredItems}
                 rowClassName={(row) => row.date && new Date(row.date).getDay() === 0 ? 'pazar-row' : ''}
             />
+
+            {/* Dosyalar ve Belgeler Paneli */}
+            <div style={{ marginTop: '32px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileText size={20} style={{ color: 'var(--accent-primary)' }} />
+                        Dosyalar ve Belgeler
+                    </h3>
+                    <button 
+                        onClick={() => setUploadModalOpen(true)} 
+                        className="btn btn-secondary" 
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px' }}
+                    >
+                        <Plus size={16} /> Belge Ekle
+                    </button>
+                </div>
+
+                {documents.length === 0 ? (
+                    <div style={{ 
+                        border: '1px dashed var(--border-color)', 
+                        borderRadius: 'var(--radius-md)', 
+                        padding: '32px', 
+                        textAlign: 'center', 
+                        background: 'var(--bg-secondary)',
+                        color: 'var(--text-muted)'
+                    }}>
+                        <FileText size={32} style={{ opacity: 0.3, marginBottom: '12px' }} />
+                        <div style={{ fontSize: '14px', fontWeight: 600 }}>Kayıtlı Belge Yok</div>
+                        <div style={{ fontSize: '12px', marginTop: '4px' }}>Bu iş takibine ait rapor veya yüklenmiş belge bulunmamaktadır.</div>
+                    </div>
+                ) : (
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+                        gap: '16px' 
+                    }}>
+                        {documents.map((doc) => {
+                            return (
+                                <div key={doc.id} style={{ 
+                                    background: 'var(--bg-secondary)', 
+                                    border: '1px solid var(--border-color)', 
+                                    borderRadius: 'var(--radius-md)', 
+                                    padding: '16px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    boxShadow: 'var(--shadow-sm)',
+                                    transition: 'transform 0.2s, box-shadow 0.2s'
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'none';
+                                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                                }}
+                                >
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                        <div style={{ 
+                                            width: '40px', 
+                                            height: '40px', 
+                                            borderRadius: '8px', 
+                                            background: 'var(--accent-subtle)', 
+                                            color: 'var(--accent-primary)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0
+                                        }}>
+                                            <FileText size={20} />
+                                        </div>
+                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                            <div style={{ 
+                                                fontSize: '13px', 
+                                                fontWeight: 600, 
+                                                color: 'var(--text-primary)',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }} title={doc.file_name}>
+                                                {doc.file_name}
+                                            </div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                {doc.file_type?.toUpperCase() || 'BELGE'} • {formatDate(doc.created_at)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '14px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                                        <button 
+                                            onClick={() => handleDocumentOpen(doc)}
+                                            className="btn btn-sm btn-outline-primary"
+                                            style={{ flex: 1, padding: '4px 8px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        >
+                                            <Eye size={12} /> Gör
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDocumentDeleteClick(doc)}
+                                            className="btn btn-sm btn-outline-danger"
+                                            style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
 
             {/* Add/Edit Modal */}
             <Modal
@@ -1494,10 +1727,13 @@ export default function WorkDetails(props) {
                     <>
                         <button className="btn btn-secondary" onClick={() => setIsReportModalOpen(false)}>Kapat</button>
                         <div style={{ marginRight: 'auto' }}></div>
-                        <button className="btn btn-primary" onClick={handleSavePdf} disabled={generatingPdf} style={{ gap: '6px' }}>
+                        <button className="btn btn-success" onClick={handleSaveToSystem} disabled={savingToSystem || generatingPdf} style={{ gap: '6px' }}>
+                            <Save size={16} /> {savingToSystem ? 'Kaydediliyor...' : 'Sisteme Kaydet'}
+                        </button>
+                        <button className="btn btn-primary" onClick={handleSavePdf} disabled={savingToSystem || generatingPdf} style={{ gap: '6px' }}>
                             <FileDown size={16} /> {generatingPdf ? 'Hazırlanıyor...' : 'PDF Olarak Kaydet'}
                         </button>
-                        <button className="btn btn-primary" onClick={handlePrintReport} style={{ gap: '6px' }}>
+                        <button className="btn btn-primary" onClick={handlePrintReport} disabled={savingToSystem} style={{ gap: '6px' }}>
                             <Printer size={16} /> Yazdır
                         </button>
                     </>
@@ -1622,6 +1858,18 @@ export default function WorkDetails(props) {
                     </div>
                 </div>
             </Modal>
+
+            <DocumentUploadModal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                onUpload={handleUploadConfirm}
+            />
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={() => handleDocumentDeleteClick(previewDoc.doc || previewDoc)}
+            />
         </div>
     )
 }
