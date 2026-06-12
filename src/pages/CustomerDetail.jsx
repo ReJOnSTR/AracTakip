@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, FileText, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, ArchiveRestore, FileText, Plus, Trash2, Folder, AlertCircle, ChevronRight } from 'lucide-react'
 import DataTable from '../components/DataTable'
 import TopProgressBar from '../components/TopProgressBar'
 import { formatDate, formatCurrency } from '../utils/helpers'
@@ -12,8 +12,11 @@ import WorkForm from '../components/forms/WorkForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { useTabs } from '../context/TabContext'
 import { useCompany } from '../context/CompanyContext'
-import DocumentUploadModal from '../components/DocumentUploadModal'
+import DocumentForm from '../components/forms/DocumentForm'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
+import CustomInput from '../components/CustomInput'
+import CustomSelect from '../components/CustomSelect'
+import ConfirmModal from '../components/ConfirmModal'
 
 export default function CustomerDetail() {
     const { id } = useParams()
@@ -42,6 +45,29 @@ export default function CustomerDetail() {
     const [documents, setDocuments] = useState([])
     const [previewDoc, setPreviewDoc] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
+    const [documentCategories, setDocumentCategories] = useState([])
+    const [documentFolders, setDocumentFolders] = useState([])
+    const [currentFolder, setCurrentFolder] = useState(null)
+    const [editDocModalOpen, setEditDocModalOpen] = useState(false)
+    const [editingDoc, setEditingDoc] = useState(null)
+    const [uploadFileName, setUploadFileName] = useState('')
+    const [uploadStartDate, setUploadStartDate] = useState('')
+    const [uploadEndDate, setUploadEndDate] = useState('')
+    const [uploadCategory, setUploadCategory] = useState('')
+    const [uploadFolder, setUploadFolder] = useState('')
+
+    // Bulk Move and Folder Operations States
+    const [bulkMoveIds, setBulkMoveIds] = useState([])
+    const [bulkMoveModalOpen, setBulkMoveModalOpen] = useState(false)
+    const [bulkMoveSelectedFolder, setBulkMoveSelectedFolder] = useState('')
+    const [bulkMoveClearSelection, setBulkMoveClearSelection] = useState(null)
+
+    // Folder Modal States
+    const [folderModalOpen, setFolderModalOpen] = useState(false)
+    const [folderModalMode, setFolderModalMode] = useState('create') // 'create' | 'rename'
+    const [folderModalValue, setFolderModalValue] = useState('')
+    const [folderModalOldValue, setFolderModalOldValue] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null)
 
     useEffect(() => {
         loadCustomer()
@@ -57,7 +83,7 @@ export default function CustomerDetail() {
     const loadDocuments = async (companyId = currentCompany?.id) => {
         if (!companyId || !customer) return
         try {
-            const docsRes = await window.electronAPI.getAllDocuments(companyId)
+            const docsRes = await window.electronAPI.getAllDocuments(companyId, showArchived ? 1 : 0)
             if (docsRes.success) {
                 const customerWorkIds = customer.works?.map(w => w.id) || []
                 const filtered = docsRes.data.filter(d => 
@@ -68,6 +94,16 @@ export default function CustomerDetail() {
             }
         } catch (error) {
             console.error('Failed to load customer documents:', error)
+        }
+    }
+
+    const handleBulkArchiveDocs = async (ids, isArchived) => {
+        try {
+            const promises = ids.map(id => window.electronAPI.archiveItem('documents', id, isArchived ? 1 : 0))
+            await Promise.all(promises)
+            loadDocuments(currentCompany?.id)
+        } catch (err) {
+            console.error('Bulk archive failed:', err)
         }
     }
 
@@ -85,11 +121,172 @@ export default function CustomerDetail() {
         setLoading(false)
     }
 
+    const loadCategories = async () => {
+        if (!currentCompany) return
+        try {
+            const res = await window.electronAPI.getDocumentCategories(currentCompany.id)
+            if (res.success) {
+                setDocumentCategories(res.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
+            }
+        } catch (error) {
+            console.error('Failed to load categories:', error)
+        }
+    }
+
+    const loadFolders = async () => {
+        if (!currentCompany) return
+        try {
+            const res = await window.electronAPI.getDocumentFolders(currentCompany.id)
+            if (res.success) {
+                setDocumentFolders(res.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
+            }
+        } catch (error) {
+            console.error('Failed to load folders:', error)
+        }
+    }
+
+    const handleOpenCreateFolder = () => {
+        setFolderModalMode('create')
+        setFolderModalValue('')
+        setFolderModalOpen(true)
+    }
+
+    const handleOpenRenameFolder = (oldName) => {
+        setFolderModalMode('rename')
+        setFolderModalValue(oldName)
+        setFolderModalOldValue(oldName)
+        setFolderModalOpen(true)
+    }
+
+    const handleFolderSubmit = async () => {
+        const name = folderModalValue.trim()
+        if (!name) return
+
+        const exists = documentFolders.some(f => f.value.toLowerCase() === name.toLowerCase())
+        if (exists && (folderModalMode === 'create' || name !== folderModalOldValue)) {
+            alert('Bu isimde bir klasör zaten mevcut!')
+            return
+        }
+
+        setSaving(true)
+        try {
+            if (folderModalMode === 'create') {
+                const res = await window.electronAPI.createDocumentFolder({
+                    companyId: currentCompany.id,
+                    name: name
+                })
+                if (res.success) {
+                    loadFolders()
+                    setCurrentFolder(name)
+                    setFolderModalOpen(false)
+                } else {
+                    alert('Klasör oluşturulurken hata oluştu: ' + res.error)
+                }
+            } else if (folderModalMode === 'rename') {
+                const folderObj = documentFolders.find(f => f.value === folderModalOldValue)
+                if (!folderObj) return
+                const res = await window.electronAPI.updateDocumentFolder({ id: folderObj.id, name: name })
+                if (res.success) {
+                    const docsToUpdate = documents.filter(d => d.folder === folderModalOldValue)
+                    for (const d of docsToUpdate) {
+                        await window.electronAPI.updateDocument({
+                            id: d.id,
+                            fileName: d.file_name,
+                            startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                            endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
+                            folder: name
+                        })
+                    }
+                    setCurrentFolder(name)
+                    loadFolders()
+                    loadDocuments(currentCompany.id)
+                    setFolderModalOpen(false)
+                } else {
+                    alert('Klasör güncellenirken hata oluştu: ' + res.error)
+                }
+            }
+        } catch (err) {
+            console.error('Folder action error:', err)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleDeleteFolder = (folderName) => {
+        const folderObj = documentFolders.find(f => f.value === folderName)
+        if (!folderObj) return
+        
+        setConfirmModal({
+            title: 'Klasör Silme Onayı',
+            message: `"${folderName}" klasörünü silmek istediğinize emin misiniz? Klasör içindeki dosyalar silinmeyecek, Klasörsüz olacaktır.`,
+            confirmText: 'Sil',
+            styleType: 'danger',
+            onConfirm: async () => {
+                setSaving(true)
+                try {
+                    const res = await window.electronAPI.deleteDocumentFolder(folderObj.id)
+                    if (res.success) {
+                        const docsToUpdate = documents.filter(d => d.folder === folderName)
+                        for (const d of docsToUpdate) {
+                            await window.electronAPI.updateDocument({
+                                id: d.id,
+                                fileName: d.file_name,
+                                startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                                endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
+                                folder: null
+                            })
+                        }
+                        setCurrentFolder(null)
+                        loadFolders()
+                        loadDocuments(currentCompany.id)
+                    } else {
+                        alert('Klasör silinirken hata oluştu: ' + res.error)
+                    }
+                } catch (err) {
+                    console.error('Delete folder error:', err)
+                } finally {
+                    setSaving(false)
+                    setConfirmModal(null)
+                }
+            }
+        })
+    }
+
+    const handleBulkMoveConfirm = async () => {
+        if (!bulkMoveIds || bulkMoveIds.length === 0) return
+        setSaving(true)
+        try {
+            for (const id of bulkMoveIds) {
+                const doc = documents.find(d => d.id === id)
+                if (doc) {
+                    await window.electronAPI.updateDocument({
+                        id: doc.id,
+                        fileName: doc.file_name,
+                        startDate: doc.start_date ? new Date(doc.start_date).toISOString().split('T')[0] : null,
+                        endDate: doc.end_date ? new Date(doc.end_date).toISOString().split('T')[0] : null,
+                        folder: bulkMoveSelectedFolder || null
+                    })
+                }
+            }
+            if (bulkMoveClearSelection) bulkMoveClearSelection()
+            setBulkMoveModalOpen(false)
+            setBulkMoveSelectedFolder('')
+            loadDocuments(currentCompany?.id)
+        } catch (err) {
+            console.error('Bulk move error:', err)
+            alert('Belgeler taşınırken hata oluştu.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
     useEffect(() => {
         if (customer && currentCompany) {
             loadDocuments(currentCompany.id)
+            loadCategories()
+            loadFolders()
         }
-    }, [customer, currentCompany])
+    }, [customer, currentCompany, showArchived])
 
     const handleDocumentOpen = async (doc) => {
         if (!doc) return
@@ -113,21 +310,30 @@ export default function CustomerDetail() {
         }
     }
 
-    const handleUploadConfirm = async (file) => {
-        if (!customer) return
+    const handleUploadConfirm = async (docs) => {
+        if (!docs || docs.length === 0 || !customer) return
 
-        const result = await window.electronAPI.addDocument({
-            relatedType: 'customer',
-            relatedId: customer.id,
-            filePath: file.path,
-            fileName: file.name
-        })
-
-        if (result.success) {
-            loadDocuments(currentCompany.id)
-            setUploadModalOpen(false)
-        } else {
-            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        setSaving(true)
+        try {
+            for (const doc of docs) {
+                await window.electronAPI.addDocument({
+                    relatedType: 'customer',
+                    relatedId: customer.id,
+                    filePath: doc.path,
+                    fileName: doc.displayName,
+                    category: doc.docType || null,
+                    docType: doc.docType || null,
+                    folder: doc.folder || null,
+                    startDate: doc.startDate,
+                    endDate: doc.endDate
+                })
+            }
+            loadDocuments(currentCompany?.id)
+        } catch (err) {
+            console.error('Document upload error:', err)
+            alert('Dosyalar yüklenirken hata oluştu: ' + err.message)
+        } finally {
+            setSaving(false)
         }
     }
 
@@ -143,6 +349,40 @@ export default function CustomerDetail() {
             }
         } catch (error) {
             console.error('Delete document failed:', error)
+        }
+    }
+
+    const handleEditDoc = (doc) => {
+        setEditingDoc(doc)
+        setUploadFileName(doc.file_name || '')
+        setUploadStartDate(doc.start_date ? new Date(doc.start_date).toISOString().split('T')[0] : '')
+        setUploadEndDate(doc.end_date ? new Date(doc.end_date).toISOString().split('T')[0] : '')
+        setUploadCategory(doc.category || '')
+        setUploadFolder(doc.folder || '')
+        setEditDocModalOpen(true)
+    }
+
+    const handleUpdateDocConfirm = async () => {
+        if (!editingDoc) return
+        setSaving(true)
+        try {
+            const res = await window.electronAPI.updateDocument({
+                id: editingDoc.id,
+                fileName: uploadFileName,
+                startDate: uploadStartDate || null,
+                endDate: uploadEndDate || null,
+                category: uploadCategory || null,
+                docType: uploadCategory || null,
+                folder: uploadFolder || null
+            })
+            if (res.success) {
+                setEditDocModalOpen(false)
+                loadDocuments(currentCompany?.id)
+            }
+        } catch (err) {
+            console.error('Update document failed:', err)
+        } finally {
+            setSaving(false)
         }
     }
 
@@ -556,112 +796,197 @@ export default function CustomerDetail() {
                             <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                                 Dosyalar ve Belgeler
                             </h3>
-                            <button 
-                                onClick={() => setUploadModalOpen(true)} 
-                                className="btn btn-secondary" 
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                            >
-                                <Plus size={16} /> Belge Ekle
-                            </button>
+                            {!showArchived && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <button 
+                                        onClick={handleOpenCreateFolder} 
+                                        className="btn btn-secondary" 
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        <Plus size={16} /> Yeni Klasör
+                                    </button>
+                                    <button 
+                                        onClick={() => setUploadModalOpen(true)} 
+                                        className="btn btn-primary" 
+                                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    >
+                                        <Plus size={16} /> Belge Ekle
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {documents.length === 0 ? (
+                        {/* Klasör Yolu Navigasyonu */}
+                        {currentFolder && (
                             <div style={{ 
-                                border: '1px dashed var(--border-color)', 
-                                borderRadius: 'var(--radius-md)', 
-                                padding: '40px', 
-                                textAlign: 'center', 
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-muted)'
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '4px', 
+                                marginBottom: '16px',
+                                padding: '10px 16px',
+                                background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)',
+                                borderRadius: '10px',
+                                border: '1px solid var(--border-color)',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
                             }}>
-                                <FileText size={36} style={{ opacity: 0.3, marginBottom: '12px' }} />
-                                <div style={{ fontSize: '14px', fontWeight: 600 }}>Kayıtlı Belge Yok</div>
-                                <div style={{ fontSize: '12px', marginTop: '4px' }}>Bu müşteriye veya müşterinin işlerine ait bir belge bulunmamaktadır.</div>
-                            </div>
-                        ) : (
-                            <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-                                gap: '16px' 
-                            }}>
-                                {documents.map((doc) => {
-                                    return (
-                                        <div key={doc.id} style={{ 
-                                            background: 'var(--bg-secondary)', 
-                                            border: '1px solid var(--border-color)', 
-                                            borderRadius: 'var(--radius-md)', 
-                                            padding: '16px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'space-between',
-                                            boxShadow: 'var(--shadow-sm)',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.transform = 'translateY(-2px)';
-                                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.transform = 'none';
-                                            e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                                        }}
-                                        >
-                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                                <div style={{ 
-                                                    width: '40px', 
-                                                    height: '40px', 
-                                                    borderRadius: '8px', 
-                                                    background: 'var(--accent-subtle)', 
-                                                    color: 'var(--accent-primary)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    flexShrink: 0
-                                                }}>
-                                                    <FileText size={20} />
-                                                </div>
-                                                <div style={{ minWidth: 0, flex: 1 }}>
-                                                    <div style={{ 
-                                                        fontSize: '13px', 
-                                                        fontWeight: 600, 
-                                                        color: 'var(--text-primary)',
-                                                        whiteSpace: 'nowrap',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis'
-                                                    }} title={doc.file_name}>
-                                                        {doc.file_name}
-                                                    </div>
-                                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                                        {doc.file_type?.toUpperCase() || 'BELGE'} • {formatDate(doc.created_at)}
-                                                    </div>
-                                                    {doc.related_type === 'work' && (
-                                                        <div style={{ fontSize: '10px', color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '6px', fontWeight: 600 }}>
-                                                            İş Raporu
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '14px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
-                                                <button 
-                                                    onClick={() => handleDocumentOpen(doc)}
-                                                    className="btn btn-sm btn-outline-primary"
-                                                    style={{ flex: 1, padding: '4px 8px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
-                                                >
-                                                    <Eye size={12} /> Gör
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDocumentDelete(doc)}
-                                                    className="btn btn-sm btn-outline-danger"
-                                                    style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                <button 
+                                    onClick={() => setCurrentFolder(null)} 
+                                    style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '6px', 
+                                        padding: '5px 12px', 
+                                        fontSize: '13px',
+                                        fontWeight: 500,
+                                        height: 'auto',
+                                        background: 'var(--bg-primary)',
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        color: 'var(--text-secondary)',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-primary)'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.background = 'var(--accent-subtle)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.background = 'var(--bg-primary)'; }}
+                                >
+                                    <Folder size={14} />
+                                    Tüm Dosyalar
+                                </button>
+                                <ChevronRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '6px', 
+                                    padding: '5px 12px',
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    color: 'var(--accent-primary)',
+                                    background: 'var(--accent-subtle)',
+                                    borderRadius: '8px',
+                                    border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)'
+                                }}>
+                                    <Folder size={14} style={{ fill: 'color-mix(in srgb, var(--accent-primary) 30%, transparent)' }} />
+                                    {currentFolder}
+                                </div>
                             </div>
                         )}
+
+                        <DataTable persistenceKey="CustomerDetail_documents_table"
+                            columns={[
+                                { 
+                                    key: 'file_name', 
+                                    label: 'Belge Adı',
+                                    render: (v, row) => {
+                                        if (row.isFolder) {
+                                            return (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--accent-primary)' }}>
+                                                    <Folder size={18} style={{ color: 'var(--accent-primary)', fill: 'var(--accent-subtle)' }} />
+                                                    <span>{v}</span>
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <FileText size={18} style={{ color: 'var(--text-secondary)' }} />
+                                                <span>{v}</span>
+                                            </div>
+                                        );
+                                    }
+                                },
+                                { 
+                                    key: 'category', 
+                                    label: 'Kategori', 
+                                    render: (v, row) => row.isFolder ? '' : (row.category || row.doc_type || <span className="text-muted">Kategorisiz</span>) 
+                                },
+                                { 
+                                    key: 'folder', 
+                                    label: 'Klasör', 
+                                    render: (v, row) => row.isFolder ? '' : (row.folder || <span className="text-muted">Klasörsüz</span>) 
+                                },
+                                { 
+                                    key: 'related_info', 
+                                    label: 'İlgili Kayıt / İş', 
+                                    render: (_, row) => {
+                                        if (row.isFolder) return '';
+                                        if (row.related_type === 'customer') {
+                                            return <span className="badge badge-primary">Müşteri Geneli</span>;
+                                        } else if (row.related_type === 'work') {
+                                            const w = customer?.works?.find(work => work.id === row.related_id);
+                                            return w ? <span style={{ fontSize: '12px' }}>İş: {w.title}</span> : <span className="text-muted">İş #{row.related_id}</span>;
+                                        }
+                                        return <span className="text-muted">{row.related_type}</span>;
+                                    }
+                                },
+                                { key: 'created_at', label: 'Yükleme Tarihi', render: v => v ? formatDate(v) : '' },
+                                { key: 'file_type', label: 'Tür', render: (v, row) => row.isFolder ? 'Klasör' : (v || '-') }
+                            ]}
+                            data={(() => {
+                                if (currentFolder === null) {
+                                    const folderRows = documentFolders.map(f => ({
+                                        id: `folder_${f.id}`,
+                                        file_name: f.value,
+                                        isFolder: true,
+                                        category: '',
+                                        folder: '',
+                                        related_info: '',
+                                        created_at: null,
+                                        file_type: 'Klasör'
+                                    }));
+                                    const fileRows = documents.filter(d => !d.folder);
+                                    return [...folderRows, ...fileRows];
+                                }
+                                return documents.filter(d => d.folder === currentFolder);
+                            })()}
+                            emptyMessage={showArchived ? "Arşivlenmiş belge bulunmuyor." : "Kayıtlı belge bulunmamaktadır."}
+                            onRowClick={(row) => {
+                                if (row.isFolder) {
+                                    setCurrentFolder(row.file_name);
+                                } else {
+                                    handleDocumentOpen(row);
+                                }
+                            }}
+                            onBulkDelete={async (ids) => {
+                                if (!window.confirm(`${ids.length} belgeyi silmek istediğinize emin misiniz?`)) return;
+                                for (const id of ids) {
+                                    await window.electronAPI.deleteDocument(id);
+                                }
+                                loadDocuments(currentCompany?.id);
+                            }}
+                            isArchiveView={showArchived}
+                            onToggleArchiveView={setShowArchived}
+                            onBulkArchive={(ids) => handleBulkArchiveDocs(ids, !showArchived)}
+                            customBulkActions={(selectedIds, clearSelection) => (
+                                <button 
+                                    className="btn-bulk-action secondary" 
+                                    onClick={() => {
+                                        setBulkMoveIds(selectedIds);
+                                        setBulkMoveClearSelection(() => clearSelection);
+                                        setBulkMoveModalOpen(true);
+                                    }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <Folder size={15} />
+                                    Klasöre Taşı
+                                </button>
+                            )}
+                            actions={(item) => {
+                                if (item.isFolder) {
+                                    return !showArchived ? (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleOpenRenameFolder(item.file_name) }} title="Klasör Adını Değiştir"><Pencil size={16} /></button>
+                                            <button className="icon-btn danger" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(item.file_name) }} title="Klasörü Sil"><Trash2 size={16} /></button>
+                                        </div>
+                                    ) : null;
+                                }
+                                return (
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item) }} title="Aç"><FileText size={16} /></button>
+                                        {!showArchived && <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleEditDoc(item) }} title="Düzenle"><Pencil size={16} /></button>}
+                                        <button className="icon-btn danger" onClick={(e) => { e.stopPropagation(); handleDocumentDelete(item) }} title="Sil"><Trash2 size={16} /></button>
+                                    </div>
+                                );
+                            }}
+                        />
                     </div>
                 )}
             </div>
@@ -734,23 +1059,162 @@ export default function CustomerDetail() {
                     onSubmit={handleWorkSubmit}
                     onCancel={() => { setIsWorkModalOpen(false); setEditingWork(null); }}
                     loading={saving}
-                    customers={[customer]} // Current customer as the only option
+                    customers={[customer]}
                     disableCustomerSelect={true}
                 />
             </Modal>
+            {/* Document Upload Modal */}
+            {uploadModalOpen && (
+                <Modal
+                    isOpen={uploadModalOpen}
+                    onClose={() => setUploadModalOpen(false)}
+                    title="Belge Yükle"
+                    size="lg"
+                >
+                    <DocumentForm
+                        onSubmit={handleUploadConfirm}
+                        onCancel={() => setUploadModalOpen(false)}
+                        loading={saving}
+                    />
+                </Modal>
+            )}
 
-            {/* Document Upload & Preview Modals */}
-            <DocumentUploadModal
-                isOpen={uploadModalOpen}
-                onClose={() => setUploadModalOpen(false)}
-                onUpload={handleUploadConfirm}
-            />
+            {/* Document Edit Modal */}
+            <Modal
+                isOpen={editDocModalOpen}
+                onClose={() => setEditDocModalOpen(false)}
+                title="Belge Bilgilerini Düzenle"
+                size="md"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <CustomInput 
+                        label="Dosya Adı *"
+                        value={uploadFileName}
+                        onChange={setUploadFileName}
+                        required
+                    />
+                    <CustomSelect 
+                        label="Kategori"
+                        value={uploadCategory}
+                        onChange={setUploadCategory}
+                        options={documentCategories}
+                        placeholder="Kategori seçin..."
+                    />
+                    <CustomSelect 
+                        label="Klasör"
+                        value={uploadFolder}
+                        onChange={setUploadFolder}
+                        options={documentFolders}
+                        placeholder="Klasör seçin..."
+                    />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <CustomInput 
+                            label="Başlangıç Tarihi"
+                            type="date"
+                            value={uploadStartDate}
+                            onChange={setUploadStartDate}
+                        />
+                        <CustomInput 
+                            label="Bitiş Tarihi"
+                            type="date"
+                            value={uploadEndDate}
+                            onChange={setUploadEndDate}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                        <button className="btn btn-secondary" onClick={() => setEditDocModalOpen(false)}>İptal</button>
+                        <button 
+                            className="btn btn-primary" 
+                            disabled={saving || !uploadFileName} 
+                            onClick={handleUpdateDocConfirm}
+                        >
+                            {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             <DocumentPreviewModal
                 doc={previewDoc}
                 onClose={() => setPreviewDoc(null)}
                 onDelete={() => handleDocumentDelete(previewDoc.doc || previewDoc)}
             />
+
+            {bulkMoveModalOpen && (
+                <Modal
+                    isOpen={bulkMoveModalOpen}
+                    onClose={() => setBulkMoveModalOpen(false)}
+                    title="Belgeleri Klasöre Taşı"
+                    size="md"
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
+                            Seçilen {bulkMoveIds.length} belgeyi hangi klasöre taşımak istiyorsunuz?
+                        </p>
+                        <CustomSelect 
+                            label="Hedef Klasör"
+                            value={bulkMoveSelectedFolder}
+                            onChange={setBulkMoveSelectedFolder}
+                            options={[
+                                { value: '', label: 'Klasörsüz (Klasörden Çıkart)' },
+                                ...documentFolders
+                            ]}
+                            placeholder="Klasör seçin..."
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                            <button className="btn btn-secondary" onClick={() => setBulkMoveModalOpen(false)}>İptal</button>
+                            <button 
+                                className="btn btn-primary" 
+                                disabled={saving} 
+                                onClick={handleBulkMoveConfirm}
+                            >
+                                {saving ? 'Taşınıyor...' : 'Klasöre Taşı'}
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {folderModalOpen && (
+                <Modal
+                    isOpen={folderModalOpen}
+                    onClose={() => setFolderModalOpen(false)}
+                    title={folderModalMode === 'create' ? 'Yeni Klasör Oluştur' : 'Klasör Adını Değiştir'}
+                    size="sm"
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <CustomInput
+                            label="Klasör Adı"
+                            value={folderModalValue}
+                            onChange={setFolderModalValue}
+                            placeholder="Klasör adı girin..."
+                            required
+                            autoFocus
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                            <button className="btn btn-secondary" onClick={() => setFolderModalOpen(false)}>İptal</button>
+                            <button 
+                                className="btn btn-primary" 
+                                disabled={saving || !folderModalValue.trim()} 
+                                onClick={handleFolderSubmit}
+                            >
+                                {saving ? 'Kaydediliyor...' : (folderModalMode === 'create' ? 'Klasör Oluştur' : 'Kaydet')}
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+            {confirmModal && (
+                <ConfirmModal 
+                    isOpen={!!confirmModal} 
+                    onClose={() => setConfirmModal(null)} 
+                    onConfirm={confirmModal?.onConfirm} 
+                    title={confirmModal?.title} 
+                    message={confirmModal?.message} 
+                    confirmText={confirmModal?.confirmText}
+                    type={confirmModal?.styleType}
+                />
+            )}
         </div>
     )
 }

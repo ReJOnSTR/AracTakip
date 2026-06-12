@@ -164,6 +164,11 @@ export type leave_types = $Result.DefaultSelection<Prisma.$leave_typesPayload>
  */
 export type document_categories = $Result.DefaultSelection<Prisma.$document_categoriesPayload>
 /**
+ * Model document_folders
+ * 
+ */
+export type document_folders = $Result.DefaultSelection<Prisma.$document_foldersPayload>
+/**
  * Model vehicle_types
  * 
  */
@@ -594,6 +599,16 @@ export class PrismaClient<
     * ```
     */
   get document_categories(): Prisma.document_categoriesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.document_folders`: Exposes CRUD operations for the **document_folders** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Document_folders
+    * const document_folders = await prisma.document_folders.findMany()
+    * ```
+    */
+  get document_folders(): Prisma.document_foldersDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.vehicle_types`: Exposes CRUD operations for the **vehicle_types** model.
@@ -1078,6 +1093,7 @@ export namespace Prisma {
     departments: 'departments',
     leave_types: 'leave_types',
     document_categories: 'document_categories',
+    document_folders: 'document_folders',
     vehicle_types: 'vehicle_types',
     arvento_history: 'arvento_history'
   };
@@ -1095,7 +1111,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "vehicle_types" | "arvento_history"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "arvento_history"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3319,6 +3335,80 @@ export namespace Prisma {
           }
         }
       }
+      document_folders: {
+        payload: Prisma.$document_foldersPayload<ExtArgs>
+        fields: Prisma.document_foldersFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.document_foldersFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.document_foldersFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>
+          }
+          findFirst: {
+            args: Prisma.document_foldersFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.document_foldersFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>
+          }
+          findMany: {
+            args: Prisma.document_foldersFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>[]
+          }
+          create: {
+            args: Prisma.document_foldersCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>
+          }
+          createMany: {
+            args: Prisma.document_foldersCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.document_foldersCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>[]
+          }
+          delete: {
+            args: Prisma.document_foldersDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>
+          }
+          update: {
+            args: Prisma.document_foldersUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>
+          }
+          deleteMany: {
+            args: Prisma.document_foldersDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.document_foldersUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.document_foldersUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>[]
+          }
+          upsert: {
+            args: Prisma.document_foldersUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$document_foldersPayload>
+          }
+          aggregate: {
+            args: Prisma.Document_foldersAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDocument_folders>
+          }
+          groupBy: {
+            args: Prisma.document_foldersGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Document_foldersGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.document_foldersCountArgs<ExtArgs>
+            result: $Utils.Optional<Document_foldersCountAggregateOutputType> | number
+          }
+        }
+      }
       vehicle_types: {
         payload: Prisma.$vehicle_typesPayload<ExtArgs>
         fields: Prisma.vehicle_typesFieldRefs
@@ -3605,6 +3695,7 @@ export namespace Prisma {
     departments?: departmentsOmit
     leave_types?: leave_typesOmit
     document_categories?: document_categoriesOmit
+    document_folders?: document_foldersOmit
     vehicle_types?: vehicle_typesOmit
     arvento_history?: arvento_historyOmit
   }
@@ -3698,6 +3789,7 @@ export namespace Prisma {
     leave_types: number
     document_categories: number
     vehicle_types: number
+    document_folders: number
     meal_price_history: number
   }
 
@@ -3713,6 +3805,7 @@ export namespace Prisma {
     leave_types?: boolean | CompaniesCountOutputTypeCountLeave_typesArgs
     document_categories?: boolean | CompaniesCountOutputTypeCountDocument_categoriesArgs
     vehicle_types?: boolean | CompaniesCountOutputTypeCountVehicle_typesArgs
+    document_folders?: boolean | CompaniesCountOutputTypeCountDocument_foldersArgs
     meal_price_history?: boolean | CompaniesCountOutputTypeCountMeal_price_historyArgs
   }
 
@@ -3802,6 +3895,13 @@ export namespace Prisma {
    */
   export type CompaniesCountOutputTypeCountVehicle_typesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: vehicle_typesWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountDocument_foldersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: document_foldersWhereInput
   }
 
   /**
@@ -5577,6 +5677,7 @@ export namespace Prisma {
     leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
     document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
     vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
+    document_folders?: boolean | companies$document_foldersArgs<ExtArgs>
     meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
@@ -5640,6 +5741,7 @@ export namespace Prisma {
     leave_types?: boolean | companies$leave_typesArgs<ExtArgs>
     document_categories?: boolean | companies$document_categoriesArgs<ExtArgs>
     vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
+    document_folders?: boolean | companies$document_foldersArgs<ExtArgs>
     meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -5666,6 +5768,7 @@ export namespace Prisma {
       leave_types: Prisma.$leave_typesPayload<ExtArgs>[]
       document_categories: Prisma.$document_categoriesPayload<ExtArgs>[]
       vehicle_types: Prisma.$vehicle_typesPayload<ExtArgs>[]
+      document_folders: Prisma.$document_foldersPayload<ExtArgs>[]
       meal_price_history: Prisma.$meal_price_historyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -6087,6 +6190,7 @@ export namespace Prisma {
     leave_types<T extends companies$leave_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$leave_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$leave_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     document_categories<T extends companies$document_categoriesArgs<ExtArgs> = {}>(args?: Subset<T, companies$document_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     vehicle_types<T extends companies$vehicle_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$vehicle_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    document_folders<T extends companies$document_foldersArgs<ExtArgs> = {}>(args?: Subset<T, companies$document_foldersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     meal_price_history<T extends companies$meal_price_historyArgs<ExtArgs> = {}>(args?: Subset<T, companies$meal_price_historyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -6802,6 +6906,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Vehicle_typesScalarFieldEnum | Vehicle_typesScalarFieldEnum[]
+  }
+
+  /**
+   * companies.document_folders
+   */
+  export type companies$document_foldersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    where?: document_foldersWhereInput
+    orderBy?: document_foldersOrderByWithRelationInput | document_foldersOrderByWithRelationInput[]
+    cursor?: document_foldersWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Document_foldersScalarFieldEnum | Document_foldersScalarFieldEnum[]
   }
 
   /**
@@ -8069,12 +8197,14 @@ export namespace Prisma {
     id: number | null
     vehicle_id: number | null
     related_id: number | null
+    is_archived: number | null
   }
 
   export type DocumentsSumAggregateOutputType = {
     id: number | null
     vehicle_id: number | null
     related_id: number | null
+    is_archived: number | null
   }
 
   export type DocumentsMinAggregateOutputType = {
@@ -8085,9 +8215,13 @@ export namespace Prisma {
     file_name: string | null
     file_path: string | null
     file_type: string | null
+    doc_type: string | null
+    category: string | null
+    folder: string | null
     start_date: Date | null
     end_date: Date | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type DocumentsMaxAggregateOutputType = {
@@ -8098,9 +8232,13 @@ export namespace Prisma {
     file_name: string | null
     file_path: string | null
     file_type: string | null
+    doc_type: string | null
+    category: string | null
+    folder: string | null
     start_date: Date | null
     end_date: Date | null
     created_at: Date | null
+    is_archived: number | null
   }
 
   export type DocumentsCountAggregateOutputType = {
@@ -8111,9 +8249,13 @@ export namespace Prisma {
     file_name: number
     file_path: number
     file_type: number
+    doc_type: number
+    category: number
+    folder: number
     start_date: number
     end_date: number
     created_at: number
+    is_archived: number
     _all: number
   }
 
@@ -8122,12 +8264,14 @@ export namespace Prisma {
     id?: true
     vehicle_id?: true
     related_id?: true
+    is_archived?: true
   }
 
   export type DocumentsSumAggregateInputType = {
     id?: true
     vehicle_id?: true
     related_id?: true
+    is_archived?: true
   }
 
   export type DocumentsMinAggregateInputType = {
@@ -8138,9 +8282,13 @@ export namespace Prisma {
     file_name?: true
     file_path?: true
     file_type?: true
+    doc_type?: true
+    category?: true
+    folder?: true
     start_date?: true
     end_date?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type DocumentsMaxAggregateInputType = {
@@ -8151,9 +8299,13 @@ export namespace Prisma {
     file_name?: true
     file_path?: true
     file_type?: true
+    doc_type?: true
+    category?: true
+    folder?: true
     start_date?: true
     end_date?: true
     created_at?: true
+    is_archived?: true
   }
 
   export type DocumentsCountAggregateInputType = {
@@ -8164,9 +8316,13 @@ export namespace Prisma {
     file_name?: true
     file_path?: true
     file_type?: true
+    doc_type?: true
+    category?: true
+    folder?: true
     start_date?: true
     end_date?: true
     created_at?: true
+    is_archived?: true
     _all?: true
   }
 
@@ -8264,9 +8420,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type: string | null
+    doc_type: string | null
+    category: string | null
+    folder: string | null
     start_date: Date | null
     end_date: Date | null
     created_at: Date | null
+    is_archived: number | null
     _count: DocumentsCountAggregateOutputType | null
     _avg: DocumentsAvgAggregateOutputType | null
     _sum: DocumentsSumAggregateOutputType | null
@@ -8296,9 +8456,13 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
+    doc_type?: boolean
+    category?: boolean
+    folder?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
+    is_archived?: boolean
     vehicles?: boolean | documents$vehiclesArgs<ExtArgs>
   }, ExtArgs["result"]["documents"]>
 
@@ -8310,9 +8474,13 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
+    doc_type?: boolean
+    category?: boolean
+    folder?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
+    is_archived?: boolean
     vehicles?: boolean | documents$vehiclesArgs<ExtArgs>
   }, ExtArgs["result"]["documents"]>
 
@@ -8324,9 +8492,13 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
+    doc_type?: boolean
+    category?: boolean
+    folder?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
+    is_archived?: boolean
     vehicles?: boolean | documents$vehiclesArgs<ExtArgs>
   }, ExtArgs["result"]["documents"]>
 
@@ -8338,12 +8510,16 @@ export namespace Prisma {
     file_name?: boolean
     file_path?: boolean
     file_type?: boolean
+    doc_type?: boolean
+    category?: boolean
+    folder?: boolean
     start_date?: boolean
     end_date?: boolean
     created_at?: boolean
+    is_archived?: boolean
   }
 
-  export type documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicle_id" | "related_type" | "related_id" | "file_name" | "file_path" | "file_type" | "start_date" | "end_date" | "created_at", ExtArgs["result"]["documents"]>
+  export type documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicle_id" | "related_type" | "related_id" | "file_name" | "file_path" | "file_type" | "doc_type" | "category" | "folder" | "start_date" | "end_date" | "created_at" | "is_archived", ExtArgs["result"]["documents"]>
   export type documentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     vehicles?: boolean | documents$vehiclesArgs<ExtArgs>
   }
@@ -8367,9 +8543,13 @@ export namespace Prisma {
       file_name: string
       file_path: string
       file_type: string | null
+      doc_type: string | null
+      category: string | null
+      folder: string | null
       start_date: Date | null
       end_date: Date | null
       created_at: Date | null
+      is_archived: number | null
     }, ExtArgs["result"]["documents"]>
     composites: {}
   }
@@ -8801,9 +8981,13 @@ export namespace Prisma {
     readonly file_name: FieldRef<"documents", 'String'>
     readonly file_path: FieldRef<"documents", 'String'>
     readonly file_type: FieldRef<"documents", 'String'>
+    readonly doc_type: FieldRef<"documents", 'String'>
+    readonly category: FieldRef<"documents", 'String'>
+    readonly folder: FieldRef<"documents", 'String'>
     readonly start_date: FieldRef<"documents", 'DateTime'>
     readonly end_date: FieldRef<"documents", 'DateTime'>
     readonly created_at: FieldRef<"documents", 'DateTime'>
+    readonly is_archived: FieldRef<"documents", 'Int'>
   }
     
 
@@ -11553,6 +11737,7 @@ export namespace Prisma {
     file_path: string | null
     file_type: string | null
     category: string | null
+    folder: string | null
     issue_date: Date | null
     start_date: Date | null
     expiry_date: Date | null
@@ -11567,6 +11752,7 @@ export namespace Prisma {
     file_path: string | null
     file_type: string | null
     category: string | null
+    folder: string | null
     issue_date: Date | null
     start_date: Date | null
     expiry_date: Date | null
@@ -11581,6 +11767,7 @@ export namespace Prisma {
     file_path: number
     file_type: number
     category: number
+    folder: number
     issue_date: number
     start_date: number
     expiry_date: number
@@ -11609,6 +11796,7 @@ export namespace Prisma {
     file_path?: true
     file_type?: true
     category?: true
+    folder?: true
     issue_date?: true
     start_date?: true
     expiry_date?: true
@@ -11623,6 +11811,7 @@ export namespace Prisma {
     file_path?: true
     file_type?: true
     category?: true
+    folder?: true
     issue_date?: true
     start_date?: true
     expiry_date?: true
@@ -11637,6 +11826,7 @@ export namespace Prisma {
     file_path?: true
     file_type?: true
     category?: true
+    folder?: true
     issue_date?: true
     start_date?: true
     expiry_date?: true
@@ -11738,6 +11928,7 @@ export namespace Prisma {
     file_path: string
     file_type: string | null
     category: string | null
+    folder: string | null
     issue_date: Date | null
     start_date: Date | null
     expiry_date: Date | null
@@ -11771,6 +11962,7 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    folder?: boolean
     issue_date?: boolean
     start_date?: boolean
     expiry_date?: boolean
@@ -11786,6 +11978,7 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    folder?: boolean
     issue_date?: boolean
     start_date?: boolean
     expiry_date?: boolean
@@ -11801,6 +11994,7 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    folder?: boolean
     issue_date?: boolean
     start_date?: boolean
     expiry_date?: boolean
@@ -11816,6 +12010,7 @@ export namespace Prisma {
     file_path?: boolean
     file_type?: boolean
     category?: boolean
+    folder?: boolean
     issue_date?: boolean
     start_date?: boolean
     expiry_date?: boolean
@@ -11823,7 +12018,7 @@ export namespace Prisma {
     created_at?: boolean
   }
 
-  export type employee_documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "file_name" | "file_path" | "file_type" | "category" | "issue_date" | "start_date" | "expiry_date" | "is_archived" | "created_at", ExtArgs["result"]["employee_documents"]>
+  export type employee_documentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "file_name" | "file_path" | "file_type" | "category" | "folder" | "issue_date" | "start_date" | "expiry_date" | "is_archived" | "created_at", ExtArgs["result"]["employee_documents"]>
   export type employee_documentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -11846,6 +12041,7 @@ export namespace Prisma {
       file_path: string
       file_type: string | null
       category: string | null
+      folder: string | null
       issue_date: Date | null
       start_date: Date | null
       expiry_date: Date | null
@@ -12281,6 +12477,7 @@ export namespace Prisma {
     readonly file_path: FieldRef<"employee_documents", 'String'>
     readonly file_type: FieldRef<"employee_documents", 'String'>
     readonly category: FieldRef<"employee_documents", 'String'>
+    readonly folder: FieldRef<"employee_documents", 'String'>
     readonly issue_date: FieldRef<"employee_documents", 'DateTime'>
     readonly start_date: FieldRef<"employee_documents", 'DateTime'>
     readonly expiry_date: FieldRef<"employee_documents", 'DateTime'>
@@ -40288,6 +40485,1087 @@ export namespace Prisma {
 
 
   /**
+   * Model document_folders
+   */
+
+  export type AggregateDocument_folders = {
+    _count: Document_foldersCountAggregateOutputType | null
+    _avg: Document_foldersAvgAggregateOutputType | null
+    _sum: Document_foldersSumAggregateOutputType | null
+    _min: Document_foldersMinAggregateOutputType | null
+    _max: Document_foldersMaxAggregateOutputType | null
+  }
+
+  export type Document_foldersAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Document_foldersSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Document_foldersMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Document_foldersMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    name: string | null
+    created_at: Date | null
+  }
+
+  export type Document_foldersCountAggregateOutputType = {
+    id: number
+    company_id: number
+    name: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Document_foldersAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Document_foldersSumAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Document_foldersMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Document_foldersMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+  }
+
+  export type Document_foldersCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    name?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Document_foldersAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which document_folders to aggregate.
+     */
+    where?: document_foldersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_folders to fetch.
+     */
+    orderBy?: document_foldersOrderByWithRelationInput | document_foldersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: document_foldersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_folders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_folders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned document_folders
+    **/
+    _count?: true | Document_foldersCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Document_foldersAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Document_foldersSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Document_foldersMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Document_foldersMaxAggregateInputType
+  }
+
+  export type GetDocument_foldersAggregateType<T extends Document_foldersAggregateArgs> = {
+        [P in keyof T & keyof AggregateDocument_folders]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDocument_folders[P]>
+      : GetScalarType<T[P], AggregateDocument_folders[P]>
+  }
+
+
+
+
+  export type document_foldersGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: document_foldersWhereInput
+    orderBy?: document_foldersOrderByWithAggregationInput | document_foldersOrderByWithAggregationInput[]
+    by: Document_foldersScalarFieldEnum[] | Document_foldersScalarFieldEnum
+    having?: document_foldersScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Document_foldersCountAggregateInputType | true
+    _avg?: Document_foldersAvgAggregateInputType
+    _sum?: Document_foldersSumAggregateInputType
+    _min?: Document_foldersMinAggregateInputType
+    _max?: Document_foldersMaxAggregateInputType
+  }
+
+  export type Document_foldersGroupByOutputType = {
+    id: number
+    company_id: number
+    name: string
+    created_at: Date | null
+    _count: Document_foldersCountAggregateOutputType | null
+    _avg: Document_foldersAvgAggregateOutputType | null
+    _sum: Document_foldersSumAggregateOutputType | null
+    _min: Document_foldersMinAggregateOutputType | null
+    _max: Document_foldersMaxAggregateOutputType | null
+  }
+
+  type GetDocument_foldersGroupByPayload<T extends document_foldersGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Document_foldersGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Document_foldersGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Document_foldersGroupByOutputType[P]>
+            : GetScalarType<T[P], Document_foldersGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type document_foldersSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["document_folders"]>
+
+  export type document_foldersSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["document_folders"]>
+
+  export type document_foldersSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["document_folders"]>
+
+  export type document_foldersSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    name?: boolean
+    created_at?: boolean
+  }
+
+  export type document_foldersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["document_folders"]>
+  export type document_foldersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type document_foldersIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type document_foldersIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $document_foldersPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "document_folders"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      name: string
+      created_at: Date | null
+    }, ExtArgs["result"]["document_folders"]>
+    composites: {}
+  }
+
+  type document_foldersGetPayload<S extends boolean | null | undefined | document_foldersDefaultArgs> = $Result.GetResult<Prisma.$document_foldersPayload, S>
+
+  type document_foldersCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<document_foldersFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Document_foldersCountAggregateInputType | true
+    }
+
+  export interface document_foldersDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['document_folders'], meta: { name: 'document_folders' } }
+    /**
+     * Find zero or one Document_folders that matches the filter.
+     * @param {document_foldersFindUniqueArgs} args - Arguments to find a Document_folders
+     * @example
+     * // Get one Document_folders
+     * const document_folders = await prisma.document_folders.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends document_foldersFindUniqueArgs>(args: SelectSubset<T, document_foldersFindUniqueArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Document_folders that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {document_foldersFindUniqueOrThrowArgs} args - Arguments to find a Document_folders
+     * @example
+     * // Get one Document_folders
+     * const document_folders = await prisma.document_folders.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends document_foldersFindUniqueOrThrowArgs>(args: SelectSubset<T, document_foldersFindUniqueOrThrowArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Document_folders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_foldersFindFirstArgs} args - Arguments to find a Document_folders
+     * @example
+     * // Get one Document_folders
+     * const document_folders = await prisma.document_folders.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends document_foldersFindFirstArgs>(args?: SelectSubset<T, document_foldersFindFirstArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Document_folders that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_foldersFindFirstOrThrowArgs} args - Arguments to find a Document_folders
+     * @example
+     * // Get one Document_folders
+     * const document_folders = await prisma.document_folders.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends document_foldersFindFirstOrThrowArgs>(args?: SelectSubset<T, document_foldersFindFirstOrThrowArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Document_folders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_foldersFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Document_folders
+     * const document_folders = await prisma.document_folders.findMany()
+     * 
+     * // Get first 10 Document_folders
+     * const document_folders = await prisma.document_folders.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const document_foldersWithIdOnly = await prisma.document_folders.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends document_foldersFindManyArgs>(args?: SelectSubset<T, document_foldersFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Document_folders.
+     * @param {document_foldersCreateArgs} args - Arguments to create a Document_folders.
+     * @example
+     * // Create one Document_folders
+     * const Document_folders = await prisma.document_folders.create({
+     *   data: {
+     *     // ... data to create a Document_folders
+     *   }
+     * })
+     * 
+     */
+    create<T extends document_foldersCreateArgs>(args: SelectSubset<T, document_foldersCreateArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Document_folders.
+     * @param {document_foldersCreateManyArgs} args - Arguments to create many Document_folders.
+     * @example
+     * // Create many Document_folders
+     * const document_folders = await prisma.document_folders.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends document_foldersCreateManyArgs>(args?: SelectSubset<T, document_foldersCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Document_folders and returns the data saved in the database.
+     * @param {document_foldersCreateManyAndReturnArgs} args - Arguments to create many Document_folders.
+     * @example
+     * // Create many Document_folders
+     * const document_folders = await prisma.document_folders.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Document_folders and only return the `id`
+     * const document_foldersWithIdOnly = await prisma.document_folders.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends document_foldersCreateManyAndReturnArgs>(args?: SelectSubset<T, document_foldersCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Document_folders.
+     * @param {document_foldersDeleteArgs} args - Arguments to delete one Document_folders.
+     * @example
+     * // Delete one Document_folders
+     * const Document_folders = await prisma.document_folders.delete({
+     *   where: {
+     *     // ... filter to delete one Document_folders
+     *   }
+     * })
+     * 
+     */
+    delete<T extends document_foldersDeleteArgs>(args: SelectSubset<T, document_foldersDeleteArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Document_folders.
+     * @param {document_foldersUpdateArgs} args - Arguments to update one Document_folders.
+     * @example
+     * // Update one Document_folders
+     * const document_folders = await prisma.document_folders.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends document_foldersUpdateArgs>(args: SelectSubset<T, document_foldersUpdateArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Document_folders.
+     * @param {document_foldersDeleteManyArgs} args - Arguments to filter Document_folders to delete.
+     * @example
+     * // Delete a few Document_folders
+     * const { count } = await prisma.document_folders.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends document_foldersDeleteManyArgs>(args?: SelectSubset<T, document_foldersDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Document_folders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_foldersUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Document_folders
+     * const document_folders = await prisma.document_folders.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends document_foldersUpdateManyArgs>(args: SelectSubset<T, document_foldersUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Document_folders and returns the data updated in the database.
+     * @param {document_foldersUpdateManyAndReturnArgs} args - Arguments to update many Document_folders.
+     * @example
+     * // Update many Document_folders
+     * const document_folders = await prisma.document_folders.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Document_folders and only return the `id`
+     * const document_foldersWithIdOnly = await prisma.document_folders.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends document_foldersUpdateManyAndReturnArgs>(args: SelectSubset<T, document_foldersUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Document_folders.
+     * @param {document_foldersUpsertArgs} args - Arguments to update or create a Document_folders.
+     * @example
+     * // Update or create a Document_folders
+     * const document_folders = await prisma.document_folders.upsert({
+     *   create: {
+     *     // ... data to create a Document_folders
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Document_folders we want to update
+     *   }
+     * })
+     */
+    upsert<T extends document_foldersUpsertArgs>(args: SelectSubset<T, document_foldersUpsertArgs<ExtArgs>>): Prisma__document_foldersClient<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Document_folders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_foldersCountArgs} args - Arguments to filter Document_folders to count.
+     * @example
+     * // Count the number of Document_folders
+     * const count = await prisma.document_folders.count({
+     *   where: {
+     *     // ... the filter for the Document_folders we want to count
+     *   }
+     * })
+    **/
+    count<T extends document_foldersCountArgs>(
+      args?: Subset<T, document_foldersCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Document_foldersCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Document_folders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Document_foldersAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Document_foldersAggregateArgs>(args: Subset<T, Document_foldersAggregateArgs>): Prisma.PrismaPromise<GetDocument_foldersAggregateType<T>>
+
+    /**
+     * Group by Document_folders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {document_foldersGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends document_foldersGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: document_foldersGroupByArgs['orderBy'] }
+        : { orderBy?: document_foldersGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, document_foldersGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDocument_foldersGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the document_folders model
+   */
+  readonly fields: document_foldersFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for document_folders.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__document_foldersClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the document_folders model
+   */
+  interface document_foldersFieldRefs {
+    readonly id: FieldRef<"document_folders", 'Int'>
+    readonly company_id: FieldRef<"document_folders", 'Int'>
+    readonly name: FieldRef<"document_folders", 'String'>
+    readonly created_at: FieldRef<"document_folders", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * document_folders findUnique
+   */
+  export type document_foldersFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * Filter, which document_folders to fetch.
+     */
+    where: document_foldersWhereUniqueInput
+  }
+
+  /**
+   * document_folders findUniqueOrThrow
+   */
+  export type document_foldersFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * Filter, which document_folders to fetch.
+     */
+    where: document_foldersWhereUniqueInput
+  }
+
+  /**
+   * document_folders findFirst
+   */
+  export type document_foldersFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * Filter, which document_folders to fetch.
+     */
+    where?: document_foldersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_folders to fetch.
+     */
+    orderBy?: document_foldersOrderByWithRelationInput | document_foldersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for document_folders.
+     */
+    cursor?: document_foldersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_folders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_folders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of document_folders.
+     */
+    distinct?: Document_foldersScalarFieldEnum | Document_foldersScalarFieldEnum[]
+  }
+
+  /**
+   * document_folders findFirstOrThrow
+   */
+  export type document_foldersFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * Filter, which document_folders to fetch.
+     */
+    where?: document_foldersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_folders to fetch.
+     */
+    orderBy?: document_foldersOrderByWithRelationInput | document_foldersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for document_folders.
+     */
+    cursor?: document_foldersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_folders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_folders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of document_folders.
+     */
+    distinct?: Document_foldersScalarFieldEnum | Document_foldersScalarFieldEnum[]
+  }
+
+  /**
+   * document_folders findMany
+   */
+  export type document_foldersFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * Filter, which document_folders to fetch.
+     */
+    where?: document_foldersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of document_folders to fetch.
+     */
+    orderBy?: document_foldersOrderByWithRelationInput | document_foldersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing document_folders.
+     */
+    cursor?: document_foldersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` document_folders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` document_folders.
+     */
+    skip?: number
+    distinct?: Document_foldersScalarFieldEnum | Document_foldersScalarFieldEnum[]
+  }
+
+  /**
+   * document_folders create
+   */
+  export type document_foldersCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * The data needed to create a document_folders.
+     */
+    data: XOR<document_foldersCreateInput, document_foldersUncheckedCreateInput>
+  }
+
+  /**
+   * document_folders createMany
+   */
+  export type document_foldersCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many document_folders.
+     */
+    data: document_foldersCreateManyInput | document_foldersCreateManyInput[]
+  }
+
+  /**
+   * document_folders createManyAndReturn
+   */
+  export type document_foldersCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * The data used to create many document_folders.
+     */
+    data: document_foldersCreateManyInput | document_foldersCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * document_folders update
+   */
+  export type document_foldersUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * The data needed to update a document_folders.
+     */
+    data: XOR<document_foldersUpdateInput, document_foldersUncheckedUpdateInput>
+    /**
+     * Choose, which document_folders to update.
+     */
+    where: document_foldersWhereUniqueInput
+  }
+
+  /**
+   * document_folders updateMany
+   */
+  export type document_foldersUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update document_folders.
+     */
+    data: XOR<document_foldersUpdateManyMutationInput, document_foldersUncheckedUpdateManyInput>
+    /**
+     * Filter which document_folders to update
+     */
+    where?: document_foldersWhereInput
+    /**
+     * Limit how many document_folders to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * document_folders updateManyAndReturn
+   */
+  export type document_foldersUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * The data used to update document_folders.
+     */
+    data: XOR<document_foldersUpdateManyMutationInput, document_foldersUncheckedUpdateManyInput>
+    /**
+     * Filter which document_folders to update
+     */
+    where?: document_foldersWhereInput
+    /**
+     * Limit how many document_folders to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * document_folders upsert
+   */
+  export type document_foldersUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * The filter to search for the document_folders to update in case it exists.
+     */
+    where: document_foldersWhereUniqueInput
+    /**
+     * In case the document_folders found by the `where` argument doesn't exist, create a new document_folders with this data.
+     */
+    create: XOR<document_foldersCreateInput, document_foldersUncheckedCreateInput>
+    /**
+     * In case the document_folders was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<document_foldersUpdateInput, document_foldersUncheckedUpdateInput>
+  }
+
+  /**
+   * document_folders delete
+   */
+  export type document_foldersDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+    /**
+     * Filter which document_folders to delete.
+     */
+    where: document_foldersWhereUniqueInput
+  }
+
+  /**
+   * document_folders deleteMany
+   */
+  export type document_foldersDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which document_folders to delete
+     */
+    where?: document_foldersWhereInput
+    /**
+     * Limit how many document_folders to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * document_folders without action
+   */
+  export type document_foldersDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the document_folders
+     */
+    select?: document_foldersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the document_folders
+     */
+    omit?: document_foldersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: document_foldersInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model vehicle_types
    */
 
@@ -42550,9 +43828,13 @@ export namespace Prisma {
     file_name: 'file_name',
     file_path: 'file_path',
     file_type: 'file_type',
+    doc_type: 'doc_type',
+    category: 'category',
+    folder: 'folder',
     start_date: 'start_date',
     end_date: 'end_date',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    is_archived: 'is_archived'
   };
 
   export type DocumentsScalarFieldEnum = (typeof DocumentsScalarFieldEnum)[keyof typeof DocumentsScalarFieldEnum]
@@ -42594,6 +43876,7 @@ export namespace Prisma {
     file_path: 'file_path',
     file_type: 'file_type',
     category: 'category',
+    folder: 'folder',
     issue_date: 'issue_date',
     start_date: 'start_date',
     expiry_date: 'expiry_date',
@@ -42978,6 +44261,16 @@ export namespace Prisma {
   export type Document_categoriesScalarFieldEnum = (typeof Document_categoriesScalarFieldEnum)[keyof typeof Document_categoriesScalarFieldEnum]
 
 
+  export const Document_foldersScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    name: 'name',
+    created_at: 'created_at'
+  };
+
+  export type Document_foldersScalarFieldEnum = (typeof Document_foldersScalarFieldEnum)[keyof typeof Document_foldersScalarFieldEnum]
+
+
   export const Vehicle_typesScalarFieldEnum: {
     id: 'id',
     company_id: 'company_id',
@@ -43171,6 +44464,7 @@ export namespace Prisma {
     leave_types?: Leave_typesListRelationFilter
     document_categories?: Document_categoriesListRelationFilter
     vehicle_types?: Vehicle_typesListRelationFilter
+    document_folders?: Document_foldersListRelationFilter
     meal_price_history?: Meal_price_historyListRelationFilter
   }
 
@@ -43199,6 +44493,7 @@ export namespace Prisma {
     leave_types?: leave_typesOrderByRelationAggregateInput
     document_categories?: document_categoriesOrderByRelationAggregateInput
     vehicle_types?: vehicle_typesOrderByRelationAggregateInput
+    document_folders?: document_foldersOrderByRelationAggregateInput
     meal_price_history?: meal_price_historyOrderByRelationAggregateInput
   }
 
@@ -43230,6 +44525,7 @@ export namespace Prisma {
     leave_types?: Leave_typesListRelationFilter
     document_categories?: Document_categoriesListRelationFilter
     vehicle_types?: Vehicle_typesListRelationFilter
+    document_folders?: Document_foldersListRelationFilter
     meal_price_history?: Meal_price_historyListRelationFilter
   }, "id">
 
@@ -43370,9 +44666,13 @@ export namespace Prisma {
     file_name?: StringFilter<"documents"> | string
     file_path?: StringFilter<"documents"> | string
     file_type?: StringNullableFilter<"documents"> | string | null
+    doc_type?: StringNullableFilter<"documents"> | string | null
+    category?: StringNullableFilter<"documents"> | string | null
+    folder?: StringNullableFilter<"documents"> | string | null
     start_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableFilter<"documents"> | Date | string | null
+    is_archived?: IntNullableFilter<"documents"> | number | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
   }
 
@@ -43384,9 +44684,13 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
+    doc_type?: SortOrderInput | SortOrder
+    category?: SortOrderInput | SortOrder
+    folder?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     vehicles?: vehiclesOrderByWithRelationInput
   }
 
@@ -43401,9 +44705,13 @@ export namespace Prisma {
     file_name?: StringFilter<"documents"> | string
     file_path?: StringFilter<"documents"> | string
     file_type?: StringNullableFilter<"documents"> | string | null
+    doc_type?: StringNullableFilter<"documents"> | string | null
+    category?: StringNullableFilter<"documents"> | string | null
+    folder?: StringNullableFilter<"documents"> | string | null
     start_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableFilter<"documents"> | Date | string | null
+    is_archived?: IntNullableFilter<"documents"> | number | null
     vehicles?: XOR<VehiclesNullableScalarRelationFilter, vehiclesWhereInput> | null
   }, "id">
 
@@ -43415,9 +44723,13 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
+    doc_type?: SortOrderInput | SortOrder
+    category?: SortOrderInput | SortOrder
+    folder?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     end_date?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
+    is_archived?: SortOrderInput | SortOrder
     _count?: documentsCountOrderByAggregateInput
     _avg?: documentsAvgOrderByAggregateInput
     _max?: documentsMaxOrderByAggregateInput
@@ -43436,9 +44748,13 @@ export namespace Prisma {
     file_name?: StringWithAggregatesFilter<"documents"> | string
     file_path?: StringWithAggregatesFilter<"documents"> | string
     file_type?: StringNullableWithAggregatesFilter<"documents"> | string | null
+    doc_type?: StringNullableWithAggregatesFilter<"documents"> | string | null
+    category?: StringNullableWithAggregatesFilter<"documents"> | string | null
+    folder?: StringNullableWithAggregatesFilter<"documents"> | string | null
     start_date?: DateTimeNullableWithAggregatesFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableWithAggregatesFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"documents"> | Date | string | null
+    is_archived?: IntNullableWithAggregatesFilter<"documents"> | number | null
   }
 
   export type employee_assignmentsWhereInput = {
@@ -43601,6 +44917,7 @@ export namespace Prisma {
     file_path?: StringFilter<"employee_documents"> | string
     file_type?: StringNullableFilter<"employee_documents"> | string | null
     category?: StringNullableFilter<"employee_documents"> | string | null
+    folder?: StringNullableFilter<"employee_documents"> | string | null
     issue_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     start_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     expiry_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
@@ -43616,6 +44933,7 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
+    folder?: SortOrderInput | SortOrder
     issue_date?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     expiry_date?: SortOrderInput | SortOrder
@@ -43634,6 +44952,7 @@ export namespace Prisma {
     file_path?: StringFilter<"employee_documents"> | string
     file_type?: StringNullableFilter<"employee_documents"> | string | null
     category?: StringNullableFilter<"employee_documents"> | string | null
+    folder?: StringNullableFilter<"employee_documents"> | string | null
     issue_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     start_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     expiry_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
@@ -43649,6 +44968,7 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
+    folder?: SortOrderInput | SortOrder
     issue_date?: SortOrderInput | SortOrder
     start_date?: SortOrderInput | SortOrder
     expiry_date?: SortOrderInput | SortOrder
@@ -43671,6 +44991,7 @@ export namespace Prisma {
     file_path?: StringWithAggregatesFilter<"employee_documents"> | string
     file_type?: StringNullableWithAggregatesFilter<"employee_documents"> | string | null
     category?: StringNullableWithAggregatesFilter<"employee_documents"> | string | null
+    folder?: StringNullableWithAggregatesFilter<"employee_documents"> | string | null
     issue_date?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
     start_date?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
     expiry_date?: DateTimeNullableWithAggregatesFilter<"employee_documents"> | Date | string | null
@@ -45663,6 +46984,58 @@ export namespace Prisma {
     created_at?: DateTimeNullableWithAggregatesFilter<"document_categories"> | Date | string | null
   }
 
+  export type document_foldersWhereInput = {
+    AND?: document_foldersWhereInput | document_foldersWhereInput[]
+    OR?: document_foldersWhereInput[]
+    NOT?: document_foldersWhereInput | document_foldersWhereInput[]
+    id?: IntFilter<"document_folders"> | number
+    company_id?: IntFilter<"document_folders"> | number
+    name?: StringFilter<"document_folders"> | string
+    created_at?: DateTimeNullableFilter<"document_folders"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type document_foldersOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type document_foldersWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: document_foldersWhereInput | document_foldersWhereInput[]
+    OR?: document_foldersWhereInput[]
+    NOT?: document_foldersWhereInput | document_foldersWhereInput[]
+    company_id?: IntFilter<"document_folders"> | number
+    name?: StringFilter<"document_folders"> | string
+    created_at?: DateTimeNullableFilter<"document_folders"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type document_foldersOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: document_foldersCountOrderByAggregateInput
+    _avg?: document_foldersAvgOrderByAggregateInput
+    _max?: document_foldersMaxOrderByAggregateInput
+    _min?: document_foldersMinOrderByAggregateInput
+    _sum?: document_foldersSumOrderByAggregateInput
+  }
+
+  export type document_foldersScalarWhereWithAggregatesInput = {
+    AND?: document_foldersScalarWhereWithAggregatesInput | document_foldersScalarWhereWithAggregatesInput[]
+    OR?: document_foldersScalarWhereWithAggregatesInput[]
+    NOT?: document_foldersScalarWhereWithAggregatesInput | document_foldersScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"document_folders"> | number
+    company_id?: IntWithAggregatesFilter<"document_folders"> | number
+    name?: StringWithAggregatesFilter<"document_folders"> | string
+    created_at?: DateTimeNullableWithAggregatesFilter<"document_folders"> | Date | string | null
+  }
+
   export type vehicle_typesWhereInput = {
     AND?: vehicle_typesWhereInput | vehicle_typesWhereInput[]
     OR?: vehicle_typesWhereInput[]
@@ -45911,6 +47284,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -45938,6 +47312,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -45964,6 +47339,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -45991,6 +47367,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -46138,9 +47515,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
+    doc_type?: string | null
+    category?: string | null
+    folder?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
+    is_archived?: number | null
     vehicles?: vehiclesCreateNestedOneWithoutDocumentsInput
   }
 
@@ -46152,9 +47533,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
+    doc_type?: string | null
+    category?: string | null
+    folder?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type documentsUpdateInput = {
@@ -46163,9 +47548,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     vehicles?: vehiclesUpdateOneWithoutDocumentsNestedInput
   }
 
@@ -46177,9 +47566,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type documentsCreateManyInput = {
@@ -46190,9 +47583,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
+    doc_type?: string | null
+    category?: string | null
+    folder?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type documentsUpdateManyMutationInput = {
@@ -46201,9 +47598,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type documentsUncheckedUpdateManyInput = {
@@ -46214,9 +47615,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type employee_assignmentsCreateInput = {
@@ -46377,6 +47782,7 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    folder?: string | null
     issue_date?: Date | string | null
     start_date?: Date | string | null
     expiry_date?: Date | string | null
@@ -46392,6 +47798,7 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    folder?: string | null
     issue_date?: Date | string | null
     start_date?: Date | string | null
     expiry_date?: Date | string | null
@@ -46404,6 +47811,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -46419,6 +47827,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -46433,6 +47842,7 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    folder?: string | null
     issue_date?: Date | string | null
     start_date?: Date | string | null
     expiry_date?: Date | string | null
@@ -46445,6 +47855,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -46459,6 +47870,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -48586,6 +49998,51 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type document_foldersCreateInput = {
+    name: string
+    created_at?: Date | string | null
+    companies: companiesCreateNestedOneWithoutDocument_foldersInput
+  }
+
+  export type document_foldersUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_foldersUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneRequiredWithoutDocument_foldersNestedInput
+  }
+
+  export type document_foldersUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_foldersCreateManyInput = {
+    id?: number
+    company_id: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_foldersUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_foldersUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type vehicle_typesCreateInput = {
     name: string
     created_at?: Date | string | null
@@ -49027,6 +50484,12 @@ export namespace Prisma {
     none?: vehicle_typesWhereInput
   }
 
+  export type Document_foldersListRelationFilter = {
+    every?: document_foldersWhereInput
+    some?: document_foldersWhereInput
+    none?: document_foldersWhereInput
+  }
+
   export type Meal_price_historyListRelationFilter = {
     every?: meal_price_historyWhereInput
     some?: meal_price_historyWhereInput
@@ -49074,6 +50537,10 @@ export namespace Prisma {
   }
 
   export type vehicle_typesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type document_foldersOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -49200,15 +50667,20 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrder
+    doc_type?: SortOrder
+    category?: SortOrder
+    folder?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type documentsAvgOrderByAggregateInput = {
     id?: SortOrder
     vehicle_id?: SortOrder
     related_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type documentsMaxOrderByAggregateInput = {
@@ -49219,9 +50691,13 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrder
+    doc_type?: SortOrder
+    category?: SortOrder
+    folder?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type documentsMinOrderByAggregateInput = {
@@ -49232,15 +50708,20 @@ export namespace Prisma {
     file_name?: SortOrder
     file_path?: SortOrder
     file_type?: SortOrder
+    doc_type?: SortOrder
+    category?: SortOrder
+    folder?: SortOrder
     start_date?: SortOrder
     end_date?: SortOrder
     created_at?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type documentsSumOrderByAggregateInput = {
     id?: SortOrder
     vehicle_id?: SortOrder
     related_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type EmployeesScalarRelationFilter = {
@@ -49353,6 +50834,7 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrder
     category?: SortOrder
+    folder?: SortOrder
     issue_date?: SortOrder
     start_date?: SortOrder
     expiry_date?: SortOrder
@@ -49373,6 +50855,7 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrder
     category?: SortOrder
+    folder?: SortOrder
     issue_date?: SortOrder
     start_date?: SortOrder
     expiry_date?: SortOrder
@@ -49387,6 +50870,7 @@ export namespace Prisma {
     file_path?: SortOrder
     file_type?: SortOrder
     category?: SortOrder
+    folder?: SortOrder
     issue_date?: SortOrder
     start_date?: SortOrder
     expiry_date?: SortOrder
@@ -50895,6 +52379,37 @@ export namespace Prisma {
     company_id?: SortOrder
   }
 
+  export type document_foldersCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type document_foldersAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type document_foldersMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type document_foldersMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    name?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type document_foldersSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
   export type vehicle_typesCountOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
@@ -51120,6 +52635,13 @@ export namespace Prisma {
     connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
   }
 
+  export type document_foldersCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<document_foldersCreateWithoutCompaniesInput, document_foldersUncheckedCreateWithoutCompaniesInput> | document_foldersCreateWithoutCompaniesInput[] | document_foldersUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_foldersCreateOrConnectWithoutCompaniesInput | document_foldersCreateOrConnectWithoutCompaniesInput[]
+    createMany?: document_foldersCreateManyCompaniesInputEnvelope
+    connect?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+  }
+
   export type meal_price_historyCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput> | meal_price_historyCreateWithoutCompaniesInput[] | meal_price_historyUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
@@ -51208,6 +52730,13 @@ export namespace Prisma {
     connectOrCreate?: vehicle_typesCreateOrConnectWithoutCompaniesInput | vehicle_typesCreateOrConnectWithoutCompaniesInput[]
     createMany?: vehicle_typesCreateManyCompaniesInputEnvelope
     connect?: vehicle_typesWhereUniqueInput | vehicle_typesWhereUniqueInput[]
+  }
+
+  export type document_foldersUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<document_foldersCreateWithoutCompaniesInput, document_foldersUncheckedCreateWithoutCompaniesInput> | document_foldersCreateWithoutCompaniesInput[] | document_foldersUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_foldersCreateOrConnectWithoutCompaniesInput | document_foldersCreateOrConnectWithoutCompaniesInput[]
+    createMany?: document_foldersCreateManyCompaniesInputEnvelope
+    connect?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
   }
 
   export type meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput = {
@@ -51389,6 +52918,20 @@ export namespace Prisma {
     deleteMany?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
   }
 
+  export type document_foldersUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<document_foldersCreateWithoutCompaniesInput, document_foldersUncheckedCreateWithoutCompaniesInput> | document_foldersCreateWithoutCompaniesInput[] | document_foldersUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_foldersCreateOrConnectWithoutCompaniesInput | document_foldersCreateOrConnectWithoutCompaniesInput[]
+    upsert?: document_foldersUpsertWithWhereUniqueWithoutCompaniesInput | document_foldersUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: document_foldersCreateManyCompaniesInputEnvelope
+    set?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    disconnect?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    delete?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    connect?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    update?: document_foldersUpdateWithWhereUniqueWithoutCompaniesInput | document_foldersUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: document_foldersUpdateManyWithWhereWithoutCompaniesInput | document_foldersUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: document_foldersScalarWhereInput | document_foldersScalarWhereInput[]
+  }
+
   export type meal_price_historyUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<meal_price_historyCreateWithoutCompaniesInput, meal_price_historyUncheckedCreateWithoutCompaniesInput> | meal_price_historyCreateWithoutCompaniesInput[] | meal_price_historyUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
@@ -51565,6 +53108,20 @@ export namespace Prisma {
     update?: vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput | vehicle_typesUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: vehicle_typesUpdateManyWithWhereWithoutCompaniesInput | vehicle_typesUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: vehicle_typesScalarWhereInput | vehicle_typesScalarWhereInput[]
+  }
+
+  export type document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<document_foldersCreateWithoutCompaniesInput, document_foldersUncheckedCreateWithoutCompaniesInput> | document_foldersCreateWithoutCompaniesInput[] | document_foldersUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: document_foldersCreateOrConnectWithoutCompaniesInput | document_foldersCreateOrConnectWithoutCompaniesInput[]
+    upsert?: document_foldersUpsertWithWhereUniqueWithoutCompaniesInput | document_foldersUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: document_foldersCreateManyCompaniesInputEnvelope
+    set?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    disconnect?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    delete?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    connect?: document_foldersWhereUniqueInput | document_foldersWhereUniqueInput[]
+    update?: document_foldersUpdateWithWhereUniqueWithoutCompaniesInput | document_foldersUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: document_foldersUpdateManyWithWhereWithoutCompaniesInput | document_foldersUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: document_foldersScalarWhereInput | document_foldersScalarWhereInput[]
   }
 
   export type meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput = {
@@ -52925,6 +54482,20 @@ export namespace Prisma {
     update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutDocument_categoriesInput, companiesUpdateWithoutDocument_categoriesInput>, companiesUncheckedUpdateWithoutDocument_categoriesInput>
   }
 
+  export type companiesCreateNestedOneWithoutDocument_foldersInput = {
+    create?: XOR<companiesCreateWithoutDocument_foldersInput, companiesUncheckedCreateWithoutDocument_foldersInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutDocument_foldersInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutDocument_foldersNestedInput = {
+    create?: XOR<companiesCreateWithoutDocument_foldersInput, companiesUncheckedCreateWithoutDocument_foldersInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutDocument_foldersInput
+    upsert?: companiesUpsertWithoutDocument_foldersInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutDocument_foldersInput, companiesUpdateWithoutDocument_foldersInput>, companiesUncheckedUpdateWithoutDocument_foldersInput>
+  }
+
   export type companiesCreateNestedOneWithoutVehicle_typesInput = {
     create?: XOR<companiesCreateWithoutVehicle_typesInput, companiesUncheckedCreateWithoutVehicle_typesInput>
     connectOrCreate?: companiesCreateOrConnectWithoutVehicle_typesInput
@@ -53721,6 +55292,26 @@ export namespace Prisma {
     data: vehicle_typesCreateManyCompaniesInput | vehicle_typesCreateManyCompaniesInput[]
   }
 
+  export type document_foldersCreateWithoutCompaniesInput = {
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_foldersUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_foldersCreateOrConnectWithoutCompaniesInput = {
+    where: document_foldersWhereUniqueInput
+    create: XOR<document_foldersCreateWithoutCompaniesInput, document_foldersUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type document_foldersCreateManyCompaniesInputEnvelope = {
+    data: document_foldersCreateManyCompaniesInput | document_foldersCreateManyCompaniesInput[]
+  }
+
   export type meal_price_historyCreateWithoutCompaniesInput = {
     old_price?: number
     new_price?: number
@@ -54159,6 +55750,32 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"vehicle_types"> | Date | string | null
   }
 
+  export type document_foldersUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: document_foldersWhereUniqueInput
+    update: XOR<document_foldersUpdateWithoutCompaniesInput, document_foldersUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<document_foldersCreateWithoutCompaniesInput, document_foldersUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type document_foldersUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: document_foldersWhereUniqueInput
+    data: XOR<document_foldersUpdateWithoutCompaniesInput, document_foldersUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type document_foldersUpdateManyWithWhereWithoutCompaniesInput = {
+    where: document_foldersScalarWhereInput
+    data: XOR<document_foldersUpdateManyMutationInput, document_foldersUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type document_foldersScalarWhereInput = {
+    AND?: document_foldersScalarWhereInput | document_foldersScalarWhereInput[]
+    OR?: document_foldersScalarWhereInput[]
+    NOT?: document_foldersScalarWhereInput | document_foldersScalarWhereInput[]
+    id?: IntFilter<"document_folders"> | number
+    company_id?: IntFilter<"document_folders"> | number
+    name?: StringFilter<"document_folders"> | string
+    created_at?: DateTimeNullableFilter<"document_folders"> | Date | string | null
+  }
+
   export type meal_price_historyUpsertWithWhereUniqueWithoutCompaniesInput = {
     where: meal_price_historyWhereUniqueInput
     update: XOR<meal_price_historyUpdateWithoutCompaniesInput, meal_price_historyUncheckedUpdateWithoutCompaniesInput>
@@ -54208,6 +55825,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -54234,6 +55852,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -54327,6 +55946,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -54353,6 +55973,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -55315,6 +56936,7 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    folder?: string | null
     issue_date?: Date | string | null
     start_date?: Date | string | null
     expiry_date?: Date | string | null
@@ -55328,6 +56950,7 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    folder?: string | null
     issue_date?: Date | string | null
     start_date?: Date | string | null
     expiry_date?: Date | string | null
@@ -55424,6 +57047,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -55450,6 +57074,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -55743,6 +57368,7 @@ export namespace Prisma {
     file_path?: StringFilter<"employee_documents"> | string
     file_type?: StringNullableFilter<"employee_documents"> | string | null
     category?: StringNullableFilter<"employee_documents"> | string | null
+    folder?: StringNullableFilter<"employee_documents"> | string | null
     issue_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     start_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
     expiry_date?: DateTimeNullableFilter<"employee_documents"> | Date | string | null
@@ -55844,6 +57470,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -55870,6 +57497,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -56532,6 +58160,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -56558,6 +58187,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -56599,6 +58229,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -56625,6 +58256,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -56650,6 +58282,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -56676,6 +58309,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -56717,6 +58351,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -56743,6 +58378,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -56769,6 +58405,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_price_historyInput = {
@@ -56795,6 +58432,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_price_historyInput = {
@@ -56836,6 +58474,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_price_historyInput = {
@@ -56862,6 +58501,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutOvertimesInput = {
@@ -57040,6 +58680,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57066,6 +58707,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57107,6 +58749,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -57133,6 +58776,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -57422,6 +59066,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57448,6 +59093,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57489,6 +59135,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -57515,6 +59162,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -57540,6 +59188,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57566,6 +59215,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57651,9 +59301,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
+    doc_type?: string | null
+    category?: string | null
+    folder?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type documentsUncheckedCreateWithoutVehiclesInput = {
@@ -57663,9 +59317,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
+    doc_type?: string | null
+    category?: string | null
+    folder?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type documentsCreateOrConnectWithoutVehiclesInput = {
@@ -57841,6 +59499,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -57867,6 +59526,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -58031,9 +59691,13 @@ export namespace Prisma {
     file_name?: StringFilter<"documents"> | string
     file_path?: StringFilter<"documents"> | string
     file_type?: StringNullableFilter<"documents"> | string | null
+    doc_type?: StringNullableFilter<"documents"> | string | null
+    category?: StringNullableFilter<"documents"> | string | null
+    folder?: StringNullableFilter<"documents"> | string | null
     start_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     end_date?: DateTimeNullableFilter<"documents"> | Date | string | null
     created_at?: DateTimeNullableFilter<"documents"> | Date | string | null
+    is_archived?: IntNullableFilter<"documents"> | number | null
   }
 
   export type inspectionsUpsertWithWhereUniqueWithoutVehiclesInput = {
@@ -58204,6 +59868,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -58230,6 +59895,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -58823,6 +60489,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -58849,6 +60516,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59076,6 +60744,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59102,6 +60771,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59165,6 +60835,7 @@ export namespace Prisma {
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59191,6 +60862,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59232,6 +60904,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59258,6 +60931,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59283,6 +60957,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59309,6 +60984,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59350,6 +61026,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59376,6 +61053,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59401,6 +61079,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59427,6 +61106,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59468,6 +61148,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59494,6 +61175,129 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesCreateWithoutDocument_foldersInput = {
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutDocument_foldersInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutDocument_foldersInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutDocument_foldersInput, companiesUncheckedCreateWithoutDocument_foldersInput>
+  }
+
+  export type companiesUpsertWithoutDocument_foldersInput = {
+    update: XOR<companiesUpdateWithoutDocument_foldersInput, companiesUncheckedUpdateWithoutDocument_foldersInput>
+    create: XOR<companiesCreateWithoutDocument_foldersInput, companiesUncheckedCreateWithoutDocument_foldersInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutDocument_foldersInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutDocument_foldersInput, companiesUncheckedUpdateWithoutDocument_foldersInput>
+  }
+
+  export type companiesUpdateWithoutDocument_foldersInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutDocument_foldersInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59519,6 +61323,7 @@ export namespace Prisma {
     departments?: departmentsCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59545,6 +61350,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
     leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -59586,6 +61392,7 @@ export namespace Prisma {
     departments?: departmentsUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59612,6 +61419,7 @@ export namespace Prisma {
     departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -59750,6 +61558,12 @@ export namespace Prisma {
   }
 
   export type vehicle_typesCreateManyCompaniesInput = {
+    id?: number
+    name: string
+    created_at?: Date | string | null
+  }
+
+  export type document_foldersCreateManyCompaniesInput = {
     id?: number
     name: string
     created_at?: Date | string | null
@@ -60211,6 +62025,23 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type document_foldersUpdateWithoutCompaniesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_foldersUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type document_foldersUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type meal_price_historyUpdateWithoutCompaniesInput = {
     old_price?: FloatFieldUpdateOperationsInput | number
     new_price?: FloatFieldUpdateOperationsInput | number
@@ -60343,6 +62174,7 @@ export namespace Prisma {
     file_path: string
     file_type?: string | null
     category?: string | null
+    folder?: string | null
     issue_date?: Date | string | null
     start_date?: Date | string | null
     expiry_date?: Date | string | null
@@ -60515,6 +62347,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -60528,6 +62361,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -60541,6 +62375,7 @@ export namespace Prisma {
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     issue_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiry_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -60875,6 +62710,7 @@ export namespace Prisma {
     leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -60901,6 +62737,7 @@ export namespace Prisma {
     leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -60937,9 +62774,13 @@ export namespace Prisma {
     file_name: string
     file_path: string
     file_type?: string | null
+    doc_type?: string | null
+    category?: string | null
+    folder?: string | null
     start_date?: Date | string | null
     end_date?: Date | string | null
     created_at?: Date | string | null
+    is_archived?: number | null
   }
 
   export type inspectionsCreateManyVehiclesInput = {
@@ -61080,9 +62921,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type documentsUncheckedUpdateWithoutVehiclesInput = {
@@ -61092,9 +62937,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type documentsUncheckedUpdateManyWithoutVehiclesInput = {
@@ -61104,9 +62953,13 @@ export namespace Prisma {
     file_name?: StringFieldUpdateOperationsInput | string
     file_path?: StringFieldUpdateOperationsInput | string
     file_type?: NullableStringFieldUpdateOperationsInput | string | null
+    doc_type?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    folder?: NullableStringFieldUpdateOperationsInput | string | null
     start_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     end_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type inspectionsUpdateWithoutVehiclesInput = {

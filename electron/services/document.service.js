@@ -11,6 +11,9 @@ async function addDocument(data) {
                 file_name: data.fileName,
                 file_path: data.filePath,
                 file_type: data.fileType || null,
+                doc_type: data.docType || null,
+                category: data.category || null,
+                folder: data.folder || null,
                 start_date: data.startDate ? new Date(data.startDate) : null,
                 end_date: data.endDate ? new Date(data.endDate) : null
             }
@@ -33,10 +36,13 @@ async function getDocument(id) {
     }
 }
 
-async function getDocumentsByVehicle(vehicleId) {
+async function getDocumentsByVehicle(vehicleId, isArchived = 0) {
     try {
         const docs = await prisma.documents.findMany({
-            where: { vehicle_id: parseInt(vehicleId) },
+            where: { 
+                vehicle_id: parseInt(vehicleId),
+                is_archived: isArchived ? 1 : 0
+            },
             orderBy: { created_at: 'desc' }
         });
         return { success: true, data: JSON.parse(JSON.stringify(docs)) };
@@ -45,7 +51,7 @@ async function getDocumentsByVehicle(vehicleId) {
     }
 }
 
-async function getDocumentsByCompany(companyId) {
+async function getDocumentsByCompany(companyId, isArchived = 0) {
     try {
         // Get all work IDs for this company to filter work-related documents
         const companyWorks = await prisma.works.findMany({
@@ -63,6 +69,7 @@ async function getDocumentsByCompany(companyId) {
 
         const docs = await prisma.documents.findMany({
             where: {
+                is_archived: isArchived ? 1 : 0,
                 OR: [
                     {
                         vehicles: {
@@ -117,11 +124,31 @@ async function getDocumentsByRelatedId(type, id) {
     }
 }
 
+async function updateDocument(id, data) {
+    try {
+        const result = await prisma.documents.update({
+            where: { id: parseInt(id) },
+            data: {
+                file_name: data.fileName,
+                start_date: data.startDate ? new Date(data.startDate) : null,
+                end_date: data.endDate ? new Date(data.endDate) : null,
+                doc_type: data.docType !== undefined ? data.docType : undefined,
+                category: data.category !== undefined ? data.category : undefined,
+                folder: data.folder !== undefined ? data.folder : undefined
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
     addDocument,
     getDocument,
     getDocumentsByVehicle,
     getDocumentsByCompany,
     deleteDocument,
-    getDocumentsByRelatedId
+    getDocumentsByRelatedId,
+    updateDocument
 };

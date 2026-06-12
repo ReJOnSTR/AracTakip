@@ -330,6 +330,7 @@ async function addEmployeeDocument(data) {
                 file_path: data.filePath,
                 file_type: data.fileType || null,
                 category: data.category || null,
+                folder: data.folder || null,
                 issue_date: new Date(), // Always today for new uploads
                 start_date: data.startDate ? new Date(data.startDate) : null,
                 expiry_date: data.expiryDate ? new Date(data.expiryDate) : null
@@ -348,9 +349,10 @@ async function deleteEmployeeDocument(id) {
 
 async function updateEmployeeDocument(data) {
     try {
-        const { id, category, issueDate, expiryDate, startDate, fileName, filePath, fileType } = data;
+        const { id, category, folder, issueDate, expiryDate, startDate, fileName, filePath, fileType } = data;
         const updateData = {
             category: category || null,
+            folder: folder !== undefined ? folder : undefined,
             issue_date: new Date(), // Automatically update to "now" on any change
             start_date: startDate ? new Date(startDate) : null,
             expiry_date: expiryDate ? new Date(expiryDate) : null

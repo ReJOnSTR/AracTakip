@@ -5,9 +5,7 @@ export const vehicleSchema = z.object({
     plate: z.string().min(2, 'Plaka en az 2 karakter olmalıdır'),
     brand: z.string().min(1, 'Marka zorunludur'),
     model: z.string().min(1, 'Model zorunludur'),
-    type: z.enum(['automobile', 'crane', 'truck', 'van', 'pickup', 'forklift', 'excavator', 'other'], {
-        errorMap: () => ({ message: 'Araç tipi seçiniz' })
-    }),
+    type: z.string().min(1, 'Araç tipi seçiniz'),
     year: z.coerce.number().min(1900, 'Geçersiz yıl').max(new Date().getFullYear() + 1, 'Gelecek yıl olamaz'),
     color: z.string().optional(),
     status: z.enum(['active', 'maintenance', 'inactive', 'sold']),

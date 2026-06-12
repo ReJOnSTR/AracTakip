@@ -1069,12 +1069,14 @@ export default function DataTable({
                                 >
                                     {showCheckboxes && (
                                         <td className="td-checkbox">
-                                            <div
-                                                className={`checkbox ${selectedRows.has(row.id) ? 'checked' : ''}`}
-                                                onClick={(e) => handleSelectRow(e, row.id, index)}
-                                            >
-                                                {selectedRows.has(row.id) && <Check size={12} />}
-                                            </div>
+                                            {!row.isFolder && (
+                                                <div
+                                                    className={`checkbox ${selectedRows.has(row.id) ? 'checked' : ''}`}
+                                                    onClick={(e) => handleSelectRow(e, row.id, index)}
+                                                >
+                                                    {selectedRows.has(row.id) && <Check size={12} />}
+                                                </div>
+                                            )}
                                         </td>
                                     )}
                                     {showRowNumbers && (

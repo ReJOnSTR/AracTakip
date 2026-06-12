@@ -132,7 +132,7 @@ export default function VehicleDetail() {
         if (currentCompany) {
             loadVehicleData()
         }
-    }, [currentCompany, id])
+    }, [currentCompany, id, showArchived])
 
     // Calculate indicator position
     useEffect(() => {
@@ -155,7 +155,7 @@ export default function VehicleDetail() {
                 window.electronAPI.getInsurancesByVehicle(parseInt(id)),
                 window.electronAPI.getAssignmentsByVehicle(parseInt(id)),
                 window.electronAPI.getServicesByVehicle(parseInt(id)),
-                window.electronAPI.getDocumentsByVehicle(parseInt(id))
+                window.electronAPI.getDocumentsByVehicle(parseInt(id), showArchived ? 1 : 0)
             ])
 
             if (vehicleRes.success) {
@@ -176,6 +176,16 @@ export default function VehicleDetail() {
             console.error('Failed to load vehicle data:', error)
         }
         setLoading(false)
+    }
+
+    const handleBulkArchiveDocs = async (ids, isArchived) => {
+        try {
+            const promises = ids.map(id => window.electronAPI.archiveItem('documents', id, isArchived ? 1 : 0))
+            await Promise.all(promises)
+            loadVehicleData()
+        } catch (err) {
+            console.error('Bulk archive failed:', err)
+        }
     }
 
     useEffect(() => {
@@ -1025,7 +1035,6 @@ export default function VehicleDetail() {
                 {
                     activeTab === 'documents' && (
                         <div className="tab-pane">
-
                             <DataTable persistenceKey="VehicleDetail_table_6"
                                 columns={[
                                     { key: 'file_name', label: 'Belge Adı' },
@@ -1066,13 +1075,16 @@ export default function VehicleDetail() {
                                     { key: 'created_at', label: 'Yükleme Tarihi', render: v => formatDate(v) },
                                     { key: 'file_type', label: 'Tür' }
                                 ]}
-                                data={documents}
-                                emptyMessage="Belge bulunamadı"
+                                data={documents.filter(d => showArchived ? d.is_archived : !d.is_archived)}
+                                emptyMessage={showArchived ? "Arşivlenmiş belge bulunmuyor" : "Belge bulunamadı"}
                                 onBulkDelete={(ids) => handleDeleteClick('documents', null, ids)}
+                                isArchiveView={showArchived}
+                                onToggleArchiveView={setShowArchived}
+                                onBulkArchive={(ids) => handleBulkArchiveDocs(ids, !showArchived)}
                                 actions={(item) => (
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item.file_path) }} title="Aç"><FileText size={16} /></button>
-                                        <button onClick={(e) => { e.stopPropagation(); handleEditDoc(item) }} title="Düzenle"><Pencil size={16} /></button>
+                                        {!showArchived && <button onClick={(e) => { e.stopPropagation(); handleEditDoc(item) }} title="Düzenle"><Pencil size={16} /></button>}
                                         <button className="danger" onClick={(e) => { e.stopPropagation(); handleDeleteClick('documents', item) }} title="Sil"><Trash2 size={16} /></button>
                                     </div>
                                 )}

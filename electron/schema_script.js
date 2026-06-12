@@ -50,8 +50,11 @@ const allTablesSQL = [
     "file_path" TEXT NOT NULL,
     "file_type" TEXT,
     "doc_type" TEXT,
+    "category" TEXT,
+    "folder" TEXT,
     "start_date" DATETIME,
     "end_date" DATETIME,
+    "is_archived" INTEGER DEFAULT 0,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "documents_vehicle_id_fkey" FOREIGN KEY ("vehicle_id") REFERENCES "vehicles" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
@@ -83,6 +86,7 @@ const allTablesSQL = [
     "file_path" TEXT NOT NULL,
     "file_type" TEXT,
     "category" TEXT,
+    "folder" TEXT,
     "issue_date" DATETIME,
     "expiry_date" DATETIME,
     "is_archived" INTEGER DEFAULT 0,
@@ -389,6 +393,13 @@ const allTablesSQL = [
     "name" TEXT NOT NULL,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_categories_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+)`,
+`CREATE TABLE IF NOT EXISTS "document_folders" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "company_id" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "document_folders_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE TABLE IF NOT EXISTS "vehicle_types" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

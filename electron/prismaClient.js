@@ -61,7 +61,8 @@ async function runAutoMigrations() {
         const archivableTables = [
             'assignments', 'customers', 'employee_assignments', 'employees',
             'inspections', 'insurances', 'maintenances', 'meal_tickets',
-            'services', 'transactions', 'vehicles', 'works', 'employee_documents'
+            'services', 'transactions', 'vehicles', 'works', 'employee_documents',
+            'documents'
         ];
 
         for (const tableName of archivableTables) {
@@ -219,6 +220,10 @@ async function runAutoMigrations() {
                 await p.$executeRawUnsafe('ALTER TABLE employee_documents ADD COLUMN start_date DATETIME');
                 log.info('Migration: Added start_date to employee_documents');
             }
+            if (!edCols.some(c => c.name === 'folder')) {
+                await p.$executeRawUnsafe('ALTER TABLE employee_documents ADD COLUMN folder TEXT');
+                log.info('Migration: Added folder to employee_documents');
+            }
         }
     } catch (error) {
         log.error('Migration step 11 (employee_documents) error:', error.message);
@@ -239,6 +244,27 @@ async function runAutoMigrations() {
         }
     } catch (error) {
         log.error('Migration step 11b (signature/stamp columns) error:', error.message);
+    }
+
+    // 11c. Documents: doc_type, category (for existing DBs)
+    try {
+        const dCols = await p.$queryRawUnsafe("PRAGMA table_info('documents')");
+        if (dCols.length > 0) {
+            if (!dCols.some(c => c.name === 'doc_type')) {
+                await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN doc_type TEXT');
+                log.info('Migration: Added doc_type to documents');
+            }
+            if (!dCols.some(c => c.name === 'category')) {
+                await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN category TEXT');
+                log.info('Migration: Added category to documents');
+            }
+            if (!dCols.some(c => c.name === 'folder')) {
+                await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN folder TEXT');
+                log.info('Migration: Added folder to documents');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11c (documents columns) error:', error.message);
     }
 
     // 12. Seed Default Personnel Settings for all companies

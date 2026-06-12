@@ -11,10 +11,14 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isSelectionPhase, setIsSelectionPhase] = useState(true)
     const [documentTypes, setDocumentTypes] = useState(options || [])
+    const [documentFolders, setDocumentFolders] = useState([])
 
     useEffect(() => {
-        if (!options && currentCompany) {
-            loadCategories()
+        if (currentCompany) {
+            if (!options) {
+                loadCategories()
+            }
+            loadFolders()
         }
     }, [currentCompany, options])
 
@@ -26,6 +30,17 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
             }
         } catch (error) {
             console.error('Failed to load document categories:', error)
+        }
+    }
+
+    const loadFolders = async () => {
+        try {
+            const res = await window.electronAPI.getDocumentFolders(currentCompany.id)
+            if (res.success) {
+                setDocumentFolders(res.data.map(t => ({ value: t.name, label: t.name })))
+            }
+        } catch (error) {
+            console.error('Failed to load document folders:', error)
         }
     }
 
@@ -42,6 +57,7 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
                         originalName: fileName,
                         displayName: nameWithoutExt,
                         docType: initialType,
+                        folder: '',
                         startDate: formatDateForInput(new Date()),
                         endDate: '',
                         isSaved: false
@@ -218,6 +234,14 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
                         value={currentItem?.docType}
                         onChange={(val) => updateCurrentItem('docType', val)}
                         options={documentTypes}
+                    />
+
+                    <CustomSelect
+                        label="Klasör"
+                        value={currentItem?.folder}
+                        onChange={(val) => updateCurrentItem('folder', val)}
+                        options={documentFolders}
+                        placeholder="Klasör seçin (İsteğe Bağlı)..."
                     />
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

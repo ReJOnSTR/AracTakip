@@ -167,9 +167,13 @@ exports.Prisma.DocumentsScalarFieldEnum = {
   file_name: 'file_name',
   file_path: 'file_path',
   file_type: 'file_type',
+  doc_type: 'doc_type',
+  category: 'category',
+  folder: 'folder',
   start_date: 'start_date',
   end_date: 'end_date',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  is_archived: 'is_archived'
 };
 
 exports.Prisma.Employee_assignmentsScalarFieldEnum = {
@@ -202,6 +206,7 @@ exports.Prisma.Employee_documentsScalarFieldEnum = {
   file_path: 'file_path',
   file_type: 'file_type',
   category: 'category',
+  folder: 'folder',
   issue_date: 'issue_date',
   start_date: 'start_date',
   expiry_date: 'expiry_date',
@@ -514,6 +519,13 @@ exports.Prisma.Document_categoriesScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.Document_foldersScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  created_at: 'created_at'
+};
+
 exports.Prisma.Vehicle_typesScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
@@ -576,6 +588,7 @@ exports.Prisma.ModelName = {
   departments: 'departments',
   leave_types: 'leave_types',
   document_categories: 'document_categories',
+  document_folders: 'document_folders',
   vehicle_types: 'vehicle_types',
   arvento_history: 'arvento_history'
 };

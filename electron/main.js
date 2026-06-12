@@ -1398,6 +1398,23 @@ ipcMain.handle('settings:deleteDocumentCategory', async (event, id) => {
     return result
 })
 
+ipcMain.handle('settings:getDocumentFolders', async (event, companyId) => db.getDocumentFolders(companyId))
+ipcMain.handle('settings:createDocumentFolder', async (event, data) => {
+    const result = await db.createDocumentFolder(data)
+    if (result.success) notifyDbUpdate({ table: 'document_folders', action: 'create' })
+    return result
+})
+ipcMain.handle('settings:updateDocumentFolder', async (event, data) => {
+    const result = await db.updateDocumentFolder(data)
+    if (result.success) notifyDbUpdate({ table: 'document_folders', action: 'update' })
+    return result
+})
+ipcMain.handle('settings:deleteDocumentFolder', async (event, id) => {
+    const result = await db.deleteDocumentFolder(id)
+    if (result.success) notifyDbUpdate({ table: 'document_folders', action: 'delete' })
+    return result
+})
+
 // Vehicle Types
 ipcMain.handle('settings:getVehicleTypes', async (event, companyId) => db.getVehicleTypes(companyId))
 ipcMain.handle('settings:createVehicleType', async (event, data) => {
@@ -1727,7 +1744,9 @@ ipcMain.handle('documents:add', async (event, data) => {
             filePath: fileName, // Store relative path (filename only)
             fileType: ext,
             startDate: data.startDate,
-            endDate: data.endDate
+            endDate: data.endDate,
+            category: data.category || data.docType || null,
+            docType: data.docType || data.category || null
         })
 
         return result
@@ -1737,12 +1756,22 @@ ipcMain.handle('documents:add', async (event, data) => {
     }
 })
 
-ipcMain.handle('documents:getByVehicle', (event, vehicleId) => {
-    return db.getDocumentsByVehicle(vehicleId)
+ipcMain.handle('documents:update', async (event, data) => {
+    try {
+        const result = await db.updateDocument(data.id, data)
+        return result
+    } catch (error) {
+        console.error('Document update error:', error)
+        return { success: false, error: error.message }
+    }
 })
 
-ipcMain.handle('documents:getByCompany', (event, companyId) => {
-    return db.getDocumentsByCompany(companyId)
+ipcMain.handle('documents:getByVehicle', (event, vehicleId, isArchived) => {
+    return db.getDocumentsByVehicle(vehicleId, isArchived)
+})
+
+ipcMain.handle('documents:getByCompany', (event, companyId, isArchived) => {
+    return db.getDocumentsByCompany(companyId, isArchived)
 })
 
 ipcMain.handle('documents:delete', (event, id) => {

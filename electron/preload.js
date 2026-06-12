@@ -136,6 +136,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createDocumentCategory: (data) => ipcRenderer.invoke('settings:createDocumentCategory', data),
     updateDocumentCategory: (data) => ipcRenderer.invoke('settings:updateDocumentCategory', data),
     deleteDocumentCategory: (id) => ipcRenderer.invoke('settings:deleteDocumentCategory', id),
+    getDocumentFolders: (companyId) => ipcRenderer.invoke('settings:getDocumentFolders', companyId),
+    createDocumentFolder: (data) => ipcRenderer.invoke('settings:createDocumentFolder', data),
+    updateDocumentFolder: (data) => ipcRenderer.invoke('settings:updateDocumentFolder', data),
+    deleteDocumentFolder: (id) => ipcRenderer.invoke('settings:deleteDocumentFolder', id),
     getVehicleTypes: (companyId) => ipcRenderer.invoke('settings:getVehicleTypes', companyId),
     createVehicleType: (data) => ipcRenderer.invoke('settings:createVehicleType', data),
     updateVehicleType: (data) => ipcRenderer.invoke('settings:updateVehicleType', data),
@@ -174,8 +178,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Document Management
     addDocument: (data) => ipcRenderer.invoke('documents:add', data),
-    getAllDocuments: (companyId) => ipcRenderer.invoke('documents:getByCompany', companyId),
-    getDocumentsByVehicle: (vehicleId) => ipcRenderer.invoke('documents:getByVehicle', vehicleId),
+    updateDocument: (data) => ipcRenderer.invoke('documents:update', data),
+    getAllDocuments: (companyId, isArchived) => ipcRenderer.invoke('documents:getByCompany', companyId, isArchived),
+    getDocumentsByVehicle: (vehicleId, isArchived) => ipcRenderer.invoke('documents:getByVehicle', vehicleId, isArchived),
     deleteDocument: (id) => ipcRenderer.invoke('documents:delete', id),
     openDocument: (fileName) => ipcRenderer.invoke('documents:open', fileName),
     readDocumentData: (fileName) => ipcRenderer.invoke('documents:readData', fileName),
