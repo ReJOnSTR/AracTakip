@@ -304,11 +304,26 @@ export default function ArventoTracking() {
         }
     }, [activeTab, mapReady])
 
-    const [mapMode, setMapMode] = useState('street') // street, satellite
+    const [mapMode, setMapMode] = useState(() => localStorage.getItem('arvento_map_mode') || 'street') // street, satellite
     const [showMapPicker, setShowMapPicker] = useState(false)
-    const [trafficEnabled, setTrafficEnabled] = useState(false)
-    const [labelsEnabled, setLabelsEnabled] = useState(true)
+    const [trafficEnabled, setTrafficEnabled] = useState(() => localStorage.getItem('arvento_traffic_enabled') === 'true')
+    const [labelsEnabled, setLabelsEnabled] = useState(() => {
+        const stored = localStorage.getItem('arvento_labels_enabled');
+        return stored === null ? true : stored === 'true';
+    })
     const baseLayerRef = useRef(null)
+
+    useEffect(() => {
+        localStorage.setItem('arvento_map_mode', mapMode);
+    }, [mapMode])
+
+    useEffect(() => {
+        localStorage.setItem('arvento_traffic_enabled', String(trafficEnabled));
+    }, [trafficEnabled])
+
+    useEffect(() => {
+        localStorage.setItem('arvento_labels_enabled', String(labelsEnabled));
+    }, [labelsEnabled])
 
     // Load Leaflet Assets
     useEffect(() => {
@@ -1380,13 +1395,21 @@ export default function ArventoTracking() {
                 const latlngs = points.map(p => [p.lat, p.lng])
                 const pathColor = getHistoryColor(idx)
 
-                // Draw low opacity track line
+                // Draw outline/shadow line for contrast and depth
+                const shadowLine = L.polyline(latlngs, {
+                    color: '#000000',
+                    weight: 7,
+                    opacity: 0.25,
+                    lineJoin: 'round'
+                }).addTo(mapInstance.current)
+                historyLayersRef.current.push(shadowLine)
+
+                // Draw actual solid track line on top
                 const polyline = L.polyline(latlngs, {
                     color: pathColor,
                     weight: 4,
-                    opacity: 0.35,
-                    lineJoin: 'round',
-                    dashArray: '6, 8'
+                    opacity: 0.9,
+                    lineJoin: 'round'
                 }).addTo(mapInstance.current)
                 
                 polyline.bindPopup(`<b>${plate} Günlük Rotası</b><br/>Toplam Konum Kaydı: ${points.length}`)

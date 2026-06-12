@@ -5490,16 +5490,16 @@ body {
 /* Timeline playback design enhancements */
 .timeline-playback-panel {
   position: absolute !important;
-  bottom: 20px !important;
-  left: 20px !important;
-  right: 20px !important;
-  background: rgba(15, 23, 42, 0.75) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5) !important;
-  padding: 16px 20px !important;
+  bottom: 24px !important;
+  left: 24px !important;
+  right: 24px !important;
+  background: var(--bg-secondary) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 12px 20px !important;
   z-index: 999 !important;
 }
 
@@ -5951,7 +5951,7 @@ body {
   flex: 1 !important;
   height: 6px !important;
   border-radius: 3px !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: var(--border-color) !important;
   outline: none !important;
   cursor: pointer !important;
   transition: all 0.2s ease;
