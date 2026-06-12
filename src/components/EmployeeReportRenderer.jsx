@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
     formatDate,
     formatCurrency
@@ -54,15 +53,6 @@ const footerStyle = {
 }
 
 export default function EmployeeReportRenderer({ reports, config, listConfig, dateRange, companyName, reportType, isPreview = false }) {
-    const [collapsedSections, setCollapsedSections] = useState({})
-    const toggleSection = (employeeIndex, sectionKey) => {
-        const key = `${employeeIndex}-${sectionKey}`;
-        setCollapsedSections(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
-
     const previewPageStyle = isPreview
         ? { ...pageStyle, boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0', pageBreakAfter: 'always' }
         : { ...pageStyle, pageBreakAfter: 'always' }
@@ -100,16 +90,8 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                 {listConfig?.role && <td style={tdStyle}>{report.employee.role || '-'}</td>}
                                 {listConfig?.phone && <td style={tdStyle}>{report.employee.phone || '-'}</td>}
                                 {listConfig?.startDate && <td style={tdStyle}>{formatDate(report.employee.start_date)}</td>}
-                                {listConfig?.status && <td style={tdStyle}>{report.employee.is_archived ? 'Ayrıldı' : 'Aktif'}</td>}
-                                {listConfig?.salary && (
-                                    <td style={tdStyle}>
-                                        {report.employee.salary 
-                                            ? formatCurrency(report.employee.salary) 
-                                            : report.salaries && report.salaries.length > 0 
-                                                ? formatCurrency(report.salaries[0].net_salary || report.salaries[0].amount) 
-                                                : '-'}
-                                    </td>
-                                )}
+                                {listConfig?.status && <td style={tdStyle}>{report.employee.status === 'active' ? 'Aktif' : 'Pasif'}</td>}
+                                {listConfig?.salary && <td style={tdStyle}>{report.employee.salary ? formatCurrency(report.employee.salary) : '-'}</td>}
                             </tr>
                         ))}
                     </tbody>
@@ -119,7 +101,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                     Toplam Personel Sayısı: <strong>{reports.length}</strong>
                 </div>
 
-                <div style={footerStyle}>Personel Raporları</div>
+                <div style={footerStyle}>Personel Raporu</div>
             </div>
         )
     }
@@ -176,50 +158,16 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                 </div>
             </div>
 
-            {/* Styles for collapse behaviour */}
-            <style dangerouslySetInnerHTML={{ __html: `
-              .report-section-header {
-                cursor: pointer;
-                user-select: none;
-                transition: opacity 0.2s;
-              }
-              .report-section-header:hover {
-                opacity: 0.8;
-              }
-              .report-collapse-icon {
-                font-size: 10px;
-                margin-right: 8px;
-              }
-              @media print {
-                .report-collapsible-body {
-                  display: block !important;
-                }
-                .report-collapse-icon {
-                  display: none !important;
-                }
-                .report-section-header {
-                  cursor: default !important;
-                }
-              }
-            `}} />
-
             {/* Leave History */}
             {config?.leaves && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'leaves')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-leaves`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>İZİN GEÇMİŞİ</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-leaves`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>İZİN GEÇMİŞİ</h3>
+                    <div>
                         {report.leaves && report.leaves.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>
                                     <tr style={thRowStyle}>
-                                        <th style={thStyle}>TÜRH</th>
+                                        <th style={thStyle}>TÜR</th>
                                         <th style={thStyle}>BAŞLANGIÇ</th>
                                         <th style={thStyle}>BİTİŞ</th>
                                         <th style={thStyle}>SÜRE</th>
@@ -262,15 +210,8 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
             {/* Salary / Earnings */}
             {config?.salaries && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'salaries')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-salaries`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>MAAŞ / HAKEDİŞ GEÇMİŞİ</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-salaries`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>MAAŞ / HAKEDİŞ GEÇMİŞİ</h3>
+                    <div>
                         {report.salaries && report.salaries.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>
@@ -306,15 +247,8 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
             {/* Assignments */}
             {config?.assignments && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'assignments')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-assignments`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>ZİMMETLİ EKİPMANLAR</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-assignments`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>ZİMMETLİ EKİPMANLAR</h3>
+                    <div>
                         {report.assignments && report.assignments.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>
@@ -344,15 +278,8 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
             {/* Documents */}
             {config?.documents && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'documents')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-documents`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>BELGELER VE GEÇERLİLİK</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-documents`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>BELGELER VE GEÇERLİLİK</h3>
+                    <div>
                         {report.documents && report.documents.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>

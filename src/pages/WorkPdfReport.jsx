@@ -4,13 +4,6 @@ import { formatDate, formatCurrency } from '../utils/helpers';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
 export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
-    const [collapsedGroups, setCollapsedGroups] = useState({});
-    const toggleGroup = (idx) => {
-        setCollapsedGroups(prev => ({
-            ...prev,
-            [idx]: !prev[idx]
-        }));
-    };
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -308,8 +301,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 return (
                     <div className="pdf-vehicle-group" key={idx}>
                         <h3 
-                            className="pdf-group-title report-section-header" 
-                            onClick={() => toggleGroup(idx)} 
                             style={{ 
                                 fontSize: '13px', 
                                 fontWeight: 'bold', 
@@ -317,17 +308,14 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                 paddingBottom: '5px', 
                                 marginBottom: '10px', 
                                 marginTop: '15px', 
-                                cursor: 'pointer', 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '8px', 
-                                userSelect: 'none' 
+                                gap: '8px'
                             }}
                         >
-                            <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedGroups[idx] ? 'rotate(-90deg)' : 'none' }}>▼</span>
                             <span>{group.machineName.toUpperCase()} DETAYLARI</span>
                         </h3>
-                        <div className="report-collapsible-body" style={{ display: collapsedGroups[idx] ? 'none' : 'block' }}>
+                        <div>
                             <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
                                 <thead>
                                     <tr>

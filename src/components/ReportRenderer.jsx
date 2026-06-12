@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
     formatDate,
     formatCurrency,
@@ -68,15 +67,6 @@ const footerStyle = {
  * @param {boolean} props.isPreview - If true, adds shadow/border for preview display
  */
 export default function ReportRenderer({ reports, config, listConfig, dateRange, companyName, reportType, isPreview = false }) {
-    const [collapsedSections, setCollapsedSections] = useState({})
-    const toggleSection = (vehicleIndex, sectionKey) => {
-        const key = `${vehicleIndex}-${sectionKey}`;
-        setCollapsedSections(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
-
     const previewPageStyle = isPreview
         ? { ...pageStyle, boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0', pageBreakAfter: 'always' }
         : { ...pageStyle, pageBreakAfter: 'always' }
@@ -174,45 +164,13 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
                     <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>KM</div>
                     <div style={{ fontSize: '14px' }}>{report.vehicle.kilometers ? `${report.vehicle.kilometers} km` : '-'}</div>
                 </div>
-                   {/* Styles for collapse behaviour */}
-            <style dangerouslySetInnerHTML={{ __html: `
-              .report-section-header {
-                cursor: pointer;
-                user-select: none;
-                transition: opacity 0.2s;
-              }
-              .report-section-header:hover {
-                opacity: 0.8;
-              }
-              .report-collapse-icon {
-                font-size: 10px;
-                margin-right: 8px;
-              }
-              @media print {
-                .report-collapsible-body {
-                  display: block !important;
-                }
-                .report-collapse-icon {
-                  display: none !important;
-                }
-                .report-section-header {
-                  cursor: default !important;
-                }
-              }
-            `}} />
+            </div>
 
             {/* Inventory */}
             {config?.inventory && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'inventory')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-inventory`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>DEMİRBAŞ / ENVANTER</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-inventory`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>DEMİRBAŞ / ENVANTER</h3>
+                    <div>
                         {report.assignments && report.assignments.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>
@@ -246,15 +204,8 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
             {/* Maintenance */}
             {config?.maintenance && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'maintenance')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-maintenance`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>BAKIM GEÇMİŞİ</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-maintenance`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>BAKIM GEÇMİŞİ</h3>
+                    <div>
                         {report.maintenances && report.maintenances.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>
@@ -294,15 +245,8 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
             {/* Services */}
             {config?.services && (
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 
-                        style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                        className="report-section-header"
-                        onClick={() => toggleSection(index, 'services')}
-                    >
-                        <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-services`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                        <span>SERVİS / TAMİR GEÇMİŞİ</span>
-                    </h3>
-                    <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-services`] ? 'none' : 'block' }}>
+                    <h3 style={sectionTitleStyle}>SERVİS / TAMİR GEÇMİŞİ</h3>
+                    <div>
                         {report.services && report.services.length > 0 ? (
                             <table style={tableStyle}>
                                 <thead>
@@ -345,15 +289,8 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
             <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                 {config?.insurance && (
                     <div>
-                        <h3 
-                            style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                            className="report-section-header"
-                            onClick={() => toggleSection(index, 'insurance')}
-                        >
-                            <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-insurance`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                            <span>SİGORTA BİLGİLERİ</span>
-                        </h3>
-                        <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-insurance`] ? 'none' : 'block' }}>
+                        <h3 style={sectionTitleStyle}>SİGORTA BİLGİLERİ</h3>
+                        <div>
                             {report.insurances && report.insurances.length > 0 ? (
                                 <table style={tableStyle}>
                                     <thead>
@@ -392,15 +329,8 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
 
                 {config?.inspection && (
                     <div>
-                        <h3 
-                            style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                            className="report-section-header"
-                            onClick={() => toggleSection(index, 'inspection')}
-                        >
-                            <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-inspection`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                            <span>MUAYENE BİLGİLERİ</span>
-                        </h3>
-                        <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-inspection`] ? 'none' : 'block' }}>
+                        <h3 style={sectionTitleStyle}>MUAYENE BİLGİLERİ</h3>
+                        <div>
                             {report.inspections && report.inspections.length > 0 ? (
                                 <table style={tableStyle}>
                                     <thead>
@@ -442,15 +372,8 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
 
                 {config?.periodicInspection && (
                     <div>
-                        <h3 
-                            style={{ ...sectionTitleStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
-                            className="report-section-header"
-                            onClick={() => toggleSection(index, 'periodicInspection')}
-                        >
-                            <span className="report-collapse-icon" style={{ transition: 'transform 0.2s', display: 'inline-block', transform: collapsedSections[`${index}-periodicInspection`] ? 'rotate(-90deg)' : 'none' }}>▼</span>
-                            <span>PERİYODİK KONTROL BİLGİLERİ</span>
-                        </h3>
-                        <div className="report-collapsible-body" style={{ display: collapsedSections[`${index}-periodicInspection`] ? 'none' : 'block' }}>
+                        <h3 style={sectionTitleStyle}>PERİYODİK KONTROL BİLGİLERİ</h3>
+                        <div>
                             {report.periodicInspections && report.periodicInspections.length > 0 ? (
                                 <table style={tableStyle}>
                                     <thead>
@@ -490,10 +413,6 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
                     </div>
                 )}
             </div>
-            <div style={footerStyle}>Raporlar</div>
-                )}
-            </div>
-
             <div style={footerStyle}>Raporlar</div>
         </div>
     ))
