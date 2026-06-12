@@ -1,6 +1,6 @@
 {
   "name": "muayen",
-  "version": "1.0.211",
+  "version": "1.0.212",
   "description": "Kontrol - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",

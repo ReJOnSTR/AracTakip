@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet, ChevronDown } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { calculateWorkStats } from '../utils/workCalculations'
 import { workItemSchema } from '../schemas/workSchema'
@@ -72,6 +72,10 @@ export default function WorkDetails(props) {
     const [generatingPdf, setGeneratingPdf] = useState(false)
     const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
+    const [sidebarCollapsed, setSidebarCollapsed] = useState({
+        options: false,
+        multipliers: false
+    })
 
     // Form State
     const [formData, setFormData] = useState({
@@ -1505,69 +1509,99 @@ export default function WorkDetails(props) {
                         
                         {/* Content Toggles */}
                         <div style={{ borderBottom: '1px solid var(--border-color)' }}>
-                            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Settings size={14} style={{ color: 'var(--text-muted)' }} />
-                                <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Seçenekleri</h4>
-                            </div>
-                            <div style={{ padding: '12px 16px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                    >
-                                        <span style={{ fontSize: '13px', color: showPrices ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showPrices ? 500 : 400, transition: 'all 0.15s' }}>Tabloda Fiyatları Göster</span>
-                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" checked={showPrices} onChange={e => setShowPrices(e.target.checked)} />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </label>
-
-                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '4px' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                    >
-                                        <span style={{ fontSize: '13px', color: showKdv ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showKdv ? 500 : 400, transition: 'all 0.15s' }}>KDV Ekle (+%20)</span>
-                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" checked={showKdv} onChange={e => setShowKdv(e.target.checked)} />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </label>
+                            <div 
+                                onClick={() => setSidebarCollapsed(prev => ({ ...prev, options: !prev.options }))}
+                                style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Seçenekleri</h4>
                                 </div>
+                                <ChevronDown 
+                                    size={14} 
+                                    style={{ 
+                                        color: 'var(--text-muted)', 
+                                        transform: sidebarCollapsed.options ? 'rotate(-90deg)' : 'none', 
+                                        transition: 'transform 0.2s ease' 
+                                    }} 
+                                />
                             </div>
+                            {!sidebarCollapsed.options && (
+                                <div style={{ padding: '12px 16px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        >
+                                            <span style={{ fontSize: '13px', color: showPrices ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showPrices ? 500 : 400, transition: 'all 0.15s' }}>Tabloda Fiyatları Göster</span>
+                                            <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                                <input type="checkbox" checked={showPrices} onChange={e => setShowPrices(e.target.checked)} />
+                                                <span className="toggle-slider"></span>
+                                            </label>
+                                        </label>
+
+                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '4px' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        >
+                                            <span style={{ fontSize: '13px', color: showKdv ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showKdv ? 500 : 400, transition: 'all 0.15s' }}>KDV Ekle (+%20)</span>
+                                            <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                                <input type="checkbox" checked={showKdv} onChange={e => setShowKdv(e.target.checked)} />
+                                                <span className="toggle-slider"></span>
+                                            </label>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Katsayı Ayarları */}
                         <div style={{ borderBottom: '1px solid var(--border-color)' }}>
-                            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Settings size={14} style={{ color: 'var(--text-muted)' }} />
-                                <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mesai Katsayıları</h4>
-                            </div>
-                            <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <div>
-                                    <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Pazar Katsayısı</label>
-                                    <input
-                                        type="number"
-                                        step="0.1"
-                                        min="0"
-                                        className="form-input"
-                                        value={pazarMultiplier}
-                                        onChange={e => setPazarMultiplier(e.target.value)}
-                                        style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                                    />
+                            <div 
+                                onClick={() => setSidebarCollapsed(prev => ({ ...prev, multipliers: !prev.multipliers }))}
+                                style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mesai Katsayıları</h4>
                                 </div>
-                                <div>
-                                    <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Mesai Farkı Katsayısı</label>
-                                    <input
-                                        type="number"
-                                        step="0.1"
-                                        min="0"
-                                        className="form-input"
-                                        value={mesaiMultiplier}
-                                        onChange={e => setMesaiMultiplier(e.target.value)}
-                                        style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                                    />
-                                </div>
+                                <ChevronDown 
+                                    size={14} 
+                                    style={{ 
+                                        color: 'var(--text-muted)', 
+                                        transform: sidebarCollapsed.multipliers ? 'rotate(-90deg)' : 'none', 
+                                        transition: 'transform 0.2s ease' 
+                                    }} 
+                                />
                             </div>
+                            {!sidebarCollapsed.multipliers && (
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Pazar Katsayısı</label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            min="0"
+                                            className="form-input"
+                                            value={pazarMultiplier}
+                                            onChange={e => setPazarMultiplier(e.target.value)}
+                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Mesai Farkı Katsayısı</label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            min="0"
+                                            className="form-input"
+                                            value={mesaiMultiplier}
+                                            onChange={e => setMesaiMultiplier(e.target.value)}
+                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
