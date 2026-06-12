@@ -1108,53 +1108,56 @@ export default function WorkDetails(props) {
                             })}
                         </div>
                         
-                        {/* List of current additions as Clean Rows */}
+                        {/* List of current additions as Clean Chips */}
                         {formData.additions && formData.additions.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto', paddingRight: '4px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '4px 0', maxHeight: '120px', overflowY: 'auto' }}>
                                 {formData.additions.map((add, idx) => (
                                     <div key={idx} style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
+                                        display: 'inline-flex', 
                                         alignItems: 'center', 
+                                        gap: '6px',
                                         background: 'var(--bg-primary)', 
-                                        padding: '8px 12px', 
-                                        borderRadius: 'var(--radius-sm)', 
+                                        padding: '6px 12px', 
+                                        borderRadius: 'var(--radius-full)', 
                                         border: '1px solid var(--border-color)',
-                                        borderLeft: '3px solid var(--accent-primary)',
                                         fontSize: '12px',
+                                        color: 'var(--text-primary)',
+                                        boxShadow: 'var(--shadow-sm)',
                                         transition: 'all 0.2s'
                                     }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <DollarSign size={14} style={{ color: 'var(--text-secondary)' }} />
-                                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{add.type}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => {
-                                                    const newList = [...formData.additions];
-                                                    newList.splice(idx, 1);
-                                                    setFormData({ ...formData, additions: newList });
-                                                }}
-                                                style={{ 
-                                                    border: 'none', 
-                                                    background: 'none', 
-                                                    color: 'var(--text-muted)', 
-                                                    cursor: 'pointer', 
-                                                    display: 'flex', 
-                                                    alignItems: 'center', 
-                                                    justifyContent: 'center',
-                                                    padding: '2px',
-                                                    borderRadius: '4px',
-                                                    transition: 'color 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-error)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                                            >
-                                                <Trash2 size={13} />
-                                            </button>
-                                        </div>
+                                        <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{add.type}</span>
+                                        <span style={{ fontWeight: 700, color: 'var(--accent-primary)', marginLeft: '2px' }}>{formatCurrency(add.price)}</span>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                const newList = [...formData.additions];
+                                                newList.splice(idx, 1);
+                                                setFormData({ ...formData, additions: newList });
+                                            }}
+                                            style={{ 
+                                                border: 'none', 
+                                                background: 'transparent', 
+                                                color: 'var(--text-muted)', 
+                                                cursor: 'pointer', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center',
+                                                padding: '2px',
+                                                marginLeft: '4px',
+                                                borderRadius: '50%',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.color = 'var(--text-error)';
+                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.color = 'var(--text-muted)';
+                                                e.currentTarget.style.background = 'transparent';
+                                            }}
+                                        >
+                                            <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -1165,13 +1168,14 @@ export default function WorkDetails(props) {
                         )}
 
                         {/* Modern Input Group for adding new addition using CustomInput */}
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', width: '100%', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', width: '100%', marginTop: '4px' }}>
                             <div style={{ flex: 1 }}>
                                 <CustomInput
                                     label="Ek Ödeme Türü"
                                     value={curAdditionType}
                                     onChange={(val) => setCurAdditionType(val)}
                                     placeholder="Tür (Örn: Yol, Yemek)"
+                                    className="mb-0"
                                 />
                             </div>
                             <div style={{ width: '120px' }}>
@@ -1181,6 +1185,7 @@ export default function WorkDetails(props) {
                                     value={curAdditionPrice}
                                     onChange={(val) => setCurAdditionPrice(val)}
                                     placeholder="0,00"
+                                    className="mb-0"
                                 />
                             </div>
                             <button
@@ -1203,8 +1208,7 @@ export default function WorkDetails(props) {
                                     gap: '6px',
                                     fontWeight: '600',
                                     fontSize: '13px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    marginTop: '16px'
+                                    borderRadius: 'var(--radius-sm)'
                                 }}
                             >
                                 <Plus size={16} /> Ekle
@@ -1402,53 +1406,56 @@ export default function WorkDetails(props) {
                             })}
                         </div>
                         
-                        {/* List of current additions as Clean Rows */}
+                        {/* List of current additions as Clean Chips */}
                         {bulkFormData.additions && bulkFormData.additions.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto', paddingRight: '4px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '4px 0', maxHeight: '120px', overflowY: 'auto' }}>
                                 {bulkFormData.additions.map((add, idx) => (
                                     <div key={idx} style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
+                                        display: 'inline-flex', 
                                         alignItems: 'center', 
+                                        gap: '6px',
                                         background: 'var(--bg-primary)', 
-                                        padding: '8px 12px', 
-                                        borderRadius: 'var(--radius-sm)', 
+                                        padding: '6px 12px', 
+                                        borderRadius: 'var(--radius-full)', 
                                         border: '1px solid var(--border-color)',
-                                        borderLeft: '3px solid var(--accent-primary)',
                                         fontSize: '12px',
+                                        color: 'var(--text-primary)',
+                                        boxShadow: 'var(--shadow-sm)',
                                         transition: 'all 0.2s'
                                     }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <DollarSign size={14} style={{ color: 'var(--text-secondary)' }} />
-                                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{add.type}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{formatCurrency(add.price)}</span>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => {
-                                                    const newList = [...bulkFormData.additions];
-                                                    newList.splice(idx, 1);
-                                                    setBulkFormData({ ...bulkFormData, additions: newList });
-                                                }}
-                                                style={{ 
-                                                    border: 'none', 
-                                                    background: 'none', 
-                                                    color: 'var(--text-muted)', 
-                                                    cursor: 'pointer', 
-                                                    display: 'flex', 
-                                                    alignItems: 'center', 
-                                                    justifyContent: 'center',
-                                                    padding: '2px',
-                                                    borderRadius: '4px',
-                                                    transition: 'color 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-error)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                                            >
-                                                <Trash2 size={13} />
-                                            </button>
-                                        </div>
+                                        <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{add.type}</span>
+                                        <span style={{ fontWeight: 700, color: 'var(--accent-primary)', marginLeft: '2px' }}>{formatCurrency(add.price)}</span>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                const newList = [...bulkFormData.additions];
+                                                newList.splice(idx, 1);
+                                                setBulkFormData({ ...bulkFormData, additions: newList });
+                                            }}
+                                            style={{ 
+                                                border: 'none', 
+                                                background: 'transparent', 
+                                                color: 'var(--text-muted)', 
+                                                cursor: 'pointer', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center',
+                                                padding: '2px',
+                                                marginLeft: '4px',
+                                                borderRadius: '50%',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.color = 'var(--text-error)';
+                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.color = 'var(--text-muted)';
+                                                e.currentTarget.style.background = 'transparent';
+                                            }}
+                                        >
+                                            <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -1459,13 +1466,14 @@ export default function WorkDetails(props) {
                         )}
 
                         {/* Modern Input Group for adding new addition using CustomInput */}
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', width: '100%', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', width: '100%', marginTop: '4px' }}>
                             <div style={{ flex: 1 }}>
                                 <CustomInput
                                     label="Ek Ödeme Türü"
                                     value={curBulkAdditionType}
                                     onChange={(val) => setCurBulkAdditionType(val)}
                                     placeholder="Tür (Örn: Yol, Yemek)"
+                                    className="mb-0"
                                 />
                             </div>
                             <div style={{ width: '120px' }}>
@@ -1475,6 +1483,7 @@ export default function WorkDetails(props) {
                                     value={curBulkAdditionPrice}
                                     onChange={(val) => setCurBulkAdditionPrice(val)}
                                     placeholder="0,00"
+                                    className="mb-0"
                                 />
                             </div>
                             <button
@@ -1497,8 +1506,7 @@ export default function WorkDetails(props) {
                                     gap: '6px',
                                     fontWeight: '600',
                                     fontSize: '13px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    marginTop: '16px'
+                                    borderRadius: 'var(--radius-sm)'
                                 }}
                             >
                                 <Plus size={16} /> Ekle

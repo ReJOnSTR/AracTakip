@@ -1202,6 +1202,10 @@ body {
   position: relative;
 }
 
+.form-group.mb-0 {
+  margin-bottom: 0 !important;
+}
+
 /* Info Tooltip Styles */
 .info-tooltip-container {
     position: relative;
