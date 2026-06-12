@@ -974,10 +974,10 @@ export default function WorkDetails(props) {
                 onClose={() => setIsModalOpen(false)}
                 title={editingItem ? 'Kaydı Düzenle' : 'Yeni Çalışma Kaydı Ekle'}
             >
-                <form onSubmit={handleModalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <form onSubmit={handleModalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <CustomInput
                             label="Tarih"
                             type="date"
@@ -993,7 +993,7 @@ export default function WorkDetails(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <CustomSelect
                             label="Araç"
                             value={formData.vehicleId}
@@ -1010,7 +1010,7 @@ export default function WorkDetails(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <CustomInput
                                 type="time"
@@ -1055,8 +1055,8 @@ export default function WorkDetails(props) {
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '12px',
-                        padding: '16px',
+                        gap: '8px',
+                        padding: '10px 12px',
                         background: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-md)',
@@ -1082,7 +1082,7 @@ export default function WorkDetails(props) {
                         </div>
 
                         {/* Quick Selection Tags */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '2px 0 6px 0' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '0 0 2px 0' }}>
                             {['Yol', 'Yemek', 'Mesai', 'Prim', 'Avans', 'Diğer'].map(type => {
                                 const isActive = curAdditionType === type;
                                 return (
@@ -1108,22 +1108,35 @@ export default function WorkDetails(props) {
                             })}
                         </div>
                         
-                        {/* List of current additions as Clean Chips */}
-                        {formData.additions && formData.additions.length > 0 ? (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '4px 0', maxHeight: '120px', overflowY: 'auto' }}>
-                                {formData.additions.map((add, idx) => (
+                        {/* List of current additions as Clean Chips inside a scrollable box */}
+                        <div style={{ 
+                            height: '42px', 
+                            overflowX: 'auto', 
+                            overflowY: 'hidden',
+                            border: '1px solid var(--border-color)', 
+                            borderRadius: 'var(--radius-sm)', 
+                            background: 'var(--bg-primary)', 
+                            padding: '0 8px',
+                            display: 'flex',
+                            flexWrap: 'nowrap',
+                            alignItems: 'center',
+                            justifyContent: (formData.additions && formData.additions.length > 3) ? 'flex-start' : 'center',
+                            gap: '6px',
+                            width: '100%'
+                        }}>
+                            {formData.additions && formData.additions.length > 0 ? (
+                                formData.additions.map((add, idx) => (
                                     <div key={idx} style={{ 
                                         display: 'inline-flex', 
                                         alignItems: 'center', 
                                         gap: '6px',
-                                        background: 'var(--bg-primary)', 
-                                        padding: '6px 12px', 
+                                        background: 'var(--bg-secondary)', 
+                                        padding: '4px 10px', 
                                         borderRadius: 'var(--radius-full)', 
                                         border: '1px solid var(--border-color)',
-                                        fontSize: '12px',
+                                        fontSize: '11px',
                                         color: 'var(--text-primary)',
-                                        boxShadow: 'var(--shadow-sm)',
-                                        transition: 'all 0.2s'
+                                        height: '24px'
                                     }}>
                                         <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{add.type}</span>
                                         <span style={{ fontWeight: 700, color: 'var(--accent-primary)', marginLeft: '2px' }}>{formatCurrency(add.price)}</span>
@@ -1159,16 +1172,24 @@ export default function WorkDetails(props) {
                                             <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
                                         </button>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-primary)' }}>
-                                Ek ödeme bulunmuyor.
-                            </div>
-                        )}
+                                ))
+                            ) : (
+                                <div style={{ 
+                                    fontSize: '11px', 
+                                    color: 'var(--text-muted)', 
+                                    width: '100%', 
+                                    height: '100%', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center' 
+                                }}>
+                                    Ek ödeme bulunmuyor.
+                                </div>
+                            )}
+                        </div>
 
                         {/* Modern Input Group for adding new addition using CustomInput */}
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', width: '100%', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', width: '100%', marginTop: '0' }}>
                             <div style={{ flex: 1 }}>
                                 <CustomInput
                                     label="Ek Ödeme Türü"
@@ -1218,7 +1239,7 @@ export default function WorkDetails(props) {
 
                     <CustomInput
                         label="Açıklama"
-                        type="textarea"
+                        type="text"
                         value={formData.description}
                         onChange={(val) => setFormData({ ...formData, description: val })}
                     />
@@ -1236,15 +1257,15 @@ export default function WorkDetails(props) {
                 onClose={() => setIsBulkModalOpen(false)}
                 title="Hızlı Üretim (Toplu Kayıt Ekle)"
             >
-                <form onSubmit={handleBulkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <form onSubmit={handleBulkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
 
-                    <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    <div style={{ background: 'var(--bg-secondary)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                         Seçtiğiniz <strong>Başlangıç</strong> ve <strong>Bitiş</strong> tarihi aralığındaki her bir gün için girdiğiniz bilgilerle (Araç, Personel, Gün/Saat vb.) ayrı bir kayıt listeye otomatik eklenecektir.<br />
                         <em>Not: Hafta sonu, bayram tatili ayırmaz. İstemediğiniz günleri liste üzerinden tek tuşla kolayca silebilirsiniz.</em>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                         <CustomInput
                             label="Başlangıç Tarihi"
                             type="date"
@@ -1275,7 +1296,7 @@ export default function WorkDetails(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <CustomSelect
                             label="Araç"
                             value={bulkFormData.vehicleId}
@@ -1292,7 +1313,7 @@ export default function WorkDetails(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <CustomInput
                                 type="time"
@@ -1353,8 +1374,8 @@ export default function WorkDetails(props) {
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '12px',
-                        padding: '16px',
+                        gap: '8px',
+                        padding: '10px 12px',
                         background: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-md)',
@@ -1380,7 +1401,7 @@ export default function WorkDetails(props) {
                         </div>
 
                         {/* Quick Selection Tags */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '2px 0 6px 0' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '0 0 2px 0' }}>
                             {['Yol', 'Yemek', 'Mesai', 'Prim', 'Avans', 'Diğer'].map(type => {
                                 const isActive = curBulkAdditionType === type;
                                 return (
@@ -1406,22 +1427,35 @@ export default function WorkDetails(props) {
                             })}
                         </div>
                         
-                        {/* List of current additions as Clean Chips */}
-                        {bulkFormData.additions && bulkFormData.additions.length > 0 ? (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '4px 0', maxHeight: '120px', overflowY: 'auto' }}>
-                                {bulkFormData.additions.map((add, idx) => (
+                        {/* List of current additions as Clean Chips inside a scrollable box */}
+                        <div style={{ 
+                            height: '42px', 
+                            overflowX: 'auto', 
+                            overflowY: 'hidden',
+                            border: '1px solid var(--border-color)', 
+                            borderRadius: 'var(--radius-sm)', 
+                            background: 'var(--bg-primary)', 
+                            padding: '0 8px',
+                            display: 'flex',
+                            flexWrap: 'nowrap',
+                            alignItems: 'center',
+                            justifyContent: (bulkFormData.additions && bulkFormData.additions.length > 3) ? 'flex-start' : 'center',
+                            gap: '6px',
+                            width: '100%'
+                        }}>
+                            {bulkFormData.additions && bulkFormData.additions.length > 0 ? (
+                                bulkFormData.additions.map((add, idx) => (
                                     <div key={idx} style={{ 
                                         display: 'inline-flex', 
                                         alignItems: 'center', 
                                         gap: '6px',
-                                        background: 'var(--bg-primary)', 
-                                        padding: '6px 12px', 
+                                        background: 'var(--bg-secondary)', 
+                                        padding: '4px 10px', 
                                         borderRadius: 'var(--radius-full)', 
                                         border: '1px solid var(--border-color)',
-                                        fontSize: '12px',
+                                        fontSize: '11px',
                                         color: 'var(--text-primary)',
-                                        boxShadow: 'var(--shadow-sm)',
-                                        transition: 'all 0.2s'
+                                        height: '24px'
                                     }}>
                                         <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{add.type}</span>
                                         <span style={{ fontWeight: 700, color: 'var(--accent-primary)', marginLeft: '2px' }}>{formatCurrency(add.price)}</span>
@@ -1457,16 +1491,24 @@ export default function WorkDetails(props) {
                                             <Plus size={12} style={{ transform: 'rotate(45deg)' }} />
                                         </button>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-primary)' }}>
-                                Ek ödeme bulunmuyor.
-                            </div>
-                        )}
+                                ))
+                            ) : (
+                                <div style={{ 
+                                    fontSize: '11px', 
+                                    color: 'var(--text-muted)', 
+                                    width: '100%', 
+                                    height: '100%', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center' 
+                                }}>
+                                    Ek ödeme bulunmuyor.
+                                </div>
+                            )}
+                        </div>
 
                         {/* Modern Input Group for adding new addition using CustomInput */}
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', width: '100%', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', width: '100%', marginTop: '0' }}>
                             <div style={{ flex: 1 }}>
                                 <CustomInput
                                     label="Ek Ödeme Türü"
@@ -1516,7 +1558,7 @@ export default function WorkDetails(props) {
 
                     <CustomInput
                         label="Ortak Açıklama"
-                        type="textarea"
+                        type="text"
                         value={bulkFormData.description}
                         onChange={(val) => setBulkFormData({ ...bulkFormData, description: val })}
                     />
@@ -1534,14 +1576,14 @@ export default function WorkDetails(props) {
                 onClose={() => setIsBulkEditModalOpen(false)}
                 title={`Toplu Düzenle (${selectedIds.length} Kayıt)`}
             >
-                <form onSubmit={handleBulkEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <form onSubmit={handleBulkEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
 
-                    <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    <div style={{ background: 'var(--bg-tertiary)', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                         ⚠️ Boş bıraktığınız alanlar mevcut kayıtlarda değiştirilmeyecektir.
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <CustomInput
                             label="Tarih"
                             type="date"
@@ -1556,7 +1598,7 @@ export default function WorkDetails(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <CustomSelect
                             label="Makina / Araç"
                             value={bulkEditFormData.vehicleId}
@@ -1579,7 +1621,7 @@ export default function WorkDetails(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <CustomInput
                                 type="time"
@@ -1619,8 +1661,8 @@ export default function WorkDetails(props) {
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '12px',
-                        padding: '16px',
+                        gap: '8px',
+                        padding: '10px 12px',
                         background: 'var(--bg-secondary)',
                         border: '1px dashed var(--border-color)',
                         borderRadius: 'var(--radius-md)',
@@ -1636,7 +1678,7 @@ export default function WorkDetails(props) {
 
                     <CustomInput
                         label="Açıklama"
-                        type="textarea"
+                        type="text"
                         value={bulkEditFormData.description}
                         onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, description: val })}
                     />
