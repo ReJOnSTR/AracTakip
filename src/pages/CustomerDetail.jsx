@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, FileText, Plus, Trash2 } from 'lucide-react'
 import DataTable from '../components/DataTable'
 import TopProgressBar from '../components/TopProgressBar'
 import { formatDate, formatCurrency } from '../utils/helpers'
@@ -12,6 +12,8 @@ import WorkForm from '../components/forms/WorkForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { useTabs } from '../context/TabContext'
 import { useCompany } from '../context/CompanyContext'
+import DocumentUploadModal from '../components/DocumentUploadModal'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
 
 export default function CustomerDetail() {
     const { id } = useParams()
@@ -36,6 +38,11 @@ export default function CustomerDetail() {
     // Filter states
     const [showArchived, setShowArchived] = useState(false)
 
+    // Document States
+    const [documents, setDocuments] = useState([])
+    const [previewDoc, setPreviewDoc] = useState(null)
+    const [uploadModalOpen, setUploadModalOpen] = useState(false)
+
     useEffect(() => {
         loadCustomer()
     }, [id])
@@ -46,6 +53,23 @@ export default function CustomerDetail() {
             setIndicatorStyle({ left: activeElement.offsetLeft, width: activeElement.offsetWidth })
         }
     }, [activeTab, tabsRef, customer])
+
+    const loadDocuments = async (companyId = currentCompany?.id) => {
+        if (!companyId || !customer) return
+        try {
+            const docsRes = await window.electronAPI.getAllDocuments(companyId)
+            if (docsRes.success) {
+                const customerWorkIds = customer.works?.map(w => w.id) || []
+                const filtered = docsRes.data.filter(d => 
+                    (d.related_type === 'customer' && d.related_id === parseInt(id)) ||
+                    (d.related_type === 'work' && customerWorkIds.includes(d.related_id))
+                )
+                setDocuments(filtered)
+            }
+        } catch (error) {
+            console.error('Failed to load customer documents:', error)
+        }
+    }
 
     const loadCustomer = async () => {
         setLoading(true)
@@ -59,6 +83,67 @@ export default function CustomerDetail() {
             console.error('Failed to load customer details:', error)
         }
         setLoading(false)
+    }
+
+    useEffect(() => {
+        if (customer && currentCompany) {
+            loadDocuments(currentCompany.id)
+        }
+    }, [customer, currentCompany])
+
+    const handleDocumentOpen = async (doc) => {
+        if (!doc) return
+        const ext = doc.file_type?.toLowerCase() || doc.file_path.split('.').pop()?.toLowerCase()
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', 'jpg', 'jpeg', 'png', 'webp', 'gif']
+        if (imageExtensions.includes(ext)) {
+            try {
+                const res = await window.electronAPI.readDocumentData(doc.file_path)
+                if (res.success && res.data) {
+                    setPreviewDoc({ data: res.data, name: doc.file_name, path: doc.file_path, doc })
+                } else {
+                    await window.electronAPI.openDocument(doc.file_path)
+                }
+            } catch (error) {
+                console.error('Failed to preview image:', error)
+                await window.electronAPI.openDocument(doc.file_path)
+            }
+        } else {
+            const error = await window.electronAPI.openDocument(doc.file_path)
+            if (error) alert('Dosya açılamadı: ' + error)
+        }
+    }
+
+    const handleUploadConfirm = async (file) => {
+        if (!customer) return
+
+        const result = await window.electronAPI.addDocument({
+            relatedType: 'customer',
+            relatedId: customer.id,
+            filePath: file.path,
+            fileName: file.name
+        })
+
+        if (result.success) {
+            loadDocuments(currentCompany.id)
+            setUploadModalOpen(false)
+        } else {
+            alert('Dosya yüklenirken hata oluştu: ' + result.error)
+        }
+    }
+
+    const handleDocumentDelete = async (doc) => {
+        if (!window.confirm(`"${doc.file_name}" isimli belgeyi silmek istediğinize emin misiniz?`)) return
+        try {
+            const result = await window.electronAPI.deleteDocument(doc.id)
+            if (result.success) {
+                loadDocuments(currentCompany.id)
+                setPreviewDoc(null)
+            } else {
+                alert('Silme hatası: ' + result.error)
+            }
+        } catch (error) {
+            console.error('Delete document failed:', error)
+        }
     }
 
     const handleEditSubmit = async (data) => {
@@ -237,7 +322,8 @@ export default function CustomerDetail() {
     if (!customer) return <div className="empty-state"><h2 className="empty-state-title">Müşteri Bulunamadı</h2><Link className="btn btn-primary" to="/customers">Müşterilere Dön</Link></div>
 
     const tabs = [
-        { id: 'works', label: 'İş ve Projeler', icon: Briefcase }
+        { id: 'works', label: 'İş ve Projeler', icon: Briefcase },
+        { id: 'documents', label: 'Dosyalar ve Belgeler', icon: FileText }
     ]
 
     const completedWorks = customer.works?.filter(w => w.status === 'completed' && w.is_archived !== 1) || []
@@ -463,6 +549,121 @@ export default function CustomerDetail() {
                         />
                     </div>
                 )}
+
+                {activeTab === 'documents' && (
+                    <div className="tab-pane">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                                Dosyalar ve Belgeler
+                            </h3>
+                            <button 
+                                onClick={() => setUploadModalOpen(true)} 
+                                className="btn btn-secondary" 
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <Plus size={16} /> Belge Ekle
+                            </button>
+                        </div>
+
+                        {documents.length === 0 ? (
+                            <div style={{ 
+                                border: '1px dashed var(--border-color)', 
+                                borderRadius: 'var(--radius-md)', 
+                                padding: '40px', 
+                                textAlign: 'center', 
+                                background: 'var(--bg-secondary)',
+                                color: 'var(--text-muted)'
+                            }}>
+                                <FileText size={36} style={{ opacity: 0.3, marginBottom: '12px' }} />
+                                <div style={{ fontSize: '14px', fontWeight: 600 }}>Kayıtlı Belge Yok</div>
+                                <div style={{ fontSize: '12px', marginTop: '4px' }}>Bu müşteriye veya müşterinin işlerine ait bir belge bulunmamaktadır.</div>
+                            </div>
+                        ) : (
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+                                gap: '16px' 
+                            }}>
+                                {documents.map((doc) => {
+                                    return (
+                                        <div key={doc.id} style={{ 
+                                            background: 'var(--bg-secondary)', 
+                                            border: '1px solid var(--border-color)', 
+                                            borderRadius: 'var(--radius-md)', 
+                                            padding: '16px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            boxShadow: 'var(--shadow-sm)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.transform = 'none';
+                                            e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                                        }}
+                                        >
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                <div style={{ 
+                                                    width: '40px', 
+                                                    height: '40px', 
+                                                    borderRadius: '8px', 
+                                                    background: 'var(--accent-subtle)', 
+                                                    color: 'var(--accent-primary)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0
+                                                }}>
+                                                    <FileText size={20} />
+                                                </div>
+                                                <div style={{ minWidth: 0, flex: 1 }}>
+                                                    <div style={{ 
+                                                        fontSize: '13px', 
+                                                        fontWeight: 600, 
+                                                        color: 'var(--text-primary)',
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }} title={doc.file_name}>
+                                                        {doc.file_name}
+                                                    </div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                        {doc.file_type?.toUpperCase() || 'BELGE'} • {formatDate(doc.created_at)}
+                                                    </div>
+                                                    {doc.related_type === 'work' && (
+                                                        <div style={{ fontSize: '10px', color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '6px', fontWeight: 600 }}>
+                                                            İş Raporu
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '14px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                                                <button 
+                                                    onClick={() => handleDocumentOpen(doc)}
+                                                    className="btn btn-sm btn-outline-primary"
+                                                    style={{ flex: 1, padding: '4px 8px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                                >
+                                                    <Eye size={12} /> Gör
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDocumentDelete(doc)}
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Edit Modal */}
@@ -537,6 +738,19 @@ export default function CustomerDetail() {
                     disableCustomerSelect={true}
                 />
             </Modal>
+
+            {/* Document Upload & Preview Modals */}
+            <DocumentUploadModal
+                isOpen={uploadModalOpen}
+                onClose={() => setUploadModalOpen(false)}
+                onUpload={handleUploadConfirm}
+            />
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={() => handleDocumentDelete(previewDoc.doc || previewDoc)}
+            />
         </div>
     )
 }
