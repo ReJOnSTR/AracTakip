@@ -98,6 +98,18 @@ export default function CustomSelect({
         setSearchTerm('')
     }
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            e.stopPropagation()
+            if (filteredOptions.length > 0) {
+                handleSelect(filteredOptions[0].value)
+            } else if (creatable && searchTerm && !hasExactMatch) {
+                handleSelect(searchTerm)
+            }
+        }
+    }
+
     const toggleOpen = () => {
         setIsOpen(!isOpen)
     }
@@ -119,18 +131,47 @@ export default function CustomSelect({
             <div className="input-wrapper" style={{ position: 'relative' }}>
                 {Icon && <Icon className="input-icon" size={18} />}
 
-                <button
-                    type="button"
+                <div
                     className={`custom-select-trigger form-input ${isOpen ? 'open' : ''} ${error ? 'input-error' : ''} ${Icon ? 'has-icon' : ''} ${disabled ? 'disabled' : ''}`}
                     onClick={!disabled ? toggleOpen : undefined}
-                    disabled={disabled}
-                    style={disabled ? { opacity: 0.6, cursor: 'not-allowed', background: 'var(--bg-tertiary)' } : {}}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: disabled ? 'not-allowed' : 'pointer',
+                        opacity: disabled ? 0.6 : 1,
+                        background: disabled ? 'var(--bg-tertiary)' : 'var(--bg-primary)',
+                        paddingLeft: Icon ? '40px' : '14px',
+                        minHeight: '44px',
+                        userSelect: 'none'
+                    }}
                 >
-                    <span className={hasValue ? 'value-text' : 'placeholder'} style={{ opacity: isFloating && !hasValue && !isOpen ? 0 : 1 }}>
-                        {displayLabel}
-                    </span>
-                    <ChevronDown size={16} className={`chevron ${isOpen ? 'rotate' : ''}`} />
-                </button>
+                    {isOpen && showSearch ? (
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            onClick={(e) => e.stopPropagation()}
+                            placeholder={selectedOption ? selectedOption.label : (value || placeholder)}
+                            style={{
+                                border: 'none',
+                                outline: 'none',
+                                background: 'transparent',
+                                width: '100%',
+                                color: 'var(--text-primary)',
+                                fontSize: '14px',
+                                padding: 0
+                            }}
+                        />
+                    ) : (
+                        <span className={hasValue ? 'value-text' : 'placeholder'} style={{ opacity: isFloating && !hasValue ? 0 : 1, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {displayLabel}
+                        </span>
+                    )}
+                    <ChevronDown size={16} className={`chevron ${isOpen ? 'rotate' : ''}`} style={{ flexShrink: 0, marginLeft: '8px' }} />
+                </div>
 
                 {isFloating && label && (
                     <label className="form-label">
@@ -140,29 +181,6 @@ export default function CustomSelect({
 
                 {isOpen && createPortal(
                     <div className={`custom-select-dropdown placement-${placement}`} style={{ ...dropdownStyle, maxHeight: '250px', overflowY: 'auto' }}>
-                        {showSearch && (
-                            <div className="custom-select-search-wrapper" style={{ padding: '8px', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, background: 'var(--bg-elevated)', zIndex: 1 }}>
-                                <input
-                                    ref={searchInputRef}
-                                    type="text"
-                                    placeholder="Ara..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px 12px',
-                                        borderRadius: '6px',
-                                        border: '1px solid var(--border-color)',
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '13px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                        )}
                         {!required && placeholder && !searchTerm && (
                             <div
                                 className={`custom-select-option ${!value ? 'selected' : ''}`}
