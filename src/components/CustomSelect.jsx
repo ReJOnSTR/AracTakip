@@ -117,7 +117,7 @@ export default function CustomSelect({
     // Floating label logic
     const isFloating = floatingLabel
     const displayLabel = selectedOption ? selectedOption.label : (value || (isFloating ? '' : placeholder))
-    const hasValue = !!(selectedOption || value)
+    const hasValue = !!(selectedOption || value || isOpen || searchTerm)
     const wrapperClass = isFloating ? `custom-select form-group floating-label-group ${hasValue ? 'has-value' : ''}` : `custom-select form-group`
 
     return (
