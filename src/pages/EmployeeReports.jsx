@@ -4,7 +4,7 @@ import { useCompany } from '../context/CompanyContext'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import EmployeeReportRenderer from '../components/EmployeeReportRenderer'
-import { FileText, Printer, Building2, Download, Eye, Calendar, Layers, Settings, List, Filter, FileDown, User } from 'lucide-react'
+import { FileText, Printer, Building2, Download, Eye, Calendar, Layers, Settings, List, Filter, FileDown, User, ChevronDown } from 'lucide-react'
 import { formatDate, formatCurrency } from '../utils/helpers'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import * as XLSX from 'xlsx'
@@ -46,6 +46,12 @@ export default function EmployeeReports() {
     const [dateRange, setDateRange] = useState({
         start: '',
         end: ''
+    })
+
+    const [sidebarCollapsed, setSidebarCollapsed] = useState({
+        reportType: false,
+        contentSelection: false,
+        dateFilter: false
     })
 
     // Handle printing
@@ -344,83 +350,131 @@ export default function EmployeeReports() {
                         {/* Configuration Sidebar */}
                         <div style={{ width: '280px', minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '0', flexShrink: 0, overflowY: 'auto', background: 'var(--bg-secondary)', borderRight: '1px solid var(--border-color)' }}>
                             
+                            {/* Report Type */}
                             <div style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Settings size={14} style={{ color: 'var(--text-muted)' }} />
-                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Türü</h4>
+                                <div 
+                                    onClick={() => setSidebarCollapsed(prev => ({ ...prev, reportType: !prev.reportType }))}
+                                    style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                        <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Türü</h4>
+                                    </div>
+                                    <ChevronDown 
+                                        size={14} 
+                                        style={{ 
+                                            color: 'var(--text-muted)', 
+                                            transform: sidebarCollapsed.reportType ? 'rotate(-90deg)' : 'none', 
+                                            transition: 'transform 0.2s ease' 
+                                        }} 
+                                    />
                                 </div>
-                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 10px', borderRadius: '8px', background: reportType === 'list' ? 'var(--accent-subtle)' : 'transparent', border: reportType === 'list' ? '1px solid var(--accent-primary)' : '1px solid transparent' }}>
-                                        <input type="radio" name="reportType" checked={reportType === 'list'} onChange={() => setReportType('list')} style={{ display: 'none' }} />
-                                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: reportType === 'list' ? '5px solid var(--accent-primary)' : '2px solid var(--border-light)', background: 'var(--bg-primary)' }} />
-                                        <span style={{ fontSize: '13px' }}>Personel Listesi (Özet)</span>
-                                    </label>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 10px', borderRadius: '8px', background: reportType === 'detail' ? 'var(--accent-subtle)' : 'transparent', border: reportType === 'detail' ? '1px solid var(--accent-primary)' : '1px solid transparent' }}>
-                                        <input type="radio" name="reportType" checked={reportType === 'detail'} onChange={() => setReportType('detail')} style={{ display: 'none' }} />
-                                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: reportType === 'detail' ? '5px solid var(--accent-primary)' : '2px solid var(--border-light)', background: 'var(--bg-primary)' }} />
-                                        <span style={{ fontSize: '13px' }}>Detaylı Personel Raporu</span>
-                                    </label>
-                                </div>
+                                {!sidebarCollapsed.reportType && (
+                                    <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 10px', borderRadius: '8px', background: reportType === 'list' ? 'var(--accent-subtle)' : 'transparent', border: reportType === 'list' ? '1px solid var(--accent-primary)' : '1px solid transparent' }}>
+                                            <input type="radio" name="reportType" checked={reportType === 'list'} onChange={() => setReportType('list')} style={{ display: 'none' }} />
+                                            <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: reportType === 'list' ? '5px solid var(--accent-primary)' : '2px solid var(--border-light)', background: 'var(--bg-primary)' }} />
+                                            <span style={{ fontSize: '13px' }}>Personel Listesi (Özet)</span>
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 10px', borderRadius: '8px', background: reportType === 'detail' ? 'var(--accent-subtle)' : 'transparent', border: reportType === 'detail' ? '1px solid var(--accent-primary)' : '1px solid transparent' }}>
+                                            <input type="radio" name="reportType" checked={reportType === 'detail'} onChange={() => setReportType('detail')} style={{ display: 'none' }} />
+                                            <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: reportType === 'detail' ? '5px solid var(--accent-primary)' : '2px solid var(--border-light)', background: 'var(--bg-primary)' }} />
+                                            <span style={{ fontSize: '13px' }}>Detaylı Personel Raporu</span>
+                                        </label>
+                                    </div>
+                                )}
                             </div>
 
+                            {/* Content Toggles */}
                             <div style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <List size={14} style={{ color: 'var(--text-muted)' }} />
-                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İçerik Seçimi</h4>
+                                <div 
+                                    onClick={() => setSidebarCollapsed(prev => ({ ...prev, contentSelection: !prev.contentSelection }))}
+                                    style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <List size={14} style={{ color: 'var(--text-muted)' }} />
+                                        <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İçerik Seçimi</h4>
+                                    </div>
+                                    <ChevronDown 
+                                        size={14} 
+                                        style={{ 
+                                            color: 'var(--text-muted)', 
+                                            transform: sidebarCollapsed.contentSelection ? 'rotate(-90deg)' : 'none', 
+                                            transition: 'transform 0.2s ease' 
+                                        }} 
+                                    />
                                 </div>
-                                <div style={{ padding: '12px 16px' }}>
-                                    {reportType === 'detail' ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            {[
-                                                { key: 'leaves', label: 'İzin Geçmişi' },
-                                                { key: 'salaries', label: 'Maaş / Hakedişler' },
-                                                { key: 'assignments', label: 'Zimmetler' },
-                                                { key: 'documents', label: 'Evraklar' }
-                                            ].map(item => (
-                                                <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
-                                                    <span style={{ fontSize: '13px' }}>{item.label}</span>
-                                                    <label className="toggle-switch" style={{ transform: 'scale(0.8)' }}>
-                                                        <input type="checkbox" checked={config[item.key]} onChange={e => setConfig({ ...config, [item.key]: e.target.checked })} />
-                                                        <span className="toggle-slider"></span>
+                                {!sidebarCollapsed.contentSelection && (
+                                    <div style={{ padding: '12px 16px' }}>
+                                        {reportType === 'detail' ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                {[
+                                                    { key: 'leaves', label: 'İzin Geçmişi' },
+                                                    { key: 'salaries', label: 'Maaş / Hakedişler' },
+                                                    { key: 'assignments', label: 'Zimmetler' },
+                                                    { key: 'documents', label: 'Evraklar' }
+                                                ].map(item => (
+                                                    <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
+                                                        <span style={{ fontSize: '13px' }}>{item.label}</span>
+                                                        <label className="toggle-switch" style={{ transform: 'scale(0.8)' }}>
+                                                            <input type="checkbox" checked={config[item.key]} onChange={e => setConfig({ ...config, [item.key]: e.target.checked })} />
+                                                            <span className="toggle-slider"></span>
+                                                        </label>
                                                     </label>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            {[
-                                                { key: 'name', label: 'Ad Soyad' },
-                                                { key: 'role', label: 'Görev' },
-                                                { key: 'phone', label: 'Telefon' },
-                                                { key: 'startDate', label: 'Başlangıç T.' },
-                                                { key: 'status', label: 'Durum' },
-                                                { key: 'salary', label: 'Maaş' }
-                                            ].map(item => (
-                                                <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
-                                                    <span style={{ fontSize: '13px' }}>{item.label}</span>
-                                                    <label className="toggle-switch" style={{ transform: 'scale(0.8)' }}>
-                                                        <input type="checkbox" checked={listConfig[item.key]} onChange={e => setListConfig({ ...listConfig, [item.key]: e.target.checked })} />
-                                                        <span className="toggle-slider"></span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                {[
+                                                    { key: 'name', label: 'Ad Soyad' },
+                                                    { key: 'role', label: 'Görev' },
+                                                    { key: 'phone', label: 'Telefon' },
+                                                    { key: 'startDate', label: 'Başlangıç T.' },
+                                                    { key: 'status', label: 'Durum' },
+                                                    { key: 'salary', label: 'Maaş' }
+                                                ].map(item => (
+                                                    <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
+                                                        <span style={{ fontSize: '13px' }}>{item.label}</span>
+                                                        <label className="toggle-switch" style={{ transform: 'scale(0.8)' }}>
+                                                            <input type="checkbox" checked={listConfig[item.key]} onChange={e => setListConfig({ ...listConfig, [item.key]: e.target.checked })} />
+                                                            <span className="toggle-slider"></span>
+                                                        </label>
                                                     </label>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
+                            {/* Date Filter */}
                             <div>
-                                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Filter size={14} style={{ color: 'var(--text-muted)' }} />
-                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tarih Filtresi</h4>
+                                <div 
+                                    onClick={() => setSidebarCollapsed(prev => ({ ...prev, dateFilter: !prev.dateFilter }))}
+                                    style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Filter size={14} style={{ color: 'var(--text-muted)' }} />
+                                        <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tarih Filtresi</h4>
+                                    </div>
+                                    <ChevronDown 
+                                        size={14} 
+                                        style={{ 
+                                            color: 'var(--text-muted)', 
+                                            transform: sidebarCollapsed.dateFilter ? 'rotate(-90deg)' : 'none', 
+                                            transition: 'transform 0.2s ease' 
+                                        }} 
+                                    />
                                 </div>
-                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <input type="date" className="form-input" value={dateRange.start} onChange={e => setDateRange({ ...dateRange, start: e.target.value })} style={{ fontSize: '12px' }} />
-                                    <input type="date" className="form-input" value={dateRange.end} onChange={e => setDateRange({ ...dateRange, end: e.target.value })} style={{ fontSize: '12px' }} />
-                                    {(dateRange.start || dateRange.end) && (
-                                        <button className="btn btn-secondary btn-sm" onClick={() => setDateRange({ start: '', end: '' })}>Temizle</button>
-                                    )}
-                                </div>
+                                {!sidebarCollapsed.dateFilter && (
+                                    <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <input type="date" className="form-input" value={dateRange.start} onChange={e => setDateRange({ ...dateRange, start: e.target.value })} style={{ fontSize: '12px' }} />
+                                        <input type="date" className="form-input" value={dateRange.end} onChange={e => setDateRange({ ...dateRange, end: e.target.value })} style={{ fontSize: '12px' }} />
+                                        {(dateRange.start || dateRange.end) && (
+                                            <button className="btn btn-secondary btn-sm" onClick={() => setDateRange({ start: '', end: '' })}>Temizle</button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
