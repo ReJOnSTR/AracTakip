@@ -10,7 +10,7 @@ import {
     Search, MapPin, Navigation, RefreshCw, 
     Calendar, List, CheckCircle2, XCircle, Info, Car, Loader2, Clock,
     Globe, Map, Maximize2, Plus, Minus, Gauge, Power, Compass, Minimize2, User,
-    Activity, FileText, Layers, ExternalLink, Play, Pause
+    Activity, FileText, Layers, ExternalLink, Play, Pause, Square, ChevronDown, X
 } from 'lucide-react'
 
 function formatArventoDate(dateStr) {
@@ -22,6 +22,14 @@ function formatArventoDate(dateStr) {
     const min = dateStr.substring(10, 12)
     const ss = dateStr.substring(12, 14)
     return `${dd}.${mm}.${yyyy} ${hh}:${min}:${ss}`
+}
+
+function formatDurationCompact(durationMs) {
+    const mins = Math.round(durationMs / 60000)
+    if (mins < 60) return `${mins} dk`
+    const hrs = Math.floor(mins / 60)
+    const remainingMins = mins % 60
+    return remainingMins > 0 ? `${hrs} sa ${remainingMins} dk` : `${hrs} sa`
 }
 
 function parseArventoDate(dateStr) {
@@ -107,8 +115,8 @@ function findIntersections(historyPointsMap, maxDistance = 100) {
     return uniqueIntersections
 }
 
-function analyzeAreaVisits(points, center, radius) {
-    if (!points || points.length === 0 || !center) return []
+function analyzeAreaVisits(points, bounds) {
+    if (!points || points.length === 0 || !bounds || bounds.length < 2) return []
     
     // Sort points chronologically
     const sorted = [...points].sort((a, b) => new Date(a.gps_date).getTime() - new Date(b.gps_date).getTime())
@@ -117,9 +125,13 @@ function analyzeAreaVisits(points, center, radius) {
     let currentVisit = null
     const gapThresholdMs = 30 * 60 * 1000 // 30 minutes gap
     
+    const [[latMin, lngMin], [latMax, lngMax]] = [
+        [Math.min(bounds[0][0], bounds[1][0]), Math.min(bounds[0][1], bounds[1][1])],
+        [Math.max(bounds[0][0], bounds[1][0]), Math.max(bounds[0][1], bounds[1][1])]
+    ]
+    
     sorted.forEach((pt) => {
-        const dist = getDistanceMeters(pt.lat, pt.lng, center.lat, center.lng)
-        const isInside = dist <= radius
+        const isInside = pt.lat >= latMin && pt.lat <= latMax && pt.lng >= lngMin && pt.lng <= lngMax
         const timeMs = new Date(pt.gps_date).getTime()
         
         if (isInside) {
@@ -312,13 +324,19 @@ export default function ArventoTracking() {
     const animationTimerRef = useRef(null)
 
     // Area Query / Geofencing states
-    const [areaCenter, setAreaCenter] = useState(null)
-    const [areaRadius, setAreaRadius] = useState(200) // in meters
+    const [isDrawingAreaMode, setIsDrawingAreaMode] = useState(false)
+    const [areaBounds, setAreaBounds] = useState(null)
+    const [showAreaQueryModal, setShowAreaQueryModal] = useState(false)
+    const [areaQueryModalPosition, setAreaQueryModalPosition] = useState({ x: 20, y: 20 })
+    const [areaQueryModalMinimized, setAreaQueryModalMinimized] = useState(false)
+    const [areaStartDate, setAreaStartDate] = useState(new Date().toISOString().split('T')[0])
+    const [areaEndDate, setAreaEndDate] = useState(new Date().toISOString().split('T')[0])
     const [areaQueryResults, setAreaQueryResults] = useState([])
     const [areaQueryLoading, setAreaQueryLoading] = useState(false)
     const [areaProgress, setAreaProgress] = useState({ current: 0, total: 0, plate: '' })
     const [selectedAreaVisit, setSelectedAreaVisit] = useState(null)
     const [areaSearchQuery, setAreaSearchQuery] = useState('')
+    const [expandedAreaResult, setExpandedAreaResult] = useState(null)
 
     const mapRef = useRef(null)
     const mapInstance = useRef(null)
@@ -328,7 +346,48 @@ export default function ArventoTracking() {
 
     const [isMapFullscreen, setIsMapFullscreen] = useState(false)
     const [mapReady, setMapReady] = useState(false)
-    const isMapTab = activeTab === 'live' || activeTab === 'history' || activeTab === 'area'
+    const isMapTab = activeTab === 'live' || activeTab === 'history'
+
+    // Dragging helper for floating Area analysis window
+    const draggingRef = useRef(false)
+    const dragStartOffset = useRef({ x: 0, y: 0 })
+
+    const handleDragStart = (e) => {
+        if (e.button !== 0) return // left click only
+        e.preventDefault()
+        draggingRef.current = true
+        dragStartOffset.current = {
+            x: e.clientX - areaQueryModalPosition.x,
+            y: e.clientY - areaQueryModalPosition.y
+        }
+
+        const handleDragMove = (moveEvent) => {
+            if (!draggingRef.current) return
+            setAreaQueryModalPosition({
+                x: moveEvent.clientX - dragStartOffset.current.x,
+                y: moveEvent.clientY - dragStartOffset.current.y
+            })
+        }
+
+        const handleDragEnd = () => {
+            draggingRef.current = false
+            window.removeEventListener('mousemove', handleDragMove)
+            window.removeEventListener('mouseup', handleDragEnd)
+        }
+
+        window.addEventListener('mousemove', handleDragMove)
+        window.addEventListener('mouseup', handleDragEnd)
+    }
+
+    const filteredAreaResults = useMemo(() => {
+        const query = areaSearchQuery.toLowerCase().trim()
+        return areaQueryResults.filter(r => {
+            if (!query) return true
+            return r.plate.toLowerCase().includes(query) ||
+                   (r.brand && r.brand.toLowerCase().includes(query)) ||
+                   (r.model && r.model.toLowerCase().includes(query))
+        })
+    }, [areaQueryResults, areaSearchQuery])
 
     // Calculate route distance in km for history playback
     const historyDistances = useMemo(() => {
@@ -1252,7 +1311,7 @@ export default function ArventoTracking() {
     }, [leafletLoaded, isMapTab])
 
     const handleAreaQuery = async () => {
-        if (!areaCenter) return
+        if (!areaBounds || areaBounds.length < 2) return
         setAreaQueryLoading(true)
         setAreaQueryResults([])
         setSelectedAreaVisit(null)
@@ -1266,8 +1325,8 @@ export default function ArventoTracking() {
                 return
             }
             
-            const startDate = new Date(`${historyStartDate}T00:00:00`).toISOString()
-            const endDate = new Date(`${historyEndDate}T23:59:59`).toISOString()
+            const startDate = new Date(`${areaStartDate}T00:00:00`).toISOString()
+            const endDate = new Date(`${areaEndDate}T23:59:59`).toISOString()
             
             const results = []
             
@@ -1282,7 +1341,7 @@ export default function ArventoTracking() {
                 })
                 
                 if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-                    const visits = analyzeAreaVisits(res.data, areaCenter, areaRadius)
+                    const visits = analyzeAreaVisits(res.data, areaBounds)
                     if (visits.length > 0) {
                         const localVeh = localVehicles.find(lv => 
                             lv.plate.replace(/[\s-]+/g, '').toUpperCase() === plate.replace(/[\s-]+/g, '').toUpperCase()
@@ -1305,112 +1364,154 @@ export default function ArventoTracking() {
         }
     }
 
-    // Map Click Listener for Area Selection
+    // Leaflet Event Listeners for click-and-drag Rectangle Drawing
     useEffect(() => {
         if (!leafletLoaded || !mapInstance.current || !mapReady) return
+        const map = mapInstance.current
+        if (!isDrawingAreaMode) return
 
-        const handleMapClick = (e) => {
-            if (activeTab === 'area') {
-                const { lat, lng } = e.latlng
-                setAreaCenter({ lat, lng })
-                mapInstance.current.panTo([lat, lng])
-            }
+        // Set container cursor to crosshair
+        const container = map.getContainer()
+        container.style.cursor = 'crosshair'
+
+        let startLatLng = null
+        let tempRect = null
+
+        const onMouseDown = (e) => {
+            // Only start with left click
+            if (e.originalEvent && e.originalEvent.button !== 0) return
+            
+            startLatLng = e.latlng
+            map.dragging.disable()
+            map.doubleClickZoom.disable()
+            
+            const L = window.L
+            tempRect = L.rectangle([startLatLng, startLatLng], {
+                color: 'var(--accent-primary)',
+                fillColor: 'var(--accent-primary)',
+                fillOpacity: 0.15,
+                weight: 2,
+                dashArray: '5, 5'
+            }).addTo(map)
         }
 
-        mapInstance.current.on('click', handleMapClick)
+        const onMouseMove = (e) => {
+            if (!startLatLng || !tempRect) return
+            tempRect.setBounds([startLatLng, e.latlng])
+        }
+
+        const onMouseUp = (e) => {
+            if (!startLatLng) return
+            const endLatLng = e.latlng
+            
+            setAreaBounds([
+                [startLatLng.lat, startLatLng.lng],
+                [endLatLng.lat, endLatLng.lng]
+            ])
+
+            if (tempRect) {
+                tempRect.remove()
+            }
+
+            map.dragging.enable()
+            map.doubleClickZoom.enable()
+
+            setIsDrawingAreaMode(false)
+            setShowAreaQueryModal(true)
+            setAreaQueryModalMinimized(false)
+            setExpandedAreaResult(null)
+            
+            startLatLng = null
+            tempRect = null
+        }
+
+        map.on('mousedown', onMouseDown)
+        map.on('mousemove', onMouseMove)
+        map.on('mouseup', onMouseUp)
 
         return () => {
-            if (mapInstance.current) {
-                mapInstance.current.off('click', handleMapClick)
+            container.style.cursor = ''
+            map.off('mousedown', onMouseDown)
+            map.off('mousemove', onMouseMove)
+            map.off('mouseup', onMouseUp)
+            if (tempRect) {
+                tempRect.remove()
             }
+            map.dragging.enable()
+            map.doubleClickZoom.enable()
         }
-    }, [mapReady, activeTab, leafletLoaded])
+    }, [leafletLoaded, mapReady, isDrawingAreaMode])
 
-    // Draw Area Query Circle, Marker and Highlights on Map
+    // Draw Area Bounds Rectangle, selected visit path, and pins on Map
     useEffect(() => {
         if (!leafletLoaded || !mapInstance.current || !mapReady) return
 
         const areaLayers = []
+        const L = window.L
 
-        if (activeTab === 'area') {
-            const L = window.L
+        // 1. Draw final area bounds rectangle
+        if (areaBounds && areaBounds.length >= 2) {
+            const rect = L.rectangle(areaBounds, {
+                color: 'var(--primary)',
+                fillColor: 'var(--primary)',
+                fillOpacity: 0.08,
+                weight: 2,
+                dashArray: '6, 6'
+            }).addTo(mapInstance.current)
+            areaLayers.push(rect)
+        }
 
-            // 1. Draw queried zone circle
-            if (areaCenter && areaCenter.lat && areaCenter.lng) {
-                const circle = L.circle([areaCenter.lat, areaCenter.lng], {
-                    radius: areaRadius,
-                    color: 'var(--primary)',
-                    fillColor: 'var(--primary)',
-                    fillOpacity: 0.1,
-                    weight: 2,
-                    dashArray: '6, 6'
-                }).addTo(mapInstance.current)
-                areaLayers.push(circle)
+        // 2. Draw highlighted path of selected visit
+        if (selectedAreaVisit && selectedAreaVisit.points && selectedAreaVisit.points.length > 0) {
+            const latlngs = selectedAreaVisit.points.map(pt => [pt.lat, pt.lng])
 
-                // Draw central pulsar dot marker
-                const pulsar = L.marker([areaCenter.lat, areaCenter.lng], {
-                    icon: L.divIcon({
-                        className: 'area-center-pulsar',
-                        html: '<div class="pulsar-dot"></div>',
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
-                    })
-                }).addTo(mapInstance.current)
-                areaLayers.push(pulsar)
-            }
+            // Draw main path line
+            const polyline = L.polyline(latlngs, {
+                color: 'var(--accent-primary)',
+                weight: 4.5,
+                opacity: 0.95,
+                lineJoin: 'round'
+            }).addTo(mapInstance.current)
+            areaLayers.push(polyline)
 
-            // 2. Draw highlighted path of selected visit
-            if (selectedAreaVisit && selectedAreaVisit.points && selectedAreaVisit.points.length > 0) {
-                const latlngs = selectedAreaVisit.points.map(pt => [pt.lat, pt.lng])
+            // Add entry marker
+            const entryPt = selectedAreaVisit.points[0]
+            const entryMarker = L.marker([entryPt.lat, entryPt.lng], {
+                icon: L.divIcon({
+                    className: 'area-endpoint-marker entry',
+                    html: `<div class="endpoint-dot entry"></div><div class="endpoint-label">Giriş: ${new Date(entryPt.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                })
+            }).addTo(mapInstance.current)
+            areaLayers.push(entryMarker)
 
-                // Draw main path line
-                const polyline = L.polyline(latlngs, {
-                    color: 'var(--accent-primary)',
-                    weight: 4.5,
-                    opacity: 0.95,
-                    lineJoin: 'round'
-                }).addTo(mapInstance.current)
-                areaLayers.push(polyline)
-
-                // Add entry marker
-                const entryPt = selectedAreaVisit.points[0]
-                const entryMarker = L.marker([entryPt.lat, entryPt.lng], {
-                    icon: L.divIcon({
-                        className: 'area-endpoint-marker entry',
-                        html: `<div class="endpoint-dot entry"></div><div class="endpoint-label">Giriş: ${new Date(entryPt.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`,
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6]
-                    })
-                }).addTo(mapInstance.current)
-                areaLayers.push(entryMarker)
-
-                // Add exit marker
-                const exitPt = selectedAreaVisit.points[selectedAreaVisit.points.length - 1]
-                const exitMarker = L.marker([exitPt.lat, exitPt.lng], {
-                    icon: L.divIcon({
-                        className: 'area-endpoint-marker exit',
-                        html: `<div class="endpoint-dot exit"></div><div class="endpoint-label">Çıkış: ${new Date(exitPt.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`,
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6]
-                    })
-                }).addTo(mapInstance.current)
-                areaLayers.push(exitMarker)
-            }
+            // Add exit marker
+            const exitPt = selectedAreaVisit.points[selectedAreaVisit.points.length - 1]
+            const exitMarker = L.marker([exitPt.lat, exitPt.lng], {
+                icon: L.divIcon({
+                    className: 'area-endpoint-marker exit',
+                    html: `<div class="endpoint-dot exit"></div><div class="endpoint-label">Çıkış: ${new Date(exitPt.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                })
+            }).addTo(mapInstance.current)
+            areaLayers.push(exitMarker)
         }
 
         return () => {
             areaLayers.forEach(layer => layer.remove())
         }
-    }, [activeTab, areaCenter, areaRadius, selectedAreaVisit, leafletLoaded, mapReady])
+    }, [areaBounds, selectedAreaVisit, leafletLoaded, mapReady])
 
     // Center map on selectedAreaVisit path
     useEffect(() => {
-        if (!leafletLoaded || !mapInstance.current || !mapReady || activeTab !== 'area') return
+        if (!leafletLoaded || !mapInstance.current || !mapReady) return
         if (selectedAreaVisit && selectedAreaVisit.points && selectedAreaVisit.points.length > 0) {
             const latlngs = selectedAreaVisit.points.map(pt => [pt.lat, pt.lng])
             mapInstance.current.fitBounds(latlngs, { padding: [50, 50], maxZoom: 16 })
         }
-    }, [selectedAreaVisit, leafletLoaded, mapReady, activeTab])
+    }, [selectedAreaVisit, leafletLoaded, mapReady])
 
     // Manage Map Base Layers (Google Maps with dynamic overlays)
     useEffect(() => {
@@ -2270,9 +2371,9 @@ export default function ArventoTracking() {
                         className="btn btn-secondary btn-icon" 
                         onClick={handleRefresh} 
                         title="Yenile"
-                        disabled={activeTab === 'history' ? historyLoading : activeTab === 'area' ? areaQueryLoading : loading}
+                        disabled={activeTab === 'history' ? historyLoading : loading}
                     >
-                        <RefreshCw size={16} className={(activeTab === 'history' ? historyLoading : activeTab === 'area' ? areaQueryLoading : loading) ? 'spin' : ''} />
+                        <RefreshCw size={16} className={(activeTab === 'history' ? historyLoading : loading) ? 'spin' : ''} />
                     </button>
                 </div>
             </div>
@@ -2303,23 +2404,13 @@ export default function ArventoTracking() {
                     <Clock size={15} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                     Geçmiş Rota & Kesişim
                 </button>
-                <button 
-                    className={`vehicle-tab ${activeTab === 'area' ? 'active' : ''}`}
-                    onClick={() => {
-                        setActiveTab('area')
-                        setSelectedVehicle(null)
-                    }}
-                >
-                    <Compass size={15} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-                    Bölge Analizi
-                </button>
             </div>
 
             {/* Tab Contents */}
             <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex' }}>
                 
                 {/* 1. Canlı Takip & Geçmiş Rota Haritalı Bölüm */}
-                {(activeTab === 'live' || activeTab === 'history' || activeTab === 'area') && (
+                {(activeTab === 'live' || activeTab === 'history') && (
                     <div className="tracking-main-layout">
                         
                         {/* Canlı Takip Sidebar'ı */}
@@ -2692,255 +2783,6 @@ export default function ArventoTracking() {
                             </div>
                         )}
 
-                        {/* 3. Bölge Analizi Sidebar'ı */}
-                        {activeTab === 'area' && (
-                            <div className="tracking-sidebar tracking-history-sidebar">
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Bölge Analizi (Geofencing)</h3>
-                                    <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                        Haritada bir noktaya tıklayıp, tarih aralığı ve yarıçap belirleyerek o bölgeye giren araçları sorgulayın.
-                                    </p>
-                                </div>
-
-                                {/* Bilgilendirme Kutusu veya Seçilen Nokta */}
-                                {!areaCenter ? (
-                                    <div className="area-query-info-box" style={{ borderStyle: 'solid', color: 'var(--accent-primary)', borderColor: 'var(--accent-primary-glass)' }}>
-                                        📍 <strong>Nokta Seçin:</strong> Sorgulamak istediğiniz bölgenin merkezini belirlemek için harita üzerinde herhangi bir noktaya tıklayın.
-                                    </div>
-                                ) : (
-                                    <div className="area-query-info-box" style={{ borderStyle: 'solid', borderColor: 'var(--border-color)', background: 'var(--bg-tertiary)' }}>
-                                        ✅ <strong>Seçilen Nokta:</strong>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
-                                            <span>Enlem: {areaCenter.lat.toFixed(5)}</span>
-                                            <span>Boylam: {areaCenter.lng.toFixed(5)}</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Yarıçap Seçimi (Radius) */}
-                                <div className="area-radius-selector">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <label className="date-input-label" style={{ margin: 0 }}>Bölge Çapı (Yarıçap)</label>
-                                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--primary)' }}>{areaRadius} metre</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <input 
-                                            type="range"
-                                            min="50"
-                                            max="1000"
-                                            step="50"
-                                            value={areaRadius}
-                                            onChange={(e) => setAreaRadius(Number(e.target.value))}
-                                            className="timeline-range-slider"
-                                            style={{ flex: 1 }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Tarih Aralığı Seçici */}
-                                <div className="history-date-picker-group">
-                                    <div className="date-input-wrapper">
-                                        <label className="date-input-label">Başlangıç Tarihi</label>
-                                        <div className="date-input-container">
-                                            <Calendar size={13} className="date-icon" />
-                                            <input 
-                                                type="date" 
-                                                className="form-input history-date-input" 
-                                                value={historyStartDate}
-                                                onChange={(e) => {
-                                                    setHistoryStartDate(e.target.value)
-                                                    if (new Date(e.target.value) > new Date(historyEndDate)) {
-                                                        setHistoryEndDate(e.target.value)
-                                                    }
-                                                }}
-                                                max={new Date().toISOString().split('T')[0]}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="date-input-wrapper">
-                                        <label className="date-input-label">Bitiş Tarihi</label>
-                                        <div className="date-input-container">
-                                            <Calendar size={13} className="date-icon" />
-                                            <input 
-                                                type="date" 
-                                                className="form-input history-date-input" 
-                                                value={historyEndDate}
-                                                onChange={(e) => setHistoryEndDate(e.target.value)}
-                                                min={historyStartDate}
-                                                max={new Date().toISOString().split('T')[0]}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Arama/Query Butonu */}
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={handleAreaQuery}
-                                    disabled={!areaCenter || areaQueryLoading}
-                                    style={{
-                                        height: '38px',
-                                        fontSize: '13px',
-                                        fontWeight: 700,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        width: '100%',
-                                        background: 'var(--accent-gradient)',
-                                        color: '#0f0f11',
-                                        border: 'none',
-                                        cursor: areaCenter ? 'pointer' : 'not-allowed',
-                                        opacity: areaCenter ? 1 : 0.6
-                                    }}
-                                >
-                                    {areaQueryLoading ? (
-                                        <>
-                                            <Loader2 className="spinner" size={16} />
-                                            <span>Sorgulanıyor ({areaProgress.current}/{areaProgress.total})</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Compass size={16} />
-                                            <span>{areaCenter ? 'Bölgeyi Sorgula' : 'Haritadan Nokta Seçin'}</span>
-                                        </>
-                                    )}
-                                </button>
-
-                                {/* Arama İlerleme Çubuğu */}
-                                {areaQueryLoading && areaProgress.total > 0 && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '-4px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)' }}>
-                                            <span>Sorgulama ilerlemesi...</span>
-                                            <span>%{Math.round((areaProgress.current / areaProgress.total) * 100)}</span>
-                                        </div>
-                                        <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${(areaProgress.current / areaProgress.total) * 100}%`, background: 'var(--primary)', transition: 'width 0.2s ease' }}></div>
-                                        </div>
-                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                                            Plaka: {areaProgress.plate}
-                                        </span>
-                                    </div>
-                                )}
-
-                                <span style={{ borderBottom: '1px solid var(--border-color)', margin: '4px 0' }}></span>
-
-                                {/* Sorgu Sonuçları Alanı */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minHeight: 0 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                                            Bölgeye Giriş Yapan Araçlar ({areaQueryResults.length})
-                                        </span>
-                                    </div>
-
-                                    {/* Arama Kutusu */}
-                                    {areaQueryResults.length > 0 && (
-                                        <div className="history-search-container" style={{ marginBottom: '4px' }}>
-                                            <Search size={14} className="search-icon" />
-                                            <input 
-                                                type="text" 
-                                                className="form-input history-search-input" 
-                                                placeholder="Sonuçlarda plaka ara..." 
-                                                value={areaSearchQuery}
-                                                onChange={(e) => setAreaSearchQuery(e.target.value)}
-                                            />
-                                            {areaSearchQuery && (
-                                                <button className="search-clear-btn" onClick={() => setAreaSearchQuery('')}>✕</button>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="history-vehicles-list-wrapper">
-                                        {areaQueryLoading && areaQueryResults.length === 0 ? (
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', gap: '12px' }}>
-                                                <Loader2 className="spinner" size={28} style={{ color: 'var(--primary)' }} />
-                                                <div style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-primary)', display: 'block' }}>Bölge Geçmişi Sorgulanıyor</span>
-                                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Araçların geçmiş rotaları Arvento servisinden alınıyor, lütfen bekleyin...</span>
-                                                </div>
-                                            </div>
-                                        ) : areaQueryResults.length === 0 ? (
-                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '30px 0', lineHeight: 1.5 }}>
-                                                {areaCenter ? 'Tarih aralığını belirleyin ve sorgulamayı başlatın.' : 'Sorgulanacak bölgeyi seçmek için harita üzerinde herhangi bir noktaya tıklayın.'}
-                                            </div>
-                                        ) : (() => {
-                                            const query = areaSearchQuery.toLowerCase().trim()
-                                            const filtered = areaQueryResults.filter(r => {
-                                                if (!query) return true
-                                                return r.plate.toLowerCase().includes(query) ||
-                                                       (r.brand && r.brand.toLowerCase().includes(query)) ||
-                                                       (r.model && r.model.toLowerCase().includes(query))
-                                            })
-
-                                            if (filtered.length === 0) {
-                                                return (
-                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
-                                                        Arama kelimesiyle eşleşen araç girişi bulunamadı.
-                                                    </div>
-                                                )
-                                            }
-
-                                            return filtered.map((res, idx) => {
-                                                return (
-                                                    <div 
-                                                        key={`${res.plate}-${idx}`}
-                                                        className="area-result-card"
-                                                    >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                                <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)' }}>{res.plate}</span>
-                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{res.brand} {res.model}</span>
-                                                            </div>
-                                                            <span className="history-vehicle-status success" style={{ fontSize: '10px', padding: '2px 8px' }}>
-                                                                {res.visits.length} Giriş
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Ziyaret Listesi */}
-                                                        <div className="area-visits-list">
-                                                            {res.visits.map((visit, vIdx) => {
-                                                                const isActive = selectedAreaVisit === visit
-                                                                const isParked = (visit.maxSpeed || 0) < 5
-                                                                
-                                                                return (
-                                                                    <div 
-                                                                        key={`${res.plate}-visit-${vIdx}`}
-                                                                        className={`area-visit-row ${isActive ? 'active' : ''}`}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation()
-                                                                            setSelectedAreaVisit(isActive ? null : visit)
-                                                                        }}
-                                                                        style={{ cursor: 'pointer' }}
-                                                                    >
-                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                                                            <span style={{ color: 'var(--text-primary)' }}>
-                                                                                🕒 {new Date(visit.entryTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(visit.exitTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                                                            </span>
-                                                                            <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', marginLeft: '14px' }}>
-                                                                                Tarih: {new Date(visit.entryTime).toLocaleDateString([], {day: '2-digit', month: '2-digit'})}
-                                                                            </span>
-                                                                        </div>
-                                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                                                                            <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
-                                                                                {visit.duration} dk
-                                                                            </span>
-                                                                            <span style={{ fontSize: '9px', color: isParked ? 'var(--warning)' : 'var(--text-secondary)' }}>
-                                                                                {isParked ? '⏱️ Duraklama' : `⚡ Max: ${visit.maxSpeed} km/s`}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })
-                                        })()}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Map Container and Detail Card overlay */}
                         <div className={`tracking-map-wrapper ${isMapFullscreen ? 'fullscreen' : ''} ${
                             activeTab === 'live' && selectedVehicle ? 'drawer-open' : ''
@@ -3012,6 +2854,22 @@ export default function ArventoTracking() {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Area Analysis Rectangle Draw Tool Toggle */}
+                                <button 
+                                    onClick={() => {
+                                        setIsDrawingAreaMode(prev => !prev)
+                                        if (!isDrawingAreaMode) {
+                                            setAreaBounds(null)
+                                            setSelectedAreaVisit(null)
+                                            setAreaQueryResults([])
+                                        }
+                                    }}
+                                    title={isDrawingAreaMode ? 'Çizmeyi İptal Et' : 'Bölge Analizi (Kare Çiz)'}
+                                    className={`map-control-btn ${isDrawingAreaMode ? 'active' : ''}`}
+                                >
+                                    <Square size={16} />
+                                </button>
 
                                 {/* Fullscreen Toggle Button */}
                                 <button 
@@ -3455,6 +3313,202 @@ export default function ArventoTracking() {
                                     </div>
                                 );
                             })()}
+
+                            {/* Floating draggable/minimizable Area Analysis modal */}
+                            {showAreaQueryModal && (
+                                <div 
+                                    className="floating-area-modal" 
+                                    style={{
+                                        transform: `translate(${areaQueryModalPosition.x}px, ${areaQueryModalPosition.y}px)`
+                                    }}
+                                >
+                                    {/* Modal Header */}
+                                    <div 
+                                        className="floating-area-modal-header"
+                                        onMouseDown={handleDragStart}
+                                    >
+                                        <div className="floating-area-modal-title">
+                                            <Square size={13} style={{ fill: 'none', stroke: 'currentColor', strokeWidth: 2 }} />
+                                            <span>Bölge Analizi Sonuçları</span>
+                                        </div>
+                                        <div className="floating-area-modal-actions" onMouseDown={e => e.stopPropagation()}>
+                                            <button 
+                                                onClick={() => setAreaQueryModalMinimized(prev => !prev)}
+                                                className="modal-action-btn"
+                                                title={areaQueryModalMinimized ? "Genişlet" : "Küçült"}
+                                            >
+                                                {areaQueryModalMinimized ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    setShowAreaQueryModal(false);
+                                                    setAreaBounds(null);
+                                                    setSelectedAreaVisit(null);
+                                                    setAreaQueryResults([]);
+                                                }}
+                                                className="modal-action-btn close"
+                                                title="Kapat"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Modal Body */}
+                                    {!areaQueryModalMinimized && (
+                                        <div className="floating-area-modal-body">
+                                            {/* Date Pickers */}
+                                            <div className="floating-area-modal-section">
+                                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <label className="field-label-compact">Başlangıç</label>
+                                                        <input 
+                                                            type="date"
+                                                            className="date-input-compact"
+                                                            value={areaStartDate}
+                                                            onChange={(e) => {
+                                                                setAreaStartDate(e.target.value)
+                                                                if (new Date(e.target.value) > new Date(areaEndDate)) {
+                                                                    setAreaEndDate(e.target.value)
+                                                                }
+                                                            }}
+                                                            max={new Date().toISOString().split('T')[0]}
+                                                        />
+                                                    </div>
+                                                    <div style={{ flex: 1 }}>
+                                                        <label className="field-label-compact">Bitiş</label>
+                                                        <input 
+                                                            type="date"
+                                                            className="date-input-compact"
+                                                            value={areaEndDate}
+                                                            onChange={(e) => setAreaEndDate(e.target.value)}
+                                                            min={areaStartDate}
+                                                            max={new Date().toISOString().split('T')[0]}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={handleAreaQuery}
+                                                    disabled={areaQueryLoading}
+                                                    className="btn-query-compact"
+                                                >
+                                                    {areaQueryLoading ? (
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                                            <Loader2 size={14} className="spin" />
+                                                            <span>Sorgulanıyor...</span>
+                                                        </div>
+                                                    ) : 'Bölgeyi Sorgula'}
+                                                </button>
+                                            </div>
+
+                                            {/* Progress Bar */}
+                                            {areaQueryLoading && (
+                                                <div className="area-query-progress">
+                                                    <div className="progress-bar-container">
+                                                        <div 
+                                                            className="progress-bar-fill" 
+                                                            style={{ width: `${(areaProgress.current / (areaProgress.total || 1)) * 100}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <div className="progress-text-compact">
+                                                        <span>Sorgulanan plaka: {areaProgress.plate}</span>
+                                                        <span>{areaProgress.current}/{areaProgress.total}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Results Listing */}
+                                            {!areaQueryLoading && (
+                                                <div className="floating-area-results-wrapper">
+                                                    {areaQueryResults.length > 0 && (
+                                                        <div className="search-box-compact">
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Plaka veya marka ara..."
+                                                                value={areaSearchQuery}
+                                                                onChange={(e) => setAreaSearchQuery(e.target.value)}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="floating-area-results-list">
+                                                        {areaQueryResults.length === 0 ? (
+                                                            <div className="no-results-compact">
+                                                                Tarih aralığı seçip sorgulamayı başlatın.
+                                                            </div>
+                                                        ) : filteredAreaResults.length === 0 ? (
+                                                            <div className="no-results-compact">
+                                                                Eşleşen sonuç bulunamadı.
+                                                            </div>
+                                                        ) : (
+                                                            filteredAreaResults.map((result, idx) => {
+                                                                const isExpanded = expandedAreaResult === result.plate
+                                                                return (
+                                                                    <div 
+                                                                        key={idx} 
+                                                                        className={`area-result-card-compact ${isExpanded ? 'expanded' : ''}`}
+                                                                    >
+                                                                        <div 
+                                                                            className="area-result-card-header"
+                                                                            onClick={() => setExpandedAreaResult(isExpanded ? null : result.plate)}
+                                                                        >
+                                                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                                <span className="plate-label">{result.plate}</span>
+                                                                                <span className="brand-label">{result.brand} {result.model}</span>
+                                                                            </div>
+                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                <span className="visits-count-badge">{result.visits.length} Giriş</span>
+                                                                                <ChevronDown size={14} className={`chevron-icon ${isExpanded ? 'rotated' : ''}`} />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {isExpanded && (
+                                                                            <div className="area-visits-list-compact">
+                                                                                {result.visits.map((visit, vIdx) => {
+                                                                                    const isSelected = selectedAreaVisit === visit
+                                                                                    const entryDate = new Date(visit.entryTime)
+                                                                                    const exitDate = new Date(visit.exitTime)
+                                                                                    const isParked = (visit.maxSpeed || 0) < 5
+                                                                                    
+                                                                                    return (
+                                                                                        <div 
+                                                                                            key={vIdx}
+                                                                                            className={`area-visit-row-compact ${isSelected ? 'active' : ''}`}
+                                                                                            onClick={() => setSelectedAreaVisit(isSelected ? null : visit)}
+                                                                                        >
+                                                                                            <div className="visit-times">
+                                                                                                <div className="time-row entry">
+                                                                                                    <span className="dot entry"></span>
+                                                                                                    <span>Giriş: {entryDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'})} {entryDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                                                                                </div>
+                                                                                                <div className="time-row exit">
+                                                                                                    <span className="dot exit"></span>
+                                                                                                    <span>Çıkış: {exitDate.toLocaleDateString([], {day: '2-digit', month: '2-digit'})} {exitDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div className="visit-metrics">
+                                                                                                <span className="metric-tag dur">⌛ {formatDurationCompact(visit.durationMs)}</span>
+                                                                                                <span className="metric-tag speed">
+                                                                                                    {isParked ? '⏱️ Hareketsiz/Park' : `⚡ En Fazla ${visit.maxSpeed.toFixed(0)} km/h`}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
