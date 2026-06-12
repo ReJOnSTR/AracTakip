@@ -10,7 +10,7 @@ import {
     Search, MapPin, Navigation, RefreshCw, 
     Calendar, List, CheckCircle2, XCircle, Info, Car, Loader2, Clock,
     Globe, Map, Maximize2, Plus, Minus, Gauge, Power, Compass, Minimize2, User,
-    Activity, FileText, Layers, ExternalLink
+    Activity, FileText, Layers, ExternalLink, Play, Pause
 } from 'lucide-react'
 
 function formatArventoDate(dateStr) {
@@ -105,6 +105,86 @@ function findIntersections(historyPointsMap, maxDistance = 100) {
     })
     
     return uniqueIntersections
+}
+
+function analyzeAreaVisits(points, center, radius) {
+    if (!points || points.length === 0 || !center) return []
+    
+    // Sort points chronologically
+    const sorted = [...points].sort((a, b) => new Date(a.gps_date).getTime() - new Date(b.gps_date).getTime())
+    
+    const visits = []
+    let currentVisit = null
+    const gapThresholdMs = 30 * 60 * 1000 // 30 minutes gap
+    
+    sorted.forEach((pt) => {
+        const dist = getDistanceMeters(pt.lat, pt.lng, center.lat, center.lng)
+        const isInside = dist <= radius
+        const timeMs = new Date(pt.gps_date).getTime()
+        
+        if (isInside) {
+            if (!currentVisit) {
+                currentVisit = {
+                    points: [pt],
+                    maxSpeed: pt.speed || 0,
+                    totalSpeed: pt.speed || 0,
+                    entryTime: pt.gps_date,
+                    exitTime: pt.gps_date
+                }
+            } else {
+                const lastPt = currentVisit.points[currentVisit.points.length - 1]
+                const lastTimeMs = new Date(lastPt.gps_date).getTime()
+                
+                if (timeMs - lastTimeMs > gapThresholdMs) {
+                    currentVisit.exitTime = lastPt.gps_date
+                    currentVisit.durationMs = lastTimeMs - new Date(currentVisit.entryTime).getTime()
+                    currentVisit.avgSpeed = currentVisit.totalSpeed / currentVisit.points.length
+                    visits.push(currentVisit)
+                    
+                    currentVisit = {
+                        points: [pt],
+                        maxSpeed: pt.speed || 0,
+                        totalSpeed: pt.speed || 0,
+                        entryTime: pt.gps_date,
+                        exitTime: pt.gps_date
+                    }
+                } else {
+                    currentVisit.points.push(pt)
+                    if (pt.speed > currentVisit.maxSpeed) {
+                        currentVisit.maxSpeed = pt.speed
+                    }
+                    currentVisit.totalSpeed += pt.speed || 0
+                }
+            }
+        } else {
+            if (currentVisit) {
+                const lastPt = currentVisit.points[currentVisit.points.length - 1]
+                const lastTimeMs = new Date(lastPt.gps_date).getTime()
+                currentVisit.exitTime = pt.gps_date
+                currentVisit.durationMs = new Date(pt.gps_date).getTime() - new Date(currentVisit.entryTime).getTime()
+                currentVisit.avgSpeed = currentVisit.totalSpeed / currentVisit.points.length
+                visits.push(currentVisit)
+                currentVisit = null
+            }
+        }
+    })
+    
+    if (currentVisit) {
+        const lastPt = currentVisit.points[currentVisit.points.length - 1]
+        const lastTimeMs = new Date(lastPt.gps_date).getTime()
+        currentVisit.exitTime = lastPt.gps_date
+        currentVisit.durationMs = lastTimeMs - new Date(currentVisit.entryTime).getTime()
+        currentVisit.avgSpeed = currentVisit.totalSpeed / currentVisit.points.length
+        visits.push(currentVisit)
+    }
+    
+    return visits.map(v => {
+        const durationMin = Math.max(1, Math.round(v.durationMs / 60000))
+        return {
+            ...v,
+            duration: durationMin
+        }
+    })
 }
 
 function getHistoryColor(index) {
@@ -227,8 +307,18 @@ export default function ArventoTracking() {
     const [isPlaying, setIsPlaying] = useState(false)
     const [playbackSpeed, setPlaybackSpeed] = useState(60) // speed multiplier
     const [showTrackLines, setShowTrackLines] = useState(true)
+    const [skipIdleTime, setSkipIdleTime] = useState(true)
     const [historyTimelineRange, setHistoryTimelineRange] = useState({ min: 0, max: 0 })
     const animationTimerRef = useRef(null)
+
+    // Area Query / Geofencing states
+    const [areaCenter, setAreaCenter] = useState(null)
+    const [areaRadius, setAreaRadius] = useState(200) // in meters
+    const [areaQueryResults, setAreaQueryResults] = useState([])
+    const [areaQueryLoading, setAreaQueryLoading] = useState(false)
+    const [areaProgress, setAreaProgress] = useState({ current: 0, total: 0, plate: '' })
+    const [selectedAreaVisit, setSelectedAreaVisit] = useState(null)
+    const [areaSearchQuery, setAreaSearchQuery] = useState('')
 
     const mapRef = useRef(null)
     const mapInstance = useRef(null)
@@ -238,7 +328,7 @@ export default function ArventoTracking() {
 
     const [isMapFullscreen, setIsMapFullscreen] = useState(false)
     const [mapReady, setMapReady] = useState(false)
-    const isMapTab = activeTab === 'live' || activeTab === 'history'
+    const isMapTab = activeTab === 'live' || activeTab === 'history' || activeTab === 'area'
 
     // Calculate route distance in km for history playback
     const historyDistances = useMemo(() => {
@@ -256,6 +346,20 @@ export default function ArventoTracking() {
             distances[plate] = totalMeters / 1000
         })
         return distances
+    }, [historyDataMap])
+
+    // Extract sorted timestamps of all points where speed > 0 across selected vehicles
+    const movingTimestamps = useMemo(() => {
+        const timestamps = []
+        Object.keys(historyDataMap).forEach(plate => {
+            const points = historyDataMap[plate] || []
+            points.forEach(p => {
+                if (p.speed > 0) {
+                    timestamps.push(new Date(p.gps_date).getTime())
+                }
+            })
+        })
+        return timestamps.sort((a, b) => a - b)
     }, [historyDataMap])
 
     const formatTimelineTime = (timestamp) => {
@@ -1147,6 +1251,167 @@ export default function ArventoTracking() {
         }
     }, [leafletLoaded, isMapTab])
 
+    const handleAreaQuery = async () => {
+        if (!areaCenter) return
+        setAreaQueryLoading(true)
+        setAreaQueryResults([])
+        setSelectedAreaVisit(null)
+        setAreaProgress({ current: 0, total: 0, plate: '' })
+        
+        try {
+            // Find all vehicles mapped to Arvento
+            const arventoPlates = vehicles.map(v => v.plate)
+            if (arventoPlates.length === 0) {
+                setAreaQueryLoading(false)
+                return
+            }
+            
+            const startDate = new Date(`${historyStartDate}T00:00:00`).toISOString()
+            const endDate = new Date(`${historyEndDate}T23:59:59`).toISOString()
+            
+            const results = []
+            
+            for (let i = 0; i < arventoPlates.length; i++) {
+                const plate = arventoPlates[i]
+                setAreaProgress({ current: i + 1, total: arventoPlates.length, plate })
+                
+                const res = await window.electronAPI.arventoGetHistory({
+                    plates: [plate],
+                    startDate,
+                    endDate
+                })
+                
+                if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+                    const visits = analyzeAreaVisits(res.data, areaCenter, areaRadius)
+                    if (visits.length > 0) {
+                        const localVeh = localVehicles.find(lv => 
+                            lv.plate.replace(/[\s-]+/g, '').toUpperCase() === plate.replace(/[\s-]+/g, '').toUpperCase()
+                        )
+                        results.push({
+                            plate,
+                            brand: localVeh ? localVeh.brand : '',
+                            model: localVeh ? localVeh.model : '',
+                            visits
+                        })
+                    }
+                }
+            }
+            
+            setAreaQueryResults(results)
+        } catch (error) {
+            console.error('Error querying area:', error)
+        } finally {
+            setAreaQueryLoading(false)
+        }
+    }
+
+    // Map Click Listener for Area Selection
+    useEffect(() => {
+        if (!leafletLoaded || !mapInstance.current || !mapReady) return
+
+        const handleMapClick = (e) => {
+            if (activeTab === 'area') {
+                const { lat, lng } = e.latlng
+                setAreaCenter({ lat, lng })
+                mapInstance.current.panTo([lat, lng])
+            }
+        }
+
+        mapInstance.current.on('click', handleMapClick)
+
+        return () => {
+            if (mapInstance.current) {
+                mapInstance.current.off('click', handleMapClick)
+            }
+        }
+    }, [mapReady, activeTab, leafletLoaded])
+
+    // Draw Area Query Circle, Marker and Highlights on Map
+    useEffect(() => {
+        if (!leafletLoaded || !mapInstance.current || !mapReady) return
+
+        const areaLayers = []
+
+        if (activeTab === 'area') {
+            const L = window.L
+
+            // 1. Draw queried zone circle
+            if (areaCenter && areaCenter.lat && areaCenter.lng) {
+                const circle = L.circle([areaCenter.lat, areaCenter.lng], {
+                    radius: areaRadius,
+                    color: 'var(--primary)',
+                    fillColor: 'var(--primary)',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    dashArray: '6, 6'
+                }).addTo(mapInstance.current)
+                areaLayers.push(circle)
+
+                // Draw central pulsar dot marker
+                const pulsar = L.marker([areaCenter.lat, areaCenter.lng], {
+                    icon: L.divIcon({
+                        className: 'area-center-pulsar',
+                        html: '<div class="pulsar-dot"></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).addTo(mapInstance.current)
+                areaLayers.push(pulsar)
+            }
+
+            // 2. Draw highlighted path of selected visit
+            if (selectedAreaVisit && selectedAreaVisit.points && selectedAreaVisit.points.length > 0) {
+                const latlngs = selectedAreaVisit.points.map(pt => [pt.lat, pt.lng])
+
+                // Draw main path line
+                const polyline = L.polyline(latlngs, {
+                    color: 'var(--accent-primary)',
+                    weight: 4.5,
+                    opacity: 0.95,
+                    lineJoin: 'round'
+                }).addTo(mapInstance.current)
+                areaLayers.push(polyline)
+
+                // Add entry marker
+                const entryPt = selectedAreaVisit.points[0]
+                const entryMarker = L.marker([entryPt.lat, entryPt.lng], {
+                    icon: L.divIcon({
+                        className: 'area-endpoint-marker entry',
+                        html: `<div class="endpoint-dot entry"></div><div class="endpoint-label">Giriş: ${new Date(entryPt.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`,
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    })
+                }).addTo(mapInstance.current)
+                areaLayers.push(entryMarker)
+
+                // Add exit marker
+                const exitPt = selectedAreaVisit.points[selectedAreaVisit.points.length - 1]
+                const exitMarker = L.marker([exitPt.lat, exitPt.lng], {
+                    icon: L.divIcon({
+                        className: 'area-endpoint-marker exit',
+                        html: `<div class="endpoint-dot exit"></div><div class="endpoint-label">Çıkış: ${new Date(exitPt.gps_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`,
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    })
+                }).addTo(mapInstance.current)
+                areaLayers.push(exitMarker)
+            }
+        }
+
+        return () => {
+            areaLayers.forEach(layer => layer.remove())
+        }
+    }, [activeTab, areaCenter, areaRadius, selectedAreaVisit, leafletLoaded, mapReady])
+
+    // Center map on selectedAreaVisit path
+    useEffect(() => {
+        if (!leafletLoaded || !mapInstance.current || !mapReady || activeTab !== 'area') return
+        if (selectedAreaVisit && selectedAreaVisit.points && selectedAreaVisit.points.length > 0) {
+            const latlngs = selectedAreaVisit.points.map(pt => [pt.lat, pt.lng])
+            mapInstance.current.fitBounds(latlngs, { padding: [50, 50], maxZoom: 16 })
+        }
+    }, [selectedAreaVisit, leafletLoaded, mapReady, activeTab])
+
     // Manage Map Base Layers (Google Maps with dynamic overlays)
     useEffect(() => {
         if (!leafletLoaded || !mapInstance.current || !mapReady) return
@@ -1298,11 +1563,21 @@ export default function ArventoTracking() {
                 
                 if (minT !== Infinity && maxT !== -Infinity) {
                     setHistoryTimelineRange({ min: minT, max: maxT })
-                    setCurrentTime(prev => {
-                        // Keep current time if it's within range, otherwise reset to start
-                        if (prev && prev >= minT && prev <= maxT) return prev
-                        return minT
-                    })
+                    
+                    // Find first moving point (speed > 0) to start playback from movement
+                    let firstMovingTime = minT
+                    for (const plate of Object.keys(grouped)) {
+                        const points = grouped[plate] || []
+                        const movingPoint = points.find(p => p.speed > 0)
+                        if (movingPoint) {
+                            const movingTime = new Date(movingPoint.gps_date).getTime()
+                            if (firstMovingTime === minT || movingTime < firstMovingTime) {
+                                firstMovingTime = movingTime
+                            }
+                        }
+                    }
+
+                    setCurrentTime(firstMovingTime)
                 } else {
                     const dayStart = new Date(`${historyStartDate}T00:00:00`).getTime()
                     const dayEnd = new Date(`${historyEndDate}T23:59:59`).getTime()
@@ -1345,7 +1620,21 @@ export default function ArventoTracking() {
         animationTimerRef.current = setInterval(() => {
             setCurrentTime(prev => {
                 if (prev === null) return historyTimelineRange.min
-                const nextVal = prev + playbackSpeed * intervalMs
+                let nextVal = prev + playbackSpeed * intervalMs
+                
+                if (skipIdleTime && movingTimestamps.length > 0) {
+                    const lastMovingTime = movingTimestamps[movingTimestamps.length - 1]
+                    if (nextVal < lastMovingTime) {
+                        const nextMoving = movingTimestamps.find(t => t >= nextVal)
+                        if (nextMoving) {
+                            const gap = nextMoving - nextVal
+                            if (gap > 15000) {
+                                nextVal = Math.max(nextVal, nextMoving - 5000)
+                            }
+                        }
+                    }
+                }
+
                 if (nextVal >= historyTimelineRange.max) {
                     setIsPlaying(false)
                     return historyTimelineRange.max
@@ -1360,7 +1649,7 @@ export default function ArventoTracking() {
                 animationTimerRef.current = null
             }
         }
-    }, [isPlaying, playbackSpeed, historyTimelineRange, activeTab])
+    }, [isPlaying, playbackSpeed, historyTimelineRange, activeTab, skipIdleTime, movingTimestamps])
 
     // Draw History on Map
     useEffect(() => {
@@ -1586,6 +1875,8 @@ export default function ArventoTracking() {
             await fetchDailyReports()
         } else if (activeTab === 'history') {
             await fetchHistoryData()
+        } else if (activeTab === 'area') {
+            await handleAreaQuery()
         }
     }
 
@@ -1979,9 +2270,9 @@ export default function ArventoTracking() {
                         className="btn btn-secondary btn-icon" 
                         onClick={handleRefresh} 
                         title="Yenile"
-                        disabled={activeTab === 'history' ? historyLoading : loading}
+                        disabled={activeTab === 'history' ? historyLoading : activeTab === 'area' ? areaQueryLoading : loading}
                     >
-                        <RefreshCw size={16} className={(activeTab === 'history' ? historyLoading : loading) ? 'spin' : ''} />
+                        <RefreshCw size={16} className={(activeTab === 'history' ? historyLoading : activeTab === 'area' ? areaQueryLoading : loading) ? 'spin' : ''} />
                     </button>
                 </div>
             </div>
@@ -2012,13 +2303,23 @@ export default function ArventoTracking() {
                     <Clock size={15} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                     Geçmiş Rota & Kesişim
                 </button>
+                <button 
+                    className={`vehicle-tab ${activeTab === 'area' ? 'active' : ''}`}
+                    onClick={() => {
+                        setActiveTab('area')
+                        setSelectedVehicle(null)
+                    }}
+                >
+                    <Compass size={15} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                    Bölge Analizi
+                </button>
             </div>
 
             {/* Tab Contents */}
             <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex' }}>
                 
                 {/* 1. Canlı Takip & Geçmiş Rota Haritalı Bölüm */}
-                {(activeTab === 'live' || activeTab === 'history') && (
+                {(activeTab === 'live' || activeTab === 'history' || activeTab === 'area') && (
                     <div className="tracking-main-layout">
                         
                         {/* Canlı Takip Sidebar'ı */}
@@ -2391,6 +2692,255 @@ export default function ArventoTracking() {
                             </div>
                         )}
 
+                        {/* 3. Bölge Analizi Sidebar'ı */}
+                        {activeTab === 'area' && (
+                            <div className="tracking-sidebar tracking-history-sidebar">
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Bölge Analizi (Geofencing)</h3>
+                                    <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                        Haritada bir noktaya tıklayıp, tarih aralığı ve yarıçap belirleyerek o bölgeye giren araçları sorgulayın.
+                                    </p>
+                                </div>
+
+                                {/* Bilgilendirme Kutusu veya Seçilen Nokta */}
+                                {!areaCenter ? (
+                                    <div className="area-query-info-box" style={{ borderStyle: 'solid', color: 'var(--accent-primary)', borderColor: 'var(--accent-primary-glass)' }}>
+                                        📍 <strong>Nokta Seçin:</strong> Sorgulamak istediğiniz bölgenin merkezini belirlemek için harita üzerinde herhangi bir noktaya tıklayın.
+                                    </div>
+                                ) : (
+                                    <div className="area-query-info-box" style={{ borderStyle: 'solid', borderColor: 'var(--border-color)', background: 'var(--bg-tertiary)' }}>
+                                        ✅ <strong>Seçilen Nokta:</strong>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
+                                            <span>Enlem: {areaCenter.lat.toFixed(5)}</span>
+                                            <span>Boylam: {areaCenter.lng.toFixed(5)}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Yarıçap Seçimi (Radius) */}
+                                <div className="area-radius-selector">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <label className="date-input-label" style={{ margin: 0 }}>Bölge Çapı (Yarıçap)</label>
+                                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--primary)' }}>{areaRadius} metre</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <input 
+                                            type="range"
+                                            min="50"
+                                            max="1000"
+                                            step="50"
+                                            value={areaRadius}
+                                            onChange={(e) => setAreaRadius(Number(e.target.value))}
+                                            className="timeline-range-slider"
+                                            style={{ flex: 1 }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Tarih Aralığı Seçici */}
+                                <div className="history-date-picker-group">
+                                    <div className="date-input-wrapper">
+                                        <label className="date-input-label">Başlangıç Tarihi</label>
+                                        <div className="date-input-container">
+                                            <Calendar size={13} className="date-icon" />
+                                            <input 
+                                                type="date" 
+                                                className="form-input history-date-input" 
+                                                value={historyStartDate}
+                                                onChange={(e) => {
+                                                    setHistoryStartDate(e.target.value)
+                                                    if (new Date(e.target.value) > new Date(historyEndDate)) {
+                                                        setHistoryEndDate(e.target.value)
+                                                    }
+                                                }}
+                                                max={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="date-input-wrapper">
+                                        <label className="date-input-label">Bitiş Tarihi</label>
+                                        <div className="date-input-container">
+                                            <Calendar size={13} className="date-icon" />
+                                            <input 
+                                                type="date" 
+                                                className="form-input history-date-input" 
+                                                value={historyEndDate}
+                                                onChange={(e) => setHistoryEndDate(e.target.value)}
+                                                min={historyStartDate}
+                                                max={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Arama/Query Butonu */}
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleAreaQuery}
+                                    disabled={!areaCenter || areaQueryLoading}
+                                    style={{
+                                        height: '38px',
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        width: '100%',
+                                        background: 'var(--accent-gradient)',
+                                        color: '#0f0f11',
+                                        border: 'none',
+                                        cursor: areaCenter ? 'pointer' : 'not-allowed',
+                                        opacity: areaCenter ? 1 : 0.6
+                                    }}
+                                >
+                                    {areaQueryLoading ? (
+                                        <>
+                                            <Loader2 className="spinner" size={16} />
+                                            <span>Sorgulanıyor ({areaProgress.current}/{areaProgress.total})</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Compass size={16} />
+                                            <span>{areaCenter ? 'Bölgeyi Sorgula' : 'Haritadan Nokta Seçin'}</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Arama İlerleme Çubuğu */}
+                                {areaQueryLoading && areaProgress.total > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '-4px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)' }}>
+                                            <span>Sorgulama ilerlemesi...</span>
+                                            <span>%{Math.round((areaProgress.current / areaProgress.total) * 100)}</span>
+                                        </div>
+                                        <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${(areaProgress.current / areaProgress.total) * 100}%`, background: 'var(--primary)', transition: 'width 0.2s ease' }}></div>
+                                        </div>
+                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                                            Plaka: {areaProgress.plate}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <span style={{ borderBottom: '1px solid var(--border-color)', margin: '4px 0' }}></span>
+
+                                {/* Sorgu Sonuçları Alanı */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minHeight: 0 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                            Bölgeye Giriş Yapan Araçlar ({areaQueryResults.length})
+                                        </span>
+                                    </div>
+
+                                    {/* Arama Kutusu */}
+                                    {areaQueryResults.length > 0 && (
+                                        <div className="history-search-container" style={{ marginBottom: '4px' }}>
+                                            <Search size={14} className="search-icon" />
+                                            <input 
+                                                type="text" 
+                                                className="form-input history-search-input" 
+                                                placeholder="Sonuçlarda plaka ara..." 
+                                                value={areaSearchQuery}
+                                                onChange={(e) => setAreaSearchQuery(e.target.value)}
+                                            />
+                                            {areaSearchQuery && (
+                                                <button className="search-clear-btn" onClick={() => setAreaSearchQuery('')}>✕</button>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="history-vehicles-list-wrapper">
+                                        {areaQueryLoading && areaQueryResults.length === 0 ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', gap: '12px' }}>
+                                                <Loader2 className="spinner" size={28} style={{ color: 'var(--primary)' }} />
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-primary)', display: 'block' }}>Bölge Geçmişi Sorgulanıyor</span>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Araçların geçmiş rotaları Arvento servisinden alınıyor, lütfen bekleyin...</span>
+                                                </div>
+                                            </div>
+                                        ) : areaQueryResults.length === 0 ? (
+                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '30px 0', lineHeight: 1.5 }}>
+                                                {areaCenter ? 'Tarih aralığını belirleyin ve sorgulamayı başlatın.' : 'Sorgulanacak bölgeyi seçmek için harita üzerinde herhangi bir noktaya tıklayın.'}
+                                            </div>
+                                        ) : (() => {
+                                            const query = areaSearchQuery.toLowerCase().trim()
+                                            const filtered = areaQueryResults.filter(r => {
+                                                if (!query) return true
+                                                return r.plate.toLowerCase().includes(query) ||
+                                                       (r.brand && r.brand.toLowerCase().includes(query)) ||
+                                                       (r.model && r.model.toLowerCase().includes(query))
+                                            })
+
+                                            if (filtered.length === 0) {
+                                                return (
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                                                        Arama kelimesiyle eşleşen araç girişi bulunamadı.
+                                                    </div>
+                                                )
+                                            }
+
+                                            return filtered.map((res, idx) => {
+                                                return (
+                                                    <div 
+                                                        key={`${res.plate}-${idx}`}
+                                                        className="area-result-card"
+                                                    >
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)' }}>{res.plate}</span>
+                                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{res.brand} {res.model}</span>
+                                                            </div>
+                                                            <span className="history-vehicle-status success" style={{ fontSize: '10px', padding: '2px 8px' }}>
+                                                                {res.visits.length} Giriş
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Ziyaret Listesi */}
+                                                        <div className="area-visits-list">
+                                                            {res.visits.map((visit, vIdx) => {
+                                                                const isActive = selectedAreaVisit === visit
+                                                                const isParked = (visit.maxSpeed || 0) < 5
+                                                                
+                                                                return (
+                                                                    <div 
+                                                                        key={`${res.plate}-visit-${vIdx}`}
+                                                                        className={`area-visit-row ${isActive ? 'active' : ''}`}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            setSelectedAreaVisit(isActive ? null : visit)
+                                                                        }}
+                                                                        style={{ cursor: 'pointer' }}
+                                                                    >
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                                            <span style={{ color: 'var(--text-primary)' }}>
+                                                                                🕒 {new Date(visit.entryTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(visit.exitTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                                            </span>
+                                                                            <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', marginLeft: '14px' }}>
+                                                                                Tarih: {new Date(visit.entryTime).toLocaleDateString([], {day: '2-digit', month: '2-digit'})}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                                                                            <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                                                                                {visit.duration} dk
+                                                                            </span>
+                                                                            <span style={{ fontSize: '9px', color: isParked ? 'var(--warning)' : 'var(--text-secondary)' }}>
+                                                                                {isParked ? '⏱️ Duraklama' : `⚡ Max: ${visit.maxSpeed} km/s`}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Map Container and Detail Card overlay */}
                         <div className={`tracking-map-wrapper ${isMapFullscreen ? 'fullscreen' : ''} ${
                             activeTab === 'live' && selectedVehicle ? 'drawer-open' : ''
@@ -2502,7 +3052,30 @@ export default function ArventoTracking() {
                             {/* 3. Zaman Çizelgesi Oynatıcı Kontrol Paneli (Timeline Playback Overlay) */}
                             {activeTab === 'history' && selectedHistoryVehicles.length > 0 && historyTimelineRange.min < historyTimelineRange.max && (
                                 <div className="timeline-playback-panel">
-                                    {/* Üst Satır: Oynatma Butonları, İstatistikler ve Zaman */}
+                                    {/* Üst Satır: Zaman Sürgüsü (Timeline Slider) */}
+                                    <div className="timeline-slider-wrapper" style={{ marginBottom: '8px' }}>
+                                        <span className="timeline-edge-label left">
+                                            {formatTimelineEdge(historyTimelineRange.min)}
+                                        </span>
+
+                                        <input 
+                                            type="range"
+                                            min={historyTimelineRange.min}
+                                            max={historyTimelineRange.max}
+                                            value={currentTime || historyTimelineRange.min}
+                                            onChange={(e) => {
+                                                setCurrentTime(Number(e.target.value))
+                                                setIsPlaying(false)
+                                            }}
+                                            className="timeline-range-slider"
+                                        />
+
+                                        <span className="timeline-edge-label right">
+                                            {formatTimelineEdge(historyTimelineRange.max)}
+                                        </span>
+                                    </div>
+
+                                    {/* Alt Satır: Oynatma Butonları, İstatistikler ve Zaman */}
                                     <div className="timeline-playback-row">
                                         <div className="timeline-playback-controls">
                                             <button 
@@ -2510,8 +3083,8 @@ export default function ArventoTracking() {
                                                 onClick={() => setIsPlaying(!isPlaying)}
                                                 title={isPlaying ? 'Durdur' : 'Oynat'}
                                             >
-                                                {isPlaying ? <span className="pause-icon"></span> : <span className="play-icon"></span>}
-                                                <span>{isPlaying ? 'Durdur' : 'Oynat'}</span>
+                                                {isPlaying ? <Pause size={13} fill="currentColor" /> : <Play size={13} fill="currentColor" />}
+                                                <span className="play-btn-text">{isPlaying ? 'Durdur' : 'Oynat'}</span>
                                             </button>
 
                                             <div className="playback-speed-wrapper">
@@ -2538,20 +3111,35 @@ export default function ArventoTracking() {
                                                         className="playback-checkbox-input"
                                                     />
                                                     <span className="custom-checkbox"></span>
-                                                    Rotayı Çizgilerle Göster
+                                                    Rotayı <span className="checkbox-text-extra">Çizgilerle</span> Göster
+                                                </label>
+                                            </div>
+
+                                            <div className="playback-option-wrapper">
+                                                <label className="playback-checkbox-label">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={skipIdleTime} 
+                                                        onChange={(e) => setSkipIdleTime(e.target.checked)}
+                                                        className="playback-checkbox-input"
+                                                    />
+                                                    <span className="custom-checkbox"></span>
+                                                    Boş Zamanları <span className="checkbox-text-extra">Atla</span>
                                                 </label>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div className="timeline-playback-stats-wrapper">
                                             {/* Rota İstatistik Rozeti */}
                                             <div className="timeline-stats-badge">
-                                                <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
-                                                    {Object.values(historyDistances).reduce((sum, km) => sum + km, 0).toFixed(1)} km
+                                                <span className="timeline-stats-badge-val">
+                                                    <Navigation size={13} style={{ transform: 'rotate(45deg)', fill: 'var(--accent-primary)' }} />
+                                                    {Object.values(historyDistances).reduce((sum, km) => sum + km, 0).toFixed(1)}<span className="stats-unit"> km</span>
                                                 </span>
-                                                <span style={{ opacity: 0.5 }}>|</span>
-                                                <span>
-                                                    {Object.values(historyDataMap).reduce((sum, pts) => sum + pts.length, 0)} Konum
+                                                <span className="timeline-stats-badge-sep"></span>
+                                                <span className="timeline-stats-badge-lbl">
+                                                    <MapPin size={13} />
+                                                    {Object.values(historyDataMap).reduce((sum, pts) => sum + pts.length, 0)}<span className="stats-unit"> Nokta</span>
                                                 </span>
                                             </div>
 
@@ -2572,29 +3160,6 @@ export default function ArventoTracking() {
                                                 ✕
                                             </button>
                                         </div>
-                                    </div>
-
-                                    {/* Alt Satır: Zaman Sürgüsü (Timeline Slider) */}
-                                    <div className="timeline-slider-wrapper">
-                                        <span className="timeline-edge-label left">
-                                            {formatTimelineEdge(historyTimelineRange.min)}
-                                        </span>
-
-                                        <input 
-                                            type="range"
-                                            min={historyTimelineRange.min}
-                                            max={historyTimelineRange.max}
-                                            value={currentTime || historyTimelineRange.min}
-                                            onChange={(e) => {
-                                                setCurrentTime(Number(e.target.value))
-                                                setIsPlaying(false)
-                                            }}
-                                            className="timeline-range-slider"
-                                        />
-
-                                        <span className="timeline-edge-label right">
-                                            {formatTimelineEdge(historyTimelineRange.max)}
-                                        </span>
                                     </div>
                                 </div>
                             )}
