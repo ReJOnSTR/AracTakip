@@ -404,10 +404,8 @@ async function getArventoHistory(filters) {
             return { success: true, data: [] }
         }
 
-        const allPoints = []
-
-        // 3. Query GeneralReport for each resolved vehicle
-        for (const veh of resolvedVehicles) {
+        // 3. Query GeneralReport for each resolved vehicle in parallel
+        const promises = resolvedVehicles.map(async (veh) => {
             log.info(`[getArventoHistory] Requesting GeneralReport for plate ${veh.plateClean} (Device: ${veh.deviceNo})`)
             const params = {
                 Node: veh.deviceNo,
@@ -420,50 +418,59 @@ async function getArventoHistory(filters) {
                 chkContactAlarm: "1"
             }
 
-            const reportResult = await getArventoData('GeneralReport', params, false)
-            if (reportResult.success && Array.isArray(reportResult.data)) {
-                log.info(`[getArventoHistory] Successfully fetched ${reportResult.data.length} records for ${veh.plateClean}`)
-                reportResult.data.forEach(item => {
-                    const latStr = (item.Latitude || item.LatitudeY || item.lat || '0').replace(',', '.')
-                    const lat = parseFloat(latStr)
-                    
-                    const lngStr = (item.Longitude || item.LongitudeX || item.lng || '0').replace(',', '.')
-                    const lng = parseFloat(lngStr)
-                    
-                    const rawSpeed = item['Speed km/h'] || item.Speed || item.speed || 0
-                    const speed = parseInt(rawSpeed)
-                    
-                    const heading = parseInt(item.Course || item.Heading || 0)
-                    const ignition = (
-                        item.Ignition === true || 
-                        item.Ignition === '1' || 
-                        item.Ignition === 1 || 
-                        speed > 0 || 
-                        item['Ignition On Duration'] !== undefined ||
-                        item['Idling Duration'] !== undefined
-                    ) ? 1 : 0
-                    
-                    const gpsDateStr = item['Date/Time'] || item.LocalDateTime || item.GPSDate || item.Date || item.DateTime
-                    if (lat && lng && gpsDateStr) {
-                        const parsedDate = parseLocalDateTime(gpsDateStr)
-                        const gpsDateISO = isNaN(parsedDate.getTime()) ? gpsDateStr : parsedDate.toISOString()
+            const points = []
+            try {
+                const reportResult = await getArventoData('GeneralReport', params, false)
+                if (reportResult.success && Array.isArray(reportResult.data)) {
+                    log.info(`[getArventoHistory] Successfully fetched ${reportResult.data.length} records for ${veh.plateClean}`)
+                    reportResult.data.forEach(item => {
+                        const latStr = (item.Latitude || item.LatitudeY || item.lat || '0').replace(',', '.')
+                        const lat = parseFloat(latStr)
                         
-                        allPoints.push({
-                            plate: veh.plateClean,
-                            lat,
-                            lng,
-                            speed,
-                            ignition,
-                            heading,
-                            gps_date: gpsDateISO
-                        })
-                    }
-                })
-            } else {
-                const errDetail = reportResult.success ? 'No records returned from API' : (reportResult.error || 'Unknown error')
-                log.error(`[getArventoHistory] GeneralReport request failed or empty for device ${veh.deviceNo}:`, errDetail)
+                        const lngStr = (item.Longitude || item.LongitudeX || item.lng || '0').replace(',', '.')
+                        const lng = parseFloat(lngStr)
+                        
+                        const rawSpeed = item['Speed km/h'] || item.Speed || item.speed || 0
+                        const speed = parseInt(rawSpeed)
+                        
+                        const heading = parseInt(item.Course || item.Heading || 0)
+                        const ignition = (
+                            item.Ignition === true || 
+                            item.Ignition === '1' || 
+                            item.Ignition === 1 || 
+                            speed > 0 || 
+                            item['Ignition On Duration'] !== undefined ||
+                            item['Idling Duration'] !== undefined
+                        ) ? 1 : 0
+                        
+                        const gpsDateStr = item['Date/Time'] || item.LocalDateTime || item.GPSDate || item.Date || item.DateTime
+                        if (lat && lng && gpsDateStr) {
+                            const parsedDate = parseLocalDateTime(gpsDateStr)
+                            const gpsDateISO = isNaN(parsedDate.getTime()) ? gpsDateStr : parsedDate.toISOString()
+                            
+                            points.push({
+                                plate: veh.plateClean,
+                                lat,
+                                lng,
+                                speed,
+                                ignition,
+                                heading,
+                                gps_date: gpsDateISO
+                            })
+                        }
+                    })
+                } else {
+                    const errDetail = reportResult.success ? 'No records returned from API' : (reportResult.error || 'Unknown error')
+                    log.error(`[getArventoHistory] GeneralReport request failed or empty for device ${veh.deviceNo}:`, errDetail)
+                }
+            } catch (err) {
+                log.error(`[getArventoHistory] GeneralReport call crashed for device ${veh.deviceNo}:`, err)
             }
-        }
+            return points
+        })
+
+        const results = await Promise.all(promises)
+        const allPoints = results.flat()
 
         log.info(`[getArventoHistory] Total compiled historical points: ${allPoints.length}`)
         return { success: true, data: allPoints }

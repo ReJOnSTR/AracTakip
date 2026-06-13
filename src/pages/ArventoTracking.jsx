@@ -338,6 +338,23 @@ export default function ArventoTracking() {
     const [areaSearchQuery, setAreaSearchQuery] = useState('')
     const [expandedAreaResult, setExpandedAreaResult] = useState(null)
 
+    // Map Search & Distance states
+    const [mapSearchQuery, setMapSearchQuery] = useState('')
+    const [mapSearchResults, setMapSearchResults] = useState([])
+    const [mapSearchLoading, setMapSearchLoading] = useState(false)
+    const [searchedLocation, setSearchedLocation] = useState(null)
+    const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false)
+    const [roadRoute, setRoadRoute] = useState(null)
+    const [roadDistance, setRoadDistance] = useState(null)
+    const [roadDuration, setRoadDuration] = useState(null)
+    const [isRoutingLoading, setIsRoutingLoading] = useState(false)
+
+    const searchMarkerRef = useRef(null)
+    const searchDistanceLineRef = useRef(null)
+    const prevSearchedLocationKey = useRef('')
+    const prevSelectedVehicleKey = useRef('')
+    const hasInitialDistanceFit = useRef(false)
+
     const mapRef = useRef(null)
     const mapInstance = useRef(null)
     const markersRef = useRef({})
@@ -601,6 +618,10 @@ export default function ArventoTracking() {
                 flex-direction: column;
                 transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
                 animation: drawerSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+
+            .vehicle-detail-drawer.collapsed {
+                transform: translateX(-100%);
             }
 
             @keyframes drawerSlideIn {
@@ -954,6 +975,90 @@ export default function ArventoTracking() {
                 border-top-color: rgba(0,0,0,0.06);
             }
 
+            /* Sidebar Back Button */
+            .sidebar-back-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                color: var(--accent-primary);
+                cursor: pointer;
+                font-weight: 700;
+                font-size: 12px;
+                padding: 6px 12px;
+                border-radius: 8px;
+                width: fit-content;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+            .sidebar-back-btn:hover {
+                background: var(--accent-subtle);
+                border-color: var(--accent-primary);
+            }
+            [data-theme="light"] .sidebar-back-btn {
+                background: rgba(0, 0, 0, 0.03);
+                border-color: rgba(0, 0, 0, 0.08);
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            }
+            [data-theme="light"] .sidebar-back-btn:hover {
+                background: var(--accent-subtle);
+                border-color: var(--accent-primary);
+            }
+
+            .sidebar-vehicle-details-container {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                min-height: 0;
+                overflow: hidden;
+                animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(4px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            /* Overrides to make details fit flush inside the padded sidebar */
+            .tracking-sidebar .drawer-header {
+                padding: 10px 0 14px 0 !important;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .tracking-sidebar .drawer-content-scroll {
+                padding: 12px 0 !important;
+            }
+            .tracking-sidebar .drawer-footer {
+                padding: 12px 0 0 0 !important;
+                background: transparent !important;
+                border-top: 1px solid var(--border-color);
+            }
+            .tracking-sidebar .vehicle-detail-metrics-grid {
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+            }
+
+            /* Sleek scrollbar for vehicle details content */
+            .drawer-content-scroll::-webkit-scrollbar {
+                width: 4px;
+            }
+            .drawer-content-scroll::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .drawer-content-scroll::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+            }
+            .drawer-content-scroll::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.25);
+            }
+            [data-theme="light"] .drawer-content-scroll::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.12);
+            }
+            [data-theme="light"] .drawer-content-scroll::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 0, 0, 0.22);
+            }
+
             /* Map control shift when drawer is open - no shift needed for left drawer */
             .map-controls-container {
                 transition: right 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1265,11 +1370,54 @@ export default function ArventoTracking() {
 
         let timer1, timer2, timer3
         if (!mapInstance.current) {
-            // Istanbul coordinates by default (overridden by fitBounds once data loads)
+            // Check if we already have loaded vehicles with valid coordinates to center on
+            const validVehicles = vehicles.filter(v => v.lat && v.lng && v.lat !== 0 && v.lng !== 0 && !isNaN(v.lat) && !isNaN(v.lng))
+            let initialCenter = [40.993, 29.02] // Fallback to Istanbul
+            let initialZoom = 13
+
+            if (validVehicles.length > 0) {
+                const lats = validVehicles.map(v => v.lat)
+                const lngs = validVehicles.map(v => v.lng)
+                const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length
+                const centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length
+                initialCenter = [centerLat, centerLng]
+                initialZoom = 10
+            } else {
+                // Otherwise try to load the last viewed position from localStorage
+                try {
+                    const savedCenter = localStorage.getItem('arvento_map_center')
+                    const savedZoom = localStorage.getItem('arvento_map_zoom')
+                    if (savedCenter) {
+                        initialCenter = JSON.parse(savedCenter)
+                    }
+                    if (savedZoom) {
+                        initialZoom = parseInt(savedZoom, 10)
+                    }
+                } catch (e) {
+                    console.error('Failed to parse saved map state:', e)
+                }
+            }
+
             mapInstance.current = window.L.map(mapRef.current, {
                 zoomControl: false,
                 attributionControl: false
-            }).setView([40.993, 29.02], 13)
+            }).setView(initialCenter, initialZoom)
+
+            // If we initialized using loaded vehicles, fit bounds immediately
+            if (validVehicles.length > 0) {
+                const coords = validVehicles.map(v => [v.lat, v.lng])
+                mapInstance.current.fitBounds(coords, { maxZoom: 14, padding: [30, 30] })
+                hasInitialFit.current = true
+            }
+
+            // Save map center and zoom when user pans or zooms
+            mapInstance.current.on('moveend', () => {
+                if (mapInstance.current) {
+                    const center = mapInstance.current.getCenter()
+                    localStorage.setItem('arvento_map_center', JSON.stringify([center.lat, center.lng]))
+                    localStorage.setItem('arvento_map_zoom', mapInstance.current.getZoom().toString())
+                }
+            })
 
             // Force invalidateSize after delays to ensure container has full width/height
             timer1 = setTimeout(() => {
@@ -1301,14 +1449,655 @@ export default function ArventoTracking() {
             clearTimeout(timer2)
             clearTimeout(timer3)
             if (mapInstance.current) {
+                mapInstance.current.off('moveend')
                 mapInstance.current.remove()
                 mapInstance.current = null
             }
             baseLayerRef.current = null
             markersRef.current = {}
             setMapReady(false)
+            hasInitialFit.current = false // Reset initial fit when map is destroyed
         }
     }, [leafletLoaded, isMapTab])
+
+    // Map Search functions
+    const handleMapSearch = async (e) => {
+        if (e) e.preventDefault()
+        if (!mapSearchQuery.trim()) return
+
+        setMapSearchLoading(true)
+
+        // Set up location bias parameters (coordinates of selected vehicle or map center) to prioritize nearest places
+        let biasParams = ''
+        if (selectedVehicle && selectedVehicle.lat && selectedVehicle.lng && selectedVehicle.lat !== 0 && selectedVehicle.lng !== 0) {
+            biasParams = `&lat=${selectedVehicle.lat}&lon=${selectedVehicle.lng}`
+        } else if (mapInstance.current) {
+            const center = mapInstance.current.getCenter()
+            if (center) {
+                biasParams = `&lat=${center.lat}&lon=${center.lng}`
+            }
+        }
+
+        try {
+            // 1. Try Photon (Komoot) Elasticsearch geocoder for fuzzy business/POI search
+            const photonRes = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(mapSearchQuery)}&limit=10&lang=tr${biasParams}`)
+            if (photonRes.ok) {
+                const data = await photonRes.json()
+                if (data.features && data.features.length > 0) {
+                    const mappedResults = data.features.map(feat => {
+                        const props = feat.properties
+                        // Construct descriptive display name
+                        const addressParts = [
+                            props.street ? `${props.street} ${props.housenumber || ''}`.trim() : null,
+                            props.district,
+                            props.city,
+                            props.state,
+                            props.country
+                        ].filter(Boolean)
+                        
+                        const displayName = [props.name, ...addressParts].filter(Boolean).join(', ')
+                        
+                        return {
+                            lat: feat.geometry.coordinates[1],
+                            lon: feat.geometry.coordinates[0],
+                            name: props.name || addressParts[0] || 'Bilinmeyen Konum',
+                            display_name: displayName
+                        }
+                    })
+                    setMapSearchResults(mappedResults)
+                    setMapSearchLoading(false)
+                    return
+                }
+            }
+        } catch (err) {
+            console.warn('Photon POI search failed, falling back to Nominatim:', err)
+        }
+
+        // 2. Fallback to Nominatim if Photon fails or returns empty
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}&limit=10&addressdetails=1${biasParams}`, {
+                headers: {
+                    'User-Agent': 'AracTakipApp/1.0.0',
+                    'Accept-Language': 'tr'
+                }
+            })
+            const data = await response.json()
+            const mappedResults = data.map(item => ({
+                lat: parseFloat(item.lat),
+                lon: parseFloat(item.lon),
+                name: item.name || item.display_name.split(',')[0],
+                display_name: item.display_name
+            }))
+            setMapSearchResults(mappedResults)
+        } catch (error) {
+            console.error('Failed to search address via Nominatim:', error)
+        } finally {
+            setMapSearchLoading(false)
+        }
+    }
+
+    const handleSelectSearchResult = (result) => {
+        const lat = parseFloat(result.lat)
+        const lng = parseFloat(result.lon)
+        const name = result.display_name
+        
+        setSearchedLocation({ lat, lng, name })
+        setMapSearchResults([])
+        setMapSearchQuery(result.display_name)
+        
+        if (mapInstance.current) {
+            mapInstance.current.setView([lat, lng], 15)
+        }
+    }
+
+    const getDistanceBetween = () => {
+        if (!selectedVehicle || !selectedVehicle.lat || !selectedVehicle.lng || !searchedLocation) return null
+        const L = window.L
+        if (!L) return null
+        const distMeters = L.latLng(selectedVehicle.lat, selectedVehicle.lng).distanceTo(L.latLng(searchedLocation.lat, searchedLocation.lng))
+        if (distMeters > 1000) {
+            return `${(distMeters / 1000).toFixed(2)} km`
+        }
+        return `${Math.round(distMeters)} m`
+    }
+
+    // Fetch road routing from OSRM dynamically
+    useEffect(() => {
+        if (!selectedVehicle || !selectedVehicle.lat || !selectedVehicle.lng || !searchedLocation) {
+            setRoadRoute(null)
+            setRoadDistance(null)
+            setRoadDuration(null)
+            return
+        }
+
+        const startLng = selectedVehicle.lng
+        const startLat = selectedVehicle.lat
+        const endLng = searchedLocation.lng
+        const endLat = searchedLocation.lat
+
+        if (startLat === 0 || startLng === 0 || endLat === 0 || endLng === 0) {
+            setRoadRoute(null)
+            setRoadDistance(null)
+            setRoadDuration(null)
+            return
+        }
+
+        let isCurrent = true
+        setIsRoutingLoading(true)
+
+        fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`)
+            .then(res => {
+                if (!res.ok) throw new Error('Routing API error')
+                return res.json()
+            })
+            .then(data => {
+                if (!isCurrent) return
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0]
+                    const coords = route.geometry.coordinates.map(pt => [pt[1], pt[0]]) // Convert GeoJSON [lng, lat] to [lat, lng]
+                    setRoadRoute(coords)
+                    setRoadDistance(route.distance) // meters
+                    setRoadDuration(route.duration) // seconds
+                } else {
+                    setRoadRoute(null)
+                    setRoadDistance(null)
+                    setRoadDuration(null)
+                }
+            })
+            .catch(err => {
+                console.error('OSRM Routing error:', err)
+                if (isCurrent) {
+                    setRoadRoute(null)
+                    setRoadDistance(null)
+                    setRoadDuration(null)
+                }
+            })
+            .finally(() => {
+                if (isCurrent) {
+                    setIsRoutingLoading(false)
+                }
+            })
+
+        return () => {
+            isCurrent = false
+        }
+    }, [selectedVehicle?.plate, searchedLocation?.lat, searchedLocation?.lng])
+
+    const renderDistanceDetails = () => {
+        if (!selectedVehicle || !selectedVehicle.lat || !selectedVehicle.lng || !searchedLocation) return null
+        const L = window.L
+        if (!L) return null
+        
+        // Calculate straight line distance (air distance)
+        const airMeters = L.latLng(selectedVehicle.lat, selectedVehicle.lng).distanceTo(L.latLng(searchedLocation.lat, searchedLocation.lng))
+        const airDistanceStr = airMeters > 1000 ? `${(airMeters / 1000).toFixed(2)} km` : `${Math.round(airMeters)} m`
+        
+        // Format road distance
+        let roadDistanceStr = null
+        let roadDurationStr = null
+        
+        if (roadDistance !== null) {
+            roadDistanceStr = roadDistance > 1000 ? `${(roadDistance / 1000).toFixed(2)} km` : `${Math.round(roadDistance)} m`
+        }
+        
+        if (roadDuration !== null) {
+            const minutes = Math.round(roadDuration / 60)
+            if (minutes < 1) {
+                roadDurationStr = '1 dk'
+            } else if (minutes >= 60) {
+                const hours = Math.floor(minutes / 60)
+                const mins = minutes % 60
+                roadDurationStr = `${hours} sa ${mins} dk`
+            } else {
+                roadDurationStr = `${minutes} dk`
+            }
+        }
+        
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    🚗 <strong>{selectedVehicle.plate}</strong> plakalı araca olan mesafe:
+                </div>
+                {isRoutingLoading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        <Loader2 className="spin" size={13} style={{ color: 'var(--primary)' }} />
+                        <span>Karayolu rotası hesaplanıyor...</span>
+                    </div>
+                ) : roadDistanceStr ? (
+                    <div className="road-distance-badge" style={{ 
+                        background: 'rgba(59, 130, 246, 0.08)', 
+                        border: '1px solid rgba(59, 130, 246, 0.15)', 
+                        padding: '8px 12px', 
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px'
+                    }}>
+                        <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            🚗 Karayolu: {roadDistanceStr}
+                        </span>
+                        {roadDurationStr && (
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '20px' }}>
+                                ⏱️ Tahmini Seyahat Süresi: <strong>{roadDurationStr}</strong>
+                            </span>
+                        )}
+                    </div>
+                ) : (
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        ⚠️ Karayolu rotası hesaplanamadı (Hizmet çevrimdışı veya yol yok).
+                    </div>
+                )}
+                
+                <div style={{ 
+                    fontSize: '11.5px', 
+                    color: 'var(--text-muted)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px',
+                    paddingLeft: '4px'
+                }}>
+                    ✈️ Kuş Uçuşu Mesafe: <strong>{airDistanceStr}</strong>
+                </div>
+            </div>
+        )
+    }
+
+
+    // Render searched location marker and connection line
+    useEffect(() => {
+        if (!leafletLoaded || !mapInstance.current || !mapReady) return
+
+        const map = mapInstance.current
+        const L = window.L
+
+        // Clean up previous marker if any
+        if (searchMarkerRef.current) {
+            searchMarkerRef.current.remove()
+            searchMarkerRef.current = null
+        }
+
+        // Clean up previous line if any
+        if (searchDistanceLineRef.current) {
+            searchDistanceLineRef.current.remove()
+            searchDistanceLineRef.current = null
+        }
+
+        if (searchedLocation) {
+            // Create target pin SVG icon
+            const targetIcon = L.divIcon({
+                className: 'custom-search-marker',
+                html: `
+                    <div class="search-pin-wrapper">
+                        <div class="search-pin-circle">
+                            <div class="search-pin-inner"></div>
+                        </div>
+                        <div class="search-pin-shadow"></div>
+                    </div>
+                `,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+            })
+
+            // Add marker
+            const marker = L.marker([searchedLocation.lat, searchedLocation.lng], { icon: targetIcon })
+                .addTo(map)
+                .bindPopup(`<strong>Hedef:</strong><br/>${searchedLocation.name}`, {
+                    className: 'custom-search-popup'
+                })
+            
+            searchMarkerRef.current = marker
+
+            // Track target/selection key changes to reset fit bounds
+            const searchedLocationKey = `${searchedLocation.lat},${searchedLocation.lng}`
+            const selectedVehicleKey = selectedVehicle ? `${selectedVehicle.plate}` : ''
+
+            if (searchedLocationKey !== prevSearchedLocationKey.current || selectedVehicleKey !== prevSelectedVehicleKey.current) {
+                hasInitialDistanceFit.current = false
+                prevSearchedLocationKey.current = searchedLocationKey
+                prevSelectedVehicleKey.current = selectedVehicleKey
+            }
+
+            // Draw line if a vehicle is selected
+            if (selectedVehicle && selectedVehicle.lat && selectedVehicle.lng && selectedVehicle.lat !== 0 && selectedVehicle.lng !== 0) {
+                const vehicleLatLng = [selectedVehicle.lat, selectedVehicle.lng]
+                const targetLatLng = [searchedLocation.lat, searchedLocation.lng]
+
+                let line
+                if (roadRoute && roadRoute.length > 0) {
+                    // Draw road routing path
+                    line = L.polyline(roadRoute, {
+                        color: '#3b82f6', // Premium bright blue
+                        weight: 5,
+                        opacity: 0.85,
+                        lineJoin: 'round'
+                    }).addTo(map)
+                } else {
+                    // Fallback to straight dashed line while routing is loading
+                    line = L.polyline([vehicleLatLng, targetLatLng], {
+                        color: '#6b7280',
+                        weight: 3,
+                        dashArray: '6, 6',
+                        opacity: 0.6
+                    }).addTo(map)
+                }
+
+                searchDistanceLineRef.current = line
+
+                // Auto fit bounds to show both selected vehicle and target location once
+                if (!hasInitialDistanceFit.current) {
+                    if (roadRoute && roadRoute.length > 0) {
+                        map.fitBounds(roadRoute, {
+                            padding: [80, 80]
+                        })
+                    } else {
+                        map.fitBounds([vehicleLatLng, targetLatLng], {
+                            padding: [80, 80],
+                            maxZoom: 15
+                        })
+                    }
+                    hasInitialDistanceFit.current = true
+                }
+            } else {
+                // If no vehicle selected, just center on searched location once
+                if (!hasInitialDistanceFit.current) {
+                    map.setView([searchedLocation.lat, searchedLocation.lng], 15)
+                    hasInitialDistanceFit.current = true
+                }
+            }
+        }
+
+        return () => {
+            if (searchMarkerRef.current) {
+                searchMarkerRef.current.remove()
+                searchMarkerRef.current = null
+            }
+            if (searchDistanceLineRef.current) {
+                searchDistanceLineRef.current.remove()
+                searchDistanceLineRef.current = null
+            }
+        }
+    }, [leafletLoaded, mapReady, searchedLocation, selectedVehicle, roadRoute])
+
+    const renderVehicleDetailsContent = (v, onBack) => {
+        if (!v) return null
+        
+        const currentLocalVeh = localVehicles.find(lv => 
+            lv.plate.replace(/[\s-]+/g, '').toUpperCase() === v.plate.replace(/[\s-]+/g, '').toUpperCase()
+        )
+        
+        const statusClass = v.isOffline ? 'status-offline' : v.ignition ? 'status-active' : 'status-stopped'
+        
+        return (
+            <>
+                {/* Header with Status Bar */}
+                <div className="drawer-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                    <div className={`drawer-status-bar ${statusClass}`}></div>
+                    
+                    {onBack && (
+                        <button 
+                            onClick={onBack}
+                            className="sidebar-back-btn"
+                            style={{ marginBottom: '12px', width: '100%', justifyContent: 'center' }}
+                        >
+                            ← Listeye Geri Dön
+                        </button>
+                    )}
+                    
+                    <div className="vehicle-detail-header" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
+                        <div className={`vehicle-detail-avatar ${
+                            v.isOffline ? 'state-offline' : v.ignition ? 'state-active' : 'state-stopped'
+                        }`} style={{ 
+                            width: '38px', 
+                            height: '38px', 
+                            borderRadius: '8px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            background: v.isOffline ? '#374151' : v.ignition ? '#065f46' : '#991b1b',
+                            color: '#fff',
+                            flexShrink: 0
+                        }}>
+                            <Car size={20} />
+                        </div>
+                        <div className="vehicle-detail-meta" style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                            <div className="vehicle-detail-plate" style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {v.plate}
+                            </div>
+                            <h3 className="vehicle-detail-brand" style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {v.brand} {v.model}
+                            </h3>
+                            <p className="vehicle-detail-driver" style={{ fontSize: '10.5px', color: 'var(--text-muted)', margin: '2px 0 0 0', display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <User size={10} /> {v.driver || 'Bilinmiyor'}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {/* Status Badges */}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <span className={`badge ${
+                            v.isOffline ? 'badge-secondary' : v.ignition ? 'badge-success' : 'badge-danger'
+                        }`} style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                            {v.isOffline ? 'Çevrimdışı' : v.ignition ? 'Kontak Açık' : 'Kontak Kapalı'}
+                        </span>
+                        {v.speed > 0 && (
+                            <span className="badge badge-info" style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                                {v.speed} km/h
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="drawer-content-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '12px 0' }}>
+                    {/* Live Telemetry Section */}
+                    <div>
+                        <div className="drawer-section-title" style={{ fontSize: '10px', fontWeight: 850, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Activity size={10} /> CANLI TELEMETRİ
+                        </div>
+                        <div className="vehicle-detail-metrics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            {/* Hız */}
+                            <div className="metric-card-modern">
+                                <div className="metric-icon-wrapper speed">
+                                    <Gauge size={14} />
+                                </div>
+                                <div className="metric-content">
+                                    <span className="metric-label">Hız</span>
+                                    <span className="metric-value">{v.speed} km/h</span>
+                                </div>
+                            </div>
+
+                            {/* Kontak */}
+                            <div className="metric-card-modern">
+                                <div className="metric-icon-wrapper ignition" style={{ 
+                                    color: v.isOffline ? 'var(--text-muted)' : v.ignition ? '#22c55e' : '#ef4444',
+                                    background: v.isOffline ? 'rgba(107, 114, 128, 0.08)' : v.ignition ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)'
+                                }}>
+                                    <Power size={14} />
+                                </div>
+                                <div className="metric-content">
+                                    <span className="metric-label">Kontak</span>
+                                    <span className="metric-value" style={{ 
+                                        color: v.isOffline ? 'var(--text-muted)' : v.ignition ? '#22c55e' : '#ef4444'
+                                    }}>
+                                        {v.isOffline ? 'Çevrimdışı' : v.ignition ? 'Açık' : 'Kapalı'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Son Sinyal - full width */}
+                            <div className="metric-card-modern" style={{ gridColumn: '1 / -1' }}>
+                                <div className="metric-icon-wrapper time">
+                                    <Clock size={14} />
+                                </div>
+                                <div className="metric-content">
+                                    <span className="metric-label">Son Sinyal</span>
+                                    <span className="metric-value">
+                                        {v.gpsDate || '--'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* GPS Coordinates Section */}
+                    {v.lat && v.lng ? (
+                        <div>
+                            <div className="drawer-section-title" style={{ fontSize: '10px', fontWeight: 850, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <MapPin size={10} /> GPS KOORDİNATLARI
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                <span className="coord-badge"
+                                    onClick={() => {
+                                        navigator.clipboard?.writeText(`${v.lat.toFixed(6)}, ${v.lng.toFixed(6)}`)
+                                    }}
+                                    title="Koordinatları kopyala"
+                                >
+                                    <MapPin size={10} />
+                                    {v.lat.toFixed(6)}, {v.lng.toFixed(6)}
+                                </span>
+                                <span className="coord-badge"
+                                    onClick={() => {
+                                        if (v.gpsDate) {
+                                            navigator.clipboard?.writeText(v.gpsDate)
+                                        }
+                                    }}
+                                    title="Zamanı kopyala"
+                                >
+                                    <Clock size={10} />
+                                    {v.gpsDate || '--'}
+                                </span>
+                                <span className="coord-badge-gmaps"
+                                    onClick={() => {
+                                        window.electronAPI.openExternal(`https://www.google.com/maps/search/?api=1&query=${v.lat},${v.lng}`)
+                                    }}
+                                    title="Google Haritalar'da Aç"
+                                >
+                                    <ExternalLink size={10} /> Google Haritalar
+                                </span>
+                            </div>
+                        </div>
+                    ) : null}
+
+                    {/* Database Details Section */}
+                    <div>
+                        <div className="drawer-section-title" style={{ fontSize: '10px', fontWeight: 850, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Car size={10} /> ARAÇ BİLGİLERİ
+                        </div>
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <span className="detail-label">Kilometre</span>
+                                <span className="detail-value">
+                                    {currentLocalVeh?.km !== undefined && currentLocalVeh?.km !== null 
+                                        ? `${currentLocalVeh.km.toLocaleString('tr-TR')} km` 
+                                        : '0 km'}
+                                </span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Model Yılı</span>
+                                <span className="detail-value">{currentLocalVeh?.year || '—'}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Renk</span>
+                                <span className="detail-value">{currentLocalVeh?.color || '—'}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Araç Tipi</span>
+                                <span className="detail-value">
+                                    {currentLocalVeh?.type === 'truck' ? 'Kamyon' : 
+                                     currentLocalVeh?.type === 'car' ? 'Binek Araç' : 
+                                     currentLocalVeh?.type === 'van' ? 'Minibüs/Panelvan' : 
+                                     currentLocalVeh?.type || '—'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Record Statistics Section */}
+                    <div>
+                        <div className="drawer-section-title" style={{ fontSize: '10px', fontWeight: 850, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Activity size={10} /> KAYIT İSTATİSTİKLERİ
+                        </div>
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <span className="detail-label">Muayeneler</span>
+                                <span className="detail-value" style={{ color: currentLocalVeh?.inspections_count > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
+                                    {currentLocalVeh?.inspections_count || 0}
+                                </span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Bakımlar</span>
+                                <span className="detail-value" style={{ color: currentLocalVeh?.maintenances_count > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
+                                    {currentLocalVeh?.maintenances_count || 0}
+                                </span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Servis Kayıtları</span>
+                                <span className="detail-value" style={{ color: currentLocalVeh?.services_count > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
+                                    {currentLocalVeh?.services_count || 0}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Notes Section */}
+                    {currentLocalVeh?.notes && (
+                        <div>
+                            <div className="drawer-section-title" style={{ fontSize: '10px', fontWeight: 850, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <FileText size={10} /> NOT
+                            </div>
+                            <div className="notes-callout">
+                                {currentLocalVeh.notes}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Action Footer */}
+                <div className="drawer-footer" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: 'auto' }}>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                        <button 
+                            className="btn btn-primary"
+                            style={{
+                                flex: 1,
+                                height: '38px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px'
+                            }}
+                            onClick={() => mapInstance.current && mapInstance.current.setView([v.lat, v.lng], 16)}
+                        >
+                            <MapPin size={13} /> Odaklan
+                        </button>
+                        <button 
+                            className="btn btn-secondary"
+                            style={{
+                                flex: 1,
+                                height: '38px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px'
+                            }}
+                            onClick={() => {
+                                setSelectedHistoryVehicles([v.plate])
+                                setActiveTab('history')
+                                setSelectedVehicle(null)
+                            }}
+                        >
+                            <Clock size={13} /> Geçmiş
+                        </button>
+                    </div>
+                </div>
+            </>
+        )
+    }
 
     const handleAreaQuery = async () => {
         if (!areaBounds || areaBounds.length < 2) return
@@ -1329,32 +2118,54 @@ export default function ArventoTracking() {
             const endDate = new Date(`${areaEndDate}T23:59:59`).toISOString()
             
             const results = []
+            let completedCount = 0
             
-            for (let i = 0; i < arventoPlates.length; i++) {
-                const plate = arventoPlates[i]
-                setAreaProgress({ current: i + 1, total: arventoPlates.length, plate })
-                
-                const res = await window.electronAPI.arventoGetHistory({
-                    plates: [plate],
-                    startDate,
-                    endDate
-                })
-                
-                if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-                    const visits = analyzeAreaVisits(res.data, areaBounds)
-                    if (visits.length > 0) {
-                        const localVeh = localVehicles.find(lv => 
-                            lv.plate.replace(/[\s-]+/g, '').toUpperCase() === plate.replace(/[\s-]+/g, '').toUpperCase()
-                        )
-                        results.push({
-                            plate,
-                            brand: localVeh ? localVeh.brand : '',
-                            model: localVeh ? localVeh.model : '',
-                            visits
+            // Concurrency limit: 6 concurrent workers
+            const concurrencyLimit = 6
+            let activeIndex = 0
+            
+            const runWorker = async () => {
+                while (activeIndex < arventoPlates.length) {
+                    const index = activeIndex++
+                    const plate = arventoPlates[index]
+                    
+                    try {
+                        const res = await window.electronAPI.arventoGetHistory({
+                            plates: [plate],
+                            startDate,
+                            endDate
                         })
+                        
+                        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+                            const visits = analyzeAreaVisits(res.data, areaBounds)
+                            if (visits.length > 0) {
+                                const localVeh = localVehicles.find(lv => 
+                                    lv.plate.replace(/[\s-]+/g, '').toUpperCase() === plate.replace(/[\s-]+/g, '').toUpperCase()
+                                )
+                                results.push({
+                                    plate,
+                                    brand: localVeh ? localVeh.brand : '',
+                                    model: localVeh ? localVeh.model : '',
+                                    visits
+                                })
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error querying plate ${plate}:`, error)
+                    } finally {
+                        completedCount++
+                        setAreaProgress({ current: completedCount, total: arventoPlates.length, plate })
                     }
                 }
             }
+            
+            const workers = []
+            const actualConcurrency = Math.min(concurrencyLimit, arventoPlates.length)
+            for (let w = 0; w < actualConcurrency; w++) {
+                workers.push(runWorker())
+            }
+            
+            await Promise.all(workers)
             
             setAreaQueryResults(results)
         } catch (error) {
@@ -1952,7 +2763,7 @@ export default function ArventoTracking() {
                 if (mapInstance.current && !hasInitialFit.current) {
                     mapInstance.current.invalidateSize()
                     const validCoords = mappedData
-                        .filter(v => v.lat && v.lng)
+                        .filter(v => v.lat && v.lng && v.lat !== 0 && v.lng !== 0 && !isNaN(v.lat) && !isNaN(v.lng))
                         .map(v => [v.lat, v.lng])
                     if (validCoords.length > 0) {
                         mapInstance.current.fitBounds(validCoords, { maxZoom: 14, padding: [30, 30] })
@@ -2072,6 +2883,7 @@ export default function ArventoTracking() {
     // Pan to vehicle on selection
     const handleSelectVehicle = (v) => {
         setSelectedVehicle(v)
+        setIsDrawerCollapsed(false)
         if (mapInstance.current && v.lat && v.lng) {
             mapInstance.current.setView([v.lat, v.lng], 16)
         }
@@ -2416,125 +3228,139 @@ export default function ArventoTracking() {
                         {/* Canlı Takip Sidebar'ı */}
                         {activeTab === 'live' && (
                             <div className="tracking-sidebar">
-                                <div className="search-box-container" style={{ position: 'relative' }}>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="Plaka veya marka ara..." 
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    style={{ paddingLeft: '38px', height: '38px' }}
-                                />
-                                <Search size={16} style={{ position: 'absolute', left: '12px', top: '11px', color: 'var(--text-muted)' }} />
-                            </div>
-
-                            {/* Internal filter pill status buttons */}
-                            <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', paddingBottom: '5px' }}>
-                                <button 
-                                    style={{ 
-                                        padding: '4px 10px', 
-                                        borderRadius: '20px', 
-                                        fontSize: '11px', 
-                                        border: '1px solid var(--border-color)',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        background: statusFilter === 'all' ? 'var(--primary-bg)' : 'transparent',
-                                        color: statusFilter === 'all' ? 'var(--primary)' : 'var(--text-secondary)'
-                                    }}
-                                    onClick={() => setStatusFilter('all')}
-                                >
-                                    Tümü ({vehicles.length})
-                                </button>
-                                <button 
-                                    style={{ 
-                                        padding: '4px 10px', 
-                                        borderRadius: '20px', 
-                                        fontSize: '11px', 
-                                        border: '1px solid var(--border-color)',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        background: statusFilter === 'active' ? 'var(--success-bg)' : 'transparent',
-                                        color: statusFilter === 'active' ? 'var(--success)' : 'var(--text-secondary)'
-                                    }}
-                                    onClick={() => setStatusFilter('active')}
-                                >
-                                    Hareketli ({vehicles.filter(v => v.ignition && v.speed > 0).length})
-                                </button>
-                                <button 
-                                    style={{ 
-                                        padding: '4px 10px', 
-                                        borderRadius: '20px', 
-                                        fontSize: '11px', 
-                                        border: '1px solid var(--border-color)',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        background: statusFilter === 'stopped' ? 'var(--danger-bg)' : 'transparent',
-                                        color: statusFilter === 'stopped' ? 'var(--danger)' : 'var(--text-secondary)'
-                                    }}
-                                    onClick={() => setStatusFilter('stopped')}
-                                >
-                                    Duruyor ({vehicles.filter(v => !v.ignition).length})
-                                </button>
-                            </div>
-
-                            {/* Vehicle lists */}
-                            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {loading && vehicles.length === 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px', textAlign: 'center' }}>
-                                        <Loader2 className="spin" size={24} style={{ color: 'var(--primary)', marginBottom: '8px' }} />
-                                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Araçlar yükleniyor...</span>
-                                    </div>
-                                ) : filteredVehicles.length === 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px', textAlign: 'center' }}>
-                                        <Car size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
-                                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Eşleşen araç bulunamadı.</span>
+                                {selectedVehicle && !isMapFullscreen ? (
+                                    /* Render Sidebar Vehicle Details View */
+                                    <div className="sidebar-vehicle-details-container">
+                                        {/* Render the details inside the sidebar */}
+                                        {renderVehicleDetailsContent(selectedVehicle, () => setSelectedVehicle(null))}
                                     </div>
                                 ) : (
-                                    filteredVehicles.map((v, idx) => {
-                                        const isSelected = selectedVehicle?.plate === v.plate
-                                        
-                                        return (
-                                            <div 
-                                                key={`${v.plate}-${idx}`}
-                                                className={`tracking-list-item ${isSelected ? 'selected' : ''}`}
-                                                onClick={() => handleSelectVehicle(v)}
+                                    /* Render search box and vehicle list */
+                                    <>
+                                        <div className="search-box-container" style={{ position: 'relative' }}>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                placeholder="Plaka veya marka ara..." 
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                style={{ paddingLeft: '38px', height: '38px' }}
+                                            />
+                                            <Search size={16} style={{ position: 'absolute', left: '12px', top: '11px', color: 'var(--text-muted)' }} />
+                                        </div>
+
+                                        {/* Internal filter pill status buttons */}
+                                        <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', paddingBottom: '5px', flexShrink: 0 }}>
+                                            <button 
+                                                style={{ 
+                                                    padding: '4px 10px', 
+                                                    borderRadius: '20px', 
+                                                    fontSize: '11px', 
+                                                    border: '1px solid var(--border-color)',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    background: statusFilter === 'all' ? 'var(--primary-bg)' : 'transparent',
+                                                    color: statusFilter === 'all' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                                onClick={() => setStatusFilter('all')}
                                             >
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontSize: '14px', fontWeight: 700 }}>{v.plate}</span>
-                                                    <span style={{ 
-                                                        width: '8px', 
-                                                        height: '8px', 
-                                                        borderRadius: '50%', 
-                                                        background: v.isOffline ? '#6b7280' : v.ignition ? '#22c55e' : '#ef4444'
-                                                    }}></span>
+                                                Tümü ({vehicles.length})
+                                            </button>
+                                            <button 
+                                                style={{ 
+                                                    padding: '4px 10px', 
+                                                    borderRadius: '20px', 
+                                                    fontSize: '11px', 
+                                                    border: '1px solid var(--border-color)',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    background: statusFilter === 'active' ? 'var(--success-bg)' : 'transparent',
+                                                    color: statusFilter === 'active' ? 'var(--success)' : 'var(--text-secondary)',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                                onClick={() => setStatusFilter('active')}
+                                            >
+                                                Hareketli ({vehicles.filter(v => v.ignition && v.speed > 0).length})
+                                            </button>
+                                            <button 
+                                                style={{ 
+                                                    padding: '4px 10px', 
+                                                    borderRadius: '20px', 
+                                                    fontSize: '11px', 
+                                                    border: '1px solid var(--border-color)',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    background: statusFilter === 'stopped' ? 'var(--danger-bg)' : 'transparent',
+                                                    color: statusFilter === 'stopped' ? 'var(--danger)' : 'var(--text-secondary)',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                                onClick={() => setStatusFilter('stopped')}
+                                            >
+                                                Duruyor ({vehicles.filter(v => !v.ignition).length})
+                                            </button>
+                                        </div>
+
+                                        {/* Vehicle lists */}
+                                        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {loading && vehicles.length === 0 ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px', textAlign: 'center' }}>
+                                                    <Loader2 className="spin" size={24} style={{ color: 'var(--primary)', marginBottom: '8px' }} />
+                                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Araçlar yükleniyor...</span>
                                                 </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>{v.brand} {v.model}</span>
-                                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{v.speed} km/h</span>
+                                            ) : filteredVehicles.length === 0 ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px', textAlign: 'center' }}>
+                                                    <Car size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
+                                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Eşleşen araç bulunamadı.</span>
                                                 </div>
-                                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                                                    <span>Sürücü: {v.driver}</span>
-                                                    {v.isOffline ? (
-                                                        <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                                            <Clock size={10} /> Bağlantı Yok
-                                                        </span>
-                                                    ) : v.ignition ? (
-                                                        <span style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                                            <CheckCircle2 size={10} /> Kontak Açık
-                                                        </span>
-                                                    ) : (
-                                                        <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                                            <XCircle size={10} /> Kontak Kapalı
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )
-                                    })
+                                            ) : (
+                                                filteredVehicles.map((v, idx) => {
+                                                    const isSelected = selectedVehicle?.plate === v.plate
+                                                    
+                                                    return (
+                                                        <div 
+                                                            key={`${v.plate}-${idx}`}
+                                                            className={`tracking-list-item ${isSelected ? 'selected' : ''}`}
+                                                            onClick={() => handleSelectVehicle(v)}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <span style={{ fontSize: '14px', fontWeight: 700 }}>{v.plate}</span>
+                                                                <span style={{ 
+                                                                    width: '8px', 
+                                                                    height: '8px', 
+                                                                    borderRadius: '50%', 
+                                                                    background: v.isOffline ? '#6b7280' : v.ignition ? '#22c55e' : '#ef4444'
+                                                                }}></span>
+                                                            </div>
+                                                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span>{v.brand} {v.model}</span>
+                                                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{v.speed} km/h</span>
+                                                            </div>
+                                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                                                                <span>Sürücü: {v.driver}</span>
+                                                                {v.isOffline ? (
+                                                                    <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                                        <Clock size={10} /> Bağlantı Yok
+                                                                    </span>
+                                                                ) : v.ignition ? (
+                                                                    <span style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                                        <CheckCircle2 size={10} /> Kontak Açık
+                                                                    </span>
+                                                                ) : (
+                                                                    <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                                        <XCircle size={10} /> Kontak Kapalı
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
-                        </div>
-                    )}
+                        )}
 
                         {/* 2. Geçmiş Rota Sidebar'ı */}
                         {activeTab === 'history' && (
@@ -2789,6 +3615,88 @@ export default function ArventoTracking() {
                         }`}>
                             <div ref={mapRef} style={{ width: '100%', height: '100%', zIndex: 1 }} onClick={() => showMapPicker && setShowMapPicker(false)}></div>
 
+                            {/* Floating Map Search Container (Nominatim Geocoder) */}
+                            <div className="map-search-container" onClick={e => e.stopPropagation()}>
+                                <form onSubmit={handleMapSearch} className="map-search-box-form">
+                                    <div className="map-search-input-wrapper">
+                                        <Search size={16} className="search-icon" />
+                                        <input
+                                            type="text"
+                                            placeholder="Adres veya konum ara..."
+                                            value={mapSearchQuery}
+                                            onChange={(e) => {
+                                                setMapSearchQuery(e.target.value);
+                                                if (!e.target.value.trim()) {
+                                                    setMapSearchResults([]);
+                                                }
+                                            }}
+                                            className="map-search-input"
+                                        />
+                                        {mapSearchLoading ? (
+                                            <Loader2 size={16} className="spin search-loading-icon" />
+                                        ) : mapSearchQuery ? (
+                                            <button 
+                                                type="button" 
+                                                className="search-clear-btn" 
+                                                onClick={() => {
+                                                    setMapSearchQuery('');
+                                                    setMapSearchResults([]);
+                                                    setSearchedLocation(null);
+                                                }}
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        ) : null}
+                                    </div>
+                                </form>
+
+                                {/* Search Results Dropdown */}
+                                {mapSearchResults.length > 0 && (
+                                    <div className="map-search-results">
+                                        {mapSearchResults.map((result, idx) => (
+                                            <div 
+                                                key={idx} 
+                                                className="map-search-result-item"
+                                                onClick={() => handleSelectSearchResult(result)}
+                                            >
+                                                <MapPin size={14} className="result-pin-icon" />
+                                                <div className="result-text-wrapper">
+                                                    <div className="result-name">{result.name || result.display_name.split(',')[0]}</div>
+                                                    <div className="result-address">{result.display_name}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Distance analysis info card */}
+                                {searchedLocation && (
+                                    <div className="map-search-distance-card">
+                                        <div className="distance-card-header">
+                                            <span className="distance-card-title">📍 Hedef Konum</span>
+                                            <button 
+                                                className="distance-card-clear" 
+                                                onClick={() => {
+                                                    setSearchedLocation(null);
+                                                                setMapSearchQuery('');
+                                                }}
+                                            >
+                                                Temizle
+                                            </button>
+                                        </div>
+                                        <div className="distance-card-address">{searchedLocation.name}</div>
+                                        
+                                        {selectedVehicle ? (
+                                            renderDistanceDetails()
+                                        ) : (
+                                            <div className="distance-card-no-vehicle">
+                                                💡 Mesafeyi hesaplamak için haritadan veya sol listeden bir araç seçin.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Floating Map Controls (Satellite Mode & Focus Buttons) */}
                             <div className="map-controls-container">
                                 {/* Map Layer Picker Button */}
@@ -3022,297 +3930,47 @@ export default function ArventoTracking() {
                                 </div>
                             )}
 
-                            {/* Detail Drawer overlay - Left Side */}
-                            {activeTab === 'live' && selectedVehicle && (() => {
-                                const currentLocalVeh = localVehicles.find(lv => 
-                                    lv.plate.replace(/[\s-]+/g, '').toUpperCase() === selectedVehicle.plate.replace(/[\s-]+/g, '').toUpperCase()
-                                );
-                                
-                                const statusClass = selectedVehicle.isOffline ? 'status-offline' : selectedVehicle.ignition ? 'status-active' : 'status-stopped';
-                                
-                                return (
-                                    <div className="vehicle-detail-drawer">
-                                        {/* Close Tab on right edge of drawer */}
-                                        <div 
-                                            className="drawer-close-tab"
-                                            onClick={() => setSelectedVehicle(null)}
-                                            title="Paneli Kapat"
-                                        >
-                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            {/* Detail Drawer overlay - Left Side (Only when map is fullscreen) */}
+                            {activeTab === 'live' && selectedVehicle && isMapFullscreen && (
+                                <div className={`vehicle-detail-drawer ${isDrawerCollapsed ? 'collapsed' : ''}`}>
+                                    {/* Expand/Collapse Tab on right edge of drawer */}
+                                    <div 
+                                        className="drawer-close-tab"
+                                        onClick={() => setIsDrawerCollapsed(prev => !prev)}
+                                        title={isDrawerCollapsed ? "Paneli Aç" : "Paneli Kapat"}
+                                    >
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                            {isDrawerCollapsed ? (
+                                                <path d="M4 2L8 6L4 10"/>
+                                            ) : (
                                                 <path d="M8 2L4 6L8 10"/>
-                                            </svg>
-                                        </div>
-
-                                        {/* Header with Status Bar */}
-                                        <div className="drawer-header">
-                                            <div className={`drawer-status-bar ${statusClass}`}></div>
-                                            
-                                            <div className="vehicle-detail-header">
-                                                <div className={`vehicle-detail-avatar ${
-                                                    selectedVehicle.isOffline ? 'state-offline' : selectedVehicle.ignition ? 'state-active' : 'state-stopped'
-                                                }`}>
-                                                    <Car size={22} />
-                                                </div>
-                                                <div className="vehicle-detail-meta">
-                                                    <div className="vehicle-detail-plate">
-                                                        {selectedVehicle.plate}
-                                                    </div>
-                                                    <h3 className="vehicle-detail-brand">
-                                                        {selectedVehicle.brand} {selectedVehicle.model}
-                                                    </h3>
-                                                    <p className="vehicle-detail-driver">
-                                                        <User size={11} /> {selectedVehicle.driver || 'Bilinmiyor'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Status Badge */}
-                                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                                <span className={`badge ${
-                                                    selectedVehicle.isOffline ? 'badge-secondary' : selectedVehicle.ignition ? 'badge-success' : 'badge-danger'
-                                                }`} style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
-                                                    {selectedVehicle.isOffline ? 'Çevrimdışı' : selectedVehicle.ignition ? 'Kontak Açık' : 'Kontak Kapalı'}
-                                                </span>
-                                                {selectedVehicle.speed > 0 && (
-                                                    <span className="badge badge-info" style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
-                                                        {selectedVehicle.speed} km/h
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Scrollable Content */}
-                                        <div className="drawer-content-scroll">
-                                            {/* Live Telemetry Section */}
-                                            <div>
-                                                <div className="drawer-section-title">
-                                                    <Activity size={11} /> CANLI TELEMETRİ
-                                                </div>
-                                                <div className="vehicle-detail-metrics-grid">
-                                                    {/* Hız */}
-                                                    <div className="metric-card-modern">
-                                                        <div className="metric-icon-wrapper speed">
-                                                            <Gauge size={15} />
-                                                        </div>
-                                                        <div className="metric-content">
-                                                            <span className="metric-label">Hız</span>
-                                                            <span className="metric-value">{selectedVehicle.speed} km/h</span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Kontak */}
-                                                    <div className="metric-card-modern">
-                                                        <div className="metric-icon-wrapper ignition" style={{ 
-                                                            color: selectedVehicle.isOffline ? 'var(--text-muted)' : selectedVehicle.ignition ? '#22c55e' : '#ef4444',
-                                                            background: selectedVehicle.isOffline ? 'rgba(107, 114, 128, 0.08)' : selectedVehicle.ignition ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)'
-                                                        }}>
-                                                            <Power size={15} />
-                                                        </div>
-                                                        <div className="metric-content">
-                                                            <span className="metric-label">Kontak</span>
-                                                            <span className="metric-value" style={{ 
-                                                                color: selectedVehicle.isOffline ? 'var(--text-muted)' : selectedVehicle.ignition ? '#22c55e' : '#ef4444'
-                                                            }}>
-                                                                {selectedVehicle.isOffline ? 'Çevrimdışı' : selectedVehicle.ignition ? 'Açık' : 'Kapalı'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-
-                                                    {/* Son Sinyal - full width */}
-                                                    <div className="metric-card-modern" style={{ gridColumn: '1 / -1' }}>
-                                                        <div className="metric-icon-wrapper time">
-                                                            <Clock size={15} />
-                                                        </div>
-                                                        <div className="metric-content">
-                                                            <span className="metric-label">Son Sinyal</span>
-                                                            <span className="metric-value">
-                                                                {selectedVehicle.gpsDate || '--'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* GPS Coordinates Section */}
-                                            {selectedVehicle.lat && selectedVehicle.lng ? (
-                                                <div>
-                                                    <div className="drawer-section-title">
-                                                        <MapPin size={11} /> GPS KOORDİNATLARI
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                                        <span className="coord-badge"
-                                                            onClick={() => {
-                                                                navigator.clipboard?.writeText(`${selectedVehicle.lat.toFixed(6)}, ${selectedVehicle.lng.toFixed(6)}`)
-                                                            }}
-                                                            title="Koordinatları kopyala"
-                                                        >
-                                                            <MapPin size={10} />
-                                                            {selectedVehicle.lat.toFixed(6)}, {selectedVehicle.lng.toFixed(6)}
-                                                        </span>
-                                                        <span className="coord-badge"
-                                                            onClick={() => {
-                                                                if (selectedVehicle.gpsDate) {
-                                                                    navigator.clipboard?.writeText(selectedVehicle.gpsDate)
-                                                                }
-                                                            }}
-                                                            title="Zamanı kopyala"
-                                                        >
-                                                            <Clock size={10} />
-                                                            {selectedVehicle.gpsDate || '--'}
-                                                        </span>
-                                                        <span className="coord-badge-gmaps"
-                                                            onClick={() => {
-                                                                window.electronAPI.openExternal(`https://www.google.com/maps/search/?api=1&query=${selectedVehicle.lat},${selectedVehicle.lng}`)
-                                                            }}
-                                                            title="Google Haritalar'da Aç"
-                                                        >
-                                                            <ExternalLink size={10} /> Google Haritalar
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ) : null}
-
-                                            {/* Database Details Section */}
-                                            <div>
-                                                <div className="drawer-section-title">
-                                                    <Car size={11} /> ARAÇ BİLGİLERİ
-                                                </div>
-                                                <div className="detail-row">
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Kilometre</span>
-                                                        <span className="detail-value">
-                                                            {currentLocalVeh?.km !== undefined && currentLocalVeh?.km !== null 
-                                                                ? `${currentLocalVeh.km.toLocaleString('tr-TR')} km` 
-                                                                : '0 km'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Model Yılı</span>
-                                                        <span className="detail-value">{currentLocalVeh?.year || '—'}</span>
-                                                    </div>
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Renk</span>
-                                                        <span className="detail-value">{currentLocalVeh?.color || '—'}</span>
-                                                    </div>
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Araç Tipi</span>
-                                                        <span className="detail-value">
-                                                            {currentLocalVeh?.type === 'truck' ? 'Kamyon' : 
-                                                             currentLocalVeh?.type === 'car' ? 'Binek Araç' : 
-                                                             currentLocalVeh?.type === 'van' ? 'Minibüs/Panelvan' : 
-                                                             currentLocalVeh?.type || '—'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Record Statistics Section */}
-                                            <div>
-                                                <div className="drawer-section-title">
-                                                    <Activity size={11} /> KAYIT İSTATİSTİKLERİ
-                                                </div>
-                                                <div className="detail-row">
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Muayeneler</span>
-                                                        <span className="detail-value" style={{ color: currentLocalVeh?.inspections_count > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
-                                                            {currentLocalVeh?.inspections_count || 0}
-                                                        </span>
-                                                    </div>
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Bakımlar</span>
-                                                        <span className="detail-value" style={{ color: currentLocalVeh?.maintenances_count > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
-                                                            {currentLocalVeh?.maintenances_count || 0}
-                                                        </span>
-                                                    </div>
-                                                    <div className="detail-item">
-                                                        <span className="detail-label">Servis Kayıtları</span>
-                                                        <span className="detail-value" style={{ color: currentLocalVeh?.services_count > 0 ? 'var(--primary)' : 'var(--text-muted)' }}>
-                                                            {currentLocalVeh?.services_count || 0}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Notes Section */}
-                                            {currentLocalVeh?.notes && (
-                                                <div>
-                                                    <div className="drawer-section-title">
-                                                        <FileText size={11} /> NOT
-                                                    </div>
-                                                    <div className="notes-callout">
-                                                        {currentLocalVeh.notes}
-                                                    </div>
-                                                </div>
                                             )}
-                                        </div>
-
-                                        {/* Action Footer */}
-                                        <div className="drawer-footer">
-                                            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                                                <button 
-                                                    className="btn btn-primary"
-                                                    style={{
-                                                        flex: 1,
-                                                        height: '38px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 700,
-                                                        borderRadius: '8px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: '6px'
-                                                    }}
-                                                    onClick={() => mapInstance.current.setView([selectedVehicle.lat, selectedVehicle.lng], 16)}
-                                                >
-                                                    <MapPin size={13} /> Odaklan
-                                                </button>
-                                                <button 
-                                                    className="btn btn-secondary"
-                                                    style={{
-                                                        flex: 1,
-                                                        height: '38px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 700,
-                                                        borderRadius: '8px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: '6px'
-                                                    }}
-                                                    onClick={() => {
-                                                        setSelectedHistoryVehicles([selectedVehicle.plate])
-                                                        setActiveTab('history')
-                                                        setSelectedVehicle(null)
-                                                    }}
-                                                >
-                                                    <Clock size={13} /> Geçmiş
-                                                </button>
-                                            </div>
-                                            <button 
-                                                className="btn btn-google-maps"
-                                                style={{
-                                                    width: '100%',
-                                                    height: '38px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 700,
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '6px'
-                                                }}
-                                                onClick={() => {
-                                                    window.electronAPI.openExternal(`https://www.google.com/maps/search/?api=1&query=${selectedVehicle.lat},${selectedVehicle.lng}`)
-                                                }}
-                                                title="Google Haritalar'da Aç"
-                                            >
-                                                <ExternalLink size={13} /> Google Haritalar'da Aç
-                                            </button>
-                                        </div>
+                                        </svg>
                                     </div>
-                                );
-                            })()}
+
+                                    {/* Clear selected vehicle (Completely close details) */}
+                                    <button 
+                                        className="panel-close-btn"
+                                        onClick={() => setSelectedVehicle(null)}
+                                        title="Seçimi Temizle"
+                                        style={{
+                                            position: 'absolute',
+                                            top: '12px',
+                                            right: '12px',
+                                            zIndex: 1010,
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: 'var(--text-muted)',
+                                            cursor: 'pointer',
+                                            fontSize: '16px'
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+
+                                    {renderVehicleDetailsContent(selectedVehicle)}
+                                </div>
+                            )}
 
                             {/* Floating draggable/minimizable Area Analysis modal */}
                             {showAreaQueryModal && (
