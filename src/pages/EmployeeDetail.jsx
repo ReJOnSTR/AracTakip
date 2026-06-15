@@ -466,18 +466,7 @@ export default function EmployeeDetail() {
             setFormData({ overtimeType: 'weekday', date: today(), hours: '', rate, amount: '', notes: '' })
         } else if (type === 'leave') {
             const defaultType = leaveTypes[0]?.value || 'annual';
-            const lower = defaultType.toLowerCase();
-            let autoDays = 1;
-            if (lower.includes('evlilik')) autoDays = 3;
-            else if (lower.includes('ölüm')) autoDays = 3;
-            else if (lower.includes('babalık')) autoDays = 5;
-            else if (lower.includes('engelli')) autoDays = 10;
-            else if (lower.includes('yıllık')) {
-                const start = employee.start_date ? new Date(employee.start_date) : null;
-                const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
-                autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
-            }
-
+            const autoDays = 1;
             const startDt = today();
             const endDt = new Date(startDt);
             endDt.setDate(endDt.getDate() + autoDays - 1);
@@ -598,29 +587,13 @@ export default function EmployeeDetail() {
             setFormData(prev => {
                 let newData = { ...prev, [key]: value }
 
-                // Auto-set days based on type
                 if (key === 'type') {
-                    const lower = value.toLowerCase()
-                    let autoDays = 0
-                    if (lower.includes('evlilik')) autoDays = 3
-                    else if (lower.includes('ölüm')) autoDays = 3
-                    else if (lower.includes('babalık')) autoDays = 5
-                    else if (lower.includes('engelli')) autoDays = 10
-                    else if (lower.includes('yıllık')) {
-                        const start = employee.start_date ? new Date(employee.start_date) : null
-                        const years = start ? Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25)) : 0
-                        autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26)
-                    } else {
-                        autoDays = 1
-                    }
-
-                    if (autoDays > 0) {
-                        newData.days = autoDays
-                        if (newData.startDate) {
-                            const start = new Date(newData.startDate)
-                            start.setDate(start.getDate() + autoDays - 1)
-                            newData.endDate = formatDateForInput(start)
-                        }
+                    const autoDays = newData.days || 1;
+                    newData.days = autoDays;
+                    if (newData.startDate) {
+                        const start = new Date(newData.startDate)
+                        start.setDate(start.getDate() + autoDays - 1)
+                        newData.endDate = formatDateForInput(start)
                     }
                 }
 

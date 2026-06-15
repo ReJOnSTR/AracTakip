@@ -4,6 +4,8 @@ const path = require('path');
 const log = require('./logger'); // Use the app's existing logger
 const jwt = require('jsonwebtoken');
 const authService = require('./services/auth.service');
+const db = require('./prismaService');
+const { createMobileRoutes } = require('./mobileApi');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'dev-admin-secret-key-12345';
 
@@ -203,6 +205,15 @@ function startAdminServer(prisma) {
         }
     });
 
+    // ============ MOBILE API ROUTES ============
+    // Domain-specific REST endpoints for the Kontrol mobile app
+    app.use('/api/mobile', (req, res, next) => {
+        // JWT auth is already handled above for /api/*
+        // Attach user info to request
+        next();
+    });
+    app.use('/api/mobile', createMobileRoutes(db));
+
     // Additional CRUD can be added here (Update, Create).
     // API: Update Record
     app.put('/api/data/:table/:id', async (req, res) => {
@@ -243,8 +254,8 @@ function startAdminServer(prisma) {
     });
 
     const PORT = 9999;
-    serverInstance = app.listen(PORT, 'localhost', () => {
-        log.info(`🛠️  Developer Database Admin Panel is running on http://localhost:${PORT}`);
+    serverInstance = app.listen(PORT, '0.0.0.0', () => {
+        log.info(`🛠️  API Server running on http://0.0.0.0:${PORT} (Mobile + Admin)`);
     });
 }
 

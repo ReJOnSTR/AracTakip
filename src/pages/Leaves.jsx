@@ -329,12 +329,7 @@ export default function Leaves() {
         
         const newQueue = formData.employeeIds.map(id => {
             const emp = employees.find(e => e.id === id);
-            let autoDays = 14;
-            if (emp && emp.start_date) {
-                const start = new Date(emp.start_date);
-                const years = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25));
-                autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
-            }
+            const autoDays = 1;
             const sDate = today();
             const s = new Date(sDate);
             s.setDate(s.getDate() + autoDays - 1);
@@ -363,23 +358,7 @@ export default function Leaves() {
             let newItem = { ...item, [key]: value };
 
             if (key === 'type') {
-                const lower = value.toLowerCase();
-                let autoDays = 0;
-                if (lower.includes('evlilik')) autoDays = 3;
-                else if (lower.includes('ölüm')) autoDays = 3;
-                else if (lower.includes('babalık')) autoDays = 5;
-                else if (lower.includes('engelli')) autoDays = 10;
-                else if (lower.includes('yıllık')) {
-                    const emp = employees.find(e => e.id === item.employeeId);
-                    if (emp && emp.start_date) {
-                        const start = new Date(emp.start_date);
-                        const years = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25));
-                        autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
-                    }
-                } else {
-                    autoDays = 1;
-                }
-
+                const autoDays = newItem.days || 1;
                 newItem.days = autoDays;
                 if (newItem.startDate) {
                     const start = new Date(newItem.startDate);
@@ -425,21 +404,6 @@ export default function Leaves() {
                 status: current.status,
                 notes: current.notes
             };
-
-            if (current.type.toLowerCase().includes('yıllık')) {
-                const emp = employees.find(e => e.id === item.employeeId);
-                if (emp && emp.start_date) {
-                    const start = new Date(emp.start_date);
-                    const years = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24 * 365.25));
-                    const autoDays = years < 5 ? 14 : (years < 15 ? 20 : 26);
-                    newItem.days = autoDays;
-                    if (newItem.startDate) {
-                        const s = new Date(newItem.startDate);
-                        s.setDate(s.getDate() + autoDays - 1);
-                        newItem.endDate = formatDateForInput(s);
-                    }
-                }
-            }
 
             return newItem;
         }));

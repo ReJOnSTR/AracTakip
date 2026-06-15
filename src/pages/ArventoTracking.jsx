@@ -327,7 +327,6 @@ export default function ArventoTracking() {
     const [isDrawingAreaMode, setIsDrawingAreaMode] = useState(false)
     const [areaBounds, setAreaBounds] = useState(null)
     const [showAreaQueryModal, setShowAreaQueryModal] = useState(false)
-    const [areaQueryModalPosition, setAreaQueryModalPosition] = useState({ x: 20, y: 20 })
     const [areaQueryModalMinimized, setAreaQueryModalMinimized] = useState(false)
     const [areaStartDate, setAreaStartDate] = useState(new Date().toISOString().split('T')[0])
     const [areaEndDate, setAreaEndDate] = useState(new Date().toISOString().split('T')[0])
@@ -365,36 +364,7 @@ export default function ArventoTracking() {
     const [mapReady, setMapReady] = useState(false)
     const isMapTab = activeTab === 'live' || activeTab === 'history'
 
-    // Dragging helper for floating Area analysis window
-    const draggingRef = useRef(false)
-    const dragStartOffset = useRef({ x: 0, y: 0 })
 
-    const handleDragStart = (e) => {
-        if (e.button !== 0) return // left click only
-        e.preventDefault()
-        draggingRef.current = true
-        dragStartOffset.current = {
-            x: e.clientX - areaQueryModalPosition.x,
-            y: e.clientY - areaQueryModalPosition.y
-        }
-
-        const handleDragMove = (moveEvent) => {
-            if (!draggingRef.current) return
-            setAreaQueryModalPosition({
-                x: moveEvent.clientX - dragStartOffset.current.x,
-                y: moveEvent.clientY - dragStartOffset.current.y
-            })
-        }
-
-        const handleDragEnd = () => {
-            draggingRef.current = false
-            window.removeEventListener('mousemove', handleDragMove)
-            window.removeEventListener('mouseup', handleDragEnd)
-        }
-
-        window.addEventListener('mousemove', handleDragMove)
-        window.addEventListener('mouseup', handleDragEnd)
-    }
 
     const filteredAreaResults = useMemo(() => {
         const query = areaSearchQuery.toLowerCase().trim()
@@ -3972,19 +3942,11 @@ export default function ArventoTracking() {
                                 </div>
                             )}
 
-                            {/* Floating draggable/minimizable Area Analysis modal */}
+                            {/* Centered/fixed Area Analysis modal */}
                             {showAreaQueryModal && (
-                                <div 
-                                    className="floating-area-modal" 
-                                    style={{
-                                        transform: `translate(${areaQueryModalPosition.x}px, ${areaQueryModalPosition.y}px)`
-                                    }}
-                                >
+                                <div className="floating-area-modal">
                                     {/* Modal Header */}
-                                    <div 
-                                        className="floating-area-modal-header"
-                                        onMouseDown={handleDragStart}
-                                    >
+                                    <div className="floating-area-modal-header">
                                         <div className="floating-area-modal-title">
                                             <Square size={13} style={{ fill: 'none', stroke: 'currentColor', strokeWidth: 2 }} />
                                             <span>Bölge Analizi Sonuçları</span>
