@@ -246,7 +246,7 @@ async function runAutoMigrations() {
         log.error('Migration step 11b (signature/stamp columns) error:', error.message);
     }
 
-    // 11c. Documents: doc_type, category (for existing DBs)
+    // 11c. Documents: doc_type, category, folder, start_date, end_date (for existing DBs)
     try {
         const dCols = await p.$queryRawUnsafe("PRAGMA table_info('documents')");
         if (dCols.length > 0) {
@@ -261,6 +261,14 @@ async function runAutoMigrations() {
             if (!dCols.some(c => c.name === 'folder')) {
                 await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN folder TEXT');
                 log.info('Migration: Added folder to documents');
+            }
+            if (!dCols.some(c => c.name === 'start_date')) {
+                await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN start_date DATETIME');
+                log.info('Migration: Added start_date to documents');
+            }
+            if (!dCols.some(c => c.name === 'end_date')) {
+                await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN end_date DATETIME');
+                log.info('Migration: Added end_date to documents');
             }
         }
     } catch (error) {
