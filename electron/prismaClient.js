@@ -62,13 +62,52 @@ async function runAutoMigrations() {
         const pragma = sqliteDb.pragma("table_info('documents')");
         const columnNames = pragma.map(col => col.name.toLowerCase());
         
-        if (!columnNames.includes('start_date')) {
-            sqliteDb.prepare('ALTER TABLE documents ADD COLUMN start_date DATETIME').run();
-            log.info('Native Migration: Added start_date to documents');
-        }
-        if (!columnNames.includes('end_date')) {
-            sqliteDb.prepare('ALTER TABLE documents ADD COLUMN end_date DATETIME').run();
-            log.info('Native Migration: Added end_date to documents');
+        // 1. Check if vehicle_id has a NOT NULL constraint and recreate table to make it nullable if so
+        const vehicleIdCol = pragma.find(col => col.name.toLowerCase() === 'vehicle_id');
+        if (vehicleIdCol && vehicleIdCol.notnull === 1) {
+            log.info('Native Migration: vehicle_id in documents is NOT NULL. Re-creating table to make it nullable...');
+            
+            sqliteDb.prepare('PRAGMA foreign_keys = OFF').run();
+            sqliteDb.prepare('DROP TABLE IF EXISTS documents_old').run();
+            sqliteDb.prepare('ALTER TABLE documents RENAME TO documents_old').run();
+            
+            sqliteDb.prepare(`
+                CREATE TABLE "documents" (
+                    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "vehicle_id" INTEGER,
+                    "related_type" TEXT,
+                    "related_id" INTEGER,
+                    "file_name" TEXT NOT NULL,
+                    "file_path" TEXT NOT NULL,
+                    "file_type" TEXT,
+                    "doc_type" TEXT,
+                    "category" TEXT,
+                    "folder" TEXT,
+                    "start_date" DATETIME,
+                    "end_date" DATETIME,
+                    "is_archived" INTEGER DEFAULT 0,
+                    "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT "documents_vehicle_id_fkey" FOREIGN KEY ("vehicle_id") REFERENCES "vehicles" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+                )
+            `).run();
+            
+            // Map column names to copy
+            const oldColNames = pragma.map(c => `"${c.name}"`).join(', ');
+            sqliteDb.prepare(`INSERT INTO documents (${oldColNames}) SELECT ${oldColNames} FROM documents_old`).run();
+            sqliteDb.prepare('DROP TABLE IF EXISTS documents_old').run();
+            sqliteDb.prepare('PRAGMA foreign_keys = ON').run();
+            
+            log.info('Native Migration: Successfully made vehicle_id in documents nullable!');
+        } else {
+            // 2. Normal alter table checks if not recreating
+            if (!columnNames.includes('start_date')) {
+                sqliteDb.prepare('ALTER TABLE documents ADD COLUMN start_date DATETIME').run();
+                log.info('Native Migration: Added start_date to documents');
+            }
+            if (!columnNames.includes('end_date')) {
+                sqliteDb.prepare('ALTER TABLE documents ADD COLUMN end_date DATETIME').run();
+                log.info('Native Migration: Added end_date to documents');
+            }
         }
         
         sqliteDb.close();
