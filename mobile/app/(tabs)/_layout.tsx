@@ -17,8 +17,8 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Set the tab bar to 70% of the screen width for a clean, narrow pill look
-  const tabWidth = width * 0.70;
+  // Set the tab bar to 82% of the screen width for a clean, 5-tab pill look
+  const tabWidth = width * 0.82;
   const plusButtonWidth = 54;
   const gap = 10;
   
@@ -162,6 +162,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
               else if (route.name === 'vehicles') iconName = isFocused ? 'car' : 'car-outline';
               else if (route.name === 'employees') iconName = isFocused ? 'people' : 'people-outline';
               else if (route.name === 'more') iconName = isFocused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline';
+              else if (route.name === 'profile') iconName = isFocused ? 'person' : 'person-outline';
 
               return (
                 <Pressable
@@ -263,6 +264,12 @@ export default function TabLayout() {
         name="more"
         options={{
           title: 'Diğer',
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
         }}
       />
       <Tabs.Screen
