@@ -20,6 +20,7 @@ import { formatCurrency } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassDropdown from '../../components/ui/GlassDropdown';
 
 export default function FinanceScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -259,9 +260,6 @@ export default function FinanceScreen() {
           </View>
         }
       />
-
-
-
       {/* Add Transaction Modal */}
       <Portal>
         <Modal
@@ -275,7 +273,7 @@ export default function FinanceScreen() {
             <View style={styles.typeSelector}>
               <Button
                 mode={txType === 'expense' ? 'contained' : 'outlined'}
-                onPress={() => setTxType('expense')}
+                onPress={() => { setTxType('expense'); setCategory(''); }}
                 style={styles.typeButton}
                 buttonColor={txType === 'expense' ? c.error : undefined}
                 textColor={txType === 'expense' ? '#ffffff' : c.error}
@@ -284,7 +282,7 @@ export default function FinanceScreen() {
               </Button>
               <Button
                 mode={txType === 'income' ? 'contained' : 'outlined'}
-                onPress={() => setTxType('income')}
+                onPress={() => { setTxType('income'); setCategory(''); }}
                 style={styles.typeButton}
                 buttonColor={txType === 'income' ? c.success : undefined}
                 textColor={txType === 'income' ? '#ffffff' : c.success}
@@ -308,11 +306,27 @@ export default function FinanceScreen() {
               placeholder="0.00"
             />
 
-            <GlassInput
+            <GlassDropdown
               label="Kategori"
               value={category}
-              onChangeText={setCategory}
-              placeholder="örn: Yakıt, Maaş, Kira"
+              options={txType === 'expense' ? [
+                { label: 'Yakıt', value: 'Yakıt' },
+                { label: 'Maaş', value: 'Maaş' },
+                { label: 'Kira', value: 'Kira' },
+                { label: 'Bakım/Onarım', value: 'Bakım/Onarım' },
+                { label: 'Vergi/Harç', value: 'Vergi/Harç' },
+                { label: 'Fatura', value: 'Fatura' },
+                { label: 'Sigorta', value: 'Sigorta' },
+                { label: 'Muayene', value: 'Muayene' },
+                { label: 'Diğer', value: 'Diğer' },
+              ] : [
+                { label: 'Hakediş', value: 'Hakediş' },
+                { label: 'Satış', value: 'Satış' },
+                { label: 'Faiz', value: 'Faiz' },
+                { label: 'Diğer', value: 'Diğer' },
+              ]}
+              onSelect={setCategory}
+              placeholder="Kategori Seçiniz"
             />
 
             <GlassInput
@@ -330,7 +344,7 @@ export default function FinanceScreen() {
                 mode="contained"
                 onPress={handleCreate}
                 loading={createMutation.isPending}
-                disabled={createMutation.isPending || !amount || !description}
+                disabled={createMutation.isPending || !amount || !description || !category}
                 buttonColor={c.primary}
                 textColor="#ffffff"
               >
@@ -396,9 +410,20 @@ const styles = StyleSheet.create({
   amount: { fontSize: 16, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
-
-  modalContent: { padding: 12, margin: 12 },
-  modalGlassCard: { padding: 0, borderRadius: 16 },
+  
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   typeSelector: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   typeButton: { flex: 1 },

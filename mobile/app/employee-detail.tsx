@@ -19,6 +19,52 @@ import { formatCurrency } from '../utils/format';
 import MovingBackground from '../components/ui/MovingBackground';
 import GlassCard from '../components/ui/GlassCard';
 import GlassInput from '../components/ui/GlassInput';
+import GlassDropdown from '../components/ui/GlassDropdown';
+
+const paymentTypes = [
+  { label: 'Maaş', value: 'salary' },
+  { label: 'Prim', value: 'bonus' },
+  { label: 'Avans', value: 'advance' },
+  { label: 'Borç Alma', value: 'loan' },
+  { label: 'Borç Ödeme', value: 'loan_payment' },
+  { label: 'Mesai Ücreti', value: 'overtime_pay' },
+  { label: 'Harcırah', value: 'expense' },
+  { label: 'Devir Bakiyesi', value: 'carryover' },
+  { label: 'Diğer', value: 'other' }
+];
+
+const paymentMethods = [
+  { label: 'Nakit', value: 'nakit' },
+  { label: 'Kasa', value: 'kasa' },
+  { label: 'Banka', value: 'bank' },
+  { label: 'Maaştan Düşme', value: 'salary_deduction' }
+];
+
+const paymentStatuses = [
+  { label: 'Ödendi', value: 'paid' },
+  { label: 'Bekliyor', value: 'pending' }
+];
+
+const leaveTypes = [
+  { label: 'Yıllık İzin', value: 'Yıllık İzin' },
+  { label: 'Rapor', value: 'Rapor' },
+  { label: 'Ücretsiz İzin', value: 'Ücretsiz İzin' },
+  { label: 'Evlilik İzni', value: 'Evlilik İzni' },
+  { label: 'Babalık İzni', value: 'Babalık İzni' },
+  { label: 'Ölüm İzni', value: 'Ölüm İzni' },
+  { label: 'Diğer', value: 'Diğer' }
+];
+
+const leaveStatuses = [
+  { label: 'Onaylandı', value: 'approved' },
+  { label: 'Bekliyor', value: 'pending' }
+];
+
+const overtimeRates = [
+  { label: '1.5 (Hafta İçi)', value: '1.5' },
+  { label: '2.0 (Pazar / Tatil)', value: '2.0' },
+  { label: '3.0 (Resmi Bayram)', value: '3.0' }
+];
 
 type TabValue = 'details' | 'salaries' | 'leaves' | 'overtimes' | 'documents';
 
@@ -78,14 +124,15 @@ export default function EmployeeDetailScreen() {
   const [activeModal, setActiveModal] = useState<'salary' | 'leave' | 'overtime' | null>(null);
 
   // Common/Salary fields
-  const [period, setPeriod] = useState(new Date().toISOString().split('T')[0].substring(0, 7)); // YYYY-MM
+  const [paymentType, setPaymentType] = useState('salary');
+  const [salaryMonth, setSalaryMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7)); // YYYY-MM
   const [baseSalary, setBaseSalary] = useState('');
   const [bonus, setBonus] = useState('');
   const [deduction, setDeduction] = useState('');
   const [netSalary, setNetSalary] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
-  const [salaryStatus, setSalaryStatus] = useState('Ödendi');
-  const [paymentMethod, setPaymentMethod] = useState('banka');
+  const [salaryStatus, setSalaryStatus] = useState('paid');
+  const [paymentMethod, setPaymentMethod] = useState('nakit');
   const [notes, setNotes] = useState('');
 
   // Leave fields
@@ -103,14 +150,15 @@ export default function EmployeeDetailScreen() {
   const [overtimeNotes, setOvertimeNotes] = useState('');
 
   const resetForm = () => {
-    setPeriod(new Date().toISOString().split('T')[0].substring(0, 7));
+    setPaymentType('salary');
+    setSalaryMonth(new Date().toISOString().split('T')[0].substring(0, 7));
     setBaseSalary('');
     setBonus('');
     setDeduction('');
     setNetSalary('');
     setPaymentDate(new Date().toISOString().split('T')[0]);
-    setSalaryStatus('Ödendi');
-    setPaymentMethod('banka');
+    setSalaryStatus('paid');
+    setPaymentMethod('nakit');
     setNotes('');
     setLeaveType('Yıllık İzin');
     setStartDate(new Date().toISOString().split('T')[0]);
@@ -157,13 +205,13 @@ export default function EmployeeDetailScreen() {
   const handleCreateSalary = () => {
     createSalaryMutation.mutate({
       employeeId: empId,
-      period,
+      period: paymentType,
       baseSalary: baseSalary ? parseFloat(baseSalary) : 0,
       bonus: bonus ? parseFloat(bonus) : 0,
       deduction: deduction ? parseFloat(deduction) : 0,
       netSalary: netSalary ? parseFloat(netSalary) : 0,
       paymentDate: paymentDate || undefined,
-      salaryMonth: period,
+      salaryMonth: salaryMonth,
       status: salaryStatus,
       paymentMethod,
       notes,
@@ -513,10 +561,17 @@ export default function EmployeeDetailScreen() {
           <GlassCard intensity={85} style={styles.modalGlassCard}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Maaş Ödemesi</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+              <GlassDropdown
+                label="Ödeme Türü"
+                value={paymentType}
+                options={paymentTypes}
+                onSelect={setPaymentType}
+                placeholder="Seçiniz..."
+              />
               <GlassInput
-                label="Dönem (YYYY-MM)"
-                value={period}
-                onChangeText={setPeriod}
+                label="Ait Olduğu Ay (YYYY-MM)"
+                value={salaryMonth}
+                onChangeText={setSalaryMonth}
                 placeholder="örn: 2026-06"
               />
               <GlassInput
@@ -553,17 +608,19 @@ export default function EmployeeDetailScreen() {
                 onChangeText={setPaymentDate}
                 placeholder="YYYY-MM-DD"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Durum"
                 value={salaryStatus}
-                onChangeText={setSalaryStatus}
-                placeholder="Ödendi / Ödenmedi"
+                options={paymentStatuses}
+                onSelect={setSalaryStatus}
+                placeholder="Seçiniz..."
               />
-              <GlassInput
-                label="Ödeme Yöntemi"
+              <GlassDropdown
+                label="Ödeme Kanalı"
                 value={paymentMethod}
-                onChangeText={setPaymentMethod}
-                placeholder="banka / nakit / kasa"
+                options={paymentMethods}
+                onSelect={setPaymentMethod}
+                placeholder="Seçiniz..."
               />
               <GlassInput
                 label="Notlar"
@@ -581,7 +638,7 @@ export default function EmployeeDetailScreen() {
                 mode="contained"
                 onPress={handleCreateSalary}
                 loading={createSalaryMutation.isPending}
-                disabled={createSalaryMutation.isPending || !period || !netSalary}
+                disabled={createSalaryMutation.isPending || !salaryMonth || !netSalary}
                 buttonColor={c.primary}
                 textColor="#ffffff"
               >
@@ -602,11 +659,12 @@ export default function EmployeeDetailScreen() {
           <GlassCard intensity={85} style={styles.modalGlassCard}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İzin Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
+              <GlassDropdown
                 label="İzin Türü"
                 value={leaveType}
-                onChangeText={setLeaveType}
-                placeholder="örn: Yıllık İzin, Rapor, Ücretsiz İzin"
+                options={leaveTypes}
+                onSelect={setLeaveType}
+                placeholder="Seçiniz..."
               />
               <GlassInput
                 label="Başlangıç Tarihi"
@@ -627,11 +685,12 @@ export default function EmployeeDetailScreen() {
                 keyboardType="numeric"
                 placeholder="örn: 1"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Durum"
                 value={leaveStatus}
-                onChangeText={setLeaveStatus}
-                placeholder="approved / pending"
+                options={leaveStatuses}
+                onSelect={setLeaveStatus}
+                placeholder="Seçiniz..."
               />
               <GlassInput
                 label="Notlar"
@@ -683,12 +742,12 @@ export default function EmployeeDetailScreen() {
                 keyboardType="numeric"
                 placeholder="örn: 4"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Saat Oranı"
                 value={overtimeRate}
-                onChangeText={setOvertimeRate}
-                keyboardType="numeric"
-                placeholder="1.5 veya 2.0"
+                options={overtimeRates}
+                onSelect={setOvertimeRate}
+                placeholder="Seçiniz..."
               />
               <GlassInput
                 label="Toplam Ödeme (₺)"
@@ -762,8 +821,19 @@ const styles = StyleSheet.create({
   subCardDate: { fontSize: 12 },
   subCardDesc: { fontSize: 13, marginBottom: 4 },
   addTabBtn: { marginBottom: 12, borderRadius: 12 },
-  modalContent: { padding: 12, margin: 12 },
-  modalGlassCard: { padding: 16, borderRadius: 16 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });

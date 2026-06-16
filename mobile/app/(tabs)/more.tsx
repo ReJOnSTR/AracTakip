@@ -98,6 +98,14 @@ export default function MoreScreen() {
         {/* Modules Section */}
         <Text style={[styles.sectionTitle, { color: c.textTertiary }]}>Modüller</Text>
         <GlassCard intensity={30} style={styles.menuCardGlass}>
+          <Pressable style={styles.menuItem} android_ripple={{ color: c.surfaceVariant }} onPress={() => router.push('/finance')}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="wallet-outline" size={22} color={c.primary} />
+              <Text style={[styles.menuItemText, { color: c.text }]}>Finans</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={c.textTertiary} />
+          </Pressable>
+          <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
           <Pressable style={styles.menuItem} android_ripple={{ color: c.surfaceVariant }} onPress={() => router.push('/works')}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="briefcase-outline" size={22} color={c.primary} />
@@ -242,11 +250,21 @@ const styles = StyleSheet.create({
   actionRow: { marginTop: 10, marginBottom: 20 },
   logoutBtn: { borderRadius: 12, borderWidth: 1 },
   versionText: { textAlign: 'center', fontSize: 12, marginTop: 10 },
-  modalContent: { padding: 12, margin: 12 },
-  modalGlassCard: { padding: 16, borderRadius: 16 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalScroll: { maxHeight: 300 },
   companyOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderRadius: 10, marginVertical: 4 },
   companyOptionText: { fontSize: 14, fontWeight: '600' },
 });
-

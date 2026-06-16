@@ -21,6 +21,7 @@ import { getStatusLabel } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassDropdown from '../../components/ui/GlassDropdown';
 
 export default function EmployeesScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -47,6 +48,7 @@ export default function EmployeesScreen() {
   const [iban, setIban] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState('active');
 
   useEffect(() => {
     if (params.openAdd === 'true') {
@@ -72,6 +74,7 @@ export default function EmployeesScreen() {
       setIban('');
       setStartDate(new Date().toISOString().split('T')[0]);
       setNotes('');
+      setStatus('active');
     },
   });
 
@@ -90,6 +93,7 @@ export default function EmployeesScreen() {
       iban,
       startDate,
       notes,
+      status,
     });
   };
 
@@ -312,11 +316,20 @@ export default function EmployeesScreen() {
                 placeholder="örn: Şoför, Muhasebeci"
               />
 
-              <GlassInput
+              <GlassDropdown
                 label="Departman"
                 value={department}
-                onChangeText={setDepartment}
-                placeholder="örn: Lojistik, İdari İşler"
+                options={[
+                  { label: 'Lojistik', value: 'Lojistik' },
+                  { label: 'Muhasebe', value: 'Muhasebe' },
+                  { label: 'İdari İşler', value: 'İdari İşler' },
+                  { label: 'Satış', value: 'Satış' },
+                  { label: 'Teknik Servis', value: 'Teknik Servis' },
+                  { label: 'Bilgi İşlem', value: 'Bilgi İşlem' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                onSelect={setDepartment}
+                placeholder="Departman Seçiniz"
               />
 
               <GlassInput
@@ -340,6 +353,17 @@ export default function EmployeesScreen() {
                 value={startDate}
                 onChangeText={setStartDate}
                 placeholder="YYYY-MM-DD"
+              />
+
+              <GlassDropdown
+                label="Durum"
+                value={status}
+                options={[
+                  { label: 'Aktif', value: 'active' },
+                  { label: 'Pasif', value: 'passive' },
+                ]}
+                onSelect={setStatus}
+                placeholder="Durum Seçiniz"
               />
 
               <GlassInput
@@ -441,8 +465,19 @@ const styles = StyleSheet.create({
   phone: { fontSize: 11 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
-  modalContent: { padding: 12, margin: 12 },
-  modalGlassCard: { padding: 16, borderRadius: 16 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });

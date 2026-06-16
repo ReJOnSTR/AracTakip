@@ -21,6 +21,7 @@ import { getStatusLabel, getStatusColor } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassDropdown from '../../components/ui/GlassDropdown';
 
 export default function VehiclesScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -275,11 +276,19 @@ export default function VehiclesScreen() {
                 autoCapitalize="characters"
               />
 
-              <GlassInput
+              <GlassDropdown
                 label="Araç Türü"
                 value={type}
-                onChangeText={setType}
-                placeholder="örn: Otomobil, Çekici, Dorse"
+                options={[
+                  { label: 'Otomobil', value: 'Otomobil' },
+                  { label: 'Çekici', value: 'Çekici' },
+                  { label: 'Dorse', value: 'Dorse' },
+                  { label: 'Kamyon', value: 'Kamyon' },
+                  { label: 'İş Makinesi', value: 'İş Makinesi' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                onSelect={setType}
+                placeholder="Araç Türü Seçiniz"
               />
 
               <GlassInput
@@ -317,6 +326,19 @@ export default function VehiclesScreen() {
                 value={color}
                 onChangeText={setColor}
                 placeholder="örn: Beyaz, Siyah"
+              />
+
+              <GlassDropdown
+                label="Durum"
+                value={status}
+                options={[
+                  { label: 'Aktif', value: 'active' },
+                  { label: 'Bakımda', value: 'maintenance' },
+                  { label: 'Pasif', value: 'passive' },
+                  { label: 'Satıldı', value: 'sold' },
+                ]}
+                onSelect={setStatus}
+                placeholder="Durum Seçiniz"
               />
 
               <GlassInput
@@ -413,8 +435,19 @@ const styles = StyleSheet.create({
   typeText: { fontSize: 11 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
-  modalContent: { padding: 12, margin: 12 },
-  modalGlassCard: { padding: 16, borderRadius: 16 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });

@@ -6,27 +6,43 @@ import {
   RefreshControl,
   useColorScheme,
   Pressable,
+  ScrollView,
 } from 'react-native';
-import { Text, ActivityIndicator, IconButton, Searchbar } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, Searchbar, Portal, Modal, Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
-import { workService } from '../services/dataServices';
+import { workService, customerService } from '../services/dataServices';
+import { useAuthStore } from '../stores/authStore';
 import MovingBackground from '../components/ui/MovingBackground';
 import GlassCard from '../components/ui/GlassCard';
+import GlassInput from '../components/ui/GlassInput';
+import GlassDropdown from '../components/ui/GlassDropdown';
 
 export default function WorksScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
 
-  // We can import useAuthStore here
-  const { selectedCompanyId: storeCompanyId } = require('../stores/authStore').useAuthStore();
+  // Form State
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [title, setTitle] = useState('');
+  const [customerId, setCustomerId] = useState('');
+  const [status, setStatus] = useState('pending');
+  const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
+  const [workStartTime, setWorkStartTime] = useState('08:00');
+  const [workEndTime, setWorkEndTime] = useState('17:00');
+  const [pazarMultiplier, setPazarMultiplier] = useState('1.5');
+  const [mesaiMultiplier, setMesaiMultiplier] = useState('1.5');
+
+  const { selectedCompanyId: storeCompanyId } = useAuthStore();
 
   const query = useQuery({
     queryKey: ['works', storeCompanyId],
@@ -34,7 +50,54 @@ export default function WorksScreen() {
     enabled: !!storeCompanyId,
   });
 
+  const customersQuery = useQuery({
+    queryKey: ['customers', storeCompanyId],
+    queryFn: () => customerService.getAll(storeCompanyId!),
+    enabled: !!storeCompanyId,
+  });
+
   const works = query.data?.data || [];
+  const customers = customersQuery.data?.data || [];
+  const customerOptions = customers.map((cust: any) => ({
+    label: cust.name,
+    value: cust.id.toString(),
+  }));
+
+  const createMutation = useMutation({
+    mutationFn: (newWork: any) => workService.create(newWork),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['works', storeCompanyId] });
+      setIsModalVisible(false);
+      // Reset form
+      setTitle('');
+      setCustomerId('');
+      setStatus('pending');
+      setLocation('');
+      setDescription('');
+      setWorkStartTime('08:00');
+      setWorkEndTime('17:00');
+      setPazarMultiplier('1.5');
+      setMesaiMultiplier('1.5');
+    },
+  });
+
+  const handleCreate = () => {
+    if (!title || !customerId) return;
+    const selectedCustomer = customers.find((cust: any) => cust.id.toString() === customerId);
+    createMutation.mutate({
+      companyId: storeCompanyId,
+      title,
+      customerId: parseInt(customerId),
+      customer: selectedCustomer?.name || '',
+      status,
+      location,
+      description,
+      work_start_time: workStartTime,
+      work_end_time: workEndTime,
+      pazar_multiplier: parseFloat(pazarMultiplier) || 1.5,
+      mesai_multiplier: parseFloat(mesaiMultiplier) || 1.5,
+    });
+  };
 
   const filtered = works.filter((item: any) => {
     return !search ||
@@ -54,7 +117,7 @@ export default function WorksScreen() {
       <View style={[styles.nav, { paddingTop: insets.top }]}>
         <IconButton icon="arrow-left" size={24} iconColor={c.text} onPress={() => router.back()} />
         <Text style={[styles.navTitle, { color: c.text }]}>İşler (Works)</Text>
-        <View style={{ width: 48 }} />
+        <IconButton icon="plus" size={24} iconColor={c.text} onPress={() => setIsModalVisible(true)} />
       </View>
 
       {/* Searchbar */}
@@ -116,6 +179,100 @@ export default function WorksScreen() {
           }
         />
       )}
+
+      {/* Add Work Modal */}
+      <Portal>
+        <Modal
+          visible={isModalVisible}
+          onDismiss={() => setIsModalVisible(false)}
+          contentContainerStyle={styles.modalContent}
+        >
+          <GlassCard intensity={85} style={styles.modalGlassCard}>
+            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İş Ekle</Text>
+            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+              <GlassInput
+                label="İş Başlığı"
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Örn: Vinç Kiralama"
+              />
+              <GlassDropdown
+                label="Müşteri / Cari"
+                value={customerId}
+                options={customerOptions}
+                onSelect={setCustomerId}
+                placeholder="Müşteri seçin..."
+              />
+              <GlassDropdown
+                label="Durum"
+                value={status}
+                options={[
+                  { label: 'Bekliyor', value: 'pending' },
+                  { label: 'Devam Ediyor', value: 'in_progress' },
+                  { label: 'Tamamlandı', value: 'completed' },
+                  { label: 'İptal Edildi', value: 'cancelled' },
+                ]}
+                onSelect={setStatus}
+                placeholder="Seçiniz..."
+              />
+              <GlassInput
+                label="Konum / Adres"
+                value={location}
+                onChangeText={setLocation}
+                placeholder="İş adresi..."
+              />
+              <GlassInput
+                label="Standart Mesai Başlangıç"
+                value={workStartTime}
+                onChangeText={setWorkStartTime}
+                placeholder="08:00"
+              />
+              <GlassInput
+                label="Standart Mesai Bitiş"
+                value={workEndTime}
+                onChangeText={setWorkEndTime}
+                placeholder="17:00"
+              />
+              <GlassInput
+                label="Pazar Mesai Katsayısı"
+                value={pazarMultiplier}
+                onChangeText={setPazarMultiplier}
+                keyboardType="numeric"
+                placeholder="1.5"
+              />
+              <GlassInput
+                label="Mesai Farkı Katsayısı"
+                value={mesaiMultiplier}
+                onChangeText={setMesaiMultiplier}
+                keyboardType="numeric"
+                placeholder="1.5"
+              />
+              <GlassInput
+                label="Açıklama"
+                value={description}
+                onChangeText={setDescription}
+                placeholder="İş detayları..."
+                multiline
+              />
+            </ScrollView>
+            <View style={styles.modalButtons}>
+              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
+                İptal
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleCreate}
+                loading={createMutation.isPending}
+                disabled={createMutation.isPending || !title || !customerId}
+                buttonColor={c.primary}
+                textColor="#ffffff"
+              >
+                Kaydet
+              </Button>
+            </View>
+          </GlassCard>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -128,7 +285,7 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 40, gap: 8 },
+  listContent: { paddingHorizontal: 20, paddingBottom: 100, gap: 8 },
   cardGlass: { padding: 0 },
   cardContent: { padding: 16 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
@@ -140,5 +297,19 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 11 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });
-

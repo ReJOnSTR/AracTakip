@@ -5,27 +5,37 @@ import {
   FlatList,
   RefreshControl,
   useColorScheme,
+  ScrollView,
 } from 'react-native';
-import { Text, ActivityIndicator, IconButton, Searchbar } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, Searchbar, Portal, Modal, Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { mealTicketService } from '../services/dataServices';
 import { formatCurrency } from '../utils/format';
+import { useAuthStore } from '../stores/authStore';
 import MovingBackground from '../components/ui/MovingBackground';
 import GlassCard from '../components/ui/GlassCard';
+import GlassInput from '../components/ui/GlassInput';
 
 export default function MealTicketsScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
 
-  const { selectedCompanyId } = require('../stores/authStore').useAuthStore();
+  // Form State
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [personCount, setPersonCount] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const { selectedCompanyId } = useAuthStore();
 
   const listQuery = useQuery({
     queryKey: ['meal-tickets', selectedCompanyId],
@@ -41,6 +51,30 @@ export default function MealTicketsScreen() {
 
   const tickets = listQuery.data?.data || [];
   const stats = statsQuery.data || { totalAmount: 0, totalQuantity: 0 };
+
+  const createMutation = useMutation({
+    mutationFn: (newTicket: any) => mealTicketService.create(newTicket),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meal-tickets', selectedCompanyId] });
+      queryClient.invalidateQueries({ queryKey: ['meal-tickets-stats', selectedCompanyId] });
+      setIsModalVisible(false);
+      // Reset form
+      setDate(new Date().toISOString().split('T')[0]);
+      setPersonCount('');
+      setNotes('');
+    },
+  });
+
+  const handleCreate = () => {
+    const count = parseInt(personCount);
+    if (!date || !count || count < 1) return;
+    createMutation.mutate({
+      companyId: selectedCompanyId,
+      date,
+      personCount: count,
+      notes,
+    });
+  };
 
   const filtered = tickets.filter((item: any) => {
     return !search ||
@@ -59,7 +93,7 @@ export default function MealTicketsScreen() {
       <View style={[styles.nav, { paddingTop: insets.top }]}>
         <IconButton icon="arrow-left" size={24} iconColor={c.text} onPress={() => router.back()} />
         <Text style={[styles.navTitle, { color: c.text }]}>Yemek Fişleri</Text>
-        <View style={{ width: 48 }} />
+        <IconButton icon="plus" size={24} iconColor={c.text} onPress={() => setIsModalVisible(true)} />
       </View>
 
       {/* Summary Header */}
@@ -136,6 +170,56 @@ export default function MealTicketsScreen() {
           }
         />
       )}
+
+      {/* Add Meal Ticket Modal */}
+      <Portal>
+        <Modal
+          visible={isModalVisible}
+          onDismiss={() => setIsModalVisible(false)}
+          contentContainerStyle={styles.modalContent}
+        >
+          <GlassCard intensity={85} style={styles.modalGlassCard}>
+            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Yemek Fişi</Text>
+            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+              <GlassInput
+                label="Tarih"
+                value={date}
+                onChangeText={setDate}
+                placeholder="YYYY-MM-DD"
+              />
+              <GlassInput
+                label="Kişi Sayısı"
+                value={personCount}
+                onChangeText={setPersonCount}
+                keyboardType="numeric"
+                placeholder="Kaç kişi yemeğe gitti?"
+              />
+              <GlassInput
+                label="Notlar"
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Ekstra bilgi (opsiyonel)"
+                multiline
+              />
+            </ScrollView>
+            <View style={styles.modalButtons}>
+              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
+                İptal
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleCreate}
+                loading={createMutation.isPending}
+                disabled={createMutation.isPending || !date || !personCount}
+                buttonColor={c.primary}
+                textColor="#ffffff"
+              >
+                Kaydet
+              </Button>
+            </View>
+          </GlassCard>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -155,7 +239,7 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 40, gap: 8 },
+  listContent: { paddingHorizontal: 20, paddingBottom: 100, gap: 8 },
   cardGlass: { padding: 0 },
   cardContent: { padding: 16 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -165,5 +249,19 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 12 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });
-

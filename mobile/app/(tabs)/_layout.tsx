@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Tabs, useRouter } from 'expo-router';
-import { useColorScheme, Platform, StyleSheet, View, Pressable, useWindowDimensions, Alert } from 'react-native';
+import { useColorScheme, Platform, StyleSheet, View, Pressable, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Text } from 'react-native-paper';
@@ -13,6 +14,8 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
   const currentRouteName = state.routes[state.index].name;
   const showPlusButton = currentRouteName === 'vehicles' || currentRouteName === 'employees' || currentRouteName === 'finance';
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Set the tab bar to 70% of the screen width for a clean, narrow pill look
   const tabWidth = width * 0.70;
@@ -55,107 +58,166 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
         {
           width: totalWidth,
           left: leftOffset,
+          height: isExpanded ? 128 : 64,
+          flexDirection: 'column-reverse',
+          gap: 10,
+          alignItems: 'center',
+          justifyContent: 'flex-start',
         },
       ]}
     >
-      {/* TAB BAR PILL */}
-      <View style={[innerStyle, { width: tabWidth }]}>
-        {Platform.OS !== 'web' && (
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 75 : 85}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        
-        {state.routes.map((route: any, index: number) => {
-          const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+      {/* TAB BAR ROW */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', height: 64 }}>
+        {/* TAB BAR PILL */}
+        <View style={[innerStyle, { width: tabWidth }]}>
+          {Platform.OS !== 'web' && (
+            <BlurView
+              intensity={Platform.OS === 'ios' ? 75 : 85}
+              tint={colorScheme === 'dark' ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            />
+          )}
+          
+          {state.routes
+            .filter((route: any) => route.name !== 'finance')
+            .map((route: any) => {
+              const { options } = descriptors[route.key];
+              const label = options.tabBarLabel !== undefined
+                ? options.tabBarLabel
+                : options.title !== undefined
+                ? options.title
+                : route.name;
 
-          const isFocused = state.index === index;
+              const isFocused = currentRouteName === route.name || (route.name === 'more' && currentRouteName === 'finance');
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+              const onPress = () => {
+                if (route.name === 'more') {
+                  setIsExpanded(!isExpanded);
+                  if (currentRouteName !== 'more' && currentRouteName !== 'finance') {
+                    navigation.navigate('more');
+                  }
+                } else {
+                  setIsExpanded(false);
+                  const event = navigation.emit({
+                    type: 'tabPress',
+                    target: route.key,
+                    canPreventDefault: true,
+                  });
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
-          };
+                  if (!isFocused && !event.defaultPrevented) {
+                    navigation.navigate(route.name, route.params);
+                  }
+                }
+              };
 
-          // Icon mapping based on focus state
-          let iconName = '';
-          if (route.name === 'index') iconName = isFocused ? 'grid' : 'grid-outline';
-          else if (route.name === 'vehicles') iconName = isFocused ? 'car' : 'car-outline';
-          else if (route.name === 'employees') iconName = isFocused ? 'people' : 'people-outline';
-          else if (route.name === 'finance') iconName = isFocused ? 'wallet' : 'wallet-outline';
-          else if (route.name === 'more') iconName = isFocused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline';
+              // Icon mapping based on focus state
+              let iconName = '';
+              if (route.name === 'index') iconName = isFocused ? 'grid' : 'grid-outline';
+              else if (route.name === 'vehicles') iconName = isFocused ? 'car' : 'car-outline';
+              else if (route.name === 'employees') iconName = isFocused ? 'people' : 'people-outline';
+              else if (route.name === 'more') iconName = isFocused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline';
 
-          return (
+              return (
+                <Pressable
+                  key={route.key}
+                  onPress={onPress}
+                  style={styles.tabButton}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
+                >
+                  <Ionicons
+                    name={iconName as any}
+                    size={20}
+                    color={isFocused ? c.primary : c.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      { color: isFocused ? c.primary : c.textSecondary },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+        </View>
+
+        {showPlusButton && (
+          <Animated.View
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            entering={FadeInRight.duration(150)}
+            exiting={FadeOutRight.duration(150)}
+            layout={LinearTransition.duration(200)}
+          >
+            {/* GAP */}
+            <View style={{ width: gap }} />
+
+            {/* CIRCULAR PLUS BUTTON */}
             <Pressable
-              key={route.key}
-              onPress={onPress}
-              style={styles.tabButton}
+              onPress={handlePlusPress}
+              style={[
+                styles.plusButtonOuter,
+                {
+                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.45)',
+                  backgroundColor: Platform.OS === 'web'
+                    ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
+                    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+                }
+              ]}
               android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
             >
-              <Ionicons
-                name={iconName as any}
-                size={20}
-                color={isFocused ? c.primary : c.textSecondary}
-              />
-              <Text
-                style={[
-                  styles.tabLabel,
-                  { color: isFocused ? c.primary : c.textSecondary },
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
+              {Platform.OS !== 'web' && (
+                <BlurView
+                  intensity={Platform.OS === 'ios' ? 75 : 85}
+                  tint={colorScheme === 'dark' ? 'dark' : 'light'}
+                  style={StyleSheet.absoluteFill}
+                />
+              )}
+              <Ionicons name="add" size={26} color={c.primary} />
             </Pressable>
-          );
-        })}
+          </Animated.View>
+        )}
       </View>
 
-      {showPlusButton && (
+      {/* Expanded Sub-bar for other modules */}
+      {isExpanded && (
         <Animated.View
-          style={{ flexDirection: 'row', alignItems: 'center' }}
           entering={FadeInRight.duration(150)}
           exiting={FadeOutRight.duration(150)}
-          layout={LinearTransition.duration(200)}
+          style={[
+            styles.subBarOuter,
+            {
+              borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
+              backgroundColor: Platform.OS === 'web'
+                ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
+                : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+              width: tabWidth,
+            }
+          ]}
         >
-          {/* GAP */}
-          <View style={{ width: gap }} />
-
-          {/* CIRCULAR PLUS BUTTON */}
-          <Pressable
-            onPress={handlePlusPress}
-            style={[
-              styles.plusButtonOuter,
-              {
-                borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.45)',
-                backgroundColor: Platform.OS === 'web'
-                  ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-                  : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
-              }
-            ]}
-            android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
-          >
-            {Platform.OS !== 'web' && (
-              <BlurView
-                intensity={Platform.OS === 'ios' ? 75 : 85}
-                tint={colorScheme === 'dark' ? 'dark' : 'light'}
-                style={StyleSheet.absoluteFill}
-              />
-            )}
-            <Ionicons name="add" size={26} color={c.primary} />
+          {Platform.OS !== 'web' && (
+            <BlurView
+              intensity={Platform.OS === 'ios' ? 75 : 85}
+              tint={colorScheme === 'dark' ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            />
+          )}
+          <Pressable onPress={() => { navigation.navigate('finance'); setIsExpanded(false); }} style={styles.subBarButton}>
+            <Ionicons name="wallet-outline" size={18} color={currentRouteName === 'finance' ? c.primary : c.textSecondary} />
+            <Text style={[styles.subBarLabel, { color: currentRouteName === 'finance' ? c.primary : c.textSecondary }]}>Finans</Text>
+          </Pressable>
+          <Pressable onPress={() => { router.push('/works'); setIsExpanded(false); }} style={styles.subBarButton}>
+            <Ionicons name="briefcase-outline" size={18} color={c.textSecondary} />
+            <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>İşler</Text>
+          </Pressable>
+          <Pressable onPress={() => { router.push('/customers'); setIsExpanded(false); }} style={styles.subBarButton}>
+            <Ionicons name="people-outline" size={18} color={c.textSecondary} />
+            <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>Cari</Text>
+          </Pressable>
+          <Pressable onPress={() => { router.push('/meal-tickets'); setIsExpanded(false); }} style={styles.subBarButton}>
+            <Ionicons name="receipt-outline" size={18} color={c.textSecondary} />
+            <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>Yemek</Text>
           </Pressable>
         </Animated.View>
       )}
@@ -193,15 +255,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="finance"
-        options={{
-          title: 'Finans',
-        }}
-      />
-      <Tabs.Screen
         name="more"
         options={{
           title: 'Diğer',
+        }}
+      />
+      <Tabs.Screen
+        name="finance"
+        options={{
+          title: 'Finans',
         }}
       />
     </Tabs>
@@ -212,11 +274,8 @@ const styles = StyleSheet.create({
   tabBarOuter: {
     position: 'absolute',
     bottom: 24,
-    height: 64,
     backgroundColor: 'transparent',
     overflow: 'visible',
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   tabBarInner: {
     flexDirection: 'row',
@@ -247,6 +306,27 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   tabLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  subBarOuter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderRadius: 28,
+    borderWidth: 1,
+    overflow: 'hidden',
+    height: 54,
+  },
+  subBarButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  subBarLabel: {
     fontSize: 9,
     fontWeight: '700',
     marginTop: 2,

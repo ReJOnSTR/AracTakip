@@ -19,6 +19,7 @@ import { formatCurrency, getStatusLabel } from '../utils/format';
 import MovingBackground from '../components/ui/MovingBackground';
 import GlassCard from '../components/ui/GlassCard';
 import GlassInput from '../components/ui/GlassInput';
+import GlassDropdown from '../components/ui/GlassDropdown';
 
 type TabValue = 'details' | 'maintenances' | 'inspections' | 'insurances' | 'services';
 
@@ -544,11 +545,19 @@ export default function VehicleDetailScreen() {
                 onChangeText={setDate}
                 placeholder="YYYY-MM-DD"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Bakım Türü"
                 value={maintType}
-                onChangeText={setMaintType}
-                placeholder="örn: Periyodik Bakım, Ağır Bakım"
+                options={[
+                  { label: 'Periyodik Bakım', value: 'Periyodik Bakım' },
+                  { label: 'Ağır Bakım', value: 'Ağır Bakım' },
+                  { label: 'Lastik Değişimi', value: 'Lastik Değişimi' },
+                  { label: 'Kışlık Bakım', value: 'Kışlık Bakım' },
+                  { label: 'Arıza Onarım', value: 'Arıza Onarım' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                onSelect={setMaintType}
+                placeholder="Bakım Türü Seçiniz"
               />
               <GlassInput
                 label="Sonraki Kilometre (KM)"
@@ -606,17 +615,27 @@ export default function VehicleDetailScreen() {
                 onChangeText={setDate}
                 placeholder="YYYY-MM-DD"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Muayene Türü"
                 value={inspType}
-                onChangeText={setInspType}
-                placeholder="örn: TÜVTÜRK Muayene, Egzoz Muayene"
+                options={[
+                  { label: 'TÜVTÜRK Muayene', value: 'TÜVTÜRK Muayene' },
+                  { label: 'Egzoz Muayene', value: 'Egzoz Muayene' },
+                  { label: 'Takograf Muayene', value: 'Takograf Muayene' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                onSelect={setInspType}
+                placeholder="Muayene Türü Seçiniz"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Sonuç"
                 value={inspResult}
-                onChangeText={setInspResult}
-                placeholder="Geçti / Kaldı"
+                options={[
+                  { label: 'Geçti', value: 'Geçti' },
+                  { label: 'Kaldı', value: 'Kaldı' },
+                ]}
+                onSelect={setInspResult}
+                placeholder="Sonuç Seçiniz"
               />
               <GlassInput
                 label="Geçerlilik Tarihi"
@@ -680,11 +699,17 @@ export default function VehicleDetailScreen() {
                 onChangeText={setInsPolicyNo}
                 placeholder="Poliçe numarası"
               />
-              <GlassInput
+              <GlassDropdown
                 label="Poliçe Türü"
                 value={insType}
-                onChangeText={setInsType}
-                placeholder="örn: Kasko, Trafik Sigortası"
+                options={[
+                  { label: 'Kasko', value: 'Kasko' },
+                  { label: 'Trafik Sigortası', value: 'Trafik Sigortası' },
+                  { label: 'Yeşil Kart', value: 'Yeşil Kart' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                onSelect={setInsType}
+                placeholder="Poliçe Türü Seçiniz"
               />
               <GlassInput
                 label="Başlangıç Tarihi"
@@ -742,11 +767,19 @@ export default function VehicleDetailScreen() {
           <GlassCard intensity={85} style={styles.modalGlassCard}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Servis Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
+              <GlassDropdown
                 label="Servis Türü"
                 value={servType}
-                onChangeText={setServType}
-                placeholder="örn: Onarım, Lastik Değişimi"
+                options={[
+                  { label: 'Periyodik Bakım', value: 'Periyodik Bakım' },
+                  { label: 'Kaporta/Boya', value: 'Kaporta/Boya' },
+                  { label: 'Elektrik', value: 'Elektrik' },
+                  { label: 'Mekanik Onarım', value: 'Mekanik Onarım' },
+                  { label: 'Lastik', value: 'Lastik' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                onSelect={setServType}
+                placeholder="Servis Türü Seçiniz"
               />
               <GlassInput
                 label="Açıklama"
@@ -856,8 +889,19 @@ const styles = StyleSheet.create({
   subCardFooter: { flexDirection: 'row', justifyContent: 'space-between' },
   subCardDate: { fontSize: 12 },
   addTabBtn: { marginBottom: 12, borderRadius: 12 },
-  modalContent: { padding: 12, margin: 12 },
-  modalGlassCard: { padding: 16, borderRadius: 16 },
+  modalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  modalGlassCard: {
+    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 40,
+  },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });
