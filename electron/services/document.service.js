@@ -1,8 +1,27 @@
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
+// Self-healing database migration helper in case auto-migrations failed or were skipped
+async function handleMigrationSelfHealing(error) {
+    const errMsg = String(error.message);
+    if (errMsg.includes('start_date') || errMsg.includes('column') || errMsg.includes('does not exist')) {
+        try {
+            const { getPrismaClient } = require('../prismaClient');
+            const p = getPrismaClient();
+            
+            // Alter table to add start_date and end_date columns
+            await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN start_date DATETIME');
+            await p.$executeRawUnsafe('ALTER TABLE documents ADD COLUMN end_date DATETIME');
+            return true; // Successfully healed
+        } catch (retryErr) {
+            console.error('Self-healing migration failed (columns might already exist):', retryErr.message);
+        }
+    }
+    return false;
+}
+
 async function addDocument(data) {
-    try {
+    const execute = async () => {
         const result = await prisma.documents.create({
             data: {
                 vehicle_id: data.vehicleId ? parseInt(data.vehicleId) : null,
@@ -19,25 +38,47 @@ async function addDocument(data) {
             }
         });
         return { success: true, id: result.id };
+    };
+
+    try {
+        return await execute();
     } catch (error) {
+        if (await handleMigrationSelfHealing(error)) {
+            try {
+                return await execute();
+            } catch (retryErr) {
+                return { success: false, error: retryErr.message };
+            }
+        }
         return { success: false, error: error.message };
     }
 }
 
 async function getDocument(id) {
-    try {
+    const execute = async () => {
         const doc = await prisma.documents.findUnique({
             where: { id: parseInt(id) }
         });
         if (!doc) return { success: false, error: "Not found" };
         return { success: true, data: JSON.parse(JSON.stringify(doc)) };
+    };
+
+    try {
+        return await execute();
     } catch (error) {
+        if (await handleMigrationSelfHealing(error)) {
+            try {
+                return await execute();
+            } catch (retryErr) {
+                return { success: false, error: retryErr.message };
+            }
+        }
         return { success: false, error: error.message };
     }
 }
 
 async function getDocumentsByVehicle(vehicleId, isArchived = 0) {
-    try {
+    const execute = async () => {
         const docs = await prisma.documents.findMany({
             where: { 
                 vehicle_id: parseInt(vehicleId),
@@ -46,13 +87,24 @@ async function getDocumentsByVehicle(vehicleId, isArchived = 0) {
             orderBy: { created_at: 'desc' }
         });
         return { success: true, data: JSON.parse(JSON.stringify(docs)) };
+    };
+
+    try {
+        return await execute();
     } catch (error) {
+        if (await handleMigrationSelfHealing(error)) {
+            try {
+                return await execute();
+            } catch (retryErr) {
+                return { success: false, error: retryErr.message };
+            }
+        }
         return { success: false, error: error.message };
     }
 }
 
 async function getDocumentsByCompany(companyId, isArchived = 0) {
-    try {
+    const execute = async () => {
         // Get all work IDs for this company to filter work-related documents
         const companyWorks = await prisma.works.findMany({
             where: { company_id: parseInt(companyId) },
@@ -93,7 +145,18 @@ async function getDocumentsByCompany(companyId, isArchived = 0) {
             orderBy: { created_at: 'desc' }
         });
         return { success: true, data: JSON.parse(JSON.stringify(docs)) };
+    };
+
+    try {
+        return await execute();
     } catch (error) {
+        if (await handleMigrationSelfHealing(error)) {
+            try {
+                return await execute();
+            } catch (retryErr) {
+                return { success: false, error: retryErr.message };
+            }
+        }
         return { success: false, error: error.message };
     }
 }
@@ -110,7 +173,7 @@ async function deleteDocument(id) {
 }
 
 async function getDocumentsByRelatedId(type, id) {
-    try {
+    const execute = async () => {
         const docs = await prisma.documents.findMany({
             where: {
                 related_type: type,
@@ -119,13 +182,24 @@ async function getDocumentsByRelatedId(type, id) {
             orderBy: { created_at: 'desc' }
         });
         return { success: true, data: JSON.parse(JSON.stringify(docs)) };
+    };
+
+    try {
+        return await execute();
     } catch (error) {
+        if (await handleMigrationSelfHealing(error)) {
+            try {
+                return await execute();
+            } catch (retryErr) {
+                return { success: false, error: retryErr.message };
+            }
+        }
         return { success: false, error: error.message };
     }
 }
 
 async function updateDocument(id, data) {
-    try {
+    const execute = async () => {
         const result = await prisma.documents.update({
             where: { id: parseInt(id) },
             data: {
@@ -138,7 +212,18 @@ async function updateDocument(id, data) {
             }
         });
         return { success: true, data: result };
+    };
+
+    try {
+        return await execute();
     } catch (error) {
+        if (await handleMigrationSelfHealing(error)) {
+            try {
+                return await execute();
+            } catch (retryErr) {
+                return { success: false, error: retryErr.message };
+            }
+        }
         return { success: false, error: error.message };
     }
 }
