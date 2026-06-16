@@ -17,7 +17,8 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
   const { apiUrl, updateApiUrl } = useAuthStore();
 
   const currentRouteName = state.routes[state.index].name;
-  const showPlusButton = currentRouteName === 'vehicles' || currentRouteName === 'employees' || currentRouteName === 'finance';
+  const listScreens = ['vehicles', 'employees', 'finance', 'works', 'customers', 'meal-tickets'];
+  const showPlusButton = listScreens.includes(currentRouteName);
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isIpModalVisible, setIsIpModalVisible] = useState(false);
@@ -40,7 +41,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
   };
 
   const handlePlusPress = () => {
-    if (currentRouteName === 'finance' || currentRouteName === 'vehicles' || currentRouteName === 'employees') {
+    if (listScreens.includes(currentRouteName)) {
       router.setParams({ openAdd: 'true' });
     }
   };
@@ -402,6 +403,24 @@ export default function TabLayout() {
         name="finance"
         options={{
           title: 'Finans',
+        }}
+      />
+      <Tabs.Screen
+        name="works"
+        options={{
+          title: 'İşler',
+        }}
+      />
+      <Tabs.Screen
+        name="customers"
+        options={{
+          title: 'Cari',
+        }}
+      />
+      <Tabs.Screen
+        name="meal-tickets"
+        options={{
+          title: 'Yemek',
         }}
       />
     </Tabs>

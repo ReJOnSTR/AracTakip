@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,26 +11,34 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Text, ActivityIndicator, IconButton, Searchbar, Portal, Modal, Button } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/Colors';
-import { workService, customerService } from '../services/dataServices';
-import { useAuthStore } from '../stores/authStore';
-import MovingBackground from '../components/ui/MovingBackground';
-import GlassCard from '../components/ui/GlassCard';
-import GlassInput from '../components/ui/GlassInput';
-import GlassDropdown from '../components/ui/GlassDropdown';
+import { Colors } from '../../constants/Colors';
+import { workService, customerService } from '../../services/dataServices';
+import { useAuthStore } from '../../stores/authStore';
+import MovingBackground from '../../components/ui/MovingBackground';
+import GlassCard from '../../components/ui/GlassCard';
+import GlassInput from '../../components/ui/GlassInput';
+import GlassDropdown from '../../components/ui/GlassDropdown';
 
 export default function WorksScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (params.openAdd === 'true') {
+      setIsModalVisible(true);
+      router.setParams({ openAdd: undefined });
+    }
+  }, [params.openAdd]);
 
   // Form State
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -117,12 +125,7 @@ export default function WorksScreen() {
       
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={c.text} />
-          </Pressable>
-          <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
-        </View>
+        <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
         <Text style={[styles.count, { color: c.textSecondary }]}>{works.length} iş</Text>
       </View>
 
@@ -280,29 +283,7 @@ export default function WorksScreen() {
         </Modal>
       </Portal>
 
-      {/* Floating Glass Add Button */}
-      <Pressable
-        onPress={() => setIsModalVisible(true)}
-        style={[
-          styles.floatingAddButton,
-          {
-            borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.45)',
-            backgroundColor: Platform.OS === 'web'
-              ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-              : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.35)'),
-          }
-        ]}
-        android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
-      >
-        {Platform.OS !== 'web' && (
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 75 : 85}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        <Ionicons name="add" size={28} color={c.primary} />
-      </Pressable>
+      {/* Portal for Add Modal */}
     </View>
   );
 }
