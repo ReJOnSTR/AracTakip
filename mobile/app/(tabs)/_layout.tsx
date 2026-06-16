@@ -140,147 +140,157 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
   return (
     <View style={styles.tabBarOuterWrapper}>
-      {/* FLOATING DIĞER MENU OVERLAY (Directly above the Diğer button - matched to same width as pill) */}
-      {isMenuVisible && (
-        <Animated.View
-          entering={FadeInDown.duration(200)}
-          exiting={FadeOutDown.duration(150)}
-          style={[
-            shadowStyle,
-            styles.menuOverlayOuter,
-            {
-              width: tabWidth,
-              borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
-              backgroundColor: Platform.OS === 'web'
-                ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.92)' : 'rgba(255, 255, 255, 0.92)')
-                : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.45)'),
-            }
-          ]}
-        >
-          {Platform.OS !== 'web' && (
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 85 : 95}
-              tint={colorScheme === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-
-          <Pressable
-            onPress={() => {
-              setIsMenuVisible(false);
-              navigation.navigate('finance');
-            }}
-            style={styles.menuOverlayItem}
-            android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
-          >
-            <Ionicons name="wallet-outline" size={20} color={c.primary} />
-            <Text style={[styles.menuOverlayText, { color: c.text }]}>Finans</Text>
-          </Pressable>
-          <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
-
-          <Pressable
-            onPress={() => {
-              setIsMenuVisible(false);
-              router.push('/works');
-            }}
-            style={styles.menuOverlayItem}
-            android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
-          >
-            <Ionicons name="briefcase-outline" size={20} color={c.primary} />
-            <Text style={[styles.menuOverlayText, { color: c.text }]}>İş Takibi</Text>
-          </Pressable>
-          <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
-
-          <Pressable
-            onPress={() => {
-              setIsMenuVisible(false);
-              router.push('/customers');
-            }}
-            style={styles.menuOverlayItem}
-            android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
-          >
-            <Ionicons name="people-outline" size={20} color={c.primary} />
-            <Text style={[styles.menuOverlayText, { color: c.text }]}>Müşteriler (Cari)</Text>
-          </Pressable>
-          <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
-
-          <Pressable
-            onPress={() => {
-              setIsMenuVisible(false);
-              router.push('/meal-tickets');
-            }}
-            style={styles.menuOverlayItem}
-            android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
-          >
-            <Ionicons name="receipt-outline" size={20} color={c.primary} />
-            <Text style={[styles.menuOverlayText, { color: c.text }]}>Yemek Fişleri</Text>
-          </Pressable>
-          <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
-
-          <Pressable
-            onPress={() => {
-              setIsMenuVisible(false);
-              setIsIpModalVisible(true);
-            }}
-            style={styles.menuOverlayItem}
-            android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
-          >
-            <Ionicons name="settings-outline" size={20} color={c.primary} />
-            <Text style={[styles.menuOverlayText, { color: c.text }]}>Sunucu Ayarları</Text>
-          </Pressable>
-        </Animated.View>
-      )}
-
-      {/* PRIMARY TAB BAR PILL ROW */}
+      {/* Outer row to align pill + plus button at the bottom */}
       <View
         style={{
-          width: totalWidth,
           flexDirection: 'row',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           justifyContent: 'center',
+          overflow: 'visible',
         }}
       >
+        {/* Column container for floating menu overlay + primary tab bar pill */}
         <View
-          style={[
-            shadowStyle,
-            {
-              width: tabWidth,
-              height: 56,
-              borderRadius: 28,
-              borderWidth: 1,
-              borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
-              backgroundColor: Platform.OS === 'web'
-                ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-                : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
-              overflow: 'hidden',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-around',
-            }
-          ]}
+          style={{
+            width: tabWidth,
+            alignItems: 'center',
+            overflow: 'visible',
+          }}
         >
-          {Platform.OS !== 'web' && (
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 75 : 85}
-              tint={colorScheme === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
+          {/* FLOATING DIĞER MENU OVERLAY (Directly above the Diğer button - matched to same width as pill) */}
+          {isMenuVisible && (
+            <Animated.View
+              entering={FadeInDown.duration(200)}
+              exiting={FadeOutDown.duration(150)}
+              style={[
+                shadowStyle,
+                styles.menuOverlayOuter,
+                {
+                  width: tabWidth,
+                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
+                  backgroundColor: Platform.OS === 'web'
+                    ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.92)' : 'rgba(255, 255, 255, 0.92)')
+                    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.45)'),
+                }
+              ]}
+            >
+              {Platform.OS !== 'web' && (
+                <BlurView
+                  intensity={Platform.OS === 'ios' ? 85 : 95}
+                  tint={colorScheme === 'dark' ? 'dark' : 'light'}
+                  style={StyleSheet.absoluteFill}
+                />
+              )}
+
+              <Pressable
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  navigation.navigate('finance');
+                }}
+                style={styles.menuOverlayItem}
+                android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+              >
+                <Ionicons name="wallet-outline" size={20} color={c.primary} />
+                <Text style={[styles.menuOverlayText, { color: c.text }]}>Finans</Text>
+              </Pressable>
+              <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+              <Pressable
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  router.push('/works');
+                }}
+                style={styles.menuOverlayItem}
+                android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+              >
+                <Ionicons name="briefcase-outline" size={20} color={c.primary} />
+                <Text style={[styles.menuOverlayText, { color: c.text }]}>İş Takibi</Text>
+              </Pressable>
+              <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+              <Pressable
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  router.push('/customers');
+                }}
+                style={styles.menuOverlayItem}
+                android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+              >
+                <Ionicons name="people-outline" size={20} color={c.primary} />
+                <Text style={[styles.menuOverlayText, { color: c.text }]}>Müşteriler (Cari)</Text>
+              </Pressable>
+              <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+              <Pressable
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  router.push('/meal-tickets');
+                }}
+                style={styles.menuOverlayItem}
+                android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+              >
+                <Ionicons name="receipt-outline" size={20} color={c.primary} />
+                <Text style={[styles.menuOverlayText, { color: c.text }]}>Yemek Fişleri</Text>
+              </Pressable>
+              <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+              <Pressable
+                onPress={() => {
+                  setIsMenuVisible(false);
+                  setIsIpModalVisible(true);
+                }}
+                style={styles.menuOverlayItem}
+                android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+              >
+                <Ionicons name="settings-outline" size={20} color={c.primary} />
+                <Text style={[styles.menuOverlayText, { color: c.text }]}>Sunucu Ayarları</Text>
+              </Pressable>
+            </Animated.View>
           )}
 
-          {buttons.map((btn: any) => (
-            <Pressable
-              key={btn.key}
-              onPress={btn.onPress}
-              style={styles.tabButton}
-              android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
-            >
-              <Ionicons
-                name={btn.iconName as any}
-                size={22}
-                color={btn.isFocused ? c.primary : c.textSecondary}
+          {/* PRIMARY TAB BAR PILL */}
+          <View
+            style={[
+              shadowStyle,
+              {
+                width: tabWidth,
+                height: 56,
+                borderRadius: 28,
+                borderWidth: 1,
+                borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
+                backgroundColor: Platform.OS === 'web'
+                  ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
+                  : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+                overflow: 'hidden',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+              }
+            ]}
+          >
+            {Platform.OS !== 'web' && (
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 75 : 85}
+                tint={colorScheme === 'dark' ? 'dark' : 'light'}
+                style={StyleSheet.absoluteFill}
               />
-            </Pressable>
-          ))}
+            )}
+
+            {buttons.map((btn: any) => (
+              <Pressable
+                key={btn.key}
+                onPress={btn.onPress}
+                style={styles.tabButton}
+                android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
+              >
+                <Ionicons
+                  name={btn.iconName as any}
+                  size={22}
+                  color={btn.isFocused ? c.primary : c.textSecondary}
+                />
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         {/* PLUS BUTTON (Shown alongside primary bar at bottom) */}
