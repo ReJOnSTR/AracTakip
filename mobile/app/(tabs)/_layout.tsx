@@ -50,34 +50,80 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
   };
 
   return (
-    <Animated.View
-      layout={LinearTransition.duration(200)}
+    <View
       style={[
         styles.tabBarOuter,
-        shadowStyle,
         {
           width: totalWidth,
           left: leftOffset,
-          height: isExpanded ? 128 : 64,
-          flexDirection: 'column-reverse',
-          gap: 10,
-          alignItems: 'center',
+          height: isExpanded ? 124 : 64,
+          flexDirection: 'row',
+          alignItems: 'flex-end',
           justifyContent: 'flex-start',
         },
       ]}
     >
-      {/* TAB BAR ROW */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', height: 64 }}>
-        {/* TAB BAR PILL */}
-        <View style={[innerStyle, { width: tabWidth }]}>
-          {Platform.OS !== 'web' && (
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 75 : 85}
-              tint={colorScheme === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-          
+      {/* UNIFIED TAB CONTAINER (Holds Main Tabs and Sub-bar when expanded) */}
+      <Animated.View
+        layout={LinearTransition.duration(200)}
+        style={[
+          shadowStyle,
+          {
+            width: tabWidth,
+            height: isExpanded ? 124 : 64,
+            borderRadius: 32,
+            borderWidth: 1,
+            borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
+            backgroundColor: Platform.OS === 'web'
+              ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
+              : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+            overflow: 'hidden',
+          }
+        ]}
+      >
+        {Platform.OS !== 'web' && (
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 75 : 85}
+            tint={colorScheme === 'dark' ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
+
+        {/* SUB BAR ROW (Shown when expanded) */}
+        {isExpanded && (
+          <Animated.View
+            entering={FadeInRight.duration(150)}
+            exiting={FadeOutRight.duration(150)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              height: 58,
+              borderBottomWidth: 1,
+              borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+            }}
+          >
+            <Pressable onPress={() => { navigation.navigate('finance'); setIsExpanded(false); }} style={styles.subBarButton}>
+              <Ionicons name="wallet-outline" size={18} color={currentRouteName === 'finance' ? c.primary : c.textSecondary} />
+              <Text style={[styles.subBarLabel, { color: currentRouteName === 'finance' ? c.primary : c.textSecondary }]}>Finans</Text>
+            </Pressable>
+            <Pressable onPress={() => { router.push('/works'); setIsExpanded(false); }} style={styles.subBarButton}>
+              <Ionicons name="briefcase-outline" size={18} color={c.textSecondary} />
+              <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>İşler</Text>
+            </Pressable>
+            <Pressable onPress={() => { router.push('/customers'); setIsExpanded(false); }} style={styles.subBarButton}>
+              <Ionicons name="people-outline" size={18} color={c.textSecondary} />
+              <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>Cari</Text>
+            </Pressable>
+            <Pressable onPress={() => { router.push('/meal-tickets'); setIsExpanded(false); }} style={styles.subBarButton}>
+              <Ionicons name="receipt-outline" size={18} color={c.textSecondary} />
+              <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>Yemek</Text>
+            </Pressable>
+          </Animated.View>
+        )}
+
+        {/* PRIMARY TAB BAR ROW */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', height: 62 }}>
           {state.routes
             .filter((route: any) => route.name !== 'finance')
             .map((route: any) => {
@@ -142,86 +188,45 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
               );
             })}
         </View>
+      </Animated.View>
 
-        {showPlusButton && (
-          <Animated.View
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-            entering={FadeInRight.duration(150)}
-            exiting={FadeOutRight.duration(150)}
-            layout={LinearTransition.duration(200)}
-          >
-            {/* GAP */}
-            <View style={{ width: gap }} />
-
-            {/* CIRCULAR PLUS BUTTON */}
-            <Pressable
-              onPress={handlePlusPress}
-              style={[
-                styles.plusButtonOuter,
-                {
-                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.45)',
-                  backgroundColor: Platform.OS === 'web'
-                    ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-                    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
-                }
-              ]}
-              android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
-            >
-              {Platform.OS !== 'web' && (
-                <BlurView
-                  intensity={Platform.OS === 'ios' ? 75 : 85}
-                  tint={colorScheme === 'dark' ? 'dark' : 'light'}
-                  style={StyleSheet.absoluteFill}
-                />
-              )}
-              <Ionicons name="add" size={26} color={c.primary} />
-            </Pressable>
-          </Animated.View>
-        )}
-      </View>
-
-      {/* Expanded Sub-bar for other modules */}
-      {isExpanded && (
+      {/* PLUS BUTTON (Shown alongside primary bar at bottom) */}
+      {showPlusButton && (
         <Animated.View
+          style={{ flexDirection: 'row', alignItems: 'center', height: 62 }}
           entering={FadeInRight.duration(150)}
           exiting={FadeOutRight.duration(150)}
-          style={[
-            styles.subBarOuter,
-            {
-              borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
-              backgroundColor: Platform.OS === 'web'
-                ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-                : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
-              width: tabWidth,
-            }
-          ]}
+          layout={LinearTransition.duration(200)}
         >
-          {Platform.OS !== 'web' && (
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 75 : 85}
-              tint={colorScheme === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-          <Pressable onPress={() => { navigation.navigate('finance'); setIsExpanded(false); }} style={styles.subBarButton}>
-            <Ionicons name="wallet-outline" size={18} color={currentRouteName === 'finance' ? c.primary : c.textSecondary} />
-            <Text style={[styles.subBarLabel, { color: currentRouteName === 'finance' ? c.primary : c.textSecondary }]}>Finans</Text>
-          </Pressable>
-          <Pressable onPress={() => { router.push('/works'); setIsExpanded(false); }} style={styles.subBarButton}>
-            <Ionicons name="briefcase-outline" size={18} color={c.textSecondary} />
-            <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>İşler</Text>
-          </Pressable>
-          <Pressable onPress={() => { router.push('/customers'); setIsExpanded(false); }} style={styles.subBarButton}>
-            <Ionicons name="people-outline" size={18} color={c.textSecondary} />
-            <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>Cari</Text>
-          </Pressable>
-          <Pressable onPress={() => { router.push('/meal-tickets'); setIsExpanded(false); }} style={styles.subBarButton}>
-            <Ionicons name="receipt-outline" size={18} color={c.textSecondary} />
-            <Text style={[styles.subBarLabel, { color: c.textSecondary }]}>Yemek</Text>
+          {/* GAP */}
+          <View style={{ width: gap }} />
+
+          {/* CIRCULAR PLUS BUTTON */}
+          <Pressable
+            onPress={handlePlusPress}
+            style={[
+              styles.plusButtonOuter,
+              {
+                borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.45)',
+                backgroundColor: Platform.OS === 'web'
+                  ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
+                  : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+              }
+            ]}
+            android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
+          >
+            {Platform.OS !== 'web' && (
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 75 : 85}
+                tint={colorScheme === 'dark' ? 'dark' : 'light'}
+                style={StyleSheet.absoluteFill}
+              />
+            )}
+            <Ionicons name="add" size={26} color={c.primary} />
           </Pressable>
         </Animated.View>
       )}
-    </Animated.View>
+    </View>
   );
 }
 
