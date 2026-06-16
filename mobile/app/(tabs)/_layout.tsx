@@ -24,9 +24,9 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
   const [ipInput, setIpInput] = useState(apiUrl);
   const [isUpdatingIp, setIsUpdatingIp] = useState(false);
 
-  // Set the tab bar to 82% of the screen width for a clean, 5-tab pill look
-  const tabWidth = width * 0.82;
-  const plusButtonWidth = 54;
+  // Sleek compact tab bar width (70% of screen) for icons-only look
+  const tabWidth = width * 0.70;
+  const plusButtonWidth = 46;
   const gap = 10;
   
   const totalWidth = showPlusButton ? (tabWidth + gap + plusButtonWidth) : tabWidth;
@@ -139,7 +139,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
   return (
     <View style={styles.tabBarOuterWrapper}>
-      {/* FLOATING DIĞER MENU OVERLAY (Directly above the Diğer button) */}
+      {/* FLOATING DIĞER MENU OVERLAY (Directly above the Diğer button - matched to same width as pill) */}
       {isMenuVisible && (
         <Animated.View
           entering={FadeInDown.duration(200)}
@@ -148,7 +148,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
             shadowStyle,
             styles.menuOverlayOuter,
             {
-              width: tabWidth * 0.9,
+              width: tabWidth,
               borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
               backgroundColor: Platform.OS === 'web'
                 ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.92)' : 'rgba(255, 255, 255, 0.92)')
@@ -244,8 +244,8 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
             shadowStyle,
             {
               width: tabWidth,
-              height: 64,
-              borderRadius: 32,
+              height: 56,
+              borderRadius: 28,
               borderWidth: 1,
               borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
               backgroundColor: Platform.OS === 'web'
@@ -275,18 +275,9 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
             >
               <Ionicons
                 name={btn.iconName as any}
-                size={20}
+                size={22}
                 color={btn.isFocused ? c.primary : c.textSecondary}
               />
-              <Text
-                style={[
-                  styles.tabLabel,
-                  { color: btn.isFocused ? c.primary : c.textSecondary },
-                ]}
-                numberOfLines={1}
-              >
-                {btn.label}
-              </Text>
             </Pressable>
           ))}
         </View>
@@ -294,7 +285,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
         {/* PLUS BUTTON (Shown alongside primary bar at bottom) */}
         {showPlusButton && (
           <Animated.View
-            style={{ flexDirection: 'row', alignItems: 'center', height: 64 }}
+            style={{ flexDirection: 'row', alignItems: 'center', height: 56 }}
             entering={FadeInRight.duration(150)}
             exiting={FadeOutRight.duration(150)}
             layout={LinearTransition.duration(200)}
@@ -323,7 +314,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
                   style={StyleSheet.absoluteFill}
                 />
               )}
-              <Ionicons name="add" size={26} color={c.primary} />
+              <Ionicons name="add" size={24} color={c.primary} />
             </Pressable>
           </Animated.View>
         )}
@@ -429,7 +420,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   menuOverlayOuter: {
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     overflow: 'hidden',
     paddingVertical: 6,
@@ -453,9 +444,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   plusButtonOuter: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     borderWidth: 1,
     overflow: 'hidden',
     alignItems: 'center',
@@ -469,13 +460,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-  },
-  tabLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    marginTop: 2,
-    textAlign: 'center',
+    height: '100%',
   },
   modalContent: {
     marginTop: 'auto',
