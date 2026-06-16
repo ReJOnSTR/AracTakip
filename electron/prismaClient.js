@@ -4,6 +4,7 @@ const { app } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const log = require('./logger');
+const Database = require('better-sqlite3');
 
 let prisma = null;
 
@@ -53,6 +54,28 @@ function getPrismaClient() {
  * Must be called AFTER getPrismaClient() and BEFORE any queries.
  */
 async function runAutoMigrations() {
+    // 0. Native Migration check using raw better-sqlite3 (bypasses Prisma caching & locks on Windows)
+    try {
+        const dbPath = getDbPath();
+        const sqliteDb = new Database(dbPath);
+        
+        const pragma = sqliteDb.pragma("table_info('documents')");
+        const columnNames = pragma.map(col => col.name.toLowerCase());
+        
+        if (!columnNames.includes('start_date')) {
+            sqliteDb.prepare('ALTER TABLE documents ADD COLUMN start_date DATETIME').run();
+            log.info('Native Migration: Added start_date to documents');
+        }
+        if (!columnNames.includes('end_date')) {
+            sqliteDb.prepare('ALTER TABLE documents ADD COLUMN end_date DATETIME').run();
+            log.info('Native Migration: Added end_date to documents');
+        }
+        
+        sqliteDb.close();
+    } catch (err) {
+        log.error('Native Migration for documents columns failed:', err.message);
+    }
+
     const p = getPrismaClient();
     log.info('Running auto-migrations for missing tables and columns...');
 
