@@ -21,6 +21,8 @@ import { useAuthStore } from '../../stores/authStore';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { formatCurrency } from '../../utils/format';
 
 export default function CustomersScreen() {
   const router = useRouter();
@@ -133,32 +135,57 @@ export default function CustomersScreen() {
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={query.isFetching} onRefresh={() => query.refetch()} tintColor={c.primary} />
           }
-          renderItem={({ item }) => (
-            <GlassCard intensity={30} style={styles.cardGlass}>
-              <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, { color: c.text }]}>{item.name || 'Müşteri Adı Belirtilmemiş'}</Text>
-                {item.company_name && (
-                  <Text style={[styles.cardDesc, { color: c.textSecondary }]}>Şirket: {item.company_name}</Text>
-                )}
-                <View style={styles.contactRow}>
-                  {item.phone && (
-                    <View style={styles.contactItem}>
-                      <Ionicons name="call-outline" size={14} color={c.textSecondary} />
-                      <Text style={[styles.contactText, { color: c.textSecondary }]}>{item.phone}</Text>
+          renderItem={({ item, index }) => (
+            <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
+              <GlassCard intensity={30} style={styles.cardGlass}>
+                <View style={styles.cardInner}>
+                  <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
+                    <Ionicons name="business-outline" size={22} color={c.primary} />
+                  </View>
+                  <View style={styles.info}>
+                    <Text style={[styles.cardTitle, { color: c.text }]}>{item.name || 'Müşteri Ünvanı Belirtilmemiş'}</Text>
+                    
+                    <View style={styles.contactRow}>
+                      {item.phone ? (
+                        <View style={styles.contactItem}>
+                          <Ionicons name="call-outline" size={13} color={c.textSecondary} />
+                          <Text style={[styles.contactText, { color: c.textSecondary }]}>{item.phone}</Text>
+                        </View>
+                      ) : null}
+                      {item.email ? (
+                        <View style={styles.contactItem}>
+                          <Ionicons name="mail-outline" size={13} color={c.textSecondary} />
+                          <Text style={[styles.contactText, { color: c.textSecondary }]}>{item.email}</Text>
+                        </View>
+                      ) : null}
                     </View>
-                  )}
-                  {item.email && (
-                    <View style={styles.contactItem}>
-                      <Ionicons name="mail-outline" size={14} color={c.textSecondary} />
-                      <Text style={[styles.contactText, { color: c.textSecondary }]}>{item.email}</Text>
+
+                    <View style={styles.cardMeta}>
+                      <View style={styles.metaItem}>
+                        <Ionicons name="stats-chart-outline" size={11} color={c.textTertiary} />
+                        <Text style={[styles.metaText, { color: c.textTertiary }]}>Hacim: {formatCurrency(item.total_volume)}</Text>
+                      </View>
+                      <View style={styles.metaItem}>
+                        <Ionicons name="briefcase-outline" size={11} color={c.textTertiary} />
+                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.work_count || 0} iş</Text>
+                      </View>
                     </View>
-                  )}
+                  </View>
+                  <View style={styles.right}>
+                    <View style={[styles.statusBadge, { backgroundColor: (item.total_receivable > 0 ? c.warning : c.success) + '15' }]}>
+                      <View style={[styles.statusDot, { backgroundColor: item.total_receivable > 0 ? c.warning : c.success }]} />
+                      <Text style={[styles.statusText, { color: item.total_receivable > 0 ? c.warning : c.success }]}>
+                        {item.total_receivable > 0 ? formatCurrency(item.total_receivable) : 'Borçsuz'}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </GlassCard>
+              </GlassCard>
+            </Animated.View>
           )}
           ListEmptyComponent={
             <View style={styles.emptyState}>
@@ -296,14 +323,41 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100, gap: 8 },
+  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  cardContainer: { marginBottom: 8 },
   cardGlass: { padding: 0 },
-  cardContent: { padding: 16 },
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  info: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '700' },
-  cardDesc: { fontSize: 13, marginTop: 4 },
-  contactRow: { flexDirection: 'row', gap: 12, marginTop: 8, flexWrap: 'wrap' },
+  contactRow: { flexDirection: 'row', gap: 12, marginTop: 4, flexWrap: 'wrap' },
   contactItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   contactText: { fontSize: 12 },
+  cardMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  metaText: { fontSize: 11 },
+  right: { alignItems: 'flex-end', gap: 6 },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 5,
+  },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 11, fontWeight: '600' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
   modalContent: {

@@ -17,11 +17,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { mealTicketService } from '../../services/dataServices';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, formatDate } from '../../utils/format';
 import { useAuthStore } from '../../stores/authStore';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function MealTicketsScreen() {
   const router = useRouter();
@@ -89,7 +90,7 @@ export default function MealTicketsScreen() {
 
   const filtered = tickets.filter((item: any) => {
     return !search ||
-      item.employee_name?.toLowerCase().includes(search.toLowerCase()) ||
+      item.notes?.toLowerCase().includes(search.toLowerCase()) ||
       item.date?.toLowerCase().includes(search.toLowerCase());
   });
 
@@ -146,6 +147,7 @@ export default function MealTicketsScreen() {
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={listQuery.isFetching || statsQuery.isFetching}
@@ -156,20 +158,44 @@ export default function MealTicketsScreen() {
               tintColor={c.primary}
             />
           }
-          renderItem={({ item }) => (
-            <GlassCard intensity={30} style={styles.cardGlass}>
-              <View style={styles.cardContent}>
-                <View style={styles.cardHeader}>
-                  <Text style={[styles.cardTitle, { color: c.text }]}>{item.employee_name || 'Personel Belirtilmemiş'}</Text>
-                  <Text style={[styles.amountText, { color: c.success }]}>{formatCurrency(item.amount)}</Text>
-                </View>
-                <View style={styles.footerRow}>
-                  <Text style={[styles.cardDate, { color: c.textSecondary }]}>Tarih: {item.date}</Text>
-                  <Text style={[styles.cardDate, { color: c.textSecondary }]}>Adet: {item.quantity || 1}</Text>
-                </View>
-              </View>
-            </GlassCard>
-          )}
+          renderItem={({ item, index }) => {
+            const totalAmount = (item.person_count || 1) * (item.price_per_person || 0);
+            return (
+              <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
+                <GlassCard intensity={30} style={styles.cardGlass}>
+                  <View style={styles.cardInner}>
+                    <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
+                      <Ionicons name="restaurant-outline" size={22} color={c.primary} />
+                    </View>
+                    <View style={styles.info}>
+                      <Text style={[styles.cardTitle, { color: c.text }]}>Yemek Fişi</Text>
+                      <Text style={[styles.cardSubtitle, { color: c.textSecondary }]} numberOfLines={1}>
+                        {item.notes || 'Açıklama girilmemiş'}
+                      </Text>
+                      <View style={styles.cardMeta}>
+                        <View style={styles.metaItem}>
+                          <Ionicons name="calendar-outline" size={11} color={c.textTertiary} />
+                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.date)}</Text>
+                        </View>
+                        <View style={styles.metaItem}>
+                          <Ionicons name="people-outline" size={11} color={c.textTertiary} />
+                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.person_count || 1} Kişi</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={styles.right}>
+                      <Text style={[styles.priceText, { color: c.success }]}>
+                        {formatCurrency(totalAmount)}
+                      </Text>
+                      <Text style={[styles.unitText, { color: c.textSecondary }]}>
+                        Birim: {formatCurrency(item.price_per_person)}
+                      </Text>
+                    </View>
+                  </View>
+                </GlassCard>
+              </Animated.View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="receipt-outline" size={48} color={c.textTertiary} />
@@ -285,14 +311,31 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100, gap: 8 },
+  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  cardContainer: { marginBottom: 8 },
   cardGlass: { padding: 0 },
-  cardContent: { padding: 16 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  info: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '700' },
-  amountText: { fontSize: 15, fontWeight: '700' },
-  footerRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  cardDate: { fontSize: 12 },
+  cardSubtitle: { fontSize: 13, marginTop: 2 },
+  cardMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  metaText: { fontSize: 11 },
+  right: { alignItems: 'flex-end', gap: 4 },
+  priceText: { fontSize: 15, fontWeight: '700' },
+  unitText: { fontSize: 11 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
   modalContent: {

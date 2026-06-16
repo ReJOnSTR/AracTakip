@@ -22,6 +22,8 @@ import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassDropdown from '../../components/ui/GlassDropdown';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { formatCurrency, formatDate, getStatusLabel, getStatusColor } from '../../utils/format';
 
 export default function WorksScreen() {
   const router = useRouter();
@@ -152,31 +154,53 @@ export default function WorksScreen() {
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={query.isFetching} onRefresh={() => query.refetch()} tintColor={c.primary} />
           }
-          renderItem={({ item }) => (
-            <GlassCard intensity={30} style={styles.cardGlass}>
-              <View style={styles.cardContent}>
-                <View style={styles.cardHeader}>
-                  <Text style={[styles.cardTitle, { color: c.text }]}>{item.title || 'İş Tanımsız'}</Text>
-                  <View style={[styles.statusBadge, { borderColor: c.primary, backgroundColor: c.primary + '15' }]}>
-                    <Text style={[styles.statusBadgeText, { color: c.primary }]}>
-                      {item.status || 'Beklemede'}
+          renderItem={({ item, index }) => (
+            <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
+              <GlassCard intensity={30} style={styles.cardGlass}>
+                <View style={styles.cardInner}>
+                  <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
+                    <Ionicons name="briefcase-outline" size={22} color={c.primary} />
+                  </View>
+                  <View style={styles.info}>
+                    <Text style={[styles.cardTitle, { color: c.text }]}>{item.title || 'İş Tanımsız'}</Text>
+                    <Text style={[styles.cardSubtitle, { color: c.textSecondary }]} numberOfLines={1}>
+                      {item.customer_name || 'Müşteri Belirtilmemiş'}
+                    </Text>
+                    <View style={styles.cardMeta}>
+                      <View style={styles.metaItem}>
+                        <Ionicons name="time-outline" size={11} color={c.textTertiary} />
+                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.total_hours || 0} sa</Text>
+                      </View>
+                      <View style={styles.metaItem}>
+                        <Ionicons name="calendar-outline" size={11} color={c.textTertiary} />
+                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.total_days || 0} gün</Text>
+                      </View>
+                      {item.start_date && (
+                        <View style={styles.metaItem}>
+                          <Ionicons name="play-outline" size={11} color={c.textTertiary} />
+                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.start_date)}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  <View style={styles.right}>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) === 'success' ? c.success + '15' : getStatusColor(item.status) === 'warning' ? c.warning + '15' : c.textSecondary + '15' }]}>
+                      <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) === 'success' ? c.success : getStatusColor(item.status) === 'warning' ? c.warning : c.textSecondary }]} />
+                      <Text style={[styles.statusText, { color: getStatusColor(item.status) === 'success' ? c.success : getStatusColor(item.status) === 'warning' ? c.warning : c.textSecondary }]}>
+                        {getStatusLabel(item.status)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.priceText, { color: c.text }]}>
+                      {formatCurrency(item.total_price)}
                     </Text>
                   </View>
                 </View>
-                <Text style={[styles.cardDesc, { color: c.textSecondary }]}>{item.description || 'Açıklama girilmemiş.'}</Text>
-                {item.start_date && (
-                  <View style={styles.dateRow}>
-                    <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
-                    <Text style={[styles.cardDate, { color: c.textTertiary }]}>
-                      Başlangıç: {item.start_date}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </GlassCard>
+              </GlassCard>
+            </Animated.View>
           )}
           ListEmptyComponent={
             <View style={styles.emptyState}>
@@ -330,16 +354,40 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100, gap: 8 },
+  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  cardContainer: { marginBottom: 8 },
   cardGlass: { padding: 0 },
-  cardContent: { padding: 16 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardTitle: { fontSize: 15, fontWeight: '700', flex: 1 },
-  statusBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  statusBadgeText: { fontSize: 11, fontWeight: '600' },
-  cardDesc: { fontSize: 13, lineHeight: 18 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
-  cardDate: { fontSize: 11 },
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  info: { flex: 1 },
+  cardTitle: { fontSize: 15, fontWeight: '700' },
+  cardSubtitle: { fontSize: 13, marginTop: 2 },
+  cardMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  metaText: { fontSize: 11 },
+  right: { alignItems: 'flex-end', gap: 6 },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 5,
+  },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 11, fontWeight: '600' },
+  priceText: { fontSize: 14, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
   modalContent: {

@@ -16,7 +16,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
 import { financeService } from '../../services/dataServices';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, formatDate } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
@@ -91,7 +91,7 @@ export default function FinanceScreen() {
   const handleCreate = () => {
     if (!amount || isNaN(Number(amount)) || !description) return;
     createMutation.mutate({
-      company_id: selectedCompanyId,
+      companyId: selectedCompanyId,
       description,
       amount: Number(amount),
       type: txType,
@@ -110,26 +110,35 @@ export default function FinanceScreen() {
     return (
       <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
         <GlassCard intensity={30} style={styles.txCardGlass}>
-          <View style={styles.txCardInner}>
-            <View style={[styles.iconContainer, { backgroundColor: isIncome ? c.success + '15' : c.error + '15' }]}>
+          <View style={styles.cardInner}>
+            <View style={[styles.iconBox, { backgroundColor: isIncome ? c.success + '15' : c.error + '15' }]}>
               <Ionicons
                 name={isIncome ? 'arrow-down-outline' : 'arrow-up-outline'}
-                size={18}
+                size={20}
                 color={isIncome ? c.success : c.error}
               />
             </View>
             <View style={styles.info}>
-              <Text style={[styles.desc, { color: c.text }]}>{item.description}</Text>
-              <View style={styles.subInfo}>
-                {item.category && (
-                  <Text style={[styles.category, { color: c.textTertiary }]}>{item.category}</Text>
-                )}
-                <Text style={[styles.date, { color: c.textTertiary }]}>{item.date}</Text>
+              <Text style={[styles.cardTitle, { color: c.text }]}>{item.description || 'Açıklama Yok'}</Text>
+              <Text style={[styles.cardSubtitle, { color: c.textSecondary }]}>
+                {item.category || 'Kategori Yok'}
+              </Text>
+              <View style={styles.cardMeta}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="calendar-outline" size={11} color={c.textTertiary} />
+                  <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.date)}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Ionicons name="card-outline" size={11} color={c.textTertiary} />
+                  <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.method || 'Nakit'}</Text>
+                </View>
               </View>
             </View>
-            <Text style={[styles.amount, { color: isIncome ? c.success : c.error }]}>
-              {isIncome ? '+' : '-'}{formatCurrency(item.amount)}
-            </Text>
+            <View style={styles.right}>
+              <Text style={[styles.priceText, { color: isIncome ? c.success : c.error }]}>
+                {isIncome ? '+' : '-'}{formatCurrency(item.amount)}
+              </Text>
+            </View>
           </View>
         </GlassCard>
       </Animated.View>
@@ -389,25 +398,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   txCardGlass: { padding: 0 },
-  txCardInner: {
+  cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     gap: 12,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   info: { flex: 1 },
-  desc: { fontSize: 15, fontWeight: '600' },
-  subInfo: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  category: { fontSize: 11, fontWeight: '500' },
-  date: { fontSize: 11 },
-  amount: { fontSize: 16, fontWeight: '700' },
+  cardTitle: { fontSize: 15, fontWeight: '700' },
+  cardSubtitle: { fontSize: 13, marginTop: 2 },
+  cardMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  metaText: { fontSize: 11 },
+  right: { alignItems: 'flex-end', gap: 4 },
+  priceText: { fontSize: 15, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
   
