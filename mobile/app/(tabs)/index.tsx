@@ -6,8 +6,10 @@ import {
   RefreshControl,
   useColorScheme,
   Pressable,
+  Platform,
 } from 'react-native';
-import { Text, Menu } from 'react-native-paper';
+import { Text, Portal, Modal } from 'react-native-paper';
+import { BlurView } from 'expo-blur';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -84,7 +86,7 @@ export default function DashboardScreen() {
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const { selectedCompanyId, companies, setSelectedCompany, user } = useAuthStore();
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [companyModalVisible, setCompanyModalVisible] = useState(false);
 
   const statsQuery = useQuery({
     queryKey: ['dashboard-stats', selectedCompanyId],
@@ -125,37 +127,114 @@ export default function DashboardScreen() {
             {user?.full_name || user?.username || 'Kullanıcı'}
           </Text>
         </View>
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <Pressable
-              onPress={() => setMenuVisible(true)}
-              style={[styles.companySelector, { backgroundColor: c.surfaceVariant + '35', borderColor: c.border }]}
-            >
-              <Ionicons name="business-outline" size={16} color={c.primary} />
-              <Text style={[styles.companySelectorText, { color: c.text }]} numberOfLines={1}>
-                {selectedCompany?.name || 'Şirket Seç'}
-              </Text>
-              <Ionicons name="chevron-down" size={14} color={c.textSecondary} />
-            </Pressable>
-          }
-          contentStyle={{ backgroundColor: c.surface }}
+
+        {/* Glass Company Selector Pill */}
+        <Pressable
+          onPress={() => setCompanyModalVisible(true)}
+          style={[
+            styles.companySelectorPill,
+            {
+              borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.55)',
+              backgroundColor: Platform.OS === 'web'
+                ? (colorScheme === 'dark' ? 'rgba(26,26,46,0.7)' : 'rgba(255,255,255,0.7)')
+                : (colorScheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.30)'),
+            }
+          ]}
         >
-          {companies.map((company) => (
-            <Menu.Item
-              key={company.id}
-              onPress={() => {
-                setSelectedCompany(company.id);
-                setMenuVisible(false);
-              }}
-              title={company.name}
-              titleStyle={{ color: company.id === selectedCompanyId ? c.primary : c.text }}
-              leadingIcon={company.id === selectedCompanyId ? 'check' : undefined}
+          {Platform.OS !== 'web' && (
+            <BlurView
+              intensity={Platform.OS === 'ios' ? 70 : 80}
+              tint={colorScheme === 'dark' ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
             />
-          ))}
-        </Menu>
+          )}
+          <View style={styles.companySelectorInner}>
+            <View style={[styles.companyIconDot, { backgroundColor: c.primary + '25' }]}>
+              <Ionicons name="business" size={13} color={c.primary} />
+            </View>
+            <Text style={[styles.companySelectorText, { color: c.text }]} numberOfLines={1}>
+              {selectedCompany?.name || 'Şirket Seç'}
+            </Text>
+            <Ionicons name="chevron-down" size={13} color={c.textSecondary} />
+          </View>
+        </Pressable>
       </View>
+
+      {/* Company Selector Bottom Sheet */}
+      <Portal>
+        <Modal
+          visible={companyModalVisible}
+          onDismiss={() => setCompanyModalVisible(false)}
+          contentContainerStyle={styles.companyModalContent}
+        >
+          <GlassCard intensity={95} style={styles.companyModalCard}>
+            {/* Drag handle */}
+            <View style={styles.dragHandle} />
+
+            {/* Modal Header */}
+            <View style={styles.companyModalHeader}>
+              <View style={[styles.companyModalIconWrap, { backgroundColor: c.primary + '20' }]}>
+                <Ionicons name="business" size={22} color={c.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.companyModalTitle, { color: c.text }]}>Şirket Seçin</Text>
+                <Text style={[styles.companyModalSub, { color: c.textSecondary }]}>
+                  {companies.length} şirket mevcut
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setCompanyModalVisible(false)}
+                style={[styles.companyModalClose, { backgroundColor: c.surfaceVariant + '40' }]}
+              >
+                <Ionicons name="close" size={18} color={c.textSecondary} />
+              </Pressable>
+            </View>
+
+            {/* Divider */}
+            <View style={[styles.companyModalDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]} />
+
+            {/* Company List */}
+            <ScrollView style={styles.companyList} showsVerticalScrollIndicator={false}>
+              {companies.map((company, index) => {
+                const isSelected = company.id === selectedCompanyId;
+                return (
+                  <Pressable
+                    key={company.id}
+                    onPress={() => {
+                      setSelectedCompany(company.id);
+                      setCompanyModalVisible(false);
+                    }}
+                    android_ripple={{ color: c.primary + '18' }}
+                    style={[
+                      styles.companyListItem,
+                      isSelected && { backgroundColor: c.primary + '15' },
+                      index !== companies.length - 1 && {
+                        borderBottomWidth: 1,
+                        borderBottomColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                      },
+                    ]}
+                  >
+                    <View style={[styles.companyListAvatar, { backgroundColor: isSelected ? c.primary + '25' : c.surfaceVariant + '30' }]}>
+                      <Ionicons name={isSelected ? 'business' : 'business-outline'} size={18} color={isSelected ? c.primary : c.textSecondary} />
+                    </View>
+                    <Text style={[
+                      styles.companyListName,
+                      { color: isSelected ? c.primary : c.text, fontWeight: isSelected ? '700' : '500' }
+                    ]}>
+                      {company.name}
+                    </Text>
+                    {isSelected && (
+                      <View style={[styles.companyCheckBadge, { backgroundColor: c.primary }]}>
+                        <Ionicons name="checkmark" size={12} color="#fff" />
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </GlassCard>
+        </Modal>
+      </Portal>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -235,17 +314,110 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 14 },
   userName: { fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
-  companySelector: {
+  companySelectorPill: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    maxWidth: 190,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  companySelectorInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    maxWidth: 180,
+    paddingVertical: 9,
   },
-  companySelectorText: { fontSize: 13, fontWeight: '600', maxWidth: 120 },
+  companyIconDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  companySelectorText: { fontSize: 13, fontWeight: '700', maxWidth: 110, letterSpacing: -0.1 },
+  companyModalContent: {
+    marginTop: 'auto',
+    margin: 0,
+    padding: 0,
+  },
+  companyModalCard: {
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    paddingBottom: 48,
+    padding: 0,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(150,150,150,0.35)',
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  companyModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  companyModalIconWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  companyModalTitle: { fontSize: 19, fontWeight: '800', letterSpacing: -0.3 },
+  companyModalSub: { fontSize: 13, marginTop: 1 },
+  companyModalClose: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  companyModalDivider: {
+    height: 1,
+    marginHorizontal: 20,
+    marginBottom: 6,
+  },
+  companyList: {
+    maxHeight: 340,
+    paddingHorizontal: 12,
+  },
+  companyListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    marginVertical: 2,
+  },
+  companyListAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  companyListName: { flex: 1, fontSize: 15 },
+  companyCheckBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollContent: { paddingHorizontal: 20, paddingTop: 10 },
   statsGrid: {
     flexDirection: 'row',
