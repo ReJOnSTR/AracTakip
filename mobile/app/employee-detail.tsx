@@ -333,16 +333,6 @@ export default function EmployeeDetailScreen() {
       case 'salaries':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('salary')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni Maaş Ödemesi Ekle
-            </Button>
             {salariesQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (salariesQuery.data?.data || []).length === 0 ? (
@@ -376,16 +366,6 @@ export default function EmployeeDetailScreen() {
       case 'leaves':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('leave')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni İzin Kaydı Ekle
-            </Button>
             {leavesQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (leavesQuery.data?.data || []).length === 0 ? (
@@ -413,16 +393,6 @@ export default function EmployeeDetailScreen() {
       case 'overtimes':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('overtime')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni Mesai Kaydı Ekle
-            </Button>
             {overtimesQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (overtimesQuery.data?.data || []).length === 0 ? (
@@ -759,6 +729,20 @@ export default function EmployeeDetailScreen() {
               </Button>
             </View>
           </GlassModal>
+
+      {/* Floating Action Button */}
+      {['salaries', 'leaves', 'overtimes'].includes(activeTab) && (
+        <Pressable
+          onPress={() => {
+            if (activeTab === 'salaries') setActiveModal('salary');
+            else if (activeTab === 'leaves') setActiveModal('leave');
+            else if (activeTab === 'overtimes') setActiveModal('overtime');
+          }}
+          style={[styles.fab, { backgroundColor: c.primary }]}
+        >
+          <Ionicons name="add" size={28} color="#ffffff" />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -816,5 +800,20 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+  },
 });
 

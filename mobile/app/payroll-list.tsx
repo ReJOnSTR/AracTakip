@@ -61,6 +61,22 @@ export default function PayrollListScreen() {
     setCurrentDate(d);
   };
 
+  let touchStartX = 0;
+  const handleTouchStart = (e: any) => {
+    touchStartX = e.nativeEvent.pageX;
+  };
+  const handleTouchEnd = (e: any) => {
+    const touchEndX = e.nativeEvent.pageX;
+    const diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 80) {
+      if (diff > 0) {
+        onPrevMonth();
+      } else {
+        onNextMonth();
+      }
+    }
+  };
+
   const records = query.data?.data || [];
 
   const totalPayroll = records.reduce((sum: number, emp: any) => sum + (emp.salary || 0), 0);
@@ -72,7 +88,11 @@ export default function PayrollListScreen() {
   const avatarColors = [c.primary, c.secondary, c.tertiary, c.info, c.warning];
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <MovingBackground />
       
       {/* Header */}
@@ -90,13 +110,17 @@ export default function PayrollListScreen() {
 
       {/* Month Navigator */}
       <View style={styles.monthNavRow}>
-        <Pressable onPress={onPrevMonth} style={[styles.navBtn, { borderColor: c.textTertiary }]}>
-          <Ionicons name="chevron-back" size={18} color={c.text} />
-        </Pressable>
-        <Text style={[styles.monthLabel, { color: c.text }]}>{getMonthLabel(currentDate)}</Text>
-        <Pressable onPress={onNextMonth} style={[styles.navBtn, { borderColor: c.textTertiary }]}>
-          <Ionicons name="chevron-forward" size={18} color={c.text} />
-        </Pressable>
+        <GlassCard intensity={30} style={styles.monthNavCard}>
+          <View style={styles.monthNavInner}>
+            <Pressable onPress={onPrevMonth} style={[styles.navBtn, { borderColor: c.border }]}>
+              <Ionicons name="chevron-back" size={16} color={c.primary} />
+            </Pressable>
+            <Text style={[styles.monthLabel, { color: c.text }]}>{getMonthLabel(currentDate)}</Text>
+            <Pressable onPress={onNextMonth} style={[styles.navBtn, { borderColor: c.border }]}>
+              <Ionicons name="chevron-forward" size={16} color={c.primary} />
+            </Pressable>
+          </View>
+        </GlassCard>
       </View>
 
       {query.isLoading ? (
@@ -213,11 +237,19 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   count: { fontSize: 13, marginTop: 2 },
   monthNavRow: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  monthNavCard: {
+    width: '100%',
+    padding: 0,
+  },
+  monthNavInner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   navBtn: {
     width: 32,

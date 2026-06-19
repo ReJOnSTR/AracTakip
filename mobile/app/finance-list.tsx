@@ -34,6 +34,47 @@ export default function FinanceListScreen() {
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'IN' | 'OUT' | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const getMonthStr = (date: Date) => {
+    return date.toISOString().slice(0, 7); // e.g. "2026-06"
+  };
+
+  const getMonthLabel = (date: Date) => {
+    const months = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const onPrevMonth = () => {
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() - 1);
+    setCurrentDate(d);
+  };
+
+  const onNextMonth = () => {
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() + 1);
+    setCurrentDate(d);
+  };
+
+  let touchStartX = 0;
+  const handleTouchStart = (e: any) => {
+    touchStartX = e.nativeEvent.pageX;
+  };
+  const handleTouchEnd = (e: any) => {
+    const touchEndX = e.nativeEvent.pageX;
+    const diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 80) {
+      if (diff > 0) {
+        onPrevMonth();
+      } else {
+        onNextMonth();
+      }
+    }
+  };
   
   // Modal State
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -80,13 +121,15 @@ export default function FinanceListScreen() {
 
   const transactions = listQuery.data?.data || [];
   const stats = statsQuery.data?.data || { totalBalance: 0, currentMonthIn: 0, currentMonthOut: 0 };
+  const selectedMonth = getMonthStr(currentDate);
 
   const filtered = transactions.filter((t: any) => {
     const matchesSearch = !search ||
       t.description?.toLowerCase().includes(search.toLowerCase()) ||
       t.category?.toLowerCase().includes(search.toLowerCase());
     const matchesType = !typeFilter || t.type === typeFilter;
-    return matchesSearch && matchesType;
+    const matchesMonth = t.date && t.date.slice(0, 7) === selectedMonth;
+    return matchesSearch && matchesType && matchesMonth;
   });
 
   const handleCreate = () => {
@@ -153,7 +196,11 @@ export default function FinanceListScreen() {
   const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <MovingBackground />
       
       {/* Header */}
@@ -168,6 +215,21 @@ export default function FinanceListScreen() {
         <Pressable onPress={() => setIsModalVisible(true)} style={{ padding: 4, marginLeft: 8 }}>
           <Ionicons name="add-circle-outline" size={26} color={c.primary} />
         </Pressable>
+      </View>
+
+      {/* Month Navigator */}
+      <View style={styles.monthNavRow}>
+        <GlassCard intensity={30} style={styles.monthNavCard}>
+          <View style={styles.monthNavInner}>
+            <Pressable onPress={onPrevMonth} style={[styles.navBtn, { borderColor: c.border }]}>
+              <Ionicons name="chevron-back" size={16} color={c.primary} />
+            </Pressable>
+            <Text style={[styles.monthLabel, { color: c.text }]}>{getMonthLabel(currentDate)}</Text>
+            <Pressable onPress={onNextMonth} style={[styles.navBtn, { borderColor: c.border }]}>
+              <Ionicons name="chevron-forward" size={16} color={c.primary} />
+            </Pressable>
+          </View>
+        </GlassCard>
       </View>
 
       {/* Stats Cards */}
@@ -447,4 +509,28 @@ const styles = StyleSheet.create({
   typeSelector: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   typeButton: { flex: 1 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
+  monthNavRow: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  monthNavCard: {
+    width: '100%',
+    padding: 0,
+  },
+  monthNavInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  navBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthLabel: { fontSize: 16, fontWeight: '700' },
 });

@@ -34,6 +34,47 @@ export default function MealTicketsScreen() {
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const getMonthStr = (date: Date) => {
+    return date.toISOString().slice(0, 7); // e.g. "2026-06"
+  };
+
+  const getMonthLabel = (date: Date) => {
+    const months = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const onPrevMonth = () => {
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() - 1);
+    setCurrentDate(d);
+  };
+
+  const onNextMonth = () => {
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() + 1);
+    setCurrentDate(d);
+  };
+
+  let touchStartX = 0;
+  const handleTouchStart = (e: any) => {
+    touchStartX = e.nativeEvent.pageX;
+  };
+  const handleTouchEnd = (e: any) => {
+    const touchEndX = e.nativeEvent.pageX;
+    const diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 80) {
+      if (diff > 0) {
+        onPrevMonth();
+      } else {
+        onNextMonth();
+      }
+    }
+  };
 
   useEffect(() => {
     if (params.openAdd === 'true') {
@@ -66,6 +107,7 @@ export default function MealTicketsScreen() {
 
   const tickets = listQuery.data?.data || [];
   const stats = statsQuery.data?.data || { totalThisMonth: 0, totalCostThisMonth: 0 };
+  const selectedMonth = getMonthStr(currentDate);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -98,22 +140,43 @@ export default function MealTicketsScreen() {
   };
 
   const filtered = tickets.filter((item: any) => {
-    return !search ||
+    const matchesSearch = !search ||
       item.notes?.toLowerCase().includes(search.toLowerCase()) ||
       item.date?.toLowerCase().includes(search.toLowerCase());
+    const matchesMonth = item.date && item.date.slice(0, 7) === selectedMonth;
+    return matchesSearch && matchesMonth;
   });
 
   const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
   const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <MovingBackground />
       
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={[styles.title, { color: c.text }]}>Yemek Fişleri</Text>
         <Text style={[styles.count, { color: c.textSecondary }]}>{tickets.length} fiş</Text>
+      </View>
+
+      {/* Month Navigator */}
+      <View style={styles.monthNavRow}>
+        <GlassCard intensity={30} style={styles.monthNavCard}>
+          <View style={styles.monthNavInner}>
+            <Pressable onPress={onPrevMonth} style={[styles.navBtn, { borderColor: c.border }]}>
+              <Ionicons name="chevron-back" size={16} color={c.primary} />
+            </Pressable>
+            <Text style={[styles.monthLabel, { color: c.text }]}>{getMonthLabel(currentDate)}</Text>
+            <Pressable onPress={onNextMonth} style={[styles.navBtn, { borderColor: c.border }]}>
+              <Ionicons name="chevron-forward" size={16} color={c.primary} />
+            </Pressable>
+          </View>
+        </GlassCard>
       </View>
 
       {/* Summary Header */}
@@ -354,4 +417,28 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
+  monthNavRow: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  monthNavCard: {
+    width: '100%',
+    padding: 0,
+  },
+  monthNavInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  navBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthLabel: { fontSize: 16, fontWeight: '700' },
 });

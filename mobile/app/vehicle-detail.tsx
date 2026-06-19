@@ -293,16 +293,6 @@ export default function VehicleDetailScreen() {
       case 'maintenances':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('maintenance')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni Bakım Kaydı Ekle
-            </Button>
             {maintenanceQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (maintenanceQuery.data?.data || []).length === 0 ? (
@@ -329,16 +319,6 @@ export default function VehicleDetailScreen() {
       case 'inspections':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('inspection')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni Muayene Kaydı Ekle
-            </Button>
             {inspectionQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (inspectionQuery.data?.data || []).length === 0 ? (
@@ -365,16 +345,6 @@ export default function VehicleDetailScreen() {
       case 'insurances':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('insurance')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni Sigorta Kaydı Ekle
-            </Button>
             {insuranceQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (insuranceQuery.data?.data || []).length === 0 ? (
@@ -401,16 +371,6 @@ export default function VehicleDetailScreen() {
       case 'services':
         return (
           <View style={styles.tabContainer}>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setActiveModal('service')}
-              style={styles.addTabBtn}
-              buttonColor={c.primary}
-              textColor="#ffffff"
-            >
-              Yeni Servis Kaydı Ekle
-            </Button>
             {servicesQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
             ) : (servicesQuery.data?.data || []).length === 0 ? (
@@ -802,6 +762,21 @@ export default function VehicleDetailScreen() {
               </Button>
             </View>
           </GlassModal>
+
+      {/* Floating Action Button */}
+      {['maintenances', 'inspections', 'insurances', 'services'].includes(activeTab) && (
+        <Pressable
+          onPress={() => {
+            if (activeTab === 'maintenances') setActiveModal('maintenance');
+            else if (activeTab === 'inspections') setActiveModal('inspection');
+            else if (activeTab === 'insurances') setActiveModal('insurance');
+            else if (activeTab === 'services') setActiveModal('service');
+          }}
+          style={[styles.fab, { backgroundColor: c.primary }]}
+        >
+          <Ionicons name="add" size={28} color="#ffffff" />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -876,5 +851,20 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+  },
 });
 
