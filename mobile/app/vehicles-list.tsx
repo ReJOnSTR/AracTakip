@@ -444,7 +444,10 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 15 },
   modalContent: {
-    marginTop: 'auto',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     margin: 0,
     padding: 0,
   },

@@ -341,7 +341,10 @@ const styles = StyleSheet.create({
   },
   companySelectorText: { fontSize: 13, fontWeight: '700', maxWidth: 110, letterSpacing: -0.1 },
   companyModalContent: {
-    marginTop: 'auto',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     margin: 0,
     padding: 0,
   },

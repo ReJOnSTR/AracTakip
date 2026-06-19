@@ -822,7 +822,10 @@ const styles = StyleSheet.create({
   subCardDesc: { fontSize: 13, marginBottom: 4 },
   addTabBtn: { marginBottom: 12, borderRadius: 12 },
   modalContent: {
-    marginTop: 'auto',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     margin: 0,
     padding: 0,
   },
