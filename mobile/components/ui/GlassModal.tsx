@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal as RNModal, StyleSheet, View, Pressable, Platform, useColorScheme } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Modal as RNModal, StyleSheet, View, Pressable, Platform, useColorScheme, Animated, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Colors } from '../../constants/Colors';
 
@@ -9,26 +9,76 @@ interface GlassModalProps {
   children: React.ReactNode;
 }
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 export default function GlassModal({ visible, onDismiss, children }: GlassModalProps) {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
-  const c = Colors[colorScheme];
+  const [showModal, setShowModal] = useState(visible);
+  
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const cardTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  useEffect(() => {
+    if (visible) {
+      setShowModal(true);
+      
+      // Reset starting animation values
+      backdropOpacity.setValue(0);
+      cardTranslateY.setValue(SCREEN_HEIGHT);
+
+      Animated.parallel([
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.spring(cardTranslateY, {
+          toValue: 0,
+          bounciness: 3,
+          speed: 13,
+          useNativeDriver: Platform.OS !== 'web',
+        })
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(backdropOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(cardTranslateY, {
+          toValue: SCREEN_HEIGHT,
+          duration: 220,
+          useNativeDriver: Platform.OS !== 'web',
+        })
+      ]).start(() => {
+        setShowModal(false);
+      });
+    }
+  }, [visible]);
 
   return (
     <RNModal
-      visible={visible}
+      visible={showModal}
       transparent={true}
-      animationType="slide"
+      animationType="none"
       statusBarTranslucent={true}
       onRequestClose={onDismiss}
     >
       <View style={styles.overlay}>
-        <Pressable 
-          style={styles.backdrop} 
-          onPress={onDismiss}
-        />
-        <View style={[
+        {/* Animated dimming backdrop */}
+        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+          <Pressable 
+            style={StyleSheet.absoluteFill} 
+            onPress={onDismiss}
+          />
+        </Animated.View>
+
+        {/* Animated sliding bottom card */}
+        <Animated.View style={[
           styles.modalCard,
           {
+            transform: [{ translateY: cardTranslateY }],
             borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
             backgroundColor: Platform.OS === 'web'
               ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)')
@@ -46,7 +96,7 @@ export default function GlassModal({ visible, onDismiss, children }: GlassModalP
           <View style={styles.content}>
             {children}
           </View>
-        </View>
+        </Animated.View>
       </View>
     </RNModal>
   );
@@ -56,11 +106,10 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
   },
   modalCard: {
     width: '100%',
