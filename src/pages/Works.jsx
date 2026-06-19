@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react' // Trigger recompilation
+import React, { useState, useEffect, useMemo, useRef } from 'react' // Trigger recompilation
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import { useNavigate } from 'react-router-dom'
@@ -28,8 +28,24 @@ export default function Works() {
         }
     }, [currentCompany, showArchived])
 
-    const loadData = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['works', 'work_items', 'customers'].includes(change?.table)) {
+                console.log(`[RealTime] Works reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [worksRes, customersRes] = await Promise.all([
                 window.electronAPI.getWorks(currentCompany.id, showArchived ? 1 : 0),
@@ -40,7 +56,7 @@ export default function Works() {
         } catch (error) {
             console.error('Veri yüklenirken hata:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const handleFormSubmit = async (data) => {

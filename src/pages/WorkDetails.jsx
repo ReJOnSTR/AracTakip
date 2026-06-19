@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react' // Re-saved for sync
+import { useState, useEffect, useMemo, useRef } from 'react' // Re-saved for sync
 import { useParams, useNavigate, Link } from 'react-router-dom' // Even though we use tabs, we might get ID from props
 import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
@@ -101,6 +101,22 @@ export default function WorkDetails(props) {
         loadData()
     }, [id])
 
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!id) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['works', 'work_items', 'customers', 'employees', 'vehicles'].includes(change?.table)) {
+                console.log(`[RealTime] WorkDetails reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [id])
+
     const calculateAutoHours = (startTime, endTime, pricingType) => {
         if (!startTime || !endTime) return { hours: 1, overtimeHours: 0 };
 
@@ -178,8 +194,8 @@ export default function WorkDetails(props) {
 
 
 
-    const loadData = async () => {
-        setLoading(true)
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             // Load Work Details
             const workRes = await window.electronAPI.getWorkDetails(id)
@@ -206,7 +222,7 @@ export default function WorkDetails(props) {
         } catch (error) {
             console.error('Error loading data:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const handleSaveToSystem = async () => {

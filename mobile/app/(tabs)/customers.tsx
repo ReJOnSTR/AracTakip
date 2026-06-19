@@ -57,9 +57,16 @@ export default function CustomersScreen() {
     queryKey: ['customers', selectedCompanyId],
     queryFn: () => customerService.getAll(selectedCompanyId!),
     enabled: !!selectedCompanyId,
+    refetchInterval: 5000,
   });
 
   const customers = query.data?.data || [];
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await query.refetch();
+    setIsRefreshing(false);
+  };
 
   const createMutation = useMutation({
     mutationFn: (newCustomer: any) => customerService.create(newCustomer),
@@ -137,7 +144,7 @@ export default function CustomersScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={query.isFetching} onRefresh={() => query.refetch()} tintColor={c.primary} />
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
           renderItem={({ item, index }) => (
             <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>

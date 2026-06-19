@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import Modal from '../components/Modal'
@@ -52,8 +52,24 @@ export default function Finance() {
         }
     }, [currentCompany, showArchived])
 
-    const loadData = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['transactions', 'recurring_transactions'].includes(change?.table)) {
+                console.log(`[RealTime] Finance reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [txRes, statsRes] = await Promise.all([
                 window.electronAPI.getAllFinance(currentCompany.id, showArchived ? 1 : 0),
@@ -65,7 +81,7 @@ export default function Finance() {
         } catch (error) {
             console.error('Failed to load finance data:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const resetForm = () => {

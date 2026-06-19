@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -54,8 +54,24 @@ export default function Insurance() {
         }
     }, [currentCompany, showArchived]) // Reload on toggle
 
-    const loadData = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['insurances', 'vehicles'].includes(change?.table)) {
+                console.log(`[RealTime] Insurance reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [insResult, vehiclesResult, documentsResult] = await Promise.all([
                 window.electronAPI.getAllInsurances(currentCompany.id, showArchived ? 1 : 0),
@@ -69,7 +85,7 @@ export default function Insurance() {
         } catch (error) {
             console.error('Failed to load data:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const resetForm = () => {

@@ -190,6 +190,25 @@ export default function EmployeeDetail() {
         if (currentCompany) loadEmployeeData()
     }, [currentCompany, id, isDocArchiveView])
 
+    // Real-time synchronization listener
+    const loadEmployeeDataRef = useRef(null)
+    useEffect(() => {
+        loadEmployeeDataRef.current = loadEmployeeData
+    })
+    useEffect(() => {
+        if (!id) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if ([
+                'employees', 'salaries', 'leaves', 'overtimes',
+                'employee_assignments', 'employee_documents', 'employee_movements'
+            ].includes(change?.table)) {
+                console.log(`[RealTime] EmployeeDetail reloading for change in ${change.table}`)
+                loadEmployeeDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [id])
+
     useEffect(() => {
         const activeElement = tabsRef[activeTab]
         if (activeElement) {
@@ -256,8 +275,8 @@ export default function EmployeeDetail() {
         }
     }, [employee])
 
-    const loadEmployeeData = async () => {
-        setLoading(true)
+    const loadEmployeeData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [empRes, salRes, leaveRes, otRes, assRes, docRes, ltRes, dcRes, deptRes, dfRes] = await Promise.all([
                 window.electronAPI.getEmployeeById(parseInt(id)),
@@ -290,7 +309,7 @@ export default function EmployeeDetail() {
         } catch (err) {
             console.error('Failed to load employee data:', err)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const handleOpenCreateFolder = () => {

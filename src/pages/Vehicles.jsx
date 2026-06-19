@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
@@ -46,8 +46,27 @@ export default function Vehicles() {
         }
     }, [currentCompany, showArchived])
 
-    const loadVehicles = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadVehiclesRef = useRef(null)
+    useEffect(() => {
+        loadVehiclesRef.current = loadVehicles
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if ([
+                'vehicles', 'maintenances', 'inspections', 'insurances',
+                'services', 'assignments'
+            ].includes(change?.table)) {
+                console.log(`[RealTime] Vehicles reloading for change in ${change.table}`)
+                loadVehiclesRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadVehicles = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const result = await window.electronAPI.getVehicles(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) {
@@ -67,7 +86,7 @@ export default function Vehicles() {
         } catch (error) {
             console.error('Failed to load vehicles:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const resetForm = () => {

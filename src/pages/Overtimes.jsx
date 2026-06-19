@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
@@ -170,6 +170,27 @@ export default function Overtimes() {
         }
     }, [currentCompany, selectedMonth])
 
+    // Real-time synchronization listener
+    const reloadDataRef = useRef(null)
+    useEffect(() => {
+        reloadDataRef.current = () => {
+            if (currentCompany) {
+                loadOvertimes()
+                loadAllEmployees()
+            }
+        }
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['overtimes', 'employees'].includes(change?.table)) {
+                console.log(`[RealTime] Overtimes reloading for change in ${change.table}`)
+                reloadDataRef.current?.(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
     const loadAllEmployees = async () => {
         try {
             const result = await window.electronAPI.getEmployees(currentCompany.id)
@@ -181,8 +202,8 @@ export default function Overtimes() {
         }
     }
 
-    const loadOvertimes = async () => {
-        setLoading(true)
+    const loadOvertimes = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             // We use the same payroll summary API as it returns overtimes and salaries for the month
             const result = await window.electronAPI.getPayrollSummary(currentCompany.id, selectedMonth)
@@ -248,7 +269,7 @@ export default function Overtimes() {
         } catch (err) {
             console.error('Failed to load overtime summary:', err)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const calcOvertimeRate = (type, employee) => {

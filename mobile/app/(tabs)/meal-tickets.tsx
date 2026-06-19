@@ -53,16 +53,24 @@ export default function MealTicketsScreen() {
     queryKey: ['meal-tickets', selectedCompanyId],
     queryFn: () => mealTicketService.getAll(selectedCompanyId!),
     enabled: !!selectedCompanyId,
+    refetchInterval: 5000,
   });
 
   const statsQuery = useQuery({
     queryKey: ['meal-tickets-stats', selectedCompanyId],
     queryFn: () => mealTicketService.getStats(selectedCompanyId!),
     enabled: !!selectedCompanyId,
+    refetchInterval: 5000,
   });
 
   const tickets = listQuery.data?.data || [];
-  const stats = statsQuery.data || { totalAmount: 0, totalQuantity: 0 };
+  const stats = statsQuery.data?.data || { totalThisMonth: 0, totalCostThisMonth: 0 };
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([listQuery.refetch(), statsQuery.refetch()]);
+    setIsRefreshing(false);
+  };
 
   const createMutation = useMutation({
     mutationFn: (newTicket: any) => mealTicketService.create(newTicket),
@@ -113,12 +121,12 @@ export default function MealTicketsScreen() {
           <View style={styles.summaryContent}>
             <View style={styles.summaryBox}>
               <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>Toplam Adet</Text>
-              <Text style={[styles.summaryVal, { color: c.primary }]}>{stats.totalQuantity || 0}</Text>
+              <Text style={[styles.summaryVal, { color: c.primary }]}>{stats.totalThisMonth || 0}</Text>
             </View>
             <View style={[styles.divider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }]} />
             <View style={styles.summaryBox}>
               <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>Toplam Tutar</Text>
-              <Text style={[styles.summaryVal, { color: c.success }]}>{formatCurrency(stats.totalAmount)}</Text>
+              <Text style={[styles.summaryVal, { color: c.success }]}>{formatCurrency(stats.totalCostThisMonth)}</Text>
             </View>
           </View>
         </GlassCard>
@@ -150,11 +158,8 @@ export default function MealTicketsScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={listQuery.isFetching || statsQuery.isFetching}
-              onRefresh={() => {
-                listQuery.refetch();
-                statsQuery.refetch();
-              }}
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
               tintColor={c.primary}
             />
           }

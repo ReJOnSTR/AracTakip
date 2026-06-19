@@ -273,6 +273,7 @@ async function addEmployeeAssignment(data) {
                 employee_id: parseInt(data.employeeId),
                 item_name: data.itemName,
                 serial_number: data.serialNumber || null,
+                quantity: data.quantity ? parseInt(data.quantity) : 1,
                 assign_date: data.assignDate ? new Date(data.assignDate) : null,
                 return_date: data.returnDate ? new Date(data.returnDate) : null,
                 status: data.status || 'active',
@@ -290,6 +291,7 @@ async function updateEmployeeAssignment(data) {
             data: {
                 item_name: data.itemName,
                 serial_number: data.serialNumber || null,
+                quantity: data.quantity ? parseInt(data.quantity) : 1,
                 assign_date: data.assignDate ? new Date(data.assignDate) : null,
                 return_date: data.returnDate ? new Date(data.returnDate) : null,
                 status: data.status,

@@ -19,7 +19,7 @@ const TABLES = [
     'recurring_transactions', 'salaries', 'services', 'transactions', 'users', 'vehicles', 'works', 'work_items'
 ];
 
-function startAdminServer(prisma) {
+function startAdminServer(prisma, onDbUpdate) {
     if (serverInstance) return; // Prevent multiple instances
 
     const app = express();
@@ -170,6 +170,9 @@ function startAdminServer(prisma) {
             const record = await prisma[table].create({
                 data: payload
             });
+            if (typeof onDbUpdate === 'function') {
+                onDbUpdate({ table, action: 'create' });
+            }
             res.json({ success: true, data: record });
         } catch (error) {
             log.error(`Admin panel error creating ${table}:`, error);
@@ -199,6 +202,9 @@ function startAdminServer(prisma) {
             await prisma[table].delete({
                 where: { id }
             });
+            if (typeof onDbUpdate === 'function') {
+                onDbUpdate({ table, action: 'delete' });
+            }
             res.json({ success: true });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -212,7 +218,7 @@ function startAdminServer(prisma) {
         // Attach user info to request
         next();
     });
-    app.use('/api/mobile', createMobileRoutes(db));
+    app.use('/api/mobile', createMobileRoutes(db, onDbUpdate));
 
     // Additional CRUD can be added here (Update, Create).
     // API: Update Record
@@ -246,6 +252,9 @@ function startAdminServer(prisma) {
                 where: { id },
                 data: payload
             });
+            if (typeof onDbUpdate === 'function') {
+                onDbUpdate({ table, action: 'update' });
+            }
             res.json({ success: true, data: updatedRecord });
         } catch (error) {
             log.error(`Admin panel error updating ${table}:`, error);

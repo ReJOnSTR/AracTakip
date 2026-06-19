@@ -67,8 +67,12 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     overflow: 'hidden',
+    width: '100%',
+    flex: 1,
   },
   content: {
     padding: 16,
+    flex: 1,
+    width: '100%',
   },
 });

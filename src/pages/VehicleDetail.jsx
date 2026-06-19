@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import TopProgressBar from '../components/TopProgressBar'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
@@ -156,6 +156,25 @@ export default function VehicleDetail() {
             loadFolders()
         }
     }, [currentCompany, id, showArchived])
+
+    // Real-time synchronization listener
+    const loadVehicleDataRef = useRef(null)
+    useEffect(() => {
+        loadVehicleDataRef.current = loadVehicleData
+    })
+    useEffect(() => {
+        if (!id) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if ([
+                'vehicles', 'maintenances', 'inspections', 'insurances',
+                'assignments', 'services', 'documents'
+            ].includes(change?.table)) {
+                console.log(`[RealTime] VehicleDetail reloading for change in ${change.table}`)
+                loadVehicleDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [id])
 
     const loadCategories = async () => {
         if (!currentCompany) return
@@ -327,8 +346,8 @@ export default function VehicleDetail() {
         }
     }, [activeTab, tabsRef, maintenances, services, inspections, insurances, assignments, documents]) // Recalculate if counts change
 
-    const loadVehicleData = async () => {
-        setLoading(true)
+    const loadVehicleData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [vehicleRes, maintRes, inspRes, insRes, assignRes, servRes, docsRes] = await Promise.all([
                 window.electronAPI.getVehicleById(parseInt(id)),
@@ -357,7 +376,7 @@ export default function VehicleDetail() {
         } catch (error) {
             console.error('Failed to load vehicle data:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const handleBulkArchiveDocs = async (ids, isArchived) => {

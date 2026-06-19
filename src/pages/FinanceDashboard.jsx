@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
@@ -113,6 +113,22 @@ export default function FinanceDashboard() {
         }
     }, [currentCompany])
 
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['transactions', 'recurring_transactions'].includes(change?.table)) {
+                console.log(`[RealTime] FinanceDashboard reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
     const handleOpenSettings = () => {
         const visibleIds = new Set(visibleActions.map(a => a.id))
 
@@ -163,8 +179,8 @@ export default function FinanceDashboard() {
         setShowSettings(false)
     }
 
-    const loadData = async () => {
-        setLoading(true)
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [txRes, checksRes] = await Promise.all([
                 window.electronAPI.getAllFinance(currentCompany.id),
@@ -178,7 +194,7 @@ export default function FinanceDashboard() {
         } catch (error) {
             console.error('Failed to load finance data:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     // ===== Computed Data =====

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import TopProgressBar from '../components/TopProgressBar'
 import { useCompany } from '../context/CompanyContext'
 import { formatCurrency, formatDate, getDaysUntil } from '../utils/helpers'
@@ -54,8 +54,24 @@ export default function PersonelDashboard() {
         }
     }, [currentCompany])
 
-    const loadData = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['employees', 'leaves', 'overtimes', 'employee_documents'].includes(change?.table)) {
+                console.log(`[RealTime] PersonelDashboard reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [empRes, passiveEmpRes, docRes] = await Promise.all([
                 window.electronAPI.getEmployees(currentCompany.id, 0),
@@ -72,7 +88,7 @@ export default function PersonelDashboard() {
         } catch (error) {
             console.error(error)
         } finally {
-            setLoading(false)
+            if (!isBackground) setLoading(false)
         }
     }
 

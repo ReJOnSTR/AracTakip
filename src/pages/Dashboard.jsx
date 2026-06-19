@@ -91,6 +91,32 @@ export default function Dashboard() {
         }
     }, [currentCompany])
 
+    // Real-time synchronization listener
+    const loadDashboardDataRef = useRef(null)
+    const loadUpcomingEventsRef = useRef(null)
+    useEffect(() => {
+        loadDashboardDataRef.current = loadDashboardData
+        loadUpcomingEventsRef.current = loadUpcomingEvents
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if ([
+                'vehicles', 'maintenances', 'inspections', 'insurances',
+                'services', 'assignments', 'employees', 'works',
+                'documents', 'transactions'
+            ].includes(change?.table)) {
+                console.log(`[RealTime] Dashboard reloading for change in ${change.table}`)
+                loadDashboardDataRef.current(true)
+                if (typeof loadUpcomingEventsRef.current === 'function') {
+                    loadUpcomingEventsRef.current()
+                }
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+
     // --- Quick Actions Logic ---
     const allActions = [
         { id: 'add-vehicle', label: 'Araç Ekle', path: '/vehicles', icon: 'Car', default: true },

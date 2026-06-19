@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, Users, Pencil, Trash2, Building2, Phone, Mail, MapPin, DollarSign } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
@@ -27,8 +27,24 @@ export default function Customers() {
         }
     }, [currentCompany, showArchived])
 
-    const loadCustomers = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadCustomersRef = useRef(null)
+    useEffect(() => {
+        loadCustomersRef.current = loadCustomers
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (change?.table === 'customers') {
+                console.log(`[RealTime] Customers reloading for change in ${change.table}`)
+                loadCustomersRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadCustomers = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const result = await window.electronAPI.getCustomers(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) {
@@ -37,7 +53,7 @@ export default function Customers() {
         } catch (error) {
             console.error('Failed to load customers:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const openCreateModal = () => {

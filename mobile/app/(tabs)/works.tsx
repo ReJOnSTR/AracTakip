@@ -60,15 +60,23 @@ export default function WorksScreen() {
     queryKey: ['works', storeCompanyId],
     queryFn: () => workService.getAll(storeCompanyId!),
     enabled: !!storeCompanyId,
+    refetchInterval: 5000,
   });
 
   const customersQuery = useQuery({
     queryKey: ['customers', storeCompanyId],
     queryFn: () => customerService.getAll(storeCompanyId!),
     enabled: !!storeCompanyId,
+    refetchInterval: 5000,
   });
 
   const works = query.data?.data || [];
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([query.refetch(), customersQuery.refetch()]);
+    setIsRefreshing(false);
+  };
   const customers = customersQuery.data?.data || [];
   const customerOptions = customers.map((cust: any) => ({
     label: cust.name,
@@ -156,7 +164,7 @@ export default function WorksScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={query.isFetching} onRefresh={() => query.refetch()} tintColor={c.primary} />
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
           renderItem={({ item, index }) => (
             <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>

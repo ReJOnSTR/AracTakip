@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -55,8 +55,24 @@ export default function Maintenance() {
         }
     }, [currentCompany, showArchived]) // Reload when archive toggle changes
 
-    const loadData = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['maintenances', 'vehicles'].includes(change?.table)) {
+                console.log(`[RealTime] Maintenance reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [maintResult, vehiclesResult, documentsResult] = await Promise.all([
                 window.electronAPI.getAllMaintenances(currentCompany.id, showArchived ? 1 : 0),
@@ -70,7 +86,7 @@ export default function Maintenance() {
         } catch (error) {
             console.error('Failed to load data:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const resetForm = () => {

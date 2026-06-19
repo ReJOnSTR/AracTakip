@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
@@ -40,8 +40,24 @@ export default function Employees() {
         }
     }, [currentCompany, showArchived])
 
-    const loadEmployees = async () => {
-        setLoading(true)
+    // Real-time synchronization listener
+    const loadEmployeesRef = useRef(null)
+    useEffect(() => {
+        loadEmployeesRef.current = loadEmployees
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (change?.table === 'employees') {
+                console.log(`[RealTime] Employees reloading for change in ${change.table}`)
+                loadEmployeesRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadEmployees = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const [empRes, deptRes] = await Promise.all([
                 employeeService.getAll(currentCompany.id, showArchived ? 1 : 0),
@@ -62,7 +78,7 @@ export default function Employees() {
         } catch (err) {
             console.error('Failed to load employees:', err)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const openCreateModal = () => {

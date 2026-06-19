@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
     Calendar, 
     Plus, 
@@ -73,9 +73,9 @@ export default function Leaves() {
         'Diğer': '#94a3b8'
     };
 
-    const loadData = async () => {
+    const loadData = async (isBackground = false) => {
         if (!currentCompany) return;
-        setLoading(true);
+        if (!isBackground) setLoading(true);
         try {
             const [leavesRes, employeesRes, typesRes] = await Promise.all([
                 window.electronAPI.getLeavesByCompany(currentCompany.id),
@@ -96,12 +96,28 @@ export default function Leaves() {
         } catch (err) {
             console.error('Failed to load leaves:', err);
         }
-        setLoading(false);
+        if (!isBackground) setLoading(false);
     };
 
     useEffect(() => {
         loadData();
     }, [currentCompany]);
+
+    // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['leaves', 'employees'].includes(change?.table)) {
+                console.log(`[RealTime] Leaves reloading for change in ${change.table}`)
+                loadDataRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
 
     const handleAddClick = () => {
         setEditingLeave(null);

@@ -229,7 +229,7 @@ app.whenReady().then(async () => {
         // Run schema migrations (add missing columns to older DBs)
         await runAutoMigrations()
 
-        startAdminServer(getPrismaClient())
+        startAdminServer(getPrismaClient(), notifyDbUpdate)
     } catch (err) {
         log.error('Failed to initialize database:', err)
         dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)

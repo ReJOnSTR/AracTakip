@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, ArchiveRestore, FileText, Plus, Trash2, Folder, AlertCircle, ChevronRight } from 'lucide-react'
 import DataTable from '../components/DataTable'
@@ -73,6 +73,27 @@ export default function CustomerDetail() {
         loadCustomer()
     }, [id])
 
+    // Real-time synchronization listener
+    const loadCustomerRef = useRef(null)
+    const loadDocumentsRef = useRef(null)
+    useEffect(() => {
+        loadCustomerRef.current = loadCustomer
+        loadDocumentsRef.current = loadDocuments
+    })
+    useEffect(() => {
+        if (!id) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['customers', 'works', 'documents'].includes(change?.table)) {
+                console.log(`[RealTime] CustomerDetail reloading for change in ${change.table}`)
+                loadCustomerRef.current(true)
+                if (currentCompany) {
+                    loadDocumentsRef.current(currentCompany.id)
+                }
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [id, currentCompany])
+
     useEffect(() => {
         const activeElement = tabsRef[activeTab]
         if (activeElement) {
@@ -107,8 +128,8 @@ export default function CustomerDetail() {
         }
     }
 
-    const loadCustomer = async () => {
-        setLoading(true)
+    const loadCustomer = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const result = await window.electronAPI.getCustomerDetails(id)
             if (result.success) {
@@ -118,7 +139,7 @@ export default function CustomerDetail() {
         } catch (error) {
             console.error('Failed to load customer details:', error)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const loadCategories = async () => {

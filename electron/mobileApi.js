@@ -7,7 +7,12 @@
 const express = require('express');
 const router = express.Router();
 
-function createMobileRoutes(db) {
+function createMobileRoutes(db, onDbUpdate) {
+    const notify = (table, action) => {
+        if (typeof onDbUpdate === 'function') {
+            onDbUpdate({ table, action });
+        }
+    };
 
     // ============ DASHBOARD ============
     router.get('/dashboard/stats', async (req, res) => {
@@ -67,6 +72,7 @@ function createMobileRoutes(db) {
     router.post('/vehicles', async (req, res) => {
         try {
             const result = await db.createVehicle(req.body);
+            if (result.success) notify('vehicles', 'create');
             res.json(result);
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -76,6 +82,7 @@ function createMobileRoutes(db) {
     router.put('/vehicles/:id', async (req, res) => {
         try {
             const result = await db.updateVehicle({ ...req.body, id: req.params.id });
+            if (result.success) notify('vehicles', 'update');
             res.json(result);
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -85,6 +92,7 @@ function createMobileRoutes(db) {
     router.delete('/vehicles/:id', async (req, res) => {
         try {
             const result = await db.deleteVehicle(req.params.id);
+            if (result.success) notify('vehicles', 'delete');
             res.json(result);
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -270,6 +278,7 @@ function createMobileRoutes(db) {
     router.post('/employees', async (req, res) => {
         try {
             const result = await db.addEmployee(req.body);
+            if (result.success) notify('employees', 'create');
             res.json(result);
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -279,6 +288,7 @@ function createMobileRoutes(db) {
     router.put('/employees/:id', async (req, res) => {
         try {
             const result = await db.updateEmployee({ ...req.body, id: req.params.id });
+            if (result.success) notify('employees', 'update');
             res.json(result);
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -288,6 +298,7 @@ function createMobileRoutes(db) {
     router.delete('/employees/:id', async (req, res) => {
         try {
             const result = await db.deleteEmployee(req.params.id);
+            if (result.success) notify('employees', 'delete');
             res.json(result);
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -325,6 +336,30 @@ function createMobileRoutes(db) {
     router.get('/employees/:id/movements', async (req, res) => {
         try { res.json(await db.getAllEmployeeMovements(req.params.id)); }
         catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.get('/leaves', async (req, res) => {
+        try {
+            const { companyId } = req.query;
+            if (!companyId) return res.status(400).json({ error: 'companyId gerekli' });
+            res.json(await db.getAllLeaves(companyId));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.get('/overtimes', async (req, res) => {
+        try {
+            const { companyId } = req.query;
+            if (!companyId) return res.status(400).json({ error: 'companyId gerekli' });
+            res.json(await db.getAllOvertimes(companyId));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.get('/salaries', async (req, res) => {
+        try {
+            const { companyId } = req.query;
+            if (!companyId) return res.status(400).json({ error: 'companyId gerekli' });
+            res.json(await db.getAllSalariesForCompany(companyId));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     // Employee sub-collection CRUD
@@ -416,18 +451,27 @@ function createMobileRoutes(db) {
     });
 
     router.post('/finance', async (req, res) => {
-        try { res.json(await db.createTransaction(req.body)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.createTransaction(req.body);
+            if (result.success) notify('transactions', 'create');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.put('/finance/:id', async (req, res) => {
-        try { res.json(await db.updateTransaction({ ...req.body, id: req.params.id })); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.updateTransaction({ ...req.body, id: req.params.id });
+            if (result.success) notify('transactions', 'update');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.delete('/finance/:id', async (req, res) => {
-        try { res.json(await db.deleteTransaction(req.params.id)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.deleteTransaction(req.params.id);
+            if (result.success) notify('transactions', 'delete');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.put('/finance/:id/check-status', async (req, res) => {
@@ -458,18 +502,27 @@ function createMobileRoutes(db) {
     });
 
     router.post('/meal-tickets', async (req, res) => {
-        try { res.json(await db.addMealTicket(req.body)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.addMealTicket(req.body);
+            if (result.success) notify('meal_tickets', 'create');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.put('/meal-tickets/:id', async (req, res) => {
-        try { res.json(await db.updateMealTicket({ ...req.body, id: req.params.id })); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.updateMealTicket({ ...req.body, id: req.params.id });
+            if (result.success) notify('meal_tickets', 'update');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.delete('/meal-tickets/:id', async (req, res) => {
-        try { res.json(await db.deleteMealTicket(req.params.id)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.deleteMealTicket(req.params.id);
+            if (result.success) notify('meal_tickets', 'delete');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     // ============ WORKS & CUSTOMERS ============
@@ -486,18 +539,27 @@ function createMobileRoutes(db) {
     });
 
     router.post('/works', async (req, res) => {
-        try { res.json(await db.createWork(req.body)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.createWork(req.body);
+            if (result.success) notify('works', 'create');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.put('/works/:id', async (req, res) => {
-        try { res.json(await db.updateWork({ ...req.body, id: req.params.id })); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.updateWork({ ...req.body, id: req.params.id });
+            if (result.success) notify('works', 'update');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.delete('/works/:id', async (req, res) => {
-        try { res.json(await db.deleteWork(req.params.id)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.deleteWork(req.params.id);
+            if (result.success) notify('works', 'delete');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.get('/customers', async (req, res) => {
@@ -513,18 +575,27 @@ function createMobileRoutes(db) {
     });
 
     router.post('/customers', async (req, res) => {
-        try { res.json(await db.createCustomer(req.body)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.createCustomer(req.body);
+            if (result.success) notify('customers', 'create');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.put('/customers/:id', async (req, res) => {
-        try { res.json(await db.updateCustomer({ ...req.body, id: req.params.id })); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.updateCustomer({ ...req.body, id: req.params.id });
+            if (result.success) notify('customers', 'update');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     router.delete('/customers/:id', async (req, res) => {
-        try { res.json(await db.deleteCustomer(req.params.id)); }
-        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+        try {
+            const result = await db.deleteCustomer(req.params.id);
+            if (result.success) notify('customers', 'delete');
+            res.json(result);
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
     // ============ GLOBAL SEARCH ============

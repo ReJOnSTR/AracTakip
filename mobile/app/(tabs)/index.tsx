@@ -90,19 +90,22 @@ export default function DashboardScreen() {
     queryKey: ['dashboard-stats', selectedCompanyId],
     queryFn: () => dashboardService.getStats(selectedCompanyId!),
     enabled: !!selectedCompanyId,
+    refetchInterval: 5000,
   });
 
   const upcomingQuery = useQuery({
     queryKey: ['dashboard-upcoming', selectedCompanyId],
     queryFn: () => dashboardService.getUpcoming(selectedCompanyId!),
     enabled: !!selectedCompanyId,
+    refetchInterval: 5000,
   });
 
-  const isRefreshing = statsQuery.isFetching || upcomingQuery.isFetching;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const onRefresh = useCallback(() => {
-    statsQuery.refetch();
-    upcomingQuery.refetch();
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([statsQuery.refetch(), upcomingQuery.refetch()]);
+    setIsRefreshing(false);
   }, []);
 
   const stats = statsQuery.data?.data;

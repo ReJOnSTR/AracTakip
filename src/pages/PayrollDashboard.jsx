@@ -1,5 +1,5 @@
 import TopProgressBar from '../components/TopProgressBar'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
@@ -98,6 +98,22 @@ export default function PayrollDashboard() {
         }
     }, [currentCompany, selectedMonth])
 
+    // Real-time synchronization listener
+    const loadPayrollRef = useRef(null)
+    useEffect(() => {
+        loadPayrollRef.current = loadPayroll
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if (['salaries', 'employees'].includes(change?.table)) {
+                console.log(`[RealTime] PayrollDashboard reloading for change in ${change.table}`)
+                loadPayrollRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
     const getNextMonth = (monthStr) => {
         const [year, month] = monthStr.split('-').map(Number)
         const nextDate = new Date(year, month, 1)
@@ -117,8 +133,8 @@ export default function PayrollDashboard() {
         return months
     }
 
-    const loadPayroll = async () => {
-        setLoading(true)
+    const loadPayroll = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
         try {
             const nextMonth = getNextMonth(selectedMonth)
             // Fetch current month data + next month data (for outbound carryover) + all salaries for advance stats
@@ -230,7 +246,7 @@ export default function PayrollDashboard() {
         } catch (err) {
             console.error('Failed to load payroll summary:', err)
         }
-        setLoading(false)
+        if (!isBackground) setLoading(false)
     }
 
     const handleOpenPaymentModal = (row = null) => {

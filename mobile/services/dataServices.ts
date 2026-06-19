@@ -23,6 +23,11 @@ export const vehicleService = {
   getServices: (vehicleId: number) => api.get(`${m}/vehicles/${vehicleId}/services`).then(r => r.data),
   createService: (data: any) => api.post(`${m}/services`, data).then(r => r.data),
   getAssignments: (vehicleId: number) => api.get(`${m}/vehicles/${vehicleId}/assignments`).then(r => r.data),
+  getAllMaintenances: (companyId: number, isArchived = 0) => api.get(`${m}/maintenances`, { params: { companyId, isArchived } }).then(r => r.data),
+  getAllInspections: (companyId: number, type = 'all', isArchived = 0) => api.get(`${m}/inspections`, { params: { companyId, type, isArchived } }).then(r => r.data),
+  getAllInsurances: (companyId: number, isArchived = 0) => api.get(`${m}/insurances`, { params: { companyId, isArchived } }).then(r => r.data),
+  getAllServices: (companyId: number, isArchived = 0) => api.get(`${m}/services-all`, { params: { companyId, isArchived } }).then(r => r.data),
+  getAllAssignments: (companyId: number, isArchived = 0) => api.get(`${m}/assignments-all`, { params: { companyId, isArchived } }).then(r => r.data),
 };
 
 export const employeeService = {
@@ -40,6 +45,9 @@ export const employeeService = {
   getAssignments: (empId: number) => api.get(`${m}/employees/${empId}/assignments`).then(r => r.data),
   getDocuments: (empId: number) => api.get(`${m}/employees/${empId}/documents`).then(r => r.data),
   getPayrollSummary: (companyId: number, month: string) => api.get(`${m}/employees/payroll-summary`, { params: { companyId, month } }).then(r => r.data),
+  getAllLeaves: (companyId: number) => api.get(`${m}/leaves`, { params: { companyId } }).then(r => r.data),
+  getAllOvertimes: (companyId: number) => api.get(`${m}/overtimes`, { params: { companyId } }).then(r => r.data),
+  getAllSalaries: (companyId: number) => api.get(`${m}/salaries`, { params: { companyId } }).then(r => r.data),
 };
 
 export const financeService = {

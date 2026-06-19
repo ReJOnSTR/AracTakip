@@ -17,7 +17,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
   const { apiUrl, updateApiUrl } = useAuthStore();
 
   const currentRouteName = state.routes[state.index].name;
-  const listScreens = ['vehicles', 'employees', 'finance', 'works', 'customers', 'meal-tickets'];
+  const listScreens = ['works', 'customers', 'meal-tickets'];
   const showPlusButton = listScreens.includes(currentRouteName);
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
