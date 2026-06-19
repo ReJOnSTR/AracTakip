@@ -115,9 +115,25 @@ export default function CustomersScreen() {
       <MovingBackground />
       
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={[styles.title, { color: c.text }]}>Müşteriler</Text>
-        <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
+      <View style={[
+        styles.headerCard,
+        {
+          marginTop: insets.top + 12,
+          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.45)',
+          backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
+        }
+      ]}>
+        {Platform.OS !== 'web' && (
+          <BlurView
+            intensity={75}
+            tint={colorScheme === 'dark' ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
+        <View style={styles.headerInner}>
+          <Text style={[styles.title, { color: c.text, marginVertical: 0 }]}>Müşteriler</Text>
+          <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
+        </View>
       </View>
 
       {/* Searchbar */}
@@ -282,6 +298,26 @@ export default function CustomersScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginHorizontal: 16,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  headerInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: '100%',
+  },
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
