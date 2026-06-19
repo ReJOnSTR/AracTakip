@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import GlassModal from '../../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { Text, Portal, Modal } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { BlurView } from 'expo-blur';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -161,13 +162,7 @@ export default function DashboardScreen() {
       </View>
 
       {/* Company Selector Bottom Sheet */}
-      <Portal>
-        <Modal
-          visible={companyModalVisible}
-          onDismiss={() => setCompanyModalVisible(false)}
-          contentContainerStyle={styles.companyModalContent}
-        >
-          <GlassCard intensity={95} style={styles.companyModalCard}>
+      <GlassModal visible={companyModalVisible} onDismiss={() => setCompanyModalVisible(false)}>
             {/* Drag handle */}
             <View style={styles.dragHandle} />
 
@@ -232,9 +227,7 @@ export default function DashboardScreen() {
                 );
               })}
             </ScrollView>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       <ScrollView
         showsVerticalScrollIndicator={false}

@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
+import GlassModal from '../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -7,7 +8,7 @@ import {
   useColorScheme,
   Pressable,
 } from 'react-native';
-import { Text, Searchbar, Chip, Portal, Modal, Button } from 'react-native-paper';
+import { Text, Searchbar, Chip, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -282,13 +283,7 @@ export default function FinanceListScreen() {
       />
 
       {/* Add Transaction Modal */}
-      <Portal>
-        <Modal
-          visible={isModalVisible}
-          onDismiss={() => setIsModalVisible(false)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İşlem Ekle</Text>
             
             <View style={styles.typeSelector}>
@@ -372,9 +367,7 @@ export default function FinanceListScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import GlassModal from '../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { Text, ActivityIndicator, IconButton, Divider, Portal, Modal, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, Divider, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -517,13 +518,7 @@ export default function VehicleDetailScreen() {
       </ScrollView>
 
       {/* Add Maintenance Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'maintenance'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'maintenance'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Bakım Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
@@ -595,18 +590,10 @@ export default function VehicleDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       {/* Add Inspection Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'inspection'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'inspection'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Muayene Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
@@ -673,18 +660,10 @@ export default function VehicleDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       {/* Add Insurance Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'insurance'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'insurance'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Sigorta Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
@@ -753,18 +732,10 @@ export default function VehicleDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       {/* Add Service Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'service'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'service'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Servis Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassDropdown
@@ -830,9 +801,7 @@ export default function VehicleDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }

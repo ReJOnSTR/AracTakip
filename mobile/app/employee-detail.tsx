@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import GlassModal from '../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { Text, ActivityIndicator, IconButton, Divider, Avatar, Portal, Modal, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, Divider, Avatar, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -552,13 +553,7 @@ export default function EmployeeDetailScreen() {
       </ScrollView>
 
       {/* Add Salary Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'salary'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'salary'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Maaş Ödemesi</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassDropdown
@@ -645,18 +640,10 @@ export default function EmployeeDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       {/* Add Leave Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'leave'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'leave'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İzin Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassDropdown
@@ -715,18 +702,10 @@ export default function EmployeeDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       {/* Add Overtime Modal */}
-      <Portal>
-        <Modal
-          visible={activeModal === 'overtime'}
-          onDismiss={() => { setActiveModal(null); resetForm(); }}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={activeModal === 'overtime'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Mesai Kaydı</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
@@ -779,9 +758,7 @@ export default function EmployeeDetailScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }

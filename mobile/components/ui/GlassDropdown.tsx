@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import GlassModal from './GlassModal';
 import { StyleSheet, View, Pressable, ViewStyle, Platform, useColorScheme, ScrollView } from 'react-native';
-import { Text, Portal, Modal } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
@@ -60,13 +61,7 @@ export default function GlassDropdown({ label, value, options, onSelect, placeho
         </View>
       </Pressable>
 
-      <Portal>
-        <Modal
-          visible={isOpen}
-          onDismiss={() => setIsOpen(false)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={95} style={styles.modalGlassCard}>
+      <GlassModal visible={isOpen} onDismiss={() => setIsOpen(false)}>
             <View style={styles.header}>
               <Text style={[styles.modalTitle, { color: c.text }]}>{label || 'Seçim Yapın'}</Text>
               <Pressable onPress={() => setIsOpen(false)}>
@@ -99,9 +94,7 @@ export default function GlassDropdown({ label, value, options, onSelect, placeho
                 );
               })}
             </ScrollView>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }

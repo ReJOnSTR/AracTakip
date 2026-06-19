@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import GlassModal from '../../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -7,7 +8,7 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
-import { Text, Button, Portal, Modal, Avatar } from 'react-native-paper';
+import { Text, Button, Avatar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -100,14 +101,7 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Popups / Modals */}
-      <Portal>
-        {/* Company Selector */}
-        <Modal
-          visible={isCompanyModalVisible}
-          onDismiss={() => setIsCompanyModalVisible(false)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={isCompanyModalVisible} onDismiss={() => setIsCompanyModalVisible(false)}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Şirket Seçin</Text>
             <ScrollView style={styles.modalScroll}>
               {companies.map(comp => (
@@ -144,9 +138,7 @@ export default function ProfileScreen() {
             >
               Kapat
             </Button>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }

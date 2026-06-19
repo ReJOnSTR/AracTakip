@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import GlassModal from '../../components/ui/GlassModal';
 import { Tabs, useRouter } from 'expo-router';
 import { useColorScheme, Platform, StyleSheet, View, Pressable, useWindowDimensions, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { Text, Portal, Modal, Button } from 'react-native-paper';
+import { Text, Button } from 'react-native-paper';
 import { Colors } from '../../constants/Colors';
 import Animated, { LinearTransition, FadeInRight, FadeOutRight, FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useAuthStore } from '../../stores/authStore';
@@ -332,13 +333,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
       </View>
 
       {/* PORTAL FOR DYNAMIC IP SETTINGS SHEET */}
-      <Portal>
-        <Modal
-          visible={isIpModalVisible}
-          onDismiss={() => setIsIpModalVisible(false)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={isIpModalVisible} onDismiss={() => setIsIpModalVisible(false)}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Sunucu Ayarları</Text>
             <ScrollView style={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
               <GlassInput
@@ -367,9 +362,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
                 </Button>
               </View>
             </ScrollView>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }

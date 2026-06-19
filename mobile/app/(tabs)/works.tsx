@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import GlassModal from '../../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -10,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Text, ActivityIndicator, IconButton, Searchbar, Portal, Modal, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, Searchbar, Button } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -222,13 +223,7 @@ export default function WorksScreen() {
       )}
 
       {/* Add Work Modal */}
-      <Portal>
-        <Modal
-          visible={isModalVisible}
-          onDismiss={() => setIsModalVisible(false)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İş Ekle</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
@@ -311,9 +306,7 @@ export default function WorksScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
 
       {/* Portal for Add Modal */}
     </View>

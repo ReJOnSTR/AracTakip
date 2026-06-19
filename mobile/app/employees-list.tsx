@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
+import GlassModal from '../components/ui/GlassModal';
 import {
   View,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native';
-import { Text, Searchbar, Chip, Portal, Modal, Button } from 'react-native-paper';
+import { Text, Searchbar, Chip, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -266,13 +267,7 @@ export default function EmployeesListScreen() {
       />
 
       {/* Add Employee Modal */}
-      <Portal>
-        <Modal
-          visible={isModalVisible}
-          onDismiss={() => setIsModalVisible(false)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <GlassCard intensity={85} style={styles.modalGlassCard}>
+      <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
             <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Personel Ekle</Text>
             
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
@@ -397,9 +392,7 @@ export default function EmployeesListScreen() {
                 Kaydet
               </Button>
             </View>
-          </GlassCard>
-        </Modal>
-      </Portal>
+          </GlassModal>
     </View>
   );
 }
