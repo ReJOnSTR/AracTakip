@@ -1,14 +1,13 @@
 import { useCallback, useState, useEffect } from 'react';
-import { BlurView } from 'expo-blur';
 import GlassModal from '../components/ui/GlassModal';
-import { Platform, 
+import {
   View,
   StyleSheet,
   FlatList,
   RefreshControl,
   useColorScheme,
   Pressable,
- } from 'react-native';
+} from 'react-native';
 import { Text, Searchbar, Chip, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -158,33 +157,17 @@ export default function FinanceListScreen() {
       <MovingBackground />
       
       {/* Header */}
-      <View style={[
-        styles.headerCard,
-        {
-          marginTop: insets.top + 12,
-          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.45)',
-          backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
-        }
-      ]}>
-        {Platform.OS !== 'web' && (
-          <BlurView
-            intensity={75}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        <View style={styles.headerInner}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={c.text} />
-          </Pressable>
-          <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text, marginVertical: 0, fontSize: 20 }]}>Kasa Defteri</Text>
-            <Text style={[styles.count, { color: c.textSecondary, fontSize: 13 }]}>İşlemler</Text>
-          </View>
-          <Pressable onPress={() => setIsModalVisible(true)} style={{ padding: 4, marginLeft: 8 }}>
-            <Ionicons name="add-circle-outline" size={26} color={c.primary} />
-          </Pressable>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={c.text} />
+        </Pressable>
+        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <Text style={[styles.title, { color: c.text }]}>Kasa Defteri</Text>
+          <Text style={[styles.count, { color: c.textSecondary }]}>İşlemler</Text>
         </View>
+        <Pressable onPress={() => setIsModalVisible(true)} style={{ padding: 4, marginLeft: 8 }}>
+          <Ionicons name="add-circle-outline" size={26} color={c.primary} />
+        </Pressable>
       </View>
 
       {/* Stats Cards */}
@@ -390,27 +373,6 @@ export default function FinanceListScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '100%',
-    gap: 12,
-  },
   container: { flex: 1 },
   header: {
     flexDirection: 'row',

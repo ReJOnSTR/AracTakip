@@ -119,30 +119,15 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       <MovingBackground />
       {/* Header */}
-      <View style={[
-        styles.headerCard,
-        {
-          marginTop: insets.top + 12,
-          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.45)',
-          backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
-        }
-      ]}>
-        {Platform.OS !== 'web' && (
-          <BlurView
-            intensity={75}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        <View style={styles.headerInner}>
-          <View>
-            <Text style={[styles.greeting, { color: c.textSecondary }]}>
-              Hoş geldin 👋
-            </Text>
-            <Text style={[styles.userName, { color: c.text }]}>
-              {user?.full_name || user?.username || 'Kullanıcı'}
-            </Text>
-          </View>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View>
+          <Text style={[styles.greeting, { color: c.textSecondary }]}>
+            Hoş geldin 👋
+          </Text>
+          <Text style={[styles.userName, { color: c.text }]}>
+            {user?.full_name || user?.username || 'Kullanıcı'}
+          </Text>
+        </View>
 
         {/* Glass Company Selector Pill */}
         <Pressable
@@ -174,7 +159,6 @@ export default function DashboardScreen() {
             <Ionicons name="chevron-down" size={13} color={c.textSecondary} />
           </View>
         </Pressable>
-        </View>
       </View>
 
       {/* Company Selector Bottom Sheet */}
@@ -313,26 +297,6 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '100%',
-  },
   container: { flex: 1 },
   header: {
     flexDirection: 'row',

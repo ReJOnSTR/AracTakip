@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { BlurView } from 'expo-blur';
 import GlassModal from '../../components/ui/GlassModal';
-import { Platform, 
+import {
   View,
   StyleSheet,
   ScrollView,
   useColorScheme,
   Pressable,
   Alert,
- } from 'react-native';
+} from 'react-native';
 import { Text, Button, Avatar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,23 +46,8 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]} showsVerticalScrollIndicator={false}>
         
         {/* Header */}
-        <View style={[
-          styles.headerCard,
-          {
-            borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.45)',
-            backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
-          }
-        ]}>
-          {Platform.OS !== 'web' && (
-            <BlurView
-              intensity={75}
-              tint={colorScheme === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-          <View style={styles.headerInner}>
-            <Text style={[styles.title, { color: c.text, marginVertical: 0 }]}>Profil</Text>
-          </View>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: c.text }]}>Profil</Text>
         </View>
 
         {/* Profile Card */}
@@ -160,24 +144,6 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '100%',
-  },
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
   header: {

@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { BlurView } from 'expo-blur';
 import GlassModal from '../components/ui/GlassModal';
-import { Platform, 
+import {
   View,
   StyleSheet,
   ScrollView,
@@ -9,7 +8,7 @@ import { Platform,
   Pressable,
   RefreshControl,
   Alert,
- } from 'react-native';
+} from 'react-native';
 import { Text, ActivityIndicator, IconButton, Divider, Avatar, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -483,26 +482,10 @@ export default function EmployeeDetailScreen() {
       <MovingBackground />
       
       {/* Navbar */}
-      <View style={[
-        styles.headerCard,
-        {
-          marginTop: insets.top + 8,
-          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.45)',
-          backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
-        }
-      ]}>
-        {Platform.OS !== 'web' && (
-          <BlurView
-            intensity={75}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        <View style={styles.headerInner}>
-          <IconButton icon="arrow-left" size={24} iconColor={c.text} onPress={() => router.back()} style={{ margin: 0 }} />
-          <Text style={[styles.navTitle, { color: c.text, marginVertical: 0 }]}>Personel Detayı</Text>
-          <IconButton icon="trash-can-outline" size={24} iconColor={c.error} onPress={handleConfirmDelete} style={{ margin: 0 }} />
-        </View>
+      <View style={[styles.nav, { paddingTop: insets.top }]}>
+        <IconButton icon="arrow-left" size={24} iconColor={c.text} onPress={() => router.back()} />
+        <Text style={[styles.navTitle, { color: c.text }]}>Personel Detayı</Text>
+        <IconButton icon="trash-can-outline" size={24} iconColor={c.error} onPress={handleConfirmDelete} />
       </View>
 
       <ScrollView
@@ -781,26 +764,6 @@ export default function EmployeeDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    width: '100%',
-  },
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },

@@ -135,25 +135,9 @@ export default function WorksScreen() {
       <MovingBackground />
       
       {/* Header */}
-      <View style={[
-        styles.headerCard,
-        {
-          marginTop: insets.top + 12,
-          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.45)',
-          backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.35)',
-        }
-      ]}>
-        {Platform.OS !== 'web' && (
-          <BlurView
-            intensity={75}
-            tint={colorScheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        <View style={styles.headerInner}>
-          <Text style={[styles.title, { color: c.text, marginVertical: 0 }]}>İş Takibi</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>{works.length} iş</Text>
-        </View>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
+        <Text style={[styles.count, { color: c.textSecondary }]}>{works.length} iş</Text>
       </View>
 
       {/* Searchbar */}
@@ -330,26 +314,6 @@ export default function WorksScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '100%',
-  },
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
