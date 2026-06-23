@@ -299,6 +299,7 @@ exports.Prisma.LeavesScalarFieldEnum = {
   start_date: 'start_date',
   end_date: 'end_date',
   days: 'days',
+  hours: 'hours',
   status: 'status',
   notes: 'notes',
   created_at: 'created_at',

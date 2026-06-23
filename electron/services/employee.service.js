@@ -171,14 +171,10 @@ async function getPayrollSummary(companyId, month) {
 
         const employees = await prisma.employees.findMany({
             where: { 
-                company_id: parseInt(companyId),
-                OR: [
-                    { status: 'active' },
-                    { salaries: { some: { salary_month: targetMonth } } }
-                ]
+                company_id: parseInt(companyId)
             },
             include: {
-                salaries: { where: { salary_month: targetMonth } },
+                salaries: true, // Fetch all salaries to filter by period in memory
                 overtimes: { 
                     where: { 
                         date: { gte: startDate, lte: endDate },
@@ -189,14 +185,42 @@ async function getPayrollSummary(companyId, month) {
             }
         });
 
+        // Filter salaries in memory to match the exact same logic as PC
+        const filteredEmployees = employees.map(emp => {
+            const monthlySalaries = emp.salaries.filter(s => {
+                if (s.salary_month) {
+                    return s.salary_month === targetMonth;
+                }
+                if (!s.payment_date && !s.created_at) return false;
+                try {
+                    const d = s.payment_date || s.created_at;
+                    const dStr = typeof d === 'string' ? d : d.toISOString();
+                    return dStr.startsWith(targetMonth);
+                } catch (e) {
+                    return false;
+                }
+            });
+
+            return {
+                ...emp,
+                salaries: monthlySalaries
+            };
+        });
+
+        // PC only lists active employees OR employees with some salary record in the selected month
+        const resultEmployees = filteredEmployees.filter(emp => {
+            return emp.status === 'active' || emp.salaries.length > 0;
+        });
+
         const collator = new Intl.Collator('tr');
-        const sortedEmployees = employees.sort((a, b) => collator.compare(a.first_name, b.first_name));
+        const sortedEmployees = resultEmployees.sort((a, b) => collator.compare(a.first_name, b.first_name));
 
         return { success: true, data: sortedEmployees };
     } catch (error) {
         return { success: false, error: error.message };
     }
 }
+
 
 module.exports = {
     getEmployees, getEmployeeById, addEmployee, updateEmployee, deleteEmployee, getPayrollSummary

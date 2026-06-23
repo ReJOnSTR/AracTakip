@@ -127,4 +127,11 @@ api.interceptors.response.use(
   }
 );
 
+export function getFileUrl(filePath: string): string {
+  if (!filePath) return '';
+  if (filePath.startsWith('http')) return filePath;
+  const base = api.defaults.baseURL ? api.defaults.baseURL.replace(/\/api$/, '') : 'http://192.168.1.100:9999';
+  return `${base}/uploads/${filePath}`;
+}
+
 export default api;

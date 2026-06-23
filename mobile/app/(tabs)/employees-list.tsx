@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
-import GlassModal from '../components/ui/GlassModal';
+import GlassModal from '../../components/ui/GlassModal';
+import SwipeBackView from '../../components/ui/SwipeBackView';
 import {
   View,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
   useColorScheme,
   Pressable,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { Text, Searchbar, Chip, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,13 +17,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../constants/Colors';
-import { useAuthStore } from '../stores/authStore';
-import { employeeService } from '../services/dataServices';
-import MovingBackground from '../components/ui/MovingBackground';
-import GlassCard from '../components/ui/GlassCard';
-import GlassInput from '../components/ui/GlassInput';
-import GlassDropdown from '../components/ui/GlassDropdown';
+import { Colors } from '../../constants/Colors';
+import { useAuthStore } from '../../stores/authStore';
+import { employeeService } from '../../services/dataServices';
+import MovingBackground from '../../components/ui/MovingBackground';
+import GlassCard from '../../components/ui/GlassCard';
+import GlassInput from '../../components/ui/GlassInput';
+import GlassDropdown from '../../components/ui/GlassDropdown';
+import GlassIconButton from '../../components/ui/GlassIconButton';
 
 export default function EmployeesListScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -31,6 +34,8 @@ export default function EmployeesListScreen() {
   const { selectedCompanyId } = useAuthStore();
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
   const params = useLocalSearchParams();
   const queryClient = useQueryClient();
@@ -114,7 +119,8 @@ export default function EmployeesListScreen() {
       e.phone?.toLowerCase().includes(search.toLowerCase()) ||
       e.position?.toLowerCase().includes(search.toLowerCase());
     const matchesDept = !deptFilter || e.department === deptFilter;
-    return matchesSearch && matchesDept;
+    const matchesStatus = statusFilter === 'all' || e.status === statusFilter;
+    return matchesSearch && matchesDept && matchesStatus;
   });
 
   const getInitials = (first: string, last: string) => {
@@ -168,83 +174,42 @@ export default function EmployeesListScreen() {
     );
   }, [c, router, colorScheme]);
 
-  const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
-  const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+  const glassBgColor = Platform.OS === 'web'
+    ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
+    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.2)');
+  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
 
   return (
-    <View style={styles.container}>
+    <SwipeBackView onSwipeBack={() => router.push('/employees')} style={styles.container}>
       <MovingBackground />
       
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={c.text} />
-        </Pressable>
-        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/employees')}
+        />
+        <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={[styles.title, { color: c.text }]}>Personel Listesi</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>{employees.length} kişi</Text>
+          <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} kişi</Text>
         </View>
-        <Pressable onPress={() => setIsModalVisible(true)} style={{ padding: 4, marginLeft: 8 }}>
-          <Ionicons name="add-circle-outline" size={26} color={c.primary} />
-        </Pressable>
+        <GlassIconButton
+          icon="funnel-outline"
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
-      {/* Search */}
       <View style={styles.searchRow}>
         <Searchbar
           placeholder="Ad, pozisyon veya telefon ara..."
           value={search}
           onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
+          style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
           inputStyle={[styles.searchInput, { color: c.text }]}
           placeholderTextColor={c.textTertiary}
           iconColor={c.textSecondary}
         />
       </View>
-
-      {/* Department filter chips */}
-      {departments.length > 0 && (
-        <View style={styles.chipRow}>
-          <Chip
-            mode="flat"
-            selected={!deptFilter}
-            onPress={() => setDeptFilter(null)}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: !deptFilter ? c.primaryContainer + '30' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'),
-                borderColor: !deptFilter ? c.primary : 'transparent',
-                borderWidth: 1,
-              }
-            ]}
-            textStyle={[styles.chipText, { color: !deptFilter ? c.primary : c.textSecondary }]}
-          >
-            Tümü
-          </Chip>
-          {departments.slice(0, 5).map((dept) => {
-            const isSelected = deptFilter === dept;
-            return (
-              <Chip
-                key={dept}
-                mode="flat"
-                selected={isSelected}
-                onPress={() => setDeptFilter(isSelected ? null : dept)}
-                style={[
-                  styles.chip,
-                  {
-                    backgroundColor: isSelected ? c.primaryContainer + '30' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'),
-                    borderColor: isSelected ? c.primary : 'transparent',
-                    borderWidth: 1,
-                  }
-                ]}
-                textStyle={[styles.chipText, { color: isSelected ? c.primary : c.textSecondary }]}
-              >
-                {dept}
-              </Chip>
-            );
-          })}
-        </View>
-      )}
 
       {/* Employee List */}
       <FlatList
@@ -265,6 +230,134 @@ export default function EmployeesListScreen() {
           </View>
         }
       />
+
+      {/* Filter Modal */}
+      <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+
+          {/* Department Filter */}
+          {departments.length > 0 && (
+            <>
+              <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 16 }]}>Departman</Text>
+              <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8 }]}>
+                <Pressable
+                  onPress={() => setDeptFilter(null)}
+                  style={{
+                    height: 36,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    paddingHorizontal: 16,
+                    backgroundColor: !deptFilter 
+                      ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                    borderColor: !deptFilter 
+                      ? c.primary 
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ 
+                    color: !deptFilter ? c.primary : c.textSecondary, 
+                    fontSize: 13,
+                    fontWeight: !deptFilter ? '600' : '400'
+                  }}>
+                    Tümü
+                  </Text>
+                </Pressable>
+                {departments.map((dept) => {
+                  const isSelected = deptFilter === dept;
+                  return (
+                    <Pressable
+                      key={dept}
+                      onPress={() => setDeptFilter(isSelected ? null : dept)}
+                      style={{
+                        height: 36,
+                        borderRadius: 18,
+                        borderWidth: 1,
+                        paddingHorizontal: 16,
+                        backgroundColor: isSelected 
+                          ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                          : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                        borderColor: isSelected 
+                          ? c.primary 
+                          : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'),
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ 
+                        color: isSelected ? c.primary : c.textSecondary, 
+                        fontSize: 13,
+                        fontWeight: isSelected ? '600' : '400'
+                      }}>
+                        {dept}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Status Filter */}
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 16 }]}>Durum</Text>
+          <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+            {([
+              { label: 'Tümü', value: 'all' },
+              { label: 'Aktif', value: 'active' },
+              { label: 'Pasif', value: 'inactive' },
+            ] as const).map((opt) => {
+              const isSelected = statusFilter === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => setStatusFilter(opt.value)}
+                  style={{
+                    height: 36,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    paddingHorizontal: 16,
+                    backgroundColor: isSelected 
+                      ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                    borderColor: isSelected 
+                      ? c.primary 
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ 
+                    color: isSelected ? c.primary : c.textSecondary, 
+                    fontSize: 13,
+                    fontWeight: isSelected ? '600' : '400'
+                  }}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button 
+            mode="text" 
+            onPress={() => {
+              setDeptFilter(null);
+              setStatusFilter('active');
+            }} 
+            textColor={c.textSecondary}
+          >
+            Temizle
+          </Button>
+          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+            Uygula
+          </Button>
+        </View>
+      </GlassModal>
 
       {/* Add Employee Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
@@ -393,7 +486,7 @@ export default function EmployeesListScreen() {
               </Button>
             </View>
           </GlassModal>
-    </View>
+    </SwipeBackView>
   );
 }
 
@@ -406,23 +499,19 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   backBtn: { marginRight: 12 },
-  title: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  count: { fontSize: 13 },
+  title: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
+  count: { fontSize: 11, marginTop: 2 },
   searchRow: { paddingHorizontal: 20, paddingVertical: 8 },
-  searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
+  searchBar: { borderRadius: 23, elevation: 0, height: 46, borderWidth: 1.2 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  chipRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    gap: 8,
-    flexWrap: 'wrap',
-  },
+  filterSectionTitle: { fontSize: 14, fontWeight: '700', marginVertical: 8 },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 4 },
+  filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   employeeCardGlass: {
     padding: 0,
@@ -430,8 +519,8 @@ const styles = StyleSheet.create({
   employeeCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 10,
+    gap: 10,
   },
   avatar: {
     width: 48,

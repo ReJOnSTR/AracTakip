@@ -620,6 +620,19 @@ async function runAutoMigrations() {
         log.error('Migration step 21 (custom fields in work_items) error:', error.message);
     }
 
+    // 22. Add hours field to leaves if missing
+    try {
+        const leaveCols = await p.$queryRawUnsafe("PRAGMA table_info('leaves')");
+        if (leaveCols.length > 0) {
+            if (!leaveCols.some(c => c.name === 'hours')) {
+                await p.$executeRawUnsafe('ALTER TABLE leaves ADD COLUMN hours REAL');
+                log.info('Migration: Added hours to leaves');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 22 (hours field in leaves) error:', error.message);
+    }
+
     log.info('Auto-migrations loop completed.');
 }
 

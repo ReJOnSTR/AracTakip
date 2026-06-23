@@ -130,14 +130,6 @@ export default function ProfileScreen() {
                 </Pressable>
               ))}
             </ScrollView>
-            <Button
-              mode="outlined"
-              onPress={() => setIsCompanyModalVisible(false)}
-              style={{ marginTop: 16 }}
-              textColor={c.primary}
-            >
-              Kapat
-            </Button>
           </GlassModal>
     </View>
   );

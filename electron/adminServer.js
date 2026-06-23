@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const electron = require('electron');
 const log = require('./logger'); // Use the app's existing logger
 const jwt = require('jsonwebtoken');
 const authService = require('./services/auth.service');
@@ -78,6 +79,10 @@ function startAdminServer(prisma, onDbUpdate) {
     // Serve the frontend HTML page
     const adminStaticFolder = path.join(__dirname, 'admin');
     app.use(express.static(adminStaticFolder));
+
+    // Serve uploaded documents statically
+    const filesDir = path.join(electron.app.getPath('userData'), 'files');
+    app.use('/uploads', express.static(filesDir));
 
     // API: Login
     app.post('/api/login', async (req, res) => {

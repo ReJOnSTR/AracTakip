@@ -188,14 +188,24 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                             </td>
                                             <td style={tdStyle}>{formatDate(item.start_date)}</td>
                                             <td style={tdStyle}>{formatDate(item.end_date)}</td>
-                                            <td style={tdStyle}>{item.days} Gün</td>
+                                            <td style={tdStyle}>
+                                                {item.hours ? `${item.hours} Saat` : (item.days && item.days % 1 !== 0 ? `${Math.round(item.days * 8 * 100) / 100} Saat` : `${item.days} Gün`)}
+                                            </td>
                                             <td style={tdStyle}>{item.status === 'approved' ? 'Onaylandı' : 'Bekliyor'}</td>
                                         </tr>
                                     ))}
                                     <tr style={totalRowStyle}>
                                         <td colSpan={3} style={{ ...tdStyle, textAlign: 'right' }}>TOPLAM:</td>
                                         <td colSpan={2} style={tdStyle}>
-                                            {report.leaves.reduce((sum, item) => sum + (item.days || 0), 0)} Gün
+                                            {(() => {
+                                                const totalDays = report.leaves.reduce((sum, item) => sum + (item.days || 0), 0);
+                                                const whpl = 8;
+                                                const totalHours = Math.round(totalDays * whpl * 100) / 100;
+                                                if (totalHours % whpl === 0) {
+                                                    return `${Math.round(totalDays * 100) / 100} Gün`;
+                                                }
+                                                return `${totalHours} Saat`;
+                                            })()}
                                         </td>
                                     </tr>
                                 </tbody>

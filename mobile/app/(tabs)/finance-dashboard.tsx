@@ -11,12 +11,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Colors } from '../constants/Colors';
-import { useAuthStore } from '../stores/authStore';
-import { financeService } from '../services/dataServices';
-import { formatCurrency } from '../utils/format';
-import MovingBackground from '../components/ui/MovingBackground';
-import GlassCard from '../components/ui/GlassCard';
+import { Colors } from '../../constants/Colors';
+import { useAuthStore } from '../../stores/authStore';
+import { financeService } from '../../services/dataServices';
+import { formatCurrency } from '../../utils/format';
+import MovingBackground from '../../components/ui/MovingBackground';
+import GlassCard from '../../components/ui/GlassCard';
+import GlassIconButton from '../../components/ui/GlassIconButton';
+import SwipeBackView from '../../components/ui/SwipeBackView';
 
 export default function FinanceDashboardScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -76,14 +78,16 @@ export default function FinanceDashboardScreen() {
     .sort((a, b) => b.amount - a.amount);
 
   return (
-    <View style={styles.container}>
+    <SwipeBackView onSwipeBack={() => router.push('/finance')} style={styles.container}>
       <MovingBackground />
       
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={c.text} />
-        </Pressable>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/finance')}
+          style={{ marginRight: 12 }}
+        />
         <View style={{ flex: 1 }}>
           <Text style={[styles.title, { color: c.text }]}>Finansal Analiz</Text>
           <Text style={[styles.count, { color: c.textSecondary }]}>Bu Ayın Gelir ve Gider Dağılımları</Text>
@@ -177,7 +181,7 @@ export default function FinanceDashboardScreen() {
           </Animated.View>
         </ScrollView>
       )}
-    </View>
+    </SwipeBackView>
   );
 }
 

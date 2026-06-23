@@ -144,7 +144,8 @@ async function createLeave(data) {
                 type: data.type || 'annual',
                 start_date: new Date(data.startDate),
                 end_date: new Date(data.endDate),
-                days: data.days ? parseInt(data.days) : 1,
+                days: data.days !== undefined ? parseFloat(data.days) : 1,
+                hours: data.hours !== undefined ? parseFloat(data.hours) : null,
                 status: data.status || 'approved',
                 notes: data.notes || null
             }
@@ -162,7 +163,8 @@ async function updateLeave(data) {
                 type: data.type,
                 start_date: new Date(data.startDate),
                 end_date: new Date(data.endDate),
-                days: data.days ? parseInt(data.days) : 1,
+                days: data.days !== undefined ? parseFloat(data.days) : 1,
+                hours: data.hours !== undefined ? parseFloat(data.hours) : null,
                 status: data.status,
                 notes: data.notes || null
             }

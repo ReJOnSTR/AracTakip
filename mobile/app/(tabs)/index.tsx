@@ -163,30 +163,7 @@ export default function DashboardScreen() {
 
       {/* Company Selector Bottom Sheet */}
       <GlassModal visible={companyModalVisible} onDismiss={() => setCompanyModalVisible(false)}>
-            {/* Drag handle */}
-            <View style={styles.dragHandle} />
-
-            {/* Modal Header */}
-            <View style={styles.companyModalHeader}>
-              <View style={[styles.companyModalIconWrap, { backgroundColor: c.primary + '20' }]}>
-                <Ionicons name="business" size={22} color={c.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.companyModalTitle, { color: c.text }]}>Şirket Seçin</Text>
-                <Text style={[styles.companyModalSub, { color: c.textSecondary }]}>
-                  {companies.length} şirket mevcut
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => setCompanyModalVisible(false)}
-                style={[styles.companyModalClose, { backgroundColor: c.surfaceVariant + '40' }]}
-              >
-                <Ionicons name="close" size={18} color={c.textSecondary} />
-              </Pressable>
-            </View>
-
-            {/* Divider */}
-            <View style={[styles.companyModalDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]} />
+            <Text style={[styles.modalTitle, { color: c.text }]}>Şirket Seçin</Text>
 
             {/* Company List */}
             <ScrollView style={styles.companyList} showsVerticalScrollIndicator={false}>
@@ -333,6 +310,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   companySelectorText: { fontSize: 13, fontWeight: '700', maxWidth: 110, letterSpacing: -0.1 },
+  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   companyModalContent: {
     position: 'absolute',
     bottom: 0,

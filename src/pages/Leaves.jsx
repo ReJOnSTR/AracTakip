@@ -43,6 +43,8 @@ export default function Leaves() {
         startDate: today(),
         endDate: today(),
         days: 1,
+        leaveUnit: 'daily',
+        hours: '',
         status: 'approved',
         notes: ''
     });
@@ -128,6 +130,8 @@ export default function Leaves() {
             startDate: today(),
             endDate: today(),
             days: 14,
+            leaveUnit: 'daily',
+            hours: '',
             status: 'approved',
             notes: ''
         });
@@ -148,6 +152,8 @@ export default function Leaves() {
             startDate: formatDateForInput(leave.start_date),
             endDate: formatDateForInput(leave.end_date),
             days: leave.days,
+            leaveUnit: leave.hours ? 'hourly' : 'daily',
+            hours: leave.hours || '',
             status: leave.status,
             notes: leave.notes || ''
         };
@@ -160,6 +166,8 @@ export default function Leaves() {
             startDate: formatDateForInput(leave.start_date),
             endDate: formatDateForInput(leave.end_date),
             days: leave.days,
+            leaveUnit: leave.hours ? 'hourly' : 'daily',
+            hours: leave.hours || '',
             status: leave.status,
             notes: leave.notes || ''
         }]);
@@ -181,7 +189,8 @@ export default function Leaves() {
                     type: item.type,
                     startDate: item.startDate,
                     endDate: item.endDate,
-                    days: parseInt(item.days) || 1,
+                    days: item.leaveUnit === 'hourly' ? parseFloat(item.days) : (parseInt(item.days) || 1),
+                    hours: item.leaveUnit === 'hourly' && item.hours ? parseFloat(item.hours) : null,
                     status: item.status,
                     notes: item.notes || null
                 };
@@ -358,6 +367,8 @@ export default function Leaves() {
                 startDate: sDate,
                 endDate: eDate,
                 days: autoDays,
+                leaveUnit: 'daily',
+                hours: '',
                 status: 'approved',
                 notes: '',
                 isSaved: false
@@ -372,34 +383,54 @@ export default function Leaves() {
         setLeaveQueue(prev => prev.map((item, idx) => {
             if (idx !== leaveQueueIndex) return item;
             let newItem = { ...item, [key]: value };
+            const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
 
-            if (key === 'type') {
-                const autoDays = newItem.days || 1;
-                newItem.days = autoDays;
-                if (newItem.startDate) {
-                    const start = new Date(newItem.startDate);
-                    start.setDate(start.getDate() + autoDays - 1);
-                    newItem.endDate = formatDateForInput(start);
+            if (newItem.leaveUnit === 'hourly') {
+                if (key === 'startDate') {
+                    newItem.endDate = newItem.startDate;
+                } else if (key === 'hours') {
+                    const hr = parseFloat(value) || 0;
+                    newItem.days = hr / whpl;
+                } else if (key === 'leaveUnit') {
+                    newItem.endDate = newItem.startDate;
+                    const hr = parseFloat(newItem.hours) || 1;
+                    newItem.hours = hr;
+                    newItem.days = hr / whpl;
                 }
-            }
+            } else {
+                if (key === 'leaveUnit') {
+                    newItem.hours = '';
+                    newItem.days = 1;
+                }
 
-            if (key === 'startDate' && newItem.startDate) {
-                const days = parseInt(newItem.days) || 1;
-                const start = new Date(newItem.startDate);
-                start.setDate(start.getDate() + days - 1);
-                newItem.endDate = formatDateForInput(start);
-            } else if (key === 'days' && newItem.startDate) {
-                const days = parseInt(value) || 1;
-                const start = new Date(newItem.startDate);
-                start.setDate(start.getDate() + days - 1);
-                newItem.endDate = formatDateForInput(start);
-            } else if (key === 'endDate' && newItem.startDate && newItem.endDate) {
-                const start = new Date(newItem.startDate);
-                const end = new Date(newItem.endDate);
-                if (end >= start) {
-                    const diffTime = end - start;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    newItem.days = diffDays;
+                if (key === 'type') {
+                    const autoDays = newItem.days || 1;
+                    newItem.days = autoDays;
+                    if (newItem.startDate) {
+                        const start = new Date(newItem.startDate);
+                        start.setDate(start.getDate() + autoDays - 1);
+                        newItem.endDate = formatDateForInput(start);
+                    }
+                }
+
+                if (key === 'startDate' && newItem.startDate) {
+                    const days = parseInt(newItem.days) || 1;
+                    const start = new Date(newItem.startDate);
+                    start.setDate(start.getDate() + days - 1);
+                    newItem.endDate = formatDateForInput(start);
+                } else if (key === 'days' && newItem.startDate) {
+                    const days = parseInt(value) || 1;
+                    const start = new Date(newItem.startDate);
+                    start.setDate(start.getDate() + days - 1);
+                    newItem.endDate = formatDateForInput(start);
+                } else if (key === 'endDate' && newItem.startDate && newItem.endDate) {
+                    const start = new Date(newItem.startDate);
+                    const end = new Date(newItem.endDate);
+                    if (end >= start) {
+                        const diffTime = end - start;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        newItem.days = diffDays;
+                    }
                 }
             }
             return newItem;
@@ -417,6 +448,8 @@ export default function Leaves() {
                 startDate: current.startDate,
                 endDate: current.endDate,
                 days: current.days,
+                leaveUnit: current.leaveUnit,
+                hours: current.hours,
                 status: current.status,
                 notes: current.notes
             };
@@ -482,7 +515,17 @@ export default function Leaves() {
         {
             key: 'days',
             label: 'Süre',
-            render: (val) => <span style={{ fontWeight: 600 }}>{val} Gün</span>
+            render: (val, row) => {
+                const displayVal = (() => {
+                    if (row.hours) return `${row.hours} Saat`;
+                    if (val && val % 1 !== 0) {
+                        const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
+                        return `${Math.round(val * whpl * 100) / 100} Saat`;
+                    }
+                    return `${val} Gün`;
+                })();
+                return <span style={{ fontWeight: 600 }}>{displayVal}</span>;
+            }
         },
         {
             key: 'status',
@@ -934,38 +977,68 @@ export default function Leaves() {
                                             return null;
                                         })()}
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '16px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '16px' }}>
+                                            <CustomSelect 
+                                                label="Giriş Şekli" 
+                                                value={leaveQueue[leaveQueueIndex].leaveUnit || 'daily'} 
+                                                options={[{ value: 'daily', label: 'Günlük' }, { value: 'hourly', label: 'Saatlik' }]} 
+                                                onChange={(val) => updateLeaveQueueField('leaveUnit', val)} 
+                                            />
                                             <CustomSelect 
                                                 label="İzin Türü *" 
                                                 value={leaveQueue[leaveQueueIndex].type} 
                                                 options={leaveTypes} 
                                                 onChange={(val) => updateLeaveQueueField('type', val)} 
                                             />
-                                            <CustomInput 
-                                                label="Başlangıç Tarihi *" 
-                                                type="date" 
-                                                value={leaveQueue[leaveQueueIndex].startDate} 
-                                                onChange={(val) => updateLeaveQueueField('startDate', val)} 
-                                                required 
-                                            />
-                                            <CustomInput 
-                                                label="Gün Sayısı *" 
-                                                type="number" 
-                                                value={leaveQueue[leaveQueueIndex].days} 
-                                                onChange={(val) => updateLeaveQueueField('days', val)} 
-                                                min={1}
-                                                required 
-                                            />
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '16px' }}>
-                                            <CustomInput 
-                                                label="Bitiş Tarihi *" 
-                                                type="date" 
-                                                value={leaveQueue[leaveQueueIndex].endDate} 
-                                                onChange={(val) => updateLeaveQueueField('endDate', val)} 
-                                                required 
-                                            />
+                                        {leaveQueue[leaveQueueIndex].leaveUnit === 'hourly' ? (
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                                <CustomInput 
+                                                    label="Tarih *" 
+                                                    type="date" 
+                                                    value={leaveQueue[leaveQueueIndex].startDate} 
+                                                    onChange={(val) => updateLeaveQueueField('startDate', val)} 
+                                                    required 
+                                                />
+                                                <CustomInput 
+                                                    label="Süre (Saat) *" 
+                                                    type="number" 
+                                                    value={leaveQueue[leaveQueueIndex].hours ?? ''} 
+                                                    onChange={(val) => updateLeaveQueueField('hours', val)} 
+                                                    step="0.5"
+                                                    min="0.5"
+                                                    required 
+                                                />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                                                    <CustomInput 
+                                                        label="Başlangıç Tarihi *" 
+                                                        type="date" 
+                                                        value={leaveQueue[leaveQueueIndex].startDate} 
+                                                        onChange={(val) => updateLeaveQueueField('startDate', val)} 
+                                                        required 
+                                                    />
+                                                    <CustomInput 
+                                                        label="Bitiş Tarihi *" 
+                                                        type="date" 
+                                                        value={leaveQueue[leaveQueueIndex].endDate} 
+                                                        onChange={(val) => updateLeaveQueueField('endDate', val)} 
+                                                        required 
+                                                    />
+                                                    <CustomInput 
+                                                        label="Gün Sayısı *" 
+                                                        type="number" 
+                                                        value={leaveQueue[leaveQueueIndex].days} 
+                                                        onChange={(val) => updateLeaveQueueField('days', val)} 
+                                                        min={1}
+                                                        required 
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
                                             <div style={{
                                                 display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px',
                                                 background: leaveQueue[leaveQueueIndex].status === 'approved' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
@@ -984,7 +1057,6 @@ export default function Leaves() {
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
 
                                         <div>
                                             <CustomInput 

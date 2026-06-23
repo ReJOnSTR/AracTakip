@@ -109,6 +109,28 @@ const StatCard = ({ label, value, valueColor }) => (
     </div>
 )
 
+const calculateEarnedOtDays = (o, employee, whpl, sdpl, hdpl) => {
+    const isHoliday = o.notes && o.notes.includes('[BAYRAM]')
+    if (isHoliday) {
+        return (o.hours || 0) / hdpl
+    }
+    const oRate = o.rate || 0
+    let isWeekday = false
+    if (oRate > 0 && oRate < 5) {
+        isWeekday = Math.abs(oRate - 1.5) < 0.1
+    } else {
+        const oDateStr = typeof o.date === 'string' ? o.date : new Date(o.date).toISOString()
+        const oMonth = oDateStr.slice(0, 7)
+        const oSalary = getHistoricalBaseSalary(employee, oMonth) || employee.salary || 0
+        const oDailyRate = oSalary / 30
+        const oHourlyRate = oDailyRate / 10
+        const oExpectedWeekdayRate = Math.round(oHourlyRate * 1.5 * 100) / 100
+        isWeekday = Math.abs(oRate - oExpectedWeekdayRate) < (oExpectedWeekdayRate * 0.3)
+    }
+    const divisor = isWeekday ? whpl : sdpl
+    return (o.hours || 0) / divisor
+}
+
 export default function EmployeeDetail() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -475,6 +497,18 @@ export default function EmployeeDetail() {
         return 0
     }
 
+    const formatDayBalance = (days, customWhpl) => {
+        if (!days && days !== 0) return '-'
+        const whpl = customWhpl || parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+        const absDays = Math.abs(days)
+        const hours = Math.round(absDays * whpl * 100) / 100
+        const sign = days < 0 ? '-' : ''
+        if (hours % whpl === 0) {
+            return `${sign}${absDays} gün`
+        }
+        return `${sign}${hours} saat`
+    }
+
     const openAddModal = (type) => {
         setModalType(type)
         setEditingItem(null)
@@ -496,6 +530,8 @@ export default function EmployeeDetail() {
                 startDate: startDt, 
                 endDate: formatDateForInput(endDt), 
                 days: autoDays, 
+                leaveUnit: 'daily',
+                hours: '',
                 notes: '' 
             });
         } else if (type === 'salary_history') {
@@ -528,6 +564,8 @@ export default function EmployeeDetail() {
                 startDate: formatDateForInput(item.start_date), 
                 endDate: formatDateForInput(item.end_date), 
                 days: item.days || 1, 
+                leaveUnit: item.hours ? 'hourly' : 'daily',
+                hours: item.hours || '',
                 notes: strippedNotes 
             })
         } else if (type === 'overtime') {
@@ -602,37 +640,57 @@ export default function EmployeeDetail() {
                 const rate = prev.rate || 0
                 return { ...prev, hours: value, amount: hours > 0 ? Math.round(hours * rate * 100) / 100 : '' }
             })
-        } else if (modalType === 'leave' && ['startDate', 'endDate', 'days', 'type'].includes(key)) {
+        } else if (modalType === 'leave' && ['startDate', 'endDate', 'days', 'type', 'leaveUnit', 'hours'].includes(key)) {
             setFormData(prev => {
                 let newData = { ...prev, [key]: value }
+                const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
 
-                if (key === 'type') {
-                    const autoDays = newData.days || 1;
-                    newData.days = autoDays;
-                    if (newData.startDate) {
-                        const start = new Date(newData.startDate)
-                        start.setDate(start.getDate() + autoDays - 1)
-                        newData.endDate = formatDateForInput(start)
+                if (newData.leaveUnit === 'hourly') {
+                    if (key === 'startDate') {
+                        newData.endDate = newData.startDate
+                    } else if (key === 'hours') {
+                        const hr = parseFloat(value) || 0
+                        newData.days = hr / whpl
+                    } else if (key === 'leaveUnit') {
+                        newData.endDate = newData.startDate
+                        const hr = parseFloat(newData.hours) || 1
+                        newData.hours = hr
+                        newData.days = hr / whpl
                     }
-                }
+                } else {
+                    if (key === 'leaveUnit') {
+                        newData.hours = ''
+                        newData.days = 1
+                    }
 
-                if (key === 'startDate' && newData.startDate) {
-                    const days = parseInt(newData.days) || 1
-                    const start = new Date(newData.startDate)
-                    start.setDate(start.getDate() + days - 1)
-                    newData.endDate = formatDateForInput(start)
-                } else if (key === 'days' && newData.startDate) {
-                    const days = parseInt(value) || 1
-                    const start = new Date(newData.startDate)
-                    start.setDate(start.getDate() + days - 1)
-                    newData.endDate = formatDateForInput(start)
-                } else if (key === 'endDate' && newData.startDate && newData.endDate) {
-                    const start = new Date(newData.startDate)
-                    const end = new Date(newData.endDate)
-                    if (end >= start) {
-                        const diffTime = end - start
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-                        newData.days = diffDays
+                    if (key === 'type') {
+                        const autoDays = newData.days || 1;
+                        newData.days = autoDays;
+                        if (newData.startDate) {
+                            const start = new Date(newData.startDate)
+                            start.setDate(start.getDate() + autoDays - 1)
+                            newData.endDate = formatDateForInput(start)
+                        }
+                    }
+
+                    if (key === 'startDate' && newData.startDate) {
+                        const days = parseInt(newData.days) || 1
+                        const start = new Date(newData.startDate)
+                        start.setDate(start.getDate() + days - 1)
+                        newData.endDate = formatDateForInput(start)
+                    } else if (key === 'days' && newData.startDate) {
+                        const days = parseInt(value) || 1
+                        const start = new Date(newData.startDate)
+                        start.setDate(start.getDate() + days - 1)
+                        newData.endDate = formatDateForInput(start)
+                    } else if (key === 'endDate' && newData.startDate && newData.endDate) {
+                        const start = new Date(newData.startDate)
+                        const end = new Date(newData.endDate)
+                        if (end >= start) {
+                            const diffTime = end - start
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+                            newData.days = diffDays
+                        }
                     }
                 }
 
@@ -855,7 +913,7 @@ export default function EmployeeDetail() {
         setSaving(true); setError('')
 
         const type = formData.type || 'annual'
-        let days = parseInt(formData.days) || 0
+        let days = formData.leaveUnit === 'hourly' ? parseFloat(formData.days) : (parseInt(formData.days) || 0)
         let notes = formData.notes || ''
 
         // Preserve internal tags [OTID:...] if they exist in editingItem
@@ -866,11 +924,10 @@ export default function EmployeeDetail() {
             }
         }
 
-        // Validation for Overtime Leave
         if (type.toLowerCase().includes('mesai')) {
             const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
             const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
-            const weekdayRate = calcOvertimeRate('weekday')
+            const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
             
             // Sort earned overtimes by date (FIFO)
             const earnedOts = [...overtimes]
@@ -879,18 +936,18 @@ export default function EmployeeDetail() {
 
             const earnedData = earnedOts.map(o => ({
                 date: o.date,
-                days: (o.hours || 0) / (Math.abs((o.rate || 0) - weekdayRate) < 1 ? whpl : sdpl)
+                days: calculateEarnedOtDays(o, employee, whpl, sdpl, hdpl)
             }))
 
             const totalEarned = earnedData.reduce((sum, d) => sum + d.days, 0)
             const totalUsedOT = leaves
-                .filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset') && (editingItem ? l.id !== editingItem.id : true))
-                .reduce((sum, l) => sum + (l.days || 0), 0)
+                .filter(l => l.status === 'approved' && l.type && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset') && (editingItem ? l.id !== editingItem.id : true))
+                .reduce((sum, l) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
             
             const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
 
             if (days > otBalance) {
-                setError(`Yetersiz mesai izni bakiyesi. Mevcut: ${otBalance} gün.`)
+                setError(`Yetersiz mesai izni bakiyesi. Mevcut: ${formatDayBalance(otBalance, whpl)}.`)
                 setSaving(false)
                 return
             }
@@ -925,7 +982,16 @@ export default function EmployeeDetail() {
             }
         }
 
-        const data = { employeeId: parseInt(id), type, startDate: formData.startDate, endDate: formData.endDate, days, status: formData.status || 'approved', notes: notes || null }
+        const data = { 
+            employeeId: parseInt(id), 
+            type, 
+            startDate: formData.startDate, 
+            endDate: formData.endDate, 
+            days, 
+            hours: formData.leaveUnit === 'hourly' && formData.hours ? parseFloat(formData.hours) : null,
+            status: formData.status || 'approved', 
+            notes: notes || null 
+        }
         try {
             const result = editingItem ? await window.electronAPI.updateLeave({ id: editingItem.id, ...data }) : await window.electronAPI.createLeave(data)
             if (result.success) { 
@@ -938,29 +1004,28 @@ export default function EmployeeDetail() {
     }
 
     const handleOffsetLeave = async (amount, currentAnnualBalance, currentOtBalance) => {
-        if (!window.confirm(`${amount} günlük yıllık izin borcunu mesai izninden mahsup etmek istediğinize emin misiniz?`)) return
+        const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+        const amountInHours = Math.round(amount * whpl * 10) / 10
+        const amountText = amount % 1 === 0 ? `${amount} günlük` : `${amountInHours} saatlik`
+        if (!window.confirm(`${amountText} yıllık izin borcunu mesai izninden mahsup etmek istediğinize emin misiniz?`)) return
         
         setSaving(true)
         try {
             const today = new Date().toISOString().split('T')[0]
             
-            // Calculate which overtimes are being used (FIFO)
-            const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
-            const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
-            const weekdayRate = calcOvertimeRate('weekday')
-            
+            const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
             const earnedOts = [...overtimes]
                 .filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
                 .sort((a, b) => new Date(a.date) - new Date(b.date))
 
             const earnedData = earnedOts.map(o => ({
                 date: o.date,
-                days: (o.hours || 0) / (Math.abs((o.rate || 0) - weekdayRate) < 1 ? whpl : sdpl)
+                days: calculateEarnedOtDays(o, employee, whpl, sdpl, hdpl)
             }))
 
             const totalUsedOT = leaves
-                .filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset'))
-                .reduce((sum, l) => sum + (l.days || 0), 0)
+                .filter(l => l.status === 'approved' && l.type && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset'))
+                .reduce((sum, l) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
 
             let remainingSkip = totalUsedOT
             let needed = amount
@@ -981,16 +1046,19 @@ export default function EmployeeDetail() {
 
             const consumptionNote = usedDates.length > 0 ? ` [Kullanılan Mesailer: ${usedDates.join(', ')}]` : ''
             
-            // Create a single "offset" record
-            await window.electronAPI.createLeave({
-                employeeId: parseInt(id),
-                type: 'Mahsup',
-                startDate: today,
-                endDate: today,
-                days: amount,
-                status: 'approved',
-                notes: `[MAHSUP] Yıllık izin borcu kapatıldı. (${amount} gün)${consumptionNote}`
-            })
+             const durationText = amount % 1 === 0 ? `${amount} gün` : `${amount * whpl} saat`
+             
+             // Create a single "offset" record
+             await window.electronAPI.createLeave({
+                 employeeId: parseInt(id),
+                 type: 'Mahsup',
+                 startDate: today,
+                 endDate: today,
+                 days: amount,
+                 hours: amount * whpl,
+                 status: 'approved',
+                 notes: `[MAHSUP] Yıllık izin borcu kapatıldı. (${durationText})${consumptionNote}`
+             })
             
             loadEmployeeData()
         } catch (err) {
@@ -1284,7 +1352,17 @@ export default function EmployeeDetail() {
         }},
         { key: 'start_date', label: 'Başlangıç', render: (v) => formatDate(v) },
         { key: 'end_date', label: 'Bitiş', render: (v) => formatDate(v) },
-        { key: 'days', label: 'Gün' },
+        { key: 'days', label: 'Süre', render: (v, row) => {
+            const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
+            const displayVal = (() => {
+                if (row.hours) return `${row.hours} Saat`;
+                if (v && v % 1 !== 0) {
+                    return `${Math.round(v * whpl * 100) / 100} Saat`;
+                }
+                return `${v} Gün`;
+            })();
+            return <span style={{ fontWeight: 600 }}>{displayVal}</span>;
+        }},
         {key: 'status', label: 'Durum', render: (v, row) => { 
             const c = { approved: 'success', pending: 'warning', rejected: 'danger' }; 
             let l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi' }; 
@@ -1302,15 +1380,26 @@ export default function EmployeeDetail() {
     const overtimeColumns = [
         {
             key: 'rate', label: 'Tür', render: (v, row) => {
-                if (!getHistoricalBaseSalary(employee, selectedMonth)) return '-'
                 const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
                 const isUsedAsLeave = row.notes && row.notes.includes('[İZİN OLARAK KULLANILDI]')
                 let typeLabel = 'Hafta İçi'
                 if (isHoliday) {
                     typeLabel = 'Bayram'
                 } else {
-                    const weekdayRate = calcOvertimeRate('weekday')
-                    if (Math.abs(v - weekdayRate) >= (weekdayRate * 0.5)) {
+                    let isWeekday = false
+                    const oRate = row.rate || 0
+                    if (oRate > 0 && oRate < 5) {
+                        isWeekday = Math.abs(oRate - 1.5) < 0.1
+                    } else {
+                        const oDateStr = typeof row.date === 'string' ? row.date : new Date(row.date).toISOString()
+                        const oMonth = oDateStr.slice(0, 7)
+                        const oSalary = getHistoricalBaseSalary(employee, oMonth) || employee.salary || 0
+                        const oDailyRate = oSalary / 30
+                        const oHourlyRate = oDailyRate / 10
+                        const oExpectedWeekdayRate = Math.round(oHourlyRate * 1.5 * 100) / 100
+                        isWeekday = Math.abs(oRate - oExpectedWeekdayRate) < (oExpectedWeekdayRate * 0.3)
+                    }
+                    if (!isWeekday) {
                         typeLabel = 'Pazar'
                     }
                 }
@@ -1328,8 +1417,20 @@ export default function EmployeeDetail() {
             label: 'Süre', 
             render: (v, row) => {
                 const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
-                const weekdayRate = calcOvertimeRate('weekday')
-                const isSunday = !isHoliday && Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)
+                let isWeekday = false
+                const oRate = row.rate || 0
+                if (oRate > 0 && oRate < 5) {
+                    isWeekday = Math.abs(oRate - 1.5) < 0.1
+                } else {
+                    const oDateStr = typeof row.date === 'string' ? row.date : new Date(row.date).toISOString()
+                    const oMonth = oDateStr.slice(0, 7)
+                    const oSalary = getHistoricalBaseSalary(employee, oMonth) || employee.salary || 0
+                    const oDailyRate = oSalary / 30
+                    const oHourlyRate = oDailyRate / 10
+                    const oExpectedWeekdayRate = Math.round(oHourlyRate * 1.5 * 100) / 100
+                    isWeekday = Math.abs(oRate - oExpectedWeekdayRate) < (oExpectedWeekdayRate * 0.3)
+                }
+                const isSunday = !isHoliday && !isWeekday
                 return `${v} ${isSunday || isHoliday ? 'Gün' : 'Saat'}`
             }
         },
@@ -1939,25 +2040,21 @@ export default function EmployeeDetail() {
                                         const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
                                         const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
                                         const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
-                                        const weekdayRate = calcOvertimeRate('weekday')
                                         const earnedOts = overtimes.filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
-                                        const totalEarned = earnedOts.reduce((sum, o) => {
-                                            const isHoliday = o.notes && o.notes.includes('[BAYRAM]')
-                                            if (isHoliday) {
-                                                return sum + ((o.hours || 0) / hdpl)
-                                            }
-                                            const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
-                                            return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
-                                        }, 0)
-                                        const totalUsedOT = leaves.filter(l => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum, l) => sum + (l.days || 0), 0)
-                                        const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
+                                        const totalEarned = earnedOts.reduce((sum, o) => sum + calculateEarnedOtDays(o, employee, whpl, sdpl, hdpl), 0)
+                                         const totalUsedOT = leaves
+                                             .filter(l => l.status === 'approved' && l.type && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset'))
+                                             .reduce((sum, l) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
+                                         const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
 
-                                        const totalOffsets = leaves.filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup')).reduce((acc, l) => acc + (l.days || 0), 0)
+                                         const totalOffsets = leaves
+                                             .filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup'))
+                                             .reduce((acc, l) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
                                         const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
 
                                         return (
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                                <span style={{ color: balance < 0 ? 'var(--danger)' : 'var(--accent-primary)' }}>{balance} gün</span>
+                                                <span style={{ color: balance < 0 ? 'var(--danger)' : 'var(--accent-primary)' }}>{formatDayBalance(balance, whpl)}</span>
                                                 {balance < 0 && otBalance > 0 && (
                                                     <button 
                                                         onClick={() => handleOffsetLeave(Math.min(Math.abs(balance), otBalance), balance, otBalance)}
@@ -1975,6 +2072,7 @@ export default function EmployeeDetail() {
                                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Kullanılan</div>
                                  <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px' }}>
                                      {(() => {
+                                         const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
                                          const now = new Date()
                                          const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
                                          const usedThisMonth = leaves.filter(l =>
@@ -1982,7 +2080,7 @@ export default function EmployeeDetail() {
                                              ((l.start_date && (typeof l.start_date === 'string' ? l.start_date : new Date(l.start_date).toISOString()).startsWith(currentMonth)) || 
                                               (l.end_date && (typeof l.end_date === 'string' ? l.end_date : new Date(l.end_date).toISOString()).startsWith(currentMonth)))
                                          ).reduce((acc, l) => acc + (l.days || 1), 0)
-                                         return usedThisMonth + ' gün'
+                                         return formatDayBalance(usedThisMonth, whpl)
                                      })()}
                                  </div>
                              </div>
@@ -1994,24 +2092,25 @@ export default function EmployeeDetail() {
                                  const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
                                  const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
                                  const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
-                                 const weekdayRate = calcOvertimeRate('weekday')
                                  const earnedOts = overtimes.filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
-                                 const totalEarned = earnedOts.reduce((sum, o) => {
-                                     const isHoliday = o.notes && o.notes.includes('[BAYRAM]')
-                                     if (isHoliday) {
-                                         return sum + ((o.hours || 0) / hdpl)
-                                     }
-                                     const isWeekday = Math.abs((o.rate || 0) - weekdayRate) < 1
-                                     return sum + ((o.hours || 0) / (isWeekday ? whpl : sdpl))
-                                 }, 0)
+                                 const totalEarned = earnedOts.reduce((sum, o) => sum + calculateEarnedOtDays(o, employee, whpl, sdpl, hdpl), 0)
                                  const totalUsedOT = leaves
                                      .filter(l => l.status === 'approved' && l.type && (
                                          l.type.toLowerCase().includes('mesai') || 
                                          l.type.toLowerCase().includes('mahsup') || 
                                          l.type === 'offset'
                                      ))
-                                     .reduce((sum, l) => sum + (l.days || 0), 0)
+                                     .reduce((sum, l) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
                                  const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
+
+                                 const displayBalance = (() => {
+                                     const hours = Math.round(otBalance * whpl * 100) / 100
+                                     if (hours === 0) return '0 gün'
+                                     if (hours % whpl === 0) {
+                                         return `${otBalance} gün`
+                                     }
+                                     return `${hours} saat`
+                                 })()
 
                                  let cardStyle = { padding: '14px 16px' }
                                  let textColor = 'var(--text-primary)'
@@ -2030,7 +2129,7 @@ export default function EmployeeDetail() {
                                  return (
                                      <div className="card" style={cardStyle}>
                                          <div style={{ fontSize: '11px', color: labelColor, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Mesai İzni</div>
-                                         <div style={{ fontSize: '20px', fontWeight: fontWeight, marginTop: '4px', color: textColor }}>{otBalance} gün</div>
+                                         <div style={{ fontSize: '20px', fontWeight: fontWeight, marginTop: '4px', color: textColor }}>{displayBalance}</div>
                                      </div>
                                  )
                              })()}
@@ -2385,6 +2484,13 @@ export default function EmployeeDetail() {
                         {modalType === 'leave' && (
                             <form onSubmit={handleLeaveSubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <CustomSelect 
+                                        label="Giriş Şekli" 
+                                        value={formData.leaveUnit || 'daily'} 
+                                        options={[{ value: 'daily', label: 'Günlük' }, { value: 'hourly', label: 'Saatlik' }]} 
+                                        onChange={(val) => updateField('leaveUnit', val)} 
+                                    />
+                                    
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                         <CustomSelect label="İzin Türü *" value={formData.type || 'annual'} options={leaveTypes} onChange={(val) => updateField('type', val)} />
                                         {(() => {
@@ -2412,9 +2518,19 @@ export default function EmployeeDetail() {
                                             return null;
                                         })()}
                                     </div>
-                                    <CustomInput label="Gün Sayısı" format="numeric" value={formData.days ?? ''} onChange={(val) => updateField('days', val)} />
-                                    <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
-                                    <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
+                                    
+                                    {formData.leaveUnit === 'hourly' ? (
+                                        <>
+                                            <CustomInput label="Tarih *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
+                                            <CustomInput label="Süre (Saat) *" type="number" value={formData.hours ?? ''} onChange={(val) => updateField('hours', val)} step="0.5" min="0.5" required />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
+                                            <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
+                                            <CustomInput label="Gün Sayısı" format="numeric" value={formData.days ?? ''} onChange={(val) => updateField('days', val)} />
+                                        </>
+                                    )}
                                 </div>
 
                                 <div style={{

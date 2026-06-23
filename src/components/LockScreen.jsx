@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Lock, Unlock, LogOut, ArrowRight, Loader2, User as UserIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { authService } from '../services'
@@ -11,13 +11,40 @@ export default function LockScreen({ isLocked, onUnlock }) {
 
     const lockSettings = JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
 
+    const inputRef = useRef(null)
+
     useEffect(() => {
         if (isLocked) {
             setPassword('')
             setError('')
             document.body.style.overflow = 'hidden'
+            // Force focus on input after a small render tick delay
+            const timer = setTimeout(() => {
+                inputRef.current?.focus()
+            }, 80)
+            return () => clearTimeout(timer)
         } else {
             document.body.style.overflow = ''
+        }
+    }, [isLocked])
+
+    // Intercept any focus attempts outside the lock screen container and redirect them to the input
+    useEffect(() => {
+        if (!isLocked) return
+
+        const handleFocus = (e) => {
+            if (inputRef.current && !inputRef.current.contains(e.target)) {
+                const container = document.querySelector('.lock-screen-container')
+                if (container && !container.contains(e.target)) {
+                    e.preventDefault()
+                    inputRef.current.focus()
+                }
+            }
+        }
+
+        document.addEventListener('focusin', handleFocus, true)
+        return () => {
+            document.removeEventListener('focusin', handleFocus, true)
         }
     }, [isLocked])
 
@@ -56,7 +83,7 @@ export default function LockScreen({ isLocked, onUnlock }) {
     if (!isLocked) return null
 
     return (
-        <div className="lock-screen-overlay">
+        <div className="lock-screen-overlay" onClick={() => inputRef.current?.focus()}>
             <div className="lock-screen-container">
                 <div className="lock-screen-avatar-area">
                     <div className="lock-avatar">
@@ -79,6 +106,7 @@ export default function LockScreen({ isLocked, onUnlock }) {
                 <form onSubmit={handleUnlock} className="lock-screen-form">
                     <div className={`lock-input-wrapper ${error ? 'error' : ''}`}>
                         <input
+                            ref={inputRef}
                             type="password"
                             placeholder="Şifreniz"
                             value={password}

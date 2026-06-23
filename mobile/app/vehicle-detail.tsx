@@ -8,21 +8,60 @@ import {
   Pressable,
   RefreshControl,
   Alert,
+  Platform,
+  Linking,
 } from 'react-native';
-import { Text, ActivityIndicator, IconButton, Divider, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, Divider, Button, Searchbar, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { vehicleService } from '../services/dataServices';
-import { formatCurrency, getStatusLabel } from '../utils/format';
+import { formatCurrency, getStatusLabel, formatDate } from '../utils/format';
 import MovingBackground from '../components/ui/MovingBackground';
 import GlassCard from '../components/ui/GlassCard';
 import GlassInput from '../components/ui/GlassInput';
 import GlassDropdown from '../components/ui/GlassDropdown';
 
-type TabValue = 'details' | 'maintenances' | 'inspections' | 'insurances' | 'services';
+import { getFileUrl } from '../services/api';
+
+const maintenanceTypes = [
+  { value: 'oil', label: 'Yağ Değişimi' },
+  { value: 'filter', label: 'Filtre Değişimi' },
+  { value: 'brake', label: 'Fren Bakımı' },
+  { value: 'tire', label: 'Lastik Değişimi' },
+  { value: 'battery', label: 'Akü Değişimi' },
+  { value: 'general', label: 'Genel Bakım' },
+  { value: 'repair', label: 'Onarım' },
+  { value: 'other', label: 'Diğer' }
+];
+
+const insuranceTypes = [
+  { value: 'kasko', label: 'Kasko' },
+  { value: 'traffic', label: 'Trafik Sigortası' },
+  { value: 'full', label: 'Tam Paket' },
+  { value: 'other', label: 'Diğer' }
+];
+
+const serviceTypes = [
+  { value: 'maintenance', label: 'Periyodik Bakım' },
+  { value: 'repair', label: 'Mekanik Tamir' },
+  { value: 'tire', label: 'Lastik İşlemleri' },
+  { value: 'body', label: 'Kaporta/Boya' },
+  { value: 'electrical', label: 'Elektrik/Elektronik' },
+  { value: 'glass', label: 'Cam Değişimi' },
+  { value: 'ac', label: 'Klima Bakımı' },
+  { value: 'other', label: 'Diğer' }
+];
+
+const resultOptions = [
+  { value: 'passed', label: 'Geçti' },
+  { value: 'failed', label: 'Kaldı' },
+  { value: 'conditional', label: 'Şartlı Geçti' }
+];
+
+type TabValue = 'details' | 'maintenances' | 'inspections' | 'insurances' | 'services' | 'assignments' | 'documents';
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +71,34 @@ export default function VehicleDetailScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
+  const glassBgColor = Platform.OS === 'web'
+    ? (colorScheme === 'dark' ? 'rgba(30, 30, 40, 0.65)' : 'rgba(255, 255, 255, 0.65)')
+    : (colorScheme === 'dark' ? 'rgba(30, 30, 40, 0.55)' : 'rgba(255, 255, 255, 0.45)');
+  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
+
   const [activeTab, setActiveTab] = useState<TabValue>('details');
+
+  // Search states for detail page tabs
+  const [maintSearch, setMaintSearch] = useState('');
+  const [inspSearch, setInspSearch] = useState('');
+  const [insSearch, setInsSearch] = useState('');
+  const [servSearch, setServSearch] = useState('');
+  const [assignmentSearch, setAssignmentSearch] = useState('');
+  const [docSearch, setDocSearch] = useState('');
+
+  // Filter states
+  const [maintTypeFilter, setMaintTypeFilter] = useState<string | null>(null);
+  const [inspResultFilter, setInspResultFilter] = useState<string | null>(null);
+  const [insTypeFilter, setInsTypeFilter] = useState<string | null>(null);
+  const [servTypeFilter, setServTypeFilter] = useState<string | null>(null);
+  const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<string | null>(null);
+
+  // Filter modal visibilities
+  const [isMaintFilterVisible, setIsMaintFilterVisible] = useState(false);
+  const [isInspFilterVisible, setIsInspFilterVisible] = useState(false);
+  const [isInsFilterVisible, setIsInsFilterVisible] = useState(false);
+  const [isServFilterVisible, setIsServFilterVisible] = useState(false);
+  const [isAssignmentFilterVisible, setIsAssignmentFilterVisible] = useState(false);
 
   const vehicleId = parseInt(id);
 
@@ -65,6 +131,18 @@ export default function VehicleDetailScreen() {
     queryKey: ['vehicle-services', vehicleId],
     queryFn: () => vehicleService.getServices(vehicleId),
     enabled: !!vehicleId && activeTab === 'services',
+  });
+
+  const assignmentsQuery = useQuery({
+    queryKey: ['vehicle-assignments', vehicleId],
+    queryFn: () => vehicleService.getAssignments(vehicleId),
+    enabled: !!vehicleId && activeTab === 'assignments',
+  });
+
+  const documentsQuery = useQuery({
+    queryKey: ['vehicle-documents', vehicleId],
+    queryFn: () => vehicleService.getDocuments(vehicleId),
+    enabled: !!vehicleId && activeTab === 'documents',
   });
 
   // Delete Mutation
@@ -216,6 +294,77 @@ export default function VehicleDetailScreen() {
 
   const vehicle = vehicleQuery.data?.data;
 
+  // Filtered lists
+  const filteredMaintenances = (maintenanceQuery.data?.data || []).filter((m: any) => {
+    const matchesSearch = 
+      (m.description || '').toLowerCase().includes(maintSearch.toLowerCase()) ||
+      (m.notes || '').toLowerCase().includes(maintSearch.toLowerCase()) ||
+      (m.type || '').toLowerCase().includes(maintSearch.toLowerCase());
+    const maintLabel = maintenanceTypes.find(t => t.value === maintTypeFilter)?.label;
+    const matchesFilter = maintTypeFilter 
+      ? (m.type === maintTypeFilter || m.type === maintLabel) 
+      : true;
+    return matchesSearch && matchesFilter;
+  });
+
+  const filteredInspections = (inspectionQuery.data?.data || []).filter((i: any) => {
+    const matchesSearch = 
+      (i.type || '').toLowerCase().includes(inspSearch.toLowerCase()) ||
+      (i.result || '').toLowerCase().includes(inspSearch.toLowerCase()) ||
+      (i.notes || '').toLowerCase().includes(inspSearch.toLowerCase());
+    const resultLabel = resultOptions.find(t => t.value === inspResultFilter)?.label;
+    const matchesFilter = inspResultFilter 
+      ? (i.result === inspResultFilter || i.result === resultLabel) 
+      : true;
+    return matchesSearch && matchesFilter;
+  });
+
+  const filteredInsurances = (insuranceQuery.data?.data || []).filter((ins: any) => {
+    const matchesSearch = 
+      (ins.company || '').toLowerCase().includes(insSearch.toLowerCase()) ||
+      (ins.policy_no || '').toLowerCase().includes(insSearch.toLowerCase()) ||
+      (ins.type || '').toLowerCase().includes(insSearch.toLowerCase()) ||
+      (ins.notes || '').toLowerCase().includes(insSearch.toLowerCase());
+    const insLabel = insuranceTypes.find(t => t.value === insTypeFilter)?.label;
+    const matchesFilter = insTypeFilter 
+      ? (ins.type === insTypeFilter || ins.type === insLabel) 
+      : true;
+    return matchesSearch && matchesFilter;
+  });
+
+  const filteredServices = (servicesQuery.data?.data || []).filter((s: any) => {
+    const matchesSearch = 
+      (s.description || '').toLowerCase().includes(servSearch.toLowerCase()) ||
+      (s.type || '').toLowerCase().includes(servSearch.toLowerCase()) ||
+      (s.notes || '').toLowerCase().includes(servSearch.toLowerCase());
+    const servLabel = serviceTypes.find(t => t.value === servTypeFilter)?.label;
+    const matchesFilter = servTypeFilter 
+      ? (s.type === servTypeFilter || s.type === servLabel) 
+      : true;
+    return matchesSearch && matchesFilter;
+  });
+
+  const filteredAssignments = (assignmentsQuery.data?.data || []).filter((a: any) => {
+    const matchesSearch = 
+      (a.item_name || '').toLowerCase().includes(assignmentSearch.toLowerCase()) ||
+      (a.assigned_to || '').toLowerCase().includes(assignmentSearch.toLowerCase()) ||
+      (a.notes || '').toLowerCase().includes(assignmentSearch.toLowerCase()) ||
+      (a.department || '').toLowerCase().includes(assignmentSearch.toLowerCase());
+    const isReturned = a.end_date !== null;
+    const matchesFilter = 
+      assignmentStatusFilter === 'returned' ? isReturned :
+      assignmentStatusFilter === 'active' ? !isReturned : true;
+    return matchesSearch && matchesFilter;
+  });
+
+  const filteredDocuments = (documentsQuery.data?.data || []).filter((d: any) => {
+    return (
+      (d.file_name || '').toLowerCase().includes(docSearch.toLowerCase()) ||
+      (d.category || '').toLowerCase().includes(docSearch.toLowerCase()) ||
+      (d.folder || '').toLowerCase().includes(docSearch.toLowerCase())
+    );
+  });
+
   const handleConfirmDelete = () => {
     Alert.alert('Aracı Sil', 'Bu aracı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.', [
       { text: 'İptal', style: 'cancel' },
@@ -293,12 +442,51 @@ export default function VehicleDetailScreen() {
       case 'maintenances':
         return (
           <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <Searchbar
+                placeholder="Bakım ara..."
+                value={maintSearch}
+                onChangeText={setMaintSearch}
+                style={[styles.searchBarCompact, { flex: 1, backgroundColor: glassBgColor, borderColor: glassBorderColor, marginBottom: 0 }]}
+                inputStyle={[styles.searchInputCompact, { color: c.text }]}
+                placeholderTextColor={c.textTertiary}
+                iconColor={c.textSecondary}
+              />
+              <Pressable
+                onPress={() => setIsMaintFilterVisible(true)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  borderWidth: 1,
+                  borderColor: glassBorderColor,
+                  backgroundColor: glassBgColor,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Ionicons name="funnel-outline" size={16} color={maintTypeFilter ? c.primary : c.textSecondary} />
+                {maintTypeFilter && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: c.primary,
+                  }} />
+                )}
+              </Pressable>
+            </View>
+
             {maintenanceQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
-            ) : (maintenanceQuery.data?.data || []).length === 0 ? (
+            ) : filteredMaintenances.length === 0 ? (
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı bakım bulunamadı.</Text>
             ) : (
-              (maintenanceQuery.data?.data || []).map((m: any) => (
+              filteredMaintenances.map((m: any) => (
                 <GlassCard key={m.id} intensity={25} style={styles.subCardGlass}>
                   <View style={styles.subCardContent}>
                      <View style={styles.subCardHeader}>
@@ -306,77 +494,470 @@ export default function VehicleDetailScreen() {
                       <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(m.cost)}</Text>
                     </View>
                     <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {m.date}</Text>
-                      {m.km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {m.km}</Text>}
+                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(m.date)}</Text>
+                      {m.next_km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {m.next_km}</Text>}
                     </View>
+                    {m.file_path && (
+                      <Pressable 
+                        onPress={() => {
+                          Linking.openURL(getFileUrl(m.file_path)).catch(err => {
+                            Alert.alert('Hata', 'Dosya açılamadı.');
+                          });
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                      >
+                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                      </Pressable>
+                    )}
                   </View>
                 </GlassCard>
               ))
             )}
+
+            {/* Maintenance Filter Modal */}
+            <GlassModal visible={isMaintFilterVisible} onDismiss={() => setIsMaintFilterVisible(false)}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Bakım Filtrele</Text>
+              <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Bakım Türü</Text>
+                <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+                  <Pressable
+                    onPress={() => setMaintTypeFilter(null)}
+                    style={{
+                      height: 36,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      paddingHorizontal: 16,
+                      backgroundColor: !maintTypeFilter 
+                        ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                      borderColor: !maintTypeFilter 
+                        ? c.primary 
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: !maintTypeFilter ? c.primary : c.textSecondary, fontWeight: !maintTypeFilter ? '600' : '400' }}>
+                      Tümü
+                    </Text>
+                  </Pressable>
+                  {maintenanceTypes.map((opt) => {
+                    const isSelected = maintTypeFilter === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => setMaintTypeFilter(isSelected ? null : opt.value)}
+                        style={{
+                          height: 36,
+                          borderRadius: 18,
+                          borderWidth: 1,
+                          paddingHorizontal: 16,
+                          backgroundColor: isSelected 
+                            ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                          borderColor: isSelected 
+                            ? c.primary 
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: isSelected ? c.primary : c.textSecondary, fontWeight: isSelected ? '600' : '400' }}>
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 24 }}>
+                <Button 
+                  mode="outlined" 
+                  onPress={() => { setMaintTypeFilter(null); setIsMaintFilterVisible(false); }}
+                  style={{ flex: 1, borderColor: c.primary }}
+                  textColor={c.primary}
+                >
+                  Temizle
+                </Button>
+                <Button 
+                  mode="contained" 
+                  onPress={() => setIsMaintFilterVisible(false)} 
+                  style={{ flex: 1 }}
+                  buttonColor={c.primary} 
+                  textColor="#fff"
+                >
+                  Uygula
+                </Button>
+              </View>
+            </GlassModal>
           </View>
         );
 
       case 'inspections':
         return (
           <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <Searchbar
+                placeholder="Muayene ara..."
+                value={inspSearch}
+                onChangeText={setInspSearch}
+                style={[styles.searchBarCompact, { flex: 1, backgroundColor: glassBgColor, borderColor: glassBorderColor, marginBottom: 0 }]}
+                inputStyle={[styles.searchInputCompact, { color: c.text }]}
+                placeholderTextColor={c.textTertiary}
+                iconColor={c.textSecondary}
+              />
+              <Pressable
+                onPress={() => setIsInspFilterVisible(true)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  borderWidth: 1,
+                  borderColor: glassBorderColor,
+                  backgroundColor: glassBgColor,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Ionicons name="funnel-outline" size={16} color={inspResultFilter ? c.primary : c.textSecondary} />
+                {inspResultFilter && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: c.primary,
+                  }} />
+                )}
+              </Pressable>
+            </View>
+
             {inspectionQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
-            ) : (inspectionQuery.data?.data || []).length === 0 ? (
+            ) : filteredInspections.length === 0 ? (
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı muayene bulunamadı.</Text>
             ) : (
-              (inspectionQuery.data?.data || []).map((i: any) => (
+              filteredInspections.map((i: any) => (
                 <GlassCard key={i.id} intensity={25} style={styles.subCardGlass}>
                   <View style={styles.subCardContent}>
                     <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>Muayene</Text>
+                      <Text style={[styles.subCardTitle, { color: c.text }]}>{i.type === 'traffic' ? 'Trafik Muayenesi' : i.type === 'egzoz' ? 'Egzoz Muayenesi' : i.type || 'Muayene'}</Text>
                       <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(i.cost)}</Text>
                     </View>
                     <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {i.date}</Text>
-                      <Text style={[styles.subCardDate, { color: c.warning }]}>Geçerlilik: {i.expiry_date}</Text>
+                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(i.inspection_date || i.date)}</Text>
+                      <Text style={[styles.subCardDate, { color: i.result === 'failed' ? c.error : c.success }]}>Sonuç: {i.result === 'passed' ? 'Geçti' : i.result === 'failed' ? 'Kaldı' : i.result || '-'}</Text>
                     </View>
+                    <View style={{ marginTop: 4 }}>
+                      {i.next_inspection && <Text style={[styles.subCardDate, { color: c.warning }]}>Geçerlilik: {formatDate(i.next_inspection)}</Text>}
+                    </View>
+                    {i.file_path && (
+                      <Pressable 
+                        onPress={() => {
+                          Linking.openURL(getFileUrl(i.file_path)).catch(err => {
+                            Alert.alert('Hata', 'Dosya açılamadı.');
+                          });
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                      >
+                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                      </Pressable>
+                    )}
                   </View>
                 </GlassCard>
               ))
             )}
+
+            {/* Inspection Filter Modal */}
+            <GlassModal visible={isInspFilterVisible} onDismiss={() => setIsInspFilterVisible(false)}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Muayene Filtrele</Text>
+              <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Sonuç</Text>
+                <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+                  <Pressable
+                    onPress={() => setInspResultFilter(null)}
+                    style={{
+                      height: 36,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      paddingHorizontal: 16,
+                      backgroundColor: !inspResultFilter 
+                        ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                      borderColor: !inspResultFilter 
+                        ? c.primary 
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: !inspResultFilter ? c.primary : c.textSecondary, fontWeight: !inspResultFilter ? '600' : '400' }}>
+                      Tümü
+                    </Text>
+                  </Pressable>
+                  {resultOptions.map((opt) => {
+                    const isSelected = inspResultFilter === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => setInspResultFilter(isSelected ? null : opt.value)}
+                        style={{
+                          height: 36,
+                          borderRadius: 18,
+                          borderWidth: 1,
+                          paddingHorizontal: 16,
+                          backgroundColor: isSelected 
+                            ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                          borderColor: isSelected 
+                            ? c.primary 
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: isSelected ? c.primary : c.textSecondary, fontWeight: isSelected ? '600' : '400' }}>
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 24 }}>
+                <Button 
+                  mode="outlined" 
+                  onPress={() => { setInspResultFilter(null); setIsInspFilterVisible(false); }}
+                  style={{ flex: 1, borderColor: c.primary }}
+                  textColor={c.primary}
+                >
+                  Temizle
+                </Button>
+                <Button 
+                  mode="contained" 
+                  onPress={() => setIsInspFilterVisible(false)} 
+                  style={{ flex: 1 }}
+                  buttonColor={c.primary} 
+                  textColor="#fff"
+                >
+                  Uygula
+                </Button>
+              </View>
+            </GlassModal>
           </View>
         );
 
       case 'insurances':
         return (
           <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <Searchbar
+                placeholder="Sigorta ara..."
+                value={insSearch}
+                onChangeText={setInsSearch}
+                style={[styles.searchBarCompact, { flex: 1, backgroundColor: glassBgColor, borderColor: glassBorderColor, marginBottom: 0 }]}
+                inputStyle={[styles.searchInputCompact, { color: c.text }]}
+                placeholderTextColor={c.textTertiary}
+                iconColor={c.textSecondary}
+              />
+              <Pressable
+                onPress={() => setIsInsFilterVisible(true)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  borderWidth: 1,
+                  borderColor: glassBorderColor,
+                  backgroundColor: glassBgColor,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Ionicons name="funnel-outline" size={16} color={insTypeFilter ? c.primary : c.textSecondary} />
+                {insTypeFilter && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: c.primary,
+                  }} />
+                )}
+              </Pressable>
+            </View>
+
             {insuranceQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
-            ) : (insuranceQuery.data?.data || []).length === 0 ? (
+            ) : filteredInsurances.length === 0 ? (
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı sigorta bulunamadı.</Text>
             ) : (
-              (insuranceQuery.data?.data || []).map((ins: any) => (
+              filteredInsurances.map((ins: any) => (
                 <GlassCard key={ins.id} intensity={25} style={styles.subCardGlass}>
                   <View style={styles.subCardContent}>
                     <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{ins.company || 'Sigorta'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(ins.cost)}</Text>
+                      <Text style={[styles.subCardTitle, { color: c.text }]}>{ins.company || 'Sigorta'} - {ins.type === 'kasko' ? 'Kasko' : ins.type === 'traffic' ? 'Trafik' : ins.type || 'Diğer'}</Text>
+                      <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(ins.premium || ins.cost)}</Text>
                     </View>
                     <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Başlangıç: {ins.start_date}</Text>
-                      <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {ins.end_date}</Text>
+                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Başlangıç: {formatDate(ins.start_date)}</Text>
+                      <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(ins.end_date)}</Text>
                     </View>
+                    {ins.policy_no && (
+                      <Text style={[styles.subCardDate, { color: c.textSecondary, marginTop: 4 }]}>Poliçe No: {ins.policy_no}</Text>
+                    )}
+                    {ins.file_path && (
+                      <Pressable 
+                        onPress={() => {
+                          Linking.openURL(getFileUrl(ins.file_path)).catch(err => {
+                            Alert.alert('Hata', 'Dosya açılamadı.');
+                          });
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                      >
+                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                      </Pressable>
+                    )}
                   </View>
                 </GlassCard>
               ))
             )}
+
+            {/* Insurance Filter Modal */}
+            <GlassModal visible={isInsFilterVisible} onDismiss={() => setIsInsFilterVisible(false)}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Sigorta Filtrele</Text>
+              <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Sigorta Türü</Text>
+                <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+                  <Pressable
+                    onPress={() => setInsTypeFilter(null)}
+                    style={{
+                      height: 36,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      paddingHorizontal: 16,
+                      backgroundColor: !insTypeFilter 
+                        ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                      borderColor: !insTypeFilter 
+                        ? c.primary 
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: !insTypeFilter ? c.primary : c.textSecondary, fontWeight: !insTypeFilter ? '600' : '400' }}>
+                      Tümü
+                    </Text>
+                  </Pressable>
+                  {insuranceTypes.map((opt) => {
+                    const isSelected = insTypeFilter === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => setInsTypeFilter(isSelected ? null : opt.value)}
+                        style={{
+                          height: 36,
+                          borderRadius: 18,
+                          borderWidth: 1,
+                          paddingHorizontal: 16,
+                          backgroundColor: isSelected 
+                            ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                          borderColor: isSelected 
+                            ? c.primary 
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: isSelected ? c.primary : c.textSecondary, fontWeight: isSelected ? '600' : '400' }}>
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 24 }}>
+                <Button 
+                  mode="outlined" 
+                  onPress={() => { setInsTypeFilter(null); setIsInsFilterVisible(false); }}
+                  style={{ flex: 1, borderColor: c.primary }}
+                  textColor={c.primary}
+                >
+                  Temizle
+                </Button>
+                <Button 
+                  mode="contained" 
+                  onPress={() => setIsInsFilterVisible(false)} 
+                  style={{ flex: 1 }}
+                  buttonColor={c.primary} 
+                  textColor="#fff"
+                >
+                  Uygula
+                </Button>
+              </View>
+            </GlassModal>
           </View>
         );
 
       case 'services':
         return (
           <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <Searchbar
+                placeholder="Servis ara..."
+                value={servSearch}
+                onChangeText={setServSearch}
+                style={[styles.searchBarCompact, { flex: 1, backgroundColor: glassBgColor, borderColor: glassBorderColor, marginBottom: 0 }]}
+                inputStyle={[styles.searchInputCompact, { color: c.text }]}
+                placeholderTextColor={c.textTertiary}
+                iconColor={c.textSecondary}
+              />
+              <Pressable
+                onPress={() => setIsServFilterVisible(true)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  borderWidth: 1,
+                  borderColor: glassBorderColor,
+                  backgroundColor: glassBgColor,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Ionicons name="funnel-outline" size={16} color={servTypeFilter ? c.primary : c.textSecondary} />
+                {servTypeFilter && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: c.primary,
+                  }} />
+                )}
+              </Pressable>
+            </View>
+
             {servicesQuery.isLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
-            ) : (servicesQuery.data?.data || []).length === 0 ? (
+            ) : filteredServices.length === 0 ? (
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı servis kaydı bulunamadı.</Text>
             ) : (
-              (servicesQuery.data?.data || []).map((s: any) => (
+              filteredServices.map((s: any) => (
                 <GlassCard key={s.id} intensity={25} style={styles.subCardGlass}>
                   <View style={styles.subCardContent}>
                     <View style={styles.subCardHeader}>
@@ -384,9 +965,365 @@ export default function VehicleDetailScreen() {
                       <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(s.cost)}</Text>
                     </View>
                     <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {s.date}</Text>
+                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(s.date)}</Text>
+                      {s.km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {s.km}</Text>}
                     </View>
+                    {s.file_path && (
+                      <Pressable 
+                        onPress={() => {
+                          Linking.openURL(getFileUrl(s.file_path)).catch(err => {
+                            Alert.alert('Hata', 'Dosya açılamadı.');
+                          });
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                      >
+                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                      </Pressable>
+                    )}
                   </View>
+                </GlassCard>
+              ))
+            )}
+
+            {/* Service Filter Modal */}
+            <GlassModal visible={isServFilterVisible} onDismiss={() => setIsServFilterVisible(false)}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Servis Filtrele</Text>
+              <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>İşlem Türü</Text>
+                <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+                  <Pressable
+                    onPress={() => setServTypeFilter(null)}
+                    style={{
+                      height: 36,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      paddingHorizontal: 16,
+                      backgroundColor: !servTypeFilter 
+                        ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                      borderColor: !servTypeFilter 
+                        ? c.primary 
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: !servTypeFilter ? c.primary : c.textSecondary, fontWeight: !servTypeFilter ? '600' : '400' }}>
+                      Tümü
+                    </Text>
+                  </Pressable>
+                  {serviceTypes.map((opt) => {
+                    const isSelected = servTypeFilter === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => setServTypeFilter(isSelected ? null : opt.value)}
+                        style={{
+                          height: 36,
+                          borderRadius: 18,
+                          borderWidth: 1,
+                          paddingHorizontal: 16,
+                          backgroundColor: isSelected 
+                            ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                          borderColor: isSelected 
+                            ? c.primary 
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: isSelected ? c.primary : c.textSecondary, fontWeight: isSelected ? '600' : '400' }}>
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 24 }}>
+                <Button 
+                  mode="outlined" 
+                  onPress={() => { setServTypeFilter(null); setIsServFilterVisible(false); }}
+                  style={{ flex: 1, borderColor: c.primary }}
+                  textColor={c.primary}
+                >
+                  Temizle
+                </Button>
+                <Button 
+                  mode="contained" 
+                  onPress={() => setIsServFilterVisible(false)} 
+                  style={{ flex: 1 }}
+                  buttonColor={c.primary} 
+                  textColor="#fff"
+                >
+                  Uygula
+                </Button>
+              </View>
+            </GlassModal>
+          </View>
+        );
+
+      case 'assignments':
+        return (
+          <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <Searchbar
+                placeholder="Zimmet ara..."
+                value={assignmentSearch}
+                onChangeText={setAssignmentSearch}
+                style={[styles.searchBarCompact, { flex: 1, backgroundColor: glassBgColor, borderColor: glassBorderColor, marginBottom: 0 }]}
+                inputStyle={[styles.searchInputCompact, { color: c.text }]}
+                placeholderTextColor={c.textTertiary}
+                iconColor={c.textSecondary}
+              />
+              <Pressable
+                onPress={() => setIsAssignmentFilterVisible(true)}
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  borderWidth: 1,
+                  borderColor: glassBorderColor,
+                  backgroundColor: glassBgColor,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Ionicons name="funnel-outline" size={16} color={assignmentStatusFilter ? c.primary : c.textSecondary} />
+                {assignmentStatusFilter && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: c.primary,
+                  }} />
+                )}
+              </Pressable>
+            </View>
+
+            {assignmentsQuery.isLoading ? (
+              <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
+            ) : filteredAssignments.length === 0 ? (
+              <Text style={[styles.emptyText, { color: c.textSecondary }]}>Zimmet kaydı bulunamadı.</Text>
+            ) : (
+              filteredAssignments.map((a: any) => {
+                const isActive = !a.end_date;
+                return (
+                  <GlassCard key={a.id} intensity={25} style={styles.subCardGlass}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
+                          <Ionicons name="person-outline" size={14} color={c.primary} />
+                          <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                            {a.assigned_to || a.employee_name || 'Atanmamış'}
+                          </Text>
+                        </View>
+                        <View style={{
+                          backgroundColor: isActive ? c.success + '20' : c.textSecondary + '20',
+                          borderRadius: 4,
+                          paddingHorizontal: 6,
+                          paddingVertical: 2
+                        }}>
+                          <Text style={{ fontSize: 10, fontWeight: '700', color: isActive ? c.success : c.textSecondary }}>
+                            {isActive ? 'Aktif' : 'İade Edildi'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {a.item_name && a.item_name !== 'Araç Zimmeti' && (
+                        <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 4 }}>
+                          Detay: {a.item_name}
+                        </Text>
+                      )}
+
+                      {a.department && (
+                        <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
+                          Departman: {a.department}
+                        </Text>
+                      )}
+
+                      <View style={[styles.subCardFooter, { marginTop: 8 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
+                          <Text style={[styles.subCardDate, { color: c.textSecondary }]}>
+                            Tarih: {formatDate(a.start_date || a.date)} {a.end_date ? ` - ${formatDate(a.end_date)}` : ''}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {a.notes && (
+                        <Text style={{ fontSize: 12, color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }}>
+                          Not: {a.notes}
+                        </Text>
+                      )}
+                    </View>
+                  </GlassCard>
+                );
+              })
+            )}
+
+            {/* Assignment Filter Modal */}
+            <GlassModal visible={isAssignmentFilterVisible} onDismiss={() => setIsAssignmentFilterVisible(false)}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Zimmet Filtrele</Text>
+              <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Durum</Text>
+                <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+                  <Pressable
+                    onPress={() => setAssignmentStatusFilter(null)}
+                    style={{
+                      height: 36,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      paddingHorizontal: 16,
+                      backgroundColor: !assignmentStatusFilter 
+                        ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                      borderColor: !assignmentStatusFilter 
+                        ? c.primary 
+                        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: !assignmentStatusFilter ? c.primary : c.textSecondary, fontWeight: !assignmentStatusFilter ? '600' : '400' }}>
+                      Tümü
+                    </Text>
+                  </Pressable>
+                  {[
+                    { label: 'Aktif Zimmetler', value: 'active' },
+                    { label: 'İade Edilenler', value: 'returned' }
+                  ].map((opt) => {
+                    const isSelected = assignmentStatusFilter === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => setAssignmentStatusFilter(isSelected ? null : opt.value)}
+                        style={{
+                          height: 36,
+                          borderRadius: 18,
+                          borderWidth: 1,
+                          paddingHorizontal: 16,
+                          backgroundColor: isSelected 
+                            ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                          borderColor: isSelected 
+                            ? c.primary 
+                            : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: isSelected ? c.primary : c.textSecondary, fontWeight: isSelected ? '600' : '400' }}>
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 24 }}>
+                <Button 
+                  mode="outlined" 
+                  onPress={() => { setAssignmentStatusFilter(null); setIsAssignmentFilterVisible(false); }}
+                  style={{ flex: 1, borderColor: c.primary }}
+                  textColor={c.primary}
+                >
+                  Temizle
+                </Button>
+                <Button 
+                  mode="contained" 
+                  onPress={() => setIsAssignmentFilterVisible(false)} 
+                  style={{ flex: 1 }}
+                  buttonColor={c.primary} 
+                  textColor="#fff"
+                >
+                  Uygula
+                </Button>
+              </View>
+            </GlassModal>
+          </View>
+        );
+
+      case 'documents':
+        return (
+          <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <Searchbar
+                placeholder="Belge ara..."
+                value={docSearch}
+                onChangeText={setDocSearch}
+                style={[styles.searchBarCompact, { flex: 1, backgroundColor: glassBgColor, borderColor: glassBorderColor, marginBottom: 0 }]}
+                inputStyle={[styles.searchInputCompact, { color: c.text }]}
+                placeholderTextColor={c.textTertiary}
+                iconColor={c.textSecondary}
+              />
+            </View>
+
+            {documentsQuery.isLoading ? (
+              <ActivityIndicator size="small" color={c.primary} style={styles.tabLoader} />
+            ) : filteredDocuments.length === 0 ? (
+              <Text style={[styles.emptyText, { color: c.textSecondary }]}>Belge bulunamadı.</Text>
+            ) : (
+              filteredDocuments.map((d: any) => (
+                <GlassCard key={d.id} intensity={25} style={styles.subCardGlass}>
+                  <Pressable
+                    onPress={() => {
+                      if (d.file_path) {
+                        Linking.openURL(getFileUrl(d.file_path)).catch(err => {
+                          Alert.alert('Hata', 'Dosya açılamadı.');
+                        });
+                      } else {
+                        Alert.alert('Hata', 'Dosya yolu bulunamadı.');
+                      }
+                    }}
+                    style={styles.subCardContent}
+                  >
+                    <View style={styles.subCardHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                        <Ionicons name="document-text-outline" size={18} color={c.primary} />
+                        <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                          {d.file_name}
+                        </Text>
+                      </View>
+                      <Ionicons name="eye-outline" size={16} color={c.primary} style={{ marginLeft: 8 }} />
+                    </View>
+
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                      {d.category && (
+                        <View style={{ backgroundColor: c.primaryContainer + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                          <Text style={{ fontSize: 11, color: c.primary, fontWeight: '600' }}>{d.category}</Text>
+                        </View>
+                      )}
+                      {d.folder && (
+                        <View style={{ backgroundColor: c.textSecondary + '15', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                          <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>{d.folder}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {(d.start_date || d.end_date) && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        {d.start_date && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
+                            <Text style={[styles.subCardDate, { color: c.textTertiary }]}>Başlangıç: {formatDate(d.start_date)}</Text>
+                          </View>
+                        )}
+                        {d.end_date && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <Ionicons name="alert-circle-outline" size={12} color={c.warning} />
+                            <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(d.end_date)}</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </Pressable>
                 </GlassCard>
               ))
             )}
@@ -438,13 +1375,15 @@ export default function VehicleDetailScreen() {
         {/* Tab Buttons */}
         <View style={styles.tabPicker}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-            {(['details', 'maintenances', 'inspections', 'insurances', 'services'] as TabValue[]).map((tab) => {
+            {(['details', 'maintenances', 'inspections', 'insurances', 'services', 'assignments', 'documents'] as TabValue[]).map((tab) => {
               const labelMap: Record<TabValue, string> = {
                 details: 'Genel',
                 maintenances: 'Bakım',
                 inspections: 'Muayene',
                 insurances: 'Sigorta',
                 services: 'Servis',
+                assignments: 'Zimmet',
+                documents: 'Belgeler',
               };
               const isSelected = activeTab === tab;
               return (
@@ -865,6 +1804,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 5,
+  },
+  filterSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  filterRow: {
+    flexDirection: 'row',
+  },
+  searchBarCompact: {
+    borderRadius: 20,
+    elevation: 0,
+    height: 38,
+    borderWidth: 1,
+    marginBottom: 6,
+  },
+  searchInputCompact: {
+    fontSize: 13,
+    minHeight: 0,
+    paddingLeft: 4,
   },
 });
 

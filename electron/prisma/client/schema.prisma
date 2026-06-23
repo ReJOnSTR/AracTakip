@@ -247,7 +247,8 @@ model leaves {
   type        String    @default("annual")
   start_date  DateTime
   end_date    DateTime
-  days        Int?      @default(1)
+  days        Float?    @default(1)
+  hours       Float?
   status      String?   @default("approved")
   notes       String?
   created_at  DateTime? @default(now())

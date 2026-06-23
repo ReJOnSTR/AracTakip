@@ -23,6 +23,7 @@ import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassDropdown from '../../components/ui/GlassDropdown';
+import GlassIconButton from '../../components/ui/GlassIconButton';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { formatCurrency, formatDate, getStatusLabel, getStatusColor } from '../../utils/format';
 
@@ -35,6 +36,10 @@ export default function WorksScreen() {
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
   useEffect(() => {
     if (params.openAdd === 'true') {
@@ -121,10 +126,21 @@ export default function WorksScreen() {
   };
 
   const filtered = works.filter((item: any) => {
-    return !search ||
+    const matchesSearch = !search ||
       item.title?.toLowerCase().includes(search.toLowerCase()) ||
       item.description?.toLowerCase().includes(search.toLowerCase()) ||
-      item.status?.toLowerCase().includes(search.toLowerCase());
+      item.customer_name?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatus = !statusFilter || item.status === statusFilter;
+    
+    let matchesDate = true;
+    if (startDateFilter || endDateFilter) {
+      const itemDate = item.start_date ? (typeof item.start_date === 'string' ? item.start_date : new Date(item.start_date).toISOString().split('T')[0]) : '';
+      if (startDateFilter && itemDate < startDateFilter) matchesDate = false;
+      if (endDateFilter && itemDate > endDateFilter) matchesDate = false;
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
@@ -136,8 +152,14 @@ export default function WorksScreen() {
       
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
-        <Text style={[styles.count, { color: c.textSecondary }]}>{works.length} iş</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
+          <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} iş</Text>
+        </View>
+        <GlassIconButton
+          icon="funnel-outline"
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
       {/* Searchbar */}
@@ -308,6 +330,85 @@ export default function WorksScreen() {
             </View>
           </GlassModal>
 
+      {/* Filter Modal */}
+      <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+          
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Durum</Text>
+          <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8 }]}>
+            {([
+              { label: 'Tümü', value: null },
+              { label: 'Bekliyor', value: 'pending' },
+              { label: 'Devam Ediyor', value: 'in_progress' },
+              { label: 'Tamamlandı', value: 'completed' },
+              { label: 'İptal Edildi', value: 'cancelled' },
+            ] as const).map((opt) => {
+              const isSelected = statusFilter === opt.value;
+              return (
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => setStatusFilter(opt.value)}
+                  style={{
+                    height: 36,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    paddingHorizontal: 16,
+                    backgroundColor: isSelected 
+                      ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                    borderColor: isSelected 
+                      ? c.primary 
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ 
+                    color: isSelected ? c.primary : c.textSecondary, 
+                    fontSize: 13,
+                    fontWeight: isSelected ? '600' : '400'
+                  }}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 16 }]}>Tarih Aralığı</Text>
+          <GlassInput
+            label="Başlangıç Tarihi"
+            value={startDateFilter}
+            onChangeText={setStartDateFilter}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Bitiş Tarihi"
+            value={endDateFilter}
+            onChangeText={setEndDateFilter}
+            placeholder="YYYY-MM-DD"
+          />
+
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button 
+            mode="text" 
+            onPress={() => {
+              setStartDateFilter('');
+              setEndDateFilter('');
+              setStatusFilter(null);
+            }} 
+            textColor={c.textSecondary}
+          >
+            Temizle
+          </Button>
+          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+            Uygula
+          </Button>
+        </View>
+      </GlassModal>
+
       {/* Portal for Add Modal */}
     </View>
   );
@@ -356,13 +457,13 @@ const styles = StyleSheet.create({
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  cardContainer: { marginBottom: 8 },
+  cardContainer: { marginBottom: 6 },
   cardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 10,
+    gap: 10,
   },
   iconBox: {
     width: 48,
@@ -409,4 +510,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
+  filterSectionTitle: { fontSize: 14, fontWeight: '700', marginVertical: 8 },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 4 },
 });

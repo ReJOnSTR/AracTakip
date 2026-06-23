@@ -324,13 +324,13 @@ const styles = StyleSheet.create({
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  cardContainer: { marginBottom: 8 },
+  cardContainer: { marginBottom: 6 },
   cardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 10,
+    gap: 10,
   },
   iconBox: {
     width: 48,

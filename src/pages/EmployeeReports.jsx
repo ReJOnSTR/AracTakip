@@ -129,7 +129,7 @@ export default function EmployeeReports() {
                 { header: 'Tür', value: i => i.type },
                 { header: 'Başlangıç', value: i => formatDate(i.start_date) },
                 { header: 'Bitiş', value: i => formatDate(i.end_date) },
-                { header: 'Gün', value: i => i.days }
+                { header: 'Süre', value: i => i.hours ? `${i.hours} Saat` : (i.days && i.days % 1 !== 0 ? `${Math.round(i.days * 8 * 100) / 100} Saat` : `${i.days} Gün`) }
             ])
         }
 

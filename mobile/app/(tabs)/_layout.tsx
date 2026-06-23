@@ -1,24 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import GlassModal from '../../components/ui/GlassModal';
-import { Tabs, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments, useLocalSearchParams } from 'expo-router';
 import { useColorScheme, Platform, StyleSheet, View, Pressable, useWindowDimensions, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Text, Button } from 'react-native-paper';
 import { Colors } from '../../constants/Colors';
-import Animated, { LinearTransition, FadeInRight, FadeOutRight, FadeInDown, FadeOutDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+
+import Animated, { 
+  LinearTransition, 
+  FadeInRight, 
+  FadeOutRight, 
+  FadeInDown, 
+  FadeOutDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
 import { useAuthStore } from '../../stores/authStore';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassCard from '../../components/ui/GlassCard';
 
 // Custom Tab Bar Component to bypass React Navigation container style limits
-function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
+function CustomTabBar({ c, colorScheme }: any) {
   const { width } = useWindowDimensions();
   const router = useRouter();
+  const segments = useSegments();
   const { apiUrl, updateApiUrl } = useAuthStore();
 
-  const currentRouteName = state.routes[state.index].name;
-  const listScreens = ['works', 'customers', 'meal-tickets'];
+  const rawRouteName = (segments[segments.length - 1] || 'index') as string;
+  const isInTabs = segments[0] === '(tabs)';
+
+  const [lastTabRoute, setLastTabRoute] = useState('index');
+
+  useEffect(() => {
+    if (isInTabs) {
+      setLastTabRoute(rawRouteName);
+    }
+  }, [isInTabs, rawRouteName]);
+
+  const currentRouteName = isInTabs ? rawRouteName : lastTabRoute;
+
+  const listScreens = [
+    'works', 
+    'customers', 
+    'meal-tickets', 
+    'employees-list', 
+    'vehicles-list', 
+    'finance-list'
+  ];
   const showPlusButton = listScreens.includes(currentRouteName);
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -30,8 +63,15 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
   const tabWidth = width * 0.70;
   const plusButtonWidth = 46;
   const gap = 10;
-  
-  const totalWidth = showPlusButton ? (tabWidth + gap + plusButtonWidth) : tabWidth;
+
+  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
+  const glassBgColor = Platform.OS === 'web'
+    ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
+    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.2)');
+
+  const gradientColors: readonly [string, string, ...string[]] = colorScheme === 'dark'
+    ? ['rgba(255, 255, 255, 0.07)', 'rgba(255, 255, 255, 0.01)']
+    : ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.2)'];
 
   const shadowStyle = {
     shadowColor: '#000000',
@@ -41,7 +81,14 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
     elevation: 12,
   };
 
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
+  };
+
   const handlePlusPress = () => {
+    triggerHaptic();
     if (listScreens.includes(currentRouteName)) {
       router.setParams({ openAdd: 'true' });
     }
@@ -60,105 +107,121 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
     }
   };
 
-  // Compile active buttons array (Manually inject Diğer/More between employees and profile)
-  const buttons: any[] = [];
-  
-  // 1. Panel
-  const panelRoute = state.routes.find((r: any) => r.name === 'index');
-  if (panelRoute) {
-    buttons.push({
-      key: panelRoute.key,
+  const getActiveTab = () => {
+    if (currentRouteName === 'index' || (isInTabs && segments.length === 1)) return 'index';
+    if (['vehicles', 'vehicles-list', 'assignment-list', 'maintenance-list', 'inspection-list', 'insurance-list', 'service-list'].includes(currentRouteName)) return 'vehicles';
+    if (['employees', 'employees-list', 'leaves-list', 'overtimes-list', 'payroll-list', 'personel-dashboard'].includes(currentRouteName)) return 'employees';
+    if (['profile'].includes(currentRouteName)) return 'profile';
+    if (['finance', 'finance-list', 'finance-dashboard', 'works', 'customers', 'meal-tickets'].includes(currentRouteName)) return 'more';
+    return 'index';
+  };
+
+  const activeTab = getActiveTab();
+
+  const buttons = [
+    {
       name: 'index',
       label: 'Panel',
-      iconName: currentRouteName === 'index' ? 'grid' : 'grid-outline',
-      isFocused: currentRouteName === 'index',
+      iconName: activeTab === 'index' ? 'grid' : 'grid-outline',
+      isFocused: activeTab === 'index',
       onPress: () => {
+        triggerHaptic();
         setIsMenuVisible(false);
-        navigation.navigate('index');
+        router.navigate('/(tabs)');
       }
-    });
-  }
-
-  // 2. Araçlar
-  const vehiclesRoute = state.routes.find((r: any) => r.name === 'vehicles');
-  if (vehiclesRoute) {
-    buttons.push({
-      key: vehiclesRoute.key,
+    },
+    {
       name: 'vehicles',
       label: 'Araçlar',
-      iconName: currentRouteName === 'vehicles' ? 'car' : 'car-outline',
-      isFocused: currentRouteName === 'vehicles',
+      iconName: activeTab === 'vehicles' ? 'car' : 'car-outline',
+      isFocused: activeTab === 'vehicles',
       onPress: () => {
+        triggerHaptic();
         setIsMenuVisible(false);
-        navigation.navigate('vehicles');
+        router.navigate('/(tabs)/vehicles');
       }
-    });
-  }
-
-  // 3. Personel
-  const employeesRoute = state.routes.find((r: any) => r.name === 'employees');
-  if (employeesRoute) {
-    buttons.push({
-      key: employeesRoute.key,
+    },
+    {
       name: 'employees',
       label: 'Personel',
-      iconName: currentRouteName === 'employees' ? 'people' : 'people-outline',
-      isFocused: currentRouteName === 'employees',
+      iconName: activeTab === 'employees' ? 'people' : 'people-outline',
+      isFocused: activeTab === 'employees',
       onPress: () => {
+        triggerHaptic();
         setIsMenuVisible(false);
-        navigation.navigate('employees');
+        router.navigate('/(tabs)/employees');
       }
-    });
-  }
-
-  // 4. Diğer (Custom Action Button - toggles overlay)
-  buttons.push({
-    key: 'custom-more-button',
-    name: 'more_custom',
-    label: 'Diğer',
-    iconName: isMenuVisible ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline',
-    isFocused: isMenuVisible || currentRouteName === 'finance',
-    onPress: () => {
-      setIsMenuVisible(!isMenuVisible);
-    }
-  });
-
-  // 5. Profil
-  const profileRoute = state.routes.find((r: any) => r.name === 'profile');
-  if (profileRoute) {
-    buttons.push({
-      key: profileRoute.key,
+    },
+    {
+      name: 'more_custom',
+      label: 'Diğer',
+      iconName: isMenuVisible ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline',
+      isFocused: activeTab === 'more',
+      onPress: () => {
+        triggerHaptic();
+        setIsMenuVisible(!isMenuVisible);
+      }
+    },
+    {
       name: 'profile',
       label: 'Profil',
-      iconName: currentRouteName === 'profile' ? 'person' : 'person-outline',
-      isFocused: currentRouteName === 'profile',
+      iconName: activeTab === 'profile' ? 'person' : 'person-outline',
+      isFocused: activeTab === 'profile',
       onPress: () => {
+        triggerHaptic();
         setIsMenuVisible(false);
-        navigation.navigate('profile');
+        router.navigate('/(tabs)/profile');
       }
-    });
-  }
+    }
+  ];
+
+  const activeIndex = buttons.findIndex((btn) => btn.isFocused);
+  const numButtons = buttons.length;
+  const buttonWidth = tabWidth / numButtons;
+  const indicatorWidth = 53;
+
+  const initialIndex = activeIndex !== -1 ? activeIndex : 0;
+  const initialX = numButtons > 0 
+    ? (initialIndex * buttonWidth + (buttonWidth - indicatorWidth) / 2)
+    : 0;
+
+  const translateX = useSharedValue(initialX);
+  const opacity = useSharedValue(activeIndex !== -1 ? 1 : 0);
+
+  useEffect(() => {
+    if (activeIndex !== -1 && numButtons > 0) {
+      const targetX = activeIndex * buttonWidth + (buttonWidth - indicatorWidth) / 2;
+      if (!isNaN(targetX) && isFinite(targetX)) {
+        translateX.value = withSpring(targetX, {
+          damping: 18,
+          stiffness: 150,
+          mass: 0.5,
+        });
+        opacity.value = withTiming(1, { duration: 150 });
+      }
+    } else {
+      opacity.value = withTiming(0, { duration: 150 });
+    }
+  }, [activeIndex, buttonWidth, numButtons]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+      opacity: opacity.value,
+    };
+  });
+
+  const indicatorGradientColors: readonly [string, string, ...string[]] = colorScheme === 'dark'
+    ? ['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.03)']
+    : ['rgba(99, 102, 241, 0.25)', 'rgba(99, 102, 241, 0.05)'];
 
   return (
     <View style={styles.tabBarOuterWrapper}>
       {/* Outer row to align pill + plus button at the bottom */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          overflow: 'visible',
-        }}
-      >
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', overflow: 'visible' }}>
         {/* Column container for floating menu overlay + primary tab bar pill */}
-        <View
-          style={{
-            width: tabWidth,
-            alignItems: 'center',
-            overflow: 'visible',
-          }}
-        >
-          {/* FLOATING DIĞER MENU OVERLAY (Directly above the Diğer button - matched to same width as pill) */}
+        <View style={{ width: tabWidth, alignItems: 'center', overflow: 'visible' }}>
+          {/* FLOATING DIĞER MENU OVERLAY */}
           {isMenuVisible && (
             <Animated.View
               entering={FadeInDown.duration(200)}
@@ -168,25 +231,22 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
                 styles.menuOverlayOuter,
                 {
                   width: tabWidth,
-                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
-                  backgroundColor: Platform.OS === 'web'
-                    ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.92)' : 'rgba(255, 255, 255, 0.92)')
-                    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.45)'),
+                  borderColor: glassBorderColor,
+                  borderWidth: 1.5,
+                  backgroundColor: glassBgColor,
                 }
               ]}
             >
               {Platform.OS !== 'web' && (
-                <BlurView
-                  intensity={Platform.OS === 'ios' ? 85 : 95}
-                  tint={colorScheme === 'dark' ? 'dark' : 'light'}
-                  style={StyleSheet.absoluteFill}
-                />
+                <BlurView intensity={75} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
               )}
+              <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
 
               <Pressable
                 onPress={() => {
+                  triggerHaptic();
                   setIsMenuVisible(false);
-                  navigation.navigate('finance');
+                  router.push('/(tabs)/finance');
                 }}
                 style={styles.menuOverlayItem}
                 android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
@@ -198,8 +258,9 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
               <Pressable
                 onPress={() => {
+                  triggerHaptic();
                   setIsMenuVisible(false);
-                  router.push('/works');
+                  router.push('/(tabs)/works');
                 }}
                 style={styles.menuOverlayItem}
                 android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
@@ -211,8 +272,9 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
               <Pressable
                 onPress={() => {
+                  triggerHaptic();
                   setIsMenuVisible(false);
-                  router.push('/customers');
+                  router.push('/(tabs)/customers');
                 }}
                 style={styles.menuOverlayItem}
                 android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
@@ -224,8 +286,9 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
               <Pressable
                 onPress={() => {
+                  triggerHaptic();
                   setIsMenuVisible(false);
-                  router.push('/meal-tickets');
+                  router.push('/(tabs)/meal-tickets');
                 }}
                 style={styles.menuOverlayItem}
                 android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
@@ -237,6 +300,7 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
 
               <Pressable
                 onPress={() => {
+                  triggerHaptic();
                   setIsMenuVisible(false);
                   setIsIpModalVisible(true);
                 }}
@@ -257,11 +321,9 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
                 width: tabWidth,
                 height: 56,
                 borderRadius: 28,
-                borderWidth: 1,
-                borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
-                backgroundColor: Platform.OS === 'web'
-                  ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-                  : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+                borderWidth: 1.5,
+                borderColor: glassBorderColor,
+                backgroundColor: glassBgColor,
                 overflow: 'hidden',
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -270,31 +332,43 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
             ]}
           >
             {Platform.OS !== 'web' && (
-              <BlurView
-                intensity={Platform.OS === 'ios' ? 75 : 85}
-                tint={colorScheme === 'dark' ? 'dark' : 'light'}
-                style={StyleSheet.absoluteFill}
-              />
+              <BlurView intensity={75} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
             )}
+            <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
 
-            {buttons.map((btn: any) => (
-              <Pressable
-                key={btn.key}
-                onPress={btn.onPress}
-                style={styles.tabButton}
-                android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
-              >
-                <Ionicons
-                  name={btn.iconName as any}
-                  size={22}
-                  color={btn.isFocused ? c.primary : c.textSecondary}
-                />
-              </Pressable>
-            ))}
+            {/* SLIDING ACTIVE INDICATOR */}
+            <Animated.View
+              style={[
+                styles.slidingIndicator,
+                {
+                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(99, 102, 241, 0.3)',
+                  backgroundColor: 'transparent',
+                },
+                animatedStyle,
+              ]}
+            >
+              <LinearGradient colors={indicatorGradientColors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+            </Animated.View>
+
+            {buttons.map((btn: any) => {
+              const isSelected = btn.isFocused;
+              return (
+                <Pressable
+                  key={btn.name}
+                  onPress={btn.onPress}
+                  style={styles.tabButton}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
+                >
+                  <View style={styles.tabIconWrapper}>
+                    <Ionicons name={btn.iconName as any} size={22} color={isSelected ? c.primary : c.textSecondary} />
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
-        {/* PLUS BUTTON (Shown alongside primary bar at bottom) */}
+        {/* PLUS BUTTON */}
         {showPlusButton && (
           <Animated.View
             style={{ flexDirection: 'row', alignItems: 'center', height: 56 }}
@@ -302,67 +376,40 @@ function CustomTabBar({ state, descriptors, navigation, c, colorScheme }: any) {
             exiting={FadeOutRight.duration(150)}
             layout={LinearTransition.duration(200)}
           >
-            {/* GAP */}
             <View style={{ width: gap }} />
-
-            {/* CIRCULAR PLUS BUTTON */}
             <Pressable
               onPress={handlePlusPress}
               style={[
                 styles.plusButtonOuter,
                 {
-                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.45)',
-                  backgroundColor: Platform.OS === 'web'
-                    ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.85)' : 'rgba(255, 255, 255, 0.85)')
-                    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+                  borderColor: glassBorderColor,
+                  borderWidth: 1.5,
+                  backgroundColor: glassBgColor,
                 }
               ]}
               android_ripple={{ color: 'rgba(255, 255, 255, 0.1)', borderless: true }}
             >
               {Platform.OS !== 'web' && (
-                <BlurView
-                  intensity={Platform.OS === 'ios' ? 75 : 85}
-                  tint={colorScheme === 'dark' ? 'dark' : 'light'}
-                  style={StyleSheet.absoluteFill}
-                />
+                <BlurView intensity={75} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
               )}
+              <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
               <Ionicons name="add" size={24} color={c.primary} />
             </Pressable>
           </Animated.View>
         )}
       </View>
 
-      {/* PORTAL FOR DYNAMIC IP SETTINGS SHEET */}
+      {/* Sunucu Ayarları Modal */}
       <GlassModal visible={isIpModalVisible} onDismiss={() => setIsIpModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Sunucu Ayarları</Text>
-            <ScrollView style={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
-              <GlassInput
-                label="Sunucu API Adresi"
-                value={ipInput}
-                onChangeText={setIpInput}
-                placeholder="http://192.168.1.X:9999"
-              />
-              <View style={styles.modalButtons}>
-                <Button
-                  mode="text"
-                  onPress={() => setIsIpModalVisible(false)}
-                  textColor={c.textSecondary}
-                >
-                  İptal
-                </Button>
-                <Button
-                  mode="contained"
-                  onPress={handleUpdateIp}
-                  loading={isUpdatingIp}
-                  disabled={isUpdatingIp || !ipInput.trim()}
-                  buttonColor={c.primary}
-                  textColor="#ffffff"
-                >
-                  Güncelle
-                </Button>
-              </View>
-            </ScrollView>
-          </GlassModal>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Sunucu Ayarları</Text>
+        <ScrollView style={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
+          <GlassInput label="Sunucu API Adresi" value={ipInput} onChangeText={setIpInput} placeholder="http://192.168.1.X:9999" />
+          <View style={styles.modalButtons}>
+            <Button mode="text" onPress={() => setIsIpModalVisible(false)} textColor={c.textSecondary}>İptal</Button>
+            <Button mode="contained" onPress={handleUpdateIp} loading={isUpdatingIp} disabled={isUpdatingIp || !ipInput.trim()} buttonColor={c.primary} textColor="#ffffff">Güncelle</Button>
+          </View>
+        </ScrollView>
+      </GlassModal>
     </View>
   );
 }
@@ -372,61 +419,37 @@ export default function TabLayout() {
   const c = Colors[colorScheme];
 
   return (
-    <Tabs
-      tabBar={(props) => <CustomTabBar {...props} c={c} colorScheme={colorScheme} />}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Panel',
+    <View style={{ flex: 1 }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: Platform.OS === 'ios' ? 'slide_from_right' : 'slide_from_right',
         }}
-      />
-      <Tabs.Screen
-        name="vehicles"
-        options={{
-          title: 'Araçlar',
-        }}
-      />
-      <Tabs.Screen
-        name="employees"
-        options={{
-          title: 'Personel',
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-        }}
-      />
-      <Tabs.Screen
-        name="finance"
-        options={{
-          title: 'Finans',
-        }}
-      />
-      <Tabs.Screen
-        name="works"
-        options={{
-          title: 'İşler',
-        }}
-      />
-      <Tabs.Screen
-        name="customers"
-        options={{
-          title: 'Cari',
-        }}
-      />
-      <Tabs.Screen
-        name="meal-tickets"
-        options={{
-          title: 'Yemek',
-        }}
-      />
-    </Tabs>
+      >
+        <Stack.Screen name="index" options={{ animation: 'none' }} />
+        <Stack.Screen name="vehicles" options={{ animation: 'none' }} />
+        <Stack.Screen name="employees" options={{ animation: 'none' }} />
+        <Stack.Screen name="profile" options={{ animation: 'none' }} />
+        <Stack.Screen name="finance" options={{ animation: 'none' }} />
+        <Stack.Screen name="works" options={{ animation: 'none' }} />
+        <Stack.Screen name="customers" options={{ animation: 'none' }} />
+        <Stack.Screen name="meal-tickets" options={{ animation: 'none' }} />
+        <Stack.Screen name="employees-list" />
+        <Stack.Screen name="vehicles-list" />
+        <Stack.Screen name="assignment-list" />
+        <Stack.Screen name="maintenance-list" />
+        <Stack.Screen name="inspection-list" />
+        <Stack.Screen name="insurance-list" />
+        <Stack.Screen name="service-list" />
+        <Stack.Screen name="payroll-list" />
+        <Stack.Screen name="leaves-list" />
+        <Stack.Screen name="overtimes-list" />
+        <Stack.Screen name="finance-list" />
+        <Stack.Screen name="finance-dashboard" />
+        <Stack.Screen name="personel-dashboard" />
+      </Stack>
+      <CustomTabBar c={c} colorScheme={colorScheme} />
+    </View>
   );
 }
 
@@ -483,22 +506,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
+    zIndex: 2,
   },
-  modalContent: {
+  tabIconWrapper: {
+    width: 53,
+    height: 53,
+    borderRadius: 26.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slidingIndicator: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
-    right: 0,
-    margin: 0,
-    padding: 0,
-  },
-  modalGlassCard: {
-    padding: 20,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    paddingBottom: 40,
+    top: '50%',
+    marginTop: -26.5,
+    width: 53,
+    height: 53,
+    borderRadius: 26.5,
+    borderWidth: 1.2,
+    overflow: 'hidden',
+    zIndex: 1,
   },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },

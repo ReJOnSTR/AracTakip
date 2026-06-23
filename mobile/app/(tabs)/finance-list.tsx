@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
-import GlassModal from '../components/ui/GlassModal';
+import GlassModal from '../../components/ui/GlassModal';
+import SwipeBackView from '../../components/ui/SwipeBackView';
 import {
   View,
   StyleSheet,
@@ -7,6 +8,8 @@ import {
   RefreshControl,
   useColorScheme,
   Pressable,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { Text, Searchbar, Chip, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,14 +17,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Colors } from '../constants/Colors';
-import { useAuthStore } from '../stores/authStore';
-import { financeService } from '../services/dataServices';
-import { formatCurrency, formatDate } from '../utils/format';
-import MovingBackground from '../components/ui/MovingBackground';
-import GlassCard from '../components/ui/GlassCard';
-import GlassInput from '../components/ui/GlassInput';
-import GlassDropdown from '../components/ui/GlassDropdown';
+import { Colors } from '../../constants/Colors';
+import { useAuthStore } from '../../stores/authStore';
+import { financeService } from '../../services/dataServices';
+import { formatCurrency, formatDate } from '../../utils/format';
+import MovingBackground from '../../components/ui/MovingBackground';
+import GlassCard from '../../components/ui/GlassCard';
+import GlassMonthPicker from '../../components/ui/GlassMonthPicker';
+import GlassInput from '../../components/ui/GlassInput';
+import GlassDropdown from '../../components/ui/GlassDropdown';
+import GlassIconButton from '../../components/ui/GlassIconButton';
 
 export default function FinanceListScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -34,6 +39,10 @@ export default function FinanceListScreen() {
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'IN' | 'OUT' | null>(null);
+  const [methodFilter, setMethodFilter] = useState<string | null>(null);
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const getMonthStr = (date: Date) => {
@@ -128,8 +137,18 @@ export default function FinanceListScreen() {
       t.description?.toLowerCase().includes(search.toLowerCase()) ||
       t.category?.toLowerCase().includes(search.toLowerCase());
     const matchesType = !typeFilter || t.type === typeFilter;
-    const matchesMonth = t.date && t.date.slice(0, 7) === selectedMonth;
-    return matchesSearch && matchesType && matchesMonth;
+    const matchesMethod = !methodFilter || t.method === methodFilter;
+
+    let matchesDate = true;
+    if (startDateFilter || endDateFilter) {
+      const tDate = t.date ? (typeof t.date === 'string' ? t.date : new Date(t.date).toISOString().split('T')[0]) : '';
+      if (startDateFilter && tDate < startDateFilter) matchesDate = false;
+      if (endDateFilter && tDate > endDateFilter) matchesDate = false;
+    } else {
+      matchesDate = !selectedMonth || (t.date && t.date.slice(0, 7) === selectedMonth);
+    }
+
+    return matchesSearch && matchesType && matchesMethod && matchesDate;
   });
 
   const handleCreate = () => {
@@ -192,69 +211,58 @@ export default function FinanceListScreen() {
     );
   }, [c]);
 
-  const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
-  const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+  const glassBgColor = Platform.OS === 'web'
+    ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
+    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.2)');
+  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
 
   return (
-    <View 
-      style={styles.container}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <SwipeBackView onSwipeBack={() => router.push('/finance')} style={styles.container}>
       <MovingBackground />
       
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={c.text} />
-        </Pressable>
-        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/finance')}
+        />
+        <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={[styles.title, { color: c.text }]}>Kasa Defteri</Text>
           <Text style={[styles.count, { color: c.textSecondary }]}>İşlemler</Text>
         </View>
-        <Pressable onPress={() => setIsModalVisible(true)} style={{ padding: 4, marginLeft: 8 }}>
-          <Ionicons name="add-circle-outline" size={26} color={c.primary} />
-        </Pressable>
+        <GlassIconButton
+          icon="funnel-outline"
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
       {/* Month Navigator */}
       <View style={styles.monthNavRow}>
-        <GlassCard intensity={30} style={styles.monthNavCard}>
-          <View style={styles.monthNavInner}>
-            <Pressable onPress={onPrevMonth} style={[styles.navBtn, { borderColor: c.border }]}>
-              <Ionicons name="chevron-back" size={16} color={c.primary} />
-            </Pressable>
-            <Text style={[styles.monthLabel, { color: c.text }]}>{getMonthLabel(currentDate)}</Text>
-            <Pressable onPress={onNextMonth} style={[styles.navBtn, { borderColor: c.border }]}>
-              <Ionicons name="chevron-forward" size={16} color={c.primary} />
-            </Pressable>
-          </View>
-        </GlassCard>
+        <GlassMonthPicker
+          value={currentDate}
+          onChange={setCurrentDate}
+        />
       </View>
 
-      {/* Stats Cards */}
-      <View style={styles.statsRow}>
-        <GlassCard intensity={40} style={styles.balanceCardGlass}>
-          <View style={styles.balanceContent}>
-            <Text style={[styles.label, { color: c.textSecondary }]}>Net Bakiye</Text>
-            <Text style={[styles.balanceVal, { color: stats.totalBalance >= 0 ? c.success : c.error }]}>
-              {formatCurrency(stats.totalBalance)}
-            </Text>
-            <View style={[styles.inoutRow, { borderTopColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}>
-              <View style={styles.inoutBox}>
-                <Ionicons name="arrow-down-circle-outline" size={16} color={c.success} />
-                <View>
-                  <Text style={[styles.inoutLabel, { color: c.textSecondary }]}>Gelir</Text>
-                  <Text style={[styles.inoutVal, { color: c.success }]}>{formatCurrency(stats.currentMonthIn)}</Text>
-                </View>
-              </View>
-              <View style={styles.inoutBox}>
-                <Ionicons name="arrow-up-circle-outline" size={16} color={c.error} />
-                <View>
-                  <Text style={[styles.inoutLabel, { color: c.textSecondary }]}>Gider</Text>
-                  <Text style={[styles.inoutVal, { color: c.error }]}>{formatCurrency(stats.currentMonthOut)}</Text>
-                </View>
-              </View>
+      {/* Gelir / Gider Özeti (GlassCard) */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+        <GlassCard intensity={30} style={{ padding: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gelir</Text>
+              <Text style={{ fontSize: 15, color: c.success, fontWeight: '800', marginTop: 4 }}>+{formatCurrency(stats.currentMonthIn)}</Text>
+            </View>
+            <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gider</Text>
+              <Text style={{ fontSize: 15, color: c.error, fontWeight: '800', marginTop: 4 }}>-{formatCurrency(stats.currentMonthOut)}</Text>
+            </View>
+            <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Net Bakiye</Text>
+              <Text style={{ fontSize: 15, color: stats.totalBalance >= 0 ? c.success : c.error, fontWeight: '800', marginTop: 4 }}>
+                {stats.totalBalance >= 0 ? '+' : ''}{formatCurrency(stats.totalBalance)}
+              </Text>
             </View>
           </View>
         </GlassCard>
@@ -266,62 +274,11 @@ export default function FinanceListScreen() {
           placeholder="İşlem veya kategori ara..."
           value={search}
           onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
+          style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
           inputStyle={[styles.searchInput, { color: c.text }]}
           placeholderTextColor={c.textTertiary}
           iconColor={c.textSecondary}
         />
-      </View>
-
-      <View style={styles.chipRow}>
-        <Chip
-          mode="flat"
-          selected={!typeFilter}
-          onPress={() => setTypeFilter(null)}
-          style={[
-            styles.chip,
-            {
-              backgroundColor: !typeFilter ? c.primaryContainer + '30' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'),
-              borderColor: !typeFilter ? c.primary : 'transparent',
-              borderWidth: 1,
-            }
-          ]}
-          textStyle={[styles.chipText, { color: !typeFilter ? c.primary : c.textSecondary }]}
-        >
-          Tümü
-        </Chip>
-        <Chip
-          mode="flat"
-          selected={typeFilter === 'IN'}
-          onPress={() => setTypeFilter('IN')}
-          style={[
-            styles.chip,
-            {
-              backgroundColor: typeFilter === 'IN' ? c.success + '20' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'),
-              borderColor: typeFilter === 'IN' ? c.success : 'transparent',
-              borderWidth: 1,
-            }
-          ]}
-          textStyle={[styles.chipText, { color: typeFilter === 'IN' ? c.success : c.textSecondary }]}
-        >
-          Gelirler
-        </Chip>
-        <Chip
-          mode="flat"
-          selected={typeFilter === 'OUT'}
-          onPress={() => setTypeFilter('OUT')}
-          style={[
-            styles.chip,
-            {
-              backgroundColor: typeFilter === 'OUT' ? c.error + '20' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'),
-              borderColor: typeFilter === 'OUT' ? c.error : 'transparent',
-              borderWidth: 1,
-            }
-          ]}
-          textStyle={[styles.chipText, { color: typeFilter === 'OUT' ? c.error : c.textSecondary }]}
-        >
-          Giderler
-        </Chip>
       </View>
 
       {/* Transactions List */}
@@ -343,6 +300,124 @@ export default function FinanceListScreen() {
           </View>
         }
       />
+
+      {/* Filter Modal */}
+      <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+          
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>İşlem Türü</Text>
+          <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8 }]}>
+            {([
+              { label: 'Tümü', value: null },
+              { label: 'Gelirler', value: 'IN' },
+              { label: 'Giderler', value: 'OUT' },
+            ] as const).map((opt) => {
+              const isSelected = typeFilter === opt.value;
+              return (
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => setTypeFilter(opt.value)}
+                  style={{
+                    height: 36,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    paddingHorizontal: 16,
+                    backgroundColor: isSelected 
+                      ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                    borderColor: isSelected 
+                      ? c.primary 
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ 
+                    color: isSelected ? c.primary : c.textSecondary, 
+                    fontSize: 13,
+                    fontWeight: isSelected ? '600' : '400'
+                  }}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 16 }]}>Ödeme Yöntemi</Text>
+          <View style={[styles.filterRow, { flexWrap: 'wrap', gap: 8 }]}>
+            {([
+              { label: 'Tümü', value: null },
+              { label: 'Nakit', value: 'CASH' },
+              { label: 'Banka', value: 'BANK' },
+              { label: 'Çek', value: 'CHECK' },
+            ] as const).map((opt) => {
+              const isSelected = methodFilter === opt.value;
+              return (
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => setMethodFilter(opt.value)}
+                  style={{
+                    height: 36,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    paddingHorizontal: 16,
+                    backgroundColor: isSelected 
+                      ? (colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.15)')
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.4)'),
+                    borderColor: isSelected 
+                      ? c.primary 
+                      : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ 
+                    color: isSelected ? c.primary : c.textSecondary, 
+                    fontSize: 13,
+                    fontWeight: isSelected ? '600' : '400'
+                  }}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 16 }]}>Tarih Aralığı</Text>
+          <GlassInput
+            label="Başlangıç Tarihi"
+            value={startDateFilter}
+            onChangeText={setStartDateFilter}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Bitiş Tarihi"
+            value={endDateFilter}
+            onChangeText={setEndDateFilter}
+            placeholder="YYYY-MM-DD"
+          />
+
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button 
+            mode="text" 
+            onPress={() => {
+              setStartDateFilter('');
+              setEndDateFilter('');
+              setMethodFilter(null);
+              setTypeFilter(null);
+            }} 
+            textColor={c.textSecondary}
+          >
+            Temizle
+          </Button>
+          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+            Uygula
+          </Button>
+        </View>
+      </GlassModal>
 
       {/* Add Transaction Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
@@ -430,7 +505,7 @@ export default function FinanceListScreen() {
               </Button>
             </View>
           </GlassModal>
-    </View>
+    </SwipeBackView>
   );
 }
 
@@ -443,8 +518,8 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   backBtn: { marginRight: 12 },
-  title: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  count: { fontSize: 13 },
+  title: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
+  count: { fontSize: 11, marginTop: 2 },
   statsRow: { paddingHorizontal: 20, marginVertical: 8 },
   balanceCardGlass: { padding: 0 },
   balanceContent: { padding: 16 },
@@ -455,21 +530,23 @@ const styles = StyleSheet.create({
   inoutLabel: { fontSize: 11 },
   inoutVal: { fontSize: 14, fontWeight: '700' },
   searchRow: { paddingHorizontal: 20, paddingVertical: 8 },
-  searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
+  searchBar: { borderRadius: 23, elevation: 0, height: 46, borderWidth: 1.2 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  chipRow: { flexDirection: 'row', paddingHorizontal: 20, paddingBottom: 12, gap: 8 },
+  filterSectionTitle: { fontSize: 14, fontWeight: '700', marginVertical: 8 },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 4 },
+  filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   txCardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 10,
+    gap: 10,
   },
   iconBox: {
     width: 48,

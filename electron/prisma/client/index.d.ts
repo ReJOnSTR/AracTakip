@@ -19205,6 +19205,7 @@ export namespace Prisma {
     id: number | null
     employee_id: number | null
     days: number | null
+    hours: number | null
     is_archived: number | null
   }
 
@@ -19212,6 +19213,7 @@ export namespace Prisma {
     id: number | null
     employee_id: number | null
     days: number | null
+    hours: number | null
     is_archived: number | null
   }
 
@@ -19222,6 +19224,7 @@ export namespace Prisma {
     start_date: Date | null
     end_date: Date | null
     days: number | null
+    hours: number | null
     status: string | null
     notes: string | null
     created_at: Date | null
@@ -19235,6 +19238,7 @@ export namespace Prisma {
     start_date: Date | null
     end_date: Date | null
     days: number | null
+    hours: number | null
     status: string | null
     notes: string | null
     created_at: Date | null
@@ -19248,6 +19252,7 @@ export namespace Prisma {
     start_date: number
     end_date: number
     days: number
+    hours: number
     status: number
     notes: number
     created_at: number
@@ -19260,6 +19265,7 @@ export namespace Prisma {
     id?: true
     employee_id?: true
     days?: true
+    hours?: true
     is_archived?: true
   }
 
@@ -19267,6 +19273,7 @@ export namespace Prisma {
     id?: true
     employee_id?: true
     days?: true
+    hours?: true
     is_archived?: true
   }
 
@@ -19277,6 +19284,7 @@ export namespace Prisma {
     start_date?: true
     end_date?: true
     days?: true
+    hours?: true
     status?: true
     notes?: true
     created_at?: true
@@ -19290,6 +19298,7 @@ export namespace Prisma {
     start_date?: true
     end_date?: true
     days?: true
+    hours?: true
     status?: true
     notes?: true
     created_at?: true
@@ -19303,6 +19312,7 @@ export namespace Prisma {
     start_date?: true
     end_date?: true
     days?: true
+    hours?: true
     status?: true
     notes?: true
     created_at?: true
@@ -19403,6 +19413,7 @@ export namespace Prisma {
     start_date: Date
     end_date: Date
     days: number | null
+    hours: number | null
     status: string | null
     notes: string | null
     created_at: Date | null
@@ -19435,6 +19446,7 @@ export namespace Prisma {
     start_date?: boolean
     end_date?: boolean
     days?: boolean
+    hours?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
@@ -19449,6 +19461,7 @@ export namespace Prisma {
     start_date?: boolean
     end_date?: boolean
     days?: boolean
+    hours?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
@@ -19463,6 +19476,7 @@ export namespace Prisma {
     start_date?: boolean
     end_date?: boolean
     days?: boolean
+    hours?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
@@ -19477,13 +19491,14 @@ export namespace Prisma {
     start_date?: boolean
     end_date?: boolean
     days?: boolean
+    hours?: boolean
     status?: boolean
     notes?: boolean
     created_at?: boolean
     is_archived?: boolean
   }
 
-  export type leavesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "type" | "start_date" | "end_date" | "days" | "status" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["leaves"]>
+  export type leavesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employee_id" | "type" | "start_date" | "end_date" | "days" | "hours" | "status" | "notes" | "created_at" | "is_archived", ExtArgs["result"]["leaves"]>
   export type leavesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | employeesDefaultArgs<ExtArgs>
   }
@@ -19506,6 +19521,7 @@ export namespace Prisma {
       start_date: Date
       end_date: Date
       days: number | null
+      hours: number | null
       status: string | null
       notes: string | null
       created_at: Date | null
@@ -19939,7 +19955,8 @@ export namespace Prisma {
     readonly type: FieldRef<"leaves", 'String'>
     readonly start_date: FieldRef<"leaves", 'DateTime'>
     readonly end_date: FieldRef<"leaves", 'DateTime'>
-    readonly days: FieldRef<"leaves", 'Int'>
+    readonly days: FieldRef<"leaves", 'Float'>
+    readonly hours: FieldRef<"leaves", 'Float'>
     readonly status: FieldRef<"leaves", 'String'>
     readonly notes: FieldRef<"leaves", 'String'>
     readonly created_at: FieldRef<"leaves", 'DateTime'>
@@ -44013,6 +44030,7 @@ export namespace Prisma {
     start_date: 'start_date',
     end_date: 'end_date',
     days: 'days',
+    hours: 'hours',
     status: 'status',
     notes: 'notes',
     created_at: 'created_at',
@@ -45541,7 +45559,8 @@ export namespace Prisma {
     type?: StringFilter<"leaves"> | string
     start_date?: DateTimeFilter<"leaves"> | Date | string
     end_date?: DateTimeFilter<"leaves"> | Date | string
-    days?: IntNullableFilter<"leaves"> | number | null
+    days?: FloatNullableFilter<"leaves"> | number | null
+    hours?: FloatNullableFilter<"leaves"> | number | null
     status?: StringNullableFilter<"leaves"> | string | null
     notes?: StringNullableFilter<"leaves"> | string | null
     created_at?: DateTimeNullableFilter<"leaves"> | Date | string | null
@@ -45556,6 +45575,7 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     days?: SortOrderInput | SortOrder
+    hours?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -45572,7 +45592,8 @@ export namespace Prisma {
     type?: StringFilter<"leaves"> | string
     start_date?: DateTimeFilter<"leaves"> | Date | string
     end_date?: DateTimeFilter<"leaves"> | Date | string
-    days?: IntNullableFilter<"leaves"> | number | null
+    days?: FloatNullableFilter<"leaves"> | number | null
+    hours?: FloatNullableFilter<"leaves"> | number | null
     status?: StringNullableFilter<"leaves"> | string | null
     notes?: StringNullableFilter<"leaves"> | string | null
     created_at?: DateTimeNullableFilter<"leaves"> | Date | string | null
@@ -45587,6 +45608,7 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     days?: SortOrderInput | SortOrder
+    hours?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -45607,7 +45629,8 @@ export namespace Prisma {
     type?: StringWithAggregatesFilter<"leaves"> | string
     start_date?: DateTimeWithAggregatesFilter<"leaves"> | Date | string
     end_date?: DateTimeWithAggregatesFilter<"leaves"> | Date | string
-    days?: IntNullableWithAggregatesFilter<"leaves"> | number | null
+    days?: FloatNullableWithAggregatesFilter<"leaves"> | number | null
+    hours?: FloatNullableWithAggregatesFilter<"leaves"> | number | null
     status?: StringNullableWithAggregatesFilter<"leaves"> | string | null
     notes?: StringNullableWithAggregatesFilter<"leaves"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"leaves"> | Date | string | null
@@ -48487,6 +48510,7 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     days?: number | null
+    hours?: number | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
@@ -48501,6 +48525,7 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     days?: number | null
+    hours?: number | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
@@ -48511,7 +48536,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -48525,7 +48551,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -48539,6 +48566,7 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     days?: number | null
+    hours?: number | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
@@ -48549,7 +48577,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -48562,7 +48591,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -51373,6 +51403,7 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     days?: SortOrder
+    hours?: SortOrder
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
@@ -51383,6 +51414,7 @@ export namespace Prisma {
     id?: SortOrder
     employee_id?: SortOrder
     days?: SortOrder
+    hours?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -51393,6 +51425,7 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     days?: SortOrder
+    hours?: SortOrder
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
@@ -51406,6 +51439,7 @@ export namespace Prisma {
     start_date?: SortOrder
     end_date?: SortOrder
     days?: SortOrder
+    hours?: SortOrder
     status?: SortOrder
     notes?: SortOrder
     created_at?: SortOrder
@@ -51416,6 +51450,7 @@ export namespace Prisma {
     id?: SortOrder
     employee_id?: SortOrder
     days?: SortOrder
+    hours?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -57146,6 +57181,7 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     days?: number | null
+    hours?: number | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
@@ -57158,6 +57194,7 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     days?: number | null
+    hours?: number | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
@@ -57588,7 +57625,8 @@ export namespace Prisma {
     type?: StringFilter<"leaves"> | string
     start_date?: DateTimeFilter<"leaves"> | Date | string
     end_date?: DateTimeFilter<"leaves"> | Date | string
-    days?: IntNullableFilter<"leaves"> | number | null
+    days?: FloatNullableFilter<"leaves"> | number | null
+    hours?: FloatNullableFilter<"leaves"> | number | null
     status?: StringNullableFilter<"leaves"> | string | null
     notes?: StringNullableFilter<"leaves"> | string | null
     created_at?: DateTimeNullableFilter<"leaves"> | Date | string | null
@@ -62281,6 +62319,7 @@ export namespace Prisma {
     start_date: Date | string
     end_date: Date | string
     days?: number | null
+    hours?: number | null
     status?: string | null
     notes?: string | null
     created_at?: Date | string | null
@@ -62522,7 +62561,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -62534,7 +62574,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -62546,7 +62587,8 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     start_date?: DateTimeFieldUpdateOperationsInput | Date | string
     end_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    days?: NullableIntFieldUpdateOperationsInput | number | null
+    days?: NullableFloatFieldUpdateOperationsInput | number | null
+    hours?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

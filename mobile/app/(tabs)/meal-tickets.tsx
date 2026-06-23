@@ -22,7 +22,9 @@ import { formatCurrency, formatDate } from '../../utils/format';
 import { useAuthStore } from '../../stores/authStore';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
+import GlassMonthPicker from '../../components/ui/GlassMonthPicker';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassIconButton from '../../components/ui/GlassIconButton';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function MealTicketsScreen() {
@@ -35,6 +37,9 @@ export default function MealTicketsScreen() {
 
   const [search, setSearch] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
   const getMonthStr = (date: Date) => {
     return date.toISOString().slice(0, 7); // e.g. "2026-06"
@@ -143,9 +148,21 @@ export default function MealTicketsScreen() {
     const matchesSearch = !search ||
       item.notes?.toLowerCase().includes(search.toLowerCase()) ||
       item.date?.toLowerCase().includes(search.toLowerCase());
-    const matchesMonth = item.date && item.date.slice(0, 7) === selectedMonth;
-    return matchesSearch && matchesMonth;
+      
+    let matchesDate = true;
+    if (startDateFilter || endDateFilter) {
+      const itemDate = item.date ? (typeof item.date === 'string' ? item.date : new Date(item.date).toISOString().split('T')[0]) : '';
+      if (startDateFilter && itemDate < startDateFilter) matchesDate = false;
+      if (endDateFilter && itemDate > endDateFilter) matchesDate = false;
+    } else {
+      matchesDate = item.date && item.date.slice(0, 7) === selectedMonth;
+    }
+    
+    return matchesSearch && matchesDate;
   });
+
+  const totalTicketsCount = filtered.reduce((sum: number, item: any) => sum + (item.person_count || 1), 0);
+  const totalTicketsCost = filtered.reduce((sum: number, item: any) => sum + (item.person_count || 1) * (item.price_per_person || 0), 0);
 
   const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
   const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
@@ -159,24 +176,23 @@ export default function MealTicketsScreen() {
       <MovingBackground />
       
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={[styles.title, { color: c.text }]}>Yemek Fişleri</Text>
-        <Text style={[styles.count, { color: c.textSecondary }]}>{tickets.length} fiş</Text>
+      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: c.text }]}>Yemek Fişleri</Text>
+          <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} fiş</Text>
+        </View>
+        <GlassIconButton
+          icon="funnel-outline"
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
       {/* Month Navigator */}
       <View style={styles.monthNavRow}>
-        <GlassCard intensity={30} style={styles.monthNavCard}>
-          <View style={styles.monthNavInner}>
-            <Pressable onPress={onPrevMonth} style={[styles.navBtn, { borderColor: c.border }]}>
-              <Ionicons name="chevron-back" size={16} color={c.primary} />
-            </Pressable>
-            <Text style={[styles.monthLabel, { color: c.text }]}>{getMonthLabel(currentDate)}</Text>
-            <Pressable onPress={onNextMonth} style={[styles.navBtn, { borderColor: c.border }]}>
-              <Ionicons name="chevron-forward" size={16} color={c.primary} />
-            </Pressable>
-          </View>
-        </GlassCard>
+        <GlassMonthPicker
+          value={currentDate}
+          onChange={setCurrentDate}
+        />
       </View>
 
       {/* Summary Header */}
@@ -185,12 +201,12 @@ export default function MealTicketsScreen() {
           <View style={styles.summaryContent}>
             <View style={styles.summaryBox}>
               <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>Toplam Adet</Text>
-              <Text style={[styles.summaryVal, { color: c.primary }]}>{stats.totalThisMonth || 0}</Text>
+              <Text style={[styles.summaryVal, { color: c.primary }]}>{totalTicketsCount}</Text>
             </View>
             <View style={[styles.divider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }]} />
             <View style={styles.summaryBox}>
               <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>Toplam Tutar</Text>
-              <Text style={[styles.summaryVal, { color: c.success }]}>{formatCurrency(stats.totalCostThisMonth)}</Text>
+              <Text style={[styles.summaryVal, { color: c.success }]}>{formatCurrency(totalTicketsCost)}</Text>
             </View>
           </View>
         </GlassCard>
@@ -318,7 +334,41 @@ export default function MealTicketsScreen() {
             </View>
           </GlassModal>
 
-      {/* Portal for Add Modal */}
+      {/* Filter Modal */}
+      <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+          <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Tarih Aralığı</Text>
+          <GlassInput
+            label="Başlangıç Tarihi"
+            value={startDateFilter}
+            onChangeText={setStartDateFilter}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Bitiş Tarihi"
+            value={endDateFilter}
+            onChangeText={setEndDateFilter}
+            placeholder="YYYY-MM-DD"
+          />
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button 
+            mode="text" 
+            onPress={() => {
+              setStartDateFilter('');
+              setEndDateFilter('');
+            }} 
+            textColor={c.textSecondary}
+          >
+            Temizle
+          </Button>
+          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+            Uygula
+          </Button>
+        </View>
+      </GlassModal>
+
     </View>
   );
 }
@@ -327,20 +377,14 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
-    paddingHorizontal: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 4,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  count: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  title: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
+  count: { fontSize: 11, marginTop: 2 },
+  filterSectionTitle: { fontSize: 14, fontWeight: '700', marginVertical: 8 },
   backButton: {
     padding: 4,
     marginRight: 8,
@@ -373,13 +417,13 @@ const styles = StyleSheet.create({
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  cardContainer: { marginBottom: 8 },
+  cardContainer: { marginBottom: 6 },
   cardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 10,
+    gap: 10,
   },
   iconBox: {
     width: 48,

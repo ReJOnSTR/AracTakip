@@ -145,6 +145,16 @@ function createMobileRoutes(db, onDbUpdate) {
         }
     });
 
+    router.get('/vehicles/:id/documents', async (req, res) => {
+        try {
+            const { isArchived } = req.query;
+            const result = await db.getDocumentsByVehicle(parseInt(req.params.id), isArchived === '1' ? 1 : 0);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
     // Vehicle sub-collection CRUD
     router.post('/maintenances', async (req, res) => {
         try { res.json(await db.createMaintenance(req.body)); }

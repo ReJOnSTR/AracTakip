@@ -11,11 +11,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Colors } from '../constants/Colors';
-import { useAuthStore } from '../stores/authStore';
-import { employeeService } from '../services/dataServices';
-import MovingBackground from '../components/ui/MovingBackground';
-import GlassCard from '../components/ui/GlassCard';
+import { Colors } from '../../constants/Colors';
+import { useAuthStore } from '../../stores/authStore';
+import { employeeService } from '../../services/dataServices';
+import MovingBackground from '../../components/ui/MovingBackground';
+import GlassCard from '../../components/ui/GlassCard';
+import GlassIconButton from '../../components/ui/GlassIconButton';
+import SwipeBackView from '../../components/ui/SwipeBackView';
 
 export default function PersonelDashboardScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -75,14 +77,16 @@ export default function PersonelDashboardScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <SwipeBackView onSwipeBack={() => router.push('/employees')} style={styles.container}>
       <MovingBackground />
       
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={c.text} />
-        </Pressable>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/employees')}
+          style={{ marginRight: 12 }}
+        />
         <View style={{ flex: 1 }}>
           <Text style={[styles.title, { color: c.text }]}>Personel Paneli</Text>
           <Text style={[styles.count, { color: c.textSecondary }]}>Kadro ve Dağılım Analizleri</Text>
@@ -160,7 +164,7 @@ export default function PersonelDashboardScreen() {
               {birthdayPeople.length === 0 ? (
                 <Text style={[styles.emptyText, { color: c.textSecondary }]}>Bu ay doğum günü olan personel yok.</Text>
               ) : (
-                birthdayPeople.map((p, i) => {
+                birthdayPeople.map((p: any, i: number) => {
                   const bDate = new Date(p.birth_date);
                   return (
                     <View key={i} style={styles.birthdayRow}>
@@ -179,7 +183,7 @@ export default function PersonelDashboardScreen() {
           </Animated.View>
         </ScrollView>
       )}
-    </View>
+    </SwipeBackView>
   );
 }
 
