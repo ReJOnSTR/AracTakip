@@ -1414,6 +1414,7 @@ export default function EmployeeDetailScreen() {
                   <Text style={[styles.statCardLabel, { color: c.textSecondary }]}>Kalan Yıllık İzin</Text>
                   <Text style={[styles.statCardValue, { color: balance < 0 ? c.error : c.primary }]}>
                     {(() => {
+                      const whpl = 8;
                       const hours = Math.round(balance * whpl * 10) / 10;
                       if (hours === 0) return '0 gün';
                       if (hours % whpl === 0) {
@@ -1475,6 +1476,7 @@ export default function EmployeeDetailScreen() {
                   <Text style={[styles.statCardLabel, { color: otBalance > 0 ? c.primary : c.textSecondary }]}>Kalan Mesai İzni</Text>
                   <Text style={[styles.statCardValue, { color: otBalance < 0 ? c.error : c.text }]}>
                     {(() => {
+                      const whpl = 8;
                       const hours = Math.round(otBalance * whpl * 10) / 10;
                       if (hours === 0) return '0 gün';
                       if (hours % whpl === 0) {
