@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getFileUrl } from '../services/api';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import GlassModal from '../components/ui/GlassModal';
 import SwipeBackView from '../components/ui/SwipeBackView';
 import {
@@ -196,6 +198,7 @@ export default function EmployeeDetailScreen() {
   const [docCategory, setDocCategory] = useState('');
   const [docStartDate, setDocStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [docEndDate, setDocEndDate] = useState('');
+  const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; size?: number } | null>(null);
 
   // Edit fields
   const [editFirstName, setEditFirstName] = useState('');
@@ -381,6 +384,7 @@ export default function EmployeeDetailScreen() {
     setDocCategory('');
     setDocStartDate(new Date().toISOString().split('T')[0]);
     setDocEndDate('');
+    setSelectedFile(null);
   };
 
   // Salary Mutation
@@ -456,15 +460,54 @@ export default function EmployeeDetailScreen() {
     }
   });
 
-  const handleCreateDocument = () => {
+  const handlePickDocument = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        setSelectedFile({
+          uri: asset.uri,
+          name: asset.name,
+          size: asset.size,
+        });
+        if (!docFileName) {
+          const label = asset.name.substring(0, asset.name.lastIndexOf('.')) || asset.name;
+          setDocFileName(label);
+        }
+      }
+    } catch (err) {
+      Alert.alert('Hata', 'Dosya seçilirken bir hata oluştu.');
+    }
+  };
+
+  const handleCreateDocument = async () => {
     if (!docFileName) {
       Alert.alert('Hata', 'Lütfen belge adını girin.');
       return;
     }
+
+    let fileData: string | null = null;
+    let fileNameOnDisk = docFileName;
+    if (selectedFile) {
+      try {
+        fileData = await FileSystem.readAsStringAsync(selectedFile.uri, {
+          encoding: 'base64',
+        });
+        fileNameOnDisk = selectedFile.name;
+      } catch (err) {
+        Alert.alert('Hata', 'Dosya verisi okunurken bir hata oluştu.');
+        return;
+      }
+    }
+
     createDocumentMutation.mutate({
       employeeId: empId,
       fileName: docFileName,
-      filePath: 'mobile-upload', // placeholder since mobile does not upload physical file
+      fileNameOnDisk,
+      fileData,
       category: docCategory || null,
       startDate: docStartDate || null,
       expiryDate: docEndDate || null,
@@ -2731,6 +2774,40 @@ export default function EmployeeDetailScreen() {
             onChangeText={setDocEndDate}
             placeholder="YYYY-MM-DD"
           />
+          <Pressable
+            onPress={handlePickDocument}
+            style={({ pressed }) => [
+              {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: 12,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: glassBorderColor,
+                backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                marginTop: 10,
+                marginBottom: 10,
+              }
+            ]}
+          >
+            <Ionicons name="document-attach-outline" size={18} color={c.primary} />
+            <Text style={{ color: c.text, fontWeight: '600' }}>
+              {selectedFile ? 'Dosyayı Değiştir' : 'Belge Dosyası Seç'}
+            </Text>
+          </Pressable>
+          {selectedFile && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, paddingHorizontal: 4 }}>
+              <Ionicons name="checkmark-circle" size={16} color={c.success} />
+              <Text style={{ color: c.textSecondary, fontSize: 13, flex: 1 }} numberOfLines={1}>
+                {selectedFile.name} ({Math.round((selectedFile.size || 0) / 1024)} KB)
+              </Text>
+              <Pressable onPress={() => setSelectedFile(null)}>
+                <Ionicons name="close-circle" size={18} color={c.error} />
+              </Pressable>
+            </View>
+          )}
         </ScrollView>
         <View style={styles.modalButtons}>
           <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>

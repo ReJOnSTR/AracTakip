@@ -6,6 +6,27 @@
 
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+const { app } = require('electron');
+
+const saveBase64File = async (fileName, fileData) => {
+    if (!fileData) return null;
+    const userDataPath = app.getPath('userData');
+    const filesDir = path.join(userDataPath, 'files');
+    
+    if (!fs.existsSync(filesDir)) {
+        fs.mkdirSync(filesDir, { recursive: true });
+    }
+
+    const ext = path.extname(fileName || '');
+    const newFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext || '.bin'}`;
+    const destPath = path.join(filesDir, newFileName);
+
+    const buffer = Buffer.from(fileData, 'base64');
+    await fs.promises.writeFile(destPath, buffer);
+    return newFileName;
+};
 
 function createMobileRoutes(db, onDbUpdate) {
     const notify = (table, action) => {
@@ -222,7 +243,19 @@ function createMobileRoutes(db, onDbUpdate) {
     });
 
     router.post('/documents', async (req, res) => {
-        try { res.json(await db.addDocument(req.body)); }
+        try {
+            let filePath = req.body.filePath || 'mobile-upload';
+            if (req.body.fileData) {
+                const savedName = await saveBase64File(req.body.fileNameOnDisk || req.body.fileName, req.body.fileData);
+                if (savedName) filePath = savedName;
+            }
+            const ext = path.extname(req.body.fileNameOnDisk || req.body.fileName || '');
+            res.json(await db.addDocument({
+                ...req.body,
+                filePath,
+                fileType: ext || req.body.fileType || null
+            }));
+        }
         catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
     router.delete('/documents/:id', async (req, res) => {
@@ -448,7 +481,19 @@ function createMobileRoutes(db, onDbUpdate) {
     });
 
     router.post('/employee-documents', async (req, res) => {
-        try { res.json(await db.addEmployeeDocument(req.body)); }
+        try {
+            let filePath = req.body.filePath || 'mobile-upload';
+            if (req.body.fileData) {
+                const savedName = await saveBase64File(req.body.fileNameOnDisk || req.body.fileName, req.body.fileData);
+                if (savedName) filePath = savedName;
+            }
+            const ext = path.extname(req.body.fileNameOnDisk || req.body.fileName || '');
+            res.json(await db.addEmployeeDocument({
+                ...req.body,
+                filePath,
+                fileType: ext || req.body.fileType || null
+            }));
+        }
         catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
     router.put('/employee-documents/:id', async (req, res) => {
