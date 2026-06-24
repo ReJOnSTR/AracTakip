@@ -27,7 +27,7 @@ import GlassIconButton from '../components/ui/GlassIconButton';
 
 import { getFileUrl } from '../services/api';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const maintenanceTypes = [
   { value: 'oil', label: 'Yağ Değişimi' },
@@ -458,6 +458,67 @@ export default function VehicleDetailScreen() {
     }
   };
 
+  const readUriAsBase64 = async (uri: string, fileName?: string): Promise<string> => {
+    try {
+      if (Platform.OS === 'web') {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      // Native (Android/iOS)
+      // 1. Try reading the file directly
+      try {
+        const data = await FileSystem.readAsStringAsync(uri, {
+          encoding: 'base64',
+        });
+        return data;
+      } catch (err1) {
+        console.warn('readAsStringAsync directly failed:', err1);
+        try {
+          const decodedUri = decodeURIComponent(uri);
+          const data = await FileSystem.readAsStringAsync(decodedUri, {
+            encoding: 'base64',
+          });
+          return data;
+        } catch (err2) {
+          console.warn('readAsStringAsync with decoded URI failed:', err2);
+          
+          // 2. Copy the file to the cache directory and read it
+          const tempFileName = `temp_upload_${Date.now()}_${fileName || 'file'}`;
+          const tempDest = `${FileSystem.cacheDirectory}${tempFileName}`;
+          
+          await FileSystem.copyAsync({
+            from: uri,
+            to: tempDest,
+          });
+          
+          const data = await FileSystem.readAsStringAsync(tempDest, {
+            encoding: 'base64',
+          });
+          
+          // Clean up temp file
+          FileSystem.deleteAsync(tempDest, { idempotent: true }).catch((delErr) => {
+            console.warn('Failed to delete temp file:', delErr);
+          });
+          
+          return data;
+        }
+      }
+    } catch (err) {
+      console.error('Error in readUriAsBase64:', err);
+      throw err;
+    }
+  };
+
   const handleCreateDocument = async () => {
     if (!docFileName) {
       Alert.alert('Hata', 'Lütfen belge adını girin.');
@@ -468,11 +529,10 @@ export default function VehicleDetailScreen() {
     let fileNameOnDisk = docFileName;
     if (selectedFile) {
       try {
-        fileData = await FileSystem.readAsStringAsync(selectedFile.uri, {
-          encoding: 'base64',
-        });
+        fileData = await readUriAsBase64(selectedFile.uri, selectedFile.name);
         fileNameOnDisk = selectedFile.name;
       } catch (err) {
+        console.error('Error reading document file:', err);
         Alert.alert('Hata', 'Dosya verisi okunurken bir hata oluştu.');
         return;
       }
