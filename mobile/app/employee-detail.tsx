@@ -2656,6 +2656,21 @@ export default function EmployeeDetailScreen() {
         </View>
       </GlassModal>
 
+      {/* Floating Action Button */}
+      {['salaries', 'leaves', 'overtimes'].includes(activeTab) && (
+        <GlassIconButton
+          icon="add"
+          size={56}
+          iconSize={28}
+          onPress={() => {
+            if (activeTab === 'salaries') setActiveModal('salary');
+            else if (activeTab === 'leaves') setActiveModal('leave');
+            else if (activeTab === 'overtimes') setActiveModal('overtime');
+          }}
+          style={styles.fab}
+        />
+      )}
+
     </SwipeBackView>
   );
 }

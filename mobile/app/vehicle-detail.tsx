@@ -1774,17 +1774,18 @@ export default function VehicleDetailScreen() {
 
       {/* Floating Action Button */}
       {['maintenances', 'inspections', 'insurances', 'services'].includes(activeTab) && (
-        <Pressable
+        <GlassIconButton
+          icon="add"
+          size={56}
+          iconSize={28}
           onPress={() => {
             if (activeTab === 'maintenances') setActiveModal('maintenance');
             else if (activeTab === 'inspections') setActiveModal('inspection');
             else if (activeTab === 'insurances') setActiveModal('insurance');
             else if (activeTab === 'services') setActiveModal('service');
           }}
-          style={[styles.fab, { backgroundColor: c.primary }]}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </Pressable>
+          style={styles.fab}
+        />
       )}
 
       {/* Options Menu Modal (3-dots) */}
