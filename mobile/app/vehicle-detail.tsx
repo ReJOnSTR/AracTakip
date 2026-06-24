@@ -221,7 +221,7 @@ export default function VehicleDetailScreen() {
         setEditEngineNo(vehicle.engine_no || '');
         setIsEditModalVisible(true);
       }
-    }, 100);
+    }, 350);
   };
 
   // Modal State
@@ -1803,7 +1803,9 @@ export default function VehicleDetailScreen() {
             style={styles.optionItem} 
             onPress={() => {
               setIsOptionsModalVisible(false);
-              handleConfirmDelete();
+              setTimeout(() => {
+                handleConfirmDelete();
+              }, 350);
             }}
           >
             <Ionicons name="trash-outline" size={20} color={c.error} />
