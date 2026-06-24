@@ -1374,7 +1374,7 @@ export default function EmployeeDetailScreen() {
           const hdpl = 1;
           const earnedOts = allOvertimes.filter((o: any) => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'));
           const totalEarned = earnedOts.reduce((sum: number, o: any) => sum + calculateEarnedOtDays(o, employee, whpl, sdpl, hdpl), 0);
-          const totalUsedOT = allLeaves.filter((l: any) => l.status === 'approved' && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum: number, l: any) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0);
+          const totalUsedOT = allLeaves.filter((l: any) => l.status === 'approved' && l.type && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum: number, l: any) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0);
           otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100;
 
           const totalOffsets = allLeaves.filter((l: any) => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup')).reduce((acc: number, l: any) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0);
@@ -1449,6 +1449,7 @@ export default function EmployeeDetailScreen() {
                   <Text style={[styles.statCardLabel, { color: c.textSecondary }]}>Bu Ay Kullanılan</Text>
                   <Text style={[styles.statCardValue, { color: c.text }]}>
                     {(() => {
+                      const whpl = 8;
                       const hours = Math.round(usedThisMonth * whpl * 10) / 10;
                       if (hours === 0) return '0 gün';
                       if (hours % whpl === 0) {
