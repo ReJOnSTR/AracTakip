@@ -178,9 +178,24 @@ export default function EmployeeDetailScreen() {
   });
 
   // Modal State
-  const [activeModal, setActiveModal] = useState<'salary' | 'leave' | 'overtime' | null>(null);
+  const [activeModal, setActiveModal] = useState<'salary' | 'leave' | 'overtime' | 'assignment' | 'document' | null>(null);
   const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+
+  // Assignment fields
+  const [assignItemName, setAssignItemName] = useState('Personel Zimmeti');
+  const [assignQuantity, setAssignQuantity] = useState('1');
+  const [assignAssignedTo, setAssignAssignedTo] = useState('');
+  const [assignDepartment, setAssignDepartment] = useState('');
+  const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [assignEndDate, setAssignEndDate] = useState('');
+  const [assignNotes, setAssignNotes] = useState('');
+
+  // Document fields
+  const [docFileName, setDocFileName] = useState('');
+  const [docCategory, setDocCategory] = useState('');
+  const [docStartDate, setDocStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [docEndDate, setDocEndDate] = useState('');
 
   // Edit fields
   const [editFirstName, setEditFirstName] = useState('');
@@ -202,6 +217,8 @@ export default function EmployeeDetailScreen() {
       if (activeTab === 'salaries') setActiveModal('salary');
       else if (activeTab === 'leaves') setActiveModal('leave');
       else if (activeTab === 'overtimes') setActiveModal('overtime');
+      else if (activeTab === 'assignments') setActiveModal('assignment');
+      else if (activeTab === 'documents') setActiveModal('document');
       router.setParams({ openAdd: undefined });
     }
   }, [params.openAdd, activeTab]);
@@ -353,6 +370,17 @@ export default function EmployeeDetailScreen() {
     setOvertimeRate('1.5');
     setOvertimeAmount('');
     setOvertimeNotes('');
+    setAssignItemName('Personel Zimmeti');
+    setAssignQuantity('1');
+    setAssignAssignedTo('');
+    setAssignDepartment('');
+    setAssignStartDate(new Date().toISOString().split('T')[0]);
+    setAssignEndDate('');
+    setAssignNotes('');
+    setDocFileName('');
+    setDocCategory('');
+    setDocStartDate(new Date().toISOString().split('T')[0]);
+    setDocEndDate('');
   };
 
   // Salary Mutation
@@ -384,6 +412,64 @@ export default function EmployeeDetailScreen() {
       resetForm();
     },
   });
+
+  // Assignment Mutation
+  const createAssignmentMutation = useMutation({
+    mutationFn: (data: any) => employeeService.createAssignment(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-assignments', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (error: any) => {
+      Alert.alert('Hata', error.message || 'Zimmet oluşturulamadı.');
+    }
+  });
+
+  const handleCreateAssignment = () => {
+    if (!assignStartDate) {
+      Alert.alert('Hata', 'Lütfen başlangıç tarihini girin.');
+      return;
+    }
+    createAssignmentMutation.mutate({
+      employeeId: empId,
+      itemName: assignItemName,
+      quantity: assignQuantity ? parseInt(assignQuantity) : 1,
+      assignedTo: assignAssignedTo || (employee ? `${employee.first_name} ${employee.last_name}` : null),
+      department: assignDepartment || (employee?.department || null),
+      assignDate: assignStartDate,
+      returnDate: assignEndDate || null,
+      notes: assignNotes || null,
+    });
+  };
+
+  // Document Mutation
+  const createDocumentMutation = useMutation({
+    mutationFn: (data: any) => employeeService.createDocument(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-documents', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (error: any) => {
+      Alert.alert('Hata', error.message || 'Belge oluşturulamadı.');
+    }
+  });
+
+  const handleCreateDocument = () => {
+    if (!docFileName) {
+      Alert.alert('Hata', 'Lütfen belge adını girin.');
+      return;
+    }
+    createDocumentMutation.mutate({
+      employeeId: empId,
+      fileName: docFileName,
+      filePath: 'mobile-upload', // placeholder since mobile does not upload physical file
+      category: docCategory || null,
+      startDate: docStartDate || null,
+      expiryDate: docEndDate || null,
+    });
+  };
 
   const getHistoricalBaseSalary = (emp: any, targetMonth: string) => {
     if (!emp) return 0;
@@ -2551,6 +2637,118 @@ export default function EmployeeDetailScreen() {
             </View>
           </GlassModal>
 
+      {/* Add Assignment Modal */}
+      <GlassModal visible={activeModal === 'assignment'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Zimmet Kaydı</Text>
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Zimmet Edilen Ürün/Araç"
+            value={assignItemName}
+            onChangeText={setAssignItemName}
+            placeholder="örn: Araç Zimmeti, Cep Telefonu, Laptop"
+          />
+          <GlassInput
+            label="Miktar"
+            value={assignQuantity}
+            onChangeText={setAssignQuantity}
+            keyboardType="numeric"
+            placeholder="1"
+          />
+          <GlassInput
+            label="Zimmet Edilen Kişi"
+            value={assignAssignedTo}
+            onChangeText={setAssignAssignedTo}
+            placeholder="Personel adı"
+          />
+          <GlassInput
+            label="Departman"
+            value={assignDepartment}
+            onChangeText={setAssignDepartment}
+            placeholder="örn: Operasyon, Satış"
+          />
+          <GlassInput
+            label="Zimmet Başlangıç Tarihi"
+            value={assignStartDate}
+            onChangeText={setAssignStartDate}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Zimmet Bitiş Tarihi"
+            value={assignEndDate}
+            onChangeText={setAssignEndDate}
+            placeholder="YYYY-MM-DD (İsteğe bağlı)"
+          />
+          <GlassInput
+            label="Notlar"
+            value={assignNotes}
+            onChangeText={setAssignNotes}
+            placeholder="Zimmet ile ilgili notlar..."
+            multiline
+          />
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreateAssignment}
+            loading={createAssignmentMutation.isPending}
+            disabled={createAssignmentMutation.isPending || !assignStartDate}
+            buttonColor={c.primary}
+            textColor="#ffffff"
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
+
+      {/* Add Document Modal */}
+      <GlassModal visible={activeModal === 'document'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Belge Kaydı</Text>
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Belge Adı"
+            value={docFileName}
+            onChangeText={setDocFileName}
+            placeholder="örn: Kimlik Fotokopisi, Ehliyet, Sözleşme"
+          />
+          <GlassInput
+            label="Kategori / Tür"
+            value={docCategory}
+            onChangeText={setDocCategory}
+            placeholder="örn: Zorunlu, Kimlik, Sertifika"
+          />
+          <GlassInput
+            label="Geçerlilik Başlangıç Tarihi"
+            value={docStartDate}
+            onChangeText={setDocStartDate}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Geçerlilik Bitiş Tarihi"
+            value={docEndDate}
+            onChangeText={setDocEndDate}
+            placeholder="YYYY-MM-DD"
+          />
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreateDocument}
+            loading={createDocumentMutation.isPending}
+            disabled={createDocumentMutation.isPending || !docFileName}
+            buttonColor={c.primary}
+            textColor="#ffffff"
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
+
       {/* Options Menu Modal (3-dots) */}
       <GlassModal visible={isOptionsModalVisible} onDismiss={() => setIsOptionsModalVisible(false)}>
         <Text style={[styles.modalTitle, { color: c.text, textAlign: 'center', marginBottom: 20 }]}>İşlemler</Text>
@@ -2657,7 +2855,7 @@ export default function EmployeeDetailScreen() {
       </GlassModal>
 
       {/* Floating Action Button */}
-      {['salaries', 'leaves', 'overtimes'].includes(activeTab) && (
+      {['salaries', 'leaves', 'overtimes', 'assignments', 'documents'].includes(activeTab) && (
         <GlassIconButton
           icon="add"
           size={56}
@@ -2666,6 +2864,8 @@ export default function EmployeeDetailScreen() {
             if (activeTab === 'salaries') setActiveModal('salary');
             else if (activeTab === 'leaves') setActiveModal('leave');
             else if (activeTab === 'overtimes') setActiveModal('overtime');
+            else if (activeTab === 'assignments') setActiveModal('assignment');
+            else if (activeTab === 'documents') setActiveModal('document');
           }}
           style={styles.fab}
         />

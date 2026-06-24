@@ -221,6 +221,15 @@ function createMobileRoutes(db, onDbUpdate) {
         catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
+    router.post('/documents', async (req, res) => {
+        try { res.json(await db.addDocument(req.body)); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+    router.delete('/documents/:id', async (req, res) => {
+        try { res.json(await db.deleteDocument(req.params.id)); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
     // All maintenances/inspections/insurances/services by company
     router.get('/maintenances', async (req, res) => {
         try {
@@ -422,6 +431,32 @@ function createMobileRoutes(db, onDbUpdate) {
     });
     router.delete('/employee-movements/:id', async (req, res) => {
         try { res.json(await db.deleteEmployeeMovement(req.params.id)); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.post('/employee-assignments', async (req, res) => {
+        try { res.json(await db.addEmployeeAssignment(req.body)); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+    router.put('/employee-assignments/:id', async (req, res) => {
+        try { res.json(await db.updateEmployeeAssignment({ ...req.body, id: req.params.id })); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+    router.delete('/employee-assignments/:id', async (req, res) => {
+        try { res.json(await db.deleteEmployeeAssignment(req.params.id)); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.post('/employee-documents', async (req, res) => {
+        try { res.json(await db.addEmployeeDocument(req.body)); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+    router.put('/employee-documents/:id', async (req, res) => {
+        try { res.json(await db.updateEmployeeDocument({ ...req.body, id: req.params.id })); }
+        catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+    router.delete('/employee-documents/:id', async (req, res) => {
+        try { res.json(await db.deleteEmployeeDocument(req.params.id)); }
         catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 

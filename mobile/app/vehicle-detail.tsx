@@ -225,13 +225,28 @@ export default function VehicleDetailScreen() {
   };
 
   // Modal State
-  const [activeModal, setActiveModal] = useState<'maintenance' | 'inspection' | 'insurance' | 'service' | null>(null);
+  const [activeModal, setActiveModal] = useState<'maintenance' | 'inspection' | 'insurance' | 'service' | 'assignment' | 'document' | null>(null);
 
   // Common fields
   const [desc, setDesc] = useState('');
   const [cost, setCost] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
+
+  // Assignment fields
+  const [assignItemName, setAssignItemName] = useState('Araç Zimmeti');
+  const [assignQuantity, setAssignQuantity] = useState('1');
+  const [assignAssignedTo, setAssignAssignedTo] = useState('');
+  const [assignDepartment, setAssignDepartment] = useState('');
+  const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [assignEndDate, setAssignEndDate] = useState('');
+  const [assignNotes, setAssignNotes] = useState('');
+
+  // Document fields
+  const [docFileName, setDocFileName] = useState('');
+  const [docCategory, setDocCategory] = useState('');
+  const [docStartDate, setDocStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [docEndDate, setDocEndDate] = useState('');
 
   // Maintenance fields
   const [maintType, setMaintType] = useState('Periyodik Bakım');
@@ -270,6 +285,17 @@ export default function VehicleDetailScreen() {
     setInsEndDate('');
     setServType('Onarım');
     setServKm('');
+    setAssignItemName('Araç Zimmeti');
+    setAssignQuantity('1');
+    setAssignAssignedTo('');
+    setAssignDepartment('');
+    setAssignStartDate(new Date().toISOString().split('T')[0]);
+    setAssignEndDate('');
+    setAssignNotes('');
+    setDocFileName('');
+    setDocCategory('');
+    setDocStartDate(new Date().toISOString().split('T')[0]);
+    setDocEndDate('');
   };
 
   // Maintenance Mutation
@@ -359,6 +385,64 @@ export default function VehicleDetailScreen() {
       cost: cost ? parseFloat(cost) : 0,
       km: servKm ? parseInt(servKm) : undefined,
       notes,
+    });
+  };
+
+  // Assignment Mutation
+  const createAssignmentMutation = useMutation({
+    mutationFn: (data: any) => vehicleService.createAssignment(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-assignments', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (error: any) => {
+      Alert.alert('Hata', error.message || 'Zimmet kaydı oluşturulamadı.');
+    }
+  });
+
+  const handleCreateAssignment = () => {
+    if (!assignStartDate) {
+      Alert.alert('Hata', 'Lütfen başlangıç tarihini girin.');
+      return;
+    }
+    createAssignmentMutation.mutate({
+      vehicleId,
+      itemName: assignItemName,
+      quantity: assignQuantity ? parseInt(assignQuantity) : 1,
+      assignedTo: assignAssignedTo || null,
+      department: assignDepartment || null,
+      startDate: assignStartDate,
+      endDate: assignEndDate || null,
+      notes: assignNotes || null,
+    });
+  };
+
+  // Document Mutation
+  const createDocumentMutation = useMutation({
+    mutationFn: (data: any) => vehicleService.createDocument(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-documents', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (error: any) => {
+      Alert.alert('Hata', error.message || 'Belge kaydı oluşturulamadı.');
+    }
+  });
+
+  const handleCreateDocument = () => {
+    if (!docFileName) {
+      Alert.alert('Hata', 'Lütfen belge adını girin.');
+      return;
+    }
+    createDocumentMutation.mutate({
+      vehicleId,
+      fileName: docFileName,
+      filePath: 'mobile-upload', // placeholder since mobile does not upload physical file
+      category: docCategory || null,
+      startDate: docStartDate || null,
+      endDate: docEndDate || null,
     });
   };
 
@@ -1773,7 +1857,7 @@ export default function VehicleDetailScreen() {
           </GlassModal>
 
       {/* Floating Action Button */}
-      {['maintenances', 'inspections', 'insurances', 'services'].includes(activeTab) && (
+      {['maintenances', 'inspections', 'insurances', 'services', 'assignments', 'documents'].includes(activeTab) && (
         <GlassIconButton
           icon="add"
           size={56}
@@ -1783,6 +1867,8 @@ export default function VehicleDetailScreen() {
             else if (activeTab === 'inspections') setActiveModal('inspection');
             else if (activeTab === 'insurances') setActiveModal('insurance');
             else if (activeTab === 'services') setActiveModal('service');
+            else if (activeTab === 'assignments') setActiveModal('assignment');
+            else if (activeTab === 'documents') setActiveModal('document');
           }}
           style={styles.fab}
         />
@@ -1923,6 +2009,118 @@ export default function VehicleDetailScreen() {
             onPress={handleUpdateVehicle}
             loading={updateMutation.isPending}
             disabled={updateMutation.isPending || !editPlate || !editType}
+            buttonColor={c.primary}
+            textColor="#ffffff"
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
+
+      {/* Add Assignment Modal */}
+      <GlassModal visible={activeModal === 'assignment'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Zimmet Kaydı</Text>
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Zimmet Edilen Ürün/Araç"
+            value={assignItemName}
+            onChangeText={setAssignItemName}
+            placeholder="örn: Araç Zimmeti, Cep Telefonu"
+          />
+          <GlassInput
+            label="Miktar"
+            value={assignQuantity}
+            onChangeText={setAssignQuantity}
+            keyboardType="numeric"
+            placeholder="1"
+          />
+          <GlassInput
+            label="Zimmet Edilen Kişi"
+            value={assignAssignedTo}
+            onChangeText={setAssignAssignedTo}
+            placeholder="Zimmet edilen personel adı"
+          />
+          <GlassInput
+            label="Departman"
+            value={assignDepartment}
+            onChangeText={setAssignDepartment}
+            placeholder="örn: Operasyon, Satış"
+          />
+          <GlassInput
+            label="Zimmet Başlangıç Tarihi"
+            value={assignStartDate}
+            onChangeText={setAssignStartDate}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Zimmet Bitiş Tarihi"
+            value={assignEndDate}
+            onChangeText={setAssignEndDate}
+            placeholder="YYYY-MM-DD (İsteğe bağlı)"
+          />
+          <GlassInput
+            label="Notlar"
+            value={assignNotes}
+            onChangeText={setAssignNotes}
+            placeholder="Zimmet ile ilgili notlar..."
+            multiline
+          />
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreateAssignment}
+            loading={createAssignmentMutation.isPending}
+            disabled={createAssignmentMutation.isPending || !assignStartDate}
+            buttonColor={c.primary}
+            textColor="#ffffff"
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
+
+      {/* Add Document Modal */}
+      <GlassModal visible={activeModal === 'document'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Belge Kaydı</Text>
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Belge Adı"
+            value={docFileName}
+            onChangeText={setDocFileName}
+            placeholder="örn: Ruhsat, Muayene Belgesi"
+          />
+          <GlassInput
+            label="Kategori / Tür"
+            value={docCategory}
+            onChangeText={setDocCategory}
+            placeholder="örn: Zorunlu, Ruhsat, Kasko"
+          />
+          <GlassInput
+            label="Geçerlilik Başlangıç Tarihi"
+            value={docStartDate}
+            onChangeText={setDocStartDate}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Geçerlilik Bitiş Tarihi"
+            value={docEndDate}
+            onChangeText={setDocEndDate}
+            placeholder="YYYY-MM-DD"
+          />
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreateDocument}
+            loading={createDocumentMutation.isPending}
+            disabled={createDocumentMutation.isPending || !docFileName}
             buttonColor={c.primary}
             textColor="#ffffff"
           >
