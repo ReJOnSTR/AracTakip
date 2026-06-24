@@ -23,6 +23,7 @@ import MovingBackground from '../components/ui/MovingBackground';
 import GlassCard from '../components/ui/GlassCard';
 import GlassInput from '../components/ui/GlassInput';
 import GlassDropdown from '../components/ui/GlassDropdown';
+import GlassIconButton from '../components/ui/GlassIconButton';
 
 import { getFileUrl } from '../services/api';
 
@@ -77,6 +78,22 @@ export default function VehicleDetailScreen() {
   const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
 
   const [activeTab, setActiveTab] = useState<TabValue>('details');
+
+  const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+
+  // Edit vehicle states
+  const [editPlate, setEditPlate] = useState('');
+  const [editType, setEditType] = useState('Otomobil');
+  const [editBrand, setEditBrand] = useState('');
+  const [editModel, setEditModel] = useState('');
+  const [editYear, setEditYear] = useState('');
+  const [editColor, setEditColor] = useState('');
+  const [editKm, setEditKm] = useState('');
+  const [editStatus, setEditStatus] = useState('active');
+  const [editNotes, setEditNotes] = useState('');
+  const [editVin, setEditVin] = useState('');
+  const [editEngineNo, setEditEngineNo] = useState('');
 
   // Search states for detail page tabs
   const [maintSearch, setMaintSearch] = useState('');
@@ -153,6 +170,59 @@ export default function VehicleDetailScreen() {
       router.back();
     },
   });
+
+  // Update Mutation
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => vehicleService.update(vehicleId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle', vehicleId] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      setIsEditModalVisible(false);
+    },
+    onError: (error: any) => {
+      Alert.alert('Hata', error.message || 'Güncelleme başarısız oldu.');
+    }
+  });
+
+  const handleUpdateVehicle = () => {
+    if (!editPlate || !editType) {
+      Alert.alert('Hata', 'Lütfen plaka ve araç türünü doldurun.');
+      return;
+    }
+    updateMutation.mutate({
+      plate: editPlate,
+      type: editType,
+      brand: editBrand,
+      model: editModel,
+      year: editYear ? parseInt(editYear) : null,
+      color: editColor,
+      km: editKm ? parseInt(editKm) : null,
+      status: editStatus,
+      notes: editNotes,
+      vin: editVin,
+      engine_no: editEngineNo,
+    });
+  };
+
+  const openEditModal = () => {
+    setIsOptionsModalVisible(false);
+    setTimeout(() => {
+      if (vehicle) {
+        setEditPlate(vehicle.plate || '');
+        setEditType(vehicle.type || 'Otomobil');
+        setEditBrand(vehicle.brand || '');
+        setEditModel(vehicle.model || '');
+        setEditYear(vehicle.year ? vehicle.year.toString() : '');
+        setEditColor(vehicle.color || '');
+        setEditKm(vehicle.km ? vehicle.km.toString() : '');
+        setEditStatus(vehicle.status || 'active');
+        setEditNotes(vehicle.notes || '');
+        setEditVin(vehicle.vin || '');
+        setEditEngineNo(vehicle.engine_no || '');
+        setIsEditModalVisible(true);
+      }
+    }, 100);
+  };
 
   // Modal State
   const [activeModal, setActiveModal] = useState<'maintenance' | 'inspection' | 'insurance' | 'service' | null>(null);
@@ -1337,10 +1407,10 @@ export default function VehicleDetailScreen() {
       <MovingBackground />
       
       {/* Navbar */}
-      <View style={[styles.nav, { paddingTop: insets.top }]}>
-        <IconButton icon="arrow-left" size={24} iconColor={c.text} onPress={() => router.back()} />
+      <View style={[styles.nav, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+        <GlassIconButton icon="chevron-back" onPress={() => router.back()} />
         <Text style={[styles.navTitle, { color: c.text }]}>Araç Detayı</Text>
-        <IconButton icon="trash-can-outline" size={24} iconColor={c.error} onPress={handleConfirmDelete} />
+        <GlassIconButton icon="ellipsis-vertical" onPress={() => setIsOptionsModalVisible(true)} />
       </View>
 
       <ScrollView
@@ -1716,6 +1786,147 @@ export default function VehicleDetailScreen() {
           <Ionicons name="add" size={28} color="#ffffff" />
         </Pressable>
       )}
+
+      {/* Options Menu Modal (3-dots) */}
+      <GlassModal visible={isOptionsModalVisible} onDismiss={() => setIsOptionsModalVisible(false)}>
+        <Text style={[styles.modalTitle, { color: c.text, textAlign: 'center', marginBottom: 20 }]}>İşlemler</Text>
+        <View style={styles.optionsList}>
+          <Pressable 
+            style={[styles.optionItem, { borderBottomWidth: 1, borderBottomColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} 
+            onPress={openEditModal}
+          >
+            <Ionicons name="create-outline" size={20} color={c.primary} />
+            <Text style={[styles.optionText, { color: c.text }]}>Aracı Düzenle</Text>
+          </Pressable>
+          
+          <Pressable 
+            style={styles.optionItem} 
+            onPress={() => {
+              setIsOptionsModalVisible(false);
+              handleConfirmDelete();
+            }}
+          >
+            <Ionicons name="trash-outline" size={20} color={c.error} />
+            <Text style={[styles.optionText, { color: c.error }]}>Aracı Sil</Text>
+          </Pressable>
+        </View>
+      </GlassModal>
+
+      {/* Edit Vehicle Modal */}
+      <GlassModal visible={isEditModalVisible} onDismiss={() => setIsEditModalVisible(false)}>
+        <Text style={[styles.modalTitle, { color: c.text }]}>Aracı Düzenle</Text>
+        <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Plaka"
+            value={editPlate}
+            onChangeText={setEditPlate}
+            placeholder="örn: 34ABC123"
+            autoCapitalize="characters"
+          />
+
+          <GlassDropdown
+            label="Araç Türü"
+            value={editType}
+            options={[
+              { label: 'Otomobil', value: 'Otomobil' },
+              { label: 'Çekici', value: 'Çekici' },
+              { label: 'Dorse', value: 'Dorse' },
+              { label: 'Kamyon', value: 'Kamyon' },
+              { label: 'İş Makinesi', value: 'İş Makinesi' },
+              { label: 'Diğer', value: 'Diğer' },
+            ]}
+            onSelect={setEditType}
+            placeholder="Araç Türü Seçiniz"
+          />
+
+          <GlassInput
+            label="Marka"
+            value={editBrand}
+            onChangeText={setEditBrand}
+            placeholder="örn: Ford, Renault"
+          />
+
+          <GlassInput
+            label="Model"
+            value={editModel}
+            onChangeText={setEditModel}
+            placeholder="örn: Focus, Megane"
+          />
+
+          <GlassInput
+            label="Yıl"
+            value={editYear}
+            onChangeText={setEditYear}
+            keyboardType="numeric"
+            placeholder="örn: 2022"
+          />
+
+          <GlassInput
+            label="Kilometre (KM)"
+            value={editKm}
+            onChangeText={setEditKm}
+            keyboardType="numeric"
+            placeholder="örn: 45000"
+          />
+
+          <GlassInput
+            label="Renk"
+            value={editColor}
+            onChangeText={setEditColor}
+            placeholder="örn: Beyaz, Siyah"
+          />
+
+          <GlassInput
+            label="Şasi Numarası (VIN)"
+            value={editVin}
+            onChangeText={setEditVin}
+            placeholder="Şasi Numarası girin"
+          />
+
+          <GlassInput
+            label="Motor Numarası"
+            value={editEngineNo}
+            onChangeText={setEditEngineNo}
+            placeholder="Motor Numarası girin"
+          />
+
+          <GlassDropdown
+            label="Durum"
+            value={editStatus}
+            options={[
+              { label: 'Aktif', value: 'active' },
+              { label: 'Bakımda', value: 'maintenance' },
+              { label: 'Pasif', value: 'passive' },
+              { label: 'Satıldı', value: 'sold' },
+            ]}
+            onSelect={setEditStatus}
+            placeholder="Durum Seçiniz"
+          />
+
+          <GlassInput
+            label="Notlar"
+            value={editNotes}
+            onChangeText={setEditNotes}
+            placeholder="Araç ile ilgili notlar..."
+            multiline
+          />
+        </ScrollView>
+        <View style={styles.modalButtons}>
+          <Button mode="text" onPress={() => setIsEditModalVisible(false)} textColor={c.textSecondary}>
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleUpdateVehicle}
+            loading={updateMutation.isPending}
+            disabled={updateMutation.isPending || !editPlate || !editType}
+            buttonColor={c.primary}
+            textColor="#ffffff"
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
     </View>
   );
 }
@@ -1825,6 +2036,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     minHeight: 0,
     paddingLeft: 4,
+  },
+  optionsList: {
+    paddingBottom: 16,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
