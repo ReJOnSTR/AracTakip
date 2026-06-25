@@ -118,11 +118,29 @@ export default function CustomerDetail() {
         }
     }
 
+    const handleArchiveFolder = async (folderId, isArchived) => {
+        try {
+            const res = await window.electronAPI.archiveItem('document_folders', folderId, isArchived ? 1 : 0)
+            if (res.success) {
+                loadFolders()
+            }
+        } catch (err) {
+            console.error('Folder archive failed:', err)
+        }
+    }
+
     const handleBulkArchiveDocs = async (ids, isArchived) => {
         try {
-            const promises = ids.map(id => window.electronAPI.archiveItem('documents', id, isArchived ? 1 : 0))
+            const promises = ids.map(id => {
+                if (typeof id === 'string' && id.startsWith('folder_')) {
+                    const folderId = parseInt(id.replace('folder_', ''))
+                    return window.electronAPI.archiveItem('document_folders', folderId, isArchived ? 1 : 0)
+                }
+                return window.electronAPI.archiveItem('documents', id, isArchived ? 1 : 0)
+            })
             await Promise.all(promises)
             loadDocuments(currentCompany?.id)
+            loadFolders()
         } catch (err) {
             console.error('Bulk archive failed:', err)
         }
@@ -145,7 +163,7 @@ export default function CustomerDetail() {
     const loadCategories = async () => {
         if (!currentCompany) return
         try {
-            const res = await window.electronAPI.getDocumentCategories(currentCompany.id)
+            const res = await window.electronAPI.getDocumentCategories(currentCompany.id, 'employee')
             if (res.success) {
                 setDocumentCategories(res.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
             }
@@ -159,7 +177,7 @@ export default function CustomerDetail() {
         try {
             const res = await window.electronAPI.getDocumentFolders(currentCompany.id)
             if (res.success) {
-                setDocumentFolders(res.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
+                setDocumentFolders(res.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
             }
         } catch (error) {
             console.error('Failed to load folders:', error)
@@ -943,7 +961,10 @@ export default function CustomerDetail() {
                             ]}
                             data={(() => {
                                 if (currentFolder === null) {
-                                    const folderRows = documentFolders.map(f => ({
+                                    const filteredFolders = documentFolders.filter(f => 
+                                        showArchived ? f.is_archived === 1 : f.is_archived !== 1
+                                    );
+                                    const folderRows = filteredFolders.map(f => ({
                                         id: `folder_${f.id}`,
                                         file_name: f.value,
                                         isFolder: true,
@@ -992,12 +1013,19 @@ export default function CustomerDetail() {
                             )}
                             actions={(item) => {
                                 if (item.isFolder) {
+                                    const folderObj = documentFolders.find(f => f.value === item.file_name)
                                     return !showArchived ? (
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleOpenRenameFolder(item.file_name) }} title="Klasör Adını Değiştir"><Pencil size={16} /></button>
+                                            {folderObj && <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleArchiveFolder(folderObj.id, true) }} title="Klasörü Arşivle"><Archive size={16} /></button>}
                                             <button className="icon-btn danger" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(item.file_name) }} title="Klasörü Sil"><Trash2 size={16} /></button>
                                         </div>
-                                    ) : null;
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {folderObj && <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleArchiveFolder(folderObj.id, false) }} title="Arşivden Çıkar"><ArchiveRestore size={16} /></button>}
+                                            <button className="icon-btn danger" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(item.file_name) }} title="Klasörü Sil"><Trash2 size={16} /></button>
+                                        </div>
+                                    );
                                 }
                                 return (
                                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -1096,6 +1124,7 @@ export default function CustomerDetail() {
                         onSubmit={handleUploadConfirm}
                         onCancel={() => setUploadModalOpen(false)}
                         loading={saving}
+                        targetType="employee"
                     />
                 </Modal>
             )}

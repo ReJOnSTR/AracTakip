@@ -132,7 +132,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createLeaveType: (data) => ipcRenderer.invoke('settings:createLeaveType', data),
     updateLeaveType: (data) => ipcRenderer.invoke('settings:updateLeaveType', data),
     deleteLeaveType: (id) => ipcRenderer.invoke('settings:deleteLeaveType', id),
-    getDocumentCategories: (companyId) => ipcRenderer.invoke('settings:getDocumentCategories', companyId),
+    getDocumentCategories: (companyId, targetType) => ipcRenderer.invoke('settings:getDocumentCategories', companyId, targetType),
     createDocumentCategory: (data) => ipcRenderer.invoke('settings:createDocumentCategory', data),
     updateDocumentCategory: (data) => ipcRenderer.invoke('settings:updateDocumentCategory', data),
     deleteDocumentCategory: (id) => ipcRenderer.invoke('settings:deleteDocumentCategory', id),

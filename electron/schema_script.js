@@ -394,6 +394,7 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "company_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "target_type" TEXT DEFAULT 'employee',
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_categories_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
@@ -401,6 +402,7 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "company_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "is_archived" INTEGER DEFAULT 0,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_folders_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,

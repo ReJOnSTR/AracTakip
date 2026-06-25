@@ -82,10 +82,13 @@ async function deleteLeaveType(id) {
 }
 
 // Document Categories
-async function getDocumentCategories(companyId) {
+async function getDocumentCategories(companyId, targetType = 'employee') {
     try {
         const data = await prisma.document_categories.findMany({
-            where: { company_id: parseInt(companyId) },
+            where: { 
+                company_id: parseInt(companyId),
+                target_type: targetType
+            },
             orderBy: { name: 'asc' }
         });
         return { success: true, data };
@@ -97,7 +100,8 @@ async function createDocumentCategory(data) {
         const result = await prisma.document_categories.create({
             data: {
                 company_id: parseInt(data.companyId),
-                name: data.name
+                name: data.name,
+                target_type: data.targetType || 'employee'
             }
         });
         return { success: true, data: result };

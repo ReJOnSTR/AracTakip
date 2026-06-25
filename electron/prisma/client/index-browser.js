@@ -519,6 +519,7 @@ exports.Prisma.Document_categoriesScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   name: 'name',
+  target_type: 'target_type',
   created_at: 'created_at'
 };
 
@@ -526,6 +527,7 @@ exports.Prisma.Document_foldersScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   name: 'name',
+  is_archived: 'is_archived',
   created_at: 'created_at'
 };
 

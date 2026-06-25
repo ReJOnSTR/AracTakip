@@ -139,6 +139,7 @@ export default function LeavesListScreen() {
           iconColor={c.textSecondary}
         />
       </View>
+      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {query.isLoading ? (
         <View style={styles.center}>
@@ -158,7 +159,7 @@ export default function LeavesListScreen() {
             const avatarColor = avatarColors[index % avatarColors.length];
             return (
               <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
-                <GlassCard intensity={30} style={styles.cardGlass}>
+                <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
                   <View style={styles.cardInner}>
                     <View style={[styles.avatar, { backgroundColor: avatarColor + '18' }]}>
                       <Text style={[styles.avatarText, { color: avatarColor }]}>
@@ -380,10 +381,12 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 12, fontWeight: '600' },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  cardContainer: { marginBottom: 6 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  cardContainer: {
+    marginBottom: 0,
+  },
   cardGlass: { padding: 0 },
-  cardInner: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 10 },
+  cardInner: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 10 },
   avatar: {
     width: 44,
     height: 44,

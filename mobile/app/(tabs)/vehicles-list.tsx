@@ -131,7 +131,7 @@ export default function VehiclesScreen() {
       <Pressable
         onPress={() => router.push({ pathname: '/vehicle-detail', params: { id: item.id } })}
       >
-        <GlassCard intensity={30} style={styles.vehicleCardGlass}>
+        <GlassCard intensity={30} style={styles.vehicleCardGlass} isListRow={true}>
           <View style={styles.vehicleCardInner}>
             <View style={[styles.plateBox, { backgroundColor: c.primaryContainer + '20' }]}>
               <Ionicons name="car" size={22} color={c.primary} />
@@ -210,6 +210,7 @@ export default function VehiclesScreen() {
           iconColor={c.textSecondary}
         />
       </View>
+      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* Vehicle List */}
       <FlatList
@@ -507,9 +508,9 @@ const styles = StyleSheet.create({
   filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   vehicleCardGlass: {
     padding: 0,
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
   vehicleCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 12, paddingHorizontal: 16,
     gap: 10,
   },
   plateBox: {

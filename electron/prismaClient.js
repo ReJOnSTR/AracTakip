@@ -383,13 +383,43 @@ async function runAutoMigrations() {
             }
 
             if (p.document_categories) {
-                const docCount = await p.document_categories.count({ where: { company_id: company.id } });
-                if (docCount === 0) {
+                const defaultVehicleDocCats = [
+                    'Ruhsat',
+                    'Trafik Sigortası',
+                    'Kasko',
+                    'Araç Muayenesi',
+                    'Egzoz Muayenesi',
+                    'Egzoz Emisyon Raporu',
+                    'Taşıt Kartı',
+                    'K Belgesi',
+                    'Kira Sözleşmesi',
+                    'Takograf',
+                    'Diğer'
+                ];
+                
+                // Seed employee document categories
+                const empDocCount = await p.document_categories.count({ 
+                    where: { company_id: company.id, target_type: 'employee' } 
+                });
+                if (empDocCount === 0) {
                     for (const name of defaultDocCats) {
-                        await p.document_categories.create({ data: { company_id: company.id, name } });
+                        await p.document_categories.create({ 
+                            data: { company_id: company.id, name, target_type: 'employee' } 
+                        });
                     }
-                    log.info(`Seeding: Added default document categories for company ${company.id}`);
+                    log.info(`Seeding: Added default employee document categories for company ${company.id}`);
                 }
+
+                // Seed vehicle document categories (Clean and re-seed as requested)
+                await p.document_categories.deleteMany({
+                    where: { company_id: company.id, target_type: 'vehicle' }
+                });
+                for (const name of defaultVehicleDocCats) {
+                    await p.document_categories.create({ 
+                        data: { company_id: company.id, name, target_type: 'vehicle' } 
+                    });
+                }
+                log.info(`Seeding: Re-seeded default vehicle document categories for company ${company.id}`);
             }
 
             if (p.vehicle_types) {
@@ -631,6 +661,32 @@ async function runAutoMigrations() {
         }
     } catch (error) {
         log.error('Migration step 22 (hours field in leaves) error:', error.message);
+    }
+
+    // 23. Add target_type to document_categories
+    try {
+        const dcCols = await p.$queryRawUnsafe("PRAGMA table_info('document_categories')");
+        if (dcCols.length > 0) {
+            if (!dcCols.some(c => c.name === 'target_type')) {
+                await p.$executeRawUnsafe("ALTER TABLE document_categories ADD COLUMN target_type TEXT DEFAULT 'employee'");
+                log.info('Migration: Added target_type to document_categories');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 23 (target_type field in document_categories) error:', error.message);
+    }
+
+    // 24. Add is_archived to document_folders
+    try {
+        const dfCols = await p.$queryRawUnsafe("PRAGMA table_info('document_folders')");
+        if (dfCols.length > 0) {
+            if (!dfCols.some(c => c.name === 'is_archived')) {
+                await p.$executeRawUnsafe("ALTER TABLE document_folders ADD COLUMN is_archived INTEGER DEFAULT 0");
+                log.info('Migration: Added is_archived to document_folders');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 24 (is_archived field in document_folders) error:', error.message);
     }
 
     log.info('Auto-migrations loop completed.');

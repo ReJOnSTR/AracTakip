@@ -8,15 +8,17 @@ interface GlassCardProps {
   style?: ViewStyle | ViewStyle[];
   intensity?: number;
   tint?: 'light' | 'dark' | 'default';
+  borderRadius?: number;
+  isListRow?: boolean;
 }
 
-export default function GlassCard({ children, style, intensity = 60, tint }: GlassCardProps) {
+export default function GlassCard({ children, style, intensity = 60, tint, borderRadius, isListRow }: GlassCardProps) {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const c = Colors[colorScheme];
 
   const selectedTint = tint || (colorScheme === 'dark' ? 'dark' : 'light');
 
-  const shadowStyle = {
+  const shadowStyle = isListRow ? {} : {
     shadowColor: '#000000',
     shadowOpacity: colorScheme === 'dark' ? 0.38 : 0.08,
     shadowOffset: { width: 0, height: 8 },
@@ -33,7 +35,13 @@ export default function GlassCard({ children, style, intensity = 60, tint }: Gla
   const innerStyle = [
     styles.innerContainer,
     {
+      borderRadius: isListRow ? 0 : (borderRadius ?? 16),
+      borderWidth: isListRow ? 0 : 1,
+      borderBottomWidth: isListRow ? 0.5 : 1,
       borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
+      borderBottomColor: isListRow
+        ? (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)')
+        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)'),
       backgroundColor: Platform.OS === 'web'
         ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.75)' : 'rgba(255, 255, 255, 0.75)')
         : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.35)'),
@@ -50,7 +58,7 @@ export default function GlassCard({ children, style, intensity = 60, tint }: Gla
             style={StyleSheet.absoluteFill}
           />
         ) : null}
-        <View style={styles.content}>
+        <View style={[styles.content, isListRow && { padding: 0 }]}>
           {children}
         </View>
       </View>
@@ -62,6 +70,7 @@ const styles = StyleSheet.create({
   outerContainer: {
     backgroundColor: 'transparent',
     overflow: 'visible',
+    alignSelf: 'stretch',
   },
   innerContainer: {
     borderRadius: 22,

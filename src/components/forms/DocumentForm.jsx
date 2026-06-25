@@ -5,13 +5,14 @@ import CustomSelect from '../CustomSelect'
 import { useCompany } from '../../context/CompanyContext'
 import { formatDateForInput } from '../../utils/helpers'
 
-export default function DocumentForm({ onSubmit, onCancel, loading, initialType = 'other', options }) {
+export default function DocumentForm({ onSubmit, onCancel, loading, initialType = 'other', options, targetType = 'employee' }) {
     const { currentCompany } = useCompany()
     const [queue, setQueue] = useState([])
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isSelectionPhase, setIsSelectionPhase] = useState(true)
     const [documentTypes, setDocumentTypes] = useState(options || [])
     const [documentFolders, setDocumentFolders] = useState([])
+    const [isDragging, setIsDragging] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -20,11 +21,11 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
             }
             loadFolders()
         }
-    }, [currentCompany, options])
+    }, [currentCompany, options, targetType])
 
     const loadCategories = async () => {
         try {
-            const res = await window.electronAPI.getDocumentCategories(currentCompany.id)
+            const res = await window.electronAPI.getDocumentCategories(currentCompany.id, targetType)
             if (res.success) {
                 setDocumentTypes(res.data.map(t => ({ value: t.name, label: t.name })))
             }
@@ -48,6 +49,13 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
         try {
             const result = await window.electronAPI.selectFile()
             if (!result.canceled && result.filePaths.length > 0) {
+                const today = new Date()
+                const nextYear = new Date()
+                nextYear.setFullYear(today.getFullYear() + 1)
+                
+                const startDateStr = formatDateForInput(today)
+                const endDateStr = formatDateForInput(nextYear)
+
                 const newItems = result.filePaths.map(filePath => {
                     const fileName = filePath.split(/[\\/]/).pop()
                     const nameWithoutExt = fileName.split('.').slice(0, -1).join('.')
@@ -58,8 +66,8 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
                         displayName: nameWithoutExt,
                         docType: initialType,
                         folder: '',
-                        startDate: formatDateForInput(new Date()),
-                        endDate: '',
+                        startDate: startDateStr,
+                        endDate: endDateStr,
                         isSaved: false
                     }
                 })
@@ -73,11 +81,76 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
         }
     }
 
+    const handleDragOver = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(true)
+    }
+
+    const handleDragLeave = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+    }
+
+    const handleDrop = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+
+        const files = Array.from(e.dataTransfer.files)
+        if (files.length > 0) {
+            const today = new Date()
+            const nextYear = new Date()
+            nextYear.setFullYear(today.getFullYear() + 1)
+            const startDateStr = formatDateForInput(today)
+            const endDateStr = formatDateForInput(nextYear)
+
+            const newItems = files.map(file => {
+                const filePath = file.path || file.name
+                const fileName = file.name
+                const nameWithoutExt = fileName.split('.').slice(0, -1).join('.') || fileName
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    path: filePath,
+                    originalName: fileName,
+                    displayName: nameWithoutExt,
+                    docType: initialType,
+                    folder: '',
+                    startDate: startDateStr,
+                    endDate: endDateStr,
+                    isSaved: false
+                }
+            })
+
+            const isFirstSelection = queue.length === 0
+            setQueue(prev => [...prev, ...newItems])
+            setIsSelectionPhase(false)
+            if (isFirstSelection) setCurrentIndex(0)
+        }
+    }
+
     const updateCurrentItem = (field, value) => {
         if (queue[currentIndex]?.isSaved) return
-        setQueue(prev => prev.map((item, idx) => 
-            idx === currentIndex ? { ...item, [field]: value } : item
-        ))
+        setQueue(prev => prev.map((item, idx) => {
+            if (idx === currentIndex) {
+                const updated = { ...item, [field]: value }
+                // Automatically shift end date to 1 year later if start date changes
+                if (field === 'startDate' && value && value.length === 10) {
+                    const parts = value.split('-')
+                    if (parts.length === 3) {
+                        const year = parseInt(parts[0], 10)
+                        const month = parts[1]
+                        const day = parts[2]
+                        if (!isNaN(year) && month.length === 2 && day.length === 2) {
+                            updated.endDate = `${year + 1}-${month}-${day}`
+                        }
+                    }
+                }
+                return updated
+            }
+            return item
+        }))
     }
 
     const handleConfirmCurrent = async () => {
@@ -111,12 +184,15 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
         return (
             <div
                 onClick={handleSelectFiles}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
                 style={{
-                    border: '2px dashed var(--border-color)',
+                    border: isDragging ? '2px dashed var(--accent-primary)' : '2px dashed var(--border-color)',
                     borderRadius: 'var(--radius-lg)',
                     padding: '60px 24px',
                     textAlign: 'center',
-                    backgroundColor: 'var(--bg-secondary)',
+                    backgroundColor: isDragging ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
                     cursor: 'pointer',
                     transition: 'var(--transition-normal)',
                     display: 'flex',
@@ -124,16 +200,22 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
                     alignItems: 'center',
                     gap: '16px'
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                onMouseEnter={e => {
+                    if (!isDragging) e.currentTarget.style.borderColor = 'var(--accent-primary)'
+                }}
+                onMouseLeave={e => {
+                    if (!isDragging) e.currentTarget.style.borderColor = 'var(--border-color)'
+                }}
             >
                 <div style={{ color: 'var(--accent-primary)', opacity: 0.8 }}>
                     <Upload size={48} />
                 </div>
                 <div>
-                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '18px' }}>Yüklenecek Belgeleri Seçin</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '18px' }}>
+                        {isDragging ? 'Belgeleri Buraya Bırakın' : 'Yüklenecek Belgeleri Seçin veya Sürükleyin'}
+                    </div>
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        Tekli veya toplu seçim yapabilirsiniz.
+                        Tekli veya toplu seçim yapabilirsiniz. Sürükleyip bırakabilirsiniz.
                     </div>
                 </div>
             </div>

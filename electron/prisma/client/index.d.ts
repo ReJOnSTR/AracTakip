@@ -39472,6 +39472,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    target_type: string | null
     created_at: Date | null
   }
 
@@ -39479,6 +39480,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    target_type: string | null
     created_at: Date | null
   }
 
@@ -39486,6 +39488,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: number
+    target_type: number
     created_at: number
     _all: number
   }
@@ -39505,6 +39508,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    target_type?: true
     created_at?: true
   }
 
@@ -39512,6 +39516,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    target_type?: true
     created_at?: true
   }
 
@@ -39519,6 +39524,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    target_type?: true
     created_at?: true
     _all?: true
   }
@@ -39613,6 +39619,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: string
+    target_type: string | null
     created_at: Date | null
     _count: Document_categoriesCountAggregateOutputType | null
     _avg: Document_categoriesAvgAggregateOutputType | null
@@ -39639,6 +39646,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    target_type?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document_categories"]>
@@ -39647,6 +39655,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    target_type?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document_categories"]>
@@ -39655,6 +39664,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    target_type?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document_categories"]>
@@ -39663,10 +39673,11 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    target_type?: boolean
     created_at?: boolean
   }
 
-  export type document_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["document_categories"]>
+  export type document_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "target_type" | "created_at", ExtArgs["result"]["document_categories"]>
   export type document_categoriesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -39686,6 +39697,7 @@ export namespace Prisma {
       id: number
       company_id: number
       name: string
+      target_type: string | null
       created_at: Date | null
     }, ExtArgs["result"]["document_categories"]>
     composites: {}
@@ -40114,6 +40126,7 @@ export namespace Prisma {
     readonly id: FieldRef<"document_categories", 'Int'>
     readonly company_id: FieldRef<"document_categories", 'Int'>
     readonly name: FieldRef<"document_categories", 'String'>
+    readonly target_type: FieldRef<"document_categories", 'String'>
     readonly created_at: FieldRef<"document_categories", 'DateTime'>
   }
     
@@ -40542,17 +40555,20 @@ export namespace Prisma {
   export type Document_foldersAvgAggregateOutputType = {
     id: number | null
     company_id: number | null
+    is_archived: number | null
   }
 
   export type Document_foldersSumAggregateOutputType = {
     id: number | null
     company_id: number | null
+    is_archived: number | null
   }
 
   export type Document_foldersMinAggregateOutputType = {
     id: number | null
     company_id: number | null
     name: string | null
+    is_archived: number | null
     created_at: Date | null
   }
 
@@ -40560,6 +40576,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    is_archived: number | null
     created_at: Date | null
   }
 
@@ -40567,6 +40584,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: number
+    is_archived: number
     created_at: number
     _all: number
   }
@@ -40575,17 +40593,20 @@ export namespace Prisma {
   export type Document_foldersAvgAggregateInputType = {
     id?: true
     company_id?: true
+    is_archived?: true
   }
 
   export type Document_foldersSumAggregateInputType = {
     id?: true
     company_id?: true
+    is_archived?: true
   }
 
   export type Document_foldersMinAggregateInputType = {
     id?: true
     company_id?: true
     name?: true
+    is_archived?: true
     created_at?: true
   }
 
@@ -40593,6 +40614,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    is_archived?: true
     created_at?: true
   }
 
@@ -40600,6 +40622,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    is_archived?: true
     created_at?: true
     _all?: true
   }
@@ -40694,6 +40717,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: string
+    is_archived: number | null
     created_at: Date | null
     _count: Document_foldersCountAggregateOutputType | null
     _avg: Document_foldersAvgAggregateOutputType | null
@@ -40720,6 +40744,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    is_archived?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document_folders"]>
@@ -40728,6 +40753,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    is_archived?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document_folders"]>
@@ -40736,6 +40762,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    is_archived?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["document_folders"]>
@@ -40744,10 +40771,11 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    is_archived?: boolean
     created_at?: boolean
   }
 
-  export type document_foldersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["document_folders"]>
+  export type document_foldersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "is_archived" | "created_at", ExtArgs["result"]["document_folders"]>
   export type document_foldersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -40767,6 +40795,7 @@ export namespace Prisma {
       id: number
       company_id: number
       name: string
+      is_archived: number | null
       created_at: Date | null
     }, ExtArgs["result"]["document_folders"]>
     composites: {}
@@ -41195,6 +41224,7 @@ export namespace Prisma {
     readonly id: FieldRef<"document_folders", 'Int'>
     readonly company_id: FieldRef<"document_folders", 'Int'>
     readonly name: FieldRef<"document_folders", 'String'>
+    readonly is_archived: FieldRef<"document_folders", 'Int'>
     readonly created_at: FieldRef<"document_folders", 'DateTime'>
   }
     
@@ -44301,6 +44331,7 @@ export namespace Prisma {
     id: 'id',
     company_id: 'company_id',
     name: 'name',
+    target_type: 'target_type',
     created_at: 'created_at'
   };
 
@@ -44311,6 +44342,7 @@ export namespace Prisma {
     id: 'id',
     company_id: 'company_id',
     name: 'name',
+    is_archived: 'is_archived',
     created_at: 'created_at'
   };
 
@@ -47000,6 +47032,7 @@ export namespace Prisma {
     id?: IntFilter<"document_categories"> | number
     company_id?: IntFilter<"document_categories"> | number
     name?: StringFilter<"document_categories"> | string
+    target_type?: StringNullableFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
@@ -47008,6 +47041,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    target_type?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
@@ -47019,6 +47053,7 @@ export namespace Prisma {
     NOT?: document_categoriesWhereInput | document_categoriesWhereInput[]
     company_id?: IntFilter<"document_categories"> | number
     name?: StringFilter<"document_categories"> | string
+    target_type?: StringNullableFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
@@ -47027,6 +47062,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    target_type?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: document_categoriesCountOrderByAggregateInput
     _avg?: document_categoriesAvgOrderByAggregateInput
@@ -47042,6 +47078,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"document_categories"> | number
     company_id?: IntWithAggregatesFilter<"document_categories"> | number
     name?: StringWithAggregatesFilter<"document_categories"> | string
+    target_type?: StringNullableWithAggregatesFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"document_categories"> | Date | string | null
   }
 
@@ -47052,6 +47089,7 @@ export namespace Prisma {
     id?: IntFilter<"document_folders"> | number
     company_id?: IntFilter<"document_folders"> | number
     name?: StringFilter<"document_folders"> | string
+    is_archived?: IntNullableFilter<"document_folders"> | number | null
     created_at?: DateTimeNullableFilter<"document_folders"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
@@ -47060,6 +47098,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    is_archived?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
@@ -47071,6 +47110,7 @@ export namespace Prisma {
     NOT?: document_foldersWhereInput | document_foldersWhereInput[]
     company_id?: IntFilter<"document_folders"> | number
     name?: StringFilter<"document_folders"> | string
+    is_archived?: IntNullableFilter<"document_folders"> | number | null
     created_at?: DateTimeNullableFilter<"document_folders"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
@@ -47079,6 +47119,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    is_archived?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: document_foldersCountOrderByAggregateInput
     _avg?: document_foldersAvgOrderByAggregateInput
@@ -47094,6 +47135,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"document_folders"> | number
     company_id?: IntWithAggregatesFilter<"document_folders"> | number
     name?: StringWithAggregatesFilter<"document_folders"> | string
+    is_archived?: IntNullableWithAggregatesFilter<"document_folders"> | number | null
     created_at?: DateTimeNullableWithAggregatesFilter<"document_folders"> | Date | string | null
   }
 
@@ -50037,6 +50079,7 @@ export namespace Prisma {
 
   export type document_categoriesCreateInput = {
     name: string
+    target_type?: string | null
     created_at?: Date | string | null
     companies: companiesCreateNestedOneWithoutDocument_categoriesInput
   }
@@ -50045,11 +50088,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    target_type?: string | null
     created_at?: Date | string | null
   }
 
   export type document_categoriesUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     companies?: companiesUpdateOneRequiredWithoutDocument_categoriesNestedInput
   }
@@ -50058,6 +50103,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -50065,11 +50111,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    target_type?: string | null
     created_at?: Date | string | null
   }
 
   export type document_categoriesUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -50077,11 +50125,13 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_foldersCreateInput = {
     name: string
+    is_archived?: number | null
     created_at?: Date | string | null
     companies: companiesCreateNestedOneWithoutDocument_foldersInput
   }
@@ -50090,11 +50140,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
   export type document_foldersUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     companies?: companiesUpdateOneRequiredWithoutDocument_foldersNestedInput
   }
@@ -50103,6 +50155,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -50110,11 +50163,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
   export type document_foldersUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -50122,6 +50177,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -52445,6 +52501,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    target_type?: SortOrder
     created_at?: SortOrder
   }
 
@@ -52457,6 +52514,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    target_type?: SortOrder
     created_at?: SortOrder
   }
 
@@ -52464,6 +52522,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    target_type?: SortOrder
     created_at?: SortOrder
   }
 
@@ -52476,18 +52535,21 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
   }
 
   export type document_foldersAvgOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type document_foldersMaxOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
   }
 
@@ -52495,12 +52557,14 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    is_archived?: SortOrder
     created_at?: SortOrder
   }
 
   export type document_foldersSumOrderByAggregateInput = {
     id?: SortOrder
     company_id?: SortOrder
+    is_archived?: SortOrder
   }
 
   export type vehicle_typesCountOrderByAggregateInput = {
@@ -55347,12 +55411,14 @@ export namespace Prisma {
 
   export type document_categoriesCreateWithoutCompaniesInput = {
     name: string
+    target_type?: string | null
     created_at?: Date | string | null
   }
 
   export type document_categoriesUncheckedCreateWithoutCompaniesInput = {
     id?: number
     name: string
+    target_type?: string | null
     created_at?: Date | string | null
   }
 
@@ -55387,12 +55453,14 @@ export namespace Prisma {
 
   export type document_foldersCreateWithoutCompaniesInput = {
     name: string
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
   export type document_foldersUncheckedCreateWithoutCompaniesInput = {
     id?: number
     name: string
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -55814,6 +55882,7 @@ export namespace Prisma {
     id?: IntFilter<"document_categories"> | number
     company_id?: IntFilter<"document_categories"> | number
     name?: StringFilter<"document_categories"> | string
+    target_type?: StringNullableFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
   }
 
@@ -55866,6 +55935,7 @@ export namespace Prisma {
     id?: IntFilter<"document_folders"> | number
     company_id?: IntFilter<"document_folders"> | number
     name?: StringFilter<"document_folders"> | string
+    is_archived?: IntNullableFilter<"document_folders"> | number | null
     created_at?: DateTimeNullableFilter<"document_folders"> | Date | string | null
   }
 
@@ -61664,6 +61734,7 @@ export namespace Prisma {
   export type document_categoriesCreateManyCompaniesInput = {
     id?: number
     name: string
+    target_type?: string | null
     created_at?: Date | string | null
   }
 
@@ -61676,6 +61747,7 @@ export namespace Prisma {
   export type document_foldersCreateManyCompaniesInput = {
     id?: number
     name: string
+    is_archived?: number | null
     created_at?: Date | string | null
   }
 
@@ -62103,18 +62175,21 @@ export namespace Prisma {
 
   export type document_categoriesUpdateWithoutCompaniesInput = {
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_categoriesUncheckedUpdateWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_categoriesUncheckedUpdateManyWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -62137,18 +62212,21 @@ export namespace Prisma {
 
   export type document_foldersUpdateWithoutCompaniesInput = {
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_foldersUncheckedUpdateWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_foldersUncheckedUpdateManyWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

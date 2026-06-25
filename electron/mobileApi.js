@@ -777,8 +777,8 @@ function createMobileRoutes(db, onDbUpdate) {
 
     router.get('/settings/document-categories', async (req, res) => {
         try {
-            const { companyId } = req.query;
-            res.json(await db.getDocumentCategories(companyId));
+            const { companyId, targetType } = req.query;
+            res.json(await db.getDocumentCategories(companyId, targetType));
         } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 

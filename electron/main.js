@@ -1381,7 +1381,7 @@ ipcMain.handle('settings:deleteLeaveType', async (event, id) => {
     return result
 })
 
-ipcMain.handle('settings:getDocumentCategories', async (event, companyId) => db.getDocumentCategories(companyId))
+ipcMain.handle('settings:getDocumentCategories', async (event, companyId, targetType) => db.getDocumentCategories(companyId, targetType))
 ipcMain.handle('settings:createDocumentCategory', async (event, data) => {
     const result = await db.createDocumentCategory(data)
     if (result.success) notifyDbUpdate({ table: 'document_categories', action: 'create' })

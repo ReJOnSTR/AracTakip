@@ -136,7 +136,7 @@ export default function EmployeesListScreen() {
         <Pressable
           onPress={() => router.push({ pathname: '/employee-detail', params: { id: item.id } })}
         >
-          <GlassCard intensity={30} style={styles.employeeCardGlass}>
+          <GlassCard intensity={30} style={styles.employeeCardGlass} isListRow={true}>
             <View style={styles.employeeCardInner}>
               <View style={[styles.avatar, { backgroundColor: avatarColor + '18' }]}>
                 <Text style={[styles.avatarText, { color: avatarColor }]}>
@@ -210,6 +210,7 @@ export default function EmployeesListScreen() {
           iconColor={c.textSecondary}
         />
       </View>
+      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* Employee List */}
       <FlatList
@@ -509,9 +510,9 @@ const styles = StyleSheet.create({
   filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   employeeCardGlass: {
     padding: 0,
@@ -519,7 +520,7 @@ const styles = StyleSheet.create({
   employeeCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 12, paddingHorizontal: 16,
     gap: 10,
   },
   avatar: {

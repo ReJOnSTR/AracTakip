@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import GlassModal from '../components/ui/GlassModal';
+import SwipeableRow from '../components/ui/SwipeableRow';
 import {
   View,
   StyleSheet,
@@ -228,6 +229,7 @@ export default function VehicleDetailScreen() {
 
   // Modal State
   const [activeModal, setActiveModal] = useState<'maintenance' | 'inspection' | 'insurance' | 'service' | 'assignment' | 'document' | null>(null);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
 
   // Common fields
   const [desc, setDesc] = useState('');
@@ -248,7 +250,11 @@ export default function VehicleDetailScreen() {
   const [docFileName, setDocFileName] = useState('');
   const [docCategory, setDocCategory] = useState('');
   const [docStartDate, setDocStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [docEndDate, setDocEndDate] = useState('');
+  const [docEndDate, setDocEndDate] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().split('T')[0];
+  });
   const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; size?: number } | null>(null);
 
   // Maintenance fields
@@ -272,6 +278,7 @@ export default function VehicleDetailScreen() {
   const [servKm, setServKm] = useState('');
 
   const resetForm = () => {
+    setEditingItem(null);
     setDesc('');
     setCost('');
     setDate(new Date().toISOString().split('T')[0]);
@@ -298,11 +305,28 @@ export default function VehicleDetailScreen() {
     setDocFileName('');
     setDocCategory('');
     setDocStartDate(new Date().toISOString().split('T')[0]);
-    setDocEndDate('');
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    setDocEndDate(d.toISOString().split('T')[0]);
     setSelectedFile(null);
   };
 
-  // Maintenance Mutation
+  const handleDocStartDateChange = (val: string) => {
+    setDocStartDate(val);
+    if (val && val.length === 10) {
+      const parts = val.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parts[1];
+        const day = parts[2];
+        if (!isNaN(year) && month.length === 2 && day.length === 2) {
+          setDocEndDate(`${year + 1}-${month}-${day}`);
+        }
+      }
+    }
+  };
+
+  // Maintenance Mutations
   const createMaintenanceMutation = useMutation({
     mutationFn: (data: any) => vehicleService.createMaintenance(data),
     onSuccess: () => {
@@ -312,7 +336,25 @@ export default function VehicleDetailScreen() {
     },
   });
 
-  // Inspection Mutation
+  const updateMaintenanceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => vehicleService.updateMaintenance(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-maintenances', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteMaintenanceMutation = useMutation({
+    mutationFn: (id: number) => vehicleService.deleteMaintenance(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-maintenances', vehicleId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
+  // Inspection Mutations
   const createInspectionMutation = useMutation({
     mutationFn: (data: any) => vehicleService.createInspection(data),
     onSuccess: () => {
@@ -322,7 +364,25 @@ export default function VehicleDetailScreen() {
     },
   });
 
-  // Insurance Mutation
+  const updateInspectionMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => vehicleService.updateInspection(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-inspections', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteInspectionMutation = useMutation({
+    mutationFn: (id: number) => vehicleService.deleteInspection(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-inspections', vehicleId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
+  // Insurance Mutations
   const createInsuranceMutation = useMutation({
     mutationFn: (data: any) => vehicleService.createInsurance(data),
     onSuccess: () => {
@@ -332,7 +392,25 @@ export default function VehicleDetailScreen() {
     },
   });
 
-  // Service Mutation
+  const updateInsuranceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => vehicleService.updateInsurance(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-insurances', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteInsuranceMutation = useMutation({
+    mutationFn: (id: number) => vehicleService.deleteInsurance(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-insurances', vehicleId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
+  // Service Mutations
   const createServiceMutation = useMutation({
     mutationFn: (data: any) => vehicleService.createService(data),
     onSuccess: () => {
@@ -342,9 +420,26 @@ export default function VehicleDetailScreen() {
     },
   });
 
+  const updateServiceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => vehicleService.updateService(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-services', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteServiceMutation = useMutation({
+    mutationFn: (id: number) => vehicleService.deleteService(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-services', vehicleId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
   const handleCreateMaintenance = () => {
-    createMaintenanceMutation.mutate({
-      vehicleId,
+    const payload = {
       type: maintType,
       description: desc,
       date,
@@ -352,24 +447,40 @@ export default function VehicleDetailScreen() {
       nextKm: maintNextKm ? parseInt(maintNextKm) : undefined,
       nextDate: maintNextDate || undefined,
       notes,
-    });
+    };
+
+    if (editingItem) {
+      updateMaintenanceMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createMaintenanceMutation.mutate({
+        vehicleId,
+        ...payload,
+      });
+    }
   };
 
   const handleCreateInspection = () => {
-    createInspectionMutation.mutate({
-      vehicleId,
+    const payload = {
       type: inspType,
       date,
       validUntil: inspExpiryDate || undefined,
       result: inspResult,
       cost: cost ? parseFloat(cost) : 0,
       notes,
-    });
+    };
+
+    if (editingItem) {
+      updateInspectionMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createInspectionMutation.mutate({
+        vehicleId,
+        ...payload,
+      });
+    }
   };
 
   const handleCreateInsurance = () => {
-    createInsuranceMutation.mutate({
-      vehicleId,
+    const payload = {
       company: insCompany,
       policyNo: insPolicyNo,
       type: insType,
@@ -377,22 +488,39 @@ export default function VehicleDetailScreen() {
       endDate: insEndDate || undefined,
       premium: cost ? parseFloat(cost) : 0,
       notes,
-    });
+    };
+
+    if (editingItem) {
+      updateInsuranceMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createInsuranceMutation.mutate({
+        vehicleId,
+        ...payload,
+      });
+    }
   };
 
   const handleCreateService = () => {
-    createServiceMutation.mutate({
-      vehicleId,
+    const payload = {
       type: servType,
       description: desc,
       date,
       cost: cost ? parseFloat(cost) : 0,
       km: servKm ? parseInt(servKm) : undefined,
       notes,
-    });
+    };
+
+    if (editingItem) {
+      updateServiceMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createServiceMutation.mutate({
+        vehicleId,
+        ...payload,
+      });
+    }
   };
 
-  // Assignment Mutation
+  // Assignment Mutations
   const createAssignmentMutation = useMutation({
     mutationFn: (data: any) => vehicleService.createAssignment(data),
     onSuccess: () => {
@@ -405,13 +533,30 @@ export default function VehicleDetailScreen() {
     }
   });
 
+  const updateAssignmentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => vehicleService.updateAssignment(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-assignments', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: (id: number) => vehicleService.deleteAssignment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-assignments', vehicleId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
   const handleCreateAssignment = () => {
     if (!assignStartDate) {
       Alert.alert('Hata', 'Lütfen başlangıç tarihini girin.');
       return;
     }
-    createAssignmentMutation.mutate({
-      vehicleId,
+    const payload = {
       itemName: assignItemName,
       quantity: assignQuantity ? parseInt(assignQuantity) : 1,
       assignedTo: assignAssignedTo || null,
@@ -419,10 +564,19 @@ export default function VehicleDetailScreen() {
       startDate: assignStartDate,
       endDate: assignEndDate || null,
       notes: assignNotes || null,
-    });
+    };
+
+    if (editingItem) {
+      updateAssignmentMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createAssignmentMutation.mutate({
+        vehicleId,
+        ...payload,
+      });
+    }
   };
 
-  // Document Mutation
+  // Document Mutations
   const createDocumentMutation = useMutation({
     mutationFn: (data: any) => vehicleService.createDocument(data),
     onSuccess: () => {
@@ -434,6 +588,159 @@ export default function VehicleDetailScreen() {
       Alert.alert('Hata', error.message || 'Belge kaydı oluşturulamadı.');
     }
   });
+
+  const updateDocumentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => vehicleService.updateDocument(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-documents', vehicleId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: (id: number) => vehicleService.deleteDocument(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-documents', vehicleId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
+  // Edit / Delete helpers
+  const handleEditMaintenance = (item: any) => {
+    setEditingItem(item);
+    setMaintType(item.type || 'Periyodik Bakım');
+    setDesc(item.description || '');
+    setDate(item.date ? item.date.split('T')[0] : '');
+    setCost(item.cost?.toString() || '');
+    setMaintNextKm(item.next_km?.toString() || '');
+    setMaintNextDate(item.next_date ? item.next_date.split('T')[0] : '');
+    setNotes(item.notes || '');
+    setActiveModal('maintenance');
+  };
+
+  const handleConfirmDeleteMaintenance = (item: any) => {
+    Alert.alert(
+      'Bakımı Sil',
+      'Bu bakım kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteMaintenanceMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleEditInspection = (item: any) => {
+    setEditingItem(item);
+    setInspType(item.type || 'Muayene');
+    setDate(item.date ? item.date.split('T')[0] : '');
+    setInspExpiryDate(item.valid_until ? item.valid_until.split('T')[0] : '');
+    setInspResult(item.result || 'Geçti');
+    setCost(item.cost?.toString() || '');
+    setNotes(item.notes || '');
+    setActiveModal('inspection');
+  };
+
+  const handleConfirmDeleteInspection = (item: any) => {
+    Alert.alert(
+      'Muayeneyi Sil',
+      'Bu muayene kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteInspectionMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleEditInsurance = (item: any) => {
+    setEditingItem(item);
+    setInsCompany(item.company || '');
+    setInsPolicyNo(item.policy_no || '');
+    setInsType(item.type || 'Kasko');
+    setDate(item.start_date ? item.start_date.split('T')[0] : '');
+    setInsEndDate(item.end_date ? item.end_date.split('T')[0] : '');
+    setCost(item.premium?.toString() || '');
+    setNotes(item.notes || '');
+    setActiveModal('insurance');
+  };
+
+  const handleConfirmDeleteInsurance = (item: any) => {
+    Alert.alert(
+      'Sigortayı Sil',
+      'Bu sigorta kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteInsuranceMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleEditService = (item: any) => {
+    setEditingItem(item);
+    setServType(item.type || 'Onarım');
+    setDesc(item.description || '');
+    setDate(item.date ? item.date.split('T')[0] : '');
+    setCost(item.cost?.toString() || '');
+    setServKm(item.km?.toString() || '');
+    setNotes(item.notes || '');
+    setActiveModal('service');
+  };
+
+  const handleConfirmDeleteService = (item: any) => {
+    Alert.alert(
+      'Servisi Sil',
+      'Bu servis/onarım kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteServiceMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleEditAssignment = (item: any) => {
+    setEditingItem(item);
+    setAssignItemName(item.item_name || '');
+    setAssignQuantity(item.quantity?.toString() || '1');
+    setAssignAssignedTo(item.assigned_to || '');
+    setAssignDepartment(item.department || '');
+    setAssignStartDate(item.start_date ? item.start_date.split('T')[0] : '');
+    setAssignEndDate(item.end_date ? item.end_date.split('T')[0] : '');
+    setAssignNotes(item.notes || '');
+    setActiveModal('assignment');
+  };
+
+  const handleConfirmDeleteAssignment = (item: any) => {
+    Alert.alert(
+      'Zimmeti Sil',
+      'Bu zimmet kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteAssignmentMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleEditDocument = (item: any) => {
+    setEditingItem(item);
+    setDocFileName(item.file_name || '');
+    setDocCategory(item.category || '');
+    setDocStartDate(item.start_date ? item.start_date.split('T')[0] : '');
+    setDocEndDate(item.expiry_date ? item.expiry_date.split('T')[0] : '');
+    setSelectedFile(null);
+    setActiveModal('document');
+  };
+
+  const handleConfirmDeleteDocument = (item: any) => {
+    Alert.alert(
+      'Belgeyi Sil',
+      'Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteDocumentMutation.mutate(item.id) },
+      ]
+    );
+  };
 
   const handlePickDocument = async () => {
     try {
@@ -538,15 +845,23 @@ export default function VehicleDetailScreen() {
       }
     }
 
-    createDocumentMutation.mutate({
-      vehicleId,
+    const payload = {
       fileName: docFileName,
       fileNameOnDisk,
       fileData,
       category: docCategory || null,
       startDate: docStartDate || null,
       endDate: docEndDate || null,
-    });
+    };
+
+    if (editingItem) {
+      updateDocumentMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createDocumentMutation.mutate({
+        vehicleId,
+        ...payload,
+      });
+    }
   };
 
   const vehicle = vehicleQuery.data?.data;
@@ -658,41 +973,43 @@ export default function VehicleDetailScreen() {
       case 'details':
         return (
           <View style={styles.tabContainer}>
-            <GlassCard intensity={30} style={styles.cardGlass}>
-              <View style={styles.cardContent}>
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Plaka</Text>
-                  <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.plate}</Text>
+            <View style={{ marginHorizontal: -16 }}>
+              <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
+                <View style={styles.cardContent}>
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Plaka</Text>
+                    <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.plate}</Text>
+                  </View>
+                  <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Marka / Model</Text>
+                    <Text style={[styles.detailValue, { color: c.text }]}>
+                      {vehicle.brand} {vehicle.model}
+                    </Text>
+                  </View>
+                  <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Yıl</Text>
+                    <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.year || '-'}</Text>
+                  </View>
+                  <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Tür</Text>
+                    <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.type || '-'}</Text>
+                  </View>
+                  <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Şasi Numarası</Text>
+                    <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.vin || '-'}</Text>
+                  </View>
+                  <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Motor Numarası</Text>
+                    <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.engine_no || '-'}</Text>
+                  </View>
                 </View>
-                <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Marka / Model</Text>
-                  <Text style={[styles.detailValue, { color: c.text }]}>
-                    {vehicle.brand} {vehicle.model}
-                  </Text>
-                </View>
-                <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Yıl</Text>
-                  <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.year || '-'}</Text>
-                </View>
-                <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Tür</Text>
-                  <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.type || '-'}</Text>
-                </View>
-                <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Şasi Numarası</Text>
-                  <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.vin || '-'}</Text>
-                </View>
-                <Divider style={{ backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }} />
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: c.textSecondary }]}>Motor Numarası</Text>
-                  <Text style={[styles.detailValue, { color: c.text }]}>{vehicle.engine_no || '-'}</Text>
-                </View>
-              </View>
-            </GlassCard>
+              </GlassCard>
+            </View>
           </View>
         );
 
@@ -744,31 +1061,37 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı bakım bulunamadı.</Text>
             ) : (
               filteredMaintenances.map((m: any) => (
-                <GlassCard key={m.id} intensity={25} style={styles.subCardGlass}>
-                  <View style={styles.subCardContent}>
-                     <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{m.description || 'Bakım'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(m.cost)}</Text>
+                <SwipeableRow style={{ marginHorizontal: -16 }}
+                  key={m.id}
+                  onEdit={() => handleEditMaintenance(m)}
+                  onDelete={() => handleConfirmDeleteMaintenance(m)}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                       <View style={styles.subCardHeader}>
+                        <Text style={[styles.subCardTitle, { color: c.text }]}>{m.description || 'Bakım'}</Text>
+                        <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(m.cost)}</Text>
+                      </View>
+                      <View style={styles.subCardFooter}>
+                        <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(m.date)}</Text>
+                        {m.next_km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {m.next_km}</Text>}
+                      </View>
+                      {m.file_path && (
+                        <Pressable 
+                          onPress={() => {
+                            Linking.openURL(getFileUrl(m.file_path)).catch(err => {
+                              Alert.alert('Hata', 'Dosya açılamadı.');
+                            });
+                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                        >
+                          <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                          <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                        </Pressable>
+                      )}
                     </View>
-                    <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(m.date)}</Text>
-                      {m.next_km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {m.next_km}</Text>}
-                    </View>
-                    {m.file_path && (
-                      <Pressable 
-                        onPress={() => {
-                          Linking.openURL(getFileUrl(m.file_path)).catch(err => {
-                            Alert.alert('Hata', 'Dosya açılamadı.');
-                          });
-                        }}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
-                      >
-                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
-                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
-                      </Pressable>
-                    )}
-                  </View>
-                </GlassCard>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
 
@@ -899,34 +1222,40 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı muayene bulunamadı.</Text>
             ) : (
               filteredInspections.map((i: any) => (
-                <GlassCard key={i.id} intensity={25} style={styles.subCardGlass}>
-                  <View style={styles.subCardContent}>
-                    <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{i.type === 'traffic' ? 'Trafik Muayenesi' : i.type === 'egzoz' ? 'Egzoz Muayenesi' : i.type || 'Muayene'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(i.cost)}</Text>
+                <SwipeableRow style={{ marginHorizontal: -16 }}
+                  key={i.id}
+                  onEdit={() => handleEditInspection(i)}
+                  onDelete={() => handleConfirmDeleteInspection(i)}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <Text style={[styles.subCardTitle, { color: c.text }]}>{i.type === 'traffic' ? 'Trafik Muayenesi' : i.type === 'egzoz' ? 'Egzoz Muayenesi' : i.type || 'Muayene'}</Text>
+                        <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(i.cost)}</Text>
+                      </View>
+                      <View style={styles.subCardFooter}>
+                        <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(i.inspection_date || i.date)}</Text>
+                        <Text style={[styles.subCardDate, { color: i.result === 'failed' ? c.error : c.success }]}>Sonuç: {i.result === 'passed' ? 'Geçti' : i.result === 'failed' ? 'Kaldı' : i.result || '-'}</Text>
+                      </View>
+                      <View style={{ marginTop: 4 }}>
+                        {i.next_inspection && <Text style={[styles.subCardDate, { color: c.warning }]}>Geçerlilik: {formatDate(i.next_inspection)}</Text>}
+                      </View>
+                      {i.file_path && (
+                        <Pressable 
+                          onPress={() => {
+                            Linking.openURL(getFileUrl(i.file_path)).catch(err => {
+                              Alert.alert('Hata', 'Dosya açılamadı.');
+                            });
+                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                        >
+                          <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                          <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                        </Pressable>
+                      )}
                     </View>
-                    <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(i.inspection_date || i.date)}</Text>
-                      <Text style={[styles.subCardDate, { color: i.result === 'failed' ? c.error : c.success }]}>Sonuç: {i.result === 'passed' ? 'Geçti' : i.result === 'failed' ? 'Kaldı' : i.result || '-'}</Text>
-                    </View>
-                    <View style={{ marginTop: 4 }}>
-                      {i.next_inspection && <Text style={[styles.subCardDate, { color: c.warning }]}>Geçerlilik: {formatDate(i.next_inspection)}</Text>}
-                    </View>
-                    {i.file_path && (
-                      <Pressable 
-                        onPress={() => {
-                          Linking.openURL(getFileUrl(i.file_path)).catch(err => {
-                            Alert.alert('Hata', 'Dosya açılamadı.');
-                          });
-                        }}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
-                      >
-                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
-                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
-                      </Pressable>
-                    )}
-                  </View>
-                </GlassCard>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
 
@@ -1057,34 +1386,40 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı sigorta bulunamadı.</Text>
             ) : (
               filteredInsurances.map((ins: any) => (
-                <GlassCard key={ins.id} intensity={25} style={styles.subCardGlass}>
-                  <View style={styles.subCardContent}>
-                    <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{ins.company || 'Sigorta'} - {ins.type === 'kasko' ? 'Kasko' : ins.type === 'traffic' ? 'Trafik' : ins.type || 'Diğer'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(ins.premium || ins.cost)}</Text>
+                <SwipeableRow style={{ marginHorizontal: -16 }}
+                  key={ins.id}
+                  onEdit={() => handleEditInsurance(ins)}
+                  onDelete={() => handleConfirmDeleteInsurance(ins)}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <Text style={[styles.subCardTitle, { color: c.text }]}>{ins.company || 'Sigorta'} - {ins.type === 'kasko' ? 'Kasko' : ins.type === 'traffic' ? 'Trafik' : ins.type || 'Diğer'}</Text>
+                        <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(ins.premium || ins.cost)}</Text>
+                      </View>
+                      <View style={styles.subCardFooter}>
+                        <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Başlangıç: {formatDate(ins.start_date)}</Text>
+                        <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(ins.end_date)}</Text>
+                      </View>
+                      {ins.policy_no && (
+                        <Text style={[styles.subCardDate, { color: c.textSecondary, marginTop: 4 }]}>Poliçe No: {ins.policy_no}</Text>
+                      )}
+                      {ins.file_path && (
+                        <Pressable 
+                          onPress={() => {
+                            Linking.openURL(getFileUrl(ins.file_path)).catch(err => {
+                              Alert.alert('Hata', 'Dosya açılamadı.');
+                            });
+                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                        >
+                          <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                          <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                        </Pressable>
+                      )}
                     </View>
-                    <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Başlangıç: {formatDate(ins.start_date)}</Text>
-                      <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(ins.end_date)}</Text>
-                    </View>
-                    {ins.policy_no && (
-                      <Text style={[styles.subCardDate, { color: c.textSecondary, marginTop: 4 }]}>Poliçe No: {ins.policy_no}</Text>
-                    )}
-                    {ins.file_path && (
-                      <Pressable 
-                        onPress={() => {
-                          Linking.openURL(getFileUrl(ins.file_path)).catch(err => {
-                            Alert.alert('Hata', 'Dosya açılamadı.');
-                          });
-                        }}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
-                      >
-                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
-                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
-                      </Pressable>
-                    )}
-                  </View>
-                </GlassCard>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
 
@@ -1215,31 +1550,37 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı servis kaydı bulunamadı.</Text>
             ) : (
               filteredServices.map((s: any) => (
-                <GlassCard key={s.id} intensity={25} style={styles.subCardGlass}>
-                  <View style={styles.subCardContent}>
-                    <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{s.description || 'Servis'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(s.cost)}</Text>
+                <SwipeableRow style={{ marginHorizontal: -16 }}
+                  key={s.id}
+                  onEdit={() => handleEditService(s)}
+                  onDelete={() => handleConfirmDeleteService(s)}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <Text style={[styles.subCardTitle, { color: c.text }]}>{s.description || 'Servis'}</Text>
+                        <Text style={[styles.subCardPrice, { color: c.error }]}>{formatCurrency(s.cost)}</Text>
+                      </View>
+                      <View style={styles.subCardFooter}>
+                        <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(s.date)}</Text>
+                        {s.km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {s.km}</Text>}
+                      </View>
+                      {s.file_path && (
+                        <Pressable 
+                          onPress={() => {
+                            Linking.openURL(getFileUrl(s.file_path)).catch(err => {
+                              Alert.alert('Hata', 'Dosya açılamadı.');
+                            });
+                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
+                        >
+                          <Ionicons name="document-attach-outline" size={14} color={c.primary} />
+                          <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
+                        </Pressable>
+                      )}
                     </View>
-                    <View style={styles.subCardFooter}>
-                      <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(s.date)}</Text>
-                      {s.km && <Text style={[styles.subCardDate, { color: c.textSecondary }]}>KM: {s.km}</Text>}
-                    </View>
-                    {s.file_path && (
-                      <Pressable 
-                        onPress={() => {
-                          Linking.openURL(getFileUrl(s.file_path)).catch(err => {
-                            Alert.alert('Hata', 'Dosya açılamadı.');
-                          });
-                        }}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
-                      >
-                        <Ionicons name="document-attach-outline" size={14} color={c.primary} />
-                        <Text style={{ fontSize: 12, color: c.primary, fontWeight: '600' }}>Belgeyi Görüntüle</Text>
-                      </Pressable>
-                    )}
-                  </View>
-                </GlassCard>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
 
@@ -1372,55 +1713,61 @@ export default function VehicleDetailScreen() {
               filteredAssignments.map((a: any) => {
                 const isActive = !a.end_date;
                 return (
-                  <GlassCard key={a.id} intensity={25} style={styles.subCardGlass}>
-                    <View style={styles.subCardContent}>
-                      <View style={styles.subCardHeader}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
-                          <Ionicons name="person-outline" size={14} color={c.primary} />
-                          <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
-                            {a.assigned_to || a.employee_name || 'Atanmamış'}
-                          </Text>
+                  <SwipeableRow style={{ marginHorizontal: -16 }}
+                    key={a.id}
+                    onEdit={() => handleEditAssignment(a)}
+                    onDelete={() => handleConfirmDeleteAssignment(a)}
+                  >
+                    <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                      <View style={styles.subCardContent}>
+                        <View style={styles.subCardHeader}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
+                            <Ionicons name="person-outline" size={14} color={c.primary} />
+                            <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                              {a.assigned_to || a.employee_name || 'Atanmamış'}
+                            </Text>
+                          </View>
+                          <View style={{
+                            backgroundColor: isActive ? c.success + '20' : c.textSecondary + '20',
+                            borderRadius: 4,
+                            paddingHorizontal: 6,
+                            paddingVertical: 2
+                          }}>
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: isActive ? c.success : c.textSecondary }}>
+                              {isActive ? 'Aktif' : 'İade Edildi'}
+                            </Text>
+                          </View>
                         </View>
-                        <View style={{
-                          backgroundColor: isActive ? c.success + '20' : c.textSecondary + '20',
-                          borderRadius: 4,
-                          paddingHorizontal: 6,
-                          paddingVertical: 2
-                        }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: isActive ? c.success : c.textSecondary }}>
-                            {isActive ? 'Aktif' : 'İade Edildi'}
+
+                        {a.item_name && a.item_name !== 'Araç Zimmeti' && (
+                          <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 4 }}>
+                            Detay: {a.item_name}
                           </Text>
+                        )}
+
+                        {a.department && (
+                          <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
+                            Departman: {a.department}
+                          </Text>
+                        )}
+
+                        <View style={[styles.subCardFooter, { marginTop: 8 }]}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
+                            <Text style={[styles.subCardDate, { color: c.textSecondary }]}>
+                              Tarih: {formatDate(a.start_date || a.date)} {a.end_date ? ` - ${formatDate(a.end_date)}` : ''}
+                            </Text>
+                          </View>
                         </View>
+
+                        {a.notes && (
+                          <Text style={{ fontSize: 12, color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }}>
+                            Not: {a.notes}
+                          </Text>
+                        )}
                       </View>
-
-                      {a.item_name && a.item_name !== 'Araç Zimmeti' && (
-                        <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 4 }}>
-                          Detay: {a.item_name}
-                        </Text>
-                      )}
-
-                      {a.department && (
-                        <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
-                          Departman: {a.department}
-                        </Text>
-                      )}
-
-                      <View style={[styles.subCardFooter, { marginTop: 8 }]}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
-                          <Text style={[styles.subCardDate, { color: c.textSecondary }]}>
-                            Tarih: {formatDate(a.start_date || a.date)} {a.end_date ? ` - ${formatDate(a.end_date)}` : ''}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {a.notes && (
-                        <Text style={{ fontSize: 12, color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }}>
-                          Not: {a.notes}
-                        </Text>
-                      )}
-                    </View>
-                  </GlassCard>
+                    </GlassCard>
+                  </SwipeableRow>
                 );
               })
             )}
@@ -1528,60 +1875,64 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Belge bulunamadı.</Text>
             ) : (
               filteredDocuments.map((d: any) => (
-                <GlassCard key={d.id} intensity={25} style={styles.subCardGlass}>
-                  <Pressable
-                    onPress={() => {
-                      if (d.file_path) {
-                        Linking.openURL(getFileUrl(d.file_path)).catch(err => {
-                          Alert.alert('Hata', 'Dosya açılamadı.');
-                        });
-                      } else {
-                        Alert.alert('Hata', 'Dosya yolu bulunamadı.');
-                      }
-                    }}
-                    style={styles.subCardContent}
-                  >
-                    <View style={styles.subCardHeader}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                        <Ionicons name="document-text-outline" size={18} color={c.primary} />
-                        <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
-                          {d.file_name}
-                        </Text>
+                <SwipeableRow style={{ marginHorizontal: -16 }}
+                  key={d.id}
+                  onEdit={() => handleEditDocument(d)}
+                  onDelete={() => handleConfirmDeleteDocument(d)}
+                  onPress={() => {
+                    if (d.file_path) {
+                      Linking.openURL(getFileUrl(d.file_path)).catch(err => {
+                        Alert.alert('Hata', 'Dosya açılamadı.');
+                      });
+                    } else {
+                      Alert.alert('Hata', 'Dosya yolu bulunamadı.');
+                    }
+                  }}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                          <Ionicons name="document-text-outline" size={18} color={c.primary} />
+                          <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                            {d.file_name}
+                          </Text>
+                        </View>
+                        <Ionicons name="eye-outline" size={16} color={c.primary} style={{ marginLeft: 8 }} />
                       </View>
-                      <Ionicons name="eye-outline" size={16} color={c.primary} style={{ marginLeft: 8 }} />
-                    </View>
 
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                      {d.category && (
-                        <View style={{ backgroundColor: c.primaryContainer + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
-                          <Text style={{ fontSize: 11, color: c.primary, fontWeight: '600' }}>{d.category}</Text>
-                        </View>
-                      )}
-                      {d.folder && (
-                        <View style={{ backgroundColor: c.textSecondary + '15', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
-                          <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>{d.folder}</Text>
-                        </View>
-                      )}
-                    </View>
-
-                    {(d.start_date || d.end_date) && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                        {d.start_date && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
-                            <Text style={[styles.subCardDate, { color: c.textTertiary }]}>Başlangıç: {formatDate(d.start_date)}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {d.category && (
+                          <View style={{ backgroundColor: c.primaryContainer + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                            <Text style={{ fontSize: 11, color: c.primary, fontWeight: '600' }}>{d.category}</Text>
                           </View>
                         )}
-                        {d.end_date && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <Ionicons name="alert-circle-outline" size={12} color={c.warning} />
-                            <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(d.end_date)}</Text>
+                        {d.folder && (
+                          <View style={{ backgroundColor: c.textSecondary + '15', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                            <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>{d.folder}</Text>
                           </View>
                         )}
                       </View>
-                    )}
-                  </Pressable>
-                </GlassCard>
+
+                      {(d.start_date || d.end_date) && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                          {d.start_date && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
+                              <Text style={[styles.subCardDate, { color: c.textTertiary }]}>Başlangıç: {formatDate(d.start_date)}</Text>
+                            </View>
+                          )}
+                          {d.end_date && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <Ionicons name="alert-circle-outline" size={12} color={c.warning} />
+                              <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(d.end_date)}</Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
           </View>
@@ -1675,7 +2026,7 @@ export default function VehicleDetailScreen() {
 
       {/* Add Maintenance Modal */}
       <GlassModal visible={activeModal === 'maintenance'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Bakım Kaydı</Text>
+            <Text style={[styles.modalTitle, { color: c.text }]}>{editingItem ? 'Bakım Kaydını Düzenle' : 'Yeni Bakım Kaydı'}</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
                 label="Açıklama"
@@ -1738,19 +2089,19 @@ export default function VehicleDetailScreen() {
               <Button
                 mode="contained"
                 onPress={handleCreateMaintenance}
-                loading={createMaintenanceMutation.isPending}
-                disabled={createMaintenanceMutation.isPending || !desc}
+                loading={createMaintenanceMutation.isPending || updateMaintenanceMutation.isPending}
+                disabled={createMaintenanceMutation.isPending || updateMaintenanceMutation.isPending || !desc}
                 buttonColor={c.primary}
                 textColor="#ffffff"
               >
-                Kaydet
+                {editingItem ? 'Güncelle' : 'Kaydet'}
               </Button>
             </View>
           </GlassModal>
 
       {/* Add Inspection Modal */}
       <GlassModal visible={activeModal === 'inspection'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Muayene Kaydı</Text>
+            <Text style={[styles.modalTitle, { color: c.text }]}>{editingItem ? 'Muayene Kaydını Düzenle' : 'Yeni Muayene Kaydı'}</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
                 label="Tarih"
@@ -1808,19 +2159,19 @@ export default function VehicleDetailScreen() {
               <Button
                 mode="contained"
                 onPress={handleCreateInspection}
-                loading={createInspectionMutation.isPending}
-                disabled={createInspectionMutation.isPending}
+                loading={createInspectionMutation.isPending || updateInspectionMutation.isPending}
+                disabled={createInspectionMutation.isPending || updateInspectionMutation.isPending}
                 buttonColor={c.primary}
                 textColor="#ffffff"
               >
-                Kaydet
+                {editingItem ? 'Güncelle' : 'Kaydet'}
               </Button>
             </View>
           </GlassModal>
 
       {/* Add Insurance Modal */}
       <GlassModal visible={activeModal === 'insurance'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Sigorta Kaydı</Text>
+            <Text style={[styles.modalTitle, { color: c.text }]}>{editingItem ? 'Sigorta Kaydını Düzenle' : 'Yeni Sigorta Kaydı'}</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassInput
                 label="Sigorta Şirketi"
@@ -1880,19 +2231,19 @@ export default function VehicleDetailScreen() {
               <Button
                 mode="contained"
                 onPress={handleCreateInsurance}
-                loading={createInsuranceMutation.isPending}
-                disabled={createInsuranceMutation.isPending || !insCompany}
+                loading={createInsuranceMutation.isPending || updateInsuranceMutation.isPending}
+                disabled={createInsuranceMutation.isPending || updateInsuranceMutation.isPending || !insCompany}
                 buttonColor={c.primary}
                 textColor="#ffffff"
               >
-                Kaydet
+                {editingItem ? 'Güncelle' : 'Kaydet'}
               </Button>
             </View>
           </GlassModal>
 
       {/* Add Service Modal */}
       <GlassModal visible={activeModal === 'service'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Servis Kaydı</Text>
+            <Text style={[styles.modalTitle, { color: c.text }]}>{editingItem ? 'Servis Kaydını Düzenle' : 'Yeni Servis Kaydı'}</Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
               <GlassDropdown
                 label="Servis Türü"
@@ -1949,12 +2300,12 @@ export default function VehicleDetailScreen() {
               <Button
                 mode="contained"
                 onPress={handleCreateService}
-                loading={createServiceMutation.isPending}
-                disabled={createServiceMutation.isPending || !servType}
+                loading={createServiceMutation.isPending || updateServiceMutation.isPending}
+                disabled={createServiceMutation.isPending || updateServiceMutation.isPending || !servType}
                 buttonColor={c.primary}
                 textColor="#ffffff"
               >
-                Kaydet
+                {editingItem ? 'Güncelle' : 'Kaydet'}
               </Button>
             </View>
           </GlassModal>
@@ -2122,7 +2473,7 @@ export default function VehicleDetailScreen() {
 
       {/* Add Assignment Modal */}
       <GlassModal visible={activeModal === 'assignment'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Zimmet Kaydı</Text>
+        <Text style={[styles.modalTitle, { color: c.text }]}>{editingItem ? 'Zimmet Kaydını Düzenle' : 'Yeni Zimmet Kaydı'}</Text>
         <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
           <GlassInput
             label="Zimmet Edilen Ürün/Araç"
@@ -2176,19 +2527,19 @@ export default function VehicleDetailScreen() {
           <Button
             mode="contained"
             onPress={handleCreateAssignment}
-            loading={createAssignmentMutation.isPending}
-            disabled={createAssignmentMutation.isPending || !assignStartDate}
+            loading={createAssignmentMutation.isPending || updateAssignmentMutation.isPending}
+            disabled={createAssignmentMutation.isPending || updateAssignmentMutation.isPending || !assignStartDate}
             buttonColor={c.primary}
             textColor="#ffffff"
           >
-            Kaydet
+            {editingItem ? 'Güncelle' : 'Kaydet'}
           </Button>
         </View>
       </GlassModal>
 
       {/* Add Document Modal */}
       <GlassModal visible={activeModal === 'document'} onDismiss={() => { setActiveModal(null); resetForm(); }}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Belge Kaydı</Text>
+        <Text style={[styles.modalTitle, { color: c.text }]}>{editingItem ? 'Belgeyi Düzenle' : 'Yeni Belge Kaydı'}</Text>
         <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
           <GlassInput
             label="Belge Adı"
@@ -2205,7 +2556,7 @@ export default function VehicleDetailScreen() {
           <GlassInput
             label="Geçerlilik Başlangıç Tarihi"
             value={docStartDate}
-            onChangeText={setDocStartDate}
+            onChangeText={handleDocStartDateChange}
             placeholder="YYYY-MM-DD"
           />
           <GlassInput
@@ -2256,12 +2607,12 @@ export default function VehicleDetailScreen() {
           <Button
             mode="contained"
             onPress={handleCreateDocument}
-            loading={createDocumentMutation.isPending}
-            disabled={createDocumentMutation.isPending || !docFileName}
+            loading={createDocumentMutation.isPending || updateDocumentMutation.isPending}
+            disabled={createDocumentMutation.isPending || updateDocumentMutation.isPending || !docFileName}
             buttonColor={c.primary}
             textColor="#ffffff"
           >
-            Kaydet
+            {editingItem ? 'Güncelle' : 'Kaydet'}
           </Button>
         </View>
       </GlassModal>
@@ -2313,8 +2664,8 @@ const styles = StyleSheet.create({
   detailValue: { fontSize: 14, fontWeight: '600' },
   tabLoader: { marginVertical: 20 },
   emptyText: { textAlign: 'center', marginVertical: 40, fontSize: 14 },
-  subCardGlass: { padding: 0, marginBottom: 8 },
-  subCardContent: { padding: 16 },
+  subCardGlass: { padding: 0, marginBottom: 0 },
+  subCardContent: { paddingVertical: 12, paddingHorizontal: 16 },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   subCardTitle: { fontSize: 15, fontWeight: '600' },
   subCardPrice: { fontSize: 15, fontWeight: '700' },

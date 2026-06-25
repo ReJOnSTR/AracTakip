@@ -3,6 +3,7 @@ import { getFileUrl } from '../services/api';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import GlassModal from '../components/ui/GlassModal';
+import SwipeableRow from '../components/ui/SwipeableRow';
 import SwipeBackView from '../components/ui/SwipeBackView';
 import {
   View,
@@ -181,6 +182,7 @@ export default function EmployeeDetailScreen() {
 
   // Modal State
   const [activeModal, setActiveModal] = useState<'salary' | 'leave' | 'overtime' | 'assignment' | 'document' | null>(null);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
@@ -197,7 +199,11 @@ export default function EmployeeDetailScreen() {
   const [docFileName, setDocFileName] = useState('');
   const [docCategory, setDocCategory] = useState('');
   const [docStartDate, setDocStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [docEndDate, setDocEndDate] = useState('');
+  const [docEndDate, setDocEndDate] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().split('T')[0];
+  });
   const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; size?: number } | null>(null);
 
   // Edit fields
@@ -379,12 +385,29 @@ export default function EmployeeDetailScreen() {
     setAssignDepartment('');
     setAssignStartDate(new Date().toISOString().split('T')[0]);
     setAssignEndDate('');
-    setAssignNotes('');
     setDocFileName('');
     setDocCategory('');
     setDocStartDate(new Date().toISOString().split('T')[0]);
-    setDocEndDate('');
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    setDocEndDate(d.toISOString().split('T')[0]);
     setSelectedFile(null);
+    setEditingItem(null);
+  };
+
+  const handleDocStartDateChange = (val: string) => {
+    setDocStartDate(val);
+    if (val && val.length === 10) {
+      const parts = val.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parts[1];
+        const day = parts[2];
+        if (!isNaN(year) && month.length === 2 && day.length === 2) {
+          setDocEndDate(`${year + 1}-${month}-${day}`);
+        }
+      }
+    }
   };
 
   // Salary Mutation
@@ -397,6 +420,26 @@ export default function EmployeeDetailScreen() {
     },
   });
 
+  const updateSalaryMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => employeeService.updateSalary(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-salaries', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteSalaryMutation = useMutation({
+    mutationFn: (salaryId: number) => employeeService.deleteSalary(salaryId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-salaries', empId] });
+    },
+    onError: (error: any) => {
+      Alert.alert('Hata', error.message || 'Silme işlemi başarısız oldu.');
+    }
+  });
+
   // Leave Mutation
   const createLeaveMutation = useMutation({
     mutationFn: (data: any) => employeeService.createLeave(data),
@@ -407,6 +450,26 @@ export default function EmployeeDetailScreen() {
     },
   });
 
+  const updateLeaveMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => employeeService.updateLeave(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-leaves', empId] });
+      queryClient.invalidateQueries({ queryKey: ['employee-overtimes', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteLeaveMutation = useMutation({
+    mutationFn: (id: number) => employeeService.deleteLeave(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-leaves', empId] });
+      queryClient.invalidateQueries({ queryKey: ['employee-overtimes', empId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
   // Overtime Mutation
   const createOvertimeMutation = useMutation({
     mutationFn: (data: any) => employeeService.createOvertime(data),
@@ -415,6 +478,26 @@ export default function EmployeeDetailScreen() {
       setActiveModal(null);
       resetForm();
     },
+  });
+
+  const updateOvertimeMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => employeeService.updateOvertime(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-overtimes', empId] });
+      queryClient.invalidateQueries({ queryKey: ['employee-leaves', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteOvertimeMutation = useMutation({
+    mutationFn: (id: number) => employeeService.deleteOvertime(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-overtimes', empId] });
+      queryClient.invalidateQueries({ queryKey: ['employee-leaves', empId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
   });
 
   // Assignment Mutation
@@ -430,13 +513,31 @@ export default function EmployeeDetailScreen() {
     }
   });
 
+  const updateAssignmentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => employeeService.updateAssignment(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-assignments', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: (id: number) => employeeService.deleteAssignment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-assignments', empId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
   const handleCreateAssignment = () => {
     if (!assignStartDate) {
       Alert.alert('Hata', 'Lütfen başlangıç tarihini girin.');
       return;
     }
-    createAssignmentMutation.mutate({
-      employeeId: empId,
+
+    const payload = {
       itemName: assignItemName,
       quantity: assignQuantity ? parseInt(assignQuantity) : 1,
       assignedTo: assignAssignedTo || (employee ? `${employee.first_name} ${employee.last_name}` : null),
@@ -444,7 +545,16 @@ export default function EmployeeDetailScreen() {
       assignDate: assignStartDate,
       returnDate: assignEndDate || null,
       notes: assignNotes || null,
-    });
+    };
+
+    if (editingItem) {
+      updateAssignmentMutation.mutate({ id: editingItem.id, data: payload });
+    } else {
+      createAssignmentMutation.mutate({
+        employeeId: empId,
+        ...payload,
+      });
+    }
   };
 
   // Document Mutation
@@ -459,6 +569,146 @@ export default function EmployeeDetailScreen() {
       Alert.alert('Hata', error.message || 'Belge oluşturulamadı.');
     }
   });
+
+  const updateDocumentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => employeeService.updateDocument(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-documents', empId] });
+      setActiveModal(null);
+      resetForm();
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Güncelleme başarısız oldu.'),
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: (id: number) => employeeService.deleteDocument(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-documents', empId] });
+    },
+    onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
+  });
+
+  // Edit / Delete helpers
+  const handleEditSalary = (item: any) => {
+    setEditingItem(item);
+    setPaymentType(item.period || 'salary');
+    setSalaryMonth(item.salary_month || '');
+    setBaseSalary(item.base_salary?.toString() || '');
+    setBonus(item.bonus?.toString() || '');
+    setDeduction(item.deduction?.toString() || '');
+    setNetSalary(item.net_salary?.toString() || '');
+    setPaymentDate(item.payment_date ? item.payment_date.split('T')[0] : '');
+    setSalaryStatus(item.status || 'paid');
+    setPaymentMethod(item.payment_method || 'nakit');
+    setNotes(item.notes || '');
+    setActiveModal('salary');
+  };
+
+  const handleEditLeave = (item: any) => {
+    setEditingItem(item);
+    setLeaveType(item.type || 'Yıllık İzin');
+    setStartDate(item.start_date ? item.start_date.split('T')[0] : '');
+    setEndDate(item.end_date ? item.end_date.split('T')[0] : '');
+    setLeaveStatus(item.status || 'approved');
+    if (item.hours) {
+      setLeaveUnit('hourly');
+      setLeaveHours(item.hours.toString());
+      setLeaveDays('');
+    } else {
+      setLeaveUnit('daily');
+      setLeaveDays(item.days ? item.days.toString() : '1');
+      setLeaveHours('');
+    }
+    setNotes(item.notes || '');
+    setActiveModal('leave');
+  };
+
+  const handleEditOvertime = (item: any) => {
+    setEditingItem(item);
+    setOvertimeDate(item.date ? item.date.split('T')[0] : '');
+    setOvertimeHours(item.hours?.toString() || '');
+    setOvertimeRate(item.rate?.toString() || '1.5');
+    setOvertimeAmount(item.amount?.toString() || '');
+    setOvertimeNotes(item.notes || '');
+    setActiveModal('overtime');
+  };
+
+  const handleEditAssignment = (item: any) => {
+    setEditingItem(item);
+    setAssignItemName(item.item_name || '');
+    setAssignQuantity(item.quantity?.toString() || '1');
+    setAssignAssignedTo(item.assigned_to || '');
+    setAssignDepartment(item.department || '');
+    setAssignStartDate(item.assign_date ? item.assign_date.split('T')[0] : '');
+    setAssignEndDate(item.return_date ? item.return_date.split('T')[0] : '');
+    setAssignNotes(item.notes || '');
+    setActiveModal('assignment');
+  };
+
+  const handleEditDocument = (item: any) => {
+    setEditingItem(item);
+    setDocFileName(item.file_name || '');
+    setDocCategory(item.category || '');
+    setDocStartDate(item.start_date ? item.start_date.split('T')[0] : '');
+    setDocEndDate(item.expiry_date ? item.expiry_date.split('T')[0] : '');
+    setSelectedFile(null);
+    setActiveModal('document');
+  };
+
+  const handleConfirmDeleteSalary = (item: any) => {
+    Alert.alert(
+      'Ödemeyi Sil',
+      'Bu ödeme kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteSalaryMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleConfirmDeleteLeave = (item: any) => {
+    Alert.alert(
+      'İzni Sil',
+      'Bu izin kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteLeaveMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleConfirmDeleteOvertime = (item: any) => {
+    Alert.alert(
+      'Mesaiyi Sil',
+      'Bu mesai kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteOvertimeMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleConfirmDeleteAssignment = (item: any) => {
+    Alert.alert(
+      'Zimmeti Sil',
+      'Bu zimmet kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteAssignmentMutation.mutate(item.id) },
+      ]
+    );
+  };
+
+  const handleConfirmDeleteDocument = (item: any) => {
+    Alert.alert(
+      'Belgeyi Sil',
+      'Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteDocumentMutation.mutate(item.id) },
+      ]
+    );
+  };
 
   const handlePickDocument = async () => {
     try {
@@ -627,16 +877,6 @@ export default function EmployeeDetailScreen() {
     const date = new Date(year, month, 1);
     return date.toISOString().slice(0, 7);
   };
-
-  const deleteSalaryMutation = useMutation({
-    mutationFn: (salaryId: number) => employeeService.deleteSalary(salaryId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employee-salaries', empId] });
-    },
-    onError: (error: any) => {
-      Alert.alert('Hata', error.message || 'Silme işlemi başarısız oldu.');
-    }
-  });
 
   const handleCarryOver = (netRemaining: number) => {
     const nextMonth = getNextMonth(selectedMonth);
@@ -985,154 +1225,166 @@ export default function EmployeeDetailScreen() {
         return (
           <View style={styles.tabContainer}>
             {/* Group 1: Görev ve Finans Bilgileri */}
-            <GlassCard intensity={30} style={styles.sectionCard}>
-              <Text style={[styles.sectionTitle, { color: c.primary }]}>Görev ve Maaş Bilgileri</Text>
-              
-              <View style={styles.gridRow}>
-                <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                  <View style={styles.fieldHeader}>
-                    <Ionicons name="briefcase-outline" size={14} color={c.primary} />
-                    <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Pozisyon</Text>
-                  </View>
-                  <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
-                    {employee.position || '-'}
-                  </Text>
-                </View>
+            <View style={{ marginHorizontal: -12 }}>
+              <GlassCard intensity={30} style={styles.sectionCard} isListRow={true}>
+                <View style={{ paddingVertical: 12, paddingHorizontal: 16 }}>
+                  <Text style={[styles.sectionTitle, { color: c.primary }]}>Görev ve Maaş Bilgileri</Text>
+                  
+                  <View style={styles.gridRow}>
+                    <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                      <View style={styles.fieldHeader}>
+                        <Ionicons name="briefcase-outline" size={14} color={c.primary} />
+                        <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Pozisyon</Text>
+                      </View>
+                      <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
+                        {employee.position || '-'}
+                      </Text>
+                    </View>
 
-                <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                  <View style={styles.fieldHeader}>
-                    <Ionicons name="business-outline" size={14} color={c.primary} />
-                    <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Departman</Text>
+                    <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                      <View style={styles.fieldHeader}>
+                        <Ionicons name="business-outline" size={14} color={c.primary} />
+                        <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Departman</Text>
+                      </View>
+                      <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
+                        {employee.department || '-'}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
-                    {employee.department || '-'}
-                  </Text>
-                </View>
-              </View>
 
-              <View style={styles.gridRow}>
-                <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                  <View style={styles.fieldHeader}>
-                    <Ionicons name="calendar-outline" size={14} color={c.primary} />
-                    <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>İşe Giriş</Text>
-                  </View>
-                  <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
-                    {employee.hire_date || '-'}
-                  </Text>
-                </View>
+                  <View style={styles.gridRow}>
+                    <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                      <View style={styles.fieldHeader}>
+                        <Ionicons name="calendar-outline" size={14} color={c.primary} />
+                        <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>İşe Giriş</Text>
+                      </View>
+                      <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
+                        {employee.hire_date || '-'}
+                      </Text>
+                    </View>
 
-                <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                  <View style={styles.fieldHeader}>
-                    <Ionicons name="cash-outline" size={14} color={c.success} />
-                    <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Maaş</Text>
+                    <View style={[styles.gridCol, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                      <View style={styles.fieldHeader}>
+                        <Ionicons name="cash-outline" size={14} color={c.success} />
+                        <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Maaş</Text>
+                      </View>
+                      <Text style={[styles.fieldValue, { color: c.success }]} numberOfLines={1}>
+                        {formatCurrency(employee.salary)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={[styles.fieldValue, { color: c.success }]} numberOfLines={1}>
-                    {formatCurrency(employee.salary)}
-                  </Text>
                 </View>
-              </View>
-            </GlassCard>
+              </GlassCard>
+            </View>
 
             {/* Group 2: Kişisel ve İletişim Bilgileri */}
-            <GlassCard intensity={30} style={styles.sectionCard}>
-              <Text style={[styles.sectionTitle, { color: c.primary }]}>Kişisel ve İletişim</Text>
+            <View style={{ marginHorizontal: -12 }}>
+              <GlassCard intensity={30} style={styles.sectionCard} isListRow={true}>
+                <View style={{ paddingVertical: 12, paddingHorizontal: 16 }}>
+                  <Text style={[styles.sectionTitle, { color: c.primary }]}>Kişisel ve İletişim</Text>
 
-              {/* T.C. Kimlik No */}
-              <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                <View style={styles.actionRow}>
-                  <View style={styles.valueContainer}>
-                    <View style={styles.fieldHeader}>
-                      <Ionicons name="card-outline" size={14} color={c.primary} />
-                      <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>T.C. Kimlik Numarası</Text>
+                  {/* T.C. Kimlik No */}
+                  <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                    <View style={styles.actionRow}>
+                      <View style={styles.valueContainer}>
+                        <View style={styles.fieldHeader}>
+                          <Ionicons name="card-outline" size={14} color={c.primary} />
+                          <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>T.C. Kimlik Numarası</Text>
+                        </View>
+                        <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
+                          {employee.identity_no || '-'}
+                        </Text>
+                      </View>
+                      {employee.identity_no && (
+                        <Pressable 
+                          onPress={() => handleCopy(employee.identity_no, 'T.C. Kimlik Numarası')}
+                          style={[styles.copyBtn, { backgroundColor: actionButtonBg }]}
+                        >
+                          <Ionicons name="copy-outline" size={16} color={c.primary} />
+                        </Pressable>
+                      )}
                     </View>
-                    <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
-                      {employee.identity_no || '-'}
-                    </Text>
                   </View>
-                  {employee.identity_no && (
-                    <Pressable 
-                      onPress={() => handleCopy(employee.identity_no, 'T.C. Kimlik Numarası')}
-                      style={[styles.copyBtn, { backgroundColor: actionButtonBg }]}
-                    >
-                      <Ionicons name="copy-outline" size={16} color={c.primary} />
-                    </Pressable>
-                  )}
-                </View>
-              </View>
 
-              {/* Telefon */}
-              <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                <View style={styles.actionRow}>
-                  <View style={styles.valueContainer}>
-                    <View style={styles.fieldHeader}>
-                      <Ionicons name="call-outline" size={14} color={c.primary} />
-                      <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Telefon</Text>
+                  {/* Telefon */}
+                  <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                    <View style={styles.actionRow}>
+                      <View style={styles.valueContainer}>
+                        <View style={styles.fieldHeader}>
+                          <Ionicons name="call-outline" size={14} color={c.primary} />
+                          <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>Telefon</Text>
+                        </View>
+                        <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
+                          {employee.phone || '-'}
+                        </Text>
+                      </View>
+                      {employee.phone && employee.phone !== '-' && (
+                        <Pressable 
+                          onPress={() => Linking.openURL(`tel:${employee.phone}`)}
+                          style={[styles.copyBtn, { backgroundColor: actionButtonBg }]}
+                        >
+                          <Ionicons name="call" size={16} color={c.success} />
+                        </Pressable>
+                      )}
                     </View>
-                    <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
-                      {employee.phone || '-'}
-                    </Text>
                   </View>
-                  {employee.phone && employee.phone !== '-' && (
-                    <Pressable 
-                      onPress={() => Linking.openURL(`tel:${employee.phone}`)}
-                      style={[styles.copyBtn, { backgroundColor: actionButtonBg }]}
-                    >
-                      <Ionicons name="call" size={16} color={c.success} />
-                    </Pressable>
-                  )}
-                </View>
-              </View>
 
-              {/* E-posta */}
-              <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                <View style={styles.actionRow}>
-                  <View style={styles.valueContainer}>
-                    <View style={styles.fieldHeader}>
-                      <Ionicons name="mail-outline" size={14} color={c.primary} />
-                      <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>E-posta</Text>
+                  {/* E-posta */}
+                  <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                    <View style={styles.actionRow}>
+                      <View style={styles.valueContainer}>
+                        <View style={styles.fieldHeader}>
+                          <Ionicons name="mail-outline" size={14} color={c.primary} />
+                          <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>E-posta</Text>
+                        </View>
+                        <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
+                          {employee.email || '-'}
+                        </Text>
+                      </View>
+                      {employee.email && employee.email !== '-' && (
+                        <Pressable 
+                          onPress={() => Linking.openURL(`mailto:${employee.email}`)}
+                          style={[styles.copyBtn, { backgroundColor: actionButtonBg }]}
+                        >
+                          <Ionicons name="mail" size={16} color={c.primary} />
+                        </Pressable>
+                      )}
                     </View>
-                    <Text style={[styles.fieldValue, { color: c.text }]} numberOfLines={1}>
-                      {employee.email || '-'}
-                    </Text>
                   </View>
-                  {employee.email && employee.email !== '-' && (
-                    <Pressable 
-                      onPress={() => Linking.openURL(`mailto:${employee.email}`)}
-                      style={[styles.copyBtn, { backgroundColor: actionButtonBg }]}
-                    >
-                      <Ionicons name="mail" size={16} color={c.primary} />
-                    </Pressable>
-                  )}
                 </View>
-              </View>
-            </GlassCard>
+              </GlassCard>
+            </View>
 
             {/* Group 3: Banka Bilgileri */}
-            <GlassCard intensity={30} style={styles.sectionCard}>
-              <Text style={[styles.sectionTitle, { color: c.primary }]}>Banka ve Ödeme Bilgileri</Text>
-              
-              <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
-                <View style={styles.fieldHeader}>
-                  <Ionicons name="wallet-outline" size={14} color={c.primary} />
-                  <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>IBAN Adresi</Text>
+            <View style={{ marginHorizontal: -12 }}>
+              <GlassCard intensity={30} style={styles.sectionCard} isListRow={true}>
+                <View style={{ paddingVertical: 12, paddingHorizontal: 16 }}>
+                  <Text style={[styles.sectionTitle, { color: c.primary }]}>Banka ve Ödeme Bilgileri</Text>
+                  
+                  <View style={[styles.fullWidthField, { borderColor: boxBorderColor, backgroundColor: boxBgColor }]}>
+                    <View style={styles.fieldHeader}>
+                      <Ionicons name="wallet-outline" size={14} color={c.primary} />
+                      <Text style={[styles.fieldLabel, { color: c.textSecondary }]}>IBAN Adresi</Text>
+                    </View>
+                    <Text style={[styles.fieldValue, styles.monoText, { color: c.text, marginVertical: 6 }]} numberOfLines={2}>
+                      {employee.iban || '-'}
+                    </Text>
+                    {employee.iban && employee.iban !== '-' && (
+                      <Button 
+                        mode="contained-tonal"
+                        icon="content-copy"
+                        onPress={() => handleCopy(employee.iban, 'IBAN')}
+                        buttonColor={colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.08)'}
+                        textColor={c.primary}
+                        style={{ marginTop: 6, borderRadius: 8 }}
+                      >
+                        IBAN Kopyala
+                      </Button>
+                    )}
+                  </View>
                 </View>
-                <Text style={[styles.fieldValue, styles.monoText, { color: c.text, marginVertical: 6 }]} numberOfLines={2}>
-                  {employee.iban || '-'}
-                </Text>
-                {employee.iban && employee.iban !== '-' && (
-                  <Button 
-                    mode="contained-tonal"
-                    icon="content-copy"
-                    onPress={() => handleCopy(employee.iban, 'IBAN')}
-                    buttonColor={colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.08)'}
-                    textColor={c.primary}
-                    style={{ marginTop: 6, borderRadius: 8 }}
-                  >
-                    IBAN Kopyala
-                  </Button>
-                )}
-              </View>
-            </GlassCard>
+              </GlassCard>
+            </View>
           </View>
         );
 
@@ -1334,39 +1586,45 @@ export default function EmployeeDetailScreen() {
                filteredSalaries.map((s: any) => {
                  const isPaid = s.status === 'Ödendi' || s.status === 'paid';
                  return (
-                   <GlassCard key={s.id} intensity={25} style={styles.subCardGlass}>
-                     <View style={styles.subCardContent}>
-                       <View style={styles.subCardHeader}>
-                         <Text style={[styles.subCardTitle, { color: c.text }]}>
-                           {paymentTypes.find(t => t.value === s.period)?.label || s.period} ({formatSalaryPeriod(s)})
-                         </Text>
-                         <Text style={[styles.subCardPrice, { color: isPaid ? c.success : c.error }]}>
-                           {formatCurrency(s.net_salary)}
-                         </Text>
-                       </View>
-                       <View style={styles.subCardFooter}>
-                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                           <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
-                           <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(s.payment_date)}</Text>
-                         </View>
-                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                           <Ionicons 
-                             name={isPaid ? "checkmark-circle-outline" : "alert-circle-outline"} 
-                             size={12} 
-                             color={isPaid ? c.success : c.warning} 
-                           />
-                           <Text style={[styles.subCardDate, { color: isPaid ? c.success : c.warning }]}>
-                             {isPaid ? 'Ödendi' : 'Ödenmedi'}
+                   <SwipeableRow style={{ marginHorizontal: -12 }}
+                     key={s.id}
+                     onEdit={() => handleEditSalary(s)}
+                     onDelete={() => handleConfirmDeleteSalary(s)}
+                   >
+                     <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                       <View style={styles.subCardContent}>
+                         <View style={styles.subCardHeader}>
+                           <Text style={[styles.subCardTitle, { color: c.text }]}>
+                             {paymentTypes.find(t => t.value === s.period)?.label || s.period} ({formatSalaryPeriod(s)})
+                           </Text>
+                           <Text style={[styles.subCardPrice, { color: isPaid ? c.success : c.error }]}>
+                             {formatCurrency(s.net_salary)}
                            </Text>
                          </View>
+                         <View style={styles.subCardFooter}>
+                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                             <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
+                             <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(s.payment_date)}</Text>
+                           </View>
+                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                             <Ionicons 
+                               name={isPaid ? "checkmark-circle-outline" : "alert-circle-outline"} 
+                               size={12} 
+                               color={isPaid ? c.success : c.warning} 
+                             />
+                             <Text style={[styles.subCardDate, { color: isPaid ? c.success : c.warning }]}>
+                               {isPaid ? 'Ödendi' : 'Ödenmedi'}
+                             </Text>
+                           </View>
+                         </View>
+                         {s.notes ? (
+                           <Text style={[styles.subCardDesc, { color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }]}>
+                             Not: {s.notes}
+                           </Text>
+                         ) : null}
                        </View>
-                       {s.notes ? (
-                         <Text style={[styles.subCardDesc, { color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }]}>
-                           Not: {s.notes}
-                         </Text>
-                       ) : null}
-                     </View>
-                   </GlassCard>
+                     </GlassCard>
+                   </SwipeableRow>
                  );
                })
             )}
@@ -1740,35 +1998,41 @@ export default function EmployeeDetailScreen() {
                <Text style={[styles.emptyText, { color: c.textSecondary, marginTop: 10 }]}>Kayıt bulunamadı.</Text>
             ) : (
                filteredLeaves.map((l: any) => (
-                <GlassCard key={l.id} intensity={25} style={styles.subCardGlass}>
-                  <View style={styles.subCardContent}>
-                    <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{l.type || 'İzin'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.primary }]}>
-                        {(() => {
-                          const d = parseFloat(l.days);
-                          if (l.hours) return `${l.hours} saat`;
-                          if (d && d % 1 !== 0) {
-                            const whpl = 8;
-                            return `${Math.round(d * whpl * 10) / 10} saat`;
-                          }
-                          return `${d || 0} gün`;
-                        })()}
-                      </Text>
-                    </View>
-                    {l.notes ? (
-                      <Text style={[styles.subCardDesc, { color: c.textSecondary, marginBottom: 6 }]}>{l.notes}</Text>
-                    ) : null}
-                    <View style={styles.subCardFooter}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Ionicons name="time-outline" size={12} color={c.textTertiary} />
-                        <Text style={[styles.subCardDate, { color: c.textTertiary }]}>
-                          {formatDate(l.start_date)} - {formatDate(l.end_date)}
+                <SwipeableRow style={{ marginHorizontal: -12 }}
+                  key={l.id}
+                  onEdit={() => handleEditLeave(l)}
+                  onDelete={() => handleConfirmDeleteLeave(l)}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <Text style={[styles.subCardTitle, { color: c.text }]}>{l.type || 'İzin'}</Text>
+                        <Text style={[styles.subCardPrice, { color: c.primary }]}>
+                          {(() => {
+                            const d = parseFloat(l.days);
+                            if (l.hours) return `${l.hours} saat`;
+                            if (d && d % 1 !== 0) {
+                              const whpl = 8;
+                              return `${Math.round(d * whpl * 10) / 10} saat`;
+                            }
+                            return `${d || 0} gün`;
+                          })()}
                         </Text>
                       </View>
+                      {l.notes ? (
+                        <Text style={[styles.subCardDesc, { color: c.textSecondary, marginBottom: 6 }]}>{l.notes}</Text>
+                      ) : null}
+                      <View style={styles.subCardFooter}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Ionicons name="time-outline" size={12} color={c.textTertiary} />
+                          <Text style={[styles.subCardDate, { color: c.textTertiary }]}>
+                            {formatDate(l.start_date)} - {formatDate(l.end_date)}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
-                  </View>
-                </GlassCard>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
 
@@ -2036,22 +2300,28 @@ export default function EmployeeDetailScreen() {
                <Text style={[styles.emptyText, { color: c.textSecondary, marginTop: 10 }]}>Kayıt bulunamadı.</Text>
             ) : (
                filteredOvertimes.map((ot: any) => (
-                <GlassCard key={ot.id} intensity={25} style={styles.subCardGlass}>
-                  <View style={styles.subCardContent}>
-                    <View style={styles.subCardHeader}>
-                      <Text style={[styles.subCardTitle, { color: c.text }]}>{ot.notes || 'Mesai'}</Text>
-                      <Text style={[styles.subCardPrice, { color: c.success }]}>
-                        +{ot.hours} sa ({formatCurrency(ot.amount)})
-                      </Text>
-                    </View>
-                    <View style={styles.subCardFooter}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
-                        <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(ot.date)}</Text>
+                <SwipeableRow style={{ marginHorizontal: -12 }}
+                  key={ot.id}
+                  onEdit={() => handleEditOvertime(ot)}
+                  onDelete={() => handleConfirmDeleteOvertime(ot)}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <Text style={[styles.subCardTitle, { color: c.text }]}>{ot.notes || 'Mesai'}</Text>
+                        <Text style={[styles.subCardPrice, { color: c.success }]}>
+                          +{ot.hours} sa ({formatCurrency(ot.amount)})
+                        </Text>
+                      </View>
+                      <View style={styles.subCardFooter}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
+                          <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Tarih: {formatDate(ot.date)}</Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                </GlassCard>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
           </View>
@@ -2081,30 +2351,32 @@ export default function EmployeeDetailScreen() {
                 const dateLabel = sh.start_date ? formatDate(sh.start_date) : '-';
                 const endDateLabel = sh.end_date ? formatDate(sh.end_date) : 'Devam Ediyor';
                 return (
-                  <GlassCard key={sh.id} intensity={25} style={styles.subCardGlass}>
-                    <View style={styles.subCardContent}>
-                      <View style={styles.subCardHeader}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
-                          <Ionicons name="trending-up-outline" size={14} color={c.primary} />
-                          <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
-                            {sh.type === 'raise' ? 'Maaş Artışı / Güncelleme' : sh.type === 'initial' ? 'Başlangıç Maaşı' : sh.type || 'Maaş Değişimi'}
+                  <View key={sh.id} style={{ marginHorizontal: -12 }}>
+                    <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                      <View style={styles.subCardContent}>
+                        <View style={styles.subCardHeader}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
+                            <Ionicons name="trending-up-outline" size={14} color={c.primary} />
+                            <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                              {sh.type === 'raise' ? 'Maaş Artışı / Güncelleme' : sh.type === 'initial' ? 'Başlangıç Maaşı' : sh.type || 'Maaş Değişimi'}
+                            </Text>
+                          </View>
+                          <Text style={[styles.subCardPrice, { color: c.success }]}>{formatCurrency(sh.amount)}</Text>
+                        </View>
+                        <View style={styles.subCardFooter}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
+                            <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Dönem: {dateLabel} - {endDateLabel}</Text>
+                          </View>
+                        </View>
+                        {sh.description ? (
+                          <Text style={[styles.subCardDesc, { color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }]}>
+                            Açıklama: {sh.description}
                           </Text>
-                        </View>
-                        <Text style={[styles.subCardPrice, { color: c.success }]}>{formatCurrency(sh.amount)}</Text>
+                        ) : null}
                       </View>
-                      <View style={styles.subCardFooter}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
-                          <Text style={[styles.subCardDate, { color: c.textSecondary }]}>Dönem: {dateLabel} - {endDateLabel}</Text>
-                        </View>
-                      </View>
-                      {sh.description ? (
-                        <Text style={[styles.subCardDesc, { color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }]}>
-                          Açıklama: {sh.description}
-                        </Text>
-                      ) : null}
-                    </View>
-                  </GlassCard>
+                    </GlassCard>
+                  </View>
                 );
               })
             )}
@@ -2164,49 +2436,55 @@ export default function EmployeeDetailScreen() {
               assignments.map((a: any) => {
                 const isActive = a.status === 'active' || a.status === 'Aktif';
                 return (
-                  <GlassCard key={a.id} intensity={25} style={styles.subCardGlass}>
-                    <View style={styles.subCardContent}>
-                      <View style={styles.subCardHeader}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
-                          <Ionicons name="cube-outline" size={14} color={c.primary} />
-                          <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
-                            {a.item_name} {a.quantity > 1 ? `(${a.quantity} Adet)` : ''}
-                          </Text>
+                  <SwipeableRow style={{ marginHorizontal: -12 }}
+                    key={a.id}
+                    onEdit={() => handleEditAssignment(a)}
+                    onDelete={() => handleConfirmDeleteAssignment(a)}
+                  >
+                    <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                      <View style={styles.subCardContent}>
+                        <View style={styles.subCardHeader}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8 }}>
+                            <Ionicons name="cube-outline" size={14} color={c.primary} />
+                            <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                              {a.item_name} {a.quantity > 1 ? `(${a.quantity} Adet)` : ''}
+                            </Text>
+                          </View>
+                          <View style={{
+                            backgroundColor: isActive ? c.success + '20' : c.textSecondary + '20',
+                            borderRadius: 4,
+                            paddingHorizontal: 6,
+                            paddingVertical: 2
+                          }}>
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: isActive ? c.success : c.textSecondary }}>
+                              {isActive ? 'Aktif' : 'İade Edildi'}
+                            </Text>
+                          </View>
                         </View>
-                        <View style={{
-                          backgroundColor: isActive ? c.success + '20' : c.textSecondary + '20',
-                          borderRadius: 4,
-                          paddingHorizontal: 6,
-                          paddingVertical: 2
-                        }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: isActive ? c.success : c.textSecondary }}>
-                            {isActive ? 'Aktif' : 'İade Edildi'}
+                        
+                        {a.serial_number ? (
+                          <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 4 }}>
+                            Seri No: {a.serial_number}
                           </Text>
-                        </View>
-                      </View>
-                      
-                      {a.serial_number ? (
-                        <Text style={{ fontSize: 12, color: c.textSecondary, marginTop: 4 }}>
-                          Seri No: {a.serial_number}
-                        </Text>
-                      ) : null}
+                        ) : null}
 
-                      <View style={[styles.subCardFooter, { marginTop: 8 }]}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
-                          <Text style={[styles.subCardDate, { color: c.textSecondary }]}>
-                            Tarih: {formatDate(a.assign_date)} {a.return_date ? ` - ${formatDate(a.return_date)}` : ''}
-                          </Text>
+                        <View style={[styles.subCardFooter, { marginTop: 8 }]}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <Ionicons name="calendar-outline" size={12} color={c.textSecondary} />
+                            <Text style={[styles.subCardDate, { color: c.textSecondary }]}>
+                              Tarih: {formatDate(a.assign_date)} {a.return_date ? ` - ${formatDate(a.return_date)}` : ''}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
 
-                      {a.notes ? (
-                        <Text style={[styles.subCardDesc, { color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }]}>
-                          Not: {a.notes}
-                        </Text>
-                      ) : null}
-                    </View>
-                  </GlassCard>
+                        {a.notes ? (
+                          <Text style={[styles.subCardDesc, { color: c.textTertiary, marginTop: 6, fontStyle: 'italic' }]}>
+                            Not: {a.notes}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </GlassCard>
+                  </SwipeableRow>
                 );
               })
             )}
@@ -2330,65 +2608,69 @@ export default function EmployeeDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary, marginTop: 10 }]}>Kayıt bulunamadı.</Text>
             ) : (
               filteredDocuments.map((d: any) => (
-                <GlassCard key={d.id} intensity={25} style={styles.subCardGlass}>
-                  <Pressable
-                    onPress={() => {
-                      if (d.file_path) {
-                        Linking.openURL(getFileUrl(d.file_path)).catch(err => {
-                          Alert.alert('Hata', 'Dosya açılamadı. Lütfen geçerli bir internet bağlantınız olduğunu veya dosya formatını destekleyen bir uygulama olduğunu doğrulayın.');
-                        });
-                      } else {
-                        Alert.alert('Hata', 'Dosya yolu bulunamadı.');
-                      }
-                    }}
-                    style={styles.subCardContent}
-                  >
-                    <View style={styles.subCardHeader}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                        <Ionicons name="document-text-outline" size={18} color={c.primary} />
-                        <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
-                          {d.file_name}
-                        </Text>
+                <SwipeableRow style={{ marginHorizontal: -12 }}
+                  key={d.id}
+                  onEdit={() => handleEditDocument(d)}
+                  onDelete={() => handleConfirmDeleteDocument(d)}
+                  onPress={() => {
+                    if (d.file_path) {
+                      Linking.openURL(getFileUrl(d.file_path)).catch(err => {
+                        Alert.alert('Hata', 'Dosya açılamadı. Lütfen geçerli bir internet bağlantınız olduğunu veya dosya formatını destekleyen bir uygulama olduğunu doğrulayın.');
+                      });
+                    } else {
+                      Alert.alert('Hata', 'Dosya yolu bulunamadı.');
+                    }
+                  }}
+                >
+                  <GlassCard intensity={25} style={styles.subCardGlass} isListRow={true}>
+                    <View style={styles.subCardContent}>
+                      <View style={styles.subCardHeader}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                          <Ionicons name="document-text-outline" size={18} color={c.primary} />
+                          <Text style={[styles.subCardTitle, { color: c.text }]} numberOfLines={1}>
+                            {d.file_name}
+                          </Text>
+                        </View>
+                        <Ionicons name="eye-outline" size={16} color={c.primary} style={{ marginLeft: 8 }} />
                       </View>
-                      <Ionicons name="eye-outline" size={16} color={c.primary} style={{ marginLeft: 8 }} />
-                    </View>
-                    
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                      {d.category ? (
-                        <View style={{ backgroundColor: c.primaryContainer + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
-                          <Text style={{ fontSize: 11, color: c.primary, fontWeight: '600' }}>{d.category}</Text>
-                        </View>
-                      ) : null}
-                      {d.folder ? (
-                        <View style={{ backgroundColor: c.textSecondary + '15', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
-                          <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>{d.folder}</Text>
-                        </View>
-                      ) : null}
-                      {d.file_type ? (
-                        <View style={{ backgroundColor: c.textSecondary + '10', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
-                          <Text style={{ fontSize: 11, color: c.textTertiary }}>{d.file_type.toUpperCase()}</Text>
-                        </View>
-                      ) : null}
-                    </View>
+                      
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {d.category ? (
+                          <View style={{ backgroundColor: c.primaryContainer + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                            <Text style={{ fontSize: 11, color: c.primary, fontWeight: '600' }}>{d.category}</Text>
+                          </View>
+                        ) : null}
+                        {d.folder ? (
+                          <View style={{ backgroundColor: c.textSecondary + '15', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                            <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>{d.folder}</Text>
+                          </View>
+                        ) : null}
+                        {d.file_type ? (
+                          <View style={{ backgroundColor: c.textSecondary + '10', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                            <Text style={{ fontSize: 11, color: c.textTertiary }}>{d.file_type.toUpperCase()}</Text>
+                          </View>
+                        ) : null}
+                      </View>
 
-                    {d.start_date || d.expiry_date ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                        {d.start_date && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
-                            <Text style={[styles.subCardDate, { color: c.textTertiary }]}>Başlangıç: {formatDate(d.start_date)}</Text>
-                          </View>
-                        )}
-                        {d.expiry_date && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <Ionicons name="alert-circle-outline" size={12} color={c.warning} />
-                            <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(d.expiry_date)}</Text>
-                          </View>
-                        )}
-                      </View>
-                    ) : null}
-                  </Pressable>
-                </GlassCard>
+                      {d.start_date || d.expiry_date ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                          {d.start_date && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
+                              <Text style={[styles.subCardDate, { color: c.textTertiary }]}>Başlangıç: {formatDate(d.start_date)}</Text>
+                            </View>
+                          )}
+                          {d.expiry_date && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <Ionicons name="alert-circle-outline" size={12} color={c.warning} />
+                              <Text style={[styles.subCardDate, { color: c.warning }]}>Bitiş: {formatDate(d.expiry_date)}</Text>
+                            </View>
+                          )}
+                        </View>
+                      ) : null}
+                    </View>
+                  </GlassCard>
+                </SwipeableRow>
               ))
             )}
           </View>
@@ -2492,7 +2774,12 @@ export default function EmployeeDetailScreen() {
         )}
 
         {/* Content */}
-        {renderTabContent()}
+        <View 
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
+          {renderTabContent()}
+        </View>
       </ScrollView>
 
       {/* Add Salary Modal */}
@@ -2825,7 +3112,7 @@ export default function EmployeeDetailScreen() {
           <GlassInput
             label="Geçerlilik Başlangıç Tarihi"
             value={docStartDate}
-            onChangeText={setDocStartDate}
+            onChangeText={handleDocStartDateChange}
             placeholder="YYYY-MM-DD"
           />
           <GlassInput
@@ -3047,9 +3334,8 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 13, fontWeight: '500' },
   detailValue: { fontSize: 14, fontWeight: '600', maxWidth: '70%' },
   sectionCard: {
-    marginBottom: 10,
-    padding: 12,
-    borderRadius: 12,
+    marginBottom: 0,
+    padding: 0,
   },
   sectionTitle: {
     fontSize: 14,
@@ -3115,8 +3401,8 @@ const styles = StyleSheet.create({
   },
   tabLoader: { marginVertical: 20 },
   emptyText: { textAlign: 'center', marginVertical: 40, fontSize: 14 },
-  subCardGlass: { padding: 0, marginBottom: 6 },
-  subCardContent: { padding: 12 },
+  subCardGlass: { padding: 0, marginBottom: 0 },
+  subCardContent: { paddingVertical: 12, paddingHorizontal: 16 },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   subCardTitle: { fontSize: 15, fontWeight: '600' },
   subCardPrice: { fontSize: 15, fontWeight: '700' },

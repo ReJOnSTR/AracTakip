@@ -166,6 +166,7 @@ export default function PayrollListScreen() {
           iconColor={c.textSecondary}
         />
       </View>
+      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {query.isLoading ? (
         <View style={styles.center}>
@@ -173,6 +174,8 @@ export default function PayrollListScreen() {
         </View>
       ) : (
         <FlatList
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
@@ -206,9 +209,9 @@ export default function PayrollListScreen() {
                     pathname: '/employee-detail',
                     params: { id: item.id.toString(), month: selectedMonth }
                   })}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+                  style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1, width: '100%' }]}
                 >
-                  <GlassCard intensity={30} style={styles.cardGlass}>
+                  <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
                     <View style={styles.cardInner}>
                       <View style={[styles.avatar, { backgroundColor: avatarColor + '18' }]}>
                         <Text style={[styles.avatarText, { color: avatarColor }]}>
@@ -382,10 +385,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   monthLabel: { fontSize: 16, fontWeight: '700' },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  cardContainer: { marginBottom: 6 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  cardContainer: {
+    marginBottom: 0,
+  },
   cardGlass: { padding: 0 },
-  cardInner: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 10 },
+  cardInner: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 10 },
   avatar: {
     width: 44,
     height: 44,

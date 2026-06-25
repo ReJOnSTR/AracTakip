@@ -527,19 +527,21 @@ model leave_types {
 }
 
 model document_categories {
-  id         Int       @id @default(autoincrement())
-  company_id Int
-  name       String
-  created_at DateTime? @default(now())
-  companies  companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id          Int       @id @default(autoincrement())
+  company_id  Int
+  name        String
+  target_type String?   @default("employee")
+  created_at  DateTime? @default(now())
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model document_folders {
-  id         Int       @id @default(autoincrement())
-  company_id Int
-  name       String
-  created_at DateTime? @default(now())
-  companies  companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id          Int       @id @default(autoincrement())
+  company_id  Int
+  name        String
+  is_archived Int?      @default(0)
+  created_at  DateTime? @default(now())
+  companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model vehicle_types {

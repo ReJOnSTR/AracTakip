@@ -239,7 +239,7 @@ function HrModuleContent() {
             const [depts, leaves, docs] = await Promise.all([
                 window.electronAPI.getDepartments(currentCompany.id),
                 window.electronAPI.getLeaveTypes(currentCompany.id),
-                window.electronAPI.getDocumentCategories(currentCompany.id)
+                window.electronAPI.getDocumentCategories(currentCompany.id, 'employee')
             ])
             setPersonnelSettings({
                 departments: depts.data || [],
@@ -269,7 +269,7 @@ function HrModuleContent() {
             } else if (personnelModal.type === 'doc') {
                 result = personnelModal.item
                     ? await window.electronAPI.updateDocumentCategory({ id: personnelModal.item.id, name: personnelModal.value })
-                    : await window.electronAPI.createDocumentCategory({ companyId: currentCompany.id, name: personnelModal.value })
+                    : await window.electronAPI.createDocumentCategory({ companyId: currentCompany.id, name: personnelModal.value, targetType: 'employee' })
             }
 
             if (result.success) {
@@ -669,23 +669,37 @@ function HrModuleContent() {
 // Fleet Module Settings
 function FleetModuleContent() {
     const { currentCompany } = useCompany()
-    const [vehicleTypes, setVehicleTypes] = useState([])
+    const [fleetSettings, setFleetSettings] = useState({
+        vehicleTypes: [],
+        docCategories: []
+    })
     const [loading, setLoading] = useState(false)
-    const [modal, setModal] = useState({ isOpen: false, item: null, value: '' })
+    const [modal, setModal] = useState({
+        isOpen: false,
+        type: '', // 'vehicleType', 'doc'
+        item: null,
+        value: ''
+    })
     const [confirmDelete, setConfirmDelete] = useState(null)
 
     useEffect(() => {
-        loadVehicleTypes()
+        loadFleetSettings()
     }, [currentCompany])
 
-    const loadVehicleTypes = async () => {
+    const loadFleetSettings = async () => {
         if (!currentCompany) return
         setLoading(true)
         try {
-            const res = await window.electronAPI.getVehicleTypes(currentCompany.id)
-            if (res.success) setVehicleTypes(res.data)
+            const [vtRes, dcRes] = await Promise.all([
+                window.electronAPI.getVehicleTypes(currentCompany.id),
+                window.electronAPI.getDocumentCategories(currentCompany.id, 'vehicle')
+            ])
+            setFleetSettings({
+                vehicleTypes: vtRes.data || [],
+                docCategories: dcRes.data || []
+            })
         } catch (error) {
-            console.error('Failed to load vehicle types:', error)
+            console.error('Failed to load fleet settings:', error)
         }
         setLoading(false)
     }
@@ -695,29 +709,42 @@ function FleetModuleContent() {
         if (!modal.value.trim()) return
 
         try {
-            const result = modal.item
-                ? await window.electronAPI.updateVehicleType({ id: modal.item.id, name: modal.value })
-                : await window.electronAPI.createVehicleType({ companyId: currentCompany.id, name: modal.value })
+            let result
+            if (modal.type === 'vehicleType') {
+                result = modal.item
+                    ? await window.electronAPI.updateVehicleType({ id: modal.item.id, name: modal.value })
+                    : await window.electronAPI.createVehicleType({ companyId: currentCompany.id, name: modal.value })
+            } else if (modal.type === 'doc') {
+                result = modal.item
+                    ? await window.electronAPI.updateDocumentCategory({ id: modal.item.id, name: modal.value })
+                    : await window.electronAPI.createDocumentCategory({ companyId: currentCompany.id, name: modal.value, targetType: 'vehicle' })
+            }
 
-            if (result.success) {
-                setModal({ isOpen: false, item: null, value: '' })
-                loadVehicleTypes()
+            if (result && result.success) {
+                setModal({ isOpen: false, type: '', item: null, value: '' })
+                loadFleetSettings()
             }
         } catch (err) {
-            console.error('Save vehicle type error:', err)
+            console.error('Save fleet settings error:', err)
         }
     }
 
     const handleDelete = async () => {
         if (!confirmDelete) return
         try {
-            const result = await window.electronAPI.deleteVehicleType(confirmDelete.id)
-            if (result.success) {
+            let result
+            if (confirmDelete.type === 'vehicleType') {
+                result = await window.electronAPI.deleteVehicleType(confirmDelete.id)
+            } else if (confirmDelete.type === 'doc') {
+                result = await window.electronAPI.deleteDocumentCategory(confirmDelete.id)
+            }
+
+            if (result && result.success) {
                 setConfirmDelete(null)
-                loadVehicleTypes()
+                loadFleetSettings()
             }
         } catch (err) {
-            console.error('Delete vehicle type error:', err)
+            console.error('Delete fleet settings error:', err)
         }
     }
 
@@ -729,32 +756,63 @@ function FleetModuleContent() {
                     <span>Araç Tanımlamaları</span>
                 </h3>
                 
-                <div className="personnel-settings-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '600px' }}>
+                <div className="personnel-settings-grid">
+                    {/* Vehicle Types Card */}
                     <div className="personnel-card">
                         <div className="section-header">
                             <div className="section-title">
                                 <Sliders size={16} />
                                 <span>Araç Türleri</span>
                             </div>
-                            <button className="btn btn-icon-sm" onClick={() => setModal({ isOpen: true, item: null, value: '' })}>
+                            <button className="btn btn-icon-sm" onClick={() => setModal({ isOpen: true, type: 'vehicleType', item: null, value: '' })}>
                                 <Plus size={14} />
                             </button>
                         </div>
                         <div className="settings-list">
-                            {vehicleTypes.map(type => (
+                            {fleetSettings.vehicleTypes.map(type => (
                                 <div key={type.id} className="settings-list-item">
                                     <span>{type.name}</span>
                                     <div className="item-actions">
-                                        <button onClick={() => setModal({ isOpen: true, item: type, value: type.name })}>
+                                        <button onClick={() => setModal({ isOpen: true, type: 'vehicleType', item: type, value: type.name })}>
                                             <Edit2 size={14} />
                                         </button>
-                                        <button className="text-danger" onClick={() => setConfirmDelete(type)}>
+                                        <button className="text-danger" onClick={() => setConfirmDelete({ ...type, type: 'vehicleType' })}>
                                             <Trash2 size={14} />
                                         </button>
                                     </div>
                                 </div>
                             ))}
-                            {vehicleTypes.length === 0 && !loading && <div className="empty-list-msg">Araç türü tanımlanmamış.</div>}
+                            {fleetSettings.vehicleTypes.length === 0 && !loading && <div className="empty-list-msg">Araç türü tanımlanmamış.</div>}
+                            {loading && <div className="empty-list-msg">Yükleniyor...</div>}
+                        </div>
+                    </div>
+
+                    {/* Vehicle Document Categories Card */}
+                    <div className="personnel-card">
+                        <div className="section-header">
+                            <div className="section-title">
+                                <FileText size={16} />
+                                <span>Araç Belge Kategorileri</span>
+                            </div>
+                            <button className="btn btn-icon-sm" onClick={() => setModal({ isOpen: true, type: 'doc', item: null, value: '' })}>
+                                <Plus size={14} />
+                            </button>
+                        </div>
+                        <div className="settings-list">
+                            {fleetSettings.docCategories.map(cat => (
+                                <div key={cat.id} className="settings-list-item">
+                                    <span>{cat.name}</span>
+                                    <div className="item-actions">
+                                        <button onClick={() => setModal({ isOpen: true, type: 'doc', item: cat, value: cat.name })}>
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button className="text-danger" onClick={() => setConfirmDelete({ ...cat, type: 'doc' })}>
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {fleetSettings.docCategories.length === 0 && !loading && <div className="empty-list-msg">Araç belge kategorisi tanımlanmamış.</div>}
                             {loading && <div className="empty-list-msg">Yükleniyor...</div>}
                         </div>
                     </div>
@@ -763,20 +821,24 @@ function FleetModuleContent() {
 
             <Modal
                 isOpen={modal.isOpen}
-                onClose={() => setModal({ isOpen: false, item: null, value: '' })}
-                title={modal.item ? 'Araç Türünü Düzenle' : 'Yeni Araç Türü Ekle'}
+                onClose={() => setModal({ isOpen: false, type: '', item: null, value: '' })}
+                title={
+                    modal.type === 'vehicleType'
+                        ? (modal.item ? 'Araç Türünü Düzenle' : 'Yeni Araç Türü Ekle')
+                        : (modal.item ? 'Belge Kategorisini Düzenle' : 'Yeni Belge Kategorisi Ekle')
+                }
                 size="small"
             >
                 <form onSubmit={handleSave}>
                     <CustomInput 
-                        label="Araç Türü Adı"
+                        label={modal.type === 'vehicleType' ? 'Araç Türü Adı' : 'Kategori Adı'}
                         value={modal.value}
                         onChange={(val) => setModal(prev => ({ ...prev, value: val }))}
                         autoFocus
                         required
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                        <button type="button" className="btn btn-secondary" onClick={() => setModal({ isOpen: false, item: null, value: '' })}>Vazgeç</button>
+                        <button type="button" className="btn btn-secondary" onClick={() => setModal({ isOpen: false, type: '', item: null, value: '' })}>Vazgeç</button>
                         <button type="submit" className="btn btn-primary">Kaydet</button>
                     </div>
                 </form>
@@ -786,8 +848,8 @@ function FleetModuleContent() {
                 isOpen={!!confirmDelete}
                 onClose={() => setConfirmDelete(null)}
                 onConfirm={handleDelete}
-                title="Araç Türünü Sil?"
-                message={`"${confirmDelete?.name}" türünü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+                title={confirmDelete?.type === 'vehicleType' ? 'Araç Türünü Sil?' : 'Belge Kategorisini Sil?'}
+                message={`"${confirmDelete?.name}" ${confirmDelete?.type === 'vehicleType' ? 'türünü' : 'kategorisini'} silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
             />
         </div>
     )

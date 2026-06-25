@@ -175,7 +175,7 @@ export default function FinanceListScreen() {
     const isIncome = item.type === 'IN';
     return (
       <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-        <GlassCard intensity={30} style={styles.txCardGlass}>
+        <GlassCard intensity={30} style={styles.txCardGlass} isListRow={true}>
           <View style={styles.cardInner}>
             <View style={[styles.iconBox, { backgroundColor: isIncome ? c.success + '15' : c.error + '15' }]}>
               <Ionicons
@@ -280,9 +280,12 @@ export default function FinanceListScreen() {
           iconColor={c.textSecondary}
         />
       </View>
+      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* Transactions List */}
       <FlatList
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderTransaction}
@@ -537,15 +540,15 @@ const styles = StyleSheet.create({
   filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   txCardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 12, paddingHorizontal: 16,
     gap: 10,
   },
   iconBox: {

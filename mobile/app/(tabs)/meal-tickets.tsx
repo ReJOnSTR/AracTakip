@@ -224,6 +224,7 @@ export default function MealTicketsScreen() {
           iconColor={c.textSecondary}
         />
       </View>
+      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* List */}
       {listQuery.isLoading ? (
@@ -232,6 +233,8 @@ export default function MealTicketsScreen() {
         </View>
       ) : (
         <FlatList
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
@@ -247,7 +250,7 @@ export default function MealTicketsScreen() {
             const totalAmount = (item.person_count || 1) * (item.price_per_person || 0);
             return (
               <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-                <GlassCard intensity={30} style={styles.cardGlass}>
+                <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
                   <View style={styles.cardInner}>
                     <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
                       <Ionicons name="restaurant-outline" size={22} color={c.primary} />
@@ -416,13 +419,15 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  cardContainer: { marginBottom: 6 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  cardContainer: {
+    marginBottom: 0,
+  },
   cardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 12, paddingHorizontal: 16,
     gap: 10,
   },
   iconBox: {

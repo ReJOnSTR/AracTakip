@@ -308,7 +308,7 @@ export default function EmployeeDetail() {
                 window.electronAPI.getEmployeeAssignments(parseInt(id)),
                 window.electronAPI.getEmployeeDocuments(parseInt(id), isDocArchiveView),
                 window.electronAPI.getLeaveTypes(currentCompany.id),
-                window.electronAPI.getDocumentCategories(currentCompany.id),
+                window.electronAPI.getDocumentCategories(currentCompany.id, 'employee'),
                 window.electronAPI.getDepartments(currentCompany.id),
                 window.electronAPI.getDocumentFolders(currentCompany.id)
             ])
@@ -327,7 +327,7 @@ export default function EmployeeDetail() {
             if (ltRes.success) setLeaveTypes(ltRes.data.map(t => ({ value: t.name, label: t.name })))
             if (dcRes.success) setDocumentCategories(dcRes.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
             if (deptRes.success) setDepartments(deptRes.data || [])
-            if (dfRes && dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
+            if (dfRes && dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
         } catch (err) {
             console.error('Failed to load employee data:', err)
         }
@@ -366,7 +366,7 @@ export default function EmployeeDetail() {
                 })
                 if (res.success) {
                     const dfRes = await window.electronAPI.getDocumentFolders(currentCompany.id)
-                    if (dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
+                    if (dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
                     setCurrentFolder(name)
                     setFolderModalOpen(false)
                 } else {
@@ -1256,10 +1256,26 @@ export default function EmployeeDetail() {
         }
     }
 
+    const handleArchiveFolder = async (folderId, isArchived) => {
+        try {
+            const res = await window.electronAPI.archiveItem('document_folders', folderId, isArchived ? 1 : 0)
+            if (res.success) {
+                loadEmployeeData(true)
+            }
+        } catch (err) {
+            console.error('Folder archive failed:', err)
+        }
+    }
+
     const handleBulkArchiveDocs = async (ids, isArchived) => {
         try {
-            // We can reuse archiveItem in a loop or implement a bulk one, but given the app's pattern:
-            const promises = ids.map(id => window.electronAPI.archiveItem('employee_documents', id, isArchived ? 1 : 0))
+            const promises = ids.map(id => {
+                if (typeof id === 'string' && id.startsWith('folder_')) {
+                    const folderId = parseInt(id.replace('folder_', ''))
+                    return window.electronAPI.archiveItem('document_folders', folderId, isArchived ? 1 : 0)
+                }
+                return window.electronAPI.archiveItem('employee_documents', id, isArchived ? 1 : 0)
+            })
             await Promise.all(promises)
             loadEmployeeData()
         } catch (err) {
@@ -2308,7 +2324,10 @@ export default function EmployeeDetail() {
                             columns={documentColumns}
                             data={(() => {
                                 if (currentFolder === null) {
-                                    const folderRows = documentFolders.map(f => ({
+                                    const filteredFolders = documentFolders.filter(f => 
+                                        isDocArchiveView ? f.is_archived === 1 : f.is_archived !== 1
+                                    );
+                                    const folderRows = filteredFolders.map(f => ({
                                         id: `folder_${f.id}`,
                                         file_name: f.value,
                                         isFolder: true,
@@ -2353,12 +2372,19 @@ export default function EmployeeDetail() {
                             )}
                             actions={(item) => {
                                 if (item.isFolder) {
+                                    const folderObj = documentFolders.find(f => f.value === item.file_name)
                                     return !isDocArchiveView ? (
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleOpenRenameFolder(item.file_name) }} title="Klasör Adını Değiştir"><Pencil size={16} /></button>
+                                            {folderObj && <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleArchiveFolder(folderObj.id, true) }} title="Klasörü Arşivle"><Archive size={16} /></button>}
                                             <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(item.file_name) }} title="Klasörü Sil"><Trash2 size={16} /></button>
                                         </div>
-                                    ) : null;
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {folderObj && <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleArchiveFolder(folderObj.id, false) }} title="Arşivden Çıkar"><ArchiveRestore size={16} /></button>}
+                                            <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(item.file_name) }} title="Klasörü Sil"><Trash2 size={16} /></button>
+                                        </div>
+                                    );
                                 }
                                 return (
                                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -2769,6 +2795,7 @@ export default function EmployeeDetail() {
                     onCancel={() => setUploadModalOpen(false)}
                     loading={saving}
                     options={documentCategories}
+                    targetType="employee"
                 />
             </Modal>
             
