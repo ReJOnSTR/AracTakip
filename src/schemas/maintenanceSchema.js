@@ -8,5 +8,6 @@ export const maintenanceSchema = z.object({
     cost: z.coerce.number().min(0, 'Geçersiz tutar').optional(),
     nextKm: z.coerce.number().min(0, 'Geçersiz KM').optional(),
     nextDate: z.string().optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    filePath: z.any().optional()
 });

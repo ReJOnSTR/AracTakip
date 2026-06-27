@@ -231,3 +231,299 @@ export function formatDateForInput(dateValue) {
         return ''
     }
 }
+
+/**
+ * Calculates leave working days by excluding weekly off days and public holidays.
+ * @param {string} startDateStr - YYYY-MM-DD
+ * @param {string} endDateStr - YYYY-MM-DD
+ * @param {string} offDaysStr - Comma-separated weekly off day indices (0=Sunday, 6=Saturday)
+ * @param {Array<string>} publicHolidayDates - List of holiday dates (YYYY-MM-DD)
+ * @returns {number} - Number of working leave days
+ */
+const fixedHolidaysMD = [
+    '01-01', // Yılbaşı
+    '04-23', // Ulusal Egemenlik ve Çocuk Bayramı
+    '05-01', // Emek ve Dayanışma Günü
+    '05-19', // Atatürk'ü Anma, Gençlik ve Spor Bayramı
+    '07-15', // Demokrasi ve Milli Birlik Günü
+    '08-30', // Zafer Bayramı
+    '10-28', // Cumhuriyet Bayramı Arifesi (Yarım Gün)
+    '10-29'  // Cumhuriyet Bayramı
+];
+
+const religiousHolidaysByYear = {
+    2025: { ramadan: '2025-03-30', sacrifice: '2025-06-06' },
+    2026: { ramadan: '2026-03-20', sacrifice: '2026-05-27' },
+    2027: { ramadan: '2027-03-09', sacrifice: '2027-05-16' },
+    2028: { ramadan: '2028-02-26', sacrifice: '2028-05-04' },
+    2029: { ramadan: '2029-02-15', sacrifice: '2029-04-23' },
+    2030: { ramadan: '2030-02-04', sacrifice: '2030-04-12' },
+    2031: { ramadan: '2031-01-25', sacrifice: '2031-04-02' },
+    2032: { ramadan: '2032-01-14', sacrifice: '2032-03-21' },
+    2033: { ramadan: '2033-01-02', sacrifice: '2033-03-10' },
+    2034: { ramadan: '2034-12-22', sacrifice: '2034-02-27' },
+    2035: { ramadan: '2035-12-11', sacrifice: '2035-02-17' },
+    2036: { ramadan: '2036-11-20', sacrifice: '2036-02-07' },
+    2037: { ramadan: '2037-11-08', sacrifice: '2037-01-26' },
+    2038: { ramadan: '2038-10-29', sacrifice: '2038-01-16' },
+    2039: { ramadan: '2039-10-18', sacrifice: '2039-01-05' },
+    2040: { ramadan: '2040-10-07', sacrifice: '2040-12-25' },
+    2041: { ramadan: '2041-09-26', sacrifice: '2041-12-14' },
+    2042: { ramadan: '2042-09-15', sacrifice: '2042-12-03' },
+    2043: { ramadan: '2043-09-04', sacrifice: '2043-11-22' },
+    2044: { ramadan: '2044-08-24', sacrifice: '2044-11-11' },
+    2045: { ramadan: '2045-08-14', sacrifice: '2045-10-31' }
+};
+
+function getReligiousHolidays(year) {
+    const dates = [];
+    const config = religiousHolidaysByYear[year];
+    if (!config) return dates;
+
+    const addDays = (baseDateStr, days) => {
+        const d = new Date(baseDateStr);
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split('T')[0];
+    };
+
+    if (config.ramadan) {
+        dates.push(addDays(config.ramadan, -1)); // Arife
+        dates.push(config.ramadan);              // 1. Gün
+        dates.push(addDays(config.ramadan, 1));  // 2. Gün
+        dates.push(addDays(config.ramadan, 2));  // 3. Gün
+    }
+
+    if (config.sacrifice) {
+        dates.push(addDays(config.sacrifice, -1)); // Arife
+        dates.push(config.sacrifice);              // 1. Gün
+        dates.push(addDays(config.sacrifice, 1));  // 2. Gün
+        dates.push(addDays(config.sacrifice, 2));  // 3. Gün
+        dates.push(addDays(config.sacrifice, 3));  // 4. Gün
+    }
+
+    return dates;
+}
+
+function checkIsHoliday(dateStr, holidaySet) {
+    if (holidaySet.has(dateStr)) return true;
+    
+    // Fixed national holidays
+    const md = dateStr.substring(5); // "MM-DD"
+    if (fixedHolidaysMD.includes(md)) return true;
+
+    // Moving religious holidays
+    const year = parseInt(dateStr.substring(0, 4));
+    const religiousDates = getReligiousHolidays(year);
+    if (religiousDates.includes(dateStr)) return true;
+
+    return false;
+}
+
+function parseHolidayDates(publicHolidayDates) {
+    if (!Array.isArray(publicHolidayDates)) return new Set();
+    return new Set(publicHolidayDates.map(d => {
+        if (!d) return '';
+        if (typeof d === 'string') return d.split('T')[0];
+        if (d instanceof Date) {
+            try {
+                return d.toISOString().split('T')[0];
+            } catch (e) {
+                return '';
+            }
+        }
+        if (typeof d === 'object' && d.date) {
+            const dateVal = d.date;
+            if (typeof dateVal === 'string') return dateVal.split('T')[0];
+            if (dateVal instanceof Date) {
+                try {
+                    return dateVal.toISOString().split('T')[0];
+                } catch (e) {
+                    return '';
+                }
+            }
+        }
+        return String(d).split('T')[0];
+    }).filter(Boolean));
+}
+
+export function calculateLeaveDays(startDateStr, endDateStr, offDaysStr = "0", publicHolidayDates = []) {
+    if (!startDateStr || !endDateStr) return 0;
+    
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    if (end < start) return 0;
+    
+    const offDays = (offDaysStr || "0").split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
+    const holidaySet = parseHolidayDates(publicHolidayDates);
+    
+    let workingDaysCount = 0;
+    const current = new Date(start);
+    
+    current.setHours(12, 0, 0, 0);
+    end.setHours(12, 0, 0, 0);
+    
+    while (current <= end) {
+        const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const dateStr = current.toISOString().split('T')[0];
+        
+        const isOffDay = offDays.includes(dayOfWeek);
+        const isPublicHoliday = checkIsHoliday(dateStr, holidaySet);
+        
+        if (!isOffDay && !isPublicHoliday) {
+            workingDaysCount++;
+        }
+        
+        current.setDate(current.getDate() + 1);
+    }
+    
+    return workingDaysCount;
+}
+
+/**
+ * Calculates the end date for a leave based on start date, working days count, weekly off days, and public holidays.
+ * @param {string} startDateStr - YYYY-MM-DD
+ * @param {number} daysCount - Number of working leave days to give
+ * @param {string} offDaysStr - Comma-separated weekly off day indices (0=Sunday, 6=Saturday)
+ * @param {Array<string>} publicHolidayDates - List of holiday dates (YYYY-MM-DD)
+ * @returns {string} - YYYY-MM-DD end date
+ */
+export function calculateLeaveEndDate(startDateStr, daysCount, offDaysStr = "0", publicHolidayDates = []) {
+    if (!startDateStr || daysCount <= 0) return startDateStr || "";
+    
+    const offDays = (offDaysStr || "0").split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
+    const holidaySet = parseHolidayDates(publicHolidayDates);
+    
+    return calculateLeaveEndDateFixed(startDateStr, daysCount, offDays, holidaySet);
+}
+
+function calculateLeaveEndDateFixed(startDateStr, daysCount, offDays, holidaySet) {
+    const start = new Date(startDateStr);
+    let remainingDays = daysCount;
+    const current = new Date(start);
+    current.setHours(12, 0, 0, 0);
+    
+    let workingDaysFound = 0;
+    
+    while (workingDaysFound < remainingDays) {
+        const dayOfWeek = current.getDay();
+        const dateStr = current.toISOString().split('T')[0];
+        
+        const isOffDay = offDays.includes(dayOfWeek);
+        const isPublicHoliday = checkIsHoliday(dateStr, holidaySet);
+        
+        if (!isOffDay && !isPublicHoliday) {
+            workingDaysFound++;
+        }
+        
+        if (workingDaysFound < remainingDays) {
+            current.setDate(current.getDate() + 1);
+        }
+    }
+    
+    return current.toISOString().split('T')[0];
+}
+
+export function checkDateHolidayStatus(dateStr, offDaysStr = "0", publicHolidayDates = []) {
+    if (!dateStr) return null;
+    
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+
+    const dayOfWeek = d.getDay();
+    const dateOnly = d.toISOString().split('T')[0];
+    
+    const offDays = (offDaysStr || "0").split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
+    const holidaySet = parseHolidayDates(publicHolidayDates);
+
+    // 1. Check if it is a weekly rest day
+    if (offDays.includes(dayOfWeek)) {
+        const dayNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+        return { type: 'off-day', label: `Haftalık İzin Günü (${dayNames[dayOfWeek]})` };
+    }
+
+    // 2. Check if it is a public holiday
+    const isHoliday = checkIsHoliday(dateOnly, holidaySet);
+    if (isHoliday) {
+        // Check fixed holiday description
+        const md = dateOnly.substring(5);
+        const fixedDescriptions = {
+            '01-01': 'Yılbaşı',
+            '04-23': 'Ulusal Egemenlik ve Çocuk Bayramı',
+            '05-01': 'Emek ve Dayanışma Günü',
+            '05-19': 'Atatürk\'ü Anma, Gençlik ve Spor Bayramı',
+            '07-15': 'Demokrasi ve Milli Birlik Günü',
+            '08-30': 'Zafer Bayramı',
+            '10-28': 'Cumhuriyet Bayramı Arifesi (Yarım Gün)',
+            '10-29': 'Cumhuriyet Bayramı'
+        };
+        if (fixedDescriptions[md]) return { type: 'holiday', label: `Resmi Tatil (${fixedDescriptions[md]})` };
+
+        // Check moving religious holiday description
+        const year = parseInt(dateOnly.substring(0, 4));
+        const config = religiousHolidaysByYear[year];
+        if (config) {
+            const addDays = (baseDateStr, days) => {
+                const dt = new Date(baseDateStr);
+                dt.setDate(dt.getDate() + days);
+                return dt.toISOString().split('T')[0];
+            };
+            if (dateOnly === addDays(config.ramadan, -1)) return { type: 'holiday', label: 'Ramazan Bayramı Arifesi (Yarım Gün)' };
+            if (dateOnly === config.ramadan) return { type: 'holiday', label: 'Ramazan Bayramı 1. Gün' };
+            if (dateOnly === addDays(config.ramadan, 1)) return { type: 'holiday', label: 'Ramazan Bayramı 2. Gün' };
+            if (dateOnly === addDays(config.ramadan, 2)) return { type: 'holiday', label: 'Ramazan Bayramı 3. Gün' };
+            if (dateOnly === addDays(config.sacrifice, -1)) return { type: 'holiday', label: 'Kurban Bayramı Arifesi (Yarım Gün)' };
+            if (dateOnly === config.sacrifice) return { type: 'holiday', label: 'Kurban Bayramı 1. Gün' };
+            if (dateOnly === addDays(config.sacrifice, 1)) return { type: 'holiday', label: 'Kurban Bayramı 2. Gün' };
+            if (dateOnly === addDays(config.sacrifice, 2)) return { type: 'holiday', label: 'Kurban Bayramı 3. Gün' };
+            if (dateOnly === addDays(config.sacrifice, 3)) return { type: 'holiday', label: 'Kurban Bayramı 4. Gün' };
+        }
+        
+        return { type: 'holiday', label: 'Resmi/Özel Tatil' };
+    }
+
+    return null;
+}
+
+export function getLeaveBreakdown(startDateStr, endDateStr, offDaysStr = "0", publicHolidayDates = []) {
+    if (!startDateStr || !endDateStr) return null;
+    
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    if (end < start) return null;
+    
+    const offDays = (offDaysStr || "0").split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
+    const holidaySet = parseHolidayDates(publicHolidayDates);
+    
+    let workingDaysCount = 0;
+    let offDaysCount = 0;
+    let holidaysCount = 0;
+    
+    const current = new Date(start);
+    current.setHours(12, 0, 0, 0);
+    end.setHours(12, 0, 0, 0);
+    
+    while (current <= end) {
+        const dayOfWeek = current.getDay();
+        const dateStr = current.toISOString().split('T')[0];
+        
+        const isOffDay = offDays.includes(dayOfWeek);
+        const isPublicHoliday = checkIsHoliday(dateStr, holidaySet);
+        
+        if (isOffDay) {
+            offDaysCount++;
+        } else if (isPublicHoliday) {
+            holidaysCount++;
+        } else {
+            workingDaysCount++;
+        }
+        
+        current.setDate(current.getDate() + 1);
+    }
+    
+    return {
+        workingDays: workingDaysCount,
+        offDays: offDaysCount,
+        holidays: holidaysCount,
+        totalDays: workingDaysCount + offDaysCount + holidaysCount
+    };
+}

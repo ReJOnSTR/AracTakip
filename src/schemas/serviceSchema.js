@@ -8,5 +8,6 @@ export const serviceSchema = z.object({
     date: z.string().min(1, 'Tarih zorunludur'),
     km: z.coerce.number().min(0, 'Geçersiz KM').optional(),
     cost: z.coerce.number().min(0, 'Geçersiz tutar').optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    filePath: z.any().optional()
 });

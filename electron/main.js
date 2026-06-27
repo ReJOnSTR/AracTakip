@@ -1346,6 +1346,24 @@ ipcMain.handle('arvento:getHistory', async (event, filters) => {
     return await db.getArventoHistory(filters)
 })
 
+// Public Holidays
+ipcMain.handle('settings:getPublicHolidays', async (event, companyId) => db.getPublicHolidays(companyId))
+ipcMain.handle('settings:createPublicHoliday', async (event, data) => {
+    const result = await db.createPublicHoliday(data)
+    if (result.success) notifyDbUpdate({ table: 'public_holidays', action: 'create' })
+    return result
+})
+ipcMain.handle('settings:updatePublicHoliday', async (event, data) => {
+    const result = await db.updatePublicHoliday(data)
+    if (result.success) notifyDbUpdate({ table: 'public_holidays', action: 'update' })
+    return result
+})
+ipcMain.handle('settings:deletePublicHoliday', async (event, id) => {
+    const result = await db.deletePublicHoliday(id)
+    if (result.success) notifyDbUpdate({ table: 'public_holidays', action: 'delete' })
+    return result
+})
+
 // Personnel Settings
 ipcMain.handle('settings:getDepartments', async (event, companyId) => db.getDepartments(companyId))
 ipcMain.handle('settings:createDepartment', async (event, data) => {

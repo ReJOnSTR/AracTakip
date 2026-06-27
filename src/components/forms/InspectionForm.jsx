@@ -6,6 +6,7 @@ import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import { formatDateForInput } from '../../utils/helpers'
 import { AlertCircle } from 'lucide-react'
+import FileAttachmentInput from '../FileAttachmentInput'
 
 export default function InspectionForm({ initialData, onSubmit, onCancel, vehicles, type = 'traffic', loading, error }) {
     const {
@@ -23,7 +24,8 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
             nextInspection: '',
             result: '',
             cost: '',
-            notes: ''
+            notes: '',
+            filePath: null
         }
     })
 
@@ -37,7 +39,8 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
                 nextInspection: formatDateForInput(initialData.next_inspection || initialData.nextInspection) || '',
                 result: initialData.result || '',
                 cost: initialData.cost || '',
-                notes: initialData.notes || ''
+                notes: initialData.notes || '',
+                filePath: initialData.file_path || initialData.filePath || null
             })
         } else {
             reset({
@@ -46,7 +49,8 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
                 nextInspection: '',
                 result: '',
                 cost: '',
-                notes: ''
+                notes: '',
+                filePath: null
             })
         }
 
@@ -200,6 +204,20 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                        />
+                    )}
+                />
+            </div>
+
+            <div className="form-group">
+                <Controller
+                    name="filePath"
+                    control={control}
+                    render={({ field }) => (
+                        <FileAttachmentInput
+                            label="Muayene Raporu / Belgesi"
+                            value={field.value}
+                            onChange={field.onChange}
                         />
                     )}
                 />

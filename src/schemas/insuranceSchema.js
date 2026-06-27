@@ -8,5 +8,6 @@ export const insuranceSchema = z.object({
     startDate: z.string().min(1, 'Başlangıç tarihi zorunludur'),
     endDate: z.string().min(1, 'Bitiş tarihi zorunludur'),
     premium: z.coerce.number().min(0, 'Geçersiz tutar').optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    filePath: z.any().optional()
 });

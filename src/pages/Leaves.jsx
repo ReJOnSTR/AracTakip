@@ -23,7 +23,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import DataTable from '../components/DataTable';
 import CustomInput from '../components/CustomInput';
 import CustomSelect from '../components/CustomSelect';
-import { formatDate, today, formatDateForInput } from '../utils/helpers';
+import { formatDate, today, formatDateForInput, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers';
 
 export default function Leaves() {
     const { currentCompany } = useCompany();
@@ -50,6 +50,7 @@ export default function Leaves() {
     });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [publicHolidays, setPublicHolidays] = useState([]);
     const [confirmDelete, setConfirmDelete] = useState(null);
 
     const [leaveModalStep, setLeaveModalStep] = useState(1);
@@ -79,14 +80,16 @@ export default function Leaves() {
         if (!currentCompany) return;
         if (!isBackground) setLoading(true);
         try {
-            const [leavesRes, employeesRes, typesRes] = await Promise.all([
+            const [leavesRes, employeesRes, typesRes, holidaysRes] = await Promise.all([
                 window.electronAPI.getLeavesByCompany(currentCompany.id),
                 window.electronAPI.getEmployees(currentCompany.id, 0),
-                window.electronAPI.getLeaveTypes(currentCompany.id)
+                window.electronAPI.getLeaveTypes(currentCompany.id),
+                window.electronAPI.getPublicHolidays(currentCompany.id)
             ]);
             
             if (leavesRes.success) setLeaves(leavesRes.data || []);
             if (employeesRes.success) setEmployees(employeesRes.data || []);
+            if (holidaysRes.success) setPublicHolidays(holidaysRes.data || []);
             if (typesRes.success) {
                 const types = (typesRes.data || []).map(t => ({
                     value: t.name,
@@ -251,7 +254,11 @@ export default function Leaves() {
         setFormData(prev => {
             let newData = { ...prev, [key]: value };
 
-            // Auto-set days based on type (and employee seniority if needed)
+            // Fetch employee and holiday details for calculation
+            const emp = employees.find(e => e.id === parseInt(newData.employeeId || prev.employeeId));
+            const offDaysStr = emp ? emp.off_days : '0';
+            const holidayDates = publicHolidays.map(h => h.date);
+
             if (key === 'type' || (key === 'employeeId' && prev.type)) {
                 const typeToProcess = key === 'type' ? value : prev.type;
                 const empIdToProcess = key === 'employeeId' ? value : prev.employeeId;
@@ -275,30 +282,18 @@ export default function Leaves() {
 
                 newData.days = autoDays;
                 if (newData.startDate) {
-                    const start = new Date(newData.startDate);
-                    start.setDate(start.getDate() + autoDays - 1);
-                    newData.endDate = formatDateForInput(start);
+                    newData.endDate = calculateLeaveEndDate(newData.startDate, autoDays, offDaysStr, holidayDates);
                 }
             }
 
             if (key === 'startDate' && newData.startDate) {
                 const days = parseInt(newData.days) || 1;
-                const start = new Date(newData.startDate);
-                start.setDate(start.getDate() + days - 1);
-                newData.endDate = formatDateForInput(start);
+                newData.endDate = calculateLeaveEndDate(newData.startDate, days, offDaysStr, holidayDates);
             } else if (key === 'days' && newData.startDate) {
                 const days = parseInt(value) || 1;
-                const start = new Date(newData.startDate);
-                start.setDate(start.getDate() + days - 1);
-                newData.endDate = formatDateForInput(start);
+                newData.endDate = calculateLeaveEndDate(newData.startDate, days, offDaysStr, holidayDates);
             } else if (key === 'endDate' && newData.startDate && newData.endDate) {
-                const start = new Date(newData.startDate);
-                const end = new Date(newData.endDate);
-                if (end >= start) {
-                    const diffTime = end - start;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    newData.days = diffDays;
-                }
+                newData.days = calculateLeaveDays(newData.startDate, newData.endDate, offDaysStr, holidayDates);
             }
             return newData;
         });
@@ -994,13 +989,28 @@ export default function Leaves() {
 
                                         {leaveQueue[leaveQueueIndex].leaveUnit === 'hourly' ? (
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                                <CustomInput 
-                                                    label="Tarih *" 
-                                                    type="date" 
-                                                    value={leaveQueue[leaveQueueIndex].startDate} 
-                                                    onChange={(val) => updateLeaveQueueField('startDate', val)} 
-                                                    required 
-                                                />
+                                                <div>
+                                                    <CustomInput 
+                                                        label="Tarih *" 
+                                                        type="date" 
+                                                        value={leaveQueue[leaveQueueIndex].startDate} 
+                                                        onChange={(val) => updateLeaveQueueField('startDate', val)} 
+                                                        required 
+                                                    />
+                                                    {leaveQueue[leaveQueueIndex].startDate && (() => {
+                                                        const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
+                                                        const offDaysStr = emp ? emp.off_days : '0';
+                                                        const holidayDates = publicHolidays.map(h => h.date);
+                                                        const status = checkDateHolidayStatus(leaveQueue[leaveQueueIndex].startDate, offDaysStr, holidayDates);
+                                                        if (!status) return null;
+                                                        return (
+                                                            <div style={{ fontSize: '11px', color: 'var(--warning-primary, #eab308)', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <AlertCircle size={12} />
+                                                                <span>Seçilen Tarih: {status.label}</span>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
                                                 <CustomInput 
                                                     label="Süre (Saat) *" 
                                                     type="number" 
@@ -1014,20 +1024,50 @@ export default function Leaves() {
                                         ) : (
                                             <>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                                                    <CustomInput 
-                                                        label="Başlangıç Tarihi *" 
-                                                        type="date" 
-                                                        value={leaveQueue[leaveQueueIndex].startDate} 
-                                                        onChange={(val) => updateLeaveQueueField('startDate', val)} 
-                                                        required 
-                                                    />
-                                                    <CustomInput 
-                                                        label="Bitiş Tarihi *" 
-                                                        type="date" 
-                                                        value={leaveQueue[leaveQueueIndex].endDate} 
-                                                        onChange={(val) => updateLeaveQueueField('endDate', val)} 
-                                                        required 
-                                                    />
+                                                    <div>
+                                                        <CustomInput 
+                                                            label="Başlangıç Tarihi *" 
+                                                            type="date" 
+                                                            value={leaveQueue[leaveQueueIndex].startDate} 
+                                                            onChange={(val) => updateLeaveQueueField('startDate', val)} 
+                                                            required 
+                                                        />
+                                                        {leaveQueue[leaveQueueIndex].startDate && (() => {
+                                                            const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
+                                                            const offDaysStr = emp ? emp.off_days : '0';
+                                                            const holidayDates = publicHolidays.map(h => h.date);
+                                                            const status = checkDateHolidayStatus(leaveQueue[leaveQueueIndex].startDate, offDaysStr, holidayDates);
+                                                            if (!status) return null;
+                                                            return (
+                                                                <div style={{ fontSize: '11px', color: 'var(--warning-primary, #eab308)', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <AlertCircle size={12} />
+                                                                    <span>{status.label}</span>
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                    <div>
+                                                        <CustomInput 
+                                                            label="Bitiş Tarihi *" 
+                                                            type="date" 
+                                                            value={leaveQueue[leaveQueueIndex].endDate} 
+                                                            onChange={(val) => updateLeaveQueueField('endDate', val)} 
+                                                            required 
+                                                        />
+                                                        {leaveQueue[leaveQueueIndex].endDate && (() => {
+                                                            const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
+                                                            const offDaysStr = emp ? emp.off_days : '0';
+                                                            const holidayDates = publicHolidays.map(h => h.date);
+                                                            const status = checkDateHolidayStatus(leaveQueue[leaveQueueIndex].endDate, offDaysStr, holidayDates);
+                                                            if (!status) return null;
+                                                            return (
+                                                                <div style={{ fontSize: '11px', color: 'var(--warning-primary, #eab308)', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <AlertCircle size={12} />
+                                                                    <span>{status.label}</span>
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
                                                     <CustomInput 
                                                         label="Gün Sayısı *" 
                                                         type="number" 
@@ -1037,6 +1077,40 @@ export default function Leaves() {
                                                         required 
                                                     />
                                                 </div>
+
+                                                {leaveQueue[leaveQueueIndex].startDate && leaveQueue[leaveQueueIndex].endDate && (() => {
+                                                    const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
+                                                    const offDaysStr = emp ? emp.off_days : '0';
+                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const breakdown = getLeaveBreakdown(leaveQueue[leaveQueueIndex].startDate, leaveQueue[leaveQueueIndex].endDate, offDaysStr, holidayDates);
+                                                    if (!breakdown || (breakdown.offDays === 0 && breakdown.holidays === 0)) return null;
+                                                    return (
+                                                        <div style={{
+                                                            marginTop: '12px',
+                                                            padding: '10px 14px',
+                                                            background: 'rgba(59, 130, 246, 0.08)',
+                                                            border: '1px dashed rgba(59, 130, 246, 0.3)',
+                                                            borderRadius: '8px',
+                                                            fontSize: '12px',
+                                                            color: 'var(--text-secondary)',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '4px'
+                                                        }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontSize: '12.5px' }}>
+                                                                <Clock size={14} />
+                                                                <span style={{ fontWeight: 600 }}>İzin Süresi Detayı</span>
+                                                            </div>
+                                                            <div>
+                                                                Toplam <strong>{breakdown.totalDays}</strong> takvim gününden;
+                                                                {breakdown.offDays > 0 && <span> <strong>{breakdown.offDays}</strong> gün haftalık izin</span>}
+                                                                {breakdown.offDays > 0 && breakdown.holidays > 0 && <span> ve</span>}
+                                                                {breakdown.holidays > 0 && <span> <strong>{breakdown.holidays}</strong> gün resmi tatil</span>} düşülmüştür.
+                                                                Maaştan kesilecek net izin süresi: <strong>{breakdown.workingDays} gün</strong>.
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </>
                                         )}
                                             <div style={{

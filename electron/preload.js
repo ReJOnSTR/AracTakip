@@ -123,6 +123,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
     selectFolder: () => ipcRenderer.invoke('settings:selectFolder'),
 
+    // Public Holidays
+    getPublicHolidays: (companyId) => ipcRenderer.invoke('settings:getPublicHolidays', companyId),
+    createPublicHoliday: (data) => ipcRenderer.invoke('settings:createPublicHoliday', data),
+    updatePublicHoliday: (data) => ipcRenderer.invoke('settings:updatePublicHoliday', data),
+    deletePublicHoliday: (id) => ipcRenderer.invoke('settings:deletePublicHoliday', id),
+
     // Personnel Settings
     getDepartments: (companyId) => ipcRenderer.invoke('settings:getDepartments', companyId),
     createDepartment: (data) => ipcRenderer.invoke('settings:createDepartment', data),

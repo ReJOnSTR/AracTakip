@@ -178,6 +178,11 @@ export type vehicle_types = $Result.DefaultSelection<Prisma.$vehicle_typesPayloa
  * 
  */
 export type arvento_history = $Result.DefaultSelection<Prisma.$arvento_historyPayload>
+/**
+ * Model public_holidays
+ * 
+ */
+export type public_holidays = $Result.DefaultSelection<Prisma.$public_holidaysPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -629,6 +634,16 @@ export class PrismaClient<
     * ```
     */
   get arvento_history(): Prisma.arvento_historyDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.public_holidays`: Exposes CRUD operations for the **public_holidays** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Public_holidays
+    * const public_holidays = await prisma.public_holidays.findMany()
+    * ```
+    */
+  get public_holidays(): Prisma.public_holidaysDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1095,7 +1110,8 @@ export namespace Prisma {
     document_categories: 'document_categories',
     document_folders: 'document_folders',
     vehicle_types: 'vehicle_types',
-    arvento_history: 'arvento_history'
+    arvento_history: 'arvento_history',
+    public_holidays: 'public_holidays'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1111,7 +1127,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "arvento_history"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "arvento_history" | "public_holidays"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3557,6 +3573,80 @@ export namespace Prisma {
           }
         }
       }
+      public_holidays: {
+        payload: Prisma.$public_holidaysPayload<ExtArgs>
+        fields: Prisma.public_holidaysFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.public_holidaysFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.public_holidaysFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>
+          }
+          findFirst: {
+            args: Prisma.public_holidaysFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.public_holidaysFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>
+          }
+          findMany: {
+            args: Prisma.public_holidaysFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>[]
+          }
+          create: {
+            args: Prisma.public_holidaysCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>
+          }
+          createMany: {
+            args: Prisma.public_holidaysCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.public_holidaysCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>[]
+          }
+          delete: {
+            args: Prisma.public_holidaysDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>
+          }
+          update: {
+            args: Prisma.public_holidaysUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>
+          }
+          deleteMany: {
+            args: Prisma.public_holidaysDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.public_holidaysUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.public_holidaysUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>[]
+          }
+          upsert: {
+            args: Prisma.public_holidaysUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$public_holidaysPayload>
+          }
+          aggregate: {
+            args: Prisma.Public_holidaysAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePublic_holidays>
+          }
+          groupBy: {
+            args: Prisma.public_holidaysGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Public_holidaysGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.public_holidaysCountArgs<ExtArgs>
+            result: $Utils.Optional<Public_holidaysCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3698,6 +3788,7 @@ export namespace Prisma {
     document_folders?: document_foldersOmit
     vehicle_types?: vehicle_typesOmit
     arvento_history?: arvento_historyOmit
+    public_holidays?: public_holidaysOmit
   }
 
   /* Types for Logging */
@@ -3791,6 +3882,7 @@ export namespace Prisma {
     vehicle_types: number
     document_folders: number
     meal_price_history: number
+    public_holidays: number
   }
 
   export type CompaniesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3807,6 +3899,7 @@ export namespace Prisma {
     vehicle_types?: boolean | CompaniesCountOutputTypeCountVehicle_typesArgs
     document_folders?: boolean | CompaniesCountOutputTypeCountDocument_foldersArgs
     meal_price_history?: boolean | CompaniesCountOutputTypeCountMeal_price_historyArgs
+    public_holidays?: boolean | CompaniesCountOutputTypeCountPublic_holidaysArgs
   }
 
   // Custom InputTypes
@@ -3909,6 +4002,13 @@ export namespace Prisma {
    */
   export type CompaniesCountOutputTypeCountMeal_price_historyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: meal_price_historyWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountPublic_holidaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: public_holidaysWhereInput
   }
 
 
@@ -5679,6 +5779,7 @@ export namespace Prisma {
     vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
     document_folders?: boolean | companies$document_foldersArgs<ExtArgs>
     meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
+    public_holidays?: boolean | companies$public_holidaysArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
 
@@ -5743,6 +5844,7 @@ export namespace Prisma {
     vehicle_types?: boolean | companies$vehicle_typesArgs<ExtArgs>
     document_folders?: boolean | companies$document_foldersArgs<ExtArgs>
     meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
+    public_holidays?: boolean | companies$public_holidaysArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type companiesIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5770,6 +5872,7 @@ export namespace Prisma {
       vehicle_types: Prisma.$vehicle_typesPayload<ExtArgs>[]
       document_folders: Prisma.$document_foldersPayload<ExtArgs>[]
       meal_price_history: Prisma.$meal_price_historyPayload<ExtArgs>[]
+      public_holidays: Prisma.$public_holidaysPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -6192,6 +6295,7 @@ export namespace Prisma {
     vehicle_types<T extends companies$vehicle_typesArgs<ExtArgs> = {}>(args?: Subset<T, companies$vehicle_typesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$vehicle_typesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     document_folders<T extends companies$document_foldersArgs<ExtArgs> = {}>(args?: Subset<T, companies$document_foldersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$document_foldersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     meal_price_history<T extends companies$meal_price_historyArgs<ExtArgs> = {}>(args?: Subset<T, companies$meal_price_historyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    public_holidays<T extends companies$public_holidaysArgs<ExtArgs> = {}>(args?: Subset<T, companies$public_holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6954,6 +7058,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Meal_price_historyScalarFieldEnum | Meal_price_historyScalarFieldEnum[]
+  }
+
+  /**
+   * companies.public_holidays
+   */
+  export type companies$public_holidaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    where?: public_holidaysWhereInput
+    orderBy?: public_holidaysOrderByWithRelationInput | public_holidaysOrderByWithRelationInput[]
+    cursor?: public_holidaysWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Public_holidaysScalarFieldEnum | Public_holidaysScalarFieldEnum[]
   }
 
   /**
@@ -15242,6 +15370,7 @@ export namespace Prisma {
     devir_maas_bakiyesi: number | null
     devir_tarihi: Date | null
     iban: string | null
+    off_days: string | null
   }
 
   export type EmployeesMaxAggregateOutputType = {
@@ -15268,6 +15397,7 @@ export namespace Prisma {
     devir_maas_bakiyesi: number | null
     devir_tarihi: Date | null
     iban: string | null
+    off_days: string | null
   }
 
   export type EmployeesCountAggregateOutputType = {
@@ -15294,6 +15424,7 @@ export namespace Prisma {
     devir_maas_bakiyesi: number
     devir_tarihi: number
     iban: number
+    off_days: number
     _all: number
   }
 
@@ -15342,6 +15473,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: true
     devir_tarihi?: true
     iban?: true
+    off_days?: true
   }
 
   export type EmployeesMaxAggregateInputType = {
@@ -15368,6 +15500,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: true
     devir_tarihi?: true
     iban?: true
+    off_days?: true
   }
 
   export type EmployeesCountAggregateInputType = {
@@ -15394,6 +15527,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: true
     devir_tarihi?: true
     iban?: true
+    off_days?: true
     _all?: true
   }
 
@@ -15507,6 +15641,7 @@ export namespace Prisma {
     devir_maas_bakiyesi: number | null
     devir_tarihi: Date | null
     iban: string | null
+    off_days: string | null
     _count: EmployeesCountAggregateOutputType | null
     _avg: EmployeesAvgAggregateOutputType | null
     _sum: EmployeesSumAggregateOutputType | null
@@ -15552,6 +15687,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: boolean
     devir_tarihi?: boolean
     iban?: boolean
+    off_days?: boolean
     employee_assignments?: boolean | employees$employee_assignmentsArgs<ExtArgs>
     employee_attendance?: boolean | employees$employee_attendanceArgs<ExtArgs>
     employee_documents?: boolean | employees$employee_documentsArgs<ExtArgs>
@@ -15590,6 +15726,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: boolean
     devir_tarihi?: boolean
     iban?: boolean
+    off_days?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employees"]>
 
@@ -15617,6 +15754,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: boolean
     devir_tarihi?: boolean
     iban?: boolean
+    off_days?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["employees"]>
 
@@ -15644,9 +15782,10 @@ export namespace Prisma {
     devir_maas_bakiyesi?: boolean
     devir_tarihi?: boolean
     iban?: boolean
+    off_days?: boolean
   }
 
-  export type employeesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "first_name" | "last_name" | "tc_no" | "phone" | "email" | "position" | "department" | "start_date" | "end_date" | "salary" | "status" | "notes" | "image" | "is_archived" | "created_at" | "past_used_leaves" | "birth_date" | "devir_izin_bakiyesi" | "devir_maas_bakiyesi" | "devir_tarihi" | "iban", ExtArgs["result"]["employees"]>
+  export type employeesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "first_name" | "last_name" | "tc_no" | "phone" | "email" | "position" | "department" | "start_date" | "end_date" | "salary" | "status" | "notes" | "image" | "is_archived" | "created_at" | "past_used_leaves" | "birth_date" | "devir_izin_bakiyesi" | "devir_maas_bakiyesi" | "devir_tarihi" | "iban" | "off_days", ExtArgs["result"]["employees"]>
   export type employeesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee_assignments?: boolean | employees$employee_assignmentsArgs<ExtArgs>
     employee_attendance?: boolean | employees$employee_attendanceArgs<ExtArgs>
@@ -15707,6 +15846,7 @@ export namespace Prisma {
       devir_maas_bakiyesi: number | null
       devir_tarihi: Date | null
       iban: string | null
+      off_days: string | null
     }, ExtArgs["result"]["employees"]>
     composites: {}
   }
@@ -16164,6 +16304,7 @@ export namespace Prisma {
     readonly devir_maas_bakiyesi: FieldRef<"employees", 'Float'>
     readonly devir_tarihi: FieldRef<"employees", 'DateTime'>
     readonly iban: FieldRef<"employees", 'String'>
+    readonly off_days: FieldRef<"employees", 'String'>
   }
     
 
@@ -43832,6 +43973,1100 @@ export namespace Prisma {
 
 
   /**
+   * Model public_holidays
+   */
+
+  export type AggregatePublic_holidays = {
+    _count: Public_holidaysCountAggregateOutputType | null
+    _avg: Public_holidaysAvgAggregateOutputType | null
+    _sum: Public_holidaysSumAggregateOutputType | null
+    _min: Public_holidaysMinAggregateOutputType | null
+    _max: Public_holidaysMaxAggregateOutputType | null
+  }
+
+  export type Public_holidaysAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Public_holidaysSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+  }
+
+  export type Public_holidaysMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    date: Date | null
+    description: string | null
+    created_at: Date | null
+  }
+
+  export type Public_holidaysMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    date: Date | null
+    description: string | null
+    created_at: Date | null
+  }
+
+  export type Public_holidaysCountAggregateOutputType = {
+    id: number
+    company_id: number
+    date: number
+    description: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Public_holidaysAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Public_holidaysSumAggregateInputType = {
+    id?: true
+    company_id?: true
+  }
+
+  export type Public_holidaysMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    date?: true
+    description?: true
+    created_at?: true
+  }
+
+  export type Public_holidaysMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    date?: true
+    description?: true
+    created_at?: true
+  }
+
+  export type Public_holidaysCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    date?: true
+    description?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Public_holidaysAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which public_holidays to aggregate.
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of public_holidays to fetch.
+     */
+    orderBy?: public_holidaysOrderByWithRelationInput | public_holidaysOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: public_holidaysWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` public_holidays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` public_holidays.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned public_holidays
+    **/
+    _count?: true | Public_holidaysCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Public_holidaysAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Public_holidaysSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Public_holidaysMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Public_holidaysMaxAggregateInputType
+  }
+
+  export type GetPublic_holidaysAggregateType<T extends Public_holidaysAggregateArgs> = {
+        [P in keyof T & keyof AggregatePublic_holidays]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePublic_holidays[P]>
+      : GetScalarType<T[P], AggregatePublic_holidays[P]>
+  }
+
+
+
+
+  export type public_holidaysGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: public_holidaysWhereInput
+    orderBy?: public_holidaysOrderByWithAggregationInput | public_holidaysOrderByWithAggregationInput[]
+    by: Public_holidaysScalarFieldEnum[] | Public_holidaysScalarFieldEnum
+    having?: public_holidaysScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Public_holidaysCountAggregateInputType | true
+    _avg?: Public_holidaysAvgAggregateInputType
+    _sum?: Public_holidaysSumAggregateInputType
+    _min?: Public_holidaysMinAggregateInputType
+    _max?: Public_holidaysMaxAggregateInputType
+  }
+
+  export type Public_holidaysGroupByOutputType = {
+    id: number
+    company_id: number
+    date: Date
+    description: string | null
+    created_at: Date | null
+    _count: Public_holidaysCountAggregateOutputType | null
+    _avg: Public_holidaysAvgAggregateOutputType | null
+    _sum: Public_holidaysSumAggregateOutputType | null
+    _min: Public_holidaysMinAggregateOutputType | null
+    _max: Public_holidaysMaxAggregateOutputType | null
+  }
+
+  type GetPublic_holidaysGroupByPayload<T extends public_holidaysGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Public_holidaysGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Public_holidaysGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Public_holidaysGroupByOutputType[P]>
+            : GetScalarType<T[P], Public_holidaysGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type public_holidaysSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    date?: boolean
+    description?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["public_holidays"]>
+
+  export type public_holidaysSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    date?: boolean
+    description?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["public_holidays"]>
+
+  export type public_holidaysSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    date?: boolean
+    description?: boolean
+    created_at?: boolean
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["public_holidays"]>
+
+  export type public_holidaysSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    date?: boolean
+    description?: boolean
+    created_at?: boolean
+  }
+
+  export type public_holidaysOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "description" | "created_at", ExtArgs["result"]["public_holidays"]>
+  export type public_holidaysInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type public_holidaysIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+  export type public_holidaysIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | companiesDefaultArgs<ExtArgs>
+  }
+
+  export type $public_holidaysPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "public_holidays"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number
+      date: Date
+      description: string | null
+      created_at: Date | null
+    }, ExtArgs["result"]["public_holidays"]>
+    composites: {}
+  }
+
+  type public_holidaysGetPayload<S extends boolean | null | undefined | public_holidaysDefaultArgs> = $Result.GetResult<Prisma.$public_holidaysPayload, S>
+
+  type public_holidaysCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<public_holidaysFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Public_holidaysCountAggregateInputType | true
+    }
+
+  export interface public_holidaysDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['public_holidays'], meta: { name: 'public_holidays' } }
+    /**
+     * Find zero or one Public_holidays that matches the filter.
+     * @param {public_holidaysFindUniqueArgs} args - Arguments to find a Public_holidays
+     * @example
+     * // Get one Public_holidays
+     * const public_holidays = await prisma.public_holidays.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends public_holidaysFindUniqueArgs>(args: SelectSubset<T, public_holidaysFindUniqueArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Public_holidays that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {public_holidaysFindUniqueOrThrowArgs} args - Arguments to find a Public_holidays
+     * @example
+     * // Get one Public_holidays
+     * const public_holidays = await prisma.public_holidays.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends public_holidaysFindUniqueOrThrowArgs>(args: SelectSubset<T, public_holidaysFindUniqueOrThrowArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Public_holidays that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {public_holidaysFindFirstArgs} args - Arguments to find a Public_holidays
+     * @example
+     * // Get one Public_holidays
+     * const public_holidays = await prisma.public_holidays.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends public_holidaysFindFirstArgs>(args?: SelectSubset<T, public_holidaysFindFirstArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Public_holidays that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {public_holidaysFindFirstOrThrowArgs} args - Arguments to find a Public_holidays
+     * @example
+     * // Get one Public_holidays
+     * const public_holidays = await prisma.public_holidays.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends public_holidaysFindFirstOrThrowArgs>(args?: SelectSubset<T, public_holidaysFindFirstOrThrowArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Public_holidays that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {public_holidaysFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Public_holidays
+     * const public_holidays = await prisma.public_holidays.findMany()
+     * 
+     * // Get first 10 Public_holidays
+     * const public_holidays = await prisma.public_holidays.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const public_holidaysWithIdOnly = await prisma.public_holidays.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends public_holidaysFindManyArgs>(args?: SelectSubset<T, public_holidaysFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Public_holidays.
+     * @param {public_holidaysCreateArgs} args - Arguments to create a Public_holidays.
+     * @example
+     * // Create one Public_holidays
+     * const Public_holidays = await prisma.public_holidays.create({
+     *   data: {
+     *     // ... data to create a Public_holidays
+     *   }
+     * })
+     * 
+     */
+    create<T extends public_holidaysCreateArgs>(args: SelectSubset<T, public_holidaysCreateArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Public_holidays.
+     * @param {public_holidaysCreateManyArgs} args - Arguments to create many Public_holidays.
+     * @example
+     * // Create many Public_holidays
+     * const public_holidays = await prisma.public_holidays.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends public_holidaysCreateManyArgs>(args?: SelectSubset<T, public_holidaysCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Public_holidays and returns the data saved in the database.
+     * @param {public_holidaysCreateManyAndReturnArgs} args - Arguments to create many Public_holidays.
+     * @example
+     * // Create many Public_holidays
+     * const public_holidays = await prisma.public_holidays.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Public_holidays and only return the `id`
+     * const public_holidaysWithIdOnly = await prisma.public_holidays.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends public_holidaysCreateManyAndReturnArgs>(args?: SelectSubset<T, public_holidaysCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Public_holidays.
+     * @param {public_holidaysDeleteArgs} args - Arguments to delete one Public_holidays.
+     * @example
+     * // Delete one Public_holidays
+     * const Public_holidays = await prisma.public_holidays.delete({
+     *   where: {
+     *     // ... filter to delete one Public_holidays
+     *   }
+     * })
+     * 
+     */
+    delete<T extends public_holidaysDeleteArgs>(args: SelectSubset<T, public_holidaysDeleteArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Public_holidays.
+     * @param {public_holidaysUpdateArgs} args - Arguments to update one Public_holidays.
+     * @example
+     * // Update one Public_holidays
+     * const public_holidays = await prisma.public_holidays.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends public_holidaysUpdateArgs>(args: SelectSubset<T, public_holidaysUpdateArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Public_holidays.
+     * @param {public_holidaysDeleteManyArgs} args - Arguments to filter Public_holidays to delete.
+     * @example
+     * // Delete a few Public_holidays
+     * const { count } = await prisma.public_holidays.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends public_holidaysDeleteManyArgs>(args?: SelectSubset<T, public_holidaysDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Public_holidays.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {public_holidaysUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Public_holidays
+     * const public_holidays = await prisma.public_holidays.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends public_holidaysUpdateManyArgs>(args: SelectSubset<T, public_holidaysUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Public_holidays and returns the data updated in the database.
+     * @param {public_holidaysUpdateManyAndReturnArgs} args - Arguments to update many Public_holidays.
+     * @example
+     * // Update many Public_holidays
+     * const public_holidays = await prisma.public_holidays.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Public_holidays and only return the `id`
+     * const public_holidaysWithIdOnly = await prisma.public_holidays.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends public_holidaysUpdateManyAndReturnArgs>(args: SelectSubset<T, public_holidaysUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Public_holidays.
+     * @param {public_holidaysUpsertArgs} args - Arguments to update or create a Public_holidays.
+     * @example
+     * // Update or create a Public_holidays
+     * const public_holidays = await prisma.public_holidays.upsert({
+     *   create: {
+     *     // ... data to create a Public_holidays
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Public_holidays we want to update
+     *   }
+     * })
+     */
+    upsert<T extends public_holidaysUpsertArgs>(args: SelectSubset<T, public_holidaysUpsertArgs<ExtArgs>>): Prisma__public_holidaysClient<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Public_holidays.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {public_holidaysCountArgs} args - Arguments to filter Public_holidays to count.
+     * @example
+     * // Count the number of Public_holidays
+     * const count = await prisma.public_holidays.count({
+     *   where: {
+     *     // ... the filter for the Public_holidays we want to count
+     *   }
+     * })
+    **/
+    count<T extends public_holidaysCountArgs>(
+      args?: Subset<T, public_holidaysCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Public_holidaysCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Public_holidays.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Public_holidaysAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Public_holidaysAggregateArgs>(args: Subset<T, Public_holidaysAggregateArgs>): Prisma.PrismaPromise<GetPublic_holidaysAggregateType<T>>
+
+    /**
+     * Group by Public_holidays.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {public_holidaysGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends public_holidaysGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: public_holidaysGroupByArgs['orderBy'] }
+        : { orderBy?: public_holidaysGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, public_holidaysGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPublic_holidaysGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the public_holidays model
+   */
+  readonly fields: public_holidaysFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for public_holidays.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__public_holidaysClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends companiesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, companiesDefaultArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the public_holidays model
+   */
+  interface public_holidaysFieldRefs {
+    readonly id: FieldRef<"public_holidays", 'Int'>
+    readonly company_id: FieldRef<"public_holidays", 'Int'>
+    readonly date: FieldRef<"public_holidays", 'DateTime'>
+    readonly description: FieldRef<"public_holidays", 'String'>
+    readonly created_at: FieldRef<"public_holidays", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * public_holidays findUnique
+   */
+  export type public_holidaysFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * Filter, which public_holidays to fetch.
+     */
+    where: public_holidaysWhereUniqueInput
+  }
+
+  /**
+   * public_holidays findUniqueOrThrow
+   */
+  export type public_holidaysFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * Filter, which public_holidays to fetch.
+     */
+    where: public_holidaysWhereUniqueInput
+  }
+
+  /**
+   * public_holidays findFirst
+   */
+  export type public_holidaysFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * Filter, which public_holidays to fetch.
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of public_holidays to fetch.
+     */
+    orderBy?: public_holidaysOrderByWithRelationInput | public_holidaysOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for public_holidays.
+     */
+    cursor?: public_holidaysWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` public_holidays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` public_holidays.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of public_holidays.
+     */
+    distinct?: Public_holidaysScalarFieldEnum | Public_holidaysScalarFieldEnum[]
+  }
+
+  /**
+   * public_holidays findFirstOrThrow
+   */
+  export type public_holidaysFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * Filter, which public_holidays to fetch.
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of public_holidays to fetch.
+     */
+    orderBy?: public_holidaysOrderByWithRelationInput | public_holidaysOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for public_holidays.
+     */
+    cursor?: public_holidaysWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` public_holidays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` public_holidays.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of public_holidays.
+     */
+    distinct?: Public_holidaysScalarFieldEnum | Public_holidaysScalarFieldEnum[]
+  }
+
+  /**
+   * public_holidays findMany
+   */
+  export type public_holidaysFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * Filter, which public_holidays to fetch.
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of public_holidays to fetch.
+     */
+    orderBy?: public_holidaysOrderByWithRelationInput | public_holidaysOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing public_holidays.
+     */
+    cursor?: public_holidaysWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` public_holidays from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` public_holidays.
+     */
+    skip?: number
+    distinct?: Public_holidaysScalarFieldEnum | Public_holidaysScalarFieldEnum[]
+  }
+
+  /**
+   * public_holidays create
+   */
+  export type public_holidaysCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * The data needed to create a public_holidays.
+     */
+    data: XOR<public_holidaysCreateInput, public_holidaysUncheckedCreateInput>
+  }
+
+  /**
+   * public_holidays createMany
+   */
+  export type public_holidaysCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many public_holidays.
+     */
+    data: public_holidaysCreateManyInput | public_holidaysCreateManyInput[]
+  }
+
+  /**
+   * public_holidays createManyAndReturn
+   */
+  export type public_holidaysCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * The data used to create many public_holidays.
+     */
+    data: public_holidaysCreateManyInput | public_holidaysCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * public_holidays update
+   */
+  export type public_holidaysUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * The data needed to update a public_holidays.
+     */
+    data: XOR<public_holidaysUpdateInput, public_holidaysUncheckedUpdateInput>
+    /**
+     * Choose, which public_holidays to update.
+     */
+    where: public_holidaysWhereUniqueInput
+  }
+
+  /**
+   * public_holidays updateMany
+   */
+  export type public_holidaysUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update public_holidays.
+     */
+    data: XOR<public_holidaysUpdateManyMutationInput, public_holidaysUncheckedUpdateManyInput>
+    /**
+     * Filter which public_holidays to update
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * Limit how many public_holidays to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * public_holidays updateManyAndReturn
+   */
+  export type public_holidaysUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * The data used to update public_holidays.
+     */
+    data: XOR<public_holidaysUpdateManyMutationInput, public_holidaysUncheckedUpdateManyInput>
+    /**
+     * Filter which public_holidays to update
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * Limit how many public_holidays to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * public_holidays upsert
+   */
+  export type public_holidaysUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * The filter to search for the public_holidays to update in case it exists.
+     */
+    where: public_holidaysWhereUniqueInput
+    /**
+     * In case the public_holidays found by the `where` argument doesn't exist, create a new public_holidays with this data.
+     */
+    create: XOR<public_holidaysCreateInput, public_holidaysUncheckedCreateInput>
+    /**
+     * In case the public_holidays was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<public_holidaysUpdateInput, public_holidaysUncheckedUpdateInput>
+  }
+
+  /**
+   * public_holidays delete
+   */
+  export type public_holidaysDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+    /**
+     * Filter which public_holidays to delete.
+     */
+    where: public_holidaysWhereUniqueInput
+  }
+
+  /**
+   * public_holidays deleteMany
+   */
+  export type public_holidaysDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which public_holidays to delete
+     */
+    where?: public_holidaysWhereInput
+    /**
+     * Limit how many public_holidays to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * public_holidays without action
+   */
+  export type public_holidaysDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the public_holidays
+     */
+    select?: public_holidaysSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the public_holidays
+     */
+    omit?: public_holidaysOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: public_holidaysInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -44012,7 +45247,8 @@ export namespace Prisma {
     devir_izin_bakiyesi: 'devir_izin_bakiyesi',
     devir_maas_bakiyesi: 'devir_maas_bakiyesi',
     devir_tarihi: 'devir_tarihi',
-    iban: 'iban'
+    iban: 'iban',
+    off_days: 'off_days'
   };
 
   export type EmployeesScalarFieldEnum = (typeof EmployeesScalarFieldEnum)[keyof typeof EmployeesScalarFieldEnum]
@@ -44375,6 +45611,17 @@ export namespace Prisma {
   export type Arvento_historyScalarFieldEnum = (typeof Arvento_historyScalarFieldEnum)[keyof typeof Arvento_historyScalarFieldEnum]
 
 
+  export const Public_holidaysScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    date: 'date',
+    description: 'description',
+    created_at: 'created_at'
+  };
+
+  export type Public_holidaysScalarFieldEnum = (typeof Public_holidaysScalarFieldEnum)[keyof typeof Public_holidaysScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -44544,6 +45791,7 @@ export namespace Prisma {
     vehicle_types?: Vehicle_typesListRelationFilter
     document_folders?: Document_foldersListRelationFilter
     meal_price_history?: Meal_price_historyListRelationFilter
+    public_holidays?: Public_holidaysListRelationFilter
   }
 
   export type companiesOrderByWithRelationInput = {
@@ -44573,6 +45821,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesOrderByRelationAggregateInput
     document_folders?: document_foldersOrderByRelationAggregateInput
     meal_price_history?: meal_price_historyOrderByRelationAggregateInput
+    public_holidays?: public_holidaysOrderByRelationAggregateInput
   }
 
   export type companiesWhereUniqueInput = Prisma.AtLeast<{
@@ -44605,6 +45854,7 @@ export namespace Prisma {
     vehicle_types?: Vehicle_typesListRelationFilter
     document_folders?: Document_foldersListRelationFilter
     meal_price_history?: Meal_price_historyListRelationFilter
+    public_holidays?: Public_holidaysListRelationFilter
   }, "id">
 
   export type companiesOrderByWithAggregationInput = {
@@ -45253,6 +46503,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: FloatNullableFilter<"employees"> | number | null
     devir_tarihi?: DateTimeNullableFilter<"employees"> | Date | string | null
     iban?: StringNullableFilter<"employees"> | string | null
+    off_days?: StringNullableFilter<"employees"> | string | null
     employee_assignments?: Employee_assignmentsListRelationFilter
     employee_attendance?: Employee_attendanceListRelationFilter
     employee_documents?: Employee_documentsListRelationFilter
@@ -45290,6 +46541,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: SortOrderInput | SortOrder
     devir_tarihi?: SortOrderInput | SortOrder
     iban?: SortOrderInput | SortOrder
+    off_days?: SortOrderInput | SortOrder
     employee_assignments?: employee_assignmentsOrderByRelationAggregateInput
     employee_attendance?: employee_attendanceOrderByRelationAggregateInput
     employee_documents?: employee_documentsOrderByRelationAggregateInput
@@ -45330,6 +46582,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: FloatNullableFilter<"employees"> | number | null
     devir_tarihi?: DateTimeNullableFilter<"employees"> | Date | string | null
     iban?: StringNullableFilter<"employees"> | string | null
+    off_days?: StringNullableFilter<"employees"> | string | null
     employee_assignments?: Employee_assignmentsListRelationFilter
     employee_attendance?: Employee_attendanceListRelationFilter
     employee_documents?: Employee_documentsListRelationFilter
@@ -45367,6 +46620,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: SortOrderInput | SortOrder
     devir_tarihi?: SortOrderInput | SortOrder
     iban?: SortOrderInput | SortOrder
+    off_days?: SortOrderInput | SortOrder
     _count?: employeesCountOrderByAggregateInput
     _avg?: employeesAvgOrderByAggregateInput
     _max?: employeesMaxOrderByAggregateInput
@@ -45401,6 +46655,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: FloatNullableWithAggregatesFilter<"employees"> | number | null
     devir_tarihi?: DateTimeNullableWithAggregatesFilter<"employees"> | Date | string | null
     iban?: StringNullableWithAggregatesFilter<"employees"> | string | null
+    off_days?: StringNullableWithAggregatesFilter<"employees"> | string | null
   }
 
   export type inspectionsWhereInput = {
@@ -47270,6 +48525,63 @@ export namespace Prisma {
     created_at?: DateTimeWithAggregatesFilter<"arvento_history"> | Date | string
   }
 
+  export type public_holidaysWhereInput = {
+    AND?: public_holidaysWhereInput | public_holidaysWhereInput[]
+    OR?: public_holidaysWhereInput[]
+    NOT?: public_holidaysWhereInput | public_holidaysWhereInput[]
+    id?: IntFilter<"public_holidays"> | number
+    company_id?: IntFilter<"public_holidays"> | number
+    date?: DateTimeFilter<"public_holidays"> | Date | string
+    description?: StringNullableFilter<"public_holidays"> | string | null
+    created_at?: DateTimeNullableFilter<"public_holidays"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }
+
+  export type public_holidaysOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    date?: SortOrder
+    description?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type public_holidaysWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: public_holidaysWhereInput | public_holidaysWhereInput[]
+    OR?: public_holidaysWhereInput[]
+    NOT?: public_holidaysWhereInput | public_holidaysWhereInput[]
+    company_id?: IntFilter<"public_holidays"> | number
+    date?: DateTimeFilter<"public_holidays"> | Date | string
+    description?: StringNullableFilter<"public_holidays"> | string | null
+    created_at?: DateTimeNullableFilter<"public_holidays"> | Date | string | null
+    companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
+  }, "id">
+
+  export type public_holidaysOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    date?: SortOrder
+    description?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: public_holidaysCountOrderByAggregateInput
+    _avg?: public_holidaysAvgOrderByAggregateInput
+    _max?: public_holidaysMaxOrderByAggregateInput
+    _min?: public_holidaysMinOrderByAggregateInput
+    _sum?: public_holidaysSumOrderByAggregateInput
+  }
+
+  export type public_holidaysScalarWhereWithAggregatesInput = {
+    AND?: public_holidaysScalarWhereWithAggregatesInput | public_holidaysScalarWhereWithAggregatesInput[]
+    OR?: public_holidaysScalarWhereWithAggregatesInput[]
+    NOT?: public_holidaysScalarWhereWithAggregatesInput | public_holidaysScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"public_holidays"> | number
+    company_id?: IntWithAggregatesFilter<"public_holidays"> | number
+    date?: DateTimeWithAggregatesFilter<"public_holidays"> | Date | string
+    description?: StringNullableWithAggregatesFilter<"public_holidays"> | string | null
+    created_at?: DateTimeNullableWithAggregatesFilter<"public_holidays"> | Date | string | null
+  }
+
   export type assignmentsCreateInput = {
     item_name: string
     quantity?: number | null
@@ -47389,6 +48701,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateInput = {
@@ -47417,6 +48730,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUpdateInput = {
@@ -47444,6 +48758,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateInput = {
@@ -47472,6 +48787,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateManyInput = {
@@ -48156,6 +49472,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -48193,6 +49510,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -48227,6 +49545,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -48264,6 +49583,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -48300,6 +49620,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
   }
 
   export type employeesUpdateManyMutationInput = {
@@ -48324,6 +49645,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type employeesUncheckedUpdateManyInput = {
@@ -48350,6 +49672,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type inspectionsCreateInput = {
@@ -50314,6 +51637,58 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type public_holidaysCreateInput = {
+    date: Date | string
+    description?: string | null
+    created_at?: Date | string | null
+    companies: companiesCreateNestedOneWithoutPublic_holidaysInput
+  }
+
+  export type public_holidaysUncheckedCreateInput = {
+    id?: number
+    company_id: number
+    date: Date | string
+    description?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type public_holidaysUpdateInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneRequiredWithoutPublic_holidaysNestedInput
+  }
+
+  export type public_holidaysUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type public_holidaysCreateManyInput = {
+    id?: number
+    company_id: number
+    date: Date | string
+    description?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type public_holidaysUpdateManyMutationInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type public_holidaysUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -50634,6 +52009,12 @@ export namespace Prisma {
     none?: meal_price_historyWhereInput
   }
 
+  export type Public_holidaysListRelationFilter = {
+    every?: public_holidaysWhereInput
+    some?: public_holidaysWhereInput
+    none?: public_holidaysWhereInput
+  }
+
   export type employeesOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -50683,6 +52064,10 @@ export namespace Prisma {
   }
 
   export type meal_price_historyOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type public_holidaysOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -51258,6 +52643,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: SortOrder
     devir_tarihi?: SortOrder
     iban?: SortOrder
+    off_days?: SortOrder
   }
 
   export type employeesAvgOrderByAggregateInput = {
@@ -51294,6 +52680,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: SortOrder
     devir_tarihi?: SortOrder
     iban?: SortOrder
+    off_days?: SortOrder
   }
 
   export type employeesMinOrderByAggregateInput = {
@@ -51320,6 +52707,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: SortOrder
     devir_tarihi?: SortOrder
     iban?: SortOrder
+    off_days?: SortOrder
   }
 
   export type employeesSumOrderByAggregateInput = {
@@ -52655,6 +54043,40 @@ export namespace Prisma {
     heading?: SortOrder
   }
 
+  export type public_holidaysCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    date?: SortOrder
+    description?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type public_holidaysAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
+  export type public_holidaysMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    date?: SortOrder
+    description?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type public_holidaysMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    date?: SortOrder
+    description?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type public_holidaysSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+  }
+
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {
     create?: XOR<vehiclesCreateWithoutAssignmentsInput, vehiclesUncheckedCreateWithoutAssignmentsInput>
     connectOrCreate?: vehiclesCreateOrConnectWithoutAssignmentsInput
@@ -52806,6 +54228,13 @@ export namespace Prisma {
     connect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
   }
 
+  export type public_holidaysCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<public_holidaysCreateWithoutCompaniesInput, public_holidaysUncheckedCreateWithoutCompaniesInput> | public_holidaysCreateWithoutCompaniesInput[] | public_holidaysUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: public_holidaysCreateOrConnectWithoutCompaniesInput | public_holidaysCreateOrConnectWithoutCompaniesInput[]
+    createMany?: public_holidaysCreateManyCompaniesInputEnvelope
+    connect?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+  }
+
   export type employeesUncheckedCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -52901,6 +54330,13 @@ export namespace Prisma {
     connectOrCreate?: meal_price_historyCreateOrConnectWithoutCompaniesInput | meal_price_historyCreateOrConnectWithoutCompaniesInput[]
     createMany?: meal_price_historyCreateManyCompaniesInputEnvelope
     connect?: meal_price_historyWhereUniqueInput | meal_price_historyWhereUniqueInput[]
+  }
+
+  export type public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<public_holidaysCreateWithoutCompaniesInput, public_holidaysUncheckedCreateWithoutCompaniesInput> | public_holidaysCreateWithoutCompaniesInput[] | public_holidaysUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: public_holidaysCreateOrConnectWithoutCompaniesInput | public_holidaysCreateOrConnectWithoutCompaniesInput[]
+    createMany?: public_holidaysCreateManyCompaniesInputEnvelope
+    connect?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
   }
 
   export type usersUpdateOneRequiredWithoutCompaniesNestedInput = {
@@ -53103,6 +54539,20 @@ export namespace Prisma {
     deleteMany?: meal_price_historyScalarWhereInput | meal_price_historyScalarWhereInput[]
   }
 
+  export type public_holidaysUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<public_holidaysCreateWithoutCompaniesInput, public_holidaysUncheckedCreateWithoutCompaniesInput> | public_holidaysCreateWithoutCompaniesInput[] | public_holidaysUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: public_holidaysCreateOrConnectWithoutCompaniesInput | public_holidaysCreateOrConnectWithoutCompaniesInput[]
+    upsert?: public_holidaysUpsertWithWhereUniqueWithoutCompaniesInput | public_holidaysUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: public_holidaysCreateManyCompaniesInputEnvelope
+    set?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    disconnect?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    delete?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    connect?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    update?: public_holidaysUpdateWithWhereUniqueWithoutCompaniesInput | public_holidaysUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: public_holidaysUpdateManyWithWhereWithoutCompaniesInput | public_holidaysUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: public_holidaysScalarWhereInput | public_holidaysScalarWhereInput[]
+  }
+
   export type employeesUncheckedUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<employeesCreateWithoutCompaniesInput, employeesUncheckedCreateWithoutCompaniesInput> | employeesCreateWithoutCompaniesInput[] | employeesUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: employeesCreateOrConnectWithoutCompaniesInput | employeesCreateOrConnectWithoutCompaniesInput[]
@@ -53293,6 +54743,20 @@ export namespace Prisma {
     update?: meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput | meal_price_historyUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: meal_price_historyUpdateManyWithWhereWithoutCompaniesInput | meal_price_historyUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: meal_price_historyScalarWhereInput | meal_price_historyScalarWhereInput[]
+  }
+
+  export type public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<public_holidaysCreateWithoutCompaniesInput, public_holidaysUncheckedCreateWithoutCompaniesInput> | public_holidaysCreateWithoutCompaniesInput[] | public_holidaysUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: public_holidaysCreateOrConnectWithoutCompaniesInput | public_holidaysCreateOrConnectWithoutCompaniesInput[]
+    upsert?: public_holidaysUpsertWithWhereUniqueWithoutCompaniesInput | public_holidaysUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: public_holidaysCreateManyCompaniesInputEnvelope
+    set?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    disconnect?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    delete?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    connect?: public_holidaysWhereUniqueInput | public_holidaysWhereUniqueInput[]
+    update?: public_holidaysUpdateWithWhereUniqueWithoutCompaniesInput | public_holidaysUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: public_holidaysUpdateManyWithWhereWithoutCompaniesInput | public_holidaysUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: public_holidaysScalarWhereInput | public_holidaysScalarWhereInput[]
   }
 
   export type companiesCreateNestedOneWithoutCustomersInput = {
@@ -54667,6 +56131,20 @@ export namespace Prisma {
     update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutVehicle_typesInput, companiesUpdateWithoutVehicle_typesInput>, companiesUncheckedUpdateWithoutVehicle_typesInput>
   }
 
+  export type companiesCreateNestedOneWithoutPublic_holidaysInput = {
+    create?: XOR<companiesCreateWithoutPublic_holidaysInput, companiesUncheckedCreateWithoutPublic_holidaysInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutPublic_holidaysInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneRequiredWithoutPublic_holidaysNestedInput = {
+    create?: XOR<companiesCreateWithoutPublic_holidaysInput, companiesUncheckedCreateWithoutPublic_holidaysInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutPublic_holidaysInput
+    upsert?: companiesUpsertWithoutPublic_holidaysInput
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutPublic_holidaysInput, companiesUpdateWithoutPublic_holidaysInput>, companiesUncheckedUpdateWithoutPublic_holidaysInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -55045,6 +56523,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -55080,6 +56559,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -55495,6 +56975,28 @@ export namespace Prisma {
     data: meal_price_historyCreateManyCompaniesInput | meal_price_historyCreateManyCompaniesInput[]
   }
 
+  export type public_holidaysCreateWithoutCompaniesInput = {
+    date: Date | string
+    description?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type public_holidaysUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    date: Date | string
+    description?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type public_holidaysCreateOrConnectWithoutCompaniesInput = {
+    where: public_holidaysWhereUniqueInput
+    create: XOR<public_holidaysCreateWithoutCompaniesInput, public_holidaysUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type public_holidaysCreateManyCompaniesInputEnvelope = {
+    data: public_holidaysCreateManyCompaniesInput | public_holidaysCreateManyCompaniesInput[]
+  }
+
   export type usersUpsertWithoutCompaniesInput = {
     update: XOR<usersUpdateWithoutCompaniesInput, usersUncheckedUpdateWithoutCompaniesInput>
     create: XOR<usersCreateWithoutCompaniesInput, usersUncheckedCreateWithoutCompaniesInput>
@@ -55570,6 +57072,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: FloatNullableFilter<"employees"> | number | null
     devir_tarihi?: DateTimeNullableFilter<"employees"> | Date | string | null
     iban?: StringNullableFilter<"employees"> | string | null
+    off_days?: StringNullableFilter<"employees"> | string | null
   }
 
   export type meal_settingsUpsertWithoutCompaniesInput = {
@@ -55966,6 +57469,33 @@ export namespace Prisma {
     change_date?: DateTimeFilter<"meal_price_history"> | Date | string
   }
 
+  export type public_holidaysUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: public_holidaysWhereUniqueInput
+    update: XOR<public_holidaysUpdateWithoutCompaniesInput, public_holidaysUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<public_holidaysCreateWithoutCompaniesInput, public_holidaysUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type public_holidaysUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: public_holidaysWhereUniqueInput
+    data: XOR<public_holidaysUpdateWithoutCompaniesInput, public_holidaysUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type public_holidaysUpdateManyWithWhereWithoutCompaniesInput = {
+    where: public_holidaysScalarWhereInput
+    data: XOR<public_holidaysUpdateManyMutationInput, public_holidaysUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type public_holidaysScalarWhereInput = {
+    AND?: public_holidaysScalarWhereInput | public_holidaysScalarWhereInput[]
+    OR?: public_holidaysScalarWhereInput[]
+    NOT?: public_holidaysScalarWhereInput | public_holidaysScalarWhereInput[]
+    id?: IntFilter<"public_holidays"> | number
+    company_id?: IntFilter<"public_holidays"> | number
+    date?: DateTimeFilter<"public_holidays"> | Date | string
+    description?: StringNullableFilter<"public_holidays"> | string | null
+    created_at?: DateTimeNullableFilter<"public_holidays"> | Date | string | null
+  }
+
   export type companiesCreateWithoutCustomersInput = {
     name: string
     tax_number?: string | null
@@ -55990,6 +57520,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutCustomersInput = {
@@ -56017,6 +57548,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutCustomersInput = {
@@ -56111,6 +57643,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutCustomersInput = {
@@ -56138,6 +57671,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type worksUpsertWithWhereUniqueWithoutCustomersInput = {
@@ -56288,6 +57822,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsCreateNestedManyWithoutEmployeesInput
@@ -56324,6 +57859,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -56373,6 +57909,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUpdateManyWithoutEmployeesNestedInput
@@ -56409,6 +57946,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -56442,6 +57980,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsCreateNestedManyWithoutEmployeesInput
@@ -56478,6 +58017,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -56527,6 +58067,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUpdateManyWithoutEmployeesNestedInput
@@ -56563,6 +58104,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -56596,6 +58138,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsCreateNestedManyWithoutEmployeesInput
@@ -56632,6 +58175,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_movements?: employee_movementsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -56681,6 +58225,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUpdateManyWithoutEmployeesNestedInput
@@ -56717,6 +58262,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_movements?: employee_movementsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -56750,6 +58296,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -56786,6 +58333,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -56835,6 +58383,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -56871,6 +58420,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -56904,6 +58454,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -56940,6 +58491,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -56989,6 +58541,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -57025,6 +58578,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -57212,6 +58766,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutEmployeesInput = {
@@ -57239,6 +58794,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutEmployeesInput = {
@@ -57641,6 +59197,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutEmployeesInput = {
@@ -57668,6 +59225,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type leavesUpsertWithWhereUniqueWithoutEmployeesInput = {
@@ -58068,6 +59626,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -58104,6 +59663,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -58153,6 +59713,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -58189,6 +59750,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -58334,6 +59896,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_settingsInput = {
@@ -58361,6 +59924,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_settingsInput = {
@@ -58403,6 +59967,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_settingsInput = {
@@ -58430,6 +59995,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutMeal_ticketsInput = {
@@ -58456,6 +60022,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_ticketsInput = {
@@ -58483,6 +60050,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_ticketsInput = {
@@ -58525,6 +60093,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_ticketsInput = {
@@ -58552,6 +60121,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutMeal_price_historyInput = {
@@ -58578,6 +60148,7 @@ export namespace Prisma {
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutMeal_price_historyInput = {
@@ -58605,6 +60176,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutMeal_price_historyInput = {
@@ -58647,6 +60219,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutMeal_price_historyInput = {
@@ -58674,6 +60247,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutOvertimesInput = {
@@ -58698,6 +60272,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -58734,6 +60309,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -58783,6 +60359,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -58819,6 +60396,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -58854,6 +60432,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutRecurring_transactionsInput = {
@@ -58881,6 +60460,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutRecurring_transactionsInput = {
@@ -58923,6 +60503,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutRecurring_transactionsInput = {
@@ -58950,6 +60531,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateWithoutSalariesInput = {
@@ -58974,6 +60556,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -59010,6 +60593,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -59059,6 +60643,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -59095,6 +60680,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -59240,6 +60826,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutTransactionsInput = {
@@ -59267,6 +60854,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutTransactionsInput = {
@@ -59309,6 +60897,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutTransactionsInput = {
@@ -59336,6 +60925,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutUsersInput = {
@@ -59362,6 +60952,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutUsersInput = {
@@ -59389,6 +60980,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutUsersInput = {
@@ -59673,6 +61265,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehiclesInput = {
@@ -59700,6 +61293,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehiclesInput = {
@@ -60046,6 +61640,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehiclesInput = {
@@ -60073,6 +61668,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type work_itemsUpsertWithWhereUniqueWithoutVehiclesInput = {
@@ -60129,6 +61725,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -60165,6 +61762,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -60314,6 +61912,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -60350,6 +61949,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -60543,6 +62143,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsCreateNestedManyWithoutEmployeesInput
@@ -60579,6 +62180,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
     employee_assignments?: employee_assignmentsUncheckedCreateNestedManyWithoutEmployeesInput
     employee_attendance?: employee_attendanceUncheckedCreateNestedManyWithoutEmployeesInput
     employee_documents?: employee_documentsUncheckedCreateNestedManyWithoutEmployeesInput
@@ -60671,6 +62273,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutWorksInput = {
@@ -60698,6 +62301,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutWorksInput = {
@@ -60786,6 +62390,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -60822,6 +62427,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -60926,6 +62532,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutWorksInput = {
@@ -60953,6 +62560,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type customersUpsertWithoutWorksInput = {
@@ -61017,6 +62625,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDepartmentsInput = {
@@ -61044,6 +62653,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDepartmentsInput = {
@@ -61086,6 +62696,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDepartmentsInput = {
@@ -61113,6 +62724,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutLeave_typesInput = {
@@ -61139,6 +62751,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutLeave_typesInput = {
@@ -61166,6 +62779,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutLeave_typesInput = {
@@ -61208,6 +62822,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutLeave_typesInput = {
@@ -61235,6 +62850,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutDocument_categoriesInput = {
@@ -61261,6 +62877,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDocument_categoriesInput = {
@@ -61288,6 +62905,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDocument_categoriesInput = {
@@ -61330,6 +62948,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDocument_categoriesInput = {
@@ -61357,6 +62976,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutDocument_foldersInput = {
@@ -61383,6 +63003,7 @@ export namespace Prisma {
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutDocument_foldersInput = {
@@ -61410,6 +63031,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutDocument_foldersInput = {
@@ -61452,6 +63074,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutDocument_foldersInput = {
@@ -61479,6 +63102,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesCreateWithoutVehicle_typesInput = {
@@ -61505,6 +63129,7 @@ export namespace Prisma {
     document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutVehicle_typesInput = {
@@ -61532,6 +63157,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutVehicle_typesInput = {
@@ -61574,6 +63200,7 @@ export namespace Prisma {
     document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutVehicle_typesInput = {
@@ -61601,6 +63228,133 @@ export namespace Prisma {
     document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesCreateWithoutPublic_holidaysInput = {
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    users: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutPublic_holidaysInput = {
+    id?: number
+    user_id: number
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutPublic_holidaysInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutPublic_holidaysInput, companiesUncheckedCreateWithoutPublic_holidaysInput>
+  }
+
+  export type companiesUpsertWithoutPublic_holidaysInput = {
+    update: XOR<companiesUpdateWithoutPublic_holidaysInput, companiesUncheckedUpdateWithoutPublic_holidaysInput>
+    create: XOR<companiesCreateWithoutPublic_holidaysInput, companiesUncheckedCreateWithoutPublic_holidaysInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutPublic_holidaysInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutPublic_holidaysInput, companiesUncheckedUpdateWithoutPublic_holidaysInput>
+  }
+
+  export type companiesUpdateWithoutPublic_holidaysInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneRequiredWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutPublic_holidaysInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateManyCompaniesInput = {
@@ -61626,6 +63380,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: number | null
     devir_tarihi?: Date | string | null
     iban?: string | null
+    off_days?: string | null
   }
 
   export type meal_ticketsCreateManyCompaniesInput = {
@@ -61758,6 +63513,13 @@ export namespace Prisma {
     change_date?: Date | string
   }
 
+  export type public_holidaysCreateManyCompaniesInput = {
+    id?: number
+    date: Date | string
+    description?: string | null
+    created_at?: Date | string | null
+  }
+
   export type employeesUpdateWithoutCompaniesInput = {
     first_name?: StringFieldUpdateOperationsInput | string
     last_name?: StringFieldUpdateOperationsInput | string
@@ -61780,6 +63542,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUpdateManyWithoutEmployeesNestedInput
@@ -61815,6 +63578,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
     employee_assignments?: employee_assignmentsUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_attendance?: employee_attendanceUncheckedUpdateManyWithoutEmployeesNestedInput
     employee_documents?: employee_documentsUncheckedUpdateManyWithoutEmployeesNestedInput
@@ -61850,6 +63614,7 @@ export namespace Prisma {
     devir_maas_bakiyesi?: NullableFloatFieldUpdateOperationsInput | number | null
     devir_tarihi?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     iban?: NullableStringFieldUpdateOperationsInput | string | null
+    off_days?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type meal_ticketsUpdateWithoutCompaniesInput = {
@@ -62248,6 +64013,26 @@ export namespace Prisma {
     old_price?: FloatFieldUpdateOperationsInput | number
     new_price?: FloatFieldUpdateOperationsInput | number
     change_date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type public_holidaysUpdateWithoutCompaniesInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type public_holidaysUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type public_holidaysUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type worksCreateManyCustomersInput = {
@@ -62912,6 +64697,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutUsersInput = {
@@ -62939,6 +64725,7 @@ export namespace Prisma {
     vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateManyWithoutUsersInput = {

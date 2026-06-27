@@ -394,6 +394,9 @@ async function runAutoMigrations() {
                     'K Belgesi',
                     'Kira Sözleşmesi',
                     'Takograf',
+                    'Bakım',
+                    'Servis',
+                    'Zimmet Belgesi',
                     'Diğer'
                 ];
                 
@@ -689,7 +692,289 @@ async function runAutoMigrations() {
         log.error('Migration step 24 (is_archived field in document_folders) error:', error.message);
     }
 
+    // 25. Add off_days column to employees if missing
+    try {
+        const empCols = await p.$queryRawUnsafe("PRAGMA table_info('employees')");
+        if (empCols.length > 0) {
+            if (!empCols.some(c => c.name === 'off_days')) {
+                await p.$executeRawUnsafe("ALTER TABLE employees ADD COLUMN off_days TEXT DEFAULT '0'");
+                log.info('Migration: Added off_days to employees');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 25 (off_days column in employees) error:', error.message);
+    }
+
+    // 26. Create public_holidays table if missing
+    try {
+        await p.$executeRawUnsafe(`
+            CREATE TABLE IF NOT EXISTS public_holidays (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id INTEGER NOT NULL,
+                date DATETIME NOT NULL,
+                description TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+            )
+        `);
+        await p.$executeRawUnsafe(`
+            CREATE INDEX IF NOT EXISTS idx_public_holidays_company ON public_holidays(company_id)
+        `);
+        log.info('Migration: Verified/Created public_holidays table');
+    } catch (error) {
+        log.error('Migration step 26 (create public_holidays table) error:', error.message);
+    }
+
+    // Self-healing database alignment for existing operation documents
+    try {
+        await healExistingOperationDocuments(p);
+    } catch (err) {
+        log.error('Self-healing operation documents alignment error:', err.message);
+    }
+
+    // Self-healing database alignment for existing public holidays
+    try {
+        await seedDefaultPublicHolidays(p);
+    } catch (err) {
+        log.error('Self-healing public holidays error:', err.message);
+    }
+
     log.info('Auto-migrations loop completed.');
+}
+
+async function healExistingOperationDocuments(prisma) {
+    log.info('Starting self-healing for existing operation documents...');
+
+    // Fetch all vehicles to help link documents correctly
+    const vehicles = await prisma.vehicles.findMany({
+        select: { id: true, company_id: true, plate: true }
+    });
+    const vehicleMap = new Map(vehicles.map(v => [v.id, v]));
+
+    const ensureFolder = async (companyId, folderName) => {
+        if (!companyId || !folderName) return;
+        const exists = await prisma.document_folders.findFirst({
+            where: { company_id: companyId, name: folderName }
+        });
+        if (!exists) {
+            await prisma.document_folders.create({
+                data: { company_id: companyId, name: folderName, is_archived: 0 }
+            });
+            log.info(`Self-healing: Created folder "${folderName}" for company ${companyId}`);
+        }
+    };
+
+    // --- Maintenances ---
+    const maintenances = await prisma.maintenances.findMany({
+        where: { file_path: { not: null } }
+    });
+    for (const item of maintenances) {
+        const v = vehicleMap.get(item.vehicle_id);
+        if (!v) continue;
+        const existing = await prisma.documents.findFirst({
+            where: { related_type: 'maintenance', related_id: item.id }
+        });
+        if (!existing) {
+            await ensureFolder(v.company_id, 'Bakım Belgeleri');
+            const ext = path.extname(item.file_path || '');
+            const dateStr = item.date ? new Date(item.date).toISOString().split('T')[0] : '';
+            await prisma.documents.create({
+                data: {
+                    vehicle_id: item.vehicle_id,
+                    related_type: 'maintenance',
+                    related_id: item.id,
+                    file_name: `${v.plate}_Bakım_${dateStr}${ext}`,
+                    file_path: item.file_path,
+                    file_type: ext,
+                    category: 'Bakım',
+                    doc_type: 'Bakım',
+                    folder: 'Bakım Belgeleri',
+                    start_date: item.date ? new Date(item.date) : null,
+                    end_date: item.next_date ? new Date(item.next_date) : null,
+                    is_archived: item.is_archived || 0
+                }
+            });
+            log.info(`Self-healing: Registered document for maintenance ${item.id}`);
+        }
+    }
+
+    // --- Services ---
+    const services = await prisma.services.findMany({
+        where: { file_path: { not: null } }
+    });
+    for (const item of services) {
+        const v = vehicleMap.get(item.vehicle_id);
+        if (!v) continue;
+        const existing = await prisma.documents.findFirst({
+            where: { related_type: 'service', related_id: item.id }
+        });
+        if (!existing) {
+            await ensureFolder(v.company_id, 'Servisler');
+            const ext = path.extname(item.file_path || '');
+            const dateStr = item.date ? new Date(item.date).toISOString().split('T')[0] : '';
+            await prisma.documents.create({
+                data: {
+                    vehicle_id: item.vehicle_id,
+                    related_type: 'service',
+                    related_id: item.id,
+                    file_name: `${v.plate}_Servis_${dateStr}${ext}`,
+                    file_path: item.file_path,
+                    file_type: ext,
+                    category: 'Servis',
+                    doc_type: 'Servis',
+                    folder: 'Servisler',
+                    start_date: item.date ? new Date(item.date) : null,
+                    end_date: null,
+                    is_archived: item.is_archived || 0
+                }
+            });
+            log.info(`Self-healing: Registered document for service ${item.id}`);
+        }
+    }
+
+    // --- Inspections ---
+    const inspections = await prisma.inspections.findMany({
+        where: { file_path: { not: null } }
+    });
+    for (const item of inspections) {
+        const v = vehicleMap.get(item.vehicle_id);
+        if (!v) continue;
+        const existing = await prisma.documents.findFirst({
+            where: { related_type: 'inspection', related_id: item.id }
+        });
+        if (!existing) {
+            await ensureFolder(v.company_id, 'Muayene Belgeleri');
+            const ext = path.extname(item.file_path || '');
+            const isPeriodic = item.type === 'periodic';
+            const cat = isPeriodic ? 'Egzoz Muayenesi' : 'Araç Muayenesi';
+            const dateStr = item.inspection_date ? new Date(item.inspection_date).toISOString().split('T')[0] : '';
+            await prisma.documents.create({
+                data: {
+                    vehicle_id: item.vehicle_id,
+                    related_type: 'inspection',
+                    related_id: item.id,
+                    file_name: `${v.plate}_${isPeriodic ? 'Egzoz_Muayene' : 'Araç_Muayene'}_${dateStr}${ext}`,
+                    file_path: item.file_path,
+                    file_type: ext,
+                    category: cat,
+                    doc_type: cat,
+                    folder: 'Muayene Belgeleri',
+                    start_date: item.inspection_date ? new Date(item.inspection_date) : null,
+                    end_date: item.next_inspection ? new Date(item.next_inspection) : null,
+                    is_archived: item.is_archived || 0
+                }
+            });
+            log.info(`Self-healing: Registered document for inspection ${item.id}`);
+        }
+    }
+
+    // --- Insurances ---
+    const insurances = await prisma.insurances.findMany({
+        where: { file_path: { not: null } }
+    });
+    for (const item of insurances) {
+        const v = vehicleMap.get(item.vehicle_id);
+        if (!v) continue;
+        const existing = await prisma.documents.findFirst({
+            where: { related_type: 'insurance', related_id: item.id }
+        });
+        if (!existing) {
+            await ensureFolder(v.company_id, 'Sigortalar & Kaskolar');
+            const ext = path.extname(item.file_path || '');
+            const isKasko = item.type === 'kasko';
+            const cat = isKasko ? 'Kasko' : 'Trafik Sigortası';
+            const dateStr = item.start_date ? new Date(item.start_date).toISOString().split('T')[0] : '';
+            await prisma.documents.create({
+                data: {
+                    vehicle_id: item.vehicle_id,
+                    related_type: 'insurance',
+                    related_id: item.id,
+                    file_name: `${v.plate}_${isKasko ? 'Kasko' : 'Trafik_Sigortasi'}_${dateStr}${ext}`,
+                    file_path: item.file_path,
+                    file_type: ext,
+                    category: cat,
+                    doc_type: cat,
+                    folder: 'Sigortalar & Kaskolar',
+                    start_date: item.start_date ? new Date(item.start_date) : null,
+                    end_date: item.end_date ? new Date(item.end_date) : null,
+                    is_archived: item.is_archived || 0
+                }
+            });
+            log.info(`Self-healing: Registered document for insurance ${item.id}`);
+        }
+    }
+
+    log.info('Self-healing operation documents alignment completed.');
+}
+
+async function seedDefaultPublicHolidays(prisma) {
+    log.info('Starting self-healing/seeding for default Turkish public holidays...');
+    
+    // Fetch all companies
+    const companies = await prisma.companies.findMany({ select: { id: true } });
+    if (companies.length === 0) return;
+
+    // Define 2026 and 2027 Turkish Public Holidays
+    const defaultHolidays = [
+        // --- 2026 ---
+        { date: '2026-01-01', description: 'Yılbaşı' },
+        { date: '2026-03-19', description: 'Ramazan Bayramı Arifesi (Yarım Gün)' },
+        { date: '2026-03-20', description: 'Ramazan Bayramı 1. Gün' },
+        { date: '2026-03-21', description: 'Ramazan Bayramı 2. Gün' },
+        { date: '2026-03-22', description: 'Ramazan Bayramı 3. Gün' },
+        { date: '2026-04-23', description: 'Ulusal Egemenlik ve Çocuk Bayramı' },
+        { date: '2026-05-01', description: 'Emek ve Dayanışma Günü' },
+        { date: '2026-05-19', description: 'Atatürk\'ü Anma, Gençlik ve Spor Bayramı' },
+        { date: '2026-05-26', description: 'Kurban Bayramı Arifesi (Yarım Gün)' },
+        { date: '2026-05-27', description: 'Kurban Bayramı 1. Gün' },
+        { date: '2026-05-28', description: 'Kurban Bayramı 2. Gün' },
+        { date: '2026-05-29', description: 'Kurban Bayramı 3. Gün' },
+        { date: '2026-05-30', description: 'Kurban Bayramı 4. Gün' },
+        { date: '2026-07-15', description: 'Demokrasi ve Milli Birlik Günü' },
+        { date: '2026-08-30', description: 'Zafer Bayramı' },
+        { date: '2026-10-28', description: 'Cumhuriyet Bayramı Arifesi (Yarım Gün)' },
+        { date: '2026-10-29', description: 'Cumhuriyet Bayramı' },
+
+        // --- 2027 ---
+        { date: '2027-01-01', description: 'Yılbaşı' },
+        { date: '2027-03-08', description: 'Ramazan Bayramı Arifesi (Yarım Gün)' },
+        { date: '2027-03-09', description: 'Ramazan Bayramı 1. Gün' },
+        { date: '2027-03-10', description: 'Ramazan Bayramı 2. Gün' },
+        { date: '2027-03-11', description: 'Ramazan Bayramı 3. Gün' },
+        { date: '2027-04-23', description: 'Ulusal Egemenlik ve Çocuk Bayramı' },
+        { date: '2027-05-01', description: 'Emek ve Dayanışma Günü' },
+        { date: '2027-05-15', description: 'Kurban Bayramı Arifesi (Yarım Gün)' },
+        { date: '2027-05-16', description: 'Kurban Bayramı 1. Gün' },
+        { date: '2027-05-17', description: 'Kurban Bayramı 2. Gün' },
+        { date: '2027-05-18', description: 'Kurban Bayramı 3. Gün' },
+        { date: '2027-05-19', description: 'Kurban Bayramı 4. Gün / Atatürk\'ü Anma, Gençlik ve Spor Bayramı' },
+        { date: '2027-07-15', description: 'Demokrasi ve Milli Birlik Günü' },
+        { date: '2027-08-30', description: 'Zafer Bayramı' },
+        { date: '2027-10-28', description: 'Cumhuriyet Bayramı Arifesi (Yarım Gün)' },
+        { date: '2027-10-29', description: 'Cumhuriyet Bayramı' }
+    ];
+
+    for (const company of companies) {
+        // Fetch existing holidays for this company
+        const existing = await prisma.public_holidays.findMany({
+            where: { company_id: company.id }
+        });
+        const existingDates = new Set(existing.map(h => new Date(h.date).toISOString().split('T')[0]));
+
+        for (const holiday of defaultHolidays) {
+            if (!existingDates.has(holiday.date)) {
+                await prisma.public_holidays.create({
+                    data: {
+                        company_id: company.id,
+                        date: new Date(holiday.date),
+                        description: holiday.description
+                    }
+                });
+                log.info(`Seeding: Added holiday "${holiday.description}" on ${holiday.date} for company ${company.id}`);
+            }
+        }
+    }
+    log.info('Seeding of Turkish public holidays completed.');
 }
 
 module.exports = { getPrismaClient, runAutoMigrations };

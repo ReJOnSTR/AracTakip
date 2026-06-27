@@ -131,12 +131,14 @@ function HrModuleContent() {
         leaveTypes: [],
         docCategories: []
     })
+    const [publicHolidays, setPublicHolidays] = useState([])
     const [loadingPersonnel, setLoadingPersonnel] = useState(false)
     const [personnelModal, setPersonnelModal] = useState({
         isOpen: false,
-        type: '', // 'dept', 'leave', 'doc'
+        type: '', // 'dept', 'leave', 'doc', 'holiday'
         item: null,
-        value: ''
+        value: '',
+        date: ''
     })
     const [confirmDeletePersonnel, setConfirmDeletePersonnel] = useState(null)
 
@@ -236,16 +238,18 @@ function HrModuleContent() {
         if (!currentCompany) return
         setLoadingPersonnel(true)
         try {
-            const [depts, leaves, docs] = await Promise.all([
+            const [depts, leaves, docs, holidays] = await Promise.all([
                 window.electronAPI.getDepartments(currentCompany.id),
                 window.electronAPI.getLeaveTypes(currentCompany.id),
-                window.electronAPI.getDocumentCategories(currentCompany.id, 'employee')
+                window.electronAPI.getDocumentCategories(currentCompany.id, 'employee'),
+                window.electronAPI.getPublicHolidays(currentCompany.id)
             ])
             setPersonnelSettings({
                 departments: depts.data || [],
                 leaveTypes: leaves.data || [],
                 docCategories: docs.data || []
             })
+            setPublicHolidays(holidays.data || [])
         } catch (error) {
             console.error('Failed to load personnel settings:', error)
         }
@@ -270,10 +274,15 @@ function HrModuleContent() {
                 result = personnelModal.item
                     ? await window.electronAPI.updateDocumentCategory({ id: personnelModal.item.id, name: personnelModal.value })
                     : await window.electronAPI.createDocumentCategory({ companyId: currentCompany.id, name: personnelModal.value, targetType: 'employee' })
+            } else if (personnelModal.type === 'holiday') {
+                if (!personnelModal.date) return
+                result = personnelModal.item
+                    ? await window.electronAPI.updatePublicHoliday({ id: personnelModal.item.id, date: personnelModal.date, description: personnelModal.value })
+                    : await window.electronAPI.createPublicHoliday({ companyId: currentCompany.id, date: personnelModal.date, description: personnelModal.value })
             }
 
             if (result.success) {
-                setPersonnelModal({ isOpen: false, type: '', item: null, value: '' })
+                setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '' })
                 loadPersonnelSettings()
             }
         } catch (err) {
@@ -586,6 +595,40 @@ function HrModuleContent() {
                                 {personnelSettings.docCategories.length === 0 && <div className="empty-list-msg">Belge kategorisi tanımlanmamış.</div>}
                             </div>
                         </div>
+
+                        {/* Public Holidays Section */}
+                        <div className="personnel-card">
+                            <div className="section-header">
+                                <div className="section-title">
+                                    <CalendarCheck size={16} />
+                                    <span>Resmi ve Özel Tatiller</span>
+                                </div>
+                                <button className="btn btn-icon-sm" onClick={() => setPersonnelModal({ isOpen: true, type: 'holiday', item: null, value: '', date: new Date().toISOString().split('T')[0] })}>
+                                    <Plus size={14} />
+                                </button>
+                            </div>
+                            <div className="settings-list">
+                                {publicHolidays.map(holiday => (
+                                    <div key={holiday.id} className="settings-list-item">
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span>{holiday.description}</span>
+                                            <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                {new Date(holiday.date).toLocaleDateString('tr-TR')}
+                                            </span>
+                                        </div>
+                                        <div className="item-actions">
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'holiday', item: holiday, value: holiday.description, date: new Date(holiday.date).toISOString().split('T')[0] })}>
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...holiday, name: holiday.description, type: 'holiday' })}>
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {publicHolidays.length === 0 && <div className="empty-list-msg">Tatil günü tanımlanmamış.</div>}
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -635,20 +678,30 @@ function HrModuleContent() {
             {/* Personnel Definitions Add/Edit Modal */}
             <Modal
                 isOpen={personnelModal.isOpen}
-                onClose={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '' })}
+                onClose={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '' })}
                 title={personnelModal.item ? 'Tanımlama Düzenle' : 'Yeni Tanımlama Ekle'}
                 size="small"
             >
                 <form onSubmit={handleSavePersonnelItem}>
+                    {personnelModal.type === 'holiday' && (
+                        <CustomInput 
+                            label="Tarih *"
+                            type="date"
+                            value={personnelModal.date}
+                            onChange={(val) => setPersonnelModal(prev => ({ ...prev, date: val }))}
+                            required
+                            style={{ marginBottom: '16px' }}
+                        />
+                    )}
                     <CustomInput 
-                        label={personnelModal.type === 'dept' ? 'Departman Adı' : personnelModal.type === 'leave' ? 'İzin Türü Adı' : 'Belge Kategori Adı'}
+                        label={personnelModal.type === 'dept' ? 'Departman Adı' : personnelModal.type === 'leave' ? 'İzin Türü Adı' : personnelModal.type === 'doc' ? 'Belge Kategori Adı' : 'Bayram / Tatil Nedeni'}
                         value={personnelModal.value}
                         onChange={(val) => setPersonnelModal(prev => ({ ...prev, value: val }))}
-                        autoFocus
+                        autoFocus={personnelModal.type !== 'holiday'}
                         required
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                        <button type="button" className="btn btn-secondary" onClick={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '' })}>Vazgeç</button>
+                        <button type="button" className="btn btn-secondary" onClick={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '' })}>Vazgeç</button>
                         <button type="submit" className="btn btn-primary">Kaydet</button>
                     </div>
                 </form>

@@ -30,11 +30,12 @@ async function getAllInspections(companyId, type, isArchived) {
 
 async function createInspection(data) {
     try {
+        const { filePath, fileData, fileName, ...rest } = data;
         // Archive any existing active inspection of the same type for this vehicle
         const existingRecord = await prisma.inspections.findFirst({
             where: {
-                vehicle_id: parseInt(data.vehicleId),
-                type: data.type,
+                vehicle_id: parseInt(rest.vehicleId),
+                type: rest.type,
                 is_archived: 0
             }
         });
@@ -48,23 +49,38 @@ async function createInspection(data) {
 
         const result = await prisma.inspections.create({
             data: {
-                vehicle_id: parseInt(data.vehicleId),
-                type: data.type,
-                inspection_date: new Date(data.date || data.inspectionDate),
-                next_inspection: data.validUntil || data.nextInspection ? new Date(data.validUntil || data.nextInspection) : null,
-                result: data.result || null,
-                cost: data.cost ? parseFloat(data.cost) : 0,
-                notes: data.notes || null,
-                file_path: data.filePath || null
+                vehicle_id: parseInt(rest.vehicleId),
+                type: rest.type,
+                inspection_date: new Date(rest.date || rest.inspectionDate),
+                next_inspection: rest.validUntil || rest.nextInspection ? new Date(rest.validUntil || rest.nextInspection) : null,
+                result: rest.result || null,
+                cost: rest.cost ? parseFloat(rest.cost) : 0,
+                notes: rest.notes || null,
+                file_path: filePath || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath || fileData) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('inspection', result.id, {
+                vehicleId: rest.vehicleId,
+                filePath,
+                fileData,
+                fileName,
+                type: rest.type,
+                date: rest.date || rest.inspectionDate,
+                validUntil: rest.validUntil || rest.nextInspection
+            });
+        }
+
+        const fresh = await prisma.inspections.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function updateInspection(data) {
     try {
-        const { id, vehicleId, ...rest } = data;
+        const { id, vehicleId, filePath, fileData, fileName, ...rest } = data;
         const result = await prisma.inspections.update({
             where: { id: parseInt(id) },
             data: {
@@ -73,16 +89,32 @@ async function updateInspection(data) {
                 next_inspection: rest.validUntil || rest.nextInspection ? new Date(rest.validUntil || rest.nextInspection) : null,
                 result: rest.result || null,
                 cost: rest.cost ? parseFloat(rest.cost) : 0,
-                notes: rest.notes || null,
-                file_path: rest.filePath || null
+                notes: rest.notes || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath !== undefined || fileData !== undefined) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('inspection', result.id, {
+                vehicleId: vehicleId || result.vehicle_id,
+                filePath,
+                fileData,
+                fileName,
+                type: rest.type || result.type,
+                date: rest.date || rest.inspectionDate,
+                validUntil: rest.validUntil || rest.nextInspection
+            });
+        }
+
+        const fresh = await prisma.inspections.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function deleteInspection(id) {
     try {
+        const { deleteOperationDocument } = require('./operationSync.helper');
+        await deleteOperationDocument('inspection', id);
         await prisma.inspections.delete({ where: { id: parseInt(id) } });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
@@ -115,11 +147,12 @@ async function getAllInsurances(companyId, isArchived) {
 
 async function createInsurance(data) {
     try {
+        const { filePath, fileData, fileName, ...rest } = data;
         // Archive any existing active insurance of the same type for this vehicle
         const existingRecord = await prisma.insurances.findFirst({
             where: {
-                vehicle_id: parseInt(data.vehicleId),
-                type: data.type,
+                vehicle_id: parseInt(rest.vehicleId),
+                type: rest.type,
                 is_archived: 0
             }
         });
@@ -133,24 +166,39 @@ async function createInsurance(data) {
 
         const result = await prisma.insurances.create({
             data: {
-                vehicle_id: parseInt(data.vehicleId),
-                type: data.type,
-                policy_no: data.policyNo || null,
-                company: data.company || null,
-                start_date: new Date(data.startDate),
-                end_date: data.endDate ? new Date(data.endDate) : new Date(data.startDate),
-                premium: data.premium ? parseFloat(data.premium) : 0,
-                notes: data.notes || null,
-                file_path: data.filePath || null
+                vehicle_id: parseInt(rest.vehicleId),
+                type: rest.type,
+                policy_no: rest.policyNo || null,
+                company: rest.company || null,
+                start_date: new Date(rest.startDate),
+                end_date: rest.endDate ? new Date(rest.endDate) : new Date(rest.startDate),
+                premium: rest.premium ? parseFloat(rest.premium) : 0,
+                notes: rest.notes || null,
+                file_path: filePath || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath || fileData) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('insurance', result.id, {
+                vehicleId: rest.vehicleId,
+                filePath,
+                fileData,
+                fileName,
+                type: rest.type,
+                startDate: rest.startDate,
+                endDate: rest.endDate
+            });
+        }
+
+        const fresh = await prisma.insurances.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function updateInsurance(data) {
     try {
-        const { id, vehicleId, ...rest } = data;
+        const { id, vehicleId, filePath, fileData, fileName, ...rest } = data;
         const result = await prisma.insurances.update({
             where: { id: parseInt(id) },
             data: {
@@ -160,16 +208,32 @@ async function updateInsurance(data) {
                 start_date: new Date(rest.startDate),
                 end_date: rest.endDate ? new Date(rest.endDate) : new Date(rest.startDate),
                 premium: rest.premium ? parseFloat(rest.premium) : 0,
-                notes: rest.notes || null,
-                file_path: rest.filePath || null
+                notes: rest.notes || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath !== undefined || fileData !== undefined) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('insurance', result.id, {
+                vehicleId: vehicleId || result.vehicle_id,
+                filePath,
+                fileData,
+                fileName,
+                type: rest.type || result.type,
+                startDate: rest.startDate,
+                endDate: rest.endDate
+            });
+        }
+
+        const fresh = await prisma.insurances.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function deleteInsurance(id) {
     try {
+        const { deleteOperationDocument } = require('./operationSync.helper');
+        await deleteOperationDocument('insurance', id);
         await prisma.insurances.delete({ where: { id: parseInt(id) } });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }
@@ -288,25 +352,39 @@ async function getAllServices(companyId, isArchived) {
 
 async function createService(data) {
     try {
+        const { filePath, fileData, fileName, ...rest } = data;
         const result = await prisma.services.create({
             data: {
-                vehicle_id: data.vehicleId,
-                type: data.type,
-                description: data.description || null,
-                date: new Date(data.date),
-                cost: data.cost ? parseFloat(data.cost) : 0,
-                km: data.km ? parseInt(data.km) : null,
-                notes: data.notes || null,
-                file_path: data.filePath || null
+                vehicle_id: parseInt(rest.vehicleId),
+                type: rest.type,
+                description: rest.description || null,
+                date: new Date(rest.date),
+                cost: rest.cost ? parseFloat(rest.cost) : 0,
+                km: rest.km ? parseInt(rest.km) : null,
+                notes: rest.notes || null,
+                file_path: filePath || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath || fileData) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('service', result.id, {
+                vehicleId: rest.vehicleId,
+                filePath,
+                fileData,
+                fileName,
+                date: rest.date
+            });
+        }
+
+        const fresh = await prisma.services.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function updateService(data) {
     try {
-        const { id, vehicleId, ...rest } = data;
+        const { id, vehicleId, filePath, fileData, fileName, ...rest } = data;
         const result = await prisma.services.update({
             where: { id: parseInt(id) },
             data: {
@@ -315,16 +393,30 @@ async function updateService(data) {
                 date: new Date(rest.date),
                 cost: rest.cost ? parseFloat(rest.cost) : 0,
                 km: rest.km ? parseInt(rest.km) : null,
-                notes: rest.notes || null,
-                file_path: rest.filePath || null
+                notes: rest.notes || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath !== undefined || fileData !== undefined) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('service', result.id, {
+                vehicleId: vehicleId || result.vehicle_id,
+                filePath,
+                fileData,
+                fileName,
+                date: rest.date
+            });
+        }
+
+        const fresh = await prisma.services.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function deleteService(id) {
     try {
+        const { deleteOperationDocument } = require('./operationSync.helper');
+        await deleteOperationDocument('service', id);
         await prisma.services.delete({ where: { id: parseInt(id) } });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }

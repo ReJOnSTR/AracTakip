@@ -782,6 +782,31 @@ function createMobileRoutes(db, onDbUpdate) {
         } catch (error) { res.status(500).json({ success: false, error: error.message }); }
     });
 
+    router.get('/settings/public-holidays', async (req, res) => {
+        try {
+            const { companyId } = req.query;
+            res.json(await db.getPublicHolidays(companyId));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.post('/settings/public-holidays', async (req, res) => {
+        try {
+            res.json(await db.createPublicHoliday(req.body));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.put('/settings/public-holidays/:id', async (req, res) => {
+        try {
+            res.json(await db.updatePublicHoliday({ id: req.params.id, ...req.body }));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
+    router.delete('/settings/public-holidays/:id', async (req, res) => {
+        try {
+            res.json(await db.deletePublicHoliday(req.params.id));
+        } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+    });
+
     return router;
 }
 

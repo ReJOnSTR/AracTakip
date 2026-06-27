@@ -5,6 +5,7 @@ import { serviceSchema } from '../../schemas/serviceSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import { serviceTypes, formatDateForInput } from '../../utils/helpers'
+import FileAttachmentInput from '../FileAttachmentInput'
 
 export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
@@ -23,7 +24,8 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
             date: formatDateForInput(new Date()),
             km: '',
             cost: '',
-            notes: ''
+            notes: '',
+            filePath: null
         }
     })
 
@@ -37,7 +39,8 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                 date: formatDateForInput(initialData.date) || formatDateForInput(new Date()),
                 km: initialData.km || '',
                 cost: initialData.cost || '',
-                notes: initialData.notes || ''
+                notes: initialData.notes || '',
+                filePath: initialData.file_path || initialData.filePath || null
             })
         } else {
             reset({
@@ -48,7 +51,8 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                 date: formatDateForInput(new Date()),
                 km: '',
                 cost: '',
-                notes: ''
+                notes: '',
+                filePath: null
             })
         }
 
@@ -198,6 +202,20 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                             rows={3}
                             error={errors.notes?.message}
                             maxLength={500}
+                        />
+                    )}
+                />
+            </div>
+
+            <div className="form-group">
+                <Controller
+                    name="filePath"
+                    control={control}
+                    render={({ field }) => (
+                        <FileAttachmentInput
+                            label="Servis Belgesi / Fatura"
+                            value={field.value}
+                            onChange={field.onChange}
                         />
                     )}
                 />

@@ -23,7 +23,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
-import { employeeService } from '../services/dataServices';
+import { employeeService, settingsService } from '../services/dataServices';
 import { formatCurrency, formatDate } from '../utils/format';
 import MovingBackground from '../components/ui/MovingBackground';
 import GlassMonthPicker from '../components/ui/GlassMonthPicker';
@@ -78,6 +78,176 @@ const overtimeRates = [
 ];
 
 type TabValue = 'details' | 'salaries' | 'salary_history' | 'leaves' | 'overtimes' | 'assignments' | 'documents';
+
+const fixedHolidaysMD = [
+  '01-01', // Yılbaşı
+  '04-23', // Ulusal Egemenlik ve Çocuk Bayramı
+  '05-01', // Emek ve Dayanışma Günü
+  '05-19', // Atatürk'ü Anma, Gençlik ve Spor Bayramı
+  '07-15', // Demokrasi ve Milli Birlik Günü
+  '08-30', // Zafer Bayramı
+  '10-28', // Cumhuriyet Bayramı Arifesi (Yarım Gün)
+  '10-29'  // Cumhuriyet Bayramı
+];
+
+const religiousHolidaysByYear: Record<number, { ramadan: string; sacrifice: string }> = {
+  2025: { ramadan: '2025-03-30', sacrifice: '2025-06-06' },
+  2026: { ramadan: '2026-03-20', sacrifice: '2026-05-27' },
+  2027: { ramadan: '2027-03-09', sacrifice: '2027-05-16' },
+  2028: { ramadan: '2028-02-26', sacrifice: '2028-05-04' },
+  2029: { ramadan: '2029-02-15', sacrifice: '2029-04-23' },
+  2030: { ramadan: '2030-02-04', sacrifice: '2030-04-12' },
+  2031: { ramadan: '2031-01-25', sacrifice: '2031-04-02' },
+  2032: { ramadan: '2032-01-14', sacrifice: '2032-03-21' },
+  2033: { ramadan: '2033-01-02', sacrifice: '2033-03-10' },
+  2034: { ramadan: '2034-12-22', sacrifice: '2034-02-27' },
+  2035: { ramadan: '2035-12-11', sacrifice: '2035-02-17' },
+  2036: { ramadan: '2036-11-20', sacrifice: '2036-02-07' },
+  2037: { ramadan: '2037-11-08', sacrifice: '2037-01-26' },
+  2038: { ramadan: '2038-10-29', sacrifice: '2038-01-16' },
+  2039: { ramadan: '2039-10-18', sacrifice: '2039-01-05' },
+  2040: { ramadan: '2040-10-07', sacrifice: '2040-12-25' },
+  2041: { ramadan: '2041-09-26', sacrifice: '2041-12-14' },
+  2042: { ramadan: '2042-09-15', sacrifice: '2042-12-03' },
+  2043: { ramadan: '2043-09-04', sacrifice: '2043-11-22' },
+  2044: { ramadan: '2044-08-24', sacrifice: '2044-11-11' },
+  2045: { ramadan: '2045-08-14', sacrifice: '2045-10-31' }
+};
+
+function getMobileReligiousHolidays(year: number): string[] {
+  const dates: string[] = [];
+  const config = religiousHolidaysByYear[year];
+  if (!config) return dates;
+
+  const addDays = (baseDateStr: string, days: number) => {
+    const d = new Date(baseDateStr);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split('T')[0];
+  };
+
+  if (config.ramadan) {
+    dates.push(addDays(config.ramadan, -1)); // Arife
+    dates.push(config.ramadan);              // 1. Gün
+    dates.push(addDays(config.ramadan, 1));  // 2. Gün
+    dates.push(addDays(config.ramadan, 2));  // 3. Gün
+  }
+
+  if (config.sacrifice) {
+    dates.push(addDays(config.sacrifice, -1)); // Arife
+    dates.push(config.sacrifice);              // 1. Gün
+    dates.push(addDays(config.sacrifice, 1));  // 2. Gün
+    dates.push(addDays(config.sacrifice, 2));  // 3. Gün
+    dates.push(addDays(config.sacrifice, 3));  // 4. Gün
+  }
+
+  return dates;
+}
+
+function parseMobileHolidayDates(publicHolidayDates: any[]): Set<string> {
+  if (!Array.isArray(publicHolidayDates)) return new Set();
+  return new Set(publicHolidayDates.map(d => {
+    if (!d) return '';
+    if (typeof d === 'string') return d.split('T')[0];
+    if (d instanceof Date) {
+      try {
+        return d.toISOString().split('T')[0];
+      } catch (e) {
+        return '';
+      }
+    }
+    if (typeof d === 'object' && d.date) {
+      const dateVal = d.date;
+      if (typeof dateVal === 'string') return dateVal.split('T')[0];
+      if (dateVal instanceof Date) {
+        try {
+          return dateVal.toISOString().split('T')[0];
+        } catch (e) {
+          return '';
+        }
+      }
+    }
+    return String(d).split('T')[0];
+  }).filter(Boolean));
+}
+
+function checkIsMobileHoliday(dateStr: string, holidaySet: Set<string>) {
+  if (holidaySet.has(dateStr)) return true;
+  
+  // Fixed national holidays
+  const md = dateStr.substring(5); // "MM-DD"
+  if (fixedHolidaysMD.includes(md)) return true;
+
+  // Moving religious holidays
+  const year = parseInt(dateStr.substring(0, 4));
+  const religiousDates = getMobileReligiousHolidays(year);
+  if (religiousDates.includes(dateStr)) return true;
+
+  return false;
+}
+
+function calculateMobileLeaveDays(startDateStr: string, endDateStr: string, offDaysStr: string = '0', publicHolidayDates: any[] = []) {
+  if (!startDateStr || !endDateStr) return 0;
+  
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  if (end < start) return 0;
+  
+  const offDays = (offDaysStr || '0').split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
+  const holidaySet = parseMobileHolidayDates(publicHolidayDates);
+  
+  let workingDaysCount = 0;
+  const current = new Date(start);
+  current.setHours(12, 0, 0, 0);
+  end.setHours(12, 0, 0, 0);
+  
+  while (current <= end) {
+    const dayOfWeek = current.getDay();
+    const dateStr = current.toISOString().split('T')[0];
+    
+    const isOffDay = offDays.includes(dayOfWeek);
+    const isPublicHoliday = checkIsMobileHoliday(dateStr, holidaySet);
+    
+    if (!isOffDay && !isPublicHoliday) {
+      workingDaysCount++;
+    }
+    
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return workingDaysCount;
+}
+
+function calculateMobileLeaveEndDate(startDateStr: string, daysCount: number, offDaysStr: string = '0', publicHolidayDates: any[] = []) {
+  if (!startDateStr || daysCount <= 0) return startDateStr || '';
+  
+  const start = new Date(startDateStr);
+  const offDays = (offDaysStr || '0').split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d));
+  const holidaySet = parseMobileHolidayDates(publicHolidayDates);
+  
+  let remainingDays = daysCount;
+  const current = new Date(start);
+  current.setHours(12, 0, 0, 0);
+  
+  let workingDaysFound = 0;
+  
+  while (workingDaysFound < remainingDays) {
+    const dayOfWeek = current.getDay();
+    const dateStr = current.toISOString().split('T')[0];
+    
+    const isOffDay = offDays.includes(dayOfWeek);
+    const isPublicHoliday = checkIsMobileHoliday(dateStr, holidaySet);
+    
+    if (!isOffDay && !isPublicHoliday) {
+      workingDaysFound++;
+    }
+    
+    if (workingDaysFound < remainingDays) {
+      current.setDate(current.getDate() + 1);
+    }
+  }
+  
+  return current.toISOString().split('T')[0];
+}
 
 export default function EmployeeDetailScreen() {
   const params = useLocalSearchParams<{ id: string; month?: string; openAdd?: string; hidePlus?: string }>();
@@ -151,6 +321,15 @@ export default function EmployeeDetailScreen() {
     queryKey: ['employee-leaves', empId],
     queryFn: () => employeeService.getLeaves(empId),
     enabled: !!empId && activeTab === 'leaves',
+  });
+
+  const empRecord = employeeQuery.data?.data;
+  const companyId = empRecord?.company_id;
+
+  const publicHolidaysQuery = useQuery({
+    queryKey: ['public-holidays', companyId],
+    queryFn: () => settingsService.getPublicHolidays(companyId),
+    enabled: !!companyId,
   });
 
   const overtimesQuery = useQuery({
@@ -347,6 +526,35 @@ export default function EmployeeDetailScreen() {
   const [leaveStatus, setLeaveStatus] = useState('approved');
   const [leaveUnit, setLeaveUnit] = useState('daily');
   const [leaveHours, setLeaveHours] = useState('');
+
+  const offDaysStr = empRecord?.off_days || '0';
+  const holidayDates = (publicHolidaysQuery.data?.data || []).map((h: any) => h.date);
+
+  const onStartDateChange = (val: string) => {
+    setStartDate(val);
+    if (val && leaveDays) {
+      const days = parseInt(leaveDays) || 1;
+      const end = calculateMobileLeaveEndDate(val, days, offDaysStr, holidayDates);
+      setEndDate(end);
+    }
+  };
+
+  const onLeaveDaysChange = (val: string) => {
+    setLeaveDays(val);
+    if (startDate && val) {
+      const days = parseInt(val) || 1;
+      const end = calculateMobileLeaveEndDate(startDate, days, offDaysStr, holidayDates);
+      setEndDate(end);
+    }
+  };
+
+  const onEndDateChange = (val: string) => {
+    setEndDate(val);
+    if (startDate && val) {
+      const days = calculateMobileLeaveDays(startDate, val, offDaysStr, holidayDates);
+      setLeaveDays(days.toString());
+    }
+  };
 
   // Overtime fields
   const [overtimeDate, setOvertimeDate] = useState(new Date().toISOString().split('T')[0]);
@@ -2921,19 +3129,19 @@ export default function EmployeeDetailScreen() {
                   <GlassInput
                     label="Başlangıç Tarihi"
                     value={startDate}
-                    onChangeText={setStartDate}
+                    onChangeText={onStartDateChange}
                     placeholder="YYYY-MM-DD"
                   />
                   <GlassInput
                     label="Bitiş Tarihi"
                     value={endDate}
-                    onChangeText={setEndDate}
+                    onChangeText={onEndDateChange}
                     placeholder="YYYY-MM-DD"
                   />
                   <GlassInput
                     label="Gün Sayısı"
                     value={leaveDays}
-                    onChangeText={setLeaveDays}
+                    onChangeText={onLeaveDaysChange}
                     keyboardType="numeric"
                     placeholder="örn: 1"
                   />

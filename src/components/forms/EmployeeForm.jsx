@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
+import CustomMultiSelect from '../CustomMultiSelect'
 import { formatDateForInput, formatCurrency } from '../../utils/helpers'
 import { useTabs } from '../../context/TabContext'
 
@@ -9,8 +10,19 @@ const statusOptions = [
     { value: 'inactive', label: 'Pasif' }
 ]
 
+const weekDays = [
+    { value: 1, label: 'Pazartesi' },
+    { value: 2, label: 'Salı' },
+    { value: 3, label: 'Çarşamba' },
+    { value: 4, label: 'Perşembe' },
+    { value: 5, label: 'Cuma' },
+    { value: 6, label: 'Cumartesi' },
+    { value: 0, label: 'Pazar' }
+]
+
 export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, departmentOptions = [], onEditSalary }) {
     const { openNewTab } = useTabs()
+    const [offDays, setOffDays] = useState([0])
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -50,7 +62,14 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                 iban: initialData.iban || '',
                 notes: initialData.notes || ''
             })
+            const initialOffDays = (initialData.off_days || '0')
+                .split(',')
+                .map(d => parseInt(d))
+                .filter(d => !isNaN(d))
+            setOffDays(initialOffDays)
             setSalaryChanged(false)
+        } else {
+            setOffDays([0])
         }
     }, [initialData])
 
@@ -66,7 +85,10 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        onSubmit(form)
+        onSubmit({
+            ...form,
+            offDays: offDays.join(',')
+        })
     }
 
     return (
@@ -202,6 +224,13 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     value={form.status}
                     onChange={(val) => handleChange('status', val)}
                     options={statusOptions}
+                />
+                <CustomMultiSelect
+                    label="Haftalık İzin Günleri (Of Günleri)"
+                    value={offDays}
+                    onChange={setOffDays}
+                    options={weekDays}
+                    placeholder="Seçiniz..."
                 />
             </div>
 

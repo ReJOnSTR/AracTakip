@@ -149,26 +149,41 @@ async function getAllMaintenances(companyId, isArchived) {
 
 async function createMaintenance(data) {
     try {
+        const { filePath, fileData, fileName, ...rest } = data;
         const result = await prisma.maintenances.create({
             data: {
-                vehicle_id: data.vehicleId,
-                type: data.type,
-                description: data.description || null,
-                date: new Date(data.date),
-                cost: data.cost ? parseFloat(data.cost) : 0,
-                next_km: data.nextKm ? parseInt(data.nextKm) : null,
-                next_date: data.nextDate ? new Date(data.nextDate) : null,
-                notes: data.notes || null,
-                file_path: data.filePath || null
+                vehicle_id: parseInt(rest.vehicleId),
+                type: rest.type,
+                description: rest.description || null,
+                date: new Date(rest.date),
+                cost: rest.cost ? parseFloat(rest.cost) : 0,
+                next_km: rest.nextKm ? parseInt(rest.nextKm) : null,
+                next_date: rest.nextDate ? new Date(rest.nextDate) : null,
+                notes: rest.notes || null,
+                file_path: filePath || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath || fileData) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('maintenance', result.id, {
+                vehicleId: rest.vehicleId,
+                filePath,
+                fileData,
+                fileName,
+                date: rest.date,
+                nextDate: rest.nextDate
+            });
+        }
+
+        const fresh = await prisma.maintenances.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function updateMaintenance(data) {
     try {
-        const { id, ...rest } = data;
+        const { id, filePath, fileData, fileName, ...rest } = data;
         const result = await prisma.maintenances.update({
             where: { id: parseInt(id) },
             data: {
@@ -178,16 +193,31 @@ async function updateMaintenance(data) {
                 cost: rest.cost ? parseFloat(rest.cost) : 0,
                 next_km: rest.nextKm ? parseInt(rest.nextKm) : null,
                 next_date: rest.nextDate ? new Date(rest.nextDate) : null,
-                notes: rest.notes || null,
-                file_path: rest.filePath || null
+                notes: rest.notes || null
             }
         });
-        return { success: true, data: result };
+
+        if (filePath !== undefined || fileData !== undefined) {
+            const { syncOperationDocument } = require('./operationSync.helper');
+            await syncOperationDocument('maintenance', result.id, {
+                vehicleId: rest.vehicleId || result.vehicle_id,
+                filePath,
+                fileData,
+                fileName,
+                date: rest.date,
+                nextDate: rest.nextDate
+            });
+        }
+
+        const fresh = await prisma.maintenances.findUnique({ where: { id: result.id } });
+        return { success: true, data: fresh };
     } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function deleteMaintenance(id) {
     try {
+        const { deleteOperationDocument } = require('./operationSync.helper');
+        await deleteOperationDocument('maintenance', id);
         await prisma.maintenances.delete({ where: { id: parseInt(id) } });
         return { success: true };
     } catch (error) { return { success: false, error: error.message }; }

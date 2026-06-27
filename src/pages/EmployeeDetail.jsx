@@ -15,7 +15,7 @@ import AssignmentForm from '../components/forms/AssignmentForm'
 import DocumentForm from '../components/forms/DocumentForm'
 import DocumentGeneratorModal from '../components/DocumentGeneratorModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput, formatDateTime } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers'
 import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -178,6 +178,7 @@ export default function EmployeeDetail() {
     const [departments, setDepartments] = useState([])
     const [leaveTypes, setLeaveTypes] = useState([])
     const [documentCategories, setDocumentCategories] = useState([])
+    const [publicHolidays, setPublicHolidays] = useState([])
     const [documentFolders, setDocumentFolders] = useState([])
     const [confirmModal, setConfirmModal] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -300,7 +301,7 @@ export default function EmployeeDetail() {
     const loadEmployeeData = async (isBackground = false) => {
         if (!isBackground) setLoading(true)
         try {
-            const [empRes, salRes, leaveRes, otRes, assRes, docRes, ltRes, dcRes, deptRes, dfRes] = await Promise.all([
+            const [empRes, salRes, leaveRes, otRes, assRes, docRes, ltRes, dcRes, deptRes, dfRes, holidaysRes] = await Promise.all([
                 window.electronAPI.getEmployeeById(parseInt(id)),
                 window.electronAPI.getSalaries(parseInt(id)),
                 window.electronAPI.getLeaves(parseInt(id)),
@@ -310,7 +311,8 @@ export default function EmployeeDetail() {
                 window.electronAPI.getLeaveTypes(currentCompany.id),
                 window.electronAPI.getDocumentCategories(currentCompany.id, 'employee'),
                 window.electronAPI.getDepartments(currentCompany.id),
-                window.electronAPI.getDocumentFolders(currentCompany.id)
+                window.electronAPI.getDocumentFolders(currentCompany.id),
+                window.electronAPI.getPublicHolidays(currentCompany.id)
             ])
             if (empRes.success) {
                 setEmployee(empRes.data)
@@ -328,6 +330,7 @@ export default function EmployeeDetail() {
             if (dcRes.success) setDocumentCategories(dcRes.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
             if (deptRes.success) setDepartments(deptRes.data || [])
             if (dfRes && dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
+            if (holidaysRes && holidaysRes.success) setPublicHolidays(holidaysRes.data || [])
         } catch (err) {
             console.error('Failed to load employee data:', err)
         }
@@ -663,34 +666,25 @@ export default function EmployeeDetail() {
                         newData.days = 1
                     }
 
+                    const offDaysStr = employee ? employee.off_days : '0';
+                    const holidayDates = publicHolidays.map(h => h.date);
+
                     if (key === 'type') {
                         const autoDays = newData.days || 1;
                         newData.days = autoDays;
                         if (newData.startDate) {
-                            const start = new Date(newData.startDate)
-                            start.setDate(start.getDate() + autoDays - 1)
-                            newData.endDate = formatDateForInput(start)
+                            newData.endDate = calculateLeaveEndDate(newData.startDate, autoDays, offDaysStr, holidayDates)
                         }
                     }
 
                     if (key === 'startDate' && newData.startDate) {
                         const days = parseInt(newData.days) || 1
-                        const start = new Date(newData.startDate)
-                        start.setDate(start.getDate() + days - 1)
-                        newData.endDate = formatDateForInput(start)
+                        newData.endDate = calculateLeaveEndDate(newData.startDate, days, offDaysStr, holidayDates)
                     } else if (key === 'days' && newData.startDate) {
                         const days = parseInt(value) || 1
-                        const start = new Date(newData.startDate)
-                        start.setDate(start.getDate() + days - 1)
-                        newData.endDate = formatDateForInput(start)
+                        newData.endDate = calculateLeaveEndDate(newData.startDate, days, offDaysStr, holidayDates)
                     } else if (key === 'endDate' && newData.startDate && newData.endDate) {
-                        const start = new Date(newData.startDate)
-                        const end = new Date(newData.endDate)
-                        if (end >= start) {
-                            const diffTime = end - start
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-                            newData.days = diffDays
-                        }
+                        newData.days = calculateLeaveDays(newData.startDate, newData.endDate, offDaysStr, holidayDates)
                     }
                 }
 
@@ -2547,17 +2541,92 @@ export default function EmployeeDetail() {
                                     
                                     {formData.leaveUnit === 'hourly' ? (
                                         <>
-                                            <CustomInput label="Tarih *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
+                                            <div>
+                                                <CustomInput label="Tarih *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
+                                                {formData.startDate && (() => {
+                                                    const offDaysStr = employee ? employee.off_days : '0';
+                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const status = checkDateHolidayStatus(formData.startDate, offDaysStr, holidayDates);
+                                                    if (!status) return null;
+                                                    return (
+                                                        <div style={{ fontSize: '11px', color: 'var(--warning-primary, #eab308)', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <AlertCircle size={12} />
+                                                            <span>Seçilen Tarih: {status.label}</span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
                                             <CustomInput label="Süre (Saat) *" type="number" value={formData.hours ?? ''} onChange={(val) => updateField('hours', val)} step="0.5" min="0.5" required />
                                         </>
                                     ) : (
                                         <>
-                                            <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
-                                            <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
+                                            <div>
+                                                <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
+                                                {formData.startDate && (() => {
+                                                    const offDaysStr = employee ? employee.off_days : '0';
+                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const status = checkDateHolidayStatus(formData.startDate, offDaysStr, holidayDates);
+                                                    if (!status) return null;
+                                                    return (
+                                                        <div style={{ fontSize: '11px', color: 'var(--warning-primary, #eab308)', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <AlertCircle size={12} />
+                                                            <span>{status.label}</span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                            <div>
+                                                <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
+                                                {formData.endDate && (() => {
+                                                    const offDaysStr = employee ? employee.off_days : '0';
+                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const status = checkDateHolidayStatus(formData.endDate, offDaysStr, holidayDates);
+                                                    if (!status) return null;
+                                                    return (
+                                                        <div style={{ fontSize: '11px', color: 'var(--warning-primary, #eab308)', marginTop: '-8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <AlertCircle size={12} />
+                                                            <span>{status.label}</span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
                                             <CustomInput label="Gün Sayısı" format="numeric" value={formData.days ?? ''} onChange={(val) => updateField('days', val)} />
                                         </>
                                     )}
                                 </div>
+
+                                {formData.leaveUnit !== 'hourly' && formData.startDate && formData.endDate && (() => {
+                                    const offDaysStr = employee ? employee.off_days : '0';
+                                    const holidayDates = publicHolidays.map(h => h.date);
+                                    const breakdown = getLeaveBreakdown(formData.startDate, formData.endDate, offDaysStr, holidayDates);
+                                    if (!breakdown || (breakdown.offDays === 0 && breakdown.holidays === 0)) return null;
+                                    return (
+                                        <div style={{
+                                            marginTop: '16px',
+                                            padding: '10px 14px',
+                                            background: 'rgba(59, 130, 246, 0.08)',
+                                            border: '1px dashed rgba(59, 130, 246, 0.3)',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            color: 'var(--text-secondary)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '4px'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontSize: '12.5px' }}>
+                                                <Clock size={14} />
+                                                <span style={{ fontWeight: 600 }}>İzin Süresi Detayı</span>
+                                            </div>
+                                            <div>
+                                                Toplam <strong>{breakdown.totalDays}</strong> takvim gününden;
+                                                {breakdown.offDays > 0 && <span> <strong>{breakdown.offDays}</strong> gün haftalık izin</span>}
+                                                {breakdown.offDays > 0 && breakdown.holidays > 0 && <span> ve</span>}
+                                                {breakdown.holidays > 0 && <span> <strong>{breakdown.holidays}</strong> gün resmi tatil</span>} düşülmüştür.
+                                                Maaştan kesilecek net izin süresi: <strong>{breakdown.workingDays} gün</strong>.
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 <div style={{
                                     display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',

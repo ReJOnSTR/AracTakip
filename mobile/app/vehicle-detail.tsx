@@ -255,7 +255,7 @@ export default function VehicleDetailScreen() {
     d.setFullYear(d.getFullYear() + 1);
     return d.toISOString().split('T')[0];
   });
-  const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; size?: number } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ uri: string | null; name: string; size?: number; isExisting?: boolean } | null>(null);
 
   // Maintenance fields
   const [maintType, setMaintType] = useState('Periyodik Bakım');
@@ -438,7 +438,26 @@ export default function VehicleDetailScreen() {
     onError: (err: any) => Alert.alert('Hata', err.message || 'Silme işlemi başarısız oldu.'),
   });
 
-  const handleCreateMaintenance = () => {
+  const handleCreateMaintenance = async () => {
+    let fileData: string | null = null;
+    let fileName: string | null = null;
+    let filePath: string | null = null;
+
+    if (selectedFile) {
+      if (selectedFile.isExisting) {
+        filePath = selectedFile.name;
+      } else if (selectedFile.uri) {
+        try {
+          fileData = await readUriAsBase64(selectedFile.uri, selectedFile.name);
+          fileName = selectedFile.name;
+          filePath = selectedFile.name;
+        } catch (err) {
+          Alert.alert('Hata', 'Dosya verisi okunurken bir hata oluştu.');
+          return;
+        }
+      }
+    }
+
     const payload = {
       type: maintType,
       description: desc,
@@ -447,6 +466,9 @@ export default function VehicleDetailScreen() {
       nextKm: maintNextKm ? parseInt(maintNextKm) : undefined,
       nextDate: maintNextDate || undefined,
       notes,
+      filePath,
+      fileData,
+      fileName,
     };
 
     if (editingItem) {
@@ -459,7 +481,26 @@ export default function VehicleDetailScreen() {
     }
   };
 
-  const handleCreateInspection = () => {
+  const handleCreateInspection = async () => {
+    let fileData: string | null = null;
+    let fileName: string | null = null;
+    let filePath: string | null = null;
+
+    if (selectedFile) {
+      if (selectedFile.isExisting) {
+        filePath = selectedFile.name;
+      } else if (selectedFile.uri) {
+        try {
+          fileData = await readUriAsBase64(selectedFile.uri, selectedFile.name);
+          fileName = selectedFile.name;
+          filePath = selectedFile.name;
+        } catch (err) {
+          Alert.alert('Hata', 'Dosya verisi okunurken bir hata oluştu.');
+          return;
+        }
+      }
+    }
+
     const payload = {
       type: inspType,
       date,
@@ -467,6 +508,9 @@ export default function VehicleDetailScreen() {
       result: inspResult,
       cost: cost ? parseFloat(cost) : 0,
       notes,
+      filePath,
+      fileData,
+      fileName,
     };
 
     if (editingItem) {
@@ -479,7 +523,26 @@ export default function VehicleDetailScreen() {
     }
   };
 
-  const handleCreateInsurance = () => {
+  const handleCreateInsurance = async () => {
+    let fileData: string | null = null;
+    let fileName: string | null = null;
+    let filePath: string | null = null;
+
+    if (selectedFile) {
+      if (selectedFile.isExisting) {
+        filePath = selectedFile.name;
+      } else if (selectedFile.uri) {
+        try {
+          fileData = await readUriAsBase64(selectedFile.uri, selectedFile.name);
+          fileName = selectedFile.name;
+          filePath = selectedFile.name;
+        } catch (err) {
+          Alert.alert('Hata', 'Dosya verisi okunurken bir hata oluştu.');
+          return;
+        }
+      }
+    }
+
     const payload = {
       company: insCompany,
       policyNo: insPolicyNo,
@@ -488,6 +551,9 @@ export default function VehicleDetailScreen() {
       endDate: insEndDate || undefined,
       premium: cost ? parseFloat(cost) : 0,
       notes,
+      filePath,
+      fileData,
+      fileName,
     };
 
     if (editingItem) {
@@ -500,7 +566,26 @@ export default function VehicleDetailScreen() {
     }
   };
 
-  const handleCreateService = () => {
+  const handleCreateService = async () => {
+    let fileData: string | null = null;
+    let fileName: string | null = null;
+    let filePath: string | null = null;
+
+    if (selectedFile) {
+      if (selectedFile.isExisting) {
+        filePath = selectedFile.name;
+      } else if (selectedFile.uri) {
+        try {
+          fileData = await readUriAsBase64(selectedFile.uri, selectedFile.name);
+          fileName = selectedFile.name;
+          filePath = selectedFile.name;
+        } catch (err) {
+          Alert.alert('Hata', 'Dosya verisi okunurken bir hata oluştu.');
+          return;
+        }
+      }
+    }
+
     const payload = {
       type: servType,
       description: desc,
@@ -508,6 +593,9 @@ export default function VehicleDetailScreen() {
       cost: cost ? parseFloat(cost) : 0,
       km: servKm ? parseInt(servKm) : undefined,
       notes,
+      filePath,
+      fileData,
+      fileName,
     };
 
     if (editingItem) {
@@ -617,6 +705,15 @@ export default function VehicleDetailScreen() {
     setMaintNextKm(item.next_km?.toString() || '');
     setMaintNextDate(item.next_date ? item.next_date.split('T')[0] : '');
     setNotes(item.notes || '');
+    if (item.file_path) {
+      setSelectedFile({
+        uri: null,
+        name: item.file_path,
+        isExisting: true
+      });
+    } else {
+      setSelectedFile(null);
+    }
     setActiveModal('maintenance');
   };
 
@@ -639,6 +736,15 @@ export default function VehicleDetailScreen() {
     setInspResult(item.result || 'Geçti');
     setCost(item.cost?.toString() || '');
     setNotes(item.notes || '');
+    if (item.file_path) {
+      setSelectedFile({
+        uri: null,
+        name: item.file_path,
+        isExisting: true
+      });
+    } else {
+      setSelectedFile(null);
+    }
     setActiveModal('inspection');
   };
 
@@ -662,6 +768,15 @@ export default function VehicleDetailScreen() {
     setInsEndDate(item.end_date ? item.end_date.split('T')[0] : '');
     setCost(item.premium?.toString() || '');
     setNotes(item.notes || '');
+    if (item.file_path) {
+      setSelectedFile({
+        uri: null,
+        name: item.file_path,
+        isExisting: true
+      });
+    } else {
+      setSelectedFile(null);
+    }
     setActiveModal('insurance');
   };
 
@@ -684,6 +799,15 @@ export default function VehicleDetailScreen() {
     setCost(item.cost?.toString() || '');
     setServKm(item.km?.toString() || '');
     setNotes(item.notes || '');
+    if (item.file_path) {
+      setSelectedFile({
+        uri: null,
+        name: item.file_path,
+        isExisting: true
+      });
+    } else {
+      setSelectedFile(null);
+    }
     setActiveModal('service');
   };
 
@@ -834,7 +958,7 @@ export default function VehicleDetailScreen() {
 
     let fileData: string | null = null;
     let fileNameOnDisk = docFileName;
-    if (selectedFile) {
+    if (selectedFile && selectedFile.uri) {
       try {
         fileData = await readUriAsBase64(selectedFile.uri, selectedFile.name);
         fileNameOnDisk = selectedFile.name;
@@ -2081,6 +2205,40 @@ export default function VehicleDetailScreen() {
                 placeholder="Ek notlar..."
                 multiline
               />
+              <Pressable
+                onPress={handlePickDocument}
+                style={({ pressed }) => [
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: 12,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: glassBorderColor,
+                    backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }
+                ]}
+              >
+                <Ionicons name="document-attach-outline" size={18} color={c.primary} />
+                <Text style={{ color: c.text, fontWeight: '600' }}>
+                  {selectedFile ? 'Dosyayı Değiştir' : 'Belge Dosyası Seç'}
+                </Text>
+              </Pressable>
+              {selectedFile && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, paddingHorizontal: 4 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                  <Text style={{ color: c.textSecondary, fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    {selectedFile.name}
+                  </Text>
+                  <Pressable onPress={() => setSelectedFile(null)}>
+                    <Ionicons name="close-circle" size={18} color={c.error} />
+                  </Pressable>
+                </View>
+              )}
             </ScrollView>
             <View style={styles.modalButtons}>
               <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
@@ -2151,6 +2309,40 @@ export default function VehicleDetailScreen() {
                 placeholder="Ek notlar..."
                 multiline
               />
+              <Pressable
+                onPress={handlePickDocument}
+                style={({ pressed }) => [
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: 12,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: glassBorderColor,
+                    backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }
+                ]}
+              >
+                <Ionicons name="document-attach-outline" size={18} color={c.primary} />
+                <Text style={{ color: c.text, fontWeight: '600' }}>
+                  {selectedFile ? 'Dosyayı Değiştir' : 'Belge Dosyası Seç'}
+                </Text>
+              </Pressable>
+              {selectedFile && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, paddingHorizontal: 4 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                  <Text style={{ color: c.textSecondary, fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    {selectedFile.name}
+                  </Text>
+                  <Pressable onPress={() => setSelectedFile(null)}>
+                    <Ionicons name="close-circle" size={18} color={c.error} />
+                  </Pressable>
+                </View>
+              )}
             </ScrollView>
             <View style={styles.modalButtons}>
               <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
@@ -2223,6 +2415,40 @@ export default function VehicleDetailScreen() {
                 placeholder="Ek notlar..."
                 multiline
               />
+              <Pressable
+                onPress={handlePickDocument}
+                style={({ pressed }) => [
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: 12,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: glassBorderColor,
+                    backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }
+                ]}
+              >
+                <Ionicons name="document-attach-outline" size={18} color={c.primary} />
+                <Text style={{ color: c.text, fontWeight: '600' }}>
+                  {selectedFile ? 'Dosyayı Değiştir' : 'Belge Dosyası Seç'}
+                </Text>
+              </Pressable>
+              {selectedFile && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, paddingHorizontal: 4 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                  <Text style={{ color: c.textSecondary, fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    {selectedFile.name}
+                  </Text>
+                  <Pressable onPress={() => setSelectedFile(null)}>
+                    <Ionicons name="close-circle" size={18} color={c.error} />
+                  </Pressable>
+                </View>
+              )}
             </ScrollView>
             <View style={styles.modalButtons}>
               <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>
@@ -2292,6 +2518,40 @@ export default function VehicleDetailScreen() {
                 placeholder="Ek notlar..."
                 multiline
               />
+              <Pressable
+                onPress={handlePickDocument}
+                style={({ pressed }) => [
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: 12,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: glassBorderColor,
+                    backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }
+                ]}
+              >
+                <Ionicons name="document-attach-outline" size={18} color={c.primary} />
+                <Text style={{ color: c.text, fontWeight: '600' }}>
+                  {selectedFile ? 'Dosyayı Değiştir' : 'Belge Dosyası Seç'}
+                </Text>
+              </Pressable>
+              {selectedFile && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, paddingHorizontal: 4 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={c.success} />
+                  <Text style={{ color: c.textSecondary, fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    {selectedFile.name}
+                  </Text>
+                  <Pressable onPress={() => setSelectedFile(null)}>
+                    <Ionicons name="close-circle" size={18} color={c.error} />
+                  </Pressable>
+                </View>
+              )}
             </ScrollView>
             <View style={styles.modalButtons}>
               <Button mode="text" onPress={() => { setActiveModal(null); resetForm(); }} textColor={c.textSecondary}>

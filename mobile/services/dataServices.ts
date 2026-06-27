@@ -77,6 +77,10 @@ export const employeeService = {
   getAllSalaries: (companyId: number) => api.get(`${m}/salaries`, { params: { companyId } }).then(r => r.data),
 };
 
+export const settingsService = {
+  getPublicHolidays: (companyId: number) => api.get(`${m}/settings/public-holidays`, { params: { companyId } }).then(r => r.data),
+};
+
 export const financeService = {
   getAll: (companyId: number, isArchived = 0) => api.get(`${m}/finance`, { params: { companyId, isArchived } }).then(r => r.data),
   getStats: (companyId: number) => api.get(`${m}/finance/stats`, { params: { companyId } }).then(r => r.data),

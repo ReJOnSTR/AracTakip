@@ -1,0 +1,179 @@
+import React, { useState } from 'react';
+import { Upload, FileText, Trash2, Eye } from 'lucide-react';
+
+export default function FileAttachmentInput({ value, onChange, label = "Belge / Dosya" }) {
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleSelectFile = async () => {
+        try {
+            const result = await window.electronAPI.selectFile();
+            if (!result.canceled && result.filePaths.length > 0) {
+                const path = result.filePaths[0];
+                const name = path.split(/[\\/]/).pop();
+                onChange({ path, name });
+            }
+        } catch (error) {
+            console.error("Failed to select file:", error);
+        }
+    };
+
+    const handleClearFile = (e) => {
+        e.stopPropagation();
+        onChange(null);
+    };
+
+    const handleOpenFile = (e) => {
+        e.stopPropagation();
+        if (value && typeof value === 'string') {
+            window.electronAPI.openFile(value);
+        } else if (value && value.path) {
+            window.electronAPI.openFile(value.path.split(/[\\/]/).pop());
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            const file = files[0];
+            const path = file.path || file.name;
+            const name = file.name;
+            onChange({ path, name });
+        }
+    };
+
+    const getFileName = () => {
+        if (!value) return '';
+        if (typeof value === 'string') {
+            return value.split(/[\\/]/).pop();
+        }
+        return value.name || value.path.split(/[\\/]/).pop();
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+
+            {value ? (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                        <FileText size={20} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                        <span style={{
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: 'var(--text-primary)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>
+                            {getFileName()}
+                        </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                            type="button"
+                            onClick={handleOpenFile}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                background: 'var(--accent-subtle)',
+                                color: 'var(--accent-primary)',
+                                border: 'none',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(0.95)'}
+                            onMouseLeave={e => e.currentTarget.style.filter = 'none'}
+                        >
+                            <Eye size={14} />
+                            <span>Gör</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleClearFile}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '6px',
+                                borderRadius: '8px',
+                                background: 'transparent',
+                                color: 'var(--danger)',
+                                border: '1px solid transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-bg)'; e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.1)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}
+                            title="Dosyayı Kaldır"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div
+                    onClick={handleSelectFile}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '24px 16px',
+                        borderRadius: '12px',
+                        border: isDragging ? '2px dashed var(--accent-primary)' : '1px dashed var(--border-color)',
+                        background: isDragging ? 'var(--accent-subtle)' : 'var(--bg-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        textAlign: 'center'
+                    }}
+                    onMouseEnter={e => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--accent-primary)' }}
+                    onMouseLeave={e => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border-color)' }}
+                >
+                    <Upload size={24} style={{ color: isDragging ? 'var(--accent-primary)' : 'var(--text-muted)', marginBottom: '8px' }} />
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                        Dosya yüklemek için tıklayın veya sürükleyin
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        PDF, PNG, JPG, JPEG (Maks 15MB)
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}

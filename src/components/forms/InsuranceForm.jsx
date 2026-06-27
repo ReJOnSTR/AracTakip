@@ -6,6 +6,7 @@ import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import { insuranceTypes, formatDateForInput } from '../../utils/helpers'
 import { AlertCircle } from 'lucide-react'
+import FileAttachmentInput from '../FileAttachmentInput'
 
 export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicles, loading, error }) {
     const {
@@ -25,7 +26,8 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
             startDate: formatDateForInput(new Date()),
             endDate: formatDateForInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
             premium: '',
-            notes: ''
+            notes: '',
+            filePath: null
         }
     })
 
@@ -41,7 +43,8 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                 startDate: formatDateForInput(initialData.start_date || initialData.startDate) || formatDateForInput(new Date()),
                 endDate: formatDateForInput(initialData.end_date || initialData.endDate) || formatDateForInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
                 premium: initialData.premium || '',
-                notes: initialData.notes || ''
+                notes: initialData.notes || '',
+                filePath: initialData.file_path || initialData.filePath || null
             })
         } else {
             reset({
@@ -52,7 +55,8 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                 startDate: formatDateForInput(new Date()),
                 endDate: formatDateForInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
                 premium: '',
-                notes: ''
+                notes: '',
+                filePath: null
             })
         }
 
@@ -223,6 +227,20 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                        />
+                    )}
+                />
+            </div>
+
+            <div className="form-group">
+                <Controller
+                    name="filePath"
+                    control={control}
+                    render={({ field }) => (
+                        <FileAttachmentInput
+                            label="Poliçe Belgesi"
+                            value={field.value}
+                            onChange={field.onChange}
                         />
                     )}
                 />

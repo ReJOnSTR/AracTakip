@@ -528,19 +528,6 @@ export default function VehicleDetail() {
             }
 
             if (result?.success) {
-                // Upload file if selected
-                if (selectedFile) {
-                    let relatedType = modalType
-                    if (modalType === 'periodic_inspection') relatedType = 'inspection'
-
-                    await window.electronAPI.addDocument({
-                        vehicleId: parseInt(id),
-                        relatedType: relatedType,
-                        relatedId: parseInt(newId),
-                        filePath: selectedFile.path
-                    })
-                }
-
                 closeModal()
                 loadVehicleData()
             } else {
@@ -1453,6 +1440,11 @@ export default function VehicleDetail() {
                                 )}
                                 actions={(item) => {
                                     if (item.isFolder) {
+                                        const systemFolders = ['Bakım Belgeleri', 'Servisler', 'Muayene Belgeleri', 'Sigortalar & Kaskolar', 'Zimmet Belgeleri'];
+                                        const isSystemFolder = systemFolders.includes(item.file_name);
+                                        if (isSystemFolder) {
+                                            return <span className="text-muted" style={{ fontSize: '11px', paddingRight: '8px' }}>Sistem Klasörü</span>;
+                                        }
                                         const folderObj = documentFolders.find(f => f.value === item.file_name)
                                         return !showArchived ? (
                                             <div style={{ display: 'flex', gap: '8px' }}>

@@ -6,5 +6,6 @@ export const inspectionSchema = z.object({
     nextInspection: z.string().optional(),
     result: z.enum(['passed', 'failed', 'conditional']).optional().or(z.literal('')),
     cost: z.coerce.number().min(0, 'Geçersiz tutar').optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    filePath: z.any().optional()
 });

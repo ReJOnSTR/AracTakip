@@ -260,7 +260,8 @@ exports.Prisma.EmployeesScalarFieldEnum = {
   devir_izin_bakiyesi: 'devir_izin_bakiyesi',
   devir_maas_bakiyesi: 'devir_maas_bakiyesi',
   devir_tarihi: 'devir_tarihi',
-  iban: 'iban'
+  iban: 'iban',
+  off_days: 'off_days'
 };
 
 exports.Prisma.InspectionsScalarFieldEnum = {
@@ -551,6 +552,14 @@ exports.Prisma.Arvento_historyScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.Public_holidaysScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  date: 'date',
+  description: 'description',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -595,7 +604,8 @@ exports.Prisma.ModelName = {
   document_categories: 'document_categories',
   document_folders: 'document_folders',
   vehicle_types: 'vehicle_types',
-  arvento_history: 'arvento_history'
+  arvento_history: 'arvento_history',
+  public_holidays: 'public_holidays'
 };
 
 /**

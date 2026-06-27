@@ -205,10 +205,55 @@ async function deleteVehicleType(id) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+// Public Holidays
+async function getPublicHolidays(companyId) {
+    try {
+        const data = await prisma.public_holidays.findMany({
+            where: { company_id: parseInt(companyId) },
+            orderBy: { date: 'asc' }
+        });
+        return { success: true, data };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function createPublicHoliday(data) {
+    try {
+        const result = await prisma.public_holidays.create({
+            data: {
+                company_id: parseInt(data.companyId),
+                date: new Date(data.date),
+                description: data.description || null
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function updatePublicHoliday(data) {
+    try {
+        const result = await prisma.public_holidays.update({
+            where: { id: parseInt(data.id) },
+            data: {
+                date: new Date(data.date),
+                description: data.description || null
+            }
+        });
+        return { success: true, data: result };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+async function deletePublicHoliday(id) {
+    try {
+        await prisma.public_holidays.delete({ where: { id: parseInt(id) } });
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 module.exports = {
     getDepartments, createDepartment, updateDepartment, deleteDepartment,
     getLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType,
     getDocumentCategories, createDocumentCategory, updateDocumentCategory, deleteDocumentCategory,
     getDocumentFolders, createDocumentFolder, updateDocumentFolder, deleteDocumentFolder,
-    getVehicleTypes, createVehicleType, updateVehicleType, deleteVehicleType
+    getVehicleTypes, createVehicleType, updateVehicleType, deleteVehicleType,
+    getPublicHolidays, createPublicHoliday, updatePublicHoliday, deletePublicHoliday
 };

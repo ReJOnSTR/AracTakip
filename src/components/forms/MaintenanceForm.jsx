@@ -5,6 +5,7 @@ import { maintenanceSchema } from '../../schemas/maintenanceSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import { maintenanceTypes, formatDateForInput } from '../../utils/helpers'
+import FileAttachmentInput from '../FileAttachmentInput'
 
 export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
@@ -23,7 +24,8 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
             cost: '',
             nextKm: '',
             nextDate: '',
-            notes: ''
+            notes: '',
+            filePath: null
         }
     })
 
@@ -37,7 +39,8 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                 cost: initialData.cost || '',
                 nextKm: initialData.next_km || initialData.nextKm || '',
                 nextDate: formatDateForInput(initialData.next_date || initialData.nextDate),
-                notes: initialData.notes || ''
+                notes: initialData.notes || '',
+                filePath: initialData.file_path || initialData.filePath || null
             })
         } else {
             // Reset to defaults if no initialData (important for "New" after "Edit")
@@ -49,7 +52,8 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                 cost: '',
                 nextKm: '',
                 nextDate: '',
-                notes: ''
+                notes: '',
+                filePath: null
             })
         }
 
@@ -199,6 +203,20 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                             rows={3}
                             error={errors.notes?.message}
                             maxLength={500}
+                        />
+                    )}
+                />
+            </div>
+
+            <div className="form-group">
+                <Controller
+                    name="filePath"
+                    control={control}
+                    render={({ field }) => (
+                        <FileAttachmentInput
+                            label="Fatura / Belge"
+                            value={field.value}
+                            onChange={field.onChange}
                         />
                     )}
                 />
