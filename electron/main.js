@@ -1767,6 +1767,26 @@ ipcMain.handle('documents:add', async (event, data) => {
             docType: data.docType || data.category || null
         })
 
+        // Also update the related operation record's file_path!
+        if (result.success && data.relatedType && data.relatedId) {
+            const prisma = getPrismaClient()
+            const modelMap = {
+                'inspection': 'inspections',
+                'periodic_inspection': 'inspections',
+                'insurance': 'insurances',
+                'service': 'services',
+                'maintenance': 'maintenances'
+            }
+            const modelName = modelMap[data.relatedType]
+            const prismaModel = modelName ? prisma[modelName] : null
+            if (prismaModel) {
+                await prismaModel.update({
+                    where: { id: parseInt(data.relatedId) },
+                    data: { file_path: fileName }
+                });
+            }
+        }
+
         return result
     } catch (error) {
         console.error('Document add error:', error)
@@ -1792,10 +1812,10 @@ ipcMain.handle('documents:getByCompany', (event, companyId, isArchived) => {
     return db.getDocumentsByCompany(companyId, isArchived)
 })
 
-ipcMain.handle('documents:delete', (event, id) => {
+ipcMain.handle('documents:delete', async (event, id) => {
     try {
         // 1. Get info to find file
-        const docResult = db.getDocument(id)
+        const docResult = await db.getDocument(id)
         if (docResult.success && docResult.data) {
             const fileName = docResult.data.file_path
             const userDataPath = app.getPath('userData')
@@ -1805,10 +1825,32 @@ ipcMain.handle('documents:delete', (event, id) => {
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath)
             }
+
+            // 2b. Also update the related operation's file_path to null!
+            const relatedType = docResult.data.related_type
+            const relatedId = docResult.data.related_id
+            if (relatedType && relatedId) {
+                const prisma = getPrismaClient()
+                const modelMap = {
+                    'inspection': 'inspections',
+                    'periodic_inspection': 'inspections',
+                    'insurance': 'insurances',
+                    'service': 'services',
+                    'maintenance': 'maintenances'
+                }
+                const modelName = modelMap[relatedType]
+                const prismaModel = modelName ? prisma[modelName] : null
+                if (prismaModel) {
+                    await prismaModel.update({
+                        where: { id: parseInt(relatedId) },
+                        data: { file_path: null }
+                    });
+                }
+            }
         }
 
         // 3. Delete from DB
-        return db.deleteDocument(id)
+        return await db.deleteDocument(id)
     } catch (error) {
         console.error('Document delete error:', error)
         return { success: false, error: error.message }

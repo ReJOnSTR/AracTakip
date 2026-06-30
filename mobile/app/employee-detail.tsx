@@ -16,12 +16,17 @@ import {
   Clipboard,
   Platform,
   Linking,
+  Modal,
+  Image,
+  SafeAreaView,
 } from 'react-native';
 import { Text, ActivityIndicator, IconButton, Divider, Avatar, Button, Searchbar, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import { BlurView } from 'expo-blur';
 import { Colors } from '../constants/Colors';
 import { employeeService, settingsService } from '../services/dataServices';
 import { formatCurrency, formatDate } from '../utils/format';
@@ -266,6 +271,27 @@ export default function EmployeeDetailScreen() {
   const [activeTab, setActiveTab] = useState<TabValue>(() => {
     return month ? 'salaries' : 'details';
   });
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleViewDocument = async (filePath: string) => {
+    const url = getFileUrl(filePath);
+    const ext = filePath.split('.').pop()?.toLowerCase();
+    
+    if (ext && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) {
+      setPreviewUrl(url);
+    } else {
+      try {
+        await WebBrowser.openBrowserAsync(url, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+          toolbarColor: '#1e293b',
+          controlsColor: '#3b82f6',
+        });
+      } catch (error) {
+        Alert.alert('Hata', 'Belge açılamadı.');
+      }
+    }
+  };
 
   const empId = parseInt(id);
 
@@ -1794,7 +1820,7 @@ export default function EmployeeDetailScreen() {
                filteredSalaries.map((s: any) => {
                  const isPaid = s.status === 'Ödendi' || s.status === 'paid';
                  return (
-                   <SwipeableRow style={{ marginHorizontal: -12 }}
+                   <SwipeableRow
                      key={s.id}
                      onEdit={() => handleEditSalary(s)}
                      onDelete={() => handleConfirmDeleteSalary(s)}
@@ -2049,7 +2075,6 @@ export default function EmployeeDetailScreen() {
         return (
           <View style={styles.tabContainer}>
             {/* Stat Cards Scroll Row */}
-            {/* Stat Cards Scroll Row */}
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false} 
@@ -2127,7 +2152,7 @@ export default function EmployeeDetailScreen() {
                 </View>
               </GlassCard>
 
-              <GlassCard intensity={25} style={[styles.statCardGlass, otBalance > 0 ? { borderColor: c.primary, borderWidth: 1 } : {}]}>
+              <GlassCard intensity={25} style={styles.statCardGlass}>
                 <View>
                   <Text style={[styles.statCardLabel, { color: otBalance > 0 ? c.primary : c.textSecondary }]}>Kalan Mesai İzni</Text>
                   <Text style={[styles.statCardValue, { color: otBalance < 0 ? c.error : c.text }]}>
@@ -2206,7 +2231,7 @@ export default function EmployeeDetailScreen() {
                <Text style={[styles.emptyText, { color: c.textSecondary, marginTop: 10 }]}>Kayıt bulunamadı.</Text>
             ) : (
                filteredLeaves.map((l: any) => (
-                <SwipeableRow style={{ marginHorizontal: -12 }}
+                <SwipeableRow
                   key={l.id}
                   onEdit={() => handleEditLeave(l)}
                   onDelete={() => handleConfirmDeleteLeave(l)}
@@ -2508,7 +2533,7 @@ export default function EmployeeDetailScreen() {
                <Text style={[styles.emptyText, { color: c.textSecondary, marginTop: 10 }]}>Kayıt bulunamadı.</Text>
             ) : (
                filteredOvertimes.map((ot: any) => (
-                <SwipeableRow style={{ marginHorizontal: -12 }}
+                <SwipeableRow
                   key={ot.id}
                   onEdit={() => handleEditOvertime(ot)}
                   onDelete={() => handleConfirmDeleteOvertime(ot)}
@@ -2644,7 +2669,7 @@ export default function EmployeeDetailScreen() {
               assignments.map((a: any) => {
                 const isActive = a.status === 'active' || a.status === 'Aktif';
                 return (
-                  <SwipeableRow style={{ marginHorizontal: -12 }}
+                  <SwipeableRow
                     key={a.id}
                     onEdit={() => handleEditAssignment(a)}
                     onDelete={() => handleConfirmDeleteAssignment(a)}
@@ -2816,15 +2841,13 @@ export default function EmployeeDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary, marginTop: 10 }]}>Kayıt bulunamadı.</Text>
             ) : (
               filteredDocuments.map((d: any) => (
-                <SwipeableRow style={{ marginHorizontal: -12 }}
+                <SwipeableRow
                   key={d.id}
                   onEdit={() => handleEditDocument(d)}
                   onDelete={() => handleConfirmDeleteDocument(d)}
                   onPress={() => {
                     if (d.file_path) {
-                      Linking.openURL(getFileUrl(d.file_path)).catch(err => {
-                        Alert.alert('Hata', 'Dosya açılamadı. Lütfen geçerli bir internet bağlantınız olduğunu veya dosya formatını destekleyen bir uygulama olduğunu doğrulayın.');
-                      });
+                      handleViewDocument(d.file_path);
                     } else {
                       Alert.alert('Hata', 'Dosya yolu bulunamadı.');
                     }
@@ -3503,6 +3526,38 @@ export default function EmployeeDetailScreen() {
         />
       )}
 
+      {/* Custom Document Preview Modal */}
+      <Modal
+        visible={!!previewUrl}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewUrl(null)}
+      >
+        <View style={styles.previewModalContainer}>
+          <SafeAreaView style={styles.previewSafeArea}>
+            {/* Header */}
+            <View style={styles.previewHeader}>
+              <Text style={styles.previewTitle} numberOfLines={1}>
+                Belge Önizleme
+              </Text>
+              <Pressable style={styles.previewCloseButton} onPress={() => setPreviewUrl(null)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </Pressable>
+            </View>
+            
+            {/* Image Content */}
+            <View style={styles.previewContent}>
+              {previewUrl && (
+                <Image 
+                  source={{ uri: previewUrl }} 
+                  style={styles.previewImage} 
+                  resizeMode="contain" 
+                />
+              )}
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
     </SwipeBackView>
   );
 }
@@ -3526,8 +3581,8 @@ const styles = StyleSheet.create({
   headerSection: { alignItems: 'center', marginVertical: 20 },
   nameText: { fontSize: 22, fontWeight: '800' },
   positionText: { fontSize: 14, marginTop: 4 },
-  tabPicker: { marginVertical: 6, paddingHorizontal: 16 },
-  tabsScroll: { gap: 8 },
+  tabPicker: { marginVertical: 6, paddingHorizontal: 0 },
+  tabsScroll: { gap: 8, paddingHorizontal: 16 },
   tabButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -3535,7 +3590,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   tabButtonText: { fontSize: 13, fontWeight: '600' },
-  tabContainer: { paddingHorizontal: 12, marginTop: 2 },
+  tabContainer: { paddingHorizontal: 16, marginTop: 2 },
   cardGlass: { padding: 0 },
   cardContent: { padding: 12 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
@@ -3544,6 +3599,8 @@ const styles = StyleSheet.create({
   sectionCard: {
     marginBottom: 0,
     padding: 0,
+    marginHorizontal: 0,
+    marginVertical: 6,
   },
   sectionTitle: {
     fontSize: 14,
@@ -3609,7 +3666,7 @@ const styles = StyleSheet.create({
   },
   tabLoader: { marginVertical: 20 },
   emptyText: { textAlign: 'center', marginVertical: 40, fontSize: 14 },
-  subCardGlass: { padding: 0, marginBottom: 0 },
+  subCardGlass: { padding: 0, marginBottom: 0, marginHorizontal: 0, marginVertical: 6 },
   subCardContent: { paddingVertical: 12, paddingHorizontal: 16 },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   subCardTitle: { fontSize: 15, fontWeight: '600' },
@@ -3743,6 +3800,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     borderRadius: 4,
     borderWidth: 1,
+  },
+  previewModalContainer: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
+  previewSafeArea: {
+    flex: 1,
+  },
+  previewHeader: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+    flex: 1,
+    marginRight: 16,
+  },
+  previewCloseButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

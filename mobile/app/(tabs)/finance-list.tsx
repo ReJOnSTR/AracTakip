@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
+import { BlurView } from 'expo-blur';
 import {
   View,
   StyleSheet,
@@ -175,7 +176,7 @@ export default function FinanceListScreen() {
     const isIncome = item.type === 'IN';
     return (
       <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-        <GlassCard intensity={30} style={styles.txCardGlass} isListRow={true}>
+        <GlassCard intensity={30} style={styles.txCardGlass}>
           <View style={styles.cardInner}>
             <View style={[styles.iconBox, { backgroundColor: isIncome ? c.success + '15' : c.error + '15' }]}>
               <Ionicons
@@ -220,67 +221,82 @@ export default function FinanceListScreen() {
     <SwipeBackView onSwipeBack={() => router.push('/finance')} style={styles.container}>
       <MovingBackground />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-        <GlassIconButton
-          icon="chevron-back"
-          onPress={() => router.push('/finance')}
+      {/* Floating Header with Blur background */}
+      <View style={[
+        styles.floatingHeaderContainer,
+        {
+          paddingTop: insets.top,
+          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
+          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        }
+      ]}>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 45 : 95}
+          tint={colorScheme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[styles.title, { color: c.text }]}>Kasa Defteri</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>İşlemler</Text>
-        </View>
-        <GlassIconButton
-          icon="funnel-outline"
-          onPress={() => setIsFilterModalVisible(true)}
-        />
-      </View>
-
-      {/* Month Navigator */}
-      <View style={styles.monthNavRow}>
-        <GlassMonthPicker
-          value={currentDate}
-          onChange={setCurrentDate}
-        />
-      </View>
-
-      {/* Gelir / Gider Özeti (GlassCard) */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-        <GlassCard intensity={30} style={{ padding: 12 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gelir</Text>
-              <Text style={{ fontSize: 15, color: c.success, fontWeight: '800', marginTop: 4 }}>+{formatCurrency(stats.currentMonthIn)}</Text>
-            </View>
-            <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gider</Text>
-              <Text style={{ fontSize: 15, color: c.error, fontWeight: '800', marginTop: 4 }}>-{formatCurrency(stats.currentMonthOut)}</Text>
-            </View>
-            <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Net Bakiye</Text>
-              <Text style={{ fontSize: 15, color: stats.totalBalance >= 0 ? c.success : c.error, fontWeight: '800', marginTop: 4 }}>
-                {stats.totalBalance >= 0 ? '+' : ''}{formatCurrency(stats.totalBalance)}
-              </Text>
-            </View>
+        
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+          <GlassIconButton
+            icon="chevron-back"
+            onPress={() => router.push('/finance')}
+          />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.title, { color: c.text }]}>Kasa Defteri</Text>
+            <Text style={[styles.count, { color: c.textSecondary }]}>İşlemler</Text>
           </View>
-        </GlassCard>
-      </View>
+          <GlassIconButton
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
+          />
+        </View>
 
-      {/* Search and Filters */}
-      <View style={styles.searchRow}>
-        <Searchbar
-          placeholder="İşlem veya kategori ara..."
-          value={search}
-          onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-          inputStyle={[styles.searchInput, { color: c.text }]}
-          placeholderTextColor={c.textTertiary}
-          iconColor={c.textSecondary}
-        />
+        {/* Month Navigator */}
+        <View style={styles.monthNavRow}>
+          <GlassMonthPicker
+            value={currentDate}
+            onChange={setCurrentDate}
+          />
+        </View>
+
+        {/* Gelir / Gider Özeti (GlassCard) */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+          <GlassCard intensity={30} style={{ padding: 12 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gelir</Text>
+                <Text style={{ fontSize: 15, color: c.success, fontWeight: '800', marginTop: 4 }}>+{formatCurrency(stats.currentMonthIn)}</Text>
+              </View>
+              <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gider</Text>
+                <Text style={{ fontSize: 15, color: c.error, fontWeight: '800', marginTop: 4 }}>-{formatCurrency(stats.currentMonthOut)}</Text>
+              </View>
+              <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Net Bakiye</Text>
+                <Text style={{ fontSize: 15, color: stats.totalBalance >= 0 ? c.success : c.error, fontWeight: '800', marginTop: 4 }}>
+                  {stats.totalBalance >= 0 ? '+' : ''}{formatCurrency(stats.totalBalance)}
+                </Text>
+              </View>
+            </View>
+          </GlassCard>
+        </View>
+
+        {/* Search and Filters */}
+        <View style={styles.searchRow}>
+          <Searchbar
+            placeholder="İşlem veya kategori ara..."
+            value={search}
+            onChangeText={setSearch}
+            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
+            inputStyle={[styles.searchInput, { color: c.text }]}
+            placeholderTextColor={c.textTertiary}
+            iconColor={c.textSecondary}
+          />
+        </View>
       </View>
-      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* Transactions List */}
       <FlatList
@@ -289,7 +305,7 @@ export default function FinanceListScreen() {
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderTransaction}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 235 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
@@ -514,6 +530,15 @@ export default function FinanceListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  floatingHeaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: 'hidden',
+    borderBottomWidth: 1.2,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -540,10 +565,11 @@ const styles = StyleSheet.create({
   filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
-  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 0,
+    marginBottom: 10,
   },
+
   txCardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',

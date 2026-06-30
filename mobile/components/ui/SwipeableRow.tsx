@@ -200,9 +200,7 @@ export default function SwipeableRow({ children, onEdit, onDelete, onPress, styl
       </Animated.View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
+}const styles = StyleSheet.create({
   container: {
     position: 'relative',
     alignSelf: 'stretch',
@@ -213,18 +211,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     justifyContent: 'flex-end',
-    borderRadius: 0,
+    borderRadius: 14,
     overflow: 'hidden',
   },
   buttonsRow: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
+    top: 6,
+    bottom: 6,
     width: 120,
     flexDirection: 'row',
     alignItems: 'stretch',
-    backgroundColor: 'rgba(255, 255, 255, 0.01)',
-    borderRadius: 0,
+    borderRadius: 14,
+    borderWidth: 1,
     overflow: 'hidden',
   },
   actionButton: {

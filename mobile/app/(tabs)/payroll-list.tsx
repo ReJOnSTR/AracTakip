@@ -25,6 +25,7 @@ import GlassMonthPicker from '../../components/ui/GlassMonthPicker';
 import GlassIconButton from '../../components/ui/GlassIconButton';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
+import { BlurView } from 'expo-blur';
 
 export default function PayrollListScreen() {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -128,45 +129,60 @@ export default function PayrollListScreen() {
     >
       <MovingBackground />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-        <GlassIconButton
-          icon="chevron-back"
-          onPress={() => router.push('/employees')}
+      {/* Floating Header with Blur background */}
+      <View style={[
+        styles.floatingHeaderContainer,
+        {
+          paddingTop: insets.top,
+          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
+          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        }
+      ]}>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 45 : 95}
+          tint={colorScheme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[styles.title, { color: c.text }]}>Maaş & Ödemeler</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>
-            {filtered.length} çalışan • Toplam Net: {formatCurrency(totalPayroll)}
-          </Text>
+        
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+          <GlassIconButton
+            icon="chevron-back"
+            onPress={() => router.push('/employees')}
+          />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.title, { color: c.text }]}>Maaş & Ödemeler</Text>
+            <Text style={[styles.count, { color: c.textSecondary }]}>
+              {filtered.length} çalışan • Toplam Net: {formatCurrency(totalPayroll)}
+            </Text>
+          </View>
+          <GlassIconButton
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
+          />
         </View>
-        <GlassIconButton
-          icon="funnel-outline"
-          onPress={() => setIsFilterModalVisible(true)}
-        />
-      </View>
 
-      {/* Month Navigator */}
-      <View style={styles.monthNavRow}>
-        <GlassMonthPicker
-          value={currentDate}
-          onChange={setCurrentDate}
-        />
-      </View>
+        {/* Month Navigator */}
+        <View style={styles.monthNavRow}>
+          <GlassMonthPicker
+            value={currentDate}
+            onChange={setCurrentDate}
+          />
+        </View>
 
-      {/* Searchbar */}
-      <View style={styles.searchRow}>
-        <Searchbar
-          placeholder="Personel adı veya pozisyon ara..."
-          value={search}
-          onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-          inputStyle={[styles.searchInput, { color: c.text }]}
-          placeholderTextColor={c.textTertiary}
-          iconColor={c.textSecondary}
-        />
+        {/* Searchbar */}
+        <View style={styles.searchRow}>
+          <Searchbar
+            placeholder="Personel adı veya pozisyon ara..."
+            value={search}
+            onChangeText={setSearch}
+            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
+            inputStyle={[styles.searchInput, { color: c.text }]}
+            placeholderTextColor={c.textTertiary}
+            iconColor={c.textSecondary}
+          />
+        </View>
       </View>
-      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {query.isLoading ? (
         <View style={styles.center}>
@@ -178,7 +194,7 @@ export default function PayrollListScreen() {
           onTouchEnd={(e) => e.stopPropagation()}
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 172 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={query.isFetching} onRefresh={() => query.refetch()} tintColor={c.primary} />
@@ -211,7 +227,7 @@ export default function PayrollListScreen() {
                   })}
                   style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1, width: '100%' }]}
                 >
-                  <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
+                  <GlassCard intensity={30} style={styles.cardGlass}>
                     <View style={styles.cardInner}>
                       <View style={[styles.avatar, { backgroundColor: avatarColor + '18' }]}>
                         <Text style={[styles.avatarText, { color: avatarColor }]}>
@@ -343,6 +359,15 @@ export default function PayrollListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  floatingHeaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: 'hidden',
+    borderBottomWidth: 1.2,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -385,10 +410,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   monthLabel: { fontSize: 16, fontWeight: '700' },
-  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 0,
+    marginBottom: 10,
   },
+
   cardGlass: { padding: 0 },
   cardInner: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 10 },
   avatar: {

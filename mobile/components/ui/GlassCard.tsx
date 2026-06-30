@@ -18,12 +18,12 @@ export default function GlassCard({ children, style, intensity = 60, tint, borde
 
   const selectedTint = tint || (colorScheme === 'dark' ? 'dark' : 'light');
 
-  const shadowStyle = isListRow ? {} : {
+  const shadowStyle = {
     shadowColor: '#000000',
-    shadowOpacity: colorScheme === 'dark' ? 0.38 : 0.08,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 18,
-    elevation: 4,
+    shadowOpacity: colorScheme === 'dark' ? (isListRow ? 0.22 : 0.38) : (isListRow ? 0.04 : 0.08),
+    shadowOffset: isListRow ? { width: 0, height: 4 } : { width: 0, height: 8 },
+    shadowRadius: isListRow ? 10 : 18,
+    elevation: isListRow ? 2 : 4,
   };
 
   const containerStyle = [
@@ -35,13 +35,9 @@ export default function GlassCard({ children, style, intensity = 60, tint, borde
   const innerStyle = [
     styles.innerContainer,
     {
-      borderRadius: isListRow ? 0 : (borderRadius ?? 16),
-      borderWidth: isListRow ? 0 : 1,
-      borderBottomWidth: isListRow ? 0.5 : 1,
-      borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
-      borderBottomColor: isListRow
-        ? (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)')
-        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)'),
+      borderRadius: borderRadius ?? 14,
+      borderWidth: 1,
+      borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.45)',
       backgroundColor: Platform.OS === 'web'
         ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.75)' : 'rgba(255, 255, 255, 0.75)')
         : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.35)'),

@@ -16,10 +16,10 @@ import {
 } from '../utils/helpers'
 
 import { Plus, Pencil, Trash2, ClipboardCheck, Building2, Eye } from 'lucide-react'
+import InspectionForm from '../components/forms/InspectionForm'
+import BatchOperationModal from '../components/BatchOperationModal'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import DocumentUploadModal from '../components/DocumentUploadModal'
-
-import InspectionForm from '../components/forms/InspectionForm'
 export default function Inspections() {
     const { currentCompany } = useCompany()
     const [inspections, setInspections] = useState([])
@@ -42,6 +42,7 @@ export default function Inspections() {
     const [previewDoc, setPreviewDoc] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [activeUploadId, setActiveUploadId] = useState(null)
+    const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -315,10 +316,12 @@ export default function Inspections() {
         if (!doc) return
 
         const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
-        if (isImage) {
+        const isPdf = doc.file_type?.toLowerCase() === '.pdf'
+
+        if (isImage || isPdf) {
             const result = await window.electronAPI.readDocumentData(doc.file_path)
             if (result.success) {
-                setPreviewDoc({ ...doc, data: result.data })
+                setPreviewDoc({ ...doc, data: result.data, name: doc.file_name, path: doc.file_path })
             } else {
                 alert('Dosya önizlemesi yüklenemedi: ' + result.error)
             }
@@ -333,24 +336,27 @@ export default function Inspections() {
         setUploadModalOpen(true)
     }
 
-    const handleUploadConfirm = async (file) => {
-        if (!activeUploadId) return
+    const handleUploadConfirm = async (docs) => {
+        if (!activeUploadId || !docs || docs.length === 0) return
 
         const inspection = inspections.find(i => i.id === activeUploadId)
         if (!inspection) return
 
+        const doc = docs[0]
         const result = await window.electronAPI.addDocument({
             vehicleId: inspection.vehicle_id,
             relatedType: 'inspection',
             relatedId: activeUploadId,
-            filePath: file.path
+            filePath: doc.path,
+            fileName: doc.displayName,
+            docType: doc.docType,
+            startDate: doc.startDate,
+            endDate: doc.endDate
         })
 
         if (result.success) {
             const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
             if (docsRes.success) setDocuments(docsRes.data)
-            setUploadModalOpen(false)
-            setActiveUploadId(null)
         } else {
             alert('Dosya yüklenirken hata oluştu: ' + result.error)
         }
@@ -377,6 +383,43 @@ export default function Inspections() {
         })
     }
 
+    const handleBatchSaveItem = async (vehicleId, data) => {
+        const payload = {
+            companyId: currentCompany.id,
+            vehicleId: vehicleId,
+            type: 'traffic',
+            inspectionDate: data.inspectionDate,
+            expiryDate: data.expiryDate,
+            cost: data.cost ? parseFloat(data.cost) : null,
+            result: data.result,
+            notes: data.notes
+        }
+
+        const result = await window.electronAPI.createInspection(payload)
+
+        if (result.success) {
+            if (data.filePath) {
+                await window.electronAPI.addDocument({
+                    vehicleId: vehicleId,
+                    relatedType: 'inspection',
+                    relatedId: result.data.id,
+                    filePath: data.filePath
+                })
+            }
+            
+            const res = await window.electronAPI.getAllInspections(currentCompany.id, 'traffic', showArchived ? 1 : 0)
+            if (res.success) setInspections(res.data)
+            
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            
+            return true
+        } else {
+            alert('Kayıt kaydedilirken hata oluştu: ' + result.error)
+            return false
+        }
+    }
+
     if (!currentCompany) {
         return (
             <div className="empty-state">
@@ -396,7 +439,11 @@ export default function Inspections() {
                     <h1 className="page-title">Muayene Takibi</h1>
                     <p style={{ marginTop: '5px', color: '#666' }}>Araç muayene takibi.</p>
                 </div>
-                <div className="page-actions">
+                <div className="page-actions" style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-secondary" onClick={() => setBatchModalOpen(true)} disabled={vehicles.length === 0} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={16} />
+                        Toplu Ekle
+                    </button>
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
                         <Plus size={18} />
                         Yeni Muayene
@@ -503,14 +550,28 @@ export default function Inspections() {
 
             <DocumentUploadModal
                 isOpen={uploadModalOpen}
-                onClose={() => setUploadModalOpen(false)}
+                onClose={() => {
+                    setUploadModalOpen(false)
+                    setActiveUploadId(null)
+                }}
                 onUpload={handleUploadConfirm}
+                initialType="inspection"
             />
 
             <DocumentPreviewModal
                 doc={previewDoc}
                 onClose={() => setPreviewDoc(null)}
                 onDelete={handleDocumentDelete}
+            />
+
+            <BatchOperationModal
+                isOpen={batchModalOpen}
+                onClose={() => setBatchModalOpen(false)}
+                title="Toplu Muayene Ekle"
+                vehicles={vehicles}
+                formComponent={InspectionForm}
+                initialFormType="traffic"
+                onSaveItem={handleBatchSaveItem}
             />
         </div>
     )

@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
+import { BlurView } from 'expo-blur';
 import {
   View,
   StyleSheet,
@@ -131,7 +132,7 @@ export default function VehiclesScreen() {
       <Pressable
         onPress={() => router.push({ pathname: '/vehicle-detail', params: { id: item.id } })}
       >
-        <GlassCard intensity={30} style={styles.vehicleCardGlass} isListRow={true}>
+        <GlassCard intensity={30} style={styles.vehicleCardGlass}>
           <View style={styles.vehicleCardInner}>
             <View style={[styles.plateBox, { backgroundColor: c.primaryContainer + '20' }]}>
               <Ionicons name="car" size={22} color={c.primary} />
@@ -182,42 +183,57 @@ export default function VehiclesScreen() {
     <SwipeBackView onSwipeBack={() => router.push('/vehicles')} style={styles.container}>
       <MovingBackground />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-        <GlassIconButton
-          icon="chevron-back"
-          onPress={() => router.push('/vehicles')}
+      {/* Floating Header with Blur background */}
+      <View style={[
+        styles.floatingHeaderContainer,
+        {
+          paddingTop: insets.top,
+          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
+          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        }
+      ]}>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 45 : 95}
+          tint={colorScheme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[styles.title, { color: c.text }]}>Araçlar</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} araç</Text>
+        
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+          <GlassIconButton
+            icon="chevron-back"
+            onPress={() => router.push('/vehicles')}
+          />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.title, { color: c.text }]}>Araçlar</Text>
+            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} araç</Text>
+          </View>
+          <GlassIconButton
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
+          />
         </View>
-        <GlassIconButton
-          icon="funnel-outline"
-          onPress={() => setIsFilterModalVisible(true)}
-        />
-      </View>
 
-      {/* Search */}
-      <View style={styles.searchRow}>
-        <Searchbar
-          placeholder="Plaka, marka veya model ara..."
-          value={search}
-          onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-          inputStyle={[styles.searchInput, { color: c.text }]}
-          placeholderTextColor={c.textTertiary}
-          iconColor={c.textSecondary}
-        />
+        {/* Search */}
+        <View style={styles.searchRow}>
+          <Searchbar
+            placeholder="Plaka, marka veya model ara..."
+            value={search}
+            onChangeText={setSearch}
+            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
+            inputStyle={[styles.searchInput, { color: c.text }]}
+            placeholderTextColor={c.textTertiary}
+            iconColor={c.textSecondary}
+          />
+        </View>
       </View>
-      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* Vehicle List */}
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderVehicle}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -492,6 +508,15 @@ export default function VehiclesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  floatingHeaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: 'hidden',
+    borderBottomWidth: 1.2,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -508,10 +533,11 @@ const styles = StyleSheet.create({
   filterChip: { borderRadius: 10, marginVertical: 2 },
   chip: { borderRadius: 10 },
   chipText: { fontSize: 12, fontWeight: '600' },
-  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 0,
+    marginBottom: 10,
   },
+
   vehicleCardGlass: {
     padding: 0,
   },

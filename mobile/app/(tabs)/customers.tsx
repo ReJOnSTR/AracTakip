@@ -114,25 +114,40 @@ export default function CustomersScreen() {
     <View style={styles.container}>
       <MovingBackground />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={[styles.title, { color: c.text }]}>Müşteriler</Text>
-        <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
-      </View>
-
-      {/* Searchbar */}
-      <View style={styles.searchRow}>
-        <Searchbar
-          placeholder="Müşteri, şirket veya e-posta ara..."
-          value={search}
-          onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
-          inputStyle={[styles.searchInput, { color: c.text }]}
-          placeholderTextColor={c.textSecondary}
-          iconColor={c.textSecondary}
+      {/* Floating Header with Blur background */}
+      <View style={[
+        styles.floatingHeaderContainer,
+        {
+          paddingTop: insets.top,
+          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
+          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        }
+      ]}>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 45 : 95}
+          tint={colorScheme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
         />
+        
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20, marginBottom: 0 }]}>
+          <Text style={[styles.title, { color: c.text }]}>Müşteriler</Text>
+          <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
+        </View>
+
+        {/* Searchbar */}
+        <View style={styles.searchRow}>
+          <Searchbar
+            placeholder="Müşteri, şirket veya e-posta ara..."
+            value={search}
+            onChangeText={setSearch}
+            style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
+            inputStyle={[styles.searchInput, { color: c.text }]}
+            placeholderTextColor={c.textSecondary}
+            iconColor={c.textSecondary}
+          />
+        </View>
       </View>
-      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {/* List */}
       {query.isLoading ? (
@@ -143,14 +158,14 @@ export default function CustomersScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
           renderItem={({ item, index }) => (
             <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-              <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
+              <GlassCard intensity={30} style={styles.cardGlass}>
                 <View style={styles.cardInner}>
                   <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
                     <Ionicons name="business-outline" size={22} color={c.primary} />
@@ -284,6 +299,15 @@ export default function CustomersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  floatingHeaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: 'hidden',
+    borderBottomWidth: 1.2,
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     paddingHorizontal: 20,
@@ -324,10 +348,11 @@ const styles = StyleSheet.create({
   searchRow: { paddingHorizontal: 20, paddingVertical: 10 },
   searchBar: { borderRadius: 14, elevation: 0, height: 46, borderWidth: 1 },
   searchInput: { fontSize: 14, minHeight: 0 },
-  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 0,
+    marginBottom: 10,
   },
+
   cardGlass: { padding: 0 },
   cardInner: {
     flexDirection: 'row',

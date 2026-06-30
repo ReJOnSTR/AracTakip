@@ -11,12 +11,17 @@ import {
   Alert,
   Platform,
   Linking,
+  Modal,
+  Image,
+  SafeAreaView,
 } from 'react-native';
 import { Text, ActivityIndicator, IconButton, Divider, Button, Searchbar, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import { BlurView } from 'expo-blur';
 import { Colors } from '../constants/Colors';
 import { vehicleService } from '../services/dataServices';
 import { formatCurrency, getStatusLabel, formatDate } from '../utils/format';
@@ -119,6 +124,27 @@ export default function VehicleDetailScreen() {
   const [isInsFilterVisible, setIsInsFilterVisible] = useState(false);
   const [isServFilterVisible, setIsServFilterVisible] = useState(false);
   const [isAssignmentFilterVisible, setIsAssignmentFilterVisible] = useState(false);
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleViewDocument = async (filePath: string) => {
+    const url = getFileUrl(filePath);
+    const ext = filePath.split('.').pop()?.toLowerCase();
+    
+    if (ext && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) {
+      setPreviewUrl(url);
+    } else {
+      try {
+        await WebBrowser.openBrowserAsync(url, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+          toolbarColor: '#1e293b',
+          controlsColor: '#3b82f6',
+        });
+      } catch (error) {
+        Alert.alert('Hata', 'Belge açılamadı.');
+      }
+    }
+  };
 
   const vehicleId = parseInt(id);
 
@@ -1185,7 +1211,7 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı bakım bulunamadı.</Text>
             ) : (
               filteredMaintenances.map((m: any) => (
-                <SwipeableRow style={{ marginHorizontal: -16 }}
+                <SwipeableRow
                   key={m.id}
                   onEdit={() => handleEditMaintenance(m)}
                   onDelete={() => handleConfirmDeleteMaintenance(m)}
@@ -1202,11 +1228,7 @@ export default function VehicleDetailScreen() {
                       </View>
                       {m.file_path && (
                         <Pressable 
-                          onPress={() => {
-                            Linking.openURL(getFileUrl(m.file_path)).catch(err => {
-                              Alert.alert('Hata', 'Dosya açılamadı.');
-                            });
-                          }}
+                          onPress={() => handleViewDocument(m.file_path)}
                           style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
                         >
                           <Ionicons name="document-attach-outline" size={14} color={c.primary} />
@@ -1346,7 +1368,7 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı muayene bulunamadı.</Text>
             ) : (
               filteredInspections.map((i: any) => (
-                <SwipeableRow style={{ marginHorizontal: -16 }}
+                <SwipeableRow
                   key={i.id}
                   onEdit={() => handleEditInspection(i)}
                   onDelete={() => handleConfirmDeleteInspection(i)}
@@ -1366,11 +1388,7 @@ export default function VehicleDetailScreen() {
                       </View>
                       {i.file_path && (
                         <Pressable 
-                          onPress={() => {
-                            Linking.openURL(getFileUrl(i.file_path)).catch(err => {
-                              Alert.alert('Hata', 'Dosya açılamadı.');
-                            });
-                          }}
+                          onPress={() => handleViewDocument(i.file_path)}
                           style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
                         >
                           <Ionicons name="document-attach-outline" size={14} color={c.primary} />
@@ -1510,7 +1528,7 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı sigorta bulunamadı.</Text>
             ) : (
               filteredInsurances.map((ins: any) => (
-                <SwipeableRow style={{ marginHorizontal: -16 }}
+                <SwipeableRow
                   key={ins.id}
                   onEdit={() => handleEditInsurance(ins)}
                   onDelete={() => handleConfirmDeleteInsurance(ins)}
@@ -1530,11 +1548,7 @@ export default function VehicleDetailScreen() {
                       )}
                       {ins.file_path && (
                         <Pressable 
-                          onPress={() => {
-                            Linking.openURL(getFileUrl(ins.file_path)).catch(err => {
-                              Alert.alert('Hata', 'Dosya açılamadı.');
-                            });
-                          }}
+                          onPress={() => handleViewDocument(ins.file_path)}
                           style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
                         >
                           <Ionicons name="document-attach-outline" size={14} color={c.primary} />
@@ -1674,7 +1688,7 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Kayıtlı servis kaydı bulunamadı.</Text>
             ) : (
               filteredServices.map((s: any) => (
-                <SwipeableRow style={{ marginHorizontal: -16 }}
+                <SwipeableRow
                   key={s.id}
                   onEdit={() => handleEditService(s)}
                   onDelete={() => handleConfirmDeleteService(s)}
@@ -1691,11 +1705,7 @@ export default function VehicleDetailScreen() {
                       </View>
                       {s.file_path && (
                         <Pressable 
-                          onPress={() => {
-                            Linking.openURL(getFileUrl(s.file_path)).catch(err => {
-                              Alert.alert('Hata', 'Dosya açılamadı.');
-                            });
-                          }}
+                          onPress={() => handleViewDocument(s.file_path)}
                           style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
                         >
                           <Ionicons name="document-attach-outline" size={14} color={c.primary} />
@@ -1837,7 +1847,7 @@ export default function VehicleDetailScreen() {
               filteredAssignments.map((a: any) => {
                 const isActive = !a.end_date;
                 return (
-                  <SwipeableRow style={{ marginHorizontal: -16 }}
+                  <SwipeableRow
                     key={a.id}
                     onEdit={() => handleEditAssignment(a)}
                     onDelete={() => handleConfirmDeleteAssignment(a)}
@@ -1999,15 +2009,13 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.emptyText, { color: c.textSecondary }]}>Belge bulunamadı.</Text>
             ) : (
               filteredDocuments.map((d: any) => (
-                <SwipeableRow style={{ marginHorizontal: -16 }}
+                <SwipeableRow
                   key={d.id}
                   onEdit={() => handleEditDocument(d)}
                   onDelete={() => handleConfirmDeleteDocument(d)}
                   onPress={() => {
                     if (d.file_path) {
-                      Linking.openURL(getFileUrl(d.file_path)).catch(err => {
-                        Alert.alert('Hata', 'Dosya açılamadı.');
-                      });
+                      handleViewDocument(d.file_path);
                     } else {
                       Alert.alert('Hata', 'Dosya yolu bulunamadı.');
                     }
@@ -2876,6 +2884,39 @@ export default function VehicleDetailScreen() {
           </Button>
         </View>
       </GlassModal>
+
+      {/* Custom Document Preview Modal */}
+      <Modal
+        visible={!!previewUrl}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewUrl(null)}
+      >
+        <View style={styles.previewModalContainer}>
+          <SafeAreaView style={styles.previewSafeArea}>
+            {/* Header */}
+            <View style={styles.previewHeader}>
+              <Text style={styles.previewTitle} numberOfLines={1}>
+                Belge Önizleme
+              </Text>
+              <Pressable style={styles.previewCloseButton} onPress={() => setPreviewUrl(null)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </Pressable>
+            </View>
+            
+            {/* Image Content */}
+            <View style={styles.previewContent}>
+              {previewUrl && (
+                <Image 
+                  source={{ uri: previewUrl }} 
+                  style={styles.previewImage} 
+                  resizeMode="contain" 
+                />
+              )}
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -2907,8 +2948,8 @@ const styles = StyleSheet.create({
   },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontSize: 12, fontWeight: '600' },
-  tabPicker: { marginVertical: 10, paddingHorizontal: 16 },
-  tabsScroll: { gap: 8 },
+  tabPicker: { marginVertical: 10, paddingHorizontal: 0 },
+  tabsScroll: { gap: 8, paddingHorizontal: 16 },
   tabButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -2917,14 +2958,14 @@ const styles = StyleSheet.create({
   },
   tabButtonText: { fontSize: 13, fontWeight: '600' },
   tabContainer: { paddingHorizontal: 16, marginTop: 12 },
-  cardGlass: { padding: 0 },
+  cardGlass: { padding: 0, marginHorizontal: 0, marginVertical: 6 },
   cardContent: { padding: 16 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12 },
   detailLabel: { fontSize: 13, fontWeight: '500' },
   detailValue: { fontSize: 14, fontWeight: '600' },
   tabLoader: { marginVertical: 20 },
   emptyText: { textAlign: 'center', marginVertical: 40, fontSize: 14 },
-  subCardGlass: { padding: 0, marginBottom: 0 },
+  subCardGlass: { padding: 0, marginBottom: 0, marginHorizontal: 0, marginVertical: 6 },
   subCardContent: { paddingVertical: 12, paddingHorizontal: 16 },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   subCardTitle: { fontSize: 15, fontWeight: '600' },
@@ -2999,6 +3040,47 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  previewModalContainer: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
+  previewSafeArea: {
+    flex: 1,
+  },
+  previewHeader: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+    flex: 1,
+    marginRight: 16,
+  },
+  previewCloseButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

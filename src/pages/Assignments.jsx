@@ -8,11 +8,12 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 
 import { formatDate, getVehicleTypeLabel } from '../utils/helpers'
-import { Plus, Check, Truck, Pencil, Trash2, Calendar, FileText, LayoutList } from 'lucide-react'
+import { Plus, Check, Truck, Pencil, Trash2, Calendar, FileText, LayoutList, Building2 } from 'lucide-react'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import DocumentUploadModal from '../components/DocumentUploadModal'
 import AssignmentForm from '../components/forms/AssignmentForm'
+import BatchOperationModal from '../components/BatchOperationModal'
 
 export default function Assignments() {
     const { currentCompany } = useCompany()
@@ -35,6 +36,7 @@ export default function Assignments() {
     const [previewDoc, setPreviewDoc] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [activeUploadId, setActiveUploadId] = useState(null)
+    const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -278,8 +280,20 @@ export default function Assignments() {
         if (!doc) return
 
         const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
-        if (isImage) {
-            setPreviewDoc(doc)
+        const isPdf = doc.file_type?.toLowerCase() === '.pdf'
+
+        if (isImage || isPdf) {
+            const res = await window.electronAPI.readDocumentData(doc.file_path)
+            if (res.success) {
+                setPreviewDoc({
+                    id: doc.id,
+                    name: doc.file_name,
+                    path: doc.file_path,
+                    data: res.data
+                })
+            } else {
+                alert('Belge okunamadı: ' + res.error)
+            }
         } else {
             const result = await window.electronAPI.openDocument(doc.file_path)
             if (!result.success) {
@@ -293,24 +307,27 @@ export default function Assignments() {
         setUploadModalOpen(true)
     }
 
-    const handleUploadConfirm = async (file) => {
-        if (!activeUploadId) return
+    const handleUploadConfirm = async (docs) => {
+        if (!activeUploadId || !docs || docs.length === 0) return
 
         const assignment = assignments.find(a => a.id === activeUploadId)
         if (!assignment) return
 
+        const doc = docs[0]
         const result = await window.electronAPI.addDocument({
             vehicleId: assignment.vehicle_id,
             relatedType: 'assignment',
             relatedId: activeUploadId,
-            filePath: file.path
+            filePath: doc.path,
+            fileName: doc.displayName,
+            docType: doc.docType,
+            startDate: doc.startDate,
+            endDate: doc.endDate
         })
 
         if (result.success) {
             const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
             if (docsRes.success) setDocuments(docsRes.data)
-            setUploadModalOpen(false)
-            setActiveUploadId(null)
         } else {
             alert('Dosya yüklenirken hata oluştu: ' + result.error)
         }
@@ -346,7 +363,39 @@ export default function Assignments() {
             </div>
         )
     }
+    const handleBatchSaveItem = async (vehicleId, data) => {
+        const payload = {
+            companyId: currentCompany.id,
+            vehicleId: vehicleId,
+            employeeId: parseInt(data.employeeId),
+            assignedDate: data.assignedDate,
+            notes: data.notes
+        }
 
+        const result = await window.electronAPI.createAssignment(payload)
+
+        if (result.success) {
+            if (data.filePath) {
+                await window.electronAPI.addDocument({
+                    vehicleId: vehicleId,
+                    relatedType: 'assignment',
+                    relatedId: result.data.id,
+                    filePath: data.filePath
+                })
+            }
+            
+            const assignmentsRes = await window.electronAPI.getAllAssignments(currentCompany.id, showArchived ? 1 : 0)
+            if (assignmentsRes.success) setAssignments(assignmentsRes.data)
+            
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            
+            return true
+        } else {
+            alert('Kayıt kaydedilirken hata oluştu: ' + result.error)
+            return false
+        }
+    }
 
     return (
         <div>
@@ -356,7 +405,11 @@ export default function Assignments() {
                     <h1 className="page-title">Zimmet Yönetimi</h1>
                     <p style={{ marginTop: '5px', color: '#666' }}>Araç sürücü zimmetleri.</p>
                 </div>
-                <div className="page-actions">
+                <div className="page-actions" style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-secondary" onClick={() => setBatchModalOpen(true)} disabled={vehicles.length === 0} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={16} />
+                        Toplu Ekle
+                    </button>
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
                         <Plus size={18} />
                         Yeni Zimmet
@@ -453,14 +506,27 @@ export default function Assignments() {
 
             <DocumentUploadModal
                 isOpen={uploadModalOpen}
-                onClose={() => setUploadModalOpen(false)}
+                onClose={() => {
+                    setUploadModalOpen(false)
+                    setActiveUploadId(null)
+                }}
                 onUpload={handleUploadConfirm}
+                initialType="assignment"
             />
 
             <DocumentPreviewModal
                 doc={previewDoc}
                 onClose={() => setPreviewDoc(null)}
                 onDelete={handleDocumentDelete}
+            />
+
+            <BatchOperationModal
+                isOpen={batchModalOpen}
+                onClose={() => setBatchModalOpen(false)}
+                title="Toplu Zimmet Kaydı Ekle"
+                vehicles={vehicles}
+                formComponent={AssignmentForm}
+                onSaveItem={handleBatchSaveItem}
             />
         </div>
     )

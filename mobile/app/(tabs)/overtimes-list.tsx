@@ -24,6 +24,7 @@ import GlassCard from '../../components/ui/GlassCard';
 import GlassIconButton from '../../components/ui/GlassIconButton';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
+import { BlurView } from 'expo-blur';
 import GlassInput from '../../components/ui/GlassInput';
 
 export default function OvertimesListScreen() {
@@ -97,37 +98,52 @@ export default function OvertimesListScreen() {
     <SwipeBackView onSwipeBack={() => router.push('/employees')} style={styles.container}>
       <MovingBackground />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-        <GlassIconButton
-          icon="chevron-back"
-          onPress={() => router.push('/employees')}
+      {/* Floating Header with Blur background */}
+      <View style={[
+        styles.floatingHeaderContainer,
+        {
+          paddingTop: insets.top,
+          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
+          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        }
+      ]}>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 45 : 95}
+          tint={colorScheme === 'dark' ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[styles.title, { color: c.text }]}>Fazla Mesailer</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>
-            {filtered.length} kayıt • Toplam: {formatCurrency(totalAmount)}
-          </Text>
+        
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+          <GlassIconButton
+            icon="chevron-back"
+            onPress={() => router.push('/employees')}
+          />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.title, { color: c.text }]}>Fazla Mesailer</Text>
+            <Text style={[styles.count, { color: c.textSecondary }]}>
+              {filtered.length} kayıt • Toplam: {formatCurrency(totalAmount)}
+            </Text>
+          </View>
+          <GlassIconButton
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
+          />
         </View>
-        <GlassIconButton
-          icon="funnel-outline"
-          onPress={() => setIsFilterModalVisible(true)}
-        />
-      </View>
 
-      {/* Search */}
-      <View style={styles.searchRow}>
-        <Searchbar
-          placeholder="Personel adı veya mesai detayı ara..."
-          value={search}
-          onChangeText={setSearch}
-          style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-          inputStyle={[styles.searchInput, { color: c.text }]}
-          placeholderTextColor={c.textTertiary}
-          iconColor={c.textSecondary}
-        />
+        {/* Search */}
+        <View style={styles.searchRow}>
+          <Searchbar
+            placeholder="Personel adı veya mesai detayı ara..."
+            value={search}
+            onChangeText={setSearch}
+            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
+            inputStyle={[styles.searchInput, { color: c.text }]}
+            placeholderTextColor={c.textTertiary}
+            iconColor={c.textSecondary}
+          />
+        </View>
       </View>
-      <View style={{ height: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)' }} />
 
       {query.isLoading ? (
         <View style={styles.center}>
@@ -137,7 +153,7 @@ export default function OvertimesListScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
@@ -146,7 +162,7 @@ export default function OvertimesListScreen() {
             const avatarColor = avatarColors[index % avatarColors.length];
             return (
               <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
-                <GlassCard intensity={30} style={styles.cardGlass} isListRow={true}>
+                <GlassCard intensity={30} style={styles.cardGlass}>
                   <View style={styles.cardInner}>
                     <View style={[styles.avatar, { backgroundColor: avatarColor + '18' }]}>
                       <Text style={[styles.avatarText, { color: avatarColor }]}>
@@ -338,6 +354,15 @@ export default function OvertimesListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  floatingHeaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: 'hidden',
+    borderBottomWidth: 1.2,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -356,10 +381,11 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 12, fontWeight: '600' },
   modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
-  listContent: { paddingHorizontal: 0, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 100 },
   cardContainer: {
-    marginBottom: 0,
+    marginBottom: 10,
   },
+
   cardGlass: { padding: 0 },
   cardInner: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 10 },
   avatar: {

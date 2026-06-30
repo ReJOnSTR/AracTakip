@@ -9,10 +9,11 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import { formatDate, formatCurrency, getVehicleTypeLabel } from '../utils/helpers'
 // FileUploader removed
-import { Plus, Pencil, Trash2, Wrench, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Wrench, Eye, Building2 } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import DocumentUploadModal from '../components/DocumentUploadModal'
 import ServiceForm from '../components/forms/ServiceForm'
+import BatchOperationModal from '../components/BatchOperationModal'
 
 export default function Services() {
     const { currentCompany } = useCompany()
@@ -35,6 +36,7 @@ export default function Services() {
     const [previewDoc, setPreviewDoc] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [activeUploadId, setActiveUploadId] = useState(null)
+    const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     const serviceTypes = [
         { value: 'Genel Bakım', label: 'Genel Bakım' },
@@ -295,10 +297,21 @@ export default function Services() {
     const handleDocumentOpen = async (doc) => {
         if (!doc) return
 
-        // If image, preview. If other, open external
         const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(doc.file_type?.toLowerCase())
-        if (isImage) {
-            setPreviewDoc(doc)
+        const isPdf = doc.file_type?.toLowerCase() === '.pdf'
+
+        if (isImage || isPdf) {
+            const res = await window.electronAPI.readDocumentData(doc.file_path)
+            if (res.success) {
+                setPreviewDoc({
+                    id: doc.id,
+                    name: doc.file_name,
+                    path: doc.file_path,
+                    data: res.data
+                })
+            } else {
+                alert('Belge okunamadı: ' + res.error)
+            }
         } else {
             const result = await window.electronAPI.openDocument(doc.file_path)
             if (!result.success) {
@@ -312,25 +325,28 @@ export default function Services() {
         setUploadModalOpen(true)
     }
 
-    const handleUploadConfirm = async (file) => {
-        if (!activeUploadId) return
+    const handleUploadConfirm = async (docs) => {
+        if (!activeUploadId || !docs || docs.length === 0) return
 
         const service = services.find(s => s.id === activeUploadId)
         if (!service) return
 
+        const doc = docs[0]
         const result = await window.electronAPI.addDocument({
             vehicleId: service.vehicle_id,
             relatedType: 'service',
             relatedId: activeUploadId,
-            filePath: file.path
+            filePath: doc.path,
+            fileName: doc.displayName,
+            docType: doc.docType,
+            startDate: doc.startDate,
+            endDate: doc.endDate
         })
 
         if (result.success) {
             // Refresh documents
             const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
             if (docsRes.success) setDocuments(docsRes.data)
-            setUploadModalOpen(false)
-            setActiveUploadId(null)
         } else {
             alert('Dosya yüklenirken hata oluştu: ' + result.error)
         }
@@ -366,7 +382,43 @@ export default function Services() {
             </div>
         )
     }
+    const handleBatchSaveItem = async (vehicleId, data) => {
+        const payload = {
+            companyId: currentCompany.id,
+            vehicleId: vehicleId,
+            type: data.type,
+            serviceName: data.serviceName,
+            description: data.description,
+            date: data.date,
+            km: data.km ? parseInt(data.km) : null,
+            cost: data.cost ? parseFloat(data.cost) : null,
+            notes: data.notes
+        }
 
+        const result = await window.electronAPI.createService(payload)
+
+        if (result.success) {
+            if (data.filePath) {
+                await window.electronAPI.addDocument({
+                    vehicleId: vehicleId,
+                    relatedType: 'service',
+                    relatedId: result.data.id,
+                    filePath: data.filePath
+                })
+            }
+            
+            const servicesRes = await window.electronAPI.getAllServices(currentCompany.id, showArchived ? 1 : 0)
+            if (servicesRes.success) setServices(servicesRes.data)
+            
+            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
+            if (docsRes.success) setDocuments(docsRes.data)
+            
+            return true
+        } else {
+            alert('Kayıt kaydedilirken hata oluştu: ' + result.error)
+            return false
+        }
+    }
 
     return (
         <div>
@@ -376,10 +428,14 @@ export default function Services() {
                     <h1 className="page-title">Servis İşlemleri</h1>
                     <p style={{ marginTop: '5px', color: '#666' }}>Araç servis ve tamir kayıtları.</p>
                 </div>
-                <div className="page-actions">
+                <div className="page-actions" style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-secondary" onClick={() => setBatchModalOpen(true)} disabled={vehicles.length === 0} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={16} />
+                        Toplu Ekle
+                    </button>
                     <button className="btn btn-primary" onClick={openCreateModal} disabled={vehicles.length === 0}>
                         <Plus size={18} />
-                        Yeni Servis
+                        Yeni Ekle
                     </button>
                 </div>
             </div>
@@ -469,14 +525,27 @@ export default function Services() {
 
             <DocumentUploadModal
                 isOpen={uploadModalOpen}
-                onClose={() => setUploadModalOpen(false)}
+                onClose={() => {
+                    setUploadModalOpen(false)
+                    setActiveUploadId(null)
+                }}
                 onUpload={handleUploadConfirm}
+                initialType="service"
             />
 
             <DocumentPreviewModal
                 doc={previewDoc}
                 onClose={() => setPreviewDoc(null)}
                 onDelete={handleDocumentDelete}
+            />
+
+            <BatchOperationModal
+                isOpen={batchModalOpen}
+                onClose={() => setBatchModalOpen(false)}
+                title="Toplu Servis Kaydı Ekle"
+                vehicles={vehicles}
+                formComponent={ServiceForm}
+                onSaveItem={handleBatchSaveItem}
             />
         </div>
     )
