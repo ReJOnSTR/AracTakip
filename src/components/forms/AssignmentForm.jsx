@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { assignmentSchema } from '../../schemas/assignmentSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
-import { formatDateForInput } from '../../utils/helpers'
+import FileAttachmentInput from '../FileAttachmentInput'
 
 export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
@@ -23,7 +23,8 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
             department: '',
             startDate: formatDateForInput(new Date()),
             endDate: '',
-            notes: ''
+            notes: '',
+            filePath: null
         }
     })
 
@@ -37,7 +38,8 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                 department: initialData.department || '',
                 startDate: formatDateForInput(initialData.start_date || initialData.startDate) || formatDateForInput(new Date()),
                 endDate: formatDateForInput(initialData.end_date || initialData.endDate),
-                notes: initialData.notes || ''
+                notes: initialData.notes || '',
+                filePath: initialData.file_path || initialData.filePath || null
             })
         } else {
             reset({
@@ -48,7 +50,8 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                 department: '',
                 startDate: formatDateForInput(new Date()),
                 endDate: '',
-                notes: ''
+                notes: '',
+                filePath: null
             })
         }
 
@@ -202,6 +205,18 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                     )}
                 />
             </div>
+
+            <Controller
+                name="filePath"
+                control={control}
+                render={({ field }) => (
+                    <FileAttachmentInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        label="Belge/Dosya Ekleyin"
+                    />
+                )}
+            />
 
             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button type="button" className="btn btn-secondary" onClick={onCancel}>

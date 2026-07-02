@@ -1416,7 +1416,7 @@ ipcMain.handle('settings:deleteDocumentCategory', async (event, id) => {
     return result
 })
 
-ipcMain.handle('settings:getDocumentFolders', async (event, companyId) => db.getDocumentFolders(companyId))
+ipcMain.handle('settings:getDocumentFolders', async (event, companyId, relatedType, relatedId) => db.getDocumentFolders(companyId, relatedType, relatedId))
 ipcMain.handle('settings:createDocumentFolder', async (event, data) => {
     const result = await db.createDocumentFolder(data)
     if (result.success) notifyDbUpdate({ table: 'document_folders', action: 'create' })
@@ -1745,8 +1745,8 @@ ipcMain.handle('documents:add', async (event, data) => {
             fs.mkdirSync(filesDir, { recursive: true })
         }
 
-        const sourcePath = data.filePath
-        const ext = path.extname(sourcePath)
+        const sourcePath = typeof data.filePath === 'object' && data.filePath !== null ? data.filePath.path : data.filePath
+        const ext = path.extname(sourcePath || '')
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`
         const destPath = path.join(filesDir, fileName)
 
@@ -1758,13 +1758,14 @@ ipcMain.handle('documents:add', async (event, data) => {
             vehicleId: data.vehicleId,
             relatedType: data.relatedType,
             relatedId: data.relatedId,
-            fileName: data.fileName || path.basename(sourcePath),
+            fileName: data.fileName || (typeof data.filePath === 'object' && data.filePath !== null ? data.filePath.name : null) || path.basename(sourcePath),
             filePath: fileName, // Store relative path (filename only)
             fileType: ext,
             startDate: data.startDate,
             endDate: data.endDate,
             category: data.category || data.docType || null,
-            docType: data.docType || data.category || null
+            docType: data.docType || data.category || null,
+            folder: data.folder || null
         })
 
         // Also update the related operation record's file_path!
@@ -1775,7 +1776,8 @@ ipcMain.handle('documents:add', async (event, data) => {
                 'periodic_inspection': 'inspections',
                 'insurance': 'insurances',
                 'service': 'services',
-                'maintenance': 'maintenances'
+                'maintenance': 'maintenances',
+                'assignment': 'assignments'
             }
             const modelName = modelMap[data.relatedType]
             const prismaModel = modelName ? prisma[modelName] : null
@@ -1785,6 +1787,14 @@ ipcMain.handle('documents:add', async (event, data) => {
                     data: { file_path: fileName }
                 });
             }
+            // Trigger update of the specific table so lists refresh
+            if (modelName) {
+                notifyDbUpdate({ table: modelName, action: 'update' })
+            }
+        }
+
+        if (result.success) {
+            notifyDbUpdate({ table: 'documents', action: 'create' })
         }
 
         return result
@@ -1797,6 +1807,9 @@ ipcMain.handle('documents:add', async (event, data) => {
 ipcMain.handle('documents:update', async (event, data) => {
     try {
         const result = await db.updateDocument(data.id, data)
+        if (result.success) {
+            notifyDbUpdate({ table: 'documents', action: 'update' })
+        }
         return result
     } catch (error) {
         console.error('Document update error:', error)
@@ -1816,6 +1829,7 @@ ipcMain.handle('documents:delete', async (event, id) => {
     try {
         // 1. Get info to find file
         const docResult = await db.getDocument(id)
+        let modelName = null
         if (docResult.success && docResult.data) {
             const fileName = docResult.data.file_path
             const userDataPath = app.getPath('userData')
@@ -1836,9 +1850,10 @@ ipcMain.handle('documents:delete', async (event, id) => {
                     'periodic_inspection': 'inspections',
                     'insurance': 'insurances',
                     'service': 'services',
-                    'maintenance': 'maintenances'
+                    'maintenance': 'maintenances',
+                    'assignment': 'assignments'
                 }
-                const modelName = modelMap[relatedType]
+                modelName = modelMap[relatedType]
                 const prismaModel = modelName ? prisma[modelName] : null
                 if (prismaModel) {
                     await prismaModel.update({
@@ -1850,7 +1865,14 @@ ipcMain.handle('documents:delete', async (event, id) => {
         }
 
         // 3. Delete from DB
-        return await db.deleteDocument(id)
+        const result = await db.deleteDocument(id)
+        if (result.success) {
+            notifyDbUpdate({ table: 'documents', action: 'delete' })
+            if (modelName) {
+                notifyDbUpdate({ table: modelName, action: 'update' })
+            }
+        }
+        return result
     } catch (error) {
         console.error('Document delete error:', error)
         return { success: false, error: error.message }

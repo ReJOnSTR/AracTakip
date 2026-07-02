@@ -11,7 +11,6 @@ import { formatDate, getVehicleTypeLabel } from '../utils/helpers'
 import { Plus, Check, Truck, Pencil, Trash2, Calendar, FileText, LayoutList, Building2 } from 'lucide-react'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
-import DocumentUploadModal from '../components/DocumentUploadModal'
 import AssignmentForm from '../components/forms/AssignmentForm'
 import BatchOperationModal from '../components/BatchOperationModal'
 
@@ -34,8 +33,6 @@ export default function Assignments() {
     // Document State
     const [documents, setDocuments] = useState([])
     const [previewDoc, setPreviewDoc] = useState(null)
-    const [uploadModalOpen, setUploadModalOpen] = useState(false)
-    const [activeUploadId, setActiveUploadId] = useState(null)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     useEffect(() => {
@@ -56,7 +53,7 @@ export default function Assignments() {
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
-            if (['assignments', 'vehicles'].includes(change?.table)) {
+            if (['assignments', 'vehicles', 'documents'].includes(change?.table)) {
                 console.log(`[RealTime] Assignments reloading for change in ${change.table}`)
                 loadDataRef.current(true)
             }
@@ -226,7 +223,20 @@ export default function Assignments() {
 
     // Document Helpers
     const getDocument = (assignId) => {
-        return documents.find(d => d.related_type === 'assignment' && d.related_id === assignId)
+        const found = documents.find(d => d.related_type === 'assignment' && Number(d.related_id) === Number(assignId))
+        if (found) return found
+        const assign = assignments.find(a => a.id === assignId)
+        if (assign?.file_path) {
+            return {
+                id: null,
+                file_name: assign.file_path,
+                file_path: assign.file_path,
+                file_type: '.' + (assign.file_path.split('.').pop() || ''),
+                related_type: 'assignment',
+                related_id: assignId
+            }
+        }
+        return null
     }
 
     const renderDocumentCell = (row) => {
@@ -256,7 +266,7 @@ export default function Assignments() {
             return (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                     <button
-                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(row) }}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '4px',
                             border: '1px dashed var(--border-color)', background: 'transparent',
@@ -302,37 +312,6 @@ export default function Assignments() {
         }
     }
 
-    const handleOpenUpload = (id) => {
-        setActiveUploadId(id)
-        setUploadModalOpen(true)
-    }
-
-    const handleUploadConfirm = async (docs) => {
-        if (!activeUploadId || !docs || docs.length === 0) return
-
-        const assignment = assignments.find(a => a.id === activeUploadId)
-        if (!assignment) return
-
-        const doc = docs[0]
-        const result = await window.electronAPI.addDocument({
-            vehicleId: assignment.vehicle_id,
-            relatedType: 'assignment',
-            relatedId: activeUploadId,
-            filePath: doc.path,
-            fileName: doc.displayName,
-            docType: doc.docType,
-            startDate: doc.startDate,
-            endDate: doc.endDate
-        })
-
-        if (result.success) {
-            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-            if (docsRes.success) setDocuments(docsRes.data)
-        } else {
-            alert('Dosya yüklenirken hata oluştu: ' + result.error)
-        }
-    }
-
     const handleDocumentDelete = async () => {
         if (!previewDoc) return
         setConfirmModal({
@@ -341,14 +320,18 @@ export default function Assignments() {
             confirmText: 'Sil',
             type: 'danger',
             onConfirm: async () => {
-                const result = await window.electronAPI.deleteDocument(previewDoc.id)
-                if (result.success) {
-                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-                    if (docsRes.success) setDocuments(docsRes.data)
+                let result
+                if (previewDoc.id) {
+                    result = await window.electronAPI.deleteDocument(previewDoc.id)
+                } else if (previewDoc.related_id) {
+                    result = await window.electronAPI.updateAssignment({ id: previewDoc.related_id, filePath: null })
+                }
+                if (result?.success) {
+                    loadData()
                     setPreviewDoc(null)
                     setConfirmModal(null)
                 } else {
-                    alert('Silme hatası: ' + result.error)
+                    alert('Silme hatası: ' + (result?.error || 'Bilinmeyen hata'))
                 }
             }
         })
@@ -502,16 +485,6 @@ export default function Assignments() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
-            />
-
-            <DocumentUploadModal
-                isOpen={uploadModalOpen}
-                onClose={() => {
-                    setUploadModalOpen(false)
-                    setActiveUploadId(null)
-                }}
-                onUpload={handleUploadConfirm}
-                initialType="assignment"
             />
 
             <DocumentPreviewModal

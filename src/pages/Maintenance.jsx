@@ -20,7 +20,6 @@ import {
 } from '../utils/helpers'
 import { Plus, Pencil, Trash2, Wrench, Building2, Eye } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
-import DocumentUploadModal from '../components/DocumentUploadModal'
 import BatchOperationModal from '../components/BatchOperationModal'
 
 export default function Maintenance() {
@@ -43,8 +42,6 @@ export default function Maintenance() {
     // Document State
     const [documents, setDocuments] = useState([])
     const [previewDoc, setPreviewDoc] = useState(null)
-    const [uploadModalOpen, setUploadModalOpen] = useState(false)
-    const [activeUploadId, setActiveUploadId] = useState(null)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     useEffect(() => {
@@ -65,7 +62,7 @@ export default function Maintenance() {
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
-            if (['maintenances', 'vehicles'].includes(change?.table)) {
+            if (['maintenances', 'vehicles', 'documents'].includes(change?.table)) {
                 console.log(`[RealTime] Maintenance reloading for change in ${change.table}`)
                 loadDataRef.current(true)
             }
@@ -256,7 +253,20 @@ export default function Maintenance() {
 
     // Document Helpers
     const getDocument = (maintId) => {
-        return documents.find(d => d.related_type === 'maintenance' && d.related_id === maintId)
+        const found = documents.find(d => d.related_type === 'maintenance' && Number(d.related_id) === Number(maintId))
+        if (found) return found
+        const maint = maintenances.find(m => m.id === maintId)
+        if (maint?.file_path) {
+            return {
+                id: null,
+                file_name: maint.file_path,
+                file_path: maint.file_path,
+                file_type: '.' + (maint.file_path.split('.').pop() || ''),
+                related_type: 'maintenance',
+                related_id: maintId
+            }
+        }
+        return null
     }
 
     const renderDocumentCell = (row) => {
@@ -286,7 +296,7 @@ export default function Maintenance() {
             return (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                     <button
-                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(row) }}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '4px',
                             border: '1px dashed var(--border-color)', background: 'transparent',
@@ -332,37 +342,6 @@ export default function Maintenance() {
         }
     }
 
-    const handleOpenUpload = (id) => {
-        setActiveUploadId(id)
-        setUploadModalOpen(true)
-    }
-
-    const handleUploadConfirm = async (docs) => {
-        if (!activeUploadId || !docs || docs.length === 0) return
-
-        const maintenance = maintenances.find(m => m.id === activeUploadId)
-        if (!maintenance) return
-
-        const doc = docs[0]
-        const result = await window.electronAPI.addDocument({
-            vehicleId: maintenance.vehicle_id,
-            relatedType: 'maintenance',
-            relatedId: activeUploadId,
-            filePath: doc.path,
-            fileName: doc.displayName,
-            docType: doc.docType,
-            startDate: doc.startDate,
-            endDate: doc.endDate
-        })
-
-        if (result.success) {
-            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-            if (docsRes.success) setDocuments(docsRes.data)
-        } else {
-            alert('Dosya yüklenirken hata oluştu: ' + result.error)
-        }
-    }
-
     const handleDocumentDelete = async () => {
         if (!previewDoc) return
         setConfirmModal({
@@ -371,14 +350,18 @@ export default function Maintenance() {
             confirmText: 'Sil',
             type: 'danger',
             onConfirm: async () => {
-                const result = await window.electronAPI.deleteDocument(previewDoc.id)
-                if (result.success) {
-                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-                    if (docsRes.success) setDocuments(docsRes.data)
+                let result
+                if (previewDoc.id) {
+                    result = await window.electronAPI.deleteDocument(previewDoc.id)
+                } else if (previewDoc.related_id) {
+                    result = await window.electronAPI.updateMaintenance({ id: previewDoc.related_id, filePath: null })
+                }
+                if (result?.success) {
+                    loadData()
                     setPreviewDoc(null)
                     setConfirmModal(null)
                 } else {
-                    alert('Silme hatası: ' + result.error)
+                    alert('Silme hatası: ' + (result?.error || 'Bilinmeyen hata'))
                 }
             }
         })
@@ -548,16 +531,6 @@ export default function Maintenance() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
-            />
-
-            <DocumentUploadModal
-                isOpen={uploadModalOpen}
-                onClose={() => {
-                    setUploadModalOpen(false)
-                    setActiveUploadId(null)
-                }}
-                onUpload={handleUploadConfirm}
-                initialType="maintenance"
             />
 
             <DocumentPreviewModal

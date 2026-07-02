@@ -130,6 +130,7 @@ export default function VehicleDetail() {
     const [uploadEndDate, setUploadEndDate] = useState('')
     const [documentCategories, setDocumentCategories] = useState([])
     const [documentFolders, setDocumentFolders] = useState([])
+    const [customFolders, setCustomFolders] = useState([])
     const [currentFolder, setCurrentFolder] = useState(null)
     const [uploadCategory, setUploadCategory] = useState('')
     const [uploadFolder, setUploadFolder] = useState('')
@@ -189,9 +190,9 @@ export default function VehicleDetail() {
     }
 
     const loadFolders = async () => {
-        if (!currentCompany) return
+        if (!currentCompany || !id) return
         try {
-            const res = await window.electronAPI.getDocumentFolders(currentCompany.id)
+            const res = await window.electronAPI.getDocumentFolders(currentCompany.id, 'vehicle', id)
             if (res.success) {
                 setDocumentFolders(res.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
             }
@@ -228,7 +229,9 @@ export default function VehicleDetail() {
             if (folderModalMode === 'create') {
                 const res = await window.electronAPI.createDocumentFolder({
                     companyId: currentCompany.id,
-                    name: name
+                    name: name,
+                    relatedType: 'vehicle',
+                    relatedId: id
                 })
                 if (res.success) {
                     loadFolders()
@@ -239,26 +242,26 @@ export default function VehicleDetail() {
                 }
             } else if (folderModalMode === 'rename') {
                 const folderObj = documentFolders.find(f => f.value === folderModalOldValue)
-                if (!folderObj) return
-                const res = await window.electronAPI.updateDocumentFolder({ id: folderObj.id, name: name })
-                if (res.success) {
-                    const docsToUpdate = documents.filter(d => d.folder === folderModalOldValue)
-                    for (const d of docsToUpdate) {
-                        await window.electronAPI.updateDocument({
-                            id: d.id,
-                            fileName: d.file_name,
-                            startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
-                            endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
-                            folder: name
-                        })
-                    }
-                    setCurrentFolder(name)
-                    loadFolders()
-                    loadVehicleData()
-                    setFolderModalOpen(false)
+                if (folderObj) {
+                    await window.electronAPI.updateDocumentFolder({ id: folderObj.id, name: name })
                 } else {
-                    alert('Klasör güncellenirken hata oluştu: ' + res.error)
+                    await window.electronAPI.createDocumentFolder({ companyId: currentCompany.id, name: name })
                 }
+                const docsToUpdate = documents.filter(d => d.folder === folderModalOldValue)
+                for (const d of docsToUpdate) {
+                    await window.electronAPI.updateDocument({
+                        id: d.id,
+                        fileName: d.file_name,
+                        startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                        endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
+                        folder: name
+                    })
+                }
+                setCustomFolders(prev => prev.map(f => f === folderModalOldValue ? name : f))
+                setCurrentFolder(name)
+                loadFolders()
+                loadVehicleData()
+                setFolderModalOpen(false)
             }
         } catch (err) {
             console.error('Folder action error:', err)
@@ -269,7 +272,6 @@ export default function VehicleDetail() {
 
     const handleDeleteFolder = (folderName) => {
         const folderObj = documentFolders.find(f => f.value === folderName)
-        if (!folderObj) return
         
         setConfirmModal({
             title: 'Klasör Silme Onayı',
@@ -279,24 +281,23 @@ export default function VehicleDetail() {
             onConfirm: async () => {
                 setSaving(true)
                 try {
-                    const res = await window.electronAPI.deleteDocumentFolder(folderObj.id)
-                    if (res.success) {
-                        const docsToUpdate = documents.filter(d => d.folder === folderName)
-                        for (const d of docsToUpdate) {
-                            await window.electronAPI.updateDocument({
-                                id: d.id,
-                                fileName: d.file_name,
-                                startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
-                                endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
-                                folder: null
-                            })
-                        }
-                        setCurrentFolder(null)
-                        loadFolders()
-                        loadVehicleData()
-                    } else {
-                        alert('Klasör silinirken hata oluştu: ' + res.error)
+                    if (folderObj) {
+                        await window.electronAPI.deleteDocumentFolder(folderObj.id)
                     }
+                    const docsToUpdate = documents.filter(d => d.folder === folderName)
+                    for (const d of docsToUpdate) {
+                        await window.electronAPI.updateDocument({
+                            id: d.id,
+                            fileName: d.file_name,
+                            startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                            endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
+                            folder: null
+                        })
+                    }
+                    setCustomFolders(prev => prev.filter(f => f !== folderName))
+                    setCurrentFolder(null)
+                    loadFolders()
+                    loadVehicleData()
                 } catch (err) {
                     console.error('Delete folder error:', err)
                 } finally {
@@ -312,13 +313,29 @@ export default function VehicleDetail() {
         setSaving(true)
         try {
             for (const id of bulkMoveIds) {
-                const doc = documents.find(d => d.id === id)
+                if (typeof id === 'string' && id.startsWith('folder_')) {
+                    const folderNameStr = id.replace('folder_', '')
+                    const folderObj = documentFolders.find(f => String(f.id) === String(folderNameStr) || f.value === folderNameStr)
+                    const targetFolderName = folderObj?.value || folderNameStr
+                    const docsInFolder = documents.filter(d => d.folder === targetFolderName)
+                    for (const d of docsInFolder) {
+                        await window.electronAPI.updateDocument({
+                            id: d.id,
+                            fileName: d.file_name,
+                            startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                            endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
+                            folder: bulkMoveSelectedFolder || null
+                        })
+                    }
+                    continue
+                }
+                const doc = documents.find(d => Number(d.id) === Number(id) || d.id === id)
                 if (doc) {
                     await window.electronAPI.updateDocument({
                         id: doc.id,
                         fileName: doc.file_name,
-                        startDate: doc.start_date ? new Date(doc.start_date).toISOString().split('T')[0] : null,
-                        endDate: doc.end_date ? new Date(doc.end_date).toISOString().split('T')[0] : null,
+                        startDate: doc.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                        endDate: doc.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
                         folder: bulkMoveSelectedFolder || null
                     })
                 }
@@ -326,6 +343,7 @@ export default function VehicleDetail() {
             if (bulkMoveClearSelection) bulkMoveClearSelection()
             setBulkMoveModalOpen(false)
             setBulkMoveSelectedFolder('')
+            loadFolders()
             loadVehicleData()
         } catch (err) {
             console.error('Bulk move error:', err)
@@ -392,14 +410,17 @@ export default function VehicleDetail() {
 
     const handleBulkArchiveDocs = async (ids, isArchived) => {
         try {
-            const promises = ids.map(id => {
+            for (const id of ids) {
                 if (typeof id === 'string' && id.startsWith('folder_')) {
-                    const folderId = parseInt(id.replace('folder_', ''))
-                    return window.electronAPI.archiveItem('document_folders', folderId, isArchived ? 1 : 0)
+                    const folderIdStr = id.replace('folder_', '')
+                    const folderObj = documentFolders.find(f => String(f.id) === String(folderIdStr) || f.value === folderIdStr)
+                    if (folderObj) {
+                        await window.electronAPI.archiveItem('document_folders', folderObj.id, isArchived ? 1 : 0)
+                    }
+                } else {
+                    await window.electronAPI.archiveItem('documents', id, isArchived ? 1 : 0)
                 }
-                return window.electronAPI.archiveItem('documents', id, isArchived ? 1 : 0)
-            })
-            await Promise.all(promises)
+            }
             loadVehicleData()
             loadFolders()
         } catch (err) {
@@ -605,10 +626,29 @@ export default function VehicleDetail() {
                 else if (type === 'periodic_inspection') res = await window.electronAPI.deleteInspection(id)
                 else if (type === 'insurance') res = await window.electronAPI.deleteInsurance(id)
                 else if (type === 'assignment') res = await window.electronAPI.deleteAssignment(id)
-                else if (type === 'insurance') res = await window.electronAPI.deleteInsurance(id)
-                else if (type === 'assignment') res = await window.electronAPI.deleteAssignment(id)
                 else if (type === 'service') res = await window.electronAPI.deleteService(id)
-                else if (type === 'documents') res = await window.electronAPI.deleteDocument(id)
+                else if (type === 'documents') {
+                    if (typeof id === 'string' && id.startsWith('folder_')) {
+                        const folderIdStr = id.replace('folder_', '')
+                        const folderObj = documentFolders.find(f => String(f.id) === String(folderIdStr) || f.value === folderIdStr)
+                        if (folderObj) {
+                            res = await window.electronAPI.deleteDocumentFolder(folderObj.id)
+                        }
+                        const docsToUpdate = documents.filter(d => d.folder === (folderObj?.value || folderIdStr))
+                        for (const d of docsToUpdate) {
+                            await window.electronAPI.updateDocument({
+                                id: d.id,
+                                fileName: d.file_name,
+                                startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                                endDate: d.end_date ? new Date(d.end_date).toISOString().split('T')[0] : null,
+                                folder: null
+                            })
+                        }
+                        res = { success: true }
+                    } else {
+                        res = await window.electronAPI.deleteDocument(id)
+                    }
+                }
 
                 if (!res?.success) {
                     result = res // Capture error if any fails
@@ -627,7 +667,10 @@ export default function VehicleDetail() {
         }
 
         setConfirmModal(null)
-        if (result?.success) loadVehicleData()
+        if (result?.success) {
+            await loadFolders()
+            await loadVehicleData()
+        }
     }
 
 
@@ -779,13 +822,31 @@ export default function VehicleDetail() {
         }
     }
 
-    const hasDocument = (type, relatedId) => {
-        return documents.some(d => d.related_type === type && d.related_id === relatedId)
+    const getDocument = (type, relatedId) => {
+        const types = (type === 'inspection' || type === 'periodic_inspection') ? ['inspection', 'periodic_inspection'] : [type]
+        const found = documents.find(d => types.includes(d.related_type) && Number(d.related_id) === Number(relatedId))
+        if (found) return found
+        if (type === 'maintenance') {
+            const m = maintenances.find(item => item.id === relatedId)
+            if (m?.file_path) return { id: null, file_name: m.file_path, file_path: m.file_path, file_type: '.' + (m.file_path.split('.').pop() || ''), related_type: type, related_id: relatedId }
+        } else if (type === 'inspection' || type === 'periodic_inspection') {
+            const i = inspections.find(item => item.id === relatedId)
+            if (i?.file_path) return { id: null, file_name: i.file_path, file_path: i.file_path, file_type: '.' + (i.file_path.split('.').pop() || ''), related_type: type, related_id: relatedId }
+        } else if (type === 'insurance') {
+            const ins = insurances.find(item => item.id === relatedId)
+            if (ins?.file_path) return { id: null, file_name: ins.file_path, file_path: ins.file_path, file_type: '.' + (ins.file_path.split('.').pop() || ''), related_type: type, related_id: relatedId }
+        } else if (type === 'service') {
+            const s = services.find(item => item.id === relatedId)
+            if (s?.file_path) return { id: null, file_name: s.file_path, file_path: s.file_path, file_type: '.' + (s.file_path.split('.').pop() || ''), related_type: type, related_id: relatedId }
+        } else if (type === 'assignment') {
+            const a = assignments.find(item => item.id === relatedId)
+            if (a?.file_path) return { id: null, file_name: a.file_path, file_path: a.file_path, file_type: '.' + (a.file_path.split('.').pop() || ''), related_type: type, related_id: relatedId }
+        }
+        return null
     }
 
-
-    const getDocument = (type, relatedId) => {
-        return documents.find(d => d.related_type === type && d.related_id === relatedId)
+    const hasDocument = (type, relatedId) => {
+        return !!getDocument(type, relatedId)
     }
 
     const renderDocumentCell = (type, row) => {
@@ -811,7 +872,7 @@ export default function VehicleDetail() {
                     </div>
                 ) : (
                     <button
-                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(type, row.id) }}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(type, row) }}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '4px',
                             border: '1px dashed var(--border-color)', background: 'transparent',
@@ -1397,16 +1458,32 @@ export default function VehicleDetail() {
                                         const filteredFolders = documentFolders.filter(f => 
                                             showArchived ? f.is_archived === 1 : f.is_archived !== 1
                                         );
-                                        const folderRows = filteredFolders.map(f => ({
-                                            id: `folder_${f.id}`,
-                                            file_name: f.value,
-                                            isFolder: true,
-                                            category: '',
-                                            folder: '',
-                                            related_info: '',
-                                            created_at: null,
-                                            file_type: 'Klasör'
-                                        }));
+                                        const existingFolderNames = new Set(filteredFolders.map(f => f.value));
+                                        const dynamicFolderNames = Array.from(new Set(filtered.map(d => d.folder).filter(Boolean)))
+                                            .filter(folderName => !existingFolderNames.has(folderName));
+
+                                        const folderRows = [
+                                            ...filteredFolders.map(f => ({
+                                                id: `folder_${f.id}`,
+                                                file_name: f.value,
+                                                isFolder: true,
+                                                category: '',
+                                                folder: '',
+                                                related_info: '',
+                                                created_at: null,
+                                                file_type: 'Klasör'
+                                            })),
+                                            ...dynamicFolderNames.map(name => ({
+                                                id: `folder_${name}`,
+                                                file_name: name,
+                                                isFolder: true,
+                                                category: '',
+                                                folder: '',
+                                                related_info: '',
+                                                created_at: null,
+                                                file_type: 'Klasör'
+                                            }))
+                                        ];
                                         const fileRows = filtered.filter(d => !d.folder);
                                         return [...folderRows, ...fileRows];
                                     }
@@ -1440,11 +1517,6 @@ export default function VehicleDetail() {
                                 )}
                                 actions={(item) => {
                                     if (item.isFolder) {
-                                        const systemFolders = ['Bakım Belgeleri', 'Servisler', 'Muayene Belgeleri', 'Sigortalar & Kaskolar', 'Zimmet Belgeleri'];
-                                        const isSystemFolder = systemFolders.includes(item.file_name);
-                                        if (isSystemFolder) {
-                                            return <span className="text-muted" style={{ fontSize: '11px', paddingRight: '8px' }}>Sistem Klasörü</span>;
-                                        }
                                         const folderObj = documentFolders.find(f => f.value === item.file_name)
                                         return !showArchived ? (
                                             <div style={{ display: 'flex', gap: '8px' }}>

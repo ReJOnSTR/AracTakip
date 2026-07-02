@@ -180,6 +180,7 @@ export default function EmployeeDetail() {
     const [documentCategories, setDocumentCategories] = useState([])
     const [publicHolidays, setPublicHolidays] = useState([])
     const [documentFolders, setDocumentFolders] = useState([])
+    const [customFolders, setCustomFolders] = useState([])
     const [confirmModal, setConfirmModal] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
@@ -311,7 +312,7 @@ export default function EmployeeDetail() {
                 window.electronAPI.getLeaveTypes(currentCompany.id),
                 window.electronAPI.getDocumentCategories(currentCompany.id, 'employee'),
                 window.electronAPI.getDepartments(currentCompany.id),
-                window.electronAPI.getDocumentFolders(currentCompany.id),
+                window.electronAPI.getDocumentFolders(currentCompany.id, 'employee', id),
                 window.electronAPI.getPublicHolidays(currentCompany.id)
             ])
             if (empRes.success) {
@@ -365,10 +366,12 @@ export default function EmployeeDetail() {
             if (folderModalMode === 'create') {
                 const res = await window.electronAPI.createDocumentFolder({
                     companyId: currentCompany.id,
-                    name: name
+                    name: name,
+                    relatedType: 'employee',
+                    relatedId: id
                 })
                 if (res.success) {
-                    const dfRes = await window.electronAPI.getDocumentFolders(currentCompany.id)
+                    const dfRes = await window.electronAPI.getDocumentFolders(currentCompany.id, 'employee', id)
                     if (dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
                     setCurrentFolder(name)
                     setFolderModalOpen(false)
@@ -390,6 +393,7 @@ export default function EmployeeDetail() {
                             expiryDate: d.expiry_date ? new Date(d.expiry_date).toISOString().split('T')[0] : null
                         })
                     }
+                    setCustomFolders(prev => prev.map(f => f === folderModalOldValue ? name : f))
                     setCurrentFolder(name)
                     loadEmployeeData()
                     setFolderModalOpen(false)
@@ -406,7 +410,6 @@ export default function EmployeeDetail() {
 
     const handleDeleteFolder = (folderName) => {
         const folderObj = documentFolders.find(f => f.value === folderName)
-        if (!folderObj) return
         
         setConfirmModal({
             type: 'delete_folder',
@@ -417,23 +420,22 @@ export default function EmployeeDetail() {
             onConfirm: async () => {
                 setSaving(true)
                 try {
-                    const res = await window.electronAPI.deleteDocumentFolder(folderObj.id)
-                    if (res.success) {
-                        const docsToUpdate = documents.filter(d => d.folder === folderName)
-                        for (const d of docsToUpdate) {
-                            await window.electronAPI.updateEmployeeDocument({
-                                id: d.id,
-                                fileName: d.file_name,
-                                folder: null,
-                                startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
-                                expiryDate: d.expiry_date ? new Date(d.expiry_date).toISOString().split('T')[0] : null
-                            })
-                        }
-                        setCurrentFolder(null)
-                        loadEmployeeData()
-                    } else {
-                        alert('Klasör silinirken hata oluştu: ' + res.error)
+                    if (folderObj) {
+                        await window.electronAPI.deleteDocumentFolder(folderObj.id)
                     }
+                    const docsToUpdate = documents.filter(d => d.folder === folderName)
+                    for (const d of docsToUpdate) {
+                        await window.electronAPI.updateEmployeeDocument({
+                            id: d.id,
+                            fileName: d.file_name,
+                            folder: null,
+                            startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                            expiryDate: d.expiry_date ? new Date(d.expiry_date).toISOString().split('T')[0] : null
+                        })
+                    }
+                    setCustomFolders(prev => prev.filter(f => f !== folderName))
+                    setCurrentFolder(null)
+                    loadEmployeeData()
                 } catch (err) {
                     console.error('Delete folder error:', err)
                 } finally {
@@ -449,7 +451,23 @@ export default function EmployeeDetail() {
         setSaving(true)
         try {
             for (const id of bulkMoveIds) {
-                const doc = documents.find(d => d.id === id)
+                if (typeof id === 'string' && id.startsWith('folder_')) {
+                    const folderNameStr = id.replace('folder_', '')
+                    const folderObj = documentFolders.find(f => String(f.id) === String(folderNameStr) || f.value === folderNameStr)
+                    const targetFolderName = folderObj?.value || folderNameStr
+                    const docsInFolder = documents.filter(d => d.folder === targetFolderName)
+                    for (const d of docsInFolder) {
+                        await window.electronAPI.updateEmployeeDocument({
+                            id: d.id,
+                            fileName: d.file_name,
+                            folder: bulkMoveSelectedFolder || null,
+                            startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                            expiryDate: d.expiry_date ? new Date(d.expiry_date).toISOString().split('T')[0] : null
+                        })
+                    }
+                    continue
+                }
+                const doc = documents.find(d => Number(d.id) === Number(id) || d.id === id)
                 if (doc) {
                     await window.electronAPI.updateEmployeeDocument({
                         id: doc.id,
@@ -463,6 +481,7 @@ export default function EmployeeDetail() {
             if (bulkMoveClearSelection) bulkMoveClearSelection()
             setBulkMoveModalOpen(false)
             setBulkMoveSelectedFolder('')
+            loadFolders()
             loadEmployeeData()
         } catch (err) {
             console.error('Bulk move error:', err)
@@ -769,11 +788,30 @@ export default function EmployeeDetail() {
         try {
             if (ids) {
                 for (const delId of ids) {
+                    if (type === 'documents' && typeof delId === 'string' && delId.startsWith('folder_')) {
+                        const folderIdStr = delId.replace('folder_', '')
+                        const folderObj = documentFolders.find(f => String(f.id) === String(folderIdStr) || f.value === folderIdStr)
+                        if (folderObj) {
+                            await window.electronAPI.deleteDocumentFolder(folderObj.id)
+                        }
+                        const docsToUpdate = documents.filter(d => d.folder === (folderObj?.value || folderIdStr))
+                        for (const d of docsToUpdate) {
+                            await window.electronAPI.updateEmployeeDocument({
+                                id: d.id,
+                                fileName: d.file_name,
+                                folder: null,
+                                startDate: d.start_date ? new Date(d.start_date).toISOString().split('T')[0] : null,
+                                expiryDate: d.expiry_date ? new Date(d.expiry_date).toISOString().split('T')[0] : null
+                            })
+                        }
+                        continue
+                    }
                     await deleteRecord(type, delId)
                 }
             } else {
                 await deleteRecord(type, item.id)
             }
+            await loadFolders()
             await loadEmployeeData()
         } catch (err) { console.error('Delete failed:', err) }
         setConfirmModal(null)
@@ -1263,15 +1301,19 @@ export default function EmployeeDetail() {
 
     const handleBulkArchiveDocs = async (ids, isArchived) => {
         try {
-            const promises = ids.map(id => {
+            for (const id of ids) {
                 if (typeof id === 'string' && id.startsWith('folder_')) {
-                    const folderId = parseInt(id.replace('folder_', ''))
-                    return window.electronAPI.archiveItem('document_folders', folderId, isArchived ? 1 : 0)
+                    const folderIdStr = id.replace('folder_', '')
+                    const folderObj = documentFolders.find(f => String(f.id) === String(folderIdStr) || f.value === folderIdStr)
+                    if (folderObj) {
+                        await window.electronAPI.archiveItem('document_folders', folderObj.id, isArchived ? 1 : 0)
+                    }
+                } else {
+                    await window.electronAPI.archiveItem('employee_documents', id, isArchived ? 1 : 0)
                 }
-                return window.electronAPI.archiveItem('employee_documents', id, isArchived ? 1 : 0)
-            })
-            await Promise.all(promises)
+            }
             loadEmployeeData()
+            loadFolders()
         } catch (err) {
             console.error('Bulk archive failed:', err)
         }
@@ -2321,18 +2363,36 @@ export default function EmployeeDetail() {
                                     const filteredFolders = documentFolders.filter(f => 
                                         isDocArchiveView ? f.is_archived === 1 : f.is_archived !== 1
                                     );
-                                    const folderRows = filteredFolders.map(f => ({
-                                        id: `folder_${f.id}`,
-                                        file_name: f.value,
-                                        isFolder: true,
-                                        category: '',
-                                        folder: '',
-                                        issue_date: null,
-                                        start_date: null,
-                                        expiry_date: null,
-                                        created_at: null,
-                                        file_type: 'Klasör'
-                                    }));
+                                    const existingFolderNames = new Set(filteredFolders.map(f => f.value));
+                                    const dynamicFolderNames = Array.from(new Set(documents.map(d => d.folder).filter(Boolean)))
+                                        .filter(folderName => !existingFolderNames.has(folderName));
+
+                                    const folderRows = [
+                                        ...filteredFolders.map(f => ({
+                                            id: `folder_${f.id}`,
+                                            file_name: f.value,
+                                            isFolder: true,
+                                            category: '',
+                                            folder: '',
+                                            issue_date: null,
+                                            start_date: null,
+                                            expiry_date: null,
+                                            created_at: null,
+                                            file_type: 'Klasör'
+                                        })),
+                                        ...dynamicFolderNames.map(name => ({
+                                            id: `folder_${name}`,
+                                            file_name: name,
+                                            isFolder: true,
+                                            category: '',
+                                            folder: '',
+                                            issue_date: null,
+                                            start_date: null,
+                                            expiry_date: null,
+                                            created_at: null,
+                                            file_type: 'Klasör'
+                                        }))
+                                    ];
                                     const fileRows = documents.filter(d => !d.folder);
                                     return [...folderRows, ...fileRows];
                                 }

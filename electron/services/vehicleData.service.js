@@ -1,6 +1,13 @@
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
+const getFilePathString = (filePath) => {
+    if (!filePath) return null;
+    if (typeof filePath === 'string') return filePath;
+    if (typeof filePath === 'object' && filePath.path) return String(filePath.path);
+    return null;
+};
+
 // ========== INSPECTIONS ==========
 async function getInspections(vehicleId) {
     try {
@@ -56,7 +63,7 @@ async function createInspection(data) {
                 result: rest.result || null,
                 cost: rest.cost ? parseFloat(rest.cost) : 0,
                 notes: rest.notes || null,
-                file_path: filePath || null
+                file_path: getFilePathString(filePath)
             }
         });
 
@@ -174,7 +181,7 @@ async function createInsurance(data) {
                 end_date: rest.endDate ? new Date(rest.endDate) : new Date(rest.startDate),
                 premium: rest.premium ? parseFloat(rest.premium) : 0,
                 notes: rest.notes || null,
-                file_path: filePath || null
+                file_path: getFilePathString(filePath)
             }
         });
 
@@ -362,7 +369,7 @@ async function createService(data) {
                 cost: rest.cost ? parseFloat(rest.cost) : 0,
                 km: rest.km ? parseInt(rest.km) : null,
                 notes: rest.notes || null,
-                file_path: filePath || null
+                file_path: getFilePathString(filePath)
             }
         });
 

@@ -19,7 +19,6 @@ import { Plus, Pencil, Trash2, ClipboardCheck, Building2, Eye } from 'lucide-rea
 import InspectionForm from '../components/forms/InspectionForm'
 import BatchOperationModal from '../components/BatchOperationModal'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
-import DocumentUploadModal from '../components/DocumentUploadModal'
 export default function Inspections() {
     const { currentCompany } = useCompany()
     const [inspections, setInspections] = useState([])
@@ -40,8 +39,6 @@ export default function Inspections() {
     // Document State
     const [documents, setDocuments] = useState([])
     const [previewDoc, setPreviewDoc] = useState(null)
-    const [uploadModalOpen, setUploadModalOpen] = useState(false)
-    const [activeUploadId, setActiveUploadId] = useState(null)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     useEffect(() => {
@@ -62,7 +59,7 @@ export default function Inspections() {
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
-            if (['inspections', 'vehicles'].includes(change?.table)) {
+            if (['inspections', 'vehicles', 'documents'].includes(change?.table)) {
                 console.log(`[RealTime] Inspections reloading for change in ${change.table}`)
                 loadDataRef.current(true)
             }
@@ -262,7 +259,20 @@ export default function Inspections() {
 
     // Document Helpers
     const getDocument = (inspectionId) => {
-        return documents.find(d => d.related_type === 'inspection' && d.related_id === inspectionId)
+        const found = documents.find(d => ['inspection', 'periodic_inspection'].includes(d.related_type) && Number(d.related_id) === Number(inspectionId))
+        if (found) return found
+        const insp = inspections.find(i => i.id === inspectionId)
+        if (insp?.file_path) {
+            return {
+                id: null,
+                file_name: insp.file_path,
+                file_path: insp.file_path,
+                file_type: '.' + (insp.file_path.split('.').pop() || ''),
+                related_type: 'inspection',
+                related_id: inspectionId
+            }
+        }
+        return null
     }
 
     const renderDocumentCell = (row) => {
@@ -292,7 +302,7 @@ export default function Inspections() {
             return (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                     <button
-                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(row) }}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '4px',
                             border: '1px dashed var(--border-color)', background: 'transparent',
@@ -331,37 +341,6 @@ export default function Inspections() {
         }
     }
 
-    const handleOpenUpload = (id) => {
-        setActiveUploadId(id)
-        setUploadModalOpen(true)
-    }
-
-    const handleUploadConfirm = async (docs) => {
-        if (!activeUploadId || !docs || docs.length === 0) return
-
-        const inspection = inspections.find(i => i.id === activeUploadId)
-        if (!inspection) return
-
-        const doc = docs[0]
-        const result = await window.electronAPI.addDocument({
-            vehicleId: inspection.vehicle_id,
-            relatedType: 'inspection',
-            relatedId: activeUploadId,
-            filePath: doc.path,
-            fileName: doc.displayName,
-            docType: doc.docType,
-            startDate: doc.startDate,
-            endDate: doc.endDate
-        })
-
-        if (result.success) {
-            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-            if (docsRes.success) setDocuments(docsRes.data)
-        } else {
-            alert('Dosya yüklenirken hata oluştu: ' + result.error)
-        }
-    }
-
     const handleDocumentDelete = async () => {
         if (!previewDoc) return
         setConfirmModal({
@@ -370,14 +349,18 @@ export default function Inspections() {
             confirmText: 'Sil',
             type: 'danger',
             onConfirm: async () => {
-                const result = await window.electronAPI.deleteDocument(previewDoc.id)
-                if (result.success) {
-                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-                    if (docsRes.success) setDocuments(docsRes.data)
+                let result
+                if (previewDoc.id) {
+                    result = await window.electronAPI.deleteDocument(previewDoc.id)
+                } else if (previewDoc.related_id) {
+                    result = await window.electronAPI.updateInspection({ id: previewDoc.related_id, filePath: null })
+                }
+                if (result?.success) {
+                    loadData()
                     setPreviewDoc(null)
                     setConfirmModal(null)
                 } else {
-                    alert('Silme hatası: ' + result.error)
+                    alert('Silme hatası: ' + (result?.error || 'Bilinmeyen hata'))
                 }
             }
         })
@@ -546,16 +529,6 @@ export default function Inspections() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
-            />
-
-            <DocumentUploadModal
-                isOpen={uploadModalOpen}
-                onClose={() => {
-                    setUploadModalOpen(false)
-                    setActiveUploadId(null)
-                }}
-                onUpload={handleUploadConfirm}
-                initialType="inspection"
             />
 
             <DocumentPreviewModal

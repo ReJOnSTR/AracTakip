@@ -12,24 +12,24 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
-    if (!doc) return null
-
-    const isPdf = doc.name?.toLowerCase().endsWith('.pdf') || doc.data?.startsWith('data:application/pdf')
     const [numPages, setNumPages] = useState(null)
     const [pageNumber, setPageNumber] = useState(1)
     const [pdfLoading, setPdfLoading] = useState(true)
 
     // Reset state when doc changes
     useEffect(() => {
-        setPageNumber(1)
-        setPdfLoading(true)
+        if (doc) {
+            setPageNumber(1)
+            setPdfLoading(true)
+        }
     }, [doc])
+
+    if (!doc) return null
+
+    const isPdf = doc.name?.toLowerCase().endsWith('.pdf') || doc.file_name?.toLowerCase().endsWith('.pdf') || doc.data?.startsWith('data:application/pdf')
 
     const onDocumentLoadSuccess = ({ numPages }) => {
         setNumPages(numPages)

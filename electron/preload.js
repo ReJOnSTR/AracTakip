@@ -142,7 +142,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createDocumentCategory: (data) => ipcRenderer.invoke('settings:createDocumentCategory', data),
     updateDocumentCategory: (data) => ipcRenderer.invoke('settings:updateDocumentCategory', data),
     deleteDocumentCategory: (id) => ipcRenderer.invoke('settings:deleteDocumentCategory', id),
-    getDocumentFolders: (companyId) => ipcRenderer.invoke('settings:getDocumentFolders', companyId),
+    getDocumentFolders: (companyId, relatedType, relatedId) => ipcRenderer.invoke('settings:getDocumentFolders', companyId, relatedType, relatedId),
     createDocumentFolder: (data) => ipcRenderer.invoke('settings:createDocumentFolder', data),
     updateDocumentFolder: (data) => ipcRenderer.invoke('settings:updateDocumentFolder', data),
     deleteDocumentFolder: (id) => ipcRenderer.invoke('settings:deleteDocumentFolder', id),

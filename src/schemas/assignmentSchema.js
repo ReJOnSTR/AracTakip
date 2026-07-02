@@ -8,5 +8,6 @@ export const assignmentSchema = z.object({
     department: z.string().optional(),
     startDate: z.string().min(1, 'Başlangıç tarihi zorunludur'),
     endDate: z.string().optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    filePath: z.any().optional()
 });

@@ -126,10 +126,17 @@ async function deleteDocumentCategory(id) {
 }
 
 // Document Folders
-async function getDocumentFolders(companyId) {
+async function getDocumentFolders(companyId, relatedType = null, relatedId = null) {
     try {
+        const where = { company_id: parseInt(companyId) };
+        if (relatedType && relatedId) {
+            where.OR = [
+                { related_type: relatedType, related_id: parseInt(relatedId) },
+                { related_type: null, related_id: null }
+            ];
+        }
         const data = await prisma.document_folders.findMany({
-            where: { company_id: parseInt(companyId) },
+            where,
             orderBy: { name: 'asc' }
         });
         return { success: true, data };
@@ -141,7 +148,9 @@ async function createDocumentFolder(data) {
         const result = await prisma.document_folders.create({
             data: {
                 company_id: parseInt(data.companyId),
-                name: data.name
+                name: data.name,
+                related_type: data.relatedType || null,
+                related_id: data.relatedId ? parseInt(data.relatedId) : null
             }
         });
         return { success: true, data: result };

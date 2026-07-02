@@ -11,7 +11,6 @@ import { formatDate, formatCurrency, getVehicleTypeLabel } from '../utils/helper
 // FileUploader removed
 import { Plus, Pencil, Trash2, Wrench, Eye, Building2 } from 'lucide-react'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
-import DocumentUploadModal from '../components/DocumentUploadModal'
 import ServiceForm from '../components/forms/ServiceForm'
 import BatchOperationModal from '../components/BatchOperationModal'
 
@@ -34,8 +33,6 @@ export default function Services() {
     // Document State
     const [documents, setDocuments] = useState([])
     const [previewDoc, setPreviewDoc] = useState(null)
-    const [uploadModalOpen, setUploadModalOpen] = useState(false)
-    const [activeUploadId, setActiveUploadId] = useState(null)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
 
     const serviceTypes = [
@@ -66,7 +63,7 @@ export default function Services() {
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
-            if (['services', 'vehicles'].includes(change?.table)) {
+            if (['services', 'vehicles', 'documents'].includes(change?.table)) {
                 console.log(`[RealTime] Services reloading for change in ${change.table}`)
                 loadDataRef.current(true)
             }
@@ -244,7 +241,20 @@ export default function Services() {
 
     // Document Helpers
     const getDocument = (serviceId) => {
-        return documents.find(d => d.related_type === 'service' && d.related_id === serviceId)
+        const found = documents.find(d => d.related_type === 'service' && Number(d.related_id) === Number(serviceId))
+        if (found) return found
+        const service = services.find(s => s.id === serviceId)
+        if (service?.file_path) {
+            return {
+                id: null,
+                file_name: service.file_path,
+                file_path: service.file_path,
+                file_type: '.' + (service.file_path.split('.').pop() || ''),
+                related_type: 'service',
+                related_id: serviceId
+            }
+        }
+        return null
     }
 
     const renderDocumentCell = (row) => {
@@ -274,7 +284,7 @@ export default function Services() {
             return (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                     <button
-                        onClick={(e) => { e.stopPropagation(); handleOpenUpload(row.id) }}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(row) }}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '4px',
                             border: '1px dashed var(--border-color)', background: 'transparent',
@@ -320,38 +330,6 @@ export default function Services() {
         }
     }
 
-    const handleOpenUpload = (id) => {
-        setActiveUploadId(id)
-        setUploadModalOpen(true)
-    }
-
-    const handleUploadConfirm = async (docs) => {
-        if (!activeUploadId || !docs || docs.length === 0) return
-
-        const service = services.find(s => s.id === activeUploadId)
-        if (!service) return
-
-        const doc = docs[0]
-        const result = await window.electronAPI.addDocument({
-            vehicleId: service.vehicle_id,
-            relatedType: 'service',
-            relatedId: activeUploadId,
-            filePath: doc.path,
-            fileName: doc.displayName,
-            docType: doc.docType,
-            startDate: doc.startDate,
-            endDate: doc.endDate
-        })
-
-        if (result.success) {
-            // Refresh documents
-            const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-            if (docsRes.success) setDocuments(docsRes.data)
-        } else {
-            alert('Dosya yüklenirken hata oluştu: ' + result.error)
-        }
-    }
-
     const handleDocumentDelete = async () => {
         if (!previewDoc) return
         setConfirmModal({
@@ -360,14 +338,18 @@ export default function Services() {
             confirmText: 'Sil',
             type: 'danger',
             onConfirm: async () => {
-                const result = await window.electronAPI.deleteDocument(previewDoc.id)
-                if (result.success) {
-                    const docsRes = await window.electronAPI.getAllDocuments(currentCompany.id)
-                    if (docsRes.success) setDocuments(docsRes.data)
+                let result
+                if (previewDoc.id) {
+                    result = await window.electronAPI.deleteDocument(previewDoc.id)
+                } else if (previewDoc.related_id) {
+                    result = await window.electronAPI.updateService({ id: previewDoc.related_id, filePath: null })
+                }
+                if (result?.success) {
+                    loadData()
                     setPreviewDoc(null)
                     setConfirmModal(null)
                 } else {
-                    alert('Silme hatası: ' + result.error)
+                    alert('Silme hatası: ' + (result?.error || 'Bilinmeyen hata'))
                 }
             }
         })
@@ -521,16 +503,6 @@ export default function Services() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
-            />
-
-            <DocumentUploadModal
-                isOpen={uploadModalOpen}
-                onClose={() => {
-                    setUploadModalOpen(false)
-                    setActiveUploadId(null)
-                }}
-                onUpload={handleUploadConfirm}
-                initialType="service"
             />
 
             <DocumentPreviewModal

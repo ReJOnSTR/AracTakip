@@ -679,7 +679,7 @@ async function runAutoMigrations() {
         log.error('Migration step 23 (target_type field in document_categories) error:', error.message);
     }
 
-    // 24. Add is_archived to document_folders
+    // 24. Add is_archived, related_type, related_id to document_folders
     try {
         const dfCols = await p.$queryRawUnsafe("PRAGMA table_info('document_folders')");
         if (dfCols.length > 0) {
@@ -687,9 +687,17 @@ async function runAutoMigrations() {
                 await p.$executeRawUnsafe("ALTER TABLE document_folders ADD COLUMN is_archived INTEGER DEFAULT 0");
                 log.info('Migration: Added is_archived to document_folders');
             }
+            if (!dfCols.some(c => c.name === 'related_type')) {
+                await p.$executeRawUnsafe("ALTER TABLE document_folders ADD COLUMN related_type TEXT");
+                log.info('Migration: Added related_type to document_folders');
+            }
+            if (!dfCols.some(c => c.name === 'related_id')) {
+                await p.$executeRawUnsafe("ALTER TABLE document_folders ADD COLUMN related_id INTEGER");
+                log.info('Migration: Added related_id to document_folders');
+            }
         }
     } catch (error) {
-        log.error('Migration step 24 (is_archived field in document_folders) error:', error.message);
+        log.error('Migration step 24 (document_folders fields) error:', error.message);
     }
 
     // 25. Add off_days column to employees if missing

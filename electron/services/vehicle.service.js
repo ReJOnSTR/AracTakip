@@ -147,6 +147,13 @@ async function getAllMaintenances(companyId, isArchived) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
+const getFilePathString = (filePath) => {
+    if (!filePath) return null;
+    if (typeof filePath === 'string') return filePath;
+    if (typeof filePath === 'object' && filePath.path) return String(filePath.path);
+    return null;
+};
+
 async function createMaintenance(data) {
     try {
         const { filePath, fileData, fileName, ...rest } = data;
@@ -160,7 +167,7 @@ async function createMaintenance(data) {
                 next_km: rest.nextKm ? parseInt(rest.nextKm) : null,
                 next_date: rest.nextDate ? new Date(rest.nextDate) : null,
                 notes: rest.notes || null,
-                file_path: filePath || null
+                file_path: getFilePathString(filePath)
             }
         });
 
