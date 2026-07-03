@@ -727,8 +727,9 @@ export default function Leaves() {
                 title={editingLeave ? 'İzni Düzenle' : (formData.employeeId ? 'İzin Ekle' : 'Toplu İzin Ekle')}
                 size="lg"
                 footer={null}
+                bodyStyle={{ overflow: 'visible', padding: '20px' }}
             >
-                <div style={{ overflow: 'hidden', position: 'relative' }}>
+                <div style={{ position: 'relative', overflow: 'hidden', width: '100%' }}>
                     {/* Stepper Header */}
                     {!editingLeave && !formData.employeeId && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
@@ -1165,27 +1166,24 @@ export default function Leaves() {
                                                     if (!breakdown || (breakdown.offDays === 0 && breakdown.holidays === 0)) return null;
                                                     return (
                                                         <div style={{
-                                                            marginTop: '12px',
-                                                            padding: '10px 14px',
+                                                            marginTop: '6px',
+                                                            padding: '8px 12px',
                                                             background: 'rgba(59, 130, 246, 0.08)',
                                                             border: '1px dashed rgba(59, 130, 246, 0.3)',
                                                             borderRadius: '8px',
                                                             fontSize: '12px',
                                                             color: 'var(--text-secondary)',
                                                             display: 'flex',
-                                                            flexDirection: 'column',
-                                                            gap: '4px'
+                                                            alignItems: 'center',
+                                                            gap: '8px'
                                                         }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontSize: '12.5px' }}>
-                                                                <Clock size={14} />
-                                                                <span style={{ fontWeight: 600 }}>İzin Süresi Detayı</span>
-                                                            </div>
+                                                            <Clock size={14} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
                                                             <div>
                                                                 Toplam <strong>{breakdown.totalDays}</strong> takvim gününden;
-                                                                {breakdown.offDays > 0 && <span> <strong>{breakdown.offDays}</strong> gün haftalık izin</span>}
+                                                                {breakdown.offDays > 0 && <span> <strong>{breakdown.offDays}</strong> gün hafta tatili</span>}
                                                                 {breakdown.offDays > 0 && breakdown.holidays > 0 && <span> ve</span>}
                                                                 {breakdown.holidays > 0 && <span> <strong>{breakdown.holidays}</strong> gün resmi tatil</span>} düşülmüştür.
-                                                                Maaştan kesilecek net izin süresi: <strong>{breakdown.workingDays} gün</strong>.
+                                                                Net kullanılan izin: <strong style={{ color: 'var(--accent-primary)' }}>{breakdown.workingDays} gün</strong>.
                                                             </div>
                                                         </div>
                                                     );
