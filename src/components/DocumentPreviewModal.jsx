@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { 
     ExternalLink, Trash2, ChevronLeft, ChevronRight, Loader2, 
-    ZoomIn, ZoomOut, RotateCw, RefreshCw, X, FileText, Download, Maximize2, Minimize2, File 
+    RotateCw, FileText, Download, File, Maximize2 
 } from 'lucide-react'
 import Modal from './Modal'
 import { Document, Page, pdfjs } from 'react-pdf'
@@ -22,7 +22,6 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     const [isDragging, setIsDragging] = useState(false)
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-    const [isFullscreen, setIsFullscreen] = useState(false)
     const [textContent, setTextContent] = useState(null)
 
     const containerRef = useRef(null)
@@ -35,7 +34,6 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
             setZoomLevel(1)
             setRotation(0)
             setPosition({ x: 0, y: 0 })
-            setIsFullscreen(false)
         }
     }, [doc])
 
@@ -147,43 +145,30 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     }
 
     const headerContent = (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                <span style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    padding: '4px 9px',
-                    borderRadius: '6px',
-                    backgroundColor: 'var(--accent-primary)',
-                    color: '#fff',
-                    letterSpacing: '0.5px'
-                }}>
-                    {ext.replace('.', '') || 'DOSYA'}
-                </span>
-                <span style={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '450px'
-                }}>
-                    {fileName}
-                </span>
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button
-                    className="btn btn-icon btn-secondary"
-                    title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Yap'}
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    style={{ padding: '6px', borderRadius: '8px' }}
-                >
-                    {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-                </button>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+            <span style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                padding: '4px 9px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--accent-primary)',
+                color: '#fff',
+                letterSpacing: '0.5px'
+            }}>
+                {ext.replace('.', '') || 'DOSYA'}
+            </span>
+            <span style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '550px'
+            }}>
+                {fileName}
+            </span>
         </div>
     )
 
@@ -221,116 +206,207 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
             isOpen={!!doc}
             onClose={onClose}
             title={headerContent}
-            size={isFullscreen ? 'full' : 'xl'}
+            size="xl"
             footer={footer}
             bodyStyle={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1 }}
         >
-            <div style={{ display: 'flex', flexDirection: 'column', height: isFullscreen ? 'calc(100vh - 120px)' : '75vh', overflow: 'hidden' }}>
-                {/* Modern Integrated Control Bar */}
+            <div style={{ display: 'flex', flexDirection: 'column', height: '75vh', overflow: 'hidden' }}>
+                {/* Ultra-Sleek Centered Toolbar matching Adobe Acrobat / macOS PDF Bar */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: 'var(--bg-secondary)',
+                    justifyContent: 'center',
+                    backgroundColor: '#161822',
                     padding: '8px 16px',
-                    borderBottom: '1px solid var(--border-color)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                     gap: '12px',
-                    flexWrap: 'wrap',
+                    userSelect: 'none',
                     zIndex: 2
                 }}>
-                    {/* Zoom & Rotation Controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button
-                            className="btn btn-icon btn-secondary"
-                            onClick={handleZoomOut}
-                            title="Uzaklaştır (-)"
-                            style={{ padding: '6px', borderRadius: '6px' }}
-                        >
-                            <ZoomOut size={16} />
-                        </button>
-                        
-                        <span style={{
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            minWidth: '48px',
-                            textAlign: 'center',
-                            color: 'var(--text-primary)',
-                            backgroundColor: 'var(--bg-tertiary)',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border-color)'
-                        }}>
-                            {Math.round(zoomLevel * 100)}%
-                        </span>
-
-                        <button
-                            className="btn btn-icon btn-secondary"
-                            onClick={handleZoomIn}
-                            title="Yakınlaştır (+)"
-                            style={{ padding: '6px', borderRadius: '6px' }}
-                        >
-                            <ZoomIn size={16} />
-                        </button>
-
-                        <button
-                            className="btn btn-icon btn-secondary"
-                            onClick={handleResetZoom}
-                            title="Sıfırla / %100"
-                            style={{ padding: '6px 10px', fontSize: '12px', fontWeight: 600, borderRadius: '6px' }}
-                        >
-                            %100
-                        </button>
-
-                        <button
-                            className="btn btn-icon btn-secondary"
-                            onClick={handleRotate}
-                            title="90° Döndür"
-                            style={{ padding: '6px', borderRadius: '6px' }}
-                        >
-                            <RotateCw size={16} />
-                        </button>
-                    </div>
-
-                    {/* PDF Page Controls */}
-                    {isPdf && numPages && (
-                        <div style={{
+                    {/* - Zoom Out */}
+                    <button
+                        onClick={handleZoomOut}
+                        title="Uzaklaştır (-)"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            cursor: 'pointer',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            backgroundColor: 'var(--bg-tertiary)',
-                            padding: '4px 12px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border-color)'
-                        }}>
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: 400,
+                            lineHeight: 1,
+                            transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        −
+                    </button>
+
+                    {/* + Zoom In */}
+                    <button
+                        onClick={handleZoomIn}
+                        title="Yakınlaştır (+)"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            cursor: 'pointer',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: 400,
+                            lineHeight: 1,
+                            transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        +
+                    </button>
+
+                    {/* Fit to View Button */}
+                    <button
+                        onClick={handleResetZoom}
+                        title="Genişliğe Sığdır (%100)"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            cursor: 'pointer',
+                            padding: '6px 8px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <Maximize2 size={15} />
+                    </button>
+
+                    {/* Divider */}
+                    <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255, 255, 255, 0.15)', margin: '0 4px' }} />
+
+                    {/* Page Counter Box / Percentage */}
+                    {isPdf ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <button
-                                className="btn btn-icon btn-secondary"
                                 disabled={pageNumber <= 1}
                                 onClick={previousPage}
-                                style={{ padding: '4px', height: '26px', width: '26px' }}
+                                title="Önceki Sayfa"
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: pageNumber <= 1 ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.85)',
+                                    cursor: pageNumber <= 1 ? 'default' : 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
                             >
                                 <ChevronLeft size={16} />
                             </button>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                                Sayfa {pageNumber} / {numPages}
+
+                            <input
+                                type="number"
+                                min={1}
+                                max={numPages || 1}
+                                value={pageNumber}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value)
+                                    if (!isNaN(val)) {
+                                        setPageNumber(Math.min(Math.max(1, val), numPages || 1))
+                                    }
+                                }}
+                                style={{
+                                    width: '42px',
+                                    height: '28px',
+                                    textAlign: 'center',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    outline: 'none'
+                                }}
+                            />
+
+                            <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>
+                                / {numPages || 1}
                             </span>
+
                             <button
-                                className="btn btn-icon btn-secondary"
-                                disabled={pageNumber >= numPages}
+                                disabled={pageNumber >= (numPages || 1)}
                                 onClick={nextPage}
-                                style={{ padding: '4px', height: '26px', width: '26px' }}
+                                title="Sonraki Sayfa"
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: pageNumber >= (numPages || 1) ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.85)',
+                                    cursor: pageNumber >= (numPages || 1) ? 'default' : 'pointer',
+                                    padding: '4px',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
                             >
                                 <ChevronRight size={16} />
                             </button>
                         </div>
+                    ) : (
+                        <div style={{
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid rgba(255, 255, 255, 0.15)'
+                        }}>
+                            {Math.round(zoomLevel * 100)}%
+                        </div>
                     )}
 
-                    {/* Quick Hint */}
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>Ctrl + Yakınlaştır</span>
-                    </div>
+                    {/* Divider */}
+                    <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255, 255, 255, 0.15)', margin: '0 4px' }} />
+
+                    {/* Rotate Button */}
+                    <button
+                        onClick={handleRotate}
+                        title="90° Döndür"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            cursor: 'pointer',
+                            padding: '6px 8px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <RotateCw size={15} />
+                    </button>
                 </div>
 
-                {/* Reader Canvas - ONLY SINGLE SCROLLBAR INSIDE CANVAS - NO CHECKS / NO TRANSPARENCY */}
+                {/* Reader Canvas - SINGLE Smooth Scrollbar */}
                 <div
                     ref={containerRef}
                     onWheel={handleWheel}
@@ -340,8 +416,8 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                     onMouseLeave={handleMouseUp}
                     style={{
                         flex: 1,
-                        backgroundColor: '#0c0d12', // Solid modern dark canvas — ZERO TRANSPARENCY / ZERO CHECKS!
-                        overflow: 'auto', // SINGLE Smooth Scrollbar!
+                        backgroundColor: '#0c0d12', // Solid modern dark canvas
+                        overflow: 'auto',
                         position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
