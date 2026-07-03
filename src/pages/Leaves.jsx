@@ -347,13 +347,13 @@ export default function Leaves() {
     const startProcessingQueue = () => {
         if (formData.employeeIds.length === 0) return;
         
+        const holidayDates = publicHolidays.map(h => h.date);
         const newQueue = formData.employeeIds.map(id => {
             const emp = employees.find(e => e.id === id);
+            const offDaysStr = emp ? emp.off_days : '0';
             const autoDays = 1;
             const sDate = today();
-            const s = new Date(sDate);
-            s.setDate(s.getDate() + autoDays - 1);
-            const eDate = formatDateForInput(s);
+            const eDate = calculateLeaveEndDate(sDate, autoDays, offDaysStr, holidayDates);
 
             return {
                 employeeId: id,
@@ -378,6 +378,9 @@ export default function Leaves() {
         setLeaveQueue(prev => prev.map((item, idx) => {
             if (idx !== leaveQueueIndex) return item;
             let newItem = { ...item, [key]: value };
+            const emp = newItem.employee || employees.find(e => e.id === newItem.employeeId);
+            const offDaysStr = emp ? emp.off_days : '0';
+            const holidayDates = publicHolidays.map(h => h.date);
             const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
 
             if (newItem.leaveUnit === 'hourly') {
@@ -402,30 +405,18 @@ export default function Leaves() {
                     const autoDays = newItem.days || 1;
                     newItem.days = autoDays;
                     if (newItem.startDate) {
-                        const start = new Date(newItem.startDate);
-                        start.setDate(start.getDate() + autoDays - 1);
-                        newItem.endDate = formatDateForInput(start);
+                        newItem.endDate = calculateLeaveEndDate(newItem.startDate, autoDays, offDaysStr, holidayDates);
                     }
                 }
 
                 if (key === 'startDate' && newItem.startDate) {
                     const days = parseInt(newItem.days) || 1;
-                    const start = new Date(newItem.startDate);
-                    start.setDate(start.getDate() + days - 1);
-                    newItem.endDate = formatDateForInput(start);
+                    newItem.endDate = calculateLeaveEndDate(newItem.startDate, days, offDaysStr, holidayDates);
                 } else if (key === 'days' && newItem.startDate) {
                     const days = parseInt(value) || 1;
-                    const start = new Date(newItem.startDate);
-                    start.setDate(start.getDate() + days - 1);
-                    newItem.endDate = formatDateForInput(start);
+                    newItem.endDate = calculateLeaveEndDate(newItem.startDate, days, offDaysStr, holidayDates);
                 } else if (key === 'endDate' && newItem.startDate && newItem.endDate) {
-                    const start = new Date(newItem.startDate);
-                    const end = new Date(newItem.endDate);
-                    if (end >= start) {
-                        const diffTime = end - start;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                        newItem.days = diffDays;
-                    }
+                    newItem.days = calculateLeaveDays(newItem.startDate, newItem.endDate, offDaysStr, holidayDates);
                 }
             }
             return newItem;
@@ -434,22 +425,32 @@ export default function Leaves() {
 
     const applyToAll = () => {
         const current = leaveQueue[leaveQueueIndex];
+        const holidayDates = publicHolidays.map(h => h.date);
+
         setLeaveQueue(prev => prev.map((item, idx) => {
             if (item.isSaved) return item;
-            
-            let newItem = {
+            const emp = item.employee || employees.find(e => e.id === item.employeeId);
+            const offDaysStr = emp ? emp.off_days : '0';
+
+            let calculatedEndDate = current.endDate;
+            let calculatedDays = current.days;
+
+            if (current.leaveUnit !== 'hourly') {
+                calculatedEndDate = calculateLeaveEndDate(current.startDate, current.days, offDaysStr, holidayDates);
+                calculatedDays = calculateLeaveDays(current.startDate, calculatedEndDate, offDaysStr, holidayDates);
+            }
+
+            return {
                 ...item,
                 type: current.type,
                 startDate: current.startDate,
-                endDate: current.endDate,
-                days: current.days,
+                endDate: calculatedEndDate,
+                days: calculatedDays,
                 leaveUnit: current.leaveUnit,
                 hours: current.hours,
                 status: current.status,
                 notes: current.notes
             };
-
-            return newItem;
         }));
     };
 
@@ -524,11 +525,89 @@ export default function Leaves() {
         },
         {
             key: 'status',
-            label: 'Durum',
-            render: (val) => (
-                <span className={`badge badge-${val === 'approved' ? 'success' : (val === 'pending' ? 'warning' : 'danger')}`}>
-                    {val === 'approved' ? 'Onaylandı' : (val === 'pending' ? 'Bekliyor' : 'Reddedildi')}
-                </span>
+            label: 'İzin Durumu',
+            width: '180px',
+            render: (val, row) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
+                    <span 
+                        className={`badge badge-${val === 'approved' ? 'success' : (val === 'pending' ? 'warning' : 'danger')}`}
+                        style={{ whiteSpace: 'nowrap', padding: '5px 10px', fontSize: '12px' }}
+                    >
+                        {val === 'approved' ? 'Onaylandı' : (val === 'pending' ? 'Bekliyor' : 'Reddedildi')}
+                    </span>
+                    {val === 'pending' && (
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                                onClick={async () => {
+                                    await window.electronAPI.updateLeave({
+                                        id: row.id,
+                                        employeeId: row.employee_id,
+                                        type: row.type,
+                                        startDate: row.start_date,
+                                        endDate: row.end_date,
+                                        days: row.days,
+                                        hours: row.hours,
+                                        status: 'approved',
+                                        notes: row.notes
+                                    });
+                                    loadData(true);
+                                    showToast('İzin onaylandı.', 'success');
+                                }}
+                                title="Onayla"
+                                style={{
+                                    background: 'var(--success-bg)',
+                                    color: 'var(--success)',
+                                    border: '1px solid var(--success)',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}
+                            >
+                                <Check size={13} /> Onayla
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    await window.electronAPI.updateLeave({
+                                        id: row.id,
+                                        employeeId: row.employee_id,
+                                        type: row.type,
+                                        startDate: row.start_date,
+                                        endDate: row.end_date,
+                                        days: row.days,
+                                        hours: row.hours,
+                                        status: 'rejected',
+                                        notes: row.notes
+                                    });
+                                    loadData(true);
+                                    showToast('İzin reddedildi.', 'info');
+                                }}
+                                title="Reddet"
+                                style={{
+                                    background: 'var(--danger-bg)',
+                                    color: 'var(--danger)',
+                                    border: '1px solid var(--danger)',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}
+                            >
+                                <X size={13} /> Reddet
+                            </button>
+                        </div>
+                    )}
+                </div>
             )
         },
         {
@@ -646,7 +725,7 @@ export default function Leaves() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={editingLeave ? 'İzni Düzenle' : (formData.employeeId ? 'İzin Ekle' : 'Toplu İzin Ekle')}
-                size="medium"
+                size="lg"
                 footer={null}
             >
                 <div style={{ overflow: 'hidden', position: 'relative' }}>
@@ -716,7 +795,7 @@ export default function Leaves() {
                         display: 'flex', 
                         transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                         transform: leaveModalStep === 1 ? 'translateX(0)' : 'translateX(-100%)',
-                        height: '480px'
+                        minHeight: '440px'
                     }}>
                         {/* Step 1: Selection */}
                         <div style={{ minWidth: '100%', padding: '2px', height: '100%' }}>
@@ -869,10 +948,10 @@ export default function Leaves() {
                         </div>
 
                         {/* Step 2: Individual Entry Form */}
-                        <div style={{ minWidth: '100%', padding: '2px', height: '100%' }}>
+                        <div style={{ minWidth: '100%', padding: '2px' }}>
                             {leaveQueue.length > 0 && (
-                                <form onSubmit={handleSubmit} style={{ height: '100%' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', height: '100%', overflowY: 'auto' }}>
+                                <form onSubmit={handleSubmit}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                         {/* Navigation and Current Employee Header */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
