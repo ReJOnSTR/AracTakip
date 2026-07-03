@@ -9,6 +9,7 @@ import CustomSelect from '../components/CustomSelect'
 
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
+import DocumentPreviewModal from '../components/DocumentPreviewModal'
 
 import {
     formatCurrency, formatDate, getDaysUntilText, getStatusColor,
@@ -1627,168 +1628,15 @@ export default function VehicleDetail() {
                 confirmButtonClass={confirmModal?.confirmButtonClass}
             />
 
-            {/* Preview Modal */}
-            {
-                previewDoc && (
-                    <div className="modal-overlay" style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                        backdropFilter: 'blur(4px)',
-                        zIndex: 1000,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '20px',
-                        animation: 'fadeIn 0.2s ease-out'
-                    }} onClick={() => setPreviewDoc(null)}>
-                        <div className="modal-content" style={{
-                            width: '100%',
-                            maxWidth: '900px',
-                            maxHeight: '90vh',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            backgroundColor: 'var(--bg-elevated)',
-                            borderRadius: '16px',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                            overflow: 'hidden',
-                            animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                        }} onClick={e => e.stopPropagation()}>
-
-                            {/* Header */}
-                            <div style={{
-                                padding: '16px 24px',
-                                borderBottom: '1px solid var(--border-color)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                backgroundColor: 'var(--bg-secondary)'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
-                                    <div style={{
-                                        width: '36px',
-                                        height: '36px',
-                                        borderRadius: '10px',
-                                        backgroundColor: 'var(--accent-subtle)',
-                                        color: 'var(--accent-primary)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}>
-                                        <FileText size={20} />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                                        <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            Belge Önizleme
-                                        </h3>
-                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {previewDoc.name}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button
-                                        onClick={() => setPreviewDoc(null)}
-                                        style={{
-                                            background: 'transparent',
-                                            border: 'none',
-                                            color: 'var(--text-secondary)',
-                                            cursor: 'pointer',
-                                            padding: '8px',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-primary)' }}
-                                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Body - Image Container */}
-                            <div style={{
-                                flex: 1,
-                                overflow: 'auto',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: '#1a1a1a', // Dark background for contrast
-                                backgroundImage: 'linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%)',
-                                backgroundSize: '20px 20px',
-                                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-                                padding: '32px',
-                                minHeight: '300px'
-                            }}>
-                                <img
-                                    src={previewDoc.data}
-                                    alt={previewDoc.name}
-                                    style={{
-                                        maxWidth: '100%',
-                                        maxHeight: '65vh',
-                                        objectFit: 'contain',
-                                        borderRadius: '4px',
-                                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Footer */}
-                            <div style={{
-                                padding: '16px 24px',
-                                borderTop: '1px solid var(--border-color)',
-                                backgroundColor: 'var(--bg-elevated)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: '12px'
-                            }}>
-                                <div>
-                                    {previewDoc.doc && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setPreviewDoc(null)
-                                                handleDeleteClick('documents', previewDoc.doc)
-                                            }}
-                                            style={{
-                                                display: 'flex', alignItems: 'center', gap: '6px',
-                                                background: 'transparent', border: '1px solid var(--error)',
-                                                borderRadius: '8px', padding: '0 12px', height: '36px',
-                                                color: 'var(--error)', fontSize: '13px', fontWeight: 500,
-                                                cursor: 'pointer', transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--error-bg)' }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                                        >
-                                            <Trash2 size={16} /> Sil
-                                        </button>
-                                    )}
-                                </div>
-                                <div style={{ display: 'flex', gap: '12px' }}>
-                                    <button className="btn btn-secondary" onClick={() => setPreviewDoc(null)}>
-                                        Kapat
-                                    </button>
-                                    <button className="btn btn-primary" onClick={async () => {
-                                        const error = await window.electronAPI.openDocument(previewDoc.path)
-                                        if (error) alert('Dosya açılamadı: ' + error)
-                                    }}>
-                                        <ExternalLink size={16} />
-                                        Dışarıda Aç
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            {/* Document Preview Modal */}
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+                onDelete={previewDoc?.doc ? () => {
+                    setPreviewDoc(null)
+                    handleDeleteClick('documents', previewDoc.doc)
+                } : null}
+            />
 
             {/* Upload Modal */}
             {

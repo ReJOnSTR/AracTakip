@@ -1894,13 +1894,22 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
     try {
         if (!fileName) return { success: false, error: 'No filename' }
         const userDataPath = app.getPath('userData')
-        const filePath = path.join(userDataPath, 'files', fileName)
-
-        if (!fs.existsSync(filePath)) {
-            return { success: false, error: 'File not found' }
+        
+        let filePath = fileName
+        if (!path.isAbsolute(fileName)) {
+            filePath = path.join(userDataPath, 'files', fileName)
         }
 
-        const ext = path.extname(fileName).toLowerCase()
+        if (!fs.existsSync(filePath)) {
+            const fallbackPath = path.join(userDataPath, 'files', path.basename(fileName))
+            if (fs.existsSync(fallbackPath)) {
+                filePath = fallbackPath
+            } else {
+                return { success: false, error: 'File not found at: ' + filePath }
+            }
+        }
+
+        const ext = path.extname(filePath).toLowerCase()
         const mimeTypes = {
             '.png': 'image/png',
             '.jpg': 'image/jpeg',
@@ -1909,16 +1918,40 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
             '.webp': 'image/webp',
             '.svg': 'image/svg+xml',
             '.bmp': 'image/bmp',
-            '.pdf': 'application/pdf'
+            '.avif': 'image/avif',
+            '.pdf': 'application/pdf',
+            '.txt': 'text/plain',
+            '.log': 'text/plain',
+            '.csv': 'text/csv',
+            '.json': 'application/json',
+            '.xml': 'text/xml',
+            '.html': 'text/html',
+            '.md': 'text/markdown'
         }
 
-        const mimeType = mimeTypes[ext]
-        if (!mimeType) {
-            return { success: false, error: 'Preview not supported for this file type' }
+        const mimeType = mimeTypes[ext] || 'application/octet-stream'
+        const stats = await fs.promises.stat(filePath)
+        
+        if (!mimeTypes[ext]) {
+            return { 
+                success: true, 
+                isUnsupported: true, 
+                ext, 
+                path: filePath, 
+                size: stats.size, 
+                fileName: path.basename(filePath) 
+            }
         }
 
         const fileData = await fs.promises.readFile(filePath, { encoding: 'base64' })
-        return { success: true, data: `data:${mimeType};base64,${fileData}`, type: mimeType }
+        return { 
+            success: true, 
+            data: `data:${mimeType};base64,${fileData}`, 
+            type: mimeType, 
+            ext, 
+            path: filePath, 
+            size: stats.size 
+        }
     } catch (error) {
         console.error('Read data error:', error)
         return { success: false, error: error.message }
