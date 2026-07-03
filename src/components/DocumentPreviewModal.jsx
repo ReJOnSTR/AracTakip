@@ -146,13 +146,6 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
         }
     }
 
-    const formatFileSize = (bytes) => {
-        if (!bytes) return ''
-        const sizes = ['B', 'KB', 'MB', 'GB']
-        const i = Math.floor(Math.log(bytes) / Math.log(1024))
-        return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`
-    }
-
     const headerContent = (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
@@ -160,7 +153,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                     fontSize: '11px',
                     fontWeight: 700,
                     textTransform: 'uppercase',
-                    padding: '3px 8px',
+                    padding: '4px 9px',
                     borderRadius: '6px',
                     backgroundColor: 'var(--accent-primary)',
                     color: '#fff',
@@ -175,7 +168,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    maxWidth: '400px'
+                    maxWidth: '450px'
                 }}>
                     {fileName}
                 </span>
@@ -230,22 +223,22 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
             title={headerContent}
             size={isFullscreen ? 'full' : 'xl'}
             footer={footer}
+            bodyStyle={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1 }}
         >
-            <div style={{ display: 'flex', flexDirection: 'column', height: isFullscreen ? 'calc(100vh - 160px)' : '72vh' }}>
-                {/* Modern Toolbar (Zoom & Rotation & Page Controls) */}
+            <div style={{ display: 'flex', flexDirection: 'column', height: isFullscreen ? 'calc(100vh - 120px)' : '75vh', overflow: 'hidden' }}>
+                {/* Modern Integrated Control Bar */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     backgroundColor: 'var(--bg-secondary)',
                     padding: '8px 16px',
-                    borderRadius: '10px 10px 0 0',
-                    border: '1px solid var(--border-color)',
-                    borderBottom: 'none',
+                    borderBottom: '1px solid var(--border-color)',
                     gap: '12px',
-                    flexWrap: 'wrap'
+                    flexWrap: 'wrap',
+                    zIndex: 2
                 }}>
-                    {/* Left: Zoom Controls */}
+                    {/* Zoom & Rotation Controls */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <button
                             className="btn btn-icon btn-secondary"
@@ -259,12 +252,13 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         <span style={{
                             fontSize: '12px',
                             fontWeight: 600,
-                            minWidth: '45px',
+                            minWidth: '48px',
                             textAlign: 'center',
                             color: 'var(--text-primary)',
                             backgroundColor: 'var(--bg-tertiary)',
-                            padding: '3px 8px',
-                            borderRadius: '6px'
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)'
                         }}>
                             {Math.round(zoomLevel * 100)}%
                         </span>
@@ -297,7 +291,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         </button>
                     </div>
 
-                    {/* Center: PDF Page Nav */}
+                    {/* PDF Page Controls */}
                     {isPdf && numPages && (
                         <div style={{
                             display: 'flex',
@@ -305,7 +299,8 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                             gap: '8px',
                             backgroundColor: 'var(--bg-tertiary)',
                             padding: '4px 12px',
-                            borderRadius: '8px'
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-color)'
                         }}>
                             <button
                                 className="btn btn-icon btn-secondary"
@@ -329,13 +324,13 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         </div>
                     )}
 
-                    {/* Right: Quick Hint */}
+                    {/* Quick Hint */}
                     <div style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>Ctrl + İle Yakınlaştır</span>
+                        <span>Ctrl + Yakınlaştır</span>
                     </div>
                 </div>
 
-                {/* Reader Canvas (Solid Dark Background - NO CHECKS / NO TRANSPARENCY) */}
+                {/* Reader Canvas - ONLY SINGLE SCROLLBAR INSIDE CANVAS - NO CHECKS / NO TRANSPARENCY */}
                 <div
                     ref={containerRef}
                     onWheel={handleWheel}
@@ -345,10 +340,8 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                     onMouseLeave={handleMouseUp}
                     style={{
                         flex: 1,
-                        backgroundColor: '#0e1017', // Solid Reader Canvas — NO TRANSPARENT CHECKERBOARD!
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '0 0 10px 10px',
-                        overflow: 'auto',
+                        backgroundColor: '#0c0d12', // Solid modern dark canvas — ZERO TRANSPARENCY / ZERO CHECKS!
+                        overflow: 'auto', // SINGLE Smooth Scrollbar!
                         position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
@@ -363,7 +356,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                padding: '20px',
+                                padding: '24px',
                                 minWidth: '100%',
                                 minHeight: '100%'
                             }}>
@@ -377,7 +370,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                         </div>
                                     }
                                     error={
-                                        <div style={{ color: '#ff6b6b', textAlign: 'center', padding: '24px', backgroundColor: '#181b24', borderRadius: '12px', border: '1px solid #2a2f3d' }}>
+                                        <div style={{ color: '#ff6b6b', textAlign: 'center', padding: '24px', backgroundColor: '#161922', borderRadius: '12px', border: '1px solid #282d3c' }}>
                                             <p style={{ fontWeight: 600, margin: '0 0 8px 0' }}>PDF Önizlemesi Yüklenemedi</p>
                                             <p style={{ fontSize: '12px', color: '#8892b0', margin: 0 }}>Dosyayı masaüstü uygulamasında harici görüntüleyici ile açabilirsiniz.</p>
                                             <button onClick={handleExternalOpen} className="btn btn-primary btn-sm" style={{ marginTop: '16px', gap: '6px' }}>
@@ -402,6 +395,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                padding: '24px',
                                 maxWidth: '100%',
                                 maxHeight: '100%'
                             }}>
@@ -411,10 +405,10 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                     draggable={false}
                                     style={{
                                         maxWidth: '85vw',
-                                        maxHeight: '65vh',
+                                        maxHeight: '68vh',
                                         objectFit: 'contain',
                                         borderRadius: '8px',
-                                        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6)',
+                                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
                                         border: '1px solid rgba(255, 255, 255, 0.08)'
                                     }}
                                 />
