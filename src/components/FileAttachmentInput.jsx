@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Trash2, Eye } from 'lucide-react';
+import DocumentPreviewModal from './DocumentPreviewModal';
 
 export default function FileAttachmentInput({ value, onChange, label = "Belge / Dosya" }) {
     const [isDragging, setIsDragging] = useState(false);
+    const [previewDoc, setPreviewDoc] = useState(null);
 
     const handleSelectFile = async () => {
         try {
@@ -22,12 +24,30 @@ export default function FileAttachmentInput({ value, onChange, label = "Belge / 
         onChange(null);
     };
 
-    const handleOpenFile = (e) => {
+    const handleOpenFile = async (e) => {
         e.stopPropagation();
-        if (value && typeof value === 'string') {
-            window.electronAPI.openFile(value);
-        } else if (value && value.path) {
-            window.electronAPI.openFile(value.path.split(/[\\/]/).pop());
+        const fileName = getFileName();
+        const filePath = typeof value === 'string' ? value : value?.path;
+
+        if (filePath || fileName) {
+            try {
+                const res = await window.electronAPI.readDocumentData(filePath || fileName);
+                if (res && res.success) {
+                    setPreviewDoc({
+                        data: res.data,
+                        name: fileName || res.fileName,
+                        path: res.path || filePath,
+                        ext: res.ext
+                    });
+                    return;
+                }
+            } catch (err) {
+                console.warn("Failed to read document preview:", err);
+            }
+            setPreviewDoc({
+                name: fileName,
+                path: filePath
+            });
         }
     };
 
@@ -174,6 +194,11 @@ export default function FileAttachmentInput({ value, onChange, label = "Belge / 
                     </span>
                 </div>
             )}
+
+            <DocumentPreviewModal
+                doc={previewDoc}
+                onClose={() => setPreviewDoc(null)}
+            />
         </div>
     );
 }
