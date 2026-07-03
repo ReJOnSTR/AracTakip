@@ -1321,22 +1321,32 @@ export default function EmployeeDetail() {
     }
 
     const handleDocumentOpen = async (doc) => {
-        const ext = doc.file_type?.toLowerCase() || doc.file_path.split('.').pop()?.toLowerCase()
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif']
-        if (imageExtensions.includes(ext)) {
+        if (!doc) return
+        const filePath = typeof doc === 'string' ? doc : (doc.file_path || doc.path || doc.file_name || doc.name)
+        const fileName = typeof doc === 'string' ? doc : (doc.file_name || doc.name || doc.file_path?.split(/[\\/]/).pop())
+
+        if (filePath || fileName) {
             try {
-                const res = await window.electronAPI.readDocumentData(doc.file_path)
-                if (res.success && res.data) {
-                    setPreviewDoc({ data: res.data, name: doc.file_name, path: doc.file_path, doc })
-                } else {
-                    await window.electronAPI.openDocument(doc.file_path)
+                const res = await window.electronAPI.readDocumentData(filePath || fileName)
+                if (res && res.success) {
+                    setPreviewDoc({
+                        data: res.data,
+                        name: fileName || res.fileName,
+                        path: res.path || filePath,
+                        ext: res.ext,
+                        doc: typeof doc === 'object' ? doc : null
+                    })
+                    return
                 }
             } catch (error) {
-                console.error('Failed to preview image:', error)
-                await window.electronAPI.openDocument(doc.file_path)
+                console.error('Failed to read document:', error)
             }
-        } else {
-            await window.electronAPI.openDocument(doc.file_path)
+
+            setPreviewDoc({
+                name: fileName,
+                path: filePath,
+                doc: typeof doc === 'object' ? doc : null
+            })
         }
     }
 

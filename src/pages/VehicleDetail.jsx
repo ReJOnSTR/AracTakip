@@ -789,38 +789,37 @@ export default function VehicleDetail() {
         let docObject = null
 
         if (typeof docOrPath === 'object') {
-            fileName = docOrPath.file_path
+            fileName = docOrPath.file_path || docOrPath.file_name || docOrPath.name
             docObject = docOrPath
         }
 
-        console.log('Opening document:', fileName)
         if (!fileName) {
             alert('Dosya adı bulunamadı!')
             return
         }
 
-        // Check if it is an image
-        const ext = fileName.split('.').pop().toLowerCase()
-        if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+        try {
             const res = await window.electronAPI.readDocumentData(fileName)
-            if (res.success) {
+            if (res && res.success) {
                 setPreviewDoc({
                     data: res.data,
                     type: res.type,
-                    name: fileName,
-                    path: fileName,
-                    doc: docObject // Store full doc object for deletion
+                    name: docObject?.file_name || fileName.split(/[\\/]/).pop(),
+                    path: res.path || fileName,
+                    ext: res.ext,
+                    doc: docObject
                 })
                 return
             }
-            // If preview fails, fall back to external open
-            console.log('Preview failed, opening externally', res.error)
+        } catch (err) {
+            console.error('Failed to read document data:', err)
         }
 
-        const error = await window.electronAPI.openDocument(fileName)
-        if (error) {
-            alert('Dosya açılamadı: ' + error)
-        }
+        setPreviewDoc({
+            name: docObject?.file_name || fileName.split(/[\\/]/).pop(),
+            path: fileName,
+            doc: docObject
+        })
     }
 
     const getDocument = (type, relatedId) => {
