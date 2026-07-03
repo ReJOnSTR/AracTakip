@@ -173,31 +173,14 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     )
 
     const footer = (
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {onDelete && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            onDelete()
-                        }}
-                        className="btn btn-danger"
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                        <Trash2 size={16} /> Sil
-                    </button>
-                )}
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <button className="btn btn-secondary" onClick={onClose}>
-                    Kapat
-                </button>
-                <button className="btn btn-primary" onClick={handleExternalOpen}>
-                    <ExternalLink size={16} />
-                    Dışarıda Aç
-                </button>
-            </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', alignItems: 'center', gap: '10px' }}>
+            <button className="btn btn-secondary" onClick={onClose}>
+                Kapat
+            </button>
+            <button className="btn btn-primary" onClick={handleExternalOpen}>
+                <ExternalLink size={16} />
+                Dışarıda Aç
+            </button>
         </div>
     )
 
