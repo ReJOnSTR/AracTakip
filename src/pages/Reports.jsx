@@ -99,9 +99,22 @@ export default function Reports() {
         localStorage.setItem('printData', JSON.stringify(printData))
         
         const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
-        const dateStr = new Date().toISOString().split('T')[0];
+        const getReportPeriodText = (range) => {
+            if (range?.start) {
+                const d = new Date(range.start);
+                if (!isNaN(d.getTime())) {
+                    const m = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+                    return m.charAt(0).toUpperCase() + m.slice(1);
+                }
+            }
+            const now = new Date();
+            const m = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            return m.charAt(0).toUpperCase() + m.slice(1);
+        };
+
+        const monthStr = sanitizeFileName(getReportPeriodText(dateRange));
         const companyStr = currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '';
-        const defaultFileName = `Is_Emri_Raporu_${companyStr}${dateStr}.pdf`;
+        const defaultFileName = `Is_Raporu_${companyStr}${monthStr}.pdf`;
 
         if (window.electronAPI && window.electronAPI.saveReportPdf) {
             try {
@@ -202,7 +215,23 @@ export default function Reports() {
             ])
         }
 
-        XLSX.writeFile(wb, `Arac_Raporu_${formatDate(new Date())}.xlsx`)
+        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+        const getReportPeriodText = (range) => {
+            if (range?.start) {
+                const d = new Date(range.start);
+                if (!isNaN(d.getTime())) {
+                    const m = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+                    return m.charAt(0).toUpperCase() + m.slice(1);
+                }
+            }
+            const now = new Date();
+            const m = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            return m.charAt(0).toUpperCase() + m.slice(1);
+        };
+        const monthStr = sanitizeFileName(getReportPeriodText(dateRange));
+        const companyStr = currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '';
+
+        XLSX.writeFile(wb, `Is_Raporu_${companyStr}${monthStr}.xlsx`)
     }
 
     useEffect(() => {

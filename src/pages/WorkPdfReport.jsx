@@ -230,6 +230,19 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         }, 100);
     };
 
+    const getWorkMonthLabel = (workObj) => {
+        if (workObj?.date) {
+            const d = new Date(workObj.date);
+            if (!isNaN(d.getTime())) {
+                const m = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+                return m.charAt(0).toUpperCase() + m.slice(1);
+            }
+        }
+        const now = new Date();
+        const m = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+        return m.charAt(0).toUpperCase() + m.slice(1);
+    };
+
     return (
         <div className={`pdf-viewer-layout ${savingPdf ? 'is-generating-pdf' : ''}`}>
             {/* Viewer Action Bar */}
@@ -252,18 +265,28 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 </div>
             )}
 
-
-
             <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}>
                 {/* Header */}
-                <div className="pdf-header-standard">
+                <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
-                        <h1 className="pdf-title-standard">PUANTAJ CETVELİ</h1>
-                        <div className="pdf-company-standard">{(work.customer_name || 'Müşteri Belirtilmemiş').toUpperCase()}</div>
+                        <h1 className="pdf-title-standard" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                            {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
+                        </h1>
+                        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#111', marginTop: '4px' }}>
+                            Firma: {work.company_name || work.company?.name || 'Firma Belirtilmemiş'}
+                        </div>
+                        {work.customer_name && (
+                            <div style={{ fontSize: '12px', color: '#444' }}>
+                                Müşteri / Cari: <strong>{work.customer_name}</strong>
+                            </div>
+                        )}
+                        <div style={{ fontSize: '12px', color: '#444', marginTop: '2px' }}>
+                            Rapor Dönemi / Ayı: <strong>{getWorkMonthLabel(work)}</strong>
+                        </div>
                     </div>
-                    <div className="pdf-date-standard">
-                        <div className="pdf-date-label">Rapor Tarihi</div>
-                        <div className="pdf-date-value">{new Date().toLocaleDateString('tr-TR')}</div>
+                    <div className="pdf-date-standard" style={{ textAlign: 'right' }}>
+                        <div className="pdf-date-label" style={{ fontSize: '11px', color: '#666' }}>Rapor Tarihi</div>
+                        <div className="pdf-date-value" style={{ fontWeight: 'bold', fontSize: '13px' }}>{new Date().toLocaleDateString('tr-TR')}</div>
                     </div>
                 </div>
                 <div style={{ marginBottom: '15px' }}>
