@@ -211,14 +211,14 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
             bodyStyle={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1 }}
         >
             <div style={{ display: 'flex', flexDirection: 'column', height: '75vh', overflow: 'hidden' }}>
-                {/* Ultra-Sleek Centered Toolbar matching Adobe Acrobat / macOS PDF Bar */}
+                {/* Ultra-Sleek Centered Toolbar matching App Design Palette */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#161822',
+                    backgroundColor: 'var(--bg-secondary)',
                     padding: '8px 16px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderBottom: '1px solid var(--border-color)',
                     gap: '12px',
                     userSelect: 'none',
                     zIndex: 2
@@ -230,19 +230,19 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         style={{
                             background: 'transparent',
                             border: 'none',
-                            color: 'rgba(255, 255, 255, 0.85)',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
                             padding: '4px 10px',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '18px',
-                            fontWeight: 400,
+                            fontWeight: 500,
                             lineHeight: 1,
                             transition: 'all 0.15s ease'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                         −
@@ -255,19 +255,19 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         style={{
                             background: 'transparent',
                             border: 'none',
-                            color: 'rgba(255, 255, 255, 0.85)',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
                             padding: '4px 10px',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '18px',
-                            fontWeight: 400,
+                            fontWeight: 500,
                             lineHeight: 1,
                             transition: 'all 0.15s ease'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                         +
@@ -280,23 +280,23 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         style={{
                             background: 'transparent',
                             border: 'none',
-                            color: 'rgba(255, 255, 255, 0.85)',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
                             padding: '6px 8px',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             transition: 'all 0.15s ease'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                         <Maximize2 size={15} />
                     </button>
 
                     {/* Divider */}
-                    <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255, 255, 255, 0.15)', margin: '0 4px' }} />
+                    <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border-color)', margin: '0 4px' }} />
 
                     {/* Page Counter Box / Percentage */}
                     {isPdf ? (
@@ -308,7 +308,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
-                                    color: pageNumber <= 1 ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.85)',
+                                    color: pageNumber <= 1 ? 'var(--text-muted)' : 'var(--text-primary)',
                                     cursor: pageNumber <= 1 ? 'default' : 'pointer',
                                     padding: '4px',
                                     borderRadius: '4px',
@@ -334,17 +334,17 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                     width: '42px',
                                     height: '28px',
                                     textAlign: 'center',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                                    borderRadius: '4px',
-                                    color: '#ffffff',
+                                    backgroundColor: 'var(--bg-tertiary)',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    color: 'var(--text-primary)',
                                     fontSize: '13px',
                                     fontWeight: 600,
                                     outline: 'none'
                                 }}
                             />
 
-                            <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                                 / {numPages || 1}
                             </span>
 
@@ -355,7 +355,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
-                                    color: pageNumber >= (numPages || 1) ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.85)',
+                                    color: pageNumber >= (numPages || 1) ? 'var(--text-muted)' : 'var(--text-primary)',
                                     cursor: pageNumber >= (numPages || 1) ? 'default' : 'pointer',
                                     padding: '4px',
                                     borderRadius: '4px',
@@ -370,18 +370,18 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         <div style={{
                             fontSize: '12px',
                             fontWeight: 600,
-                            color: 'rgba(255, 255, 255, 0.85)',
-                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            color: 'var(--text-primary)',
+                            backgroundColor: 'var(--bg-tertiary)',
                             padding: '4px 10px',
-                            borderRadius: '4px',
-                            border: '1px solid rgba(255, 255, 255, 0.15)'
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)'
                         }}>
                             {Math.round(zoomLevel * 100)}%
                         </div>
                     )}
 
                     {/* Divider */}
-                    <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255, 255, 255, 0.15)', margin: '0 4px' }} />
+                    <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border-color)', margin: '0 4px' }} />
 
                     {/* Rotate Button */}
                     <button
@@ -390,16 +390,16 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         style={{
                             background: 'transparent',
                             border: 'none',
-                            color: 'rgba(255, 255, 255, 0.85)',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
                             padding: '6px 8px',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             transition: 'all 0.15s ease'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                         <RotateCw size={15} />
