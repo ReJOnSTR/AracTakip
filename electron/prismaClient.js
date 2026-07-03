@@ -817,7 +817,7 @@ async function healExistingOperationDocuments(prisma) {
             where: { related_type: 'service', related_id: item.id }
         });
         if (!existing) {
-            await ensureFolder(v.company_id, 'Servisler');
+            await ensureFolder(v.company_id, 'Servis Belgeleri');
             const ext = path.extname(item.file_path || '');
             const dateStr = item.date ? new Date(item.date).toISOString().split('T')[0] : '';
             await prisma.documents.create({
@@ -825,12 +825,12 @@ async function healExistingOperationDocuments(prisma) {
                     vehicle_id: item.vehicle_id,
                     related_type: 'service',
                     related_id: item.id,
-                    file_name: `${v.plate}_Servis_${dateStr}${ext}`,
+                    file_name: `${v.plate}_Servis_Belgesi_${dateStr}${ext}`,
                     file_path: item.file_path,
                     file_type: ext,
                     category: 'Servis',
                     doc_type: 'Servis',
-                    folder: 'Servisler',
+                    folder: 'Servis Belgeleri',
                     start_date: item.date ? new Date(item.date) : null,
                     end_date: null,
                     is_archived: item.is_archived || 0
@@ -861,7 +861,7 @@ async function healExistingOperationDocuments(prisma) {
                     vehicle_id: item.vehicle_id,
                     related_type: 'inspection',
                     related_id: item.id,
-                    file_name: `${v.plate}_${isPeriodic ? 'Egzoz_Muayene' : 'Araç_Muayene'}_${dateStr}${ext}`,
+                    file_name: `${v.plate}_${isPeriodic ? 'Egzoz_Muayene_Raporu' : 'Arac_Muayene_Raporu'}_${dateStr}${ext}`,
                     file_path: item.file_path,
                     file_type: ext,
                     category: cat,
@@ -887,7 +887,7 @@ async function healExistingOperationDocuments(prisma) {
             where: { related_type: 'insurance', related_id: item.id }
         });
         if (!existing) {
-            await ensureFolder(v.company_id, 'Sigortalar & Kaskolar');
+            await ensureFolder(v.company_id, 'Sigorta & Kasko Belgeleri');
             const ext = path.extname(item.file_path || '');
             const isKasko = item.type === 'kasko';
             const cat = isKasko ? 'Kasko' : 'Trafik Sigortası';
@@ -897,12 +897,12 @@ async function healExistingOperationDocuments(prisma) {
                     vehicle_id: item.vehicle_id,
                     related_type: 'insurance',
                     related_id: item.id,
-                    file_name: `${v.plate}_${isKasko ? 'Kasko' : 'Trafik_Sigortasi'}_${dateStr}${ext}`,
+                    file_name: `${v.plate}_${isKasko ? 'Kasko_Policesi' : 'Trafik_Sigortasi_Policesi'}_${dateStr}${ext}`,
                     file_path: item.file_path,
                     file_type: ext,
                     category: cat,
                     doc_type: cat,
-                    folder: 'Sigortalar & Kaskolar',
+                    folder: 'Sigorta & Kasko Belgeleri',
                     start_date: item.start_date ? new Date(item.start_date) : null,
                     end_date: item.end_date ? new Date(item.end_date) : null,
                     is_archived: item.is_archived || 0

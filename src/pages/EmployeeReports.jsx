@@ -95,10 +95,15 @@ export default function EmployeeReports() {
         }
         localStorage.setItem('printData', JSON.stringify(printData))
         
+        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+        const dateStr = new Date().toISOString().split('T')[0];
+        const companyStr = currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '';
+        const defaultFileName = `Personel_Raporu_${companyStr}${dateStr}.pdf`;
+
         if (window.electronAPI && window.electronAPI.saveReportPdf) {
             try {
                 setIsModalOpen(false)
-                const result = await window.electronAPI.saveReportPdf()
+                const result = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName })
                 if (result && !result.success && !result.canceled) {
                     alert('PDF Kaydedilirken Hata: ' + result.error)
                 }

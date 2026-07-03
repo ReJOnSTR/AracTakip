@@ -107,16 +107,18 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
             localStorage.setItem('printDocData', JSON.stringify(printData))
             
             // Only close modal immediately if NOT silent (because save file dialog will open)
-            if (!isSilent) {
-                onClose()
-            }
-            
-            const result = await window.electronAPI.saveReportPdf('/print-document', { silent: isSilent })
+            const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+            const dateStr = new Date().toISOString().split('T')[0];
+            const empStr = employee ? sanitizeFileName(`${employee.first_name}_${employee.last_name}`) : 'Personel';
+            const docTitleStr = title ? sanitizeFileName(title) : (selectedTemplate?.name ? sanitizeFileName(selectedTemplate.name) : 'Resmi_Belge');
+            const defaultFileName = `${empStr}_${docTitleStr}_${dateStr}.pdf`;
+
+            const result = await window.electronAPI.saveReportPdf('/print-document', { silent: isSilent, defaultPath: defaultFileName })
             if (result && result.success && result.filePath) {
                 if (isSilent) {
                     const ext = 'pdf'
                     const baseName = result.filePath.split('/').pop().split('\\').pop()
-                    const docName = baseName || `${title}.pdf`
+                    const docName = baseName || `${docTitleStr}.pdf`
                     
                     try {
                         const createResult = await window.electronAPI.createEmployeeDocument({

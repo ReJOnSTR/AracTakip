@@ -100,26 +100,26 @@ async function syncOperationDocument(relatedType, relatedId, data) {
         folderName = 'Bakım Belgeleri';
         startDate = data.date ? new Date(data.date) : null;
         endDate = data.nextDate ? new Date(data.nextDate) : null;
-        fileNamePrefix = `${plate}_Bakım`;
+        fileNamePrefix = `${plate}_Bakim_Belgesi`;
     } else if (relatedType === 'service') {
         category = 'Servis';
-        folderName = 'Servisler';
+        folderName = 'Servis Belgeleri';
         startDate = data.date ? new Date(data.date) : null;
-        fileNamePrefix = `${plate}_Servis`;
+        fileNamePrefix = `${plate}_Servis_Belgesi`;
     } else if (relatedType === 'inspection') {
         const isPeriodic = data.type === 'periodic';
         category = isPeriodic ? 'Egzoz Muayenesi' : 'Araç Muayenesi';
         folderName = 'Muayene Belgeleri';
         startDate = (data.date || data.inspectionDate) ? new Date(data.date || data.inspectionDate) : null;
         endDate = (data.validUntil || data.nextInspection) ? new Date(data.validUntil || data.nextInspection) : null;
-        fileNamePrefix = `${plate}_${isPeriodic ? 'Egzoz_Muayene' : 'Araç_Muayene'}`;
+        fileNamePrefix = `${plate}_${isPeriodic ? 'Egzoz_Muayene_Raporu' : 'Arac_Muayene_Raporu'}`;
     } else if (relatedType === 'insurance') {
         const isKasko = data.type === 'kasko';
         category = isKasko ? 'Kasko' : 'Trafik Sigortası';
-        folderName = 'Sigortalar & Kaskolar';
+        folderName = 'Sigorta & Kasko Belgeleri';
         startDate = data.startDate ? new Date(data.startDate) : null;
         endDate = data.endDate ? new Date(data.endDate) : null;
-        fileNamePrefix = `${plate}_${isKasko ? 'Kasko' : 'Trafik_Sigortasi'}`;
+        fileNamePrefix = `${plate}_${isKasko ? 'Kasko_Policesi' : 'Trafik_Sigortasi_Policesi'}`;
     }
 
     // Check if folder exists, if not create it

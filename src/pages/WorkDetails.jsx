@@ -691,11 +691,16 @@ export default function WorkDetails(props) {
             isPdfSave: true
         }))
 
+        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+        const dateStr = work?.date ? work.date.split('T')[0] : new Date().toISOString().split('T')[0];
+        const workNoStr = work?.work_no ? sanitizeFileName(work.work_no) : 'Is_Emri';
+        const defaultFileName = `${workNoStr}_Detay_Raporu_${dateStr}.pdf`;
+
         setGeneratingPdf(true)
         setTimeout(async () => {
             try {
                 setIsReportModalOpen(false)
-                const res = await window.electronAPI.saveReportPdf('/print')
+                const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName })
                 if (res && !res.success && !res.canceled) {
                     alert('PDF Kaydedilirken Hata: ' + res.error)
                 }
