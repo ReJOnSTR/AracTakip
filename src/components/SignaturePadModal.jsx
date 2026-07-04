@@ -84,7 +84,11 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
         setIsDrawing(false);
     };
 
-    const handleClear = () => {
+    const handleClear = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -93,6 +97,7 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
     };
 
     const handleFileUpload = (e) => {
+        e.stopPropagation();
         const file = e.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
@@ -107,7 +112,11 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
         }
     };
 
-    const handleConfirmSave = () => {
+    const handleConfirmSave = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         if (activeTab === 'upload' && uploadedImage) {
             onSave(uploadedImage);
             onClose();
@@ -125,16 +134,21 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
 
     const footer = (
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-            <button className="btn btn-secondary" onClick={onClose}>
+            <button type="button" className="btn btn-secondary" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}>
                 İptal
             </button>
             <div style={{ display: 'flex', gap: '8px' }}>
                 {activeTab === 'draw' && (
-                    <button className="btn btn-secondary" onClick={handleClear} disabled={!hasDrawn}>
+                    <button type="button" className="btn btn-secondary" onClick={handleClear} disabled={!hasDrawn}>
                         <RotateCcw size={16} /> Temizle
                     </button>
                 )}
-                <button className="btn btn-primary" onClick={handleConfirmSave} disabled={activeTab === 'upload' ? !uploadedImage : !hasDrawn}>
+                <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleConfirmSave}
+                    disabled={activeTab === 'upload' ? !uploadedImage : !hasDrawn}
+                >
                     <Check size={16} /> İmza Kaydet
                 </button>
             </div>
@@ -149,7 +163,7 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
             size="md"
             footer={footer}
         >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} onClick={(e) => e.stopPropagation()}>
                 {/* Mode Selector Tabs */}
                 <div style={{
                     display: 'flex',
@@ -159,7 +173,8 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
                     gap: '4px'
                 }}>
                     <button
-                        onClick={() => setActiveTab('draw')}
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveTab('draw'); }}
                         style={{
                             flex: 1,
                             display: 'flex',
@@ -181,7 +196,8 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
                         <Edit3 size={15} /> Ekranda Çiz
                     </button>
                     <button
-                        onClick={() => setActiveTab('upload')}
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveTab('upload'); }}
                         style={{
                             flex: 1,
                             display: 'flex',
@@ -265,18 +281,21 @@ export default function SignaturePadModal({ isOpen, onClose, onSave, initialSign
                 {/* Image Upload Tab */}
                 {activeTab === 'upload' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <label style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '24px',
-                            borderRadius: '12px',
-                            border: '2px dashed var(--border-color)',
-                            backgroundColor: 'var(--bg-secondary)',
-                            cursor: 'pointer',
-                            gap: '10px'
-                        }}>
+                        <label
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '24px',
+                                borderRadius: '12px',
+                                border: '2px dashed var(--border-color)',
+                                backgroundColor: 'var(--bg-secondary)',
+                                cursor: 'pointer',
+                                gap: '10px'
+                            }}
+                        >
                             <Upload size={28} style={{ color: 'var(--accent-primary)' }} />
                             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                                 İmza görseli seçmek için tıklayın
