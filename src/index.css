@@ -3803,6 +3803,16 @@ body {
   border: none;
 }
 
+.btn-bulk-action.primary {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.btn-bulk-action.primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
 .btn-bulk-action.danger {
   background: var(--danger);
   color: white;

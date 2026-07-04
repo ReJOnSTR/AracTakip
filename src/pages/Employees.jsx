@@ -341,19 +341,6 @@ export default function Employees() {
                             setClearBulkSelectionFn(() => clearSelection)
                             setIsBulkDocModalOpen(true)
                         }}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            backgroundColor: 'var(--accent-primary)',
-                            color: '#ffffff',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontWeight: 600,
-                            fontSize: '13px',
-                            border: 'none',
-                            cursor: 'pointer'
-                        }}
                     >
                         <FileText size={15} /> Toplu Belge Oluştur ({selectedIds.length})
                     </button>
