@@ -272,17 +272,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                         <h1 className="pdf-title-standard" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
                             {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
                         </h1>
-                        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#111', marginTop: '4px' }}>
-                            Firma: {work.company_name || work.company?.name || 'Firma Belirtilmemiş'}
-                        </div>
-                        {work.customer_name && (
-                            <div style={{ fontSize: '12px', color: '#444' }}>
-                                Müşteri / Cari: <strong>{work.customer_name}</strong>
-                            </div>
-                        )}
-                        <div style={{ fontSize: '12px', color: '#444', marginTop: '2px' }}>
-                            Rapor Dönemi / Ayı: <strong>{getWorkMonthLabel(work)}</strong>
-                        </div>
                     </div>
                     <div className="pdf-date-standard" style={{ textAlign: 'right' }}>
                         <div className="pdf-date-label" style={{ fontSize: '11px', color: '#666' }}>Rapor Tarihi</div>
