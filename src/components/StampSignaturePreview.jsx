@@ -53,6 +53,7 @@ function InfoTable({ title, rows }) {
 export default function StampSignaturePreview({ docData, company, settings, onChange }) {
     const [stampSrc, setStampSrc] = useState(null)
     const [signatureSrc, setSignatureSrc] = useState(null)
+    const [empSignatureSrc, setEmpSignatureSrc] = useState(null)
     const scrollRef = useRef(null)
 
     const ss = { ...STAMP_DEFAULTS, ...settings }
@@ -69,7 +70,21 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                 if (r.success) setSignatureSrc(r.data); else setSignatureSrc(null)
             })
         } else setSignatureSrc(null)
-    }, [company])
+
+        if (docData?.employeeSignaturePath) {
+            if (docData.employeeSignaturePath.startsWith('data:image/') || docData.employeeSignaturePath.startsWith('http')) {
+                setEmpSignatureSrc(docData.employeeSignaturePath)
+            } else if (window.electronAPI?.readDocumentData) {
+                window.electronAPI.readDocumentData(docData.employeeSignaturePath).then(r => {
+                    if (r?.success) setEmpSignatureSrc(r.data); else setEmpSignatureSrc(null)
+                })
+            } else {
+                setEmpSignatureSrc(null)
+            }
+        } else {
+            setEmpSignatureSrc(null)
+        }
+    }, [company, docData])
 
     // Auto-scroll to footer when component mounts (in footer mode)
     useEffect(() => {
@@ -533,12 +548,34 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
 
                         {/* ── FOOTER / SIGNATURES ── */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', marginTop: 'auto' }}>
-                            {/* Personel İmzası (static) */}
-                            <div style={{ textAlign: 'center' }}>
+                            {/* Personel İmzası */}
+                            <div style={{ textAlign: 'center', position: 'relative' }}>
                                 <p style={{ fontSize: '11px', fontWeight: 700, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                                     PERSONEL İMZASI
                                 </p>
-                                <div style={{ height: `${containerH}px` }} />
+                                <div style={{
+                                    height: `${containerH}px`,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                    marginBottom: '10px'
+                                }}>
+                                    {empSignatureSrc ? (
+                                        <img
+                                            src={empSignatureSrc}
+                                            alt="Personel İmzası"
+                                            style={{
+                                                maxHeight: '65px',
+                                                maxWidth: '150px',
+                                                objectFit: 'contain',
+                                                opacity: 0.95
+                                            }}
+                                        />
+                                    ) : (
+                                        <div style={{ height: `${containerH}px` }} />
+                                    )}
+                                </div>
                                 <p style={{ fontSize: '12px', fontWeight: 600, margin: 0 }}>{docData?.employeeName}</p>
                             </div>
 

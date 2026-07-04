@@ -339,6 +339,7 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                             companyAddress: company.address,
                             companySgk: company.sgk_no,
                             companyTax: company.tax_office ? `${company.tax_office} / ${company.tax_number || ''}` : company.tax_number,
+                            employeeSignaturePath: employee?.signature_path || employee?.signaturePath || null,
                             tcNo: employee.tc_no,
                             placeholders,
                         }}
