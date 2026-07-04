@@ -17,6 +17,10 @@ export const STAMP_DEFAULTS = {
     signatureOffsetX: 0,
     signatureOffsetY: 0,
     signatureOpacity: 0.9,
+    empSignatureSize: 80,
+    empSignatureOffsetX: 0,
+    empSignatureOffsetY: 0,
+    empSignatureOpacity: 0.9,
 }
 
 function InfoTable({ title, rows }) {
@@ -100,7 +104,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         e.preventDefault()
         e.stopPropagation()
         const sx = e.clientX, sy = e.clientY
-        const ox = ss[which + 'OffsetX'], oy = ss[which + 'OffsetY']
+        const ox = ss[which + 'OffsetX'] ?? 0, oy = ss[which + 'OffsetY'] ?? 0
         const onMove = (ev) => {
             const nextX = ox + (ev.clientX - sx) / SCALE
             const nextY = oy + (ev.clientY - sy) / SCALE
@@ -132,7 +136,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         e.preventDefault()
         e.stopPropagation()
         const sx = e.clientX, sy = e.clientY
-        const startSize = ss[which + 'Size']
+        const startSize = ss[which + 'Size'] ?? 80
         const onMove = (ev) => {
             const delta = ((ev.clientX - sx) + (ev.clientY - sy)) / 2 / SCALE
             onChange({
@@ -152,11 +156,11 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
     const containerH = ss.placementMode === 'free' ? 40 : 80
 
     const renderInteractive = (which, src, zIndex) => {
-        const size    = Math.round(ss[which + 'Size'])
-        const ox      = ss[which + 'OffsetX']
-        const oy      = ss[which + 'OffsetY']
-        const opacity = ss[which === 'stamp' ? 'stampOpacity' : 'signatureOpacity']
-        const color   = which === 'stamp' ? '#3b82f6' : '#10b981'
+        const size    = Math.round(ss[which + 'Size'] ?? 80)
+        const ox      = ss[which + 'OffsetX'] ?? 0
+        const oy      = ss[which + 'OffsetY'] ?? 0
+        const opacity = ss[which === 'stamp' ? 'stampOpacity' : (which === 'empSignature' ? 'empSignatureOpacity' : 'signatureOpacity')] ?? 0.9
+        const color   = which === 'stamp' ? '#3b82f6' : (which === 'empSignature' ? '#f59e0b' : '#10b981')
 
         const centerStyle = {
             position: 'absolute',
@@ -279,7 +283,9 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     stampOffsetX: 0,
                                     stampOffsetY: 0,
                                     signatureOffsetX: 0,
-                                    signatureOffsetY: 0
+                                    signatureOffsetY: 0,
+                                    empSignatureOffsetX: 0,
+                                    empSignatureOffsetY: 0
                                 })
                             }}
                             style={{
@@ -320,7 +326,9 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     stampOffsetX: 530,
                                     stampOffsetY: 900,
                                     signatureOffsetX: 640,
-                                    signatureOffsetY: 940
+                                    signatureOffsetY: 940,
+                                    empSignatureOffsetX: 150,
+                                    empSignatureOffsetY: 940
                                 })
                             }}
                             style={{
@@ -353,6 +361,51 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                         </button>
                     </div>
                 </div>
+
+                {/* Personel İmzası Ayarları (Varsa) */}
+                {empSignatureSrc && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+                            <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                Personel İmzası Ayarları
+                            </label>
+                        </div>
+
+                        {/* Size */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                <span>Boyut</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ss.empSignatureSize}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="30"
+                                max="200"
+                                value={ss.empSignatureSize}
+                                onChange={(e) => onChange({ ...settings, empSignatureSize: parseInt(e.target.value) })}
+                                style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }}
+                            />
+                        </div>
+
+                        {/* Opacity */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                <span>Saydamlık</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>%{Math.round((ss.empSignatureOpacity ?? 0.9) * 100)}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="1.0"
+                                step="0.05"
+                                value={ss.empSignatureOpacity ?? 0.9}
+                                onChange={(e) => onChange({ ...settings, empSignatureOpacity: parseFloat(e.target.value) })}
+                                style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }}
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* Kaşe Ayarları (Varsa) */}
                 {stampSrc && (
@@ -399,13 +452,13 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                     </div>
                 )}
 
-                {/* İmza Ayarları (Varsa) */}
+                {/* Firma İmzası Ayarları (Varsa) */}
                 {signatureSrc && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
                             <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                İmza Ayarları
+                                Firma İmzası Ayarları
                             </label>
                         </div>
 
@@ -456,7 +509,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                 }}>
                     <Info size={16} className="text-primary" style={{ flexShrink: 0, marginTop: '2px' }} />
                     <p style={{ fontSize: '11px', lineHeight: 1.5, color: 'var(--text-muted)', margin: 0 }}>
-                        Kaşe ve imzayı sağdaki önizleme belgesi üzerinde <strong>sürükleyip bırakarak</strong> yerleştirebilir, köşelerindeki tutamaçlardan <strong>boyutlandırabilirsiniz.</strong>
+                        Kaşe ve imzaları sağdaki önizleme belgesi üzerinde <strong>sürükleyip bırakarak</strong> yerleştirebilir, köşelerindeki tutamaçlardan <strong>boyutlandırabilirsiniz.</strong>
                     </p>
                 </div>
 
@@ -548,32 +601,22 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
 
                         {/* ── FOOTER / SIGNATURES ── */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', marginTop: 'auto' }}>
-                            {/* Personel İmzası */}
+                            {/* Personel İmzası — INTERACTIVE */}
                             <div style={{ textAlign: 'center', position: 'relative' }}>
                                 <p style={{ fontSize: '11px', fontWeight: 700, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                                     PERSONEL İMZASI
                                 </p>
-                                <div style={{
-                                    height: `${containerH}px`,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    position: 'relative',
-                                    marginBottom: '10px'
-                                }}>
-                                    {empSignatureSrc ? (
-                                        <img
-                                            src={empSignatureSrc}
-                                            alt="Personel İmzası"
-                                            style={{
-                                                maxHeight: '65px',
-                                                maxWidth: '150px',
-                                                objectFit: 'contain',
-                                                opacity: 0.95
-                                            }}
-                                        />
-                                    ) : (
-                                        <div style={{ height: `${containerH}px` }} />
+                                <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
+                                    {ss.placementMode !== 'free' && empSignatureSrc && renderInteractive('empSignature', empSignatureSrc, 3)}
+                                    {ss.placementMode !== 'free' && !empSignatureSrc && (
+                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
+                                            Personel imzası yok
+                                        </div>
+                                    )}
+                                    {ss.placementMode === 'free' && (
+                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px', fontStyle: 'italic' }}>
+                                            (Serbest Yerleşim Aktif)
+                                        </div>
                                     )}
                                 </div>
                                 <p style={{ fontSize: '12px', fontWeight: 600, margin: 0 }}>{docData?.employeeName}</p>
@@ -602,9 +645,10 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                             </div>
                         </div>
 
-                        {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzayı A4 sayfasının relative scope'unda render et */}
+                        {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzaları A4 sayfasının relative scope'unda render et */}
                         {ss.placementMode === 'free' && stampSrc && renderInteractive('stamp', stampSrc, 10)}
                         {ss.placementMode === 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 11)}
+                        {ss.placementMode === 'free' && empSignatureSrc && renderInteractive('empSignature', empSignatureSrc, 12)}
 
                     </div>
                 </div>

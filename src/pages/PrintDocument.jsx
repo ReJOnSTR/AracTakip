@@ -12,12 +12,17 @@ const DEFAULT_STAMP_SETTINGS = {
     signatureOffsetX: 0,
     signatureOffsetY: 0,
     signatureOpacity: 0.9,
+    empSignatureSize: 80,
+    empSignatureOffsetX: 0,
+    empSignatureOffsetY: 0,
+    empSignatureOpacity: 0.9,
 }
 
 export default function PrintDocument() {
     const [data, setData] = useState(null);
     const [signatureSrc, setSignatureSrc] = useState(null);
     const [stampSrc, setStampSrc] = useState(null);
+    const [empSignatureSrc, setEmpSignatureSrc] = useState(null);
 
     useEffect(() => {
         const load = () => {
@@ -75,10 +80,6 @@ export default function PrintDocument() {
         };
     }, []);
 
-    const [signatureSrc, setSignatureSrc] = useState(null);
-    const [stampSrc, setStampSrc] = useState(null);
-    const [empSignatureSrc, setEmpSignatureSrc] = useState(null);
-
     useEffect(() => {
         if (data?.companySignaturePath) {
             window.electronAPI.readDocumentData(data.companySignaturePath).then(res => {
@@ -120,51 +121,44 @@ export default function PrintDocument() {
     const containerH = ss.placementMode === 'free' ? 40 : 80;
 
     return (
-        <div className="a4-page">
-            {/* Header / Logo */}
+        <div className="a4-page" style={{ position: 'relative' }}>
+            
+            {/* Header */}
             <div className="doc-header">
-                <div className="company-info">
-                    <h2 style={{ fontSize: '18px', fontWeight: '800', textTransform: 'uppercase', color: '#000', marginBottom: '0', letterSpacing: '-0.2px' }}>
-                        {data.companyName}
-                    </h2>
-                </div>
-                <div className="doc-meta" style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '12px', fontWeight: '600', color: '#888', marginBottom: '8px' }}>
-                        Tarih: {formatDate(new Date())}
-                    </p>
-                    <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#111', letterSpacing: '-1px', margin: 0 }}>
-                        {data.title}
-                    </h1>
+                <h2 className="company-name">{data.companyName}</h2>
+                <div className="doc-meta">
+                    <p className="doc-date">Tarih: {formatDate(new Date())}</p>
+                    <h1 className="doc-title">{data.title}</h1>
                 </div>
             </div>
 
-            {/* Content Section */}
-            <div className="doc-content">
+            {/* Body Content */}
+            <div className="doc-body">
                 {data.templateId === 'assignment' ? (
-                    <div className="structured-doc">
+                    <div className="assignment-tables">
                         <table className="info-table">
                             <thead>
                                 <tr><th colSpan="2" className="section-title">İŞVEREN BİLGİLERİ</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td className="label-cell">ADI-SOYADI / ÜNVANI</td><td className="value-cell">{data.companyName}</td></tr>
-                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{data.companyAddress}</td></tr>
-                                <tr><td className="label-cell">İŞYERİ SGK NO</td><td className="value-cell">{data.companySgk}</td></tr>
-                                <tr><td className="label-cell">VERGİ DAİRESİ / NO</td><td className="value-cell">{data.companyTax}</td></tr>
+                                <tr><td className="label-cell">ADI-SOYADI / ÜNVANI</td><td className="value-cell">{data.companyName || '-'}</td></tr>
+                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{data.companyAddress || '-'}</td></tr>
+                                <tr><td className="label-cell">İŞYERİ SGK NO</td><td className="value-cell">{data.companySgk || '-'}</td></tr>
+                                <tr><td className="label-cell">VERGİ DAİRESİ / NO</td><td className="value-cell">{data.companyTax || '-'}</td></tr>
                             </tbody>
                         </table>
 
-                        <table className="info-table" style={{ marginTop: '15px' }}>
+                        <table className="info-table">
                             <thead>
                                 <tr><th colSpan="2" className="section-title">PERSONEL BİLGİLERİ</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td className="label-cell">ADI - SOYADI</td><td className="value-cell">{data.employeeName}</td></tr>
+                                <tr><td className="label-cell">ADI - SOYADI</td><td className="value-cell">{data.employeeName || '-'}</td></tr>
                                 <tr><td className="label-cell">T.C. KİMLİK NO</td><td className="value-cell">{data.tcNo || '-'}</td></tr>
                             </tbody>
                         </table>
 
-                        <table className="info-table" style={{ marginTop: '15px' }}>
+                        <table className="info-table">
                             <thead>
                                 <tr><th colSpan="2" className="section-title">GÖREVLENDİRME DETAYLARI</th></tr>
                             </thead>
@@ -202,20 +196,24 @@ export default function PrintDocument() {
                         position: 'relative',
                         marginBottom: '10px'
                     }}>
-                        {empSignatureSrc ? (
+                        {ss.placementMode !== 'free' && empSignatureSrc && (
                             <img
                                 src={empSignatureSrc}
                                 alt="Personel İmzası"
                                 style={{
-                                    maxHeight: '65px',
-                                    maxWidth: '150px',
+                                    width: `${ss.empSignatureSize ?? 80}px`,
+                                    height: `${ss.empSignatureSize ?? 80}px`,
                                     objectFit: 'contain',
-                                    opacity: 0.95
+                                    opacity: ss.empSignatureOpacity ?? 0.9,
+                                    position: 'absolute',
+                                    top: `calc(50% + ${ss.empSignatureOffsetY ?? 0}px)`,
+                                    left: `calc(50% + ${ss.empSignatureOffsetX ?? 0}px)`,
+                                    transform: 'translate(-50%, -50%)',
+                                    zIndex: 3,
                                 }}
                             />
-                        ) : (
-                            <div style={{ height: `${containerH}px` }}></div>
                         )}
+                        {ss.placementMode !== 'free' && !empSignatureSrc && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.employeeName}</p>
                 </div>
@@ -267,11 +265,11 @@ export default function PrintDocument() {
                         )}
                         {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
-                    <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.companyName}</p>
+                    <p style={{ fontSize: '12px', fontWeight: 600 }}>{data.companyName}</p>
                 </div>
             </div>
 
-            {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzayı A4 sayfasının (a4-page) relative scope'unda render et */}
+            {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzaları A4 sayfasının (a4-page) relative scope'unda render et */}
             {ss.placementMode === 'free' && stampSrc && (
                 <img
                     src={stampSrc}
@@ -303,6 +301,23 @@ export default function PrintDocument() {
                         left: `${ss.signatureOffsetX ?? 0}px`,
                         transform: 'translate(-50%, -50%)',
                         zIndex: 11,
+                    }}
+                />
+            )}
+            {ss.placementMode === 'free' && empSignatureSrc && (
+                <img
+                    src={empSignatureSrc}
+                    alt="Personel İmzası"
+                    style={{
+                        width: `${ss.empSignatureSize ?? 80}px`,
+                        height: `${ss.empSignatureSize ?? 80}px`,
+                        objectFit: 'contain',
+                        opacity: ss.empSignatureOpacity ?? 0.9,
+                        position: 'absolute',
+                        top: `${ss.empSignatureOffsetY ?? 940}px`,
+                        left: `${ss.empSignatureOffsetX ?? 150}px`,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 12,
                     }}
                 />
             )}
