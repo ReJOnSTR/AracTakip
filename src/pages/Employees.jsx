@@ -342,7 +342,7 @@ export default function Employees() {
                             setIsBulkDocModalOpen(true)
                         }}
                     >
-                        <FileText size={15} /> Toplu Belge Oluştur ({selectedIds.length})
+                        <FileText size={15} /> Belge Oluştur
                     </button>
                 )}
                 actions={(employee) => (
