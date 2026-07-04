@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import CustomMultiSelect from '../CustomMultiSelect'
+import SignaturePadModal from '../SignaturePadModal'
 import { formatDateForInput, formatCurrency } from '../../utils/helpers'
 import { useTabs } from '../../context/TabContext'
+import { Edit3, Trash2 } from 'lucide-react'
 
 const statusOptions = [
     { value: 'active', label: 'Aktif' },
@@ -23,6 +25,7 @@ const weekDays = [
 export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, departmentOptions = [], onEditSalary }) {
     const { openNewTab } = useTabs()
     const [offDays, setOffDays] = useState([0])
+    const [isSigPadOpen, setIsSigPadOpen] = useState(false)
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -38,7 +41,8 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
         pastUsedLeaves: '',
         status: 'active',
         iban: '',
-        notes: ''
+        notes: '',
+        signaturePath: ''
     })
 
     const [salaryChanged, setSalaryChanged] = useState(false)
@@ -60,7 +64,8 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                 pastUsedLeaves: initialData.past_used_leaves || '',
                 status: initialData.status || 'active',
                 iban: initialData.iban || '',
-                notes: initialData.notes || ''
+                notes: initialData.notes || '',
+                signaturePath: initialData.signature_path || initialData.signaturePath || ''
             })
             const initialOffDays = (initialData.off_days || '0')
                 .split(',')
@@ -244,6 +249,73 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     maxLength={500}
                 />
             </div>
+
+            {/* Personel İmzası Bölümü */}
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                    Personel İmzası (Resmi Evraklar İçin)
+                </label>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    padding: '12px 16px',
+                    backgroundColor: 'var(--bg-tertiary)',
+                    borderRadius: '10px',
+                    border: '1px solid var(--border-color)'
+                }}>
+                    {form.signaturePath ? (
+                        <div style={{
+                            height: '50px',
+                            padding: '4px 12px',
+                            backgroundColor: '#ffffff',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-color)',
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}>
+                            <img
+                                src={form.signaturePath}
+                                alt="Personel İmzası"
+                                style={{ maxHeight: '42px', objectFit: 'contain' }}
+                            />
+                        </div>
+                    ) : (
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            Henüz kayıtlı bir personel imzası bulunmuyor.
+                        </span>
+                    )}
+
+                    <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                        <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => setIsSigPadOpen(true)}
+                            style={{ gap: '6px' }}
+                        >
+                            <Edit3 size={14} /> {form.signaturePath ? 'İmzayı Değiştir / Çiz' : 'İmza Ekle'}
+                        </button>
+                        {form.signaturePath && (
+                            <button
+                                type="button"
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleChange('signaturePath', '')}
+                                title="İmzayı Sil"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <SignaturePadModal
+                isOpen={isSigPadOpen}
+                onClose={() => setIsSigPadOpen(false)}
+                initialSignature={form.signaturePath}
+                onSave={(sigData) => handleChange('signaturePath', sigData)}
+                title="Personel İmzası Ekle / Düzenle"
+            />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                 <button type="button" className="btn btn-secondary" onClick={onCancel}>Vazgeç</button>

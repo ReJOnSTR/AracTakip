@@ -1748,6 +1748,24 @@ export default function EmployeeDetail() {
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Güncel Maaş (Net)</div>
                             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
                         </div>
+                        {employee.signature_path && (
+                            <div style={{ gridColumn: '1 / -1', marginTop: '4px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Personel İmzası</div>
+                                <div style={{
+                                    display: 'inline-flex',
+                                    padding: '4px 10px',
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--border-color)'
+                                }}>
+                                    <img
+                                        src={employee.signature_path}
+                                        alt="Personel İmzası"
+                                        style={{ maxHeight: '36px', objectFit: 'contain' }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                         <div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hafta İçi Mesai (Güncel)</div>
                             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday', employee.salary)) + ' / saat' : '-'}</div>

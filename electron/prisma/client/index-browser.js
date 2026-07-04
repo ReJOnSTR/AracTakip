@@ -253,6 +253,7 @@ exports.Prisma.EmployeesScalarFieldEnum = {
   status: 'status',
   notes: 'notes',
   image: 'image',
+  signature_path: 'signature_path',
   is_archived: 'is_archived',
   created_at: 'created_at',
   past_used_leaves: 'past_used_leaves',
@@ -528,6 +529,8 @@ exports.Prisma.Document_foldersScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   name: 'name',
+  related_type: 'related_type',
+  related_id: 'related_id',
   is_archived: 'is_archived',
   created_at: 'created_at'
 };

@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react'
 import Modal from './Modal'
 import CustomInput from './CustomInput'
 import StampSignaturePreview, { STAMP_DEFAULTS } from './StampSignaturePreview'
-import { FileText, Download, Check, ArrowLeft, Stamp } from 'lucide-react'
+import SignaturePadModal from './SignaturePadModal'
+import { FileText, Download, Check, ArrowLeft, Stamp, Edit3, Trash2 } from 'lucide-react'
 import { documentTemplates } from '../utils/documentTemplates'
 import { formatDate, formatDateForInput } from '../utils/helpers'
-
-
 
 export default function DocumentGeneratorModal({ isOpen, onClose, employee, company, onSuccess }) {
     const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0])
@@ -18,6 +17,14 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
     const [step, setStep] = useState('edit')
     const [stampSettings, setStampSettings] = useState(STAMP_DEFAULTS)
     const [generatingMode, setGeneratingMode] = useState(null) // 'silent' | 'download' | null
+    const [customEmpSignature, setCustomEmpSignature] = useState('')
+    const [isSigPadOpen, setIsSigPadOpen] = useState(false)
+
+    useEffect(() => {
+        if (employee) {
+            setCustomEmpSignature(employee.signature_path || employee.signaturePath || '')
+        }
+    }, [employee])
 
     useEffect(() => {
         if (selectedTemplate && employee && company) {
@@ -99,6 +106,7 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                 companyTax: company.tax_office ? `${company.tax_office} / ${company.tax_number || ''}` : company.tax_number,
                 companySignaturePath: company.signature_path,
                 companyStampPath: company.stamp_path,
+                employeeSignaturePath: customEmpSignature || employee?.signature_path || employee?.signaturePath || null,
                 tcNo: employee.tc_no,
                 placeholders,
                 stampSettings,
@@ -228,6 +236,65 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                                     style={{ marginBottom: 0 }}
                                 />
                             ))}
+                        </div>
+
+                        {/* Personel İmzası Kontrolü */}
+                        <div style={{
+                            padding: '16px',
+                            background: 'var(--bg-secondary)',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-color)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px'
+                        }}>
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                Personel İmzası (Belgede Basılacak İmza)
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                {customEmpSignature ? (
+                                    <div style={{
+                                        height: '42px',
+                                        padding: '4px 10px',
+                                        backgroundColor: '#ffffff',
+                                        borderRadius: '6px',
+                                        border: '1px solid var(--border-color)',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}>
+                                        <img
+                                            src={customEmpSignature}
+                                            alt="Personel İmzası"
+                                            style={{ maxHeight: '34px', objectFit: 'contain' }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                        Henüz imza tanımlanmadı.
+                                    </span>
+                                )}
+
+                                <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={() => setIsSigPadOpen(true)}
+                                        style={{ gap: '6px' }}
+                                    >
+                                        <Edit3 size={13} /> {customEmpSignature ? 'Değiştir / Çiz' : 'İmza Çiz / Ekle'}
+                                    </button>
+                                    {customEmpSignature && (
+                                        <button
+                                            type="button"
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => setCustomEmpSignature('')}
+                                            title="İmzayı Kaldır"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Metin Önizleme */}
@@ -384,6 +451,14 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                     </div>
                 </div>
             )}
+
+            <SignaturePadModal
+                isOpen={isSigPadOpen}
+                onClose={() => setIsSigPadOpen(false)}
+                initialSignature={customEmpSignature}
+                onSave={(sigData) => setCustomEmpSignature(sigData)}
+                title="Personel İmzası Ekle / Düzenle"
+            />
         </Modal>
     )
 }

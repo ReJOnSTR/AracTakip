@@ -75,6 +75,10 @@ export default function PrintDocument() {
         };
     }, []);
 
+    const [signatureSrc, setSignatureSrc] = useState(null);
+    const [stampSrc, setStampSrc] = useState(null);
+    const [empSignatureSrc, setEmpSignatureSrc] = useState(null);
+
     useEffect(() => {
         if (data?.companySignaturePath) {
             window.electronAPI.readDocumentData(data.companySignaturePath).then(res => {
@@ -90,6 +94,21 @@ export default function PrintDocument() {
             });
         } else {
             setStampSrc(null);
+        }
+
+        if (data?.employeeSignaturePath) {
+            if (data.employeeSignaturePath.startsWith('data:image/') || data.employeeSignaturePath.startsWith('http')) {
+                setEmpSignatureSrc(data.employeeSignaturePath);
+            } else if (window.electronAPI?.readDocumentData) {
+                window.electronAPI.readDocumentData(data.employeeSignaturePath).then(res => {
+                    if (res?.success) setEmpSignatureSrc(res.data);
+                    else setEmpSignatureSrc(null);
+                });
+            } else {
+                setEmpSignatureSrc(null);
+            }
+        } else {
+            setEmpSignatureSrc(null);
         }
     }, [data]);
 
@@ -171,11 +190,33 @@ export default function PrintDocument() {
 
             {/* Footer / Signatures */}
             <div className="doc-footer" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', marginTop: 'auto' }}>
-                <div className="signature-box" style={{ textAlign: 'center' }}>
+                <div className="signature-box" style={{ textAlign: 'center', position: 'relative' }}>
                     <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
                         PERSONEL İMZASI
                     </p>
-                    <div style={{ height: `${containerH}px` }}></div>
+                    <div style={{
+                        height: `${containerH}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        marginBottom: '10px'
+                    }}>
+                        {empSignatureSrc ? (
+                            <img
+                                src={empSignatureSrc}
+                                alt="Personel İmzası"
+                                style={{
+                                    maxHeight: '65px',
+                                    maxWidth: '150px',
+                                    objectFit: 'contain',
+                                    opacity: 0.95
+                                }}
+                            />
+                        ) : (
+                            <div style={{ height: `${containerH}px` }}></div>
+                        )}
+                    </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.employeeName}</p>
                 </div>
                 <div className="signature-box" style={{ textAlign: 'center', position: 'relative' }}>

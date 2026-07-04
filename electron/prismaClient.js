@@ -308,6 +308,19 @@ async function runAutoMigrations() {
         log.error('Migration step 11b (signature/stamp columns) error:', error.message);
     }
 
+    // 11d. Employees: signature_path (for existing DBs)
+    try {
+        const empCols = await p.$queryRawUnsafe("PRAGMA table_info('employees')");
+        if (empCols.length > 0) {
+            if (!empCols.some(c => c.name === 'signature_path')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN signature_path TEXT');
+                log.info('Migration: Added signature_path to employees');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11d (employee signature_path) error:', error.message);
+    }
+
     // 11c. Documents: doc_type, category, folder, start_date, end_date (for existing DBs)
     try {
         const dCols = await p.$queryRawUnsafe("PRAGMA table_info('documents')");
