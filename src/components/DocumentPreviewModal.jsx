@@ -108,14 +108,20 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     const handleRotate = () => setRotation(prev => (prev + 90) % 360)
 
     const handleWheel = (e) => {
-        if (e.ctrlKey || e.metaKey || isImage) {
+        if (e.ctrlKey || e.metaKey) {
             e.preventDefault()
             const delta = e.deltaY < 0 ? 0.15 : -0.15
             setZoomLevel(prev => Math.min(Math.max(0.4, prev + delta), 4))
+        } else if (isImage && zoomLevel > 1) {
+            // Allow vertical wheel scrolling when image is zoomed
+            setPosition(prev => ({
+                ...prev,
+                y: prev.y - e.deltaY
+            }))
         }
     }
 
-    // Drag / Pan Handlers for Zoomed Image
+    // Drag / Pan Handlers for Zoomed Content
     const handleMouseDown = (e) => {
         if (zoomLevel > 1 || isImage) {
             setIsDragging(true)
@@ -134,13 +140,47 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
 
     const handleMouseUp = () => setIsDragging(false)
 
+    // Open externally handler (supports files AND generated base64 data)
     const handleExternalOpen = async () => {
         const filePath = doc.path || doc.file_path
-        if (filePath) {
+        if (filePath && window.electronAPI?.openDocument) {
             const error = await window.electronAPI.openDocument(filePath)
+            if (error) {
+                if (doc.data && window.electronAPI?.openTempDocument) {
+                    await window.electronAPI.openTempDocument(doc.data, fileName)
+                } else {
+                    alert('Dosya harici olarak açılamadı: ' + error)
+                }
+            }
+        } else if (doc.data && window.electronAPI?.openTempDocument) {
+            const error = await window.electronAPI.openTempDocument(doc.data, fileName)
             if (error) alert('Dosya harici olarak açılamadı: ' + error)
         } else {
-            alert('Dosya yolu bulunamadı.')
+            alert('Dosya yolu veya içeriği bulunamadı.')
+        }
+    }
+
+    // Download file handler
+    const handleDownload = async () => {
+        const filePath = doc.path || doc.file_path
+        if (window.electronAPI?.downloadFile) {
+            const res = await window.electronAPI.downloadFile({
+                filePath,
+                base64Data: doc.data,
+                defaultName: fileName
+            })
+            if (res && res.error) {
+                alert('Dosya indirilemedi: ' + res.error)
+            }
+        } else if (doc.data) {
+            const a = document.createElement('a')
+            a.href = doc.data
+            a.download = fileName
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+        } else {
+            alert('İndirilecek dosya verisi bulunamadı.')
         }
     }
 
@@ -173,14 +213,25 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     )
 
     const footer = (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', alignItems: 'center', gap: '10px' }}>
-            <button className="btn btn-secondary" onClick={onClose}>
-                Kapat
-            </button>
-            <button className="btn btn-primary" onClick={handleExternalOpen}>
-                <ExternalLink size={16} />
-                Dışarıda Aç
-            </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                {onDelete && (
+                    <button className="btn btn-danger btn-sm" onClick={() => onDelete(doc)} style={{ gap: '6px' }}>
+                        <Trash2 size={15} /> Sil
+                    </button>
+                )}
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button className="btn btn-secondary" onClick={onClose}>
+                    Kapat
+                </button>
+                <button className="btn btn-secondary" onClick={handleDownload} style={{ gap: '6px' }}>
+                    <Download size={16} /> İndir
+                </button>
+                <button className="btn btn-primary" onClick={handleExternalOpen} style={{ gap: '6px' }}>
+                    <ExternalLink size={16} /> Dışarıda Aç
+                </button>
+            </div>
         </div>
     )
 
@@ -194,7 +245,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
             bodyStyle={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1 }}
         >
             <div style={{ display: 'flex', flexDirection: 'column', height: '75vh', overflow: 'hidden' }}>
-                {/* Ultra-Sleek Centered Toolbar matching App Design Palette */}
+                {/* Ultra-Sleek Centered Toolbar */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -280,6 +331,28 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
 
                     {/* Divider */}
                     <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border-color)', margin: '0 4px' }} />
+
+                    {/* Download Button in Toolbar */}
+                    <button
+                        onClick={handleDownload}
+                        title="Dosyayı Bilgisayara İndir"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-primary)',
+                            cursor: 'pointer',
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <Download size={15} />
+                    </button>
 
                     {/* Page Counter Box / Percentage */}
                     {isPdf ? (
@@ -389,7 +462,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                     </button>
                 </div>
 
-                {/* Reader Canvas - SINGLE Smooth Scrollbar */}
+                {/* Reader Canvas - Scrollable in 2D when zoomed */}
                 <div
                     ref={containerRef}
                     onWheel={handleWheel}
@@ -399,12 +472,12 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                     onMouseLeave={handleMouseUp}
                     style={{
                         flex: 1,
-                        backgroundColor: '#0c0d12', // Solid modern dark canvas
+                        backgroundColor: '#0c0d12',
                         overflow: 'auto',
                         position: 'relative',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        alignItems: zoomLevel > 1.1 ? 'flex-start' : 'center',
+                        justifyContent: zoomLevel > 1.1 ? 'flex-start' : 'center',
                         cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
                         userSelect: 'none'
                     }}
@@ -417,7 +490,8 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 alignItems: 'center',
                                 padding: '24px',
                                 minWidth: '100%',
-                                minHeight: '100%'
+                                minHeight: '100%',
+                                margin: 'auto'
                             }}>
                                 <Document
                                     file={doc.data}
@@ -455,8 +529,9 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 padding: '24px',
-                                maxWidth: '100%',
-                                maxHeight: '100%'
+                                minWidth: '100%',
+                                minHeight: '100%',
+                                margin: 'auto'
                             }}>
                                 <img
                                     src={doc.data}
@@ -502,13 +577,14 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                justifyContent: 'center',
+                                justifyCenter: 'center',
                                 padding: '40px',
                                 backgroundColor: '#161b22',
                                 borderRadius: '16px',
                                 border: '1px solid #30363d',
                                 textAlign: 'center',
                                 maxWidth: '420px',
+                                margin: 'auto',
                                 boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
                             }}>
                                 <div style={{
@@ -530,17 +606,27 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 <p style={{ fontSize: '12px', color: '#8b949e', margin: '0 0 20px 0', lineHeight: 1.5 }}>
                                     Bu dosya türü (`{ext}`) doğrudan içi önizlenemez. Dosyayı varsayılan bilgisayar uygulamanız ile doğrudan açabilirsiniz.
                                 </p>
-                                <button className="btn btn-primary" onClick={handleExternalOpen} style={{ gap: '8px' }}>
-                                    <ExternalLink size={16} /> Dışarıda Uygulamayla Aç
-                                </button>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button className="btn btn-secondary" onClick={handleDownload} style={{ gap: '8px' }}>
+                                        <Download size={16} /> İndir
+                                    </button>
+                                    <button className="btn btn-primary" onClick={handleExternalOpen} style={{ gap: '8px' }}>
+                                        <ExternalLink size={16} /> Dışarıda Aç
+                                    </button>
+                                </div>
                             </div>
                         )
                     ) : (
-                        <div style={{ color: '#8b949e', textAlign: 'center', padding: '20px' }}>
+                        <div style={{ color: '#8b949e', textAlign: 'center', padding: '20px', margin: 'auto' }}>
                             <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>Önizleme Yüklenemedi</p>
-                            <button className="btn btn-primary btn-sm" onClick={handleExternalOpen} style={{ gap: '6px' }}>
-                                <ExternalLink size={14} /> Dışarıda Aç
-                            </button>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '12px' }}>
+                                <button className="btn btn-secondary btn-sm" onClick={handleDownload} style={{ gap: '6px' }}>
+                                    <Download size={14} /> İndir
+                                </button>
+                                <button className="btn btn-primary btn-sm" onClick={handleExternalOpen} style={{ gap: '6px' }}>
+                                    <ExternalLink size={14} /> Dışarıda Aç
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

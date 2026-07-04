@@ -189,6 +189,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getDocumentsByVehicle: (vehicleId, isArchived) => ipcRenderer.invoke('documents:getByVehicle', vehicleId, isArchived),
     deleteDocument: (id) => ipcRenderer.invoke('documents:delete', id),
     openDocument: (fileName) => ipcRenderer.invoke('documents:open', fileName),
+    openTempDocument: (base64Data, fileName) => ipcRenderer.invoke('documents:openTempData', base64Data, fileName),
+    downloadFile: (params) => ipcRenderer.invoke('documents:downloadFile', params),
     readDocumentData: (fileName) => ipcRenderer.invoke('documents:readData', fileName),
 
     // Utils

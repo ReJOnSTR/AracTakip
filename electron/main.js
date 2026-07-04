@@ -1882,12 +1882,71 @@ ipcMain.handle('documents:delete', async (event, id) => {
 ipcMain.handle('documents:open', async (event, fileName) => {
     if (!fileName) return 'No filename provided'
     const userDataPath = app.getPath('userData')
-    const filePath = path.join(userDataPath, 'files', fileName)
+    let filePath = fileName
     if (fs.existsSync(filePath)) {
         const error = await shell.openPath(filePath)
-        return error // Returns error string or empty string if success
+        return error
+    }
+    if (!path.isAbsolute(fileName)) {
+        filePath = path.join(userDataPath, 'files', fileName)
+    }
+    if (fs.existsSync(filePath)) {
+        const error = await shell.openPath(filePath)
+        return error
+    }
+    const fallbackPath = path.join(userDataPath, 'files', path.basename(fileName))
+    if (fs.existsSync(fallbackPath)) {
+        const error = await shell.openPath(fallbackPath)
+        return error
     }
     return 'File not found at: ' + filePath
+})
+
+ipcMain.handle('documents:openTempData', async (event, base64Data, fileName) => {
+    try {
+        const tempDir = app.getPath('temp')
+        const cleanName = fileName || `document_${Date.now()}`
+        const targetPath = path.join(tempDir, cleanName)
+        
+        const base64Content = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data
+        const buffer = Buffer.from(base64Content, 'base64')
+        fs.writeFileSync(targetPath, buffer)
+        
+        const error = await shell.openPath(targetPath)
+        return error
+    } catch (err) {
+        return err.message
+    }
+})
+
+ipcMain.handle('documents:downloadFile', async (event, { filePath, base64Data, defaultName }) => {
+    try {
+        const win = BrowserWindow.fromWebContents(event.sender)
+        const ext = defaultName ? path.extname(defaultName).replace('.', '') : ''
+        const filters = ext ? [{ name: `${ext.toUpperCase()} Dosyası`, extensions: [ext] }, { name: 'Tüm Dosyalar', extensions: ['*'] }] : [{ name: 'Tüm Dosyalar', extensions: ['*'] }]
+        
+        const { canceled, filePath: chosenPath } = await dialog.showSaveDialog(win, {
+            title: 'Belgeyi Kaydet',
+            defaultPath: defaultName || 'belge',
+            filters
+        })
+
+        if (canceled || !chosenPath) return { success: false, canceled: true }
+
+        if (filePath && fs.existsSync(filePath)) {
+            fs.copyFileSync(filePath, chosenPath)
+        } else if (base64Data) {
+            const base64Content = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data
+            const buffer = Buffer.from(base64Content, 'base64')
+            fs.writeFileSync(chosenPath, buffer)
+        } else {
+            return { success: false, error: 'Dosya içeriği veya yolu bulunamadı.' }
+        }
+
+        return { success: true, filePath: chosenPath }
+    } catch (err) {
+        return { success: false, error: err.message }
+    }
 })
 
 ipcMain.handle('documents:readData', async (event, fileName) => {
