@@ -7,9 +7,10 @@ import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import EmployeeForm from '../components/forms/EmployeeForm'
+import BulkDocumentGeneratorModal from '../components/BulkDocumentGeneratorModal'
 import { formatCurrency, getEmployeeStatusInfo } from '../utils/helpers'
 import { employeeService } from '../services'
-import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar, FileText } from 'lucide-react'
 
 const statusOptions = [
     { value: 'active', label: 'Aktif' },
@@ -80,6 +81,10 @@ export default function Employees() {
         }
         if (!isBackground) setLoading(false)
     }
+
+    const [isBulkDocModalOpen, setIsBulkDocModalOpen] = useState(false)
+    const [selectedEmpsForBulk, setSelectedEmpsForBulk] = useState([])
+    const [clearBulkSelectionFn, setClearBulkSelectionFn] = useState(null)
 
     const openCreateModal = () => {
         setEditingEmployee(null)
@@ -326,6 +331,33 @@ export default function Employees() {
                 onBulkArchive={handleBulkArchive}
                 isArchiveView={showArchived}
                 onToggleArchiveView={setShowArchived}
+                customBulkActions={(selectedIds, clearSelection) => (
+                    <button
+                        type="button"
+                        className="btn-bulk-action primary"
+                        onClick={() => {
+                            const selected = employees.filter(emp => selectedIds.includes(emp.id))
+                            setSelectedEmpsForBulk(selected)
+                            setClearBulkSelectionFn(() => clearSelection)
+                            setIsBulkDocModalOpen(true)
+                        }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            backgroundColor: 'var(--accent-primary)',
+                            color: '#ffffff',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontWeight: 600,
+                            fontSize: '13px',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <FileText size={15} /> Toplu Belge Oluştur ({selectedIds.length})
+                    </button>
+                )}
                 actions={(employee) => (
                     <>
                         <button title="Düzenle" onClick={() => openEditModal(employee)}>
@@ -393,6 +425,18 @@ export default function Employees() {
                 onConfirm={handleConfirmDelete}
                 title={confirmModal?.title}
                 message={confirmModal?.message}
+            />
+            <BulkDocumentGeneratorModal
+                isOpen={isBulkDocModalOpen}
+                onClose={() => {
+                    setIsBulkDocModalOpen(false)
+                    setSelectedEmpsForBulk([])
+                }}
+                selectedEmployees={selectedEmpsForBulk}
+                company={currentCompany}
+                onSuccess={() => {
+                    if (clearBulkSelectionFn) clearBulkSelectionFn()
+                }}
             />
         </div>
     )

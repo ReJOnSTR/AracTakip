@@ -18,133 +18,63 @@ const DEFAULT_STAMP_SETTINGS = {
     empSignatureOpacity: 0.9,
 }
 
-export default function PrintDocument() {
-    const [data, setData] = useState(null);
+function SingleDoc({ docItem }) {
     const [signatureSrc, setSignatureSrc] = useState(null);
     const [stampSrc, setStampSrc] = useState(null);
     const [empSignatureSrc, setEmpSignatureSrc] = useState(null);
 
     useEffect(() => {
-        const load = () => {
-            const stored = localStorage.getItem('printDocData');
-            if (stored) {
-                try {
-                    let parsed = JSON.parse(stored);
-                    if (typeof parsed === 'string') {
-                        try { parsed = JSON.parse(parsed); } catch (e) {}
-                    }
-                    setData(prev => {
-                        if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) {
-                            return prev;
-                        }
-                        return parsed;
-                    });
-                } catch (err) {
-                    console.error("Print doc data parse error", err);
-                }
-            }
-        };
-
-        load();
-        window.addEventListener('storage', load);
-
-        // Fallback interval for hidden windows
-        const interval = setInterval(() => {
-            setData(prev => {
-                if (prev) {
-                    clearInterval(interval);
-                    return prev;
-                }
-                const stored = localStorage.getItem('printDocData');
-                if (stored) {
-                    try {
-                        let parsed = JSON.parse(stored);
-                        if (typeof parsed === 'string') {
-                            try { parsed = JSON.parse(parsed); } catch (e) {}
-                        }
-                        return parsed;
-                    } catch (err) {
-                        return prev;
-                    }
-                }
-                return prev;
-            });
-        }, 300);
-
-        // Global refresh function for Electron
-        window.refreshPrintData = load;
-
-        return () => {
-            window.removeEventListener('storage', load);
-            clearInterval(interval);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (data?.companySignaturePath) {
-            window.electronAPI.readDocumentData(data.companySignaturePath).then(res => {
+        if (docItem?.companySignaturePath) {
+            window.electronAPI.readDocumentData(docItem.companySignaturePath).then(res => {
                 if (res.success) setSignatureSrc(res.data);
             });
-        } else {
-            setSignatureSrc(null);
-        }
+        } else setSignatureSrc(null);
 
-        if (data?.companyStampPath) {
-            window.electronAPI.readDocumentData(data.companyStampPath).then(res => {
+        if (docItem?.companyStampPath) {
+            window.electronAPI.readDocumentData(docItem.companyStampPath).then(res => {
                 if (res.success) setStampSrc(res.data);
             });
-        } else {
-            setStampSrc(null);
-        }
+        } else setStampSrc(null);
 
-        if (data?.employeeSignaturePath) {
-            if (data.employeeSignaturePath.startsWith('data:image/') || data.employeeSignaturePath.startsWith('http')) {
-                setEmpSignatureSrc(data.employeeSignaturePath);
+        if (docItem?.employeeSignaturePath) {
+            if (docItem.employeeSignaturePath.startsWith('data:image/') || docItem.employeeSignaturePath.startsWith('http')) {
+                setEmpSignatureSrc(docItem.employeeSignaturePath);
             } else if (window.electronAPI?.readDocumentData) {
-                window.electronAPI.readDocumentData(data.employeeSignaturePath).then(res => {
+                window.electronAPI.readDocumentData(docItem.employeeSignaturePath).then(res => {
                     if (res?.success) setEmpSignatureSrc(res.data);
                     else setEmpSignatureSrc(null);
                 });
-            } else {
-                setEmpSignatureSrc(null);
-            }
-        } else {
-            setEmpSignatureSrc(null);
-        }
-    }, [data]);
+            } else setEmpSignatureSrc(null);
+        } else setEmpSignatureSrc(null);
+    }, [docItem]);
 
-    if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
-
-    // Merge saved settings with defaults
-    const ss = { ...DEFAULT_STAMP_SETTINGS, ...(data.stampSettings || {}) };
-    // Use fixed container height so that dragging offsets does not push layout or cause 2-page overflow
+    const ss = { ...DEFAULT_STAMP_SETTINGS, ...(docItem.stampSettings || {}) };
     const containerH = ss.placementMode === 'free' ? 40 : 80;
 
     return (
-        <div className="a4-page" style={{ position: 'relative' }}>
-            
+        <div className="a4-page" style={{ position: 'relative', pageBreakAfter: 'always', breakAfter: 'page' }}>
             {/* Header */}
             <div className="doc-header">
-                <h2 className="company-name">{data.companyName}</h2>
+                <h2 className="company-name">{docItem.companyName}</h2>
                 <div className="doc-meta">
                     <p className="doc-date">Tarih: {formatDate(new Date())}</p>
-                    <h1 className="doc-title">{data.title}</h1>
+                    <h1 className="doc-title">{docItem.title}</h1>
                 </div>
             </div>
 
             {/* Body Content */}
             <div className="doc-body">
-                {data.templateId === 'assignment' ? (
+                {docItem.templateId === 'assignment' ? (
                     <div className="assignment-tables">
                         <table className="info-table">
                             <thead>
                                 <tr><th colSpan="2" className="section-title">İŞVEREN BİLGİLERİ</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td className="label-cell">ADI-SOYADI / ÜNVANI</td><td className="value-cell">{data.companyName || '-'}</td></tr>
-                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{data.companyAddress || '-'}</td></tr>
-                                <tr><td className="label-cell">İŞYERİ SGK NO</td><td className="value-cell">{data.companySgk || '-'}</td></tr>
-                                <tr><td className="label-cell">VERGİ DAİRESİ / NO</td><td className="value-cell">{data.companyTax || '-'}</td></tr>
+                                <tr><td className="label-cell">ADI-SOYADI / ÜNVANI</td><td className="value-cell">{docItem.companyName || '-'}</td></tr>
+                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{docItem.companyAddress || '-'}</td></tr>
+                                <tr><td className="label-cell">İŞYERİ SGK NO</td><td className="value-cell">{docItem.companySgk || '-'}</td></tr>
+                                <tr><td className="label-cell">VERGİ DAİRESİ / NO</td><td className="value-cell">{docItem.companyTax || '-'}</td></tr>
                             </tbody>
                         </table>
 
@@ -153,8 +83,8 @@ export default function PrintDocument() {
                                 <tr><th colSpan="2" className="section-title">PERSONEL BİLGİLERİ</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td className="label-cell">ADI - SOYADI</td><td className="value-cell">{data.employeeName || '-'}</td></tr>
-                                <tr><td className="label-cell">T.C. KİMLİK NO</td><td className="value-cell">{data.tcNo || '-'}</td></tr>
+                                <tr><td className="label-cell">ADI - SOYADI</td><td className="value-cell">{docItem.employeeName || '-'}</td></tr>
+                                <tr><td className="label-cell">T.C. KİMLİK NO</td><td className="value-cell">{docItem.tcNo || '-'}</td></tr>
                             </tbody>
                         </table>
 
@@ -163,21 +93,21 @@ export default function PrintDocument() {
                                 <tr><th colSpan="2" className="section-title">GÖREVLENDİRME DETAYLARI</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td className="label-cell">GİDİLECEK İŞYERİ</td><td className="value-cell">{data.placeholders?.workplaceName || '-'}</td></tr>
-                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{data.placeholders?.workplaceAddress || '-'}</td></tr>
-                                <tr><td className="label-cell">YAPILACAK İŞ</td><td className="value-cell">{data.placeholders?.workType || '-'}</td></tr>
-                                <tr><td className="label-cell">GİDİŞ TARİHİ</td><td className="value-cell">{data.placeholders?.startDate ? formatDate(data.placeholders.startDate) : '-'}</td></tr>
-                                <tr><td className="label-cell">DÖNÜŞ TARİHİ</td><td className="value-cell">{data.placeholders?.endDate ? formatDate(data.placeholders.endDate) : '-'}</td></tr>
+                                <tr><td className="label-cell">GİDİLECEK İŞYERİ</td><td className="value-cell">{docItem.placeholders?.workplaceName || '-'}</td></tr>
+                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{docItem.placeholders?.workplaceAddress || '-'}</td></tr>
+                                <tr><td className="label-cell">YAPILACAK İŞ</td><td className="value-cell">{docItem.placeholders?.workType || '-'}</td></tr>
+                                <tr><td className="label-cell">GİDİŞ TARİHİ</td><td className="value-cell">{docItem.placeholders?.startDate ? formatDate(docItem.placeholders.startDate) : '-'}</td></tr>
+                                <tr><td className="label-cell">DÖNÜŞ TARİHİ</td><td className="value-cell">{docItem.placeholders?.endDate ? formatDate(docItem.placeholders.endDate) : '-'}</td></tr>
                             </tbody>
                         </table>
 
                         <div className="assignment-text" style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '12px', fontSize: '12px', fontStyle: 'italic' }}>
-                            {data.content}
+                            {docItem.content}
                         </div>
                     </div>
                 ) : (
                     <div className="plain-content">
-                        {data.content}
+                        {docItem.content}
                     </div>
                 )}
             </div>
@@ -215,7 +145,7 @@ export default function PrintDocument() {
                         )}
                         {ss.placementMode !== 'free' && !empSignatureSrc && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
-                    <p style={{ fontSize: '12px', fontWeight: '600' }}>{data.employeeName}</p>
+                    <p style={{ fontSize: '12px', fontWeight: '600' }}>{docItem.employeeName}</p>
                 </div>
                 <div className="signature-box" style={{ textAlign: 'center', position: 'relative' }}>
                     <p style={{ fontSize: '11px', fontWeight: '700', borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', textTransform: 'uppercase' }}>
@@ -265,11 +195,11 @@ export default function PrintDocument() {
                         )}
                         {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
-                    <p style={{ fontSize: '12px', fontWeight: 600 }}>{data.companyName}</p>
+                    <p style={{ fontSize: '12px', fontWeight: 600 }}>{docItem.companyName}</p>
                 </div>
             </div>
 
-            {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzaları A4 sayfasının (a4-page) relative scope'unda render et */}
+            {/* Free Placement Mode */}
             {ss.placementMode === 'free' && stampSrc && (
                 <img
                     src={stampSrc}
@@ -321,7 +251,78 @@ export default function PrintDocument() {
                     }}
                 />
             )}
-
         </div>
     );
+}
+
+export default function PrintDocument() {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        const load = () => {
+            const stored = localStorage.getItem('printDocData');
+            if (stored) {
+                try {
+                    let parsed = JSON.parse(stored);
+                    if (typeof parsed === 'string') {
+                        try { parsed = JSON.parse(parsed); } catch (e) {}
+                    }
+                    setData(prev => {
+                        if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) {
+                            return prev;
+                        }
+                        return parsed;
+                    });
+                } catch (err) {
+                    console.error("Print doc data parse error", err);
+                }
+            }
+        };
+
+        load();
+        window.addEventListener('storage', load);
+
+        const interval = setInterval(() => {
+            setData(prev => {
+                if (prev) {
+                    clearInterval(interval);
+                    return prev;
+                }
+                const stored = localStorage.getItem('printDocData');
+                if (stored) {
+                    try {
+                        let parsed = JSON.parse(stored);
+                        if (typeof parsed === 'string') {
+                            try { parsed = JSON.parse(parsed); } catch (e) {}
+                        }
+                        return parsed;
+                    } catch (err) {
+                        return prev;
+                    }
+                }
+                return prev;
+            });
+        }, 300);
+
+        window.refreshPrintData = load;
+
+        return () => {
+            window.removeEventListener('storage', load);
+            clearInterval(interval);
+        };
+    }, []);
+
+    if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
+
+    if (data.isBulk && Array.isArray(data.documents)) {
+        return (
+            <div>
+                {data.documents.map((docItem, index) => (
+                    <SingleDoc key={index} docItem={docItem} />
+                ))}
+            </div>
+        );
+    }
+
+    return <SingleDoc docItem={data} />;
 }
