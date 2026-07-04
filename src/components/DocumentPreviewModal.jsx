@@ -213,14 +213,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     )
 
     const footer = (
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-                {onDelete && (
-                    <button className="btn btn-danger btn-sm" onClick={() => onDelete(doc)} style={{ gap: '6px' }}>
-                        <Trash2 size={15} /> Sil
-                    </button>
-                )}
-            </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button className="btn btn-secondary" onClick={onClose}>
                     Kapat
@@ -329,30 +322,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         <Maximize2 size={15} />
                     </button>
 
-                    {/* Divider */}
-                    <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border-color)', margin: '0 4px' }} />
 
-                    {/* Download Button in Toolbar */}
-                    <button
-                        onClick={handleDownload}
-                        title="Dosyayı Bilgisayara İndir"
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--text-primary)',
-                            cursor: 'pointer',
-                            padding: '6px 8px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.15s ease'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                        <Download size={15} />
-                    </button>
 
                     {/* Page Counter Box / Percentage */}
                     {isPdf ? (
