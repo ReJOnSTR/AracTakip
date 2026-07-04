@@ -54,12 +54,22 @@ function SingleDoc({ docItem }) {
     return (
         <div className="a4-page" style={{ position: 'relative', pageBreakAfter: 'always', breakAfter: 'page' }}>
             {/* Header */}
-            <div className="doc-header">
-                <h2 className="company-name">{docItem.companyName}</h2>
-                <div className="doc-meta">
-                    <p className="doc-date">Tarih: {formatDate(new Date())}</p>
-                    <h1 className="doc-title">{docItem.title}</h1>
+            <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <h2 style={{ fontSize: '16px', fontWeight: 800, textTransform: 'uppercase', color: '#000', margin: 0, letterSpacing: '-0.2px' }}>
+                    {docItem.companyName}
+                </h2>
+                <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '12px', fontWeight: 600, color: '#475569', margin: 0 }}>
+                        Tarih: {formatDate(docItem.placeholders?.startDate || docItem.placeholders?.issueDate || new Date())}
+                    </p>
                 </div>
+            </div>
+
+            {/* Document Title (Centered) */}
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', color: '#111', letterSpacing: '0.5px', margin: 0 }}>
+                    {docItem.title}
+                </h1>
             </div>
 
             {/* Body Content */}

@@ -555,18 +555,22 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                     <div style={scaledDocStyle}>
 
                         {/* ── HEADER ── */}
-                        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 800, textTransform: 'uppercase', color: '#000', margin: 0, letterSpacing: '-0.2px' }}>
+                        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h2 style={{ fontSize: '16px', fontWeight: 800, textTransform: 'uppercase', color: '#000', margin: 0, letterSpacing: '-0.2px' }}>
                                 {docData?.companyName}
                             </h2>
                             <div style={{ textAlign: 'right' }}>
-                                <p style={{ fontSize: '12px', fontWeight: 600, color: '#888', margin: '0 0 8px' }}>
-                                    Tarih: {formatDate(new Date())}
+                                <p style={{ fontSize: '12px', fontWeight: 600, color: '#475569', margin: 0 }}>
+                                    Tarih: {formatDate(docData?.placeholders?.startDate || docData?.placeholders?.issueDate || new Date())}
                                 </p>
-                                <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-1px', margin: 0 }}>
-                                    {docData?.title}
-                                </h1>
                             </div>
+                        </div>
+
+                        {/* ── CENTER TITLE ── */}
+                        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                            <h1 style={{ fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', color: '#111', letterSpacing: '0.5px', margin: 0 }}>
+                                {docData?.title}
+                            </h1>
                         </div>
 
                         {/* ── CONTENT ── */}
