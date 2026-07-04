@@ -24,7 +24,10 @@ export default function PrintDocument() {
             const stored = localStorage.getItem('printDocData');
             if (stored) {
                 try {
-                    const parsed = JSON.parse(stored);
+                    let parsed = JSON.parse(stored);
+                    if (typeof parsed === 'string') {
+                        try { parsed = JSON.parse(parsed); } catch (e) {}
+                    }
                     setData(prev => {
                         if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) {
                             return prev;
@@ -50,7 +53,11 @@ export default function PrintDocument() {
                 const stored = localStorage.getItem('printDocData');
                 if (stored) {
                     try {
-                        return JSON.parse(stored);
+                        let parsed = JSON.parse(stored);
+                        if (typeof parsed === 'string') {
+                            try { parsed = JSON.parse(parsed); } catch (e) {}
+                        }
+                        return parsed;
                     } catch (err) {
                         return prev;
                     }

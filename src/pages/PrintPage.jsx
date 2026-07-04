@@ -11,7 +11,12 @@ export default function PrintPage() {
             const storedData = localStorage.getItem('printData')
             if (storedData) {
                 try {
-                    const parsed = JSON.parse(storedData)
+                    let parsed = JSON.parse(storedData)
+                    if (typeof parsed === 'string') {
+                        try {
+                            parsed = JSON.parse(parsed)
+                        } catch (e) {}
+                    }
                     setData(prev => {
                         if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) {
                             return prev;
@@ -47,7 +52,12 @@ export default function PrintPage() {
                 const storedData = localStorage.getItem('printData')
                 if (storedData) {
                     try {
-                        const parsed = JSON.parse(storedData)
+                        let parsed = JSON.parse(storedData)
+                        if (typeof parsed === 'string') {
+                            try {
+                                parsed = JSON.parse(parsed)
+                            } catch (e) {}
+                        }
                         document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
                         
                         // Trigger print after render if not saving PDF
