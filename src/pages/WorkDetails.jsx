@@ -706,7 +706,7 @@ export default function WorkDetails(props) {
         };
 
         const monthStr = sanitizeFileName(getWorkMonthLabel(work));
-        const compStr = work?.company_name ? `${sanitizeFileName(work.company_name)}_` : (currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '');
+        const compStr = work?.company_name ? `${sanitizeFileName(work.company_name)}_` : (work?.company?.name ? `${sanitizeFileName(work.company.name)}_` : '');
         const workNoStr = work?.work_no ? sanitizeFileName(work.work_no) : 'Is_Raporu';
 
         const defaultFileName = `Is_Raporu_${compStr}${workNoStr}_${monthStr}.pdf`;
