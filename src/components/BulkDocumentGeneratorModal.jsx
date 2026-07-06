@@ -120,11 +120,12 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                 let targetFolder = null
                 if (outputMode === 'folder') {
                     const selectFolderRes = await window.electronAPI.selectFolder()
-                    if (!selectFolderRes || !selectFolderRes.filePath) {
+                    const folderPath = selectFolderRes?.filePath || (selectFolderRes?.filePaths && selectFolderRes.filePaths[0])
+                    if (!selectFolderRes || !folderPath) {
                         setIsGenerating(false)
                         return
                     }
-                    targetFolder = selectFolderRes.filePath
+                    targetFolder = folderPath
                 }
 
                 let successCount = 0

@@ -1451,12 +1451,16 @@ ipcMain.handle('settings:deleteVehicleType', async (event, id) => {
     return result
 })
 
-ipcMain.handle('settings:selectFolder', async () => {
-    const { filePaths } = await dialog.showOpenDialog(mainWindow, {
-        title: 'Yedekleme Klasörü Seç',
+ipcMain.handle('settings:selectFolder', async (event) => {
+    const parentWin = (event && event.sender) ? BrowserWindow.fromWebContents(event.sender) : mainWindow;
+    const { canceled, filePaths } = await dialog.showOpenDialog(parentWin || mainWindow, {
+        title: 'Klasör Seç',
         properties: ['openDirectory', 'createDirectory']
     })
-    return { filePaths }
+    if (canceled || !filePaths || filePaths.length === 0) {
+        return { success: false, canceled: true, filePaths: [], filePath: null }
+    }
+    return { success: true, filePaths, filePath: filePaths[0] }
 })
 
 // Initialize auto backup and notifications on app start
