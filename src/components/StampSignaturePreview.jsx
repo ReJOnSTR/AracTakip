@@ -577,32 +577,26 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                         <div style={{ fontSize: '13.5px', lineHeight: 1.7, color: '#333', flexGrow: 1, marginBottom: '20px' }}>
                             {docData?.templateId === 'assignment' ? (
                                 <div>
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', border: '1px solid #1e293b', marginBottom: '15px' }}>
-                                        <tbody>
-                                            <tr><th colSpan="2" style={{ background: '#f1f5f9', color: '#0f172a', fontSize: '11px', fontWeight: 800, textAlign: 'left', padding: '7px 12px', border: '1px solid #1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>1. İŞVEREN BİLGİLERİ</th></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>ADI-SOYADI / ÜNVANI</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.companyName || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>İŞYERİ ADRESİ</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.companyAddress || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>İŞYERİ SGK NO</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.companySgk || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>VERGİ DAİRESİ / NO</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.companyTax || '-'}</td></tr>
-
-                                            <tr><th colSpan="2" style={{ background: '#f1f5f9', color: '#0f172a', fontSize: '11px', fontWeight: 800, textAlign: 'left', padding: '7px 12px', border: '1px solid #1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>2. GÖREVLENDİRİLEN PERSONEL BİLGİLERİ</th></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>ADI - SOYADI</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.employeeName || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>T.C. KİMLİK NO</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.tcNo || '-'}</td></tr>
-
-                                            <tr><th colSpan="2" style={{ background: '#f1f5f9', color: '#0f172a', fontSize: '11px', fontWeight: 800, textAlign: 'left', padding: '7px 12px', border: '1px solid #1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>3. GÖREVLENDİRME DETAYLARI</th></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>GİDİLECEK İŞYERİ / YER</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.placeholders?.workplaceName || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>GÖREV ADRESİ</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.placeholders?.workplaceAddress || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>YAPILACAK İŞ / KONU</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.placeholders?.workType || '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>GİDİŞ TARİHİ</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.placeholders?.startDate ? formatDate(docData.placeholders.startDate) : '-'}</td></tr>
-                                            <tr><td style={{ width: '210px', fontSize: '11px', fontWeight: 700, color: '#1e293b', padding: '7px 12px', border: '1px solid #1e293b', background: '#f8fafc' }}>DÖNÜŞ TARİHİ</td><td style={{ fontSize: '12px', fontWeight: 600, color: '#000', padding: '7px 12px', border: '1px solid #1e293b', background: '#fff' }}>{docData?.placeholders?.endDate ? formatDate(docData.placeholders.endDate) : '-'}</td></tr>
-                                        </tbody>
-                                    </table>
-
-                                    {docData?.content && (
-                                        <div style={{ padding: '14px 16px', border: '1px solid #1e293b', background: '#ffffff', fontSize: '13px', lineHeight: 1.8, color: '#1e293b', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>
-                                            {docData.content}
-                                        </div>
-                                    )}
+                                    <InfoTable title="İŞVEREN BİLGİLERİ" rows={[
+                                        ['ADI-SOYADI / ÜNVANI', docData?.companyName],
+                                        ['İŞYERİ ADRESİ', docData?.companyAddress],
+                                        ['İŞYERİ SGK NO', docData?.companySgk],
+                                        ['VERGİ DAİRESİ / NO', docData?.companyTax],
+                                    ]} />
+                                    <InfoTable title="PERSONEL BİLGİLERİ" rows={[
+                                        ['ADI - SOYADI', docData?.employeeName],
+                                        ['T.C. KİMLİK NO', docData?.tcNo || '-'],
+                                    ]} />
+                                    <InfoTable title="GÖREVLENDİRME DETAYLARI" rows={[
+                                        ['GİDİLECEK İŞYERİ', docData?.placeholders?.workplaceName],
+                                        ['İŞYERİ ADRESİ', docData?.placeholders?.workplaceAddress],
+                                        ['YAPILACAK İŞ', docData?.placeholders?.workType],
+                                        ['GİDİŞ TARİHİ', docData?.placeholders?.startDate ? formatDate(docData.placeholders.startDate) : null],
+                                        ['DÖNÜŞ TARİHİ', docData?.placeholders?.endDate ? formatDate(docData.placeholders.endDate) : null],
+                                    ]} />
+                                    <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '12px', fontSize: '12px', fontStyle: 'italic', whiteSpace: 'pre-wrap', textAlign: 'justify' }}>
+                                        {docData?.content}
+                                    </div>
                                 </div>
                             ) : (
                                 <div style={{ whiteSpace: 'pre-wrap', textAlign: 'justify' }}>{docData?.content}</div>

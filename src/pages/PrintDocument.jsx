@@ -77,31 +77,43 @@ function SingleDoc({ docItem }) {
                 {docItem.templateId === 'assignment' ? (
                     <div className="assignment-tables">
                         <table className="info-table">
+                            <thead>
+                                <tr><th colSpan="2" className="section-title">İŞVEREN BİLGİLERİ</th></tr>
+                            </thead>
                             <tbody>
-                                <tr><th colSpan="2" className="section-title">1. İŞVEREN BİLGİLERİ</th></tr>
                                 <tr><td className="label-cell">ADI-SOYADI / ÜNVANI</td><td className="value-cell">{docItem.companyName || '-'}</td></tr>
                                 <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{docItem.companyAddress || '-'}</td></tr>
                                 <tr><td className="label-cell">İŞYERİ SGK NO</td><td className="value-cell">{docItem.companySgk || '-'}</td></tr>
                                 <tr><td className="label-cell">VERGİ DAİRESİ / NO</td><td className="value-cell">{docItem.companyTax || '-'}</td></tr>
+                            </tbody>
+                        </table>
 
-                                <tr><th colSpan="2" className="section-title">2. GÖREVLENDİRİLEN PERSONEL BİLGİLERİ</th></tr>
+                        <table className="info-table">
+                            <thead>
+                                <tr><th colSpan="2" className="section-title">PERSONEL BİLGİLERİ</th></tr>
+                            </thead>
+                            <tbody>
                                 <tr><td className="label-cell">ADI - SOYADI</td><td className="value-cell">{docItem.employeeName || '-'}</td></tr>
                                 <tr><td className="label-cell">T.C. KİMLİK NO</td><td className="value-cell">{docItem.tcNo || '-'}</td></tr>
+                            </tbody>
+                        </table>
 
-                                <tr><th colSpan="2" className="section-title">3. GÖREVLENDİRME DETAYLARI</th></tr>
-                                <tr><td className="label-cell">GİDİLECEK İŞYERİ / YER</td><td className="value-cell">{docItem.placeholders?.workplaceName || '-'}</td></tr>
-                                <tr><td className="label-cell">GÖREV ADRESİ</td><td className="value-cell">{docItem.placeholders?.workplaceAddress || '-'}</td></tr>
-                                <tr><td className="label-cell">YAPILACAK İŞ / KONU</td><td className="value-cell">{docItem.placeholders?.workType || '-'}</td></tr>
+                        <table className="info-table">
+                            <thead>
+                                <tr><th colSpan="2" className="section-title">GÖREVLENDİRME DETAYLARI</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td className="label-cell">GİDİLECEK İŞYERİ</td><td className="value-cell">{docItem.placeholders?.workplaceName || '-'}</td></tr>
+                                <tr><td className="label-cell">İŞYERİ ADRESİ</td><td className="value-cell">{docItem.placeholders?.workplaceAddress || '-'}</td></tr>
+                                <tr><td className="label-cell">YAPILACAK İŞ</td><td className="value-cell">{docItem.placeholders?.workType || '-'}</td></tr>
                                 <tr><td className="label-cell">GİDİŞ TARİHİ</td><td className="value-cell">{docItem.placeholders?.startDate ? formatDate(docItem.placeholders.startDate) : '-'}</td></tr>
                                 <tr><td className="label-cell">DÖNÜŞ TARİHİ</td><td className="value-cell">{docItem.placeholders?.endDate ? formatDate(docItem.placeholders.endDate) : '-'}</td></tr>
                             </tbody>
                         </table>
 
-                        {docItem.content && (
-                            <div className="assignment-text">
-                                {docItem.content}
-                            </div>
-                        )}
+                        <div className="assignment-text" style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '12px', fontSize: '12px', fontStyle: 'italic' }}>
+                            {docItem.content}
+                        </div>
                     </div>
                 ) : (
                     <div className="plain-content">
