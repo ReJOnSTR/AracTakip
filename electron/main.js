@@ -2053,11 +2053,13 @@ ipcMain.handle('save-pdf', async (event) => {
 // Report PDF - Hidden window approach (no visible window opens)
 ipcMain.handle('open-folder', async (event, folderPath) => {
     try {
-        if (folderPath && fs.existsSync(folderPath)) {
-            await shell.openPath(folderPath);
+        if (!folderPath) return { success: false, error: 'Klasör yolu belirtilmeyebilir.' };
+        const normalized = path.normalize(folderPath);
+        if (fs.existsSync(normalized)) {
+            await shell.openPath(normalized);
             return { success: true };
         }
-        return { success: false, error: 'Klasör bulunamadı' };
+        return { success: false, error: 'Klasör bulunamadı: ' + normalized };
     } catch (err) {
         return { success: false, error: err.message };
     }
@@ -2066,19 +2068,19 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) => {
     let hiddenWin = null;
     try {
-        const parentWin = BrowserWindow.fromWebContents(event.sender);
+        const parentWin = (event && event.sender) ? BrowserWindow.fromWebContents(event.sender) : mainWindow;
         let filePath = '';
 
         if (options.silent) {
             if (options.targetFilePath) {
-                filePath = options.targetFilePath;
+                filePath = path.normalize(options.targetFilePath);
             } else {
                 const tempDir = app.getPath('temp');
                 const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
                 filePath = path.join(tempDir, fileName);
             }
         } else {
-            const { canceled, filePath: chosenPath } = await dialog.showSaveDialog(parentWin, {
+            const { canceled, filePath: chosenPath } = await dialog.showSaveDialog(parentWin || mainWindow, {
                 title: 'Belgeyi PDF Olarak Kaydet',
                 defaultPath: options.defaultPath || `Belge_${new Date().toISOString().split('T')[0]}.pdf`,
                 filters: [
@@ -2087,7 +2089,7 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
             });
 
             if (canceled || !chosenPath) return { success: false, canceled: true };
-            filePath = chosenPath;
+            filePath = path.normalize(chosenPath);
         }
 
         // Ensure target directory exists
@@ -2108,12 +2110,14 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
             }
         });
 
-        // Load the print page route
-        const baseURL = process.env.NODE_ENV === 'development' || !app.isPackaged
-            ? `http://localhost:5173/#${route}`
-            : `file://${path.join(__dirname, '../dist/index.html')}#${route}`;
-
-        await hiddenWin.loadURL(baseURL);
+        // Load the print page route (cross-platform compatible on Windows/macOS)
+        if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+            const devRoute = route.startsWith('/') ? route : `/${route}`;
+            await hiddenWin.loadURL(`http://localhost:5173/#${devRoute}`);
+        } else {
+            const cleanHash = route.startsWith('#') ? route.substring(1) : (route.startsWith('/') ? route : `/${route}`);
+            await hiddenWin.loadFile(path.join(__dirname, '../dist/index.html'), { hash: cleanHash });
+        }
 
         // Inject the data directly to avoid localStorage sync issues
         const storedData = await parentWin.webContents.executeJavaScript(`localStorage.getItem('printDocData')`);

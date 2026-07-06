@@ -81,7 +81,7 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
         setIsGenerating(true)
         setProgress({ current: 0, total: selectedEmployees.length })
 
-        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+        const sanitizeFileName = (str) => (str || '').replace(/[\\/:*?"<>|]/g, '').trim().replace(/\s+/g, '_');
         const dateStr = new Date().toISOString().split('T')[0];
         const docTitleStr = title ? sanitizeFileName(title) : (selectedTemplate?.name ? sanitizeFileName(selectedTemplate.name) : 'Toplu_Belge');
 
@@ -155,7 +155,7 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
 
                     localStorage.setItem('printDocData', JSON.stringify(printData))
 
-                    const savePath = targetFolder ? `${targetFolder}/${fileName}` : null
+                    const savePath = targetFolder ? (targetFolder.endsWith('/') || targetFolder.endsWith('\\') ? `${targetFolder}${fileName}` : `${targetFolder}/${fileName}`) : null
                     const res = await window.electronAPI.saveReportPdf('/print-document', {
                         silent: true,
                         targetFilePath: savePath,
