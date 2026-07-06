@@ -2047,6 +2047,18 @@ ipcMain.handle('save-pdf', async (event) => {
 })
 
 // Report PDF - Hidden window approach (no visible window opens)
+ipcMain.handle('open-folder', async (event, folderPath) => {
+    try {
+        if (folderPath && fs.existsSync(folderPath)) {
+            await shell.openPath(folderPath);
+            return { success: true };
+        }
+        return { success: false, error: 'Klasör bulunamadı' };
+    } catch (err) {
+        return { success: false, error: err.message };
+    }
+});
+
 ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) => {
     let hiddenWin = null;
     try {
@@ -2054,9 +2066,13 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
         let filePath = '';
 
         if (options.silent) {
-            const tempDir = app.getPath('temp');
-            const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
-            filePath = path.join(tempDir, fileName);
+            if (options.targetFilePath) {
+                filePath = options.targetFilePath;
+            } else {
+                const tempDir = app.getPath('temp');
+                const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+                filePath = path.join(tempDir, fileName);
+            }
         } else {
             const { canceled, filePath: chosenPath } = await dialog.showSaveDialog(parentWin, {
                 title: 'Belgeyi PDF Olarak Kaydet',
@@ -2068,6 +2084,12 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
 
             if (canceled || !chosenPath) return { success: false, canceled: true };
             filePath = chosenPath;
+        }
+
+        // Ensure target directory exists
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
         }
 
         // Create hidden window

@@ -59,7 +59,7 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
     }, [isOpen])
 
     const generateSingleEmployeeContent = (emp) => {
-        let empContent = selectedTemplate.content
+        let empContent = content || selectedTemplate?.content || ''
         selectedTemplate.placeholders.forEach(p => {
             let val = ''
             if (p.source === 'employee') {
@@ -180,6 +180,11 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                 if (window.showToast) {
                     window.showToast(`${successCount} / ${selectedEmployees.length} personel belgesi başarıyla oluşturuldu.`, 'success')
                 }
+
+                if (targetFolder && window.electronAPI?.openFolder) {
+                    window.electronAPI.openFolder(targetFolder)
+                }
+
                 if (onSuccess) onSuccess()
                 onClose()
             }
@@ -374,10 +379,10 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                             )}
                         </div>
 
-                        {/* Önizleme Metni */}
+                        {/* Düzenlenebilir Belge Metni */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                                Belge İçeriği Önizlemesi (Örnek: {selectedEmployees[0]?.first_name} {selectedEmployees[0]?.last_name})
+                                Belge Metni Şablonu (Yazı ve Değişkenleri Düzenleyebilirsiniz)
                             </div>
                             <div style={{
                                 background: 'var(--bg-secondary)',
@@ -391,6 +396,7 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                                 <input
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="Belge Başlığı"
                                     style={{
                                         width: '100%',
                                         textAlign: 'center',
@@ -406,8 +412,9 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                                     }}
                                 />
                                 <textarea
-                                    value={generateSingleEmployeeContent(selectedEmployees[0] || {})}
-                                    readOnly
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
+                                    placeholder="Belge içeriğini buraya yazabilir ve düzenleyebilirsiniz..."
                                     style={{
                                         width: '100%',
                                         minHeight: '260px',
@@ -417,7 +424,7 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                                         fontSize: '13px',
                                         lineHeight: '1.6',
                                         color: 'var(--text-primary)',
-                                        resize: 'none',
+                                        resize: 'vertical',
                                         fontFamily: 'inherit'
                                     }}
                                 />
