@@ -9,6 +9,44 @@ import { formatDate, formatCurrency } from '../utils/helpers'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import * as XLSX from 'xlsx'
 
+const calculateRemainingLeaves = (employee, leaves) => {
+    if (!employee?.start_date) return 0
+    const start = new Date(employee.start_date)
+    const birth = employee.birth_date ? new Date(employee.birth_date) : null
+    const now = new Date()
+
+    const yearsMilli = now - start
+    const years = Math.floor(yearsMilli / (1000 * 60 * 60 * 24 * 365.25))
+
+    let totalAccrued = 0
+    for (let i = 1; i <= years; i++) {
+        let daysThisYear = 0
+        if (i <= 5) daysThisYear = 14
+        else if (i < 15) daysThisYear = 20
+        else daysThisYear = 26
+
+        if (birth) {
+            const ageAtThatYear = Math.floor((start.getTime() + (i * 365.25 * 24 * 60 * 60 * 1000) - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+            if (ageAtThatYear <= 18 || ageAtThatYear >= 50) {
+                daysThisYear = Math.max(daysThisYear, 20)
+            }
+        }
+        totalAccrued += daysThisYear
+    }
+
+    const pastUsed = employee.past_used_leaves || 0
+    const systemUsedAnnual = (leaves || [])
+        .filter(l => l.status === 'approved' && (l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))))
+        .reduce((acc, l) => acc + (l.days || 0), 0)
+
+    const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+    const totalOffsets = (leaves || [])
+        .filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup'))
+        .reduce((acc, l) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
+
+    return totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
+}
+
 export default function EmployeeReports() {
     const { currentCompany } = useCompany()
     const [employees, setEmployees] = useState([])
@@ -31,7 +69,8 @@ export default function EmployeeReports() {
         leaves: true,
         salaries: true,
         assignments: true,
-        documents: true
+        documents: true,
+        remainingLeaves: true
     })
 
     const [listConfig, setListConfig] = useState({
@@ -40,7 +79,8 @@ export default function EmployeeReports() {
         phone: true,
         startDate: true,
         status: true,
-        salary: true
+        salary: true,
+        remainingLeaves: true
     })
 
     const [dateRange, setDateRange] = useState({
@@ -241,13 +281,17 @@ export default function EmployeeReports() {
     }
 
     const getProcessedReportList = () => {
-        return reportDataList.map(report => ({
-            employee: report.employee,
-            leaves: filterAndSort(report.data.leaves, 'start_date'),
-            salaries: filterAndSort(report.data.salaries, 'payment_date'),
-            assignments: filterAndSort(report.data.assignments, 'assign_date'),
-            documents: report.data.documents // No date filter for documents usually, or maybe expiry?
-        }))
+        return reportDataList.map(report => {
+            const unfilteredLeaves = report.data.leaves || []
+            const remaining = calculateRemainingLeaves(report.employee, unfilteredLeaves)
+            return {
+                employee: { ...report.employee, remainingLeaves: remaining },
+                leaves: filterAndSort(report.data.leaves, 'start_date'),
+                salaries: filterAndSort(report.data.salaries, 'payment_date'),
+                assignments: filterAndSort(report.data.assignments, 'assign_date'),
+                documents: report.data.documents
+            }
+        })
     }
 
     const processedReportList = getProcessedReportList()
@@ -417,7 +461,8 @@ export default function EmployeeReports() {
                                                     { key: 'leaves', label: 'İzin Geçmişi' },
                                                     { key: 'salaries', label: 'Maaş / Hakedişler' },
                                                     { key: 'assignments', label: 'Zimmetler' },
-                                                    { key: 'documents', label: 'Evraklar' }
+                                                    { key: 'documents', label: 'Evraklar' },
+                                                    { key: 'remainingLeaves', label: 'Kalan İzin Bilgisi' }
                                                 ].map(item => (
                                                     <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
                                                         <span style={{ fontSize: '13px' }}>{item.label}</span>
@@ -436,7 +481,8 @@ export default function EmployeeReports() {
                                                     { key: 'phone', label: 'Telefon' },
                                                     { key: 'startDate', label: 'Başlangıç T.' },
                                                     { key: 'status', label: 'Durum' },
-                                                    { key: 'salary', label: 'Maaş' }
+                                                    { key: 'salary', label: 'Maaş' },
+                                                    { key: 'remainingLeaves', label: 'Kalan İzin' }
                                                 ].map(item => (
                                                     <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
                                                         <span style={{ fontSize: '13px' }}>{item.label}</span>

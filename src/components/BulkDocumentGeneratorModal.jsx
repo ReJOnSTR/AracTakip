@@ -15,8 +15,15 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
     const [progress, setProgress] = useState({ current: 0, total: 0 })
     // 'edit' | 'stamp-preview'
     const [step, setStep] = useState('edit')
-    const [stampSettings, setStampSettings] = useState(STAMP_DEFAULTS)
+    const [stampSettings, setStampSettings] = useState(() => {
+        const saved = localStorage.getItem('persistentStampSettings')
+        return saved ? JSON.parse(saved) : STAMP_DEFAULTS
+    })
     const [outputMode, setOutputMode] = useState('combined') // 'combined' | 'folder' | 'archive'
+
+    useEffect(() => {
+        localStorage.setItem('persistentStampSettings', JSON.stringify(stampSettings))
+    }, [stampSettings])
 
     useEffect(() => {
         if (selectedTemplate && company) {
@@ -202,8 +209,77 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Toplu Belge Oluştur (${selectedEmployees.length} Personel Seçili)`}
+            title={step === 'stamp-preview' ? 'Kaşe & İmza Konumlandırma — PDF Önizleme' : 'Toplu Personel Belgesi Oluştur'}
             size={step === 'stamp-preview' ? 'fullscreen' : 'xl'}
+            footer={
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', width: '100%' }}>
+                    {step === 'edit' ? (
+                        <>
+                            <button type="button" className="btn btn-secondary" onClick={onClose}>İptal</button>
+                            <button
+                                type="button"
+                                onClick={() => setStep('stamp-preview')}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <Stamp size={16} />
+                                Önizleme &amp; İmza Ayarla
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleGenerateBulk}
+                                disabled={isGenerating}
+                                className="btn btn-primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 size={16} className="spin" />
+                                        {progress.total > 0 ? `${progress.current} / ${progress.total} Belge Oluşturuluyor...` : 'Hazırlanıyor...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download size={16} />
+                                        {outputMode === 'combined' ? 'Toplu PDF İndir' : (outputMode === 'folder' ? 'Klasöre Kaydet' : 'Personellere Arşivle')}
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setStep('edit')}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                disabled={isGenerating}
+                            >
+                                <ArrowLeft size={16} />
+                                Geri Dön
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleGenerateBulk}
+                                disabled={isGenerating}
+                                className="btn btn-primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 size={16} className="spin" />
+                                        {progress.total > 0 ? `${progress.current} / ${progress.total} Belge Oluşturuluyor...` : 'Hazırlanıyor...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download size={16} />
+                                        {outputMode === 'combined' ? 'Toplu PDF İndir' : (outputMode === 'folder' ? 'Klasöre Kaydet' : 'Personellere Arşivle')}
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )}
+                </div>
+            }
         >
             {step === 'edit' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -432,40 +508,6 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                             </div>
                         </div>
                     </div>
-
-                    {/* Footer Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                        <button type="button" onClick={onClose} className="btn btn-secondary" disabled={isGenerating}>İptal</button>
-                        <button
-                            type="button"
-                            onClick={() => setStep('stamp-preview')}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                            disabled={isGenerating}
-                        >
-                            <Stamp size={16} />
-                            Kaşe &amp; İmza Ayarla
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleGenerateBulk}
-                            disabled={isGenerating}
-                            className="btn btn-primary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            {isGenerating ? (
-                                <>
-                                    <Loader2 size={16} className="spin" />
-                                    {progress.total > 0 ? `${progress.current} / ${progress.total} Belge Oluşturuluyor...` : 'Hazırlanıyor...'}
-                                </>
-                            ) : (
-                                <>
-                                    <Download size={16} />
-                                    {outputMode === 'combined' ? 'Toplu PDF İndir' : (outputMode === 'folder' ? 'Klasöre Kaydet' : 'Personellere Arşivle')}
-                                </>
-                            )}
-                        </button>
-                    </div>
                 </div>
             )}
 
@@ -489,38 +531,6 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                         settings={stampSettings}
                         onChange={setStampSettings}
                     />
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-                        <button
-                            type="button"
-                            onClick={() => setStep('edit')}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                            disabled={isGenerating}
-                        >
-                            <ArrowLeft size={16} />
-                            Geri Dön
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleGenerateBulk}
-                            disabled={isGenerating}
-                            className="btn btn-primary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            {isGenerating ? (
-                                <>
-                                    <Loader2 size={16} className="spin" />
-                                    {progress.total > 0 ? `${progress.current} / ${progress.total} Belge Oluşturuluyor...` : 'Hazırlanıyor...'}
-                                </>
-                            ) : (
-                                <>
-                                    <Download size={16} />
-                                    {outputMode === 'combined' ? 'Toplu PDF İndir' : (outputMode === 'folder' ? 'Klasöre Kaydet' : 'Personellere Arşivle')}
-                                </>
-                            )}
-                        </button>
-                    </div>
                 </div>
             )}
         </Modal>

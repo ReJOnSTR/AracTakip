@@ -232,7 +232,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
         width: `${A4W}px`,
         minHeight: `${A4H}px`,
         transform: `scale(${SCALE})`,
-        transformOrigin: 'top center',
+        transformOrigin: 'top left',
         background: 'white',
         padding: `${PAD}px`,
         boxSizing: 'border-box',
@@ -362,8 +362,50 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                     </div>
                 </div>
 
+                {/* Görünürlük Seçenekleri */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Belge Ögeleri (Göster/Gizle)
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {stampSrc && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={ss.showStamp !== false}
+                                    onChange={(e) => onChange({ ...settings, showStamp: e.target.checked })}
+                                    style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                                />
+                                <span>Kaşe</span>
+                            </label>
+                        )}
+                        {signatureSrc && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={ss.showSignature !== false}
+                                    onChange={(e) => onChange({ ...settings, showSignature: e.target.checked })}
+                                    style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                                />
+                                <span>Firma İmzası</span>
+                            </label>
+                        )}
+                        {empSignatureSrc && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={ss.showEmpSignature !== false}
+                                    onChange={(e) => onChange({ ...settings, showEmpSignature: e.target.checked })}
+                                    style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                                />
+                                <span>Personel İmzası</span>
+                            </label>
+                        )}
+                    </div>
+                </div>
+
                 {/* Personel İmzası Ayarları (Varsa) */}
-                {empSignatureSrc && (
+                {empSignatureSrc && ss.showEmpSignature !== false && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
@@ -408,7 +450,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                 )}
 
                 {/* Kaşe Ayarları (Varsa) */}
-                {stampSrc && (
+                {stampSrc && ss.showStamp !== false && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }} />
@@ -453,7 +495,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                 )}
 
                 {/* Firma İmzası Ayarları (Varsa) */}
-                {signatureSrc && (
+                {signatureSrc && ss.showSignature !== false && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
@@ -611,8 +653,8 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     PERSONEL İMZASI
                                 </p>
                                 <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
-                                    {ss.placementMode !== 'free' && empSignatureSrc && renderInteractive('empSignature', empSignatureSrc, 3)}
-                                    {ss.placementMode !== 'free' && !empSignatureSrc && (
+                                    {ss.placementMode !== 'free' && empSignatureSrc && ss.showEmpSignature !== false && renderInteractive('empSignature', empSignatureSrc, 3)}
+                                    {ss.placementMode !== 'free' && !empSignatureSrc && ss.showEmpSignature !== false && (
                                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
                                             Personel imzası yok
                                         </div>
@@ -632,9 +674,9 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     YETKİLİ ONAYI
                                 </p>
                                 <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
-                                    {ss.placementMode !== 'free' && stampSrc    && renderInteractive('stamp',     stampSrc,     1)}
-                                    {ss.placementMode !== 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 2)}
-                                    {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && (
+                                    {ss.placementMode !== 'free' && stampSrc    && ss.showStamp !== false && renderInteractive('stamp',     stampSrc,     1)}
+                                    {ss.placementMode !== 'free' && signatureSrc && ss.showSignature !== false && renderInteractive('signature', signatureSrc, 2)}
+                                    {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && ss.showStamp !== false && ss.showSignature !== false && (
                                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
                                             Kaşe / imza yüklenmemiş
                                         </div>
@@ -650,9 +692,9 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                         </div>
 
                         {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzaları A4 sayfasının relative scope'unda render et */}
-                        {ss.placementMode === 'free' && stampSrc && renderInteractive('stamp', stampSrc, 10)}
-                        {ss.placementMode === 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 11)}
-                        {ss.placementMode === 'free' && empSignatureSrc && renderInteractive('empSignature', empSignatureSrc, 12)}
+                        {ss.placementMode === 'free' && stampSrc && ss.showStamp !== false && renderInteractive('stamp', stampSrc, 10)}
+                        {ss.placementMode === 'free' && signatureSrc && ss.showSignature !== false && renderInteractive('signature', signatureSrc, 11)}
+                        {ss.placementMode === 'free' && empSignatureSrc && ss.showEmpSignature !== false && renderInteractive('empSignature', empSignatureSrc, 12)}
 
                     </div>
                 </div>

@@ -14,8 +14,15 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
     const [isGenerating, setIsGenerating] = useState(false)
     // 'edit' | 'stamp-preview'
     const [step, setStep] = useState('edit')
-    const [stampSettings, setStampSettings] = useState(STAMP_DEFAULTS)
+    const [stampSettings, setStampSettings] = useState(() => {
+        const saved = localStorage.getItem('persistentStampSettings')
+        return saved ? JSON.parse(saved) : STAMP_DEFAULTS
+    })
     const [generatingMode, setGeneratingMode] = useState(null) // 'silent' | 'download' | null
+
+    useEffect(() => {
+        localStorage.setItem('persistentStampSettings', JSON.stringify(stampSettings))
+    }, [stampSettings])
 
     useEffect(() => {
         if (selectedTemplate && employee && company) {
@@ -166,7 +173,82 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
             onClose={onClose}
             title={step === 'stamp-preview' ? 'Kaşe & İmza Konumlandırma — PDF Önizleme' : 'Personel Belgesi Oluştur'}
             size={step === 'stamp-preview' ? 'fullscreen' : 'xl'}
-            footer={null}
+            footer={
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', width: '100%' }}>
+                    {step === 'edit' ? (
+                        <>
+                            <button onClick={onClose} className="btn btn-secondary">İptal</button>
+                            <button
+                                type="button"
+                                onClick={() => setStep('stamp-preview')}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <Stamp size={16} />
+                                Önizleme &amp; İmza Ayarla
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => handleGenerate(true)} 
+                                disabled={isGenerating} 
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating && generatingMode === 'silent' ? 'Kaydediliyor...' : 'Belge Kayıtlarına Ekle'}
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => handleGenerate(false)} 
+                                disabled={isGenerating} 
+                                className="btn btn-primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating && generatingMode === 'download' ? 'Hazırlanıyor...' : (
+                                    <>
+                                        <Download size={18} />
+                                        PDF Olarak İndir
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setStep('edit')}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <ArrowLeft size={16} />
+                                Geri Dön
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleGenerate(true)}
+                                disabled={isGenerating}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating && generatingMode === 'silent' ? 'Kaydediliyor...' : 'Belge Kayıtlarına Ekle'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleGenerate(false)}
+                                disabled={isGenerating}
+                                className="btn btn-primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                {isGenerating && generatingMode === 'download' ? 'Hazırlanıyor...' : (
+                                    <>
+                                        <Download size={18} />
+                                        PDF Olarak İndir
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )}
+                </div>
+            }
         >
             {step === 'edit' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
@@ -284,45 +366,6 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                                 />
                             </div>
                         </div>
-
-                        {/* Footer Butonları */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-                            <button onClick={onClose} className="btn btn-secondary">İptal</button>
-                            {hasStampOrSig && (
-                                <button
-                                    type="button"
-                                    onClick={() => setStep('stamp-preview')}
-                                    className="btn btn-secondary"
-                                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                                >
-                                    <Stamp size={16} />
-                                    Kaşe &amp; İmza Ayarla
-                                </button>
-                            )}
-                            <button 
-                                type="button"
-                                onClick={() => handleGenerate(true)} 
-                                disabled={isGenerating} 
-                                className="btn btn-secondary"
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                            >
-                                {isGenerating && generatingMode === 'silent' ? 'Kaydediliyor...' : 'Belge Kayıtlarına Ekle'}
-                            </button>
-                            <button 
-                                type="button"
-                                onClick={() => handleGenerate(false)} 
-                                disabled={isGenerating} 
-                                className="btn btn-primary"
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                            >
-                                {isGenerating && generatingMode === 'download' ? 'Hazırlanıyor...' : (
-                                    <>
-                                        <Download size={18} />
-                                        PDF Olarak İndir
-                                    </>
-                                )}
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}
@@ -347,41 +390,6 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                         settings={stampSettings}
                         onChange={setStampSettings}
                     />
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
-                        <button
-                            type="button"
-                            onClick={() => setStep('edit')}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            <ArrowLeft size={16} />
-                            Geri Dön
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleGenerate(true)}
-                            disabled={isGenerating}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            {isGenerating && generatingMode === 'silent' ? 'Kaydediliyor...' : 'Belge Kayıtlarına Ekle'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleGenerate(false)}
-                            disabled={isGenerating}
-                            className="btn btn-primary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        >
-                            {isGenerating && generatingMode === 'download' ? 'Hazırlanıyor...' : (
-                                <>
-                                    <Download size={18} />
-                                    PDF Olarak İndir
-                                </>
-                            )}
-                        </button>
-                    </div>
                 </div>
             )}
         </Modal>

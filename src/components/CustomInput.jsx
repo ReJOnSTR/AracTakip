@@ -118,6 +118,23 @@ export default function CustomInput({
         if (props.onBlur) props.onBlur(e)
     }
 
+    const handleKeyDown = (e) => {
+        if (format === 'currency') {
+            if (e.key === '.' || e.key === 'Decimal') {
+                e.preventDefault()
+                const input = e.target
+                const start = input.selectionStart
+                const end = input.selectionEnd
+                const val = input.value
+                const newVal = val.slice(0, start) + ',' + val.slice(end)
+                input.value = newVal
+                input.setSelectionRange(start + 1, start + 1)
+                handleChange({ target: input })
+            }
+        }
+        if (props.onKeyDown) props.onKeyDown(e)
+    }
+
     // Validation check
     const isInvalid = (touched && required && !value) || error
 
@@ -187,6 +204,7 @@ export default function CustomInput({
                             ...(type === 'password' ? { paddingRight: '40px' } : {}) // Make room for Eye icon
                         }}
                         {...props}
+                        onKeyDown={handleKeyDown}
                     />
                     {isCurrency && (
                         <span style={{

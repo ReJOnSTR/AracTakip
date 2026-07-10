@@ -186,7 +186,12 @@ export default function Salaries() {
     }
 
     const handleSaveSalary = async () => {
-        if (!salaryModal.employee || !salaryModal.amount) return
+        if (!salaryModal.employee) return
+        const amt = parseFloat(salaryModal.amount)
+        if (isNaN(amt) || amt < 0) {
+            showToast('Lütfen geçerli bir tutar girin.', 'error')
+            return
+        }
 
         try {
             // Check if salary record exists
@@ -263,7 +268,12 @@ export default function Salaries() {
     }
 
     const handleConfirmPayment = async () => {
-        if (!paymentModal.employee || !paymentModal.amount) return
+        if (!paymentModal.employee) return
+        const amt = parseFloat(paymentModal.amount)
+        if (isNaN(amt) || amt <= 0) {
+            showToast('Lütfen sıfırdan büyük geçerli bir tutar girin.', 'error')
+            return
+        }
 
         try {
             const isAdvance = paymentModal.type === 'advance'
@@ -1004,10 +1014,11 @@ export default function Salaries() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div className="form-row">
                             <CustomInput
-                                label="Ödenecek Tutar"
-                                type="number"
-                                value={paymentModal.amount}
+                                label="Ödenecek Tutar (₺) *"
+                                format="currency"
+                                value={paymentModal.amount || ''}
                                 onChange={(val) => setPaymentModal({ ...paymentModal, amount: val })}
+                                required
                             />
                             <CustomInput
                                 label="Tarih"
@@ -1124,10 +1135,11 @@ export default function Salaries() {
                         Bu işlem, personelin <strong>{selectedMonth}</strong> dönemi için hakediş tutarını güncelleyecektir.
                     </p>
                     <CustomInput
-                        label="Hakediş Tutarı"
-                        type="number"
-                        value={salaryModal.amount}
-                        onChange={(e) => setSalaryModal({ ...salaryModal, amount: e.target.value })}
+                        label="Hakediş Tutarı (₺) *"
+                        format="currency"
+                        value={salaryModal.amount || ''}
+                        onChange={(val) => setSalaryModal({ ...salaryModal, amount: val })}
+                        required
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button className="btn btn-secondary" onClick={() => setSalaryModal({ ...salaryModal, isOpen: false })}>İptal</button>

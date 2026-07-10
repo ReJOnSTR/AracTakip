@@ -90,11 +90,7 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
                 {/* Header */}
                 <div style={headerStyle}>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 5px 0' }}>ARAÇ İŞ & OPERASYON RAPORU</h1>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#111' }}>Firma: {companyName || 'Tüm Firmalar'}</div>
-                        <div style={{ fontSize: '12px', color: '#555', marginTop: '3px' }}>
-                            Rapor Dönemi / Ayı: <strong>{getReportPeriodText(dateRange)}</strong>
-                        </div>
+                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0' }}>ARAÇ İŞ & OPERASYON RAPORU</h1>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '12px', color: '#666' }}>Rapor Tarihi</div>
@@ -144,14 +140,7 @@ export default function ReportRenderer({ reports, config, listConfig, dateRange,
             {/* Header */}
             <div style={headerStyle}>
                 <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 5px 0' }}>ARAÇ DETAY RAPORU</h1>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#111' }}>Firma: {companyName || 'Tüm Firmalar'}</div>
-                    <div style={{ fontSize: '12px', color: '#555', marginTop: '3px' }}>
-                        Rapor Dönemi / Ayı: <strong>{getReportPeriodText(dateRange)}</strong>
-                        {(dateRange?.start || dateRange?.end) && (
-                            <span> ({formatDate(dateRange.start)} - {dateRange.end ? formatDate(dateRange.end) : 'Bugün'})</span>
-                        )}
-                    </div>
+                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0' }}>ARAÇ DETAY RAPORU</h1>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '12px', color: '#666' }}>Rapor Tarihi</div>

@@ -362,6 +362,31 @@ export default function ArventoTracking() {
 
     const [isMapFullscreen, setIsMapFullscreen] = useState(false)
     const [mapReady, setMapReady] = useState(false)
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            const isFull = !!document.fullscreenElement && document.fullscreenElement.classList.contains('tracking-map-wrapper')
+            setIsMapFullscreen(isFull)
+        }
+        document.addEventListener('fullscreenchange', handleFullscreenChange)
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange)
+        }
+    }, [])
+
+    const toggleFullscreen = () => {
+        const mapEl = document.querySelector('.tracking-map-wrapper')
+        if (!mapEl) return
+        if (!document.fullscreenElement) {
+            mapEl.requestFullscreen().catch(err => {
+                console.error('Error entering fullscreen:', err)
+            })
+        } else {
+            document.exitFullscreen().catch(err => {
+                console.error('Error exiting fullscreen:', err)
+            })
+        }
+    }
     const isMapTab = activeTab === 'live' || activeTab === 'history'
 
 
@@ -3751,7 +3776,7 @@ export default function ArventoTracking() {
 
                                 {/* Fullscreen Toggle Button */}
                                 <button 
-                                    onClick={() => setIsMapFullscreen(prev => !prev)}
+                                    onClick={toggleFullscreen}
                                     title={isMapFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Yap'}
                                     className={`map-control-btn ${isMapFullscreen ? 'active' : ''}`}
                                 >

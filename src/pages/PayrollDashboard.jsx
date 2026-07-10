@@ -303,6 +303,15 @@ export default function PayrollDashboard() {
     const handlePaymentSubmit = async (e) => {
         e.preventDefault()
         if (selectedRows.length === 0) return
+
+        if (!formData.useRemaining) {
+            const amt = parseFloat(formData.amount)
+            if (isNaN(amt) || amt <= 0) {
+                alert('Lütfen sıfırdan büyük geçerli bir tutar girin.')
+                return
+            }
+        }
+
         setSaving(true)
         
         try {
@@ -672,9 +681,8 @@ export default function PayrollDashboard() {
 
                                     <CustomInput
                                         label="Tutar (₺) *"
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.amount}
+                                        format="currency"
+                                        value={formData.amount || ''}
                                         onChange={(val) => setFormData({ ...formData, amount: val })}
                                         required={!formData.useRemaining}
                                         disabled={formData.useRemaining}
