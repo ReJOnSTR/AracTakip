@@ -1,6 +1,8 @@
 import {
     formatDate,
-    formatCurrency
+    formatCurrency,
+    calculateRemainingLeaves,
+    formatDayBalance
 } from '../utils/helpers'
 
 // Shared A4 page styles
@@ -57,30 +59,13 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
         ? { ...pageStyle, boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0', pageBreakAfter: 'always' }
         : { ...pageStyle, pageBreakAfter: 'always' }
 
-    const getReportPeriodText = (range) => {
-        if (range?.start) {
-            const d = new Date(range.start);
-            if (!isNaN(d.getTime())) {
-                const m = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-                return m.charAt(0).toUpperCase() + m.slice(1);
-            }
-        }
-        const now = new Date();
-        const m = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-        return m.charAt(0).toUpperCase() + m.slice(1);
-    };
-
     if (reportType === 'list') {
         return (
             <div className="report-print-container" style={previewPageStyle}>
                 {/* Header */}
                 <div style={headerStyle}>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 5px 0' }}>PERSONEL LİSTESİ RAPORU</h1>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#111' }}>Firma: {companyName || 'Tüm Firmalar'}</div>
-                        <div style={{ fontSize: '12px', color: '#555', marginTop: '3px' }}>
-                            Rapor Dönemi / Ayı: <strong>{getReportPeriodText(dateRange)}</strong>
-                        </div>
+                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>PERSONEL LİSTESİ RAPORU</h1>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '12px', color: '#666' }}>Rapor Tarihi</div>
@@ -97,6 +82,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                             {listConfig?.startDate && <th style={thStyle}>BAŞLANGIÇ T.</th>}
                             {listConfig?.status && <th style={thStyle}>DURUM</th>}
                             {listConfig?.salary && <th style={thStyle}>MAAŞ</th>}
+                            {listConfig?.remainingLeaves && <th style={thStyle}>KALAN İZİN</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -108,6 +94,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                 {listConfig?.startDate && <td style={tdStyle}>{formatDate(report.employee.start_date)}</td>}
                                 {listConfig?.status && <td style={tdStyle}>{report.employee.status === 'active' ? 'Aktif' : 'Pasif'}</td>}
                                 {listConfig?.salary && <td style={tdStyle}>{report.employee.salary ? formatCurrency(report.employee.salary) : '-'}</td>}
+                                {listConfig?.remainingLeaves && <td style={tdStyle}>{formatDayBalance(calculateRemainingLeaves(report.employee, report.leaves))}</td>}
                             </tr>
                         ))}
                     </tbody>
@@ -128,14 +115,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
             {/* Header */}
             <div style={headerStyle}>
                 <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 5px 0' }}>PERSONEL DETAY RAPORU</h1>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#111' }}>Firma: {companyName || 'Tüm Firmalar'}</div>
-                    <div style={{ fontSize: '12px', color: '#555', marginTop: '3px' }}>
-                        Rapor Dönemi / Ayı: <strong>{getReportPeriodText(dateRange)}</strong>
-                        {(dateRange?.start || dateRange?.end) && (
-                            <span> ({formatDate(dateRange.start)} - {dateRange.end ? formatDate(dateRange.end) : 'Bugün'})</span>
-                        )}
-                    </div>
+                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>PERSONEL DETAY RAPORU</h1>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '12px', color: '#666' }}>Rapor Tarihi</div>
@@ -173,6 +153,12 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                     <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>GÜNCEL MAAŞ</div>
                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{report.employee.salary ? formatCurrency(report.employee.salary) : '-'}</div>
                 </div>
+                {config?.remainingLeaves && (
+                    <div>
+                        <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>KALAN YILLIK İZİN</div>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{formatDayBalance(calculateRemainingLeaves(report.employee, report.leaves))}</div>
+                    </div>
+                )}
             </div>
 
             {/* Leave History */}

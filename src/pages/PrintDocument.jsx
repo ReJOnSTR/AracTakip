@@ -136,7 +136,7 @@ function SingleDoc({ docItem }) {
                         position: 'relative',
                         marginBottom: '10px'
                     }}>
-                        {ss.placementMode !== 'free' && empSignatureSrc && (
+                        {ss.placementMode !== 'free' && empSignatureSrc && (ss.showEmpSignature ?? true) && (
                             <img
                                 src={empSignatureSrc}
                                 alt="Personel İmzası"
@@ -153,7 +153,7 @@ function SingleDoc({ docItem }) {
                                 }}
                             />
                         )}
-                        {ss.placementMode !== 'free' && !empSignatureSrc && <div style={{ height: `${containerH}px` }}></div>}
+                        {ss.placementMode !== 'free' && (!empSignatureSrc || !(ss.showEmpSignature ?? true)) && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: '600' }}>{docItem.employeeName}</p>
                 </div>
@@ -169,7 +169,7 @@ function SingleDoc({ docItem }) {
                         position: 'relative',
                         marginBottom: '10px'
                     }}>
-                        {ss.placementMode !== 'free' && stampSrc && (
+                        {ss.placementMode !== 'free' && stampSrc && (ss.showStamp ?? true) && (
                             <img
                                 src={stampSrc}
                                 alt="Kaşe"
@@ -186,7 +186,7 @@ function SingleDoc({ docItem }) {
                                 }}
                             />
                         )}
-                        {ss.placementMode !== 'free' && signatureSrc && (
+                        {ss.placementMode !== 'free' && signatureSrc && (ss.showSignature ?? true) && (
                             <img
                                 src={signatureSrc}
                                 alt="İmza"
@@ -203,14 +203,14 @@ function SingleDoc({ docItem }) {
                                 }}
                             />
                         )}
-                        {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && <div style={{ height: `${containerH}px` }}></div>}
+                        {ss.placementMode !== 'free' && (!stampSrc || !(ss.showStamp ?? true)) && (!signatureSrc || !(ss.showSignature ?? true)) && <div style={{ height: `${containerH}px` }}></div>}
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: 600 }}>{docItem.companyName}</p>
                 </div>
             </div>
 
             {/* Free Placement Mode */}
-            {ss.placementMode === 'free' && stampSrc && (
+            {ss.placementMode === 'free' && stampSrc && (ss.showStamp ?? true) && (
                 <img
                     src={stampSrc}
                     alt="Kaşe"
@@ -227,7 +227,7 @@ function SingleDoc({ docItem }) {
                     }}
                 />
             )}
-            {ss.placementMode === 'free' && signatureSrc && (
+            {ss.placementMode === 'free' && signatureSrc && (ss.showSignature ?? true) && (
                 <img
                     src={signatureSrc}
                     alt="İmza"
@@ -244,7 +244,7 @@ function SingleDoc({ docItem }) {
                     }}
                 />
             )}
-            {ss.placementMode === 'free' && empSignatureSrc && (
+            {ss.placementMode === 'free' && empSignatureSrc && (ss.showEmpSignature ?? true) && (
                 <img
                     src={empSignatureSrc}
                     alt="Personel İmzası"

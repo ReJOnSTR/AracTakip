@@ -5,7 +5,7 @@ import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import EmployeeReportRenderer from '../components/EmployeeReportRenderer'
 import { FileText, Printer, Building2, Download, Eye, Calendar, Layers, Settings, List, Filter, FileDown, User, ChevronDown } from 'lucide-react'
-import { formatDate, formatCurrency } from '../utils/helpers'
+import { formatDate, formatCurrency, calculateRemainingLeaves, formatDayBalance } from '../utils/helpers'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import * as XLSX from 'xlsx'
 
@@ -31,7 +31,8 @@ export default function EmployeeReports() {
         leaves: true,
         salaries: true,
         assignments: true,
-        documents: true
+        documents: true,
+        remainingLeaves: true
     })
 
     const [listConfig, setListConfig] = useState({
@@ -40,7 +41,8 @@ export default function EmployeeReports() {
         phone: true,
         startDate: true,
         status: true,
-        salary: true
+        salary: true,
+        remainingLeaves: true
     })
 
     const [dateRange, setDateRange] = useState({
@@ -127,25 +129,41 @@ export default function EmployeeReports() {
             XLSX.utils.book_append_sheet(wb, ws, name)
         }
 
-        if (config.leaves) {
-            const allLeaves = processedReportList.flatMap(r => r.leaves.map(i => ({ ...i, employeeName: `${r.employee.first_name} ${r.employee.last_name}` })))
-            addSheet('İzinler', allLeaves, [
-                { header: 'Personel', value: i => i.employeeName },
-                { header: 'Tür', value: i => i.type },
-                { header: 'Başlangıç', value: i => formatDate(i.start_date) },
-                { header: 'Bitiş', value: i => formatDate(i.end_date) },
-                { header: 'Süre', value: i => i.hours ? `${i.hours} Saat` : (i.days && i.days % 1 !== 0 ? `${Math.round(i.days * 8 * 100) / 100} Saat` : `${i.days} Gün`) }
-            ])
-        }
+        if (reportType === 'list') {
+            const listCols = []
+            if (listConfig.name) listCols.push({ header: 'Ad Soyad', value: r => `${r.employee.first_name} ${r.employee.last_name}` })
+            if (listConfig.role) listCols.push({ header: 'Görev', value: r => r.employee.position || '-' })
+            listCols.push({ header: 'Departman', value: r => r.employee.department || '-' })
+            if (listConfig.phone) listCols.push({ header: 'Telefon', value: r => r.employee.phone || '-' })
+            if (listConfig.startDate) listCols.push({ header: 'İşe Giriş', value: r => formatDate(r.employee.start_date) })
+            if (listConfig.status) listCols.push({ header: 'Durum', value: r => r.employee.status === 'active' ? 'Aktif' : 'Pasif' })
+            if (listConfig.salary) listCols.push({ header: 'Maaş', value: r => r.employee.salary ? formatCurrency(r.employee.salary) : '-' })
+            if (listConfig.remainingLeaves) {
+                listCols.push({ header: 'Kalan İzin', value: r => formatDayBalance(calculateRemainingLeaves(r.employee, r.leaves)) })
+            }
 
-        if (config.salaries) {
-            const allSalaries = processedReportList.flatMap(r => r.salaries.map(i => ({ ...i, employeeName: `${r.employee.first_name} ${r.employee.last_name}` })))
-            addSheet('Hakedişler', allSalaries, [
-                { header: 'Personel', value: i => i.employeeName },
-                { header: 'Tarih', value: i => formatDate(i.payment_date || i.date) },
-                { header: 'Açıklama', value: i => `${i.period || ''} ${i.notes ? `(${i.notes})` : ''}`.trim() },
-                { header: 'Tutar', value: i => i.net_salary || i.amount }
-            ])
+            addSheet('Personel Listesi', processedReportList, listCols)
+        } else {
+            if (config.leaves) {
+                const allLeaves = processedReportList.flatMap(r => r.leaves.map(i => ({ ...i, employeeName: `${r.employee.first_name} ${r.employee.last_name}` })))
+                addSheet('İzinler', allLeaves, [
+                    { header: 'Personel', value: i => i.employeeName },
+                    { header: 'Tür', value: i => i.type },
+                    { header: 'Başlangıç', value: i => formatDate(i.start_date) },
+                    { header: 'Bitiş', value: i => formatDate(i.end_date) },
+                    { header: 'Süre', value: i => i.hours ? `${i.hours} Saat` : (i.days && i.days % 1 !== 0 ? `${Math.round(i.days * 8 * 100) / 100} Saat` : `${i.days} Gün`) }
+                ])
+            }
+
+            if (config.salaries) {
+                const allSalaries = processedReportList.flatMap(r => r.salaries.map(i => ({ ...i, employeeName: `${r.employee.first_name} ${r.employee.last_name}` })))
+                addSheet('Hakedişler', allSalaries, [
+                    { header: 'Personel', value: i => i.employeeName },
+                    { header: 'Tarih', value: i => formatDate(i.payment_date || i.date) },
+                    { header: 'Açıklama', value: i => `${i.period || ''} ${i.notes ? `(${i.notes})` : ''}`.trim() },
+                    { header: 'Tutar', value: i => i.net_salary || i.amount }
+                ])
+            }
         }
 
         XLSX.writeFile(wb, `Personel_Raporu_${formatDate(new Date())}.xlsx`)
@@ -417,7 +435,8 @@ export default function EmployeeReports() {
                                                     { key: 'leaves', label: 'İzin Geçmişi' },
                                                     { key: 'salaries', label: 'Maaş / Hakedişler' },
                                                     { key: 'assignments', label: 'Zimmetler' },
-                                                    { key: 'documents', label: 'Evraklar' }
+                                                    { key: 'documents', label: 'Evraklar' },
+                                                    { key: 'remainingLeaves', label: 'Kalan İzin Süresi' }
                                                 ].map(item => (
                                                     <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
                                                         <span style={{ fontSize: '13px' }}>{item.label}</span>
@@ -436,7 +455,8 @@ export default function EmployeeReports() {
                                                     { key: 'phone', label: 'Telefon' },
                                                     { key: 'startDate', label: 'Başlangıç T.' },
                                                     { key: 'status', label: 'Durum' },
-                                                    { key: 'salary', label: 'Maaş' }
+                                                    { key: 'salary', label: 'Maaş' },
+                                                    { key: 'remainingLeaves', label: 'Kalan İzin' }
                                                 ].map(item => (
                                                     <label key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', cursor: 'pointer' }}>
                                                         <span style={{ fontSize: '13px' }}>{item.label}</span>

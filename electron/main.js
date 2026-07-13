@@ -2161,4 +2161,17 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
         }
         return { success: false, error: err.message };
     }
-})
+});
+
+ipcMain.handle('window:setFullScreen', (event, flag) => {
+    try {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win) {
+            win.setFullScreen(flag);
+            return { success: true };
+        }
+        return { success: false, error: 'Window not found' };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});

@@ -442,6 +442,31 @@ export default function ArventoTracking() {
         }
     }, [isMapFullscreen, mapReady])
 
+    // Toggle body class and native OS fullscreen on fullscreen toggle
+    useEffect(() => {
+        document.body.classList.toggle('map-fullscreen-active', isMapFullscreen)
+        if (window.electronAPI?.setFullScreen) {
+            window.electronAPI.setFullScreen(isMapFullscreen)
+        }
+        return () => {
+            document.body.classList.remove('map-fullscreen-active')
+            if (window.electronAPI?.setFullScreen) {
+                window.electronAPI.setFullScreen(false)
+            }
+        }
+    }, [isMapFullscreen])
+
+    // Escape key listener to exit fullscreen
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && isMapFullscreen) {
+                setIsMapFullscreen(false)
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isMapFullscreen])
+
     // Invalidate map size when tab changes to ensure proper layout sizing
     useEffect(() => {
         if (mapInstance.current && mapReady) {

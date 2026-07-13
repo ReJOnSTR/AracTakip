@@ -1005,7 +1005,8 @@ export default function Salaries() {
                         <div className="form-row">
                             <CustomInput
                                 label="Ödenecek Tutar"
-                                type="number"
+                                format="currency"
+                                required
                                 value={paymentModal.amount}
                                 onChange={(val) => setPaymentModal({ ...paymentModal, amount: val })}
                             />
@@ -1125,9 +1126,10 @@ export default function Salaries() {
                     </p>
                     <CustomInput
                         label="Hakediş Tutarı"
-                        type="number"
+                        format="currency"
+                        required
                         value={salaryModal.amount}
-                        onChange={(e) => setSalaryModal({ ...salaryModal, amount: e.target.value })}
+                        onChange={(val) => setSalaryModal({ ...salaryModal, amount: val })}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button className="btn btn-secondary" onClick={() => setSalaryModal({ ...salaryModal, isOpen: false })}>İptal</button>

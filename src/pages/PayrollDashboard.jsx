@@ -671,9 +671,8 @@ export default function PayrollDashboard() {
                                     />
 
                                     <CustomInput
-                                        label="Tutar (₺) *"
-                                        type="number"
-                                        step="0.01"
+                                        label="Tutar *"
+                                        format="currency"
                                         value={formData.amount}
                                         onChange={(val) => setFormData({ ...formData, amount: val })}
                                         required={!formData.useRemaining}

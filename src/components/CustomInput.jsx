@@ -107,6 +107,27 @@ export default function CustomInput({
         onChange(val)
     }
 
+    const handleKeyDown = (e) => {
+        if (isCurrency && e.key === '.') {
+            e.preventDefault()
+            const input = e.target
+            const start = input.selectionStart
+            const end = input.selectionEnd
+            const rawVal = input.value
+            const nextVal = rawVal.substring(0, start) + ',' + rawVal.substring(end)
+            const eventMock = {
+                target: {
+                    value: nextVal
+                }
+            }
+            handleChange(eventMock)
+            setTimeout(() => {
+                input.setSelectionRange(start + 1, start + 1)
+            }, 0)
+        }
+        if (props.onKeyDown) props.onKeyDown(e)
+    }
+
     const handleFocus = (e) => {
         setIsFocused(true)
         if (props.onFocus) props.onFocus(e)
@@ -179,11 +200,12 @@ export default function CustomInput({
                         onChange={handleChange}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
                         placeholder={isFloating ? '' : placeholder}
                         disabled={disabled}
                         style={{
                             ...(isInvalid ? { borderColor: 'var(--danger)' } : {}),
-                            ...(isCurrency ? { paddingRight: '28px' } : {}), // Make room for ₺ symbol
+                            ...(isCurrency ? { paddingRight: '36px' } : {}), // Make room for TL symbol
                             ...(type === 'password' ? { paddingRight: '40px' } : {}) // Make room for Eye icon
                         }}
                         {...props}
@@ -193,11 +215,12 @@ export default function CustomInput({
                             position: 'absolute',
                             right: '12px',
                             color: 'var(--text-muted)',
-                            fontWeight: '500',
+                            fontWeight: '600',
+                            fontSize: '11px',
                             pointerEvents: 'none',
                             userSelect: 'none'
                         }}>
-                            ₺
+                            TL
                         </span>
                     )}
                     {type === 'password' && (

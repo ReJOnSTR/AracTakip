@@ -253,6 +253,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
     saveReportPdf: (route, options) => ipcRenderer.invoke('save-report-pdf', route, options),
     openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
+    setFullScreen: (flag) => ipcRenderer.invoke('window:setFullScreen', flag),
 
     // Arvento API
     arventoTestConnection: (credentials) => ipcRenderer.invoke('arvento:testConnection', credentials),

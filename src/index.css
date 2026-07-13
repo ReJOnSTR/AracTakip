@@ -6952,5 +6952,50 @@ body {
   }
 }
 
+/* react-pdf positioning alignment fix */
+.react-pdf__Page__textContent,
+.react-pdf__Page__annotations,
+.react-pdf__Page__canvas {
+  transform-origin: top left !important;
+}
+
+/* Fullscreen Tracking Map Styles */
+body.map-fullscreen-active .desktop-title-bar,
+body.map-fullscreen-active .sidebar,
+body.map-fullscreen-active .tab-bar,
+body.map-fullscreen-active .mobile-header,
+body.map-fullscreen-active .bottom-nav {
+  display: none !important;
+}
+
+body.map-fullscreen-active .app-layout {
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+body.map-fullscreen-active .main-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+body.map-fullscreen-active .page-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100vh !important;
+}
+
+body.map-fullscreen-active .tracking-map-wrapper {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
 
 

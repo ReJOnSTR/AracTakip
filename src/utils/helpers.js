@@ -527,3 +527,58 @@ export function getLeaveBreakdown(startDateStr, endDateStr, offDaysStr = "0", pu
         totalDays: workingDaysCount + offDaysCount + holidaysCount
     };
 }
+
+export function formatDayBalance(days, customWhpl) {
+    if (!days && days !== 0) return '-'
+    const whpl = customWhpl || parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+    const absDays = Math.abs(days)
+    const hours = Math.round(absDays * whpl * 100) / 100
+    const sign = days < 0 ? '-' : ''
+    if (hours % whpl === 0) {
+        return `${sign}${absDays} gün`
+    }
+    return `${sign}${hours} saat`
+}
+
+export function calculateRemainingLeaves(employee, leaves) {
+    if (!employee || !employee.start_date) return 0
+    const start = new Date(employee.start_date)
+    const birth = employee.birth_date ? new Date(employee.birth_date) : null
+    const now = new Date()
+
+    const yearsMilli = now - start
+    const years = Math.floor(yearsMilli / (1000 * 60 * 60 * 24 * 365.25))
+
+    let totalAccrued = 0
+    for (let i = 1; i <= years; i++) {
+        let daysThisYear = 0
+        if (i <= 5) daysThisYear = 14 // 1 to 5 years (inclusive 5th year)
+        else if (i < 15) daysThisYear = 20 // 6 to 14 years
+        else daysThisYear = 26 // 15+ years
+
+        // 4857 rule on age limits:
+        if (birth) {
+            const ageAtThatYear = Math.floor((start.getTime() + (i * 365.25 * 24 * 60 * 60 * 1000) - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+            if (ageAtThatYear <= 18 || ageAtThatYear >= 50) {
+                daysThisYear = Math.max(daysThisYear, 20)
+            }
+        }
+
+        totalAccrued += daysThisYear
+    }
+
+    const pastUsed = employee.past_used_leaves || 0
+    // Count both 'annual' and localized names like 'Yıllık Ücretli İzin'
+    const systemUsedAnnual = (leaves || []).filter(l => 
+        l.status === 'approved' && 
+        (l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık')))
+    ).reduce((acc, l) => acc + (l.days || 0), 0)
+
+    const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
+    const totalOffsets = (leaves || [])
+        .filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup'))
+        .reduce((acc, l) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
+
+    const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
+    return balance
+}

@@ -13,14 +13,17 @@ export const STAMP_DEFAULTS = {
     stampOffsetX: 0,
     stampOffsetY: 0,
     stampOpacity: 0.85,
+    showStamp: true,
     signatureSize: 80,
     signatureOffsetX: 0,
     signatureOffsetY: 0,
     signatureOpacity: 0.9,
+    showSignature: true,
     empSignatureSize: 80,
     empSignatureOffsetX: 0,
     empSignatureOffsetY: 0,
     empSignatureOpacity: 0.9,
+    showEmpSignature: true,
 }
 
 function InfoTable({ title, rows }) {
@@ -372,8 +375,22 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                             </label>
                         </div>
 
+                        {/* Visibility Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <input
+                                type="checkbox"
+                                id="showEmpSignature"
+                                checked={ss.showEmpSignature ?? true}
+                                onChange={(e) => onChange({ ...settings, showEmpSignature: e.target.checked })}
+                                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#f59e0b' }}
+                            />
+                            <label htmlFor="showEmpSignature" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                Belgede Göster
+                            </label>
+                        </div>
+
                         {/* Size */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: (ss.showEmpSignature ?? true) ? 1 : 0.4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                                 <span>Boyut</span>
                                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ss.empSignatureSize}px</span>
@@ -383,13 +400,14 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 min="30"
                                 max="200"
                                 value={ss.empSignatureSize}
+                                disabled={!(ss.showEmpSignature ?? true)}
                                 onChange={(e) => onChange({ ...settings, empSignatureSize: parseInt(e.target.value) })}
                                 style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }}
                             />
                         </div>
 
                         {/* Opacity */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: (ss.showEmpSignature ?? true) ? 1 : 0.4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                                 <span>Saydamlık</span>
                                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>%{Math.round((ss.empSignatureOpacity ?? 0.9) * 100)}</span>
@@ -400,6 +418,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 max="1.0"
                                 step="0.05"
                                 value={ss.empSignatureOpacity ?? 0.9}
+                                disabled={!(ss.showEmpSignature ?? true)}
                                 onChange={(e) => onChange({ ...settings, empSignatureOpacity: parseFloat(e.target.value) })}
                                 style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }}
                             />
@@ -416,9 +435,23 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 Kaşe Ayarları
                             </label>
                         </div>
+
+                        {/* Visibility Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <input
+                                type="checkbox"
+                                id="showStamp"
+                                checked={ss.showStamp ?? true}
+                                onChange={(e) => onChange({ ...settings, showStamp: e.target.checked })}
+                                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                            />
+                            <label htmlFor="showStamp" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                Belgede Göster
+                            </label>
+                        </div>
                         
                         {/* Size */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: (ss.showStamp ?? true) ? 1 : 0.4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                                 <span>Boyut</span>
                                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ss.stampSize}px</span>
@@ -428,13 +461,14 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 min="40"
                                 max="240"
                                 value={ss.stampSize}
+                                disabled={!(ss.showStamp ?? true)}
                                 onChange={(e) => onChange({ ...settings, stampSize: parseInt(e.target.value) })}
                                 style={{ width: '100%', accentColor: '#3b82f6', cursor: 'pointer' }}
                             />
                         </div>
 
                         {/* Opacity */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: (ss.showStamp ?? true) ? 1 : 0.4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                                 <span>Saydamlık</span>
                                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>%{Math.round(ss.stampOpacity * 100)}</span>
@@ -445,6 +479,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 max="1.0"
                                 step="0.05"
                                 value={ss.stampOpacity}
+                                disabled={!(ss.showStamp ?? true)}
                                 onChange={(e) => onChange({ ...settings, stampOpacity: parseFloat(e.target.value) })}
                                 style={{ width: '100%', accentColor: '#3b82f6', cursor: 'pointer' }}
                             />
@@ -462,8 +497,22 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                             </label>
                         </div>
 
+                        {/* Visibility Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <input
+                                type="checkbox"
+                                id="showSignature"
+                                checked={ss.showSignature ?? true}
+                                onChange={(e) => onChange({ ...settings, showSignature: e.target.checked })}
+                                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#10b981' }}
+                            />
+                            <label htmlFor="showSignature" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                Belgede Göster
+                            </label>
+                        </div>
+
                         {/* Size */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: (ss.showSignature ?? true) ? 1 : 0.4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                                 <span>Boyut</span>
                                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ss.signatureSize}px</span>
@@ -473,13 +522,14 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 min="30"
                                 max="200"
                                 value={ss.signatureSize}
+                                disabled={!(ss.showSignature ?? true)}
                                 onChange={(e) => onChange({ ...settings, signatureSize: parseInt(e.target.value) })}
                                 style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }}
                             />
                         </div>
 
                         {/* Opacity */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: (ss.showSignature ?? true) ? 1 : 0.4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                                 <span>Saydamlık</span>
                                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>%{Math.round(ss.signatureOpacity * 100)}</span>
@@ -490,6 +540,7 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                 max="1.0"
                                 step="0.05"
                                 value={ss.signatureOpacity}
+                                disabled={!(ss.showSignature ?? true)}
                                 onChange={(e) => onChange({ ...settings, signatureOpacity: parseFloat(e.target.value) })}
                                 style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer' }}
                             />
@@ -611,11 +662,13 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     PERSONEL İMZASI
                                 </p>
                                 <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
-                                    {ss.placementMode !== 'free' && empSignatureSrc && renderInteractive('empSignature', empSignatureSrc, 3)}
-                                    {ss.placementMode !== 'free' && !empSignatureSrc && (
-                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
-                                            Personel imzası yok
-                                        </div>
+                                    {ss.placementMode !== 'free' && empSignatureSrc && (ss.showEmpSignature ?? true) && renderInteractive('empSignature', empSignatureSrc, 3)}
+                                    {ss.placementMode !== 'free' && !(empSignatureSrc && (ss.showEmpSignature ?? true)) && (
+                                        ((ss.showEmpSignature ?? true) && !empSignatureSrc) ? (
+                                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
+                                                Personel imzası yok
+                                            </div>
+                                        ) : null
                                     )}
                                     {ss.placementMode === 'free' && (
                                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px', fontStyle: 'italic' }}>
@@ -632,12 +685,14 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                                     YETKİLİ ONAYI
                                 </p>
                                 <div style={{ height: `${containerH}px`, position: 'relative', overflow: 'visible' }}>
-                                    {ss.placementMode !== 'free' && stampSrc    && renderInteractive('stamp',     stampSrc,     1)}
-                                    {ss.placementMode !== 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 2)}
-                                    {ss.placementMode !== 'free' && !stampSrc && !signatureSrc && (
-                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
-                                            Kaşe / imza yüklenmemiş
-                                        </div>
+                                    {ss.placementMode !== 'free' && stampSrc && (ss.showStamp ?? true) && renderInteractive('stamp',     stampSrc,     1)}
+                                    {ss.placementMode !== 'free' && signatureSrc && (ss.showSignature ?? true) && renderInteractive('signature', signatureSrc, 2)}
+                                    {ss.placementMode !== 'free' && !(stampSrc && (ss.showStamp ?? true)) && !(signatureSrc && (ss.showSignature ?? true)) && (
+                                        (((ss.showStamp ?? true) && !stampSrc) || ((ss.showSignature ?? true) && !signatureSrc)) ? (
+                                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px' }}>
+                                                Kaşe / imza yüklenmemiş
+                                            </div>
+                                        ) : null
                                     )}
                                     {ss.placementMode === 'free' && (
                                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '11px', fontStyle: 'italic' }}>
@@ -650,9 +705,9 @@ export default function StampSignaturePreview({ docData, company, settings, onCh
                         </div>
 
                         {/* Eğer Serbest Yerleşim modu ise, kaşe ve imzaları A4 sayfasının relative scope'unda render et */}
-                        {ss.placementMode === 'free' && stampSrc && renderInteractive('stamp', stampSrc, 10)}
-                        {ss.placementMode === 'free' && signatureSrc && renderInteractive('signature', signatureSrc, 11)}
-                        {ss.placementMode === 'free' && empSignatureSrc && renderInteractive('empSignature', empSignatureSrc, 12)}
+                        {ss.placementMode === 'free' && stampSrc && (ss.showStamp ?? true) && renderInteractive('stamp', stampSrc, 10)}
+                        {ss.placementMode === 'free' && signatureSrc && (ss.showSignature ?? true) && renderInteractive('signature', signatureSrc, 11)}
+                        {ss.placementMode === 'free' && empSignatureSrc && (ss.showEmpSignature ?? true) && renderInteractive('empSignature', empSignatureSrc, 12)}
 
                     </div>
                 </div>
