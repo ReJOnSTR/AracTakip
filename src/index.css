@@ -7002,8 +7002,29 @@ body.map-fullscreen-active .tracking-map-wrapper {
   transition: border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.sidebar {
+  view-transition-name: app-sidebar;
+}
+
+.tracking-sidebar {
+  view-transition-name: tracking-sidebar;
+}
+
+.desktop-title-bar {
+  view-transition-name: desktop-titlebar;
+}
+
+.tab-bar {
+  view-transition-name: app-tabbar;
+}
+
 ::view-transition-group(root),
-::view-transition-group(map-container) {
+::view-transition-group(map-container),
+::view-transition-group(app-sidebar),
+::view-transition-group(tracking-sidebar),
+::view-transition-group(desktop-titlebar),
+::view-transition-group(app-tabbar) {
   animation-duration: 0.45s;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
+
