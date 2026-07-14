@@ -361,6 +361,15 @@ export default function ArventoTracking() {
     const pollingTimer = useRef(null)
 
     const [isMapFullscreen, setIsMapFullscreen] = useState(false)
+    const updateMapFullscreen = (newValue) => {
+        if (document.startViewTransition) {
+            document.startViewTransition(() => {
+                setIsMapFullscreen(newValue);
+            });
+        } else {
+            setIsMapFullscreen(newValue);
+        }
+    };
     const [mapReady, setMapReady] = useState(false)
     const isMapTab = activeTab === 'live' || activeTab === 'history'
 
@@ -460,7 +469,7 @@ export default function ArventoTracking() {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && isMapFullscreen) {
-                setIsMapFullscreen(false)
+                updateMapFullscreen(false)
             }
         }
         window.addEventListener('keydown', handleKeyDown)
@@ -3776,7 +3785,7 @@ export default function ArventoTracking() {
 
                                 {/* Fullscreen Toggle Button */}
                                 <button 
-                                    onClick={() => setIsMapFullscreen(prev => !prev)}
+                                    onClick={() => updateMapFullscreen(!isMapFullscreen)}
                                     title={isMapFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Yap'}
                                     className={`map-control-btn ${isMapFullscreen ? 'active' : ''}`}
                                 >

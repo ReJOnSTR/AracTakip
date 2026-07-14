@@ -6997,5 +6997,13 @@ body.map-fullscreen-active .tracking-map-wrapper {
   border: none !important;
 }
 
+.tracking-map-wrapper {
+  view-transition-name: map-container;
+  transition: border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-
+::view-transition-group(root),
+::view-transition-group(map-container) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
