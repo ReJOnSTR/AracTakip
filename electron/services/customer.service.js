@@ -115,11 +115,24 @@ async function getCustomerDetails(id) {
             return dateB - dateA;
         });
 
+        // Fetch payments linked to this customer's works
+        const workIds = customer.works.map(w => w.id);
+        const payments = await prisma.transactions.findMany({
+            where: {
+                category: {
+                    in: workIds.map(id => `WORK_PAYMENT_${id}`)
+                },
+                is_archived: 0
+            },
+            orderBy: { date: 'desc' }
+        });
+
         return {
             success: true,
             data: {
                 ...customer,
                 works: enhancedWorks,
+                payments: payments,
                 total_receivable: totalWorkReceivable,
                 total_volume: totalVolume
             }

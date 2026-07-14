@@ -629,8 +629,57 @@ export default function CustomerDetail() {
 
     const tabs = [
         { id: 'works', label: 'İş ve Projeler', icon: Briefcase },
+        { id: 'ledger', label: 'Cari Hesap Ekstresi', icon: Banknote },
         { id: 'documents', label: 'Dosyalar ve Belgeler', icon: FileText }
     ]
+
+    const ledgerData = useMemo(() => {
+        if (!customer) return [];
+        const works = customer.works || [];
+        const payments = customer.payments || [];
+        
+        const list = [];
+        
+        // 1. Add works as Debit (Borç)
+        works.forEach(w => {
+            if (w.status === 'cancelled') return;
+            list.push({
+                id: `work-${w.id}`,
+                date: w.start_date || w.created_at,
+                ref: `IS-${String(w.id).padStart(5, '0')}`,
+                description: `İş: ${w.title}`,
+                debit: w.total_price || 0,
+                credit: 0,
+                rawDate: new Date(w.start_date || w.created_at)
+            });
+        });
+        
+        // 2. Add payments as Credit (Alacak)
+        payments.forEach(p => {
+            list.push({
+                id: `payment-${p.id}`,
+                date: p.date,
+                ref: `TAH-${String(p.id).padStart(5, '0')}`,
+                description: p.description || `Tahsilat (Ödeme Yöntemi: ${p.payment_method || p.method || 'Nakit'})`,
+                debit: 0,
+                credit: p.amount || 0,
+                rawDate: new Date(p.date)
+            });
+        });
+        
+        // 3. Sort by date ascending (oldest first)
+        list.sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime());
+        
+        // 4. Calculate running balance
+        let balance = 0;
+        return list.map(item => {
+            balance += (item.debit - item.credit);
+            return {
+                ...item,
+                balance
+            };
+        }).reverse(); // Display newest transaction first in the table
+    }, [customer]);
 
     const completedWorks = customer.works?.filter(w => w.status === 'completed' && w.is_archived !== 1) || []
     const pendingWorks = customer.works?.filter(w => w.status !== 'completed' && w.status !== 'cancelled' && w.status !== 'paid' && w.is_archived !== 1) || []
@@ -681,7 +730,7 @@ export default function CustomerDetail() {
             </div>
 
             {/* Customer Info Section - Minimal */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 {/* İletişim ve Adres */}
                 <div className="card" style={{ padding: '16px 20px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -723,20 +772,73 @@ export default function CustomerDetail() {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Finansal Özet */}
-                <div className="card" style={{ padding: '16px 20px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Info size={13} /> Finansal Özet
+            {/* Cari Durum Paneli */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '28px' }}>
+                {/* Kart 1: Toplam Borç */}
+                <div className="card" style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ 
+                        width: '42px', height: '42px', borderRadius: '12px', 
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0
+                    }}>
+                        <Briefcase size={20} />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px' }}>
-                        <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Açık Bakiye</div>
-                            <div style={{ fontSize: '15px', fontWeight: 600, color: customer.total_receivable > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>{formatCurrency(customer.total_receivable || 0)}</div>
+                    <div>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                            Toplam Borç
                         </div>
-                        <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>İşlem Hacmi</div>
-                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(totalEarnings)}</div>
+                        <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            {formatCurrency(customer.total_volume || 0)}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Kart 2: Toplam Tahsilat */}
+                <div className="card" style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ 
+                        width: '42px', height: '42px', borderRadius: '12px', 
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0
+                    }}>
+                        <CheckCircle2 size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                            Toplam Tahsilat
+                        </div>
+                        <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--success)' }}>
+                            {formatCurrency((customer.total_volume || 0) - (customer.total_receivable || 0))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Kart 3: Güncel Cari Bakiye */}
+                <div className="card" style={{ 
+                    padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px',
+                    borderLeft: (customer.total_receivable || 0) > 0 ? '4px solid var(--danger-primary, #ef4444)' : '4px solid var(--success-primary, #22c55e)'
+                }}>
+                    <div style={{ 
+                        width: '42px', height: '42px', borderRadius: '12px', 
+                        backgroundColor: (customer.total_receivable || 0) > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                        color: (customer.total_receivable || 0) > 0 ? 'var(--danger)' : 'var(--success)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0
+                    }}>
+                        <Banknote size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                            Güncel Cari Bakiye
+                        </div>
+                        <div style={{ 
+                            fontSize: '20px', fontWeight: 700, 
+                            color: (customer.total_receivable || 0) > 0 ? 'var(--danger)' : 'var(--success)'
+                        }}>
+                            {formatCurrency(customer.total_receivable || 0)}
                         </div>
                     </div>
                 </div>
@@ -852,6 +954,58 @@ export default function CustomerDetail() {
                                     </button>
                                 </div>
                             )}
+                        />
+                    </div>
+                )}
+
+                {activeTab === 'ledger' && (
+                    <div className="tab-pane">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                                Cari Hesap Ekstresi (Ledger)
+                            </h3>
+                        </div>
+                        <DataTable
+                            columns={[
+                                { 
+                                    key: 'date', 
+                                    label: 'İşlem Tarihi', 
+                                    render: (val) => formatDate(val) 
+                                },
+                                { 
+                                    key: 'ref', 
+                                    label: 'Belge No' 
+                                },
+                                { 
+                                    key: 'description', 
+                                    label: 'İşlem Açıklaması' 
+                                },
+                                { 
+                                    key: 'debit', 
+                                    label: 'Borç (Alınan Hizmet)', 
+                                    align: 'right', 
+                                    render: (val) => val > 0 ? formatCurrency(val) : <span style={{ color: 'var(--text-muted)' }}>-</span>
+                                },
+                                { 
+                                    key: 'credit', 
+                                    label: 'Alacak (Yapılan Ödeme)', 
+                                    align: 'right', 
+                                    render: (val) => val > 0 ? formatCurrency(val) : <span style={{ color: 'var(--text-muted)' }}>-</span>
+                                },
+                                { 
+                                    key: 'balance', 
+                                    label: 'Bakiye', 
+                                    align: 'right', 
+                                    render: (val) => (
+                                        <span style={{ fontWeight: 600, color: val > 0 ? 'var(--danger)' : 'var(--success)' }}>
+                                            {formatCurrency(val)}
+                                        </span>
+                                    ) 
+                                }
+                            ]}
+                            data={ledgerData}
+                            showSearch={true}
+                            searchPlaceholder="Ekstre hareketlerinde ara..."
                         />
                     </div>
                 )}
