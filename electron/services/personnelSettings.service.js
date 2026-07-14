@@ -28,10 +28,16 @@ async function updateDepartment(data) {
     try {
         const result = await prisma.departments.update({
             where: { id: parseInt(data.id) },
-            data: { name: data.name }
+            data: {
+                name: data.name,
+                status: data.status !== undefined ? data.status : undefined
+            }
         });
         return { success: true, data: result };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) { 
+        require('electron-log').error('updateDepartment error:', error);
+        return { success: false, error: error.message }; 
+    }
 }
 
 async function deleteDepartment(id) {
@@ -68,10 +74,16 @@ async function updateLeaveType(data) {
     try {
         const result = await prisma.leave_types.update({
             where: { id: parseInt(data.id) },
-            data: { name: data.name }
+            data: {
+                name: data.name,
+                status: data.status !== undefined ? data.status : undefined
+            }
         });
         return { success: true, data: result };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) { 
+        require('electron-log').error('updateLeaveType error:', error);
+        return { success: false, error: error.message }; 
+    }
 }
 
 async function deleteLeaveType(id) {
@@ -112,10 +124,16 @@ async function updateDocumentCategory(data) {
     try {
         const result = await prisma.document_categories.update({
             where: { id: parseInt(data.id) },
-            data: { name: data.name }
+            data: {
+                name: data.name,
+                status: data.status !== undefined ? data.status : undefined
+            }
         });
         return { success: true, data: result };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) { 
+        require('electron-log').error('updateDocumentCategory error:', error);
+        return { success: false, error: error.message }; 
+    }
 }
 
 async function deleteDocumentCategory(id) {
@@ -243,12 +261,16 @@ async function updatePublicHoliday(data) {
         const result = await prisma.public_holidays.update({
             where: { id: parseInt(data.id) },
             data: {
-                date: new Date(data.date),
-                description: data.description || null
+                date: data.date ? new Date(data.date) : undefined,
+                description: data.description || null,
+                status: data.status !== undefined ? data.status : undefined
             }
         });
         return { success: true, data: result };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) { 
+        require('electron-log').error('updatePublicHoliday error:', error);
+        return { success: false, error: error.message }; 
+    }
 }
 
 async function deletePublicHoliday(id) {

@@ -214,9 +214,9 @@ async function getPayrollSummary(companyId, month) {
             };
         });
 
-        // PC only lists active employees OR employees with some salary record in the selected month
+        // Only list active employees in payroll summary
         const resultEmployees = filteredEmployees.filter(emp => {
-            return emp.status === 'active' || emp.salaries.length > 0;
+            return emp.status === 'active';
         });
 
         const collator = new Intl.Collator('tr');

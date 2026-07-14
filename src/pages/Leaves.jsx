@@ -91,11 +91,13 @@ export default function Leaves() {
             if (employeesRes.success) setEmployees(employeesRes.data || []);
             if (holidaysRes.success) setPublicHolidays(holidaysRes.data || []);
             if (typesRes.success) {
-                const types = (typesRes.data || []).map(t => ({
-                    value: t.name,
-                    label: t.name,
-                    color: defaultColors[t.name] || '#6b7280'
-                }));
+                const types = (typesRes.data || [])
+                    .filter(t => t.status !== 'passive')
+                    .map(t => ({
+                        value: t.name,
+                        label: t.name,
+                        color: defaultColors[t.name] || '#6b7280'
+                    }));
                 setLeaveTypes(types);
             }
         } catch (err) {
@@ -257,7 +259,7 @@ export default function Leaves() {
             // Fetch employee and holiday details for calculation
             const emp = employees.find(e => e.id === parseInt(newData.employeeId || prev.employeeId));
             const offDaysStr = emp ? emp.off_days : '0';
-            const holidayDates = publicHolidays.map(h => h.date);
+            const holidayDates = publicHolidays;
 
             if (key === 'type' || (key === 'employeeId' && prev.type)) {
                 const typeToProcess = key === 'type' ? value : prev.type;
@@ -347,7 +349,7 @@ export default function Leaves() {
     const startProcessingQueue = () => {
         if (formData.employeeIds.length === 0) return;
         
-        const holidayDates = publicHolidays.map(h => h.date);
+        const holidayDates = publicHolidays;
         const newQueue = formData.employeeIds.map(id => {
             const emp = employees.find(e => e.id === id);
             const offDaysStr = emp ? emp.off_days : '0';
@@ -380,7 +382,7 @@ export default function Leaves() {
             let newItem = { ...item, [key]: value };
             const emp = newItem.employee || employees.find(e => e.id === newItem.employeeId);
             const offDaysStr = emp ? emp.off_days : '0';
-            const holidayDates = publicHolidays.map(h => h.date);
+            const holidayDates = publicHolidays;
             const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8;
 
             if (newItem.leaveUnit === 'hourly') {
@@ -425,7 +427,7 @@ export default function Leaves() {
 
     const applyToAll = () => {
         const current = leaveQueue[leaveQueueIndex];
-        const holidayDates = publicHolidays.map(h => h.date);
+        const holidayDates = publicHolidays;
 
         setLeaveQueue(prev => prev.map((item, idx) => {
             if (item.isSaved) return item;
@@ -1080,7 +1082,7 @@ export default function Leaves() {
                                                     {leaveQueue[leaveQueueIndex].startDate && (() => {
                                                         const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
                                                         const offDaysStr = emp ? emp.off_days : '0';
-                                                        const holidayDates = publicHolidays.map(h => h.date);
+                                                        const holidayDates = publicHolidays;
                                                         const status = checkDateHolidayStatus(leaveQueue[leaveQueueIndex].startDate, offDaysStr, holidayDates);
                                                         if (!status) return null;
                                                         return (
@@ -1115,7 +1117,7 @@ export default function Leaves() {
                                                         {leaveQueue[leaveQueueIndex].startDate && (() => {
                                                             const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
                                                             const offDaysStr = emp ? emp.off_days : '0';
-                                                            const holidayDates = publicHolidays.map(h => h.date);
+                                                            const holidayDates = publicHolidays;
                                                             const status = checkDateHolidayStatus(leaveQueue[leaveQueueIndex].startDate, offDaysStr, holidayDates);
                                                             if (!status) return null;
                                                             return (
@@ -1137,7 +1139,7 @@ export default function Leaves() {
                                                         {leaveQueue[leaveQueueIndex].endDate && (() => {
                                                             const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
                                                             const offDaysStr = emp ? emp.off_days : '0';
-                                                            const holidayDates = publicHolidays.map(h => h.date);
+                                                            const holidayDates = publicHolidays;
                                                             const status = checkDateHolidayStatus(leaveQueue[leaveQueueIndex].endDate, offDaysStr, holidayDates);
                                                             if (!status) return null;
                                                             return (
@@ -1161,7 +1163,7 @@ export default function Leaves() {
                                                 {leaveQueue[leaveQueueIndex].startDate && leaveQueue[leaveQueueIndex].endDate && (() => {
                                                     const emp = employees.find(e => e.id === parseInt(leaveQueue[leaveQueueIndex].employeeId));
                                                     const offDaysStr = emp ? emp.off_days : '0';
-                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const holidayDates = publicHolidays;
                                                     const breakdown = getLeaveBreakdown(leaveQueue[leaveQueueIndex].startDate, leaveQueue[leaveQueueIndex].endDate, offDaysStr, holidayDates);
                                                     if (!breakdown || (breakdown.offDays === 0 && breakdown.holidays === 0)) return null;
                                                     return (

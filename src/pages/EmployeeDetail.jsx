@@ -328,8 +328,8 @@ export default function EmployeeDetail() {
             }
             if (assRes.success) setAssignments(assRes.data || [])
             if (docRes.success) setDocuments(docRes.data || [])
-            if (ltRes.success) setLeaveTypes(ltRes.data.map(t => ({ value: t.name, label: t.name })))
-            if (dcRes.success) setDocumentCategories(dcRes.data.map(t => ({ value: t.name, label: t.name, id: t.id })))
+            if (ltRes.success) setLeaveTypes(ltRes.data.filter(t => t.status !== 'passive').map(t => ({ value: t.name, label: t.name })))
+            if (dcRes.success) setDocumentCategories(dcRes.data.filter(t => t.status !== 'passive').map(t => ({ value: t.name, label: t.name, id: t.id })))
             if (deptRes.success) setDepartments(deptRes.data || [])
             if (dfRes && dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
             if (holidaysRes && holidaysRes.success) setPublicHolidays(holidaysRes.data || [])
@@ -687,7 +687,7 @@ export default function EmployeeDetail() {
                     }
 
                     const offDaysStr = employee ? employee.off_days : '0';
-                    const holidayDates = publicHolidays.map(h => h.date);
+                    const holidayDates = publicHolidays;
 
                     if (key === 'type') {
                         const autoDays = newData.days || 1;
@@ -2503,7 +2503,7 @@ export default function EmployeeDetail() {
                         onSubmit={handleEmployeeSave} 
                         onCancel={closeModal} 
                         loading={saving}
-                        departmentOptions={departments.map(d => ({ value: d.name, label: d.name }))}
+                        departmentOptions={departments.filter(d => d.status !== 'passive').map(d => ({ value: d.name, label: d.name }))}
                         onEditSalary={() => {
                             closeModal();
                             setActiveTab('salary_history');
@@ -2616,7 +2616,7 @@ export default function EmployeeDetail() {
                                                 <CustomInput label="Tarih *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
                                                 {formData.startDate && (() => {
                                                     const offDaysStr = employee ? employee.off_days : '0';
-                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const holidayDates = publicHolidays;
                                                     const status = checkDateHolidayStatus(formData.startDate, offDaysStr, holidayDates);
                                                     if (!status) return null;
                                                     return (
@@ -2635,7 +2635,7 @@ export default function EmployeeDetail() {
                                                 <CustomInput label="Başlangıç *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
                                                 {formData.startDate && (() => {
                                                     const offDaysStr = employee ? employee.off_days : '0';
-                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const holidayDates = publicHolidays;
                                                     const status = checkDateHolidayStatus(formData.startDate, offDaysStr, holidayDates);
                                                     if (!status) return null;
                                                     return (
@@ -2650,7 +2650,7 @@ export default function EmployeeDetail() {
                                                 <CustomInput label="Bitiş *" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} required />
                                                 {formData.endDate && (() => {
                                                     const offDaysStr = employee ? employee.off_days : '0';
-                                                    const holidayDates = publicHolidays.map(h => h.date);
+                                                    const holidayDates = publicHolidays;
                                                     const status = checkDateHolidayStatus(formData.endDate, offDaysStr, holidayDates);
                                                     if (!status) return null;
                                                     return (
@@ -2668,7 +2668,7 @@ export default function EmployeeDetail() {
 
                                 {formData.leaveUnit !== 'hourly' && formData.startDate && formData.endDate && (() => {
                                     const offDaysStr = employee ? employee.off_days : '0';
-                                    const holidayDates = publicHolidays.map(h => h.date);
+                                    const holidayDates = publicHolidays;
                                     const breakdown = getLeaveBreakdown(formData.startDate, formData.endDate, offDaysStr, holidayDates);
                                     if (!breakdown || (breakdown.offDays === 0 && breakdown.holidays === 0)) return null;
                                     return (

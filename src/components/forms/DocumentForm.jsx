@@ -27,7 +27,7 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
         try {
             const res = await window.electronAPI.getDocumentCategories(currentCompany.id, targetType)
             if (res.success) {
-                setDocumentTypes(res.data.map(t => ({ value: t.name, label: t.name })))
+                setDocumentTypes(res.data.filter(t => t.status !== 'passive').map(t => ({ value: t.name, label: t.name })))
             }
         } catch (error) {
             console.error('Failed to load document categories:', error)

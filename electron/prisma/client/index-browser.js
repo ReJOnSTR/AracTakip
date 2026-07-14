@@ -507,6 +507,7 @@ exports.Prisma.DepartmentsScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   name: 'name',
+  status: 'status',
   created_at: 'created_at'
 };
 
@@ -514,6 +515,7 @@ exports.Prisma.Leave_typesScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   name: 'name',
+  status: 'status',
   created_at: 'created_at'
 };
 
@@ -521,6 +523,7 @@ exports.Prisma.Document_categoriesScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
   name: 'name',
+  status: 'status',
   target_type: 'target_type',
   created_at: 'created_at'
 };
@@ -560,6 +563,7 @@ exports.Prisma.Public_holidaysScalarFieldEnum = {
   company_id: 'company_id',
   date: 'date',
   description: 'description',
+  status: 'status',
   created_at: 'created_at'
 };
 

@@ -138,7 +138,8 @@ function HrModuleContent() {
         type: '', // 'dept', 'leave', 'doc', 'holiday'
         item: null,
         value: '',
-        date: ''
+        date: '',
+        status: 'active'
     })
     const [confirmDeletePersonnel, setConfirmDeletePersonnel] = useState(null)
 
@@ -264,29 +265,32 @@ function HrModuleContent() {
             let result
             if (personnelModal.type === 'dept') {
                 result = personnelModal.item 
-                    ? await window.electronAPI.updateDepartment({ id: personnelModal.item.id, name: personnelModal.value })
+                    ? await window.electronAPI.updateDepartment({ id: personnelModal.item.id, name: personnelModal.value, status: personnelModal.status })
                     : await window.electronAPI.createDepartment({ companyId: currentCompany.id, name: personnelModal.value })
             } else if (personnelModal.type === 'leave') {
                 result = personnelModal.item
-                    ? await window.electronAPI.updateLeaveType({ id: personnelModal.item.id, name: personnelModal.value })
+                    ? await window.electronAPI.updateLeaveType({ id: personnelModal.item.id, name: personnelModal.value, status: personnelModal.status })
                     : await window.electronAPI.createLeaveType({ companyId: currentCompany.id, name: personnelModal.value })
             } else if (personnelModal.type === 'doc') {
                 result = personnelModal.item
-                    ? await window.electronAPI.updateDocumentCategory({ id: personnelModal.item.id, name: personnelModal.value })
+                    ? await window.electronAPI.updateDocumentCategory({ id: personnelModal.item.id, name: personnelModal.value, status: personnelModal.status })
                     : await window.electronAPI.createDocumentCategory({ companyId: currentCompany.id, name: personnelModal.value, targetType: 'employee' })
             } else if (personnelModal.type === 'holiday') {
                 if (!personnelModal.date) return
                 result = personnelModal.item
-                    ? await window.electronAPI.updatePublicHoliday({ id: personnelModal.item.id, date: personnelModal.date, description: personnelModal.value })
+                    ? await window.electronAPI.updatePublicHoliday({ id: personnelModal.item.id, date: personnelModal.date, description: personnelModal.value, status: personnelModal.status })
                     : await window.electronAPI.createPublicHoliday({ companyId: currentCompany.id, date: personnelModal.date, description: personnelModal.value })
             }
 
-            if (result.success) {
-                setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '' })
+            if (result && result.success) {
+                setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '', status: 'active' })
                 loadPersonnelSettings()
+            } else {
+                alert('Kaydedilemedi: ' + (result?.error || 'Bilinmeyen Hata'))
             }
         } catch (err) {
             console.error('Save personnel item error:', err)
+            alert('Kaydetme hatası: ' + err.message)
         }
     }
 
@@ -297,6 +301,7 @@ function HrModuleContent() {
             if (confirmDeletePersonnel.type === 'dept') result = await window.electronAPI.deleteDepartment(confirmDeletePersonnel.id)
             else if (confirmDeletePersonnel.type === 'leave') result = await window.electronAPI.deleteLeaveType(confirmDeletePersonnel.id)
             else if (confirmDeletePersonnel.type === 'doc') result = await window.electronAPI.deleteDocumentCategory(confirmDeletePersonnel.id)
+            else if (confirmDeletePersonnel.type === 'holiday') result = await window.electronAPI.deletePublicHoliday(confirmDeletePersonnel.id)
 
             if (result.success) {
                 setConfirmDeletePersonnel(null)
@@ -304,6 +309,23 @@ function HrModuleContent() {
             }
         } catch (err) {
             console.error('Delete personnel item error:', err)
+        }
+    }
+
+    const toggleStatus = async (type, item) => {
+        const newStatus = item.status === 'passive' ? 'active' : 'passive'
+        try {
+            let result
+            if (type === 'dept') result = await window.electronAPI.updateDepartment({ id: item.id, name: item.name, status: newStatus })
+            else if (type === 'leave') result = await window.electronAPI.updateLeaveType({ id: item.id, name: item.name, status: newStatus })
+            else if (type === 'doc') result = await window.electronAPI.updateDocumentCategory({ id: item.id, name: item.name, status: newStatus })
+            else if (type === 'holiday') result = await window.electronAPI.updatePublicHoliday({ id: item.id, date: item.date, description: item.description, status: newStatus })
+
+            if (result && result.success) {
+                loadPersonnelSettings()
+            }
+        } catch (err) {
+            console.error('Toggle status error:', err)
         }
     }
 
@@ -455,10 +477,19 @@ function HrModuleContent() {
                             </div>
                             <div className="settings-list">
                                 {personnelSettings.departments.map(dept => (
-                                    <div key={dept.id} className="settings-list-item">
-                                        <span>{dept.name}</span>
+                                    <div key={dept.id} className="settings-list-item" style={{ opacity: dept.status === 'passive' ? 0.6 : 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ textDecoration: dept.status === 'passive' ? 'line-through' : 'none' }}>{dept.name}</span>
+                                            <button 
+                                                className={`badge badge-${dept.status === 'passive' ? 'neutral' : 'success'}`} 
+                                                style={{ border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px' }}
+                                                onClick={() => toggleStatus('dept', dept)}
+                                            >
+                                                {dept.status === 'passive' ? 'Pasif' : 'Aktif'}
+                                            </button>
+                                        </div>
                                         <div className="item-actions">
-                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'dept', item: dept, value: dept.name })}>
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'dept', item: dept, value: dept.name, date: '', status: dept.status || 'active' })}>
                                                 <Edit2 size={14} />
                                             </button>
                                             <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...dept, type: 'dept' })}>
@@ -540,13 +571,22 @@ function HrModuleContent() {
                                     const isOfficial = !!hint;
 
                                     return (
-                                        <div key={type.id} className="settings-list-item">
+                                        <div key={type.id} className="settings-list-item" style={{ opacity: type.status === 'passive' ? 0.6 : 1 }}>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span>{type.name}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ textDecoration: type.status === 'passive' ? 'line-through' : 'none' }}>{type.name}</span>
+                                                    <button 
+                                                        className={`badge badge-${type.status === 'passive' ? 'neutral' : 'success'}`} 
+                                                        style={{ border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px' }}
+                                                        onClick={() => toggleStatus('leave', type)}
+                                                    >
+                                                        {type.status === 'passive' ? 'Pasif' : 'Aktif'}
+                                                    </button>
+                                                </div>
                                                 {hint && <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{hint}</span>}
                                             </div>
                                             <div className="item-actions">
-                                                <button onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: type, value: type.name })}>
+                                                <button onClick={() => setPersonnelModal({ isOpen: true, type: 'leave', item: type, value: type.name, date: '', status: type.status || 'active' })}>
                                                     <Edit2 size={14} />
                                                 </button>
                                                 {!isOfficial && (
@@ -580,10 +620,19 @@ function HrModuleContent() {
                             </div>
                             <div className="settings-list">
                                 {personnelSettings.docCategories.map(cat => (
-                                    <div key={cat.id} className="settings-list-item">
-                                        <span>{cat.name}</span>
+                                    <div key={cat.id} className="settings-list-item" style={{ opacity: cat.status === 'passive' ? 0.6 : 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ textDecoration: cat.status === 'passive' ? 'line-through' : 'none' }}>{cat.name}</span>
+                                            <button 
+                                                className={`badge badge-${cat.status === 'passive' ? 'neutral' : 'success'}`} 
+                                                style={{ border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px' }}
+                                                onClick={() => toggleStatus('doc', cat)}
+                                            >
+                                                {cat.status === 'passive' ? 'Pasif' : 'Aktif'}
+                                            </button>
+                                        </div>
                                         <div className="item-actions">
-                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'doc', item: cat, value: cat.name })}>
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'doc', item: cat, value: cat.name, date: '', status: cat.status || 'active' })}>
                                                 <Edit2 size={14} />
                                             </button>
                                             <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...cat, type: 'doc' })}>
@@ -609,15 +658,24 @@ function HrModuleContent() {
                             </div>
                             <div className="settings-list">
                                 {publicHolidays.map(holiday => (
-                                    <div key={holiday.id} className="settings-list-item">
+                                    <div key={holiday.id} className="settings-list-item" style={{ opacity: holiday.status === 'passive' ? 0.6 : 1 }}>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span>{holiday.description}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ textDecoration: holiday.status === 'passive' ? 'line-through' : 'none' }}>{holiday.description}</span>
+                                                <button 
+                                                    className={`badge badge-${holiday.status === 'passive' ? 'neutral' : 'success'}`} 
+                                                    style={{ border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px' }}
+                                                    onClick={() => toggleStatus('holiday', holiday)}
+                                                >
+                                                    {holiday.status === 'passive' ? 'Pasif' : 'Aktif'}
+                                                </button>
+                                            </div>
                                             <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                                                 {new Date(holiday.date).toLocaleDateString('tr-TR')}
                                             </span>
                                         </div>
                                         <div className="item-actions">
-                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'holiday', item: holiday, value: holiday.description, date: new Date(holiday.date).toISOString().split('T')[0] })}>
+                                            <button onClick={() => setPersonnelModal({ isOpen: true, type: 'holiday', item: holiday, value: holiday.description, date: new Date(holiday.date).toISOString().split('T')[0], status: holiday.status || 'active' })}>
                                                 <Edit2 size={14} />
                                             </button>
                                             <button className="text-danger" onClick={() => setConfirmDeletePersonnel({ ...holiday, name: holiday.description, type: 'holiday' })}>
@@ -678,7 +736,7 @@ function HrModuleContent() {
             {/* Personnel Definitions Add/Edit Modal */}
             <Modal
                 isOpen={personnelModal.isOpen}
-                onClose={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '' })}
+                onClose={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '', status: 'active' })}
                 title={personnelModal.item ? 'Tanımlama Düzenle' : 'Yeni Tanımlama Ekle'}
                 size="small"
             >
@@ -700,8 +758,28 @@ function HrModuleContent() {
                         autoFocus={personnelModal.type !== 'holiday'}
                         required
                     />
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                        <button type="button" className="btn btn-secondary" onClick={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '' })}>Vazgeç</button>
+
+                    {personnelModal.item && (
+                        <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Aktif / Pasif Durumu</span>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                    {personnelModal.status === 'active' ? 'Aktif - Seçim listelerinde listelenir' : 'Pasif - Seçim listelerinden gizlenir'}
+                                </span>
+                            </div>
+                            <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={personnelModal.status === 'active'} 
+                                    onChange={(e) => setPersonnelModal(prev => ({ ...prev, status: e.target.checked ? 'active' : 'passive' }))} 
+                                />
+                                <span className="toggle-slider"></span>
+                            </label>
+                        </div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '25px' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setPersonnelModal({ isOpen: false, type: '', item: null, value: '', date: '', status: 'active' })}>Vazgeç</button>
                         <button type="submit" className="btn btn-primary">Kaydet</button>
                     </div>
                 </form>

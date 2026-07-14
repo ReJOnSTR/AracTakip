@@ -349,6 +349,19 @@ async function runAutoMigrations() {
     } catch (error) {
         log.error('Migration step 11c (documents columns) error:', error.message);
     }
+    // 11e. Add status column to personnel settings tables if missing
+    try {
+        const settingsTables = ['departments', 'leave_types', 'document_categories', 'public_holidays'];
+        for (const tableName of settingsTables) {
+            const cols = await p.$queryRawUnsafe(`PRAGMA table_info('${tableName}')`);
+            if (cols.length > 0 && !cols.some(c => c.name === 'status')) {
+                await p.$executeRawUnsafe(`ALTER TABLE ${tableName} ADD COLUMN status TEXT DEFAULT 'active'`);
+                log.info(`Migration: Added status column to ${tableName}`);
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11e (settings status columns) error:', error.message);
+    }
 
     // 12. Seed Default Personnel Settings for all companies
     try {

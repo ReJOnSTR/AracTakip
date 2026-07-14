@@ -30,7 +30,9 @@ export default function Employees() {
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
     const [departments, setDepartments] = useState([])
-    const departmentOptions = departments.map(d => ({ value: d.name, label: d.name }))
+    const departmentOptions = departments
+        .filter(d => d.status !== 'passive')
+        .map(d => ({ value: d.name, label: d.name }))
 
     useEffect(() => {
         if (currentCompany) {

@@ -304,8 +304,12 @@ function getReligiousHolidays(year) {
     return dates;
 }
 
-function checkIsHoliday(dateStr, holidaySet) {
-    if (holidaySet.has(dateStr)) return true;
+function checkIsHoliday(dateStr, holidaySets) {
+    const activeSet = holidaySets.activeSet || new Set();
+    const passiveSet = holidaySets.passiveSet || new Set();
+
+    if (activeSet.has(dateStr)) return true;
+    if (passiveSet.has(dateStr)) return false;
     
     // Fixed national holidays
     const md = dateStr.substring(5); // "MM-DD"
@@ -320,31 +324,48 @@ function checkIsHoliday(dateStr, holidaySet) {
 }
 
 function parseHolidayDates(publicHolidayDates) {
-    if (!Array.isArray(publicHolidayDates)) return new Set();
-    return new Set(publicHolidayDates.map(d => {
-        if (!d) return '';
-        if (typeof d === 'string') return d.split('T')[0];
-        if (d instanceof Date) {
+    const activeSet = new Set();
+    const passiveSet = new Set();
+    if (!Array.isArray(publicHolidayDates)) return { activeSet, passiveSet };
+
+    publicHolidayDates.forEach(d => {
+        if (!d) return;
+        
+        let dateStr = '';
+        let status = 'active';
+
+        if (typeof d === 'string') {
+            dateStr = d.split('T')[0];
+        } else if (d instanceof Date) {
             try {
-                return d.toISOString().split('T')[0];
-            } catch (e) {
-                return '';
-            }
-        }
-        if (typeof d === 'object' && d.date) {
+                dateStr = d.toISOString().split('T')[0];
+            } catch (e) {}
+        } else if (typeof d === 'object') {
+            status = d.status || 'active';
             const dateVal = d.date;
-            if (typeof dateVal === 'string') return dateVal.split('T')[0];
-            if (dateVal instanceof Date) {
+            if (typeof dateVal === 'string') {
+                dateStr = dateVal.split('T')[0];
+            } else if (dateVal instanceof Date) {
                 try {
-                    return dateVal.toISOString().split('T')[0];
-                } catch (e) {
-                    return '';
-                }
+                    dateStr = dateVal.toISOString().split('T')[0];
+                } catch (e) {}
+            } else if (d.date) {
+                dateStr = String(d.date).split('T')[0];
             }
         }
-        return String(d).split('T')[0];
-    }).filter(Boolean));
+
+        if (dateStr) {
+            if (status === 'passive') {
+                passiveSet.add(dateStr);
+            } else {
+                activeSet.add(dateStr);
+            }
+        }
+    });
+
+    return { activeSet, passiveSet };
 }
+
 
 export function calculateLeaveDays(startDateStr, endDateStr, offDaysStr = "0", publicHolidayDates = []) {
     if (!startDateStr || !endDateStr) return 0;

@@ -37464,6 +37464,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    status: string | null
     created_at: Date | null
   }
 
@@ -37471,6 +37472,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    status: string | null
     created_at: Date | null
   }
 
@@ -37478,6 +37480,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: number
+    status: number
     created_at: number
     _all: number
   }
@@ -37497,6 +37500,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     created_at?: true
   }
 
@@ -37504,6 +37508,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     created_at?: true
   }
 
@@ -37511,6 +37516,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     created_at?: true
     _all?: true
   }
@@ -37605,6 +37611,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: string
+    status: string | null
     created_at: Date | null
     _count: DepartmentsCountAggregateOutputType | null
     _avg: DepartmentsAvgAggregateOutputType | null
@@ -37631,6 +37638,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["departments"]>
@@ -37639,6 +37647,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["departments"]>
@@ -37647,6 +37656,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["departments"]>
@@ -37655,10 +37665,11 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
   }
 
-  export type departmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["departments"]>
+  export type departmentsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "status" | "created_at", ExtArgs["result"]["departments"]>
   export type departmentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -37678,6 +37689,7 @@ export namespace Prisma {
       id: number
       company_id: number
       name: string
+      status: string | null
       created_at: Date | null
     }, ExtArgs["result"]["departments"]>
     composites: {}
@@ -38106,6 +38118,7 @@ export namespace Prisma {
     readonly id: FieldRef<"departments", 'Int'>
     readonly company_id: FieldRef<"departments", 'Int'>
     readonly name: FieldRef<"departments", 'String'>
+    readonly status: FieldRef<"departments", 'String'>
     readonly created_at: FieldRef<"departments", 'DateTime'>
   }
     
@@ -38545,6 +38558,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    status: string | null
     created_at: Date | null
   }
 
@@ -38552,6 +38566,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    status: string | null
     created_at: Date | null
   }
 
@@ -38559,6 +38574,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: number
+    status: number
     created_at: number
     _all: number
   }
@@ -38578,6 +38594,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     created_at?: true
   }
 
@@ -38585,6 +38602,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     created_at?: true
   }
 
@@ -38592,6 +38610,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     created_at?: true
     _all?: true
   }
@@ -38686,6 +38705,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: string
+    status: string | null
     created_at: Date | null
     _count: Leave_typesCountAggregateOutputType | null
     _avg: Leave_typesAvgAggregateOutputType | null
@@ -38712,6 +38732,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["leave_types"]>
@@ -38720,6 +38741,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["leave_types"]>
@@ -38728,6 +38750,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["leave_types"]>
@@ -38736,10 +38759,11 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     created_at?: boolean
   }
 
-  export type leave_typesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "created_at", ExtArgs["result"]["leave_types"]>
+  export type leave_typesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "status" | "created_at", ExtArgs["result"]["leave_types"]>
   export type leave_typesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -38759,6 +38783,7 @@ export namespace Prisma {
       id: number
       company_id: number
       name: string
+      status: string | null
       created_at: Date | null
     }, ExtArgs["result"]["leave_types"]>
     composites: {}
@@ -39187,6 +39212,7 @@ export namespace Prisma {
     readonly id: FieldRef<"leave_types", 'Int'>
     readonly company_id: FieldRef<"leave_types", 'Int'>
     readonly name: FieldRef<"leave_types", 'String'>
+    readonly status: FieldRef<"leave_types", 'String'>
     readonly created_at: FieldRef<"leave_types", 'DateTime'>
   }
     
@@ -39626,6 +39652,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    status: string | null
     target_type: string | null
     created_at: Date | null
   }
@@ -39634,6 +39661,7 @@ export namespace Prisma {
     id: number | null
     company_id: number | null
     name: string | null
+    status: string | null
     target_type: string | null
     created_at: Date | null
   }
@@ -39642,6 +39670,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: number
+    status: number
     target_type: number
     created_at: number
     _all: number
@@ -39662,6 +39691,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     target_type?: true
     created_at?: true
   }
@@ -39670,6 +39700,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     target_type?: true
     created_at?: true
   }
@@ -39678,6 +39709,7 @@ export namespace Prisma {
     id?: true
     company_id?: true
     name?: true
+    status?: true
     target_type?: true
     created_at?: true
     _all?: true
@@ -39773,6 +39805,7 @@ export namespace Prisma {
     id: number
     company_id: number
     name: string
+    status: string | null
     target_type: string | null
     created_at: Date | null
     _count: Document_categoriesCountAggregateOutputType | null
@@ -39800,6 +39833,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     target_type?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -39809,6 +39843,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     target_type?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -39818,6 +39853,7 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     target_type?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
@@ -39827,11 +39863,12 @@ export namespace Prisma {
     id?: boolean
     company_id?: boolean
     name?: boolean
+    status?: boolean
     target_type?: boolean
     created_at?: boolean
   }
 
-  export type document_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "target_type" | "created_at", ExtArgs["result"]["document_categories"]>
+  export type document_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "name" | "status" | "target_type" | "created_at", ExtArgs["result"]["document_categories"]>
   export type document_categoriesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -39851,6 +39888,7 @@ export namespace Prisma {
       id: number
       company_id: number
       name: string
+      status: string | null
       target_type: string | null
       created_at: Date | null
     }, ExtArgs["result"]["document_categories"]>
@@ -40280,6 +40318,7 @@ export namespace Prisma {
     readonly id: FieldRef<"document_categories", 'Int'>
     readonly company_id: FieldRef<"document_categories", 'Int'>
     readonly name: FieldRef<"document_categories", 'String'>
+    readonly status: FieldRef<"document_categories", 'String'>
     readonly target_type: FieldRef<"document_categories", 'String'>
     readonly created_at: FieldRef<"document_categories", 'DateTime'>
   }
@@ -44042,6 +44081,7 @@ export namespace Prisma {
     company_id: number | null
     date: Date | null
     description: string | null
+    status: string | null
     created_at: Date | null
   }
 
@@ -44050,6 +44090,7 @@ export namespace Prisma {
     company_id: number | null
     date: Date | null
     description: string | null
+    status: string | null
     created_at: Date | null
   }
 
@@ -44058,6 +44099,7 @@ export namespace Prisma {
     company_id: number
     date: number
     description: number
+    status: number
     created_at: number
     _all: number
   }
@@ -44078,6 +44120,7 @@ export namespace Prisma {
     company_id?: true
     date?: true
     description?: true
+    status?: true
     created_at?: true
   }
 
@@ -44086,6 +44129,7 @@ export namespace Prisma {
     company_id?: true
     date?: true
     description?: true
+    status?: true
     created_at?: true
   }
 
@@ -44094,6 +44138,7 @@ export namespace Prisma {
     company_id?: true
     date?: true
     description?: true
+    status?: true
     created_at?: true
     _all?: true
   }
@@ -44189,6 +44234,7 @@ export namespace Prisma {
     company_id: number
     date: Date
     description: string | null
+    status: string | null
     created_at: Date | null
     _count: Public_holidaysCountAggregateOutputType | null
     _avg: Public_holidaysAvgAggregateOutputType | null
@@ -44216,6 +44262,7 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     description?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["public_holidays"]>
@@ -44225,6 +44272,7 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     description?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["public_holidays"]>
@@ -44234,6 +44282,7 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     description?: boolean
+    status?: boolean
     created_at?: boolean
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["public_holidays"]>
@@ -44243,10 +44292,11 @@ export namespace Prisma {
     company_id?: boolean
     date?: boolean
     description?: boolean
+    status?: boolean
     created_at?: boolean
   }
 
-  export type public_holidaysOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "description" | "created_at", ExtArgs["result"]["public_holidays"]>
+  export type public_holidaysOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "date" | "description" | "status" | "created_at", ExtArgs["result"]["public_holidays"]>
   export type public_holidaysInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | companiesDefaultArgs<ExtArgs>
   }
@@ -44267,6 +44317,7 @@ export namespace Prisma {
       company_id: number
       date: Date
       description: string | null
+      status: string | null
       created_at: Date | null
     }, ExtArgs["result"]["public_holidays"]>
     composites: {}
@@ -44696,6 +44747,7 @@ export namespace Prisma {
     readonly company_id: FieldRef<"public_holidays", 'Int'>
     readonly date: FieldRef<"public_holidays", 'DateTime'>
     readonly description: FieldRef<"public_holidays", 'String'>
+    readonly status: FieldRef<"public_holidays", 'String'>
     readonly created_at: FieldRef<"public_holidays", 'DateTime'>
   }
     
@@ -45591,6 +45643,7 @@ export namespace Prisma {
     id: 'id',
     company_id: 'company_id',
     name: 'name',
+    status: 'status',
     created_at: 'created_at'
   };
 
@@ -45601,6 +45654,7 @@ export namespace Prisma {
     id: 'id',
     company_id: 'company_id',
     name: 'name',
+    status: 'status',
     created_at: 'created_at'
   };
 
@@ -45611,6 +45665,7 @@ export namespace Prisma {
     id: 'id',
     company_id: 'company_id',
     name: 'name',
+    status: 'status',
     target_type: 'target_type',
     created_at: 'created_at'
   };
@@ -45662,6 +45717,7 @@ export namespace Prisma {
     company_id: 'company_id',
     date: 'date',
     description: 'description',
+    status: 'status',
     created_at: 'created_at'
   };
 
@@ -48234,6 +48290,7 @@ export namespace Prisma {
     id?: IntFilter<"departments"> | number
     company_id?: IntFilter<"departments"> | number
     name?: StringFilter<"departments"> | string
+    status?: StringNullableFilter<"departments"> | string | null
     created_at?: DateTimeNullableFilter<"departments"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
@@ -48242,6 +48299,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
@@ -48253,6 +48311,7 @@ export namespace Prisma {
     NOT?: departmentsWhereInput | departmentsWhereInput[]
     company_id?: IntFilter<"departments"> | number
     name?: StringFilter<"departments"> | string
+    status?: StringNullableFilter<"departments"> | string | null
     created_at?: DateTimeNullableFilter<"departments"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
@@ -48261,6 +48320,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: departmentsCountOrderByAggregateInput
     _avg?: departmentsAvgOrderByAggregateInput
@@ -48276,6 +48336,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"departments"> | number
     company_id?: IntWithAggregatesFilter<"departments"> | number
     name?: StringWithAggregatesFilter<"departments"> | string
+    status?: StringNullableWithAggregatesFilter<"departments"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"departments"> | Date | string | null
   }
 
@@ -48286,6 +48347,7 @@ export namespace Prisma {
     id?: IntFilter<"leave_types"> | number
     company_id?: IntFilter<"leave_types"> | number
     name?: StringFilter<"leave_types"> | string
+    status?: StringNullableFilter<"leave_types"> | string | null
     created_at?: DateTimeNullableFilter<"leave_types"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
@@ -48294,6 +48356,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
@@ -48305,6 +48368,7 @@ export namespace Prisma {
     NOT?: leave_typesWhereInput | leave_typesWhereInput[]
     company_id?: IntFilter<"leave_types"> | number
     name?: StringFilter<"leave_types"> | string
+    status?: StringNullableFilter<"leave_types"> | string | null
     created_at?: DateTimeNullableFilter<"leave_types"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
@@ -48313,6 +48377,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: leave_typesCountOrderByAggregateInput
     _avg?: leave_typesAvgOrderByAggregateInput
@@ -48328,6 +48393,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"leave_types"> | number
     company_id?: IntWithAggregatesFilter<"leave_types"> | number
     name?: StringWithAggregatesFilter<"leave_types"> | string
+    status?: StringNullableWithAggregatesFilter<"leave_types"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"leave_types"> | Date | string | null
   }
 
@@ -48338,6 +48404,7 @@ export namespace Prisma {
     id?: IntFilter<"document_categories"> | number
     company_id?: IntFilter<"document_categories"> | number
     name?: StringFilter<"document_categories"> | string
+    status?: StringNullableFilter<"document_categories"> | string | null
     target_type?: StringNullableFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
@@ -48347,6 +48414,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrderInput | SortOrder
     target_type?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
@@ -48359,6 +48427,7 @@ export namespace Prisma {
     NOT?: document_categoriesWhereInput | document_categoriesWhereInput[]
     company_id?: IntFilter<"document_categories"> | number
     name?: StringFilter<"document_categories"> | string
+    status?: StringNullableFilter<"document_categories"> | string | null
     target_type?: StringNullableFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
@@ -48368,6 +48437,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrderInput | SortOrder
     target_type?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: document_categoriesCountOrderByAggregateInput
@@ -48384,6 +48454,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"document_categories"> | number
     company_id?: IntWithAggregatesFilter<"document_categories"> | number
     name?: StringWithAggregatesFilter<"document_categories"> | string
+    status?: StringNullableWithAggregatesFilter<"document_categories"> | string | null
     target_type?: StringNullableWithAggregatesFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"document_categories"> | Date | string | null
   }
@@ -48594,6 +48665,7 @@ export namespace Prisma {
     company_id?: IntFilter<"public_holidays"> | number
     date?: DateTimeFilter<"public_holidays"> | Date | string
     description?: StringNullableFilter<"public_holidays"> | string | null
+    status?: StringNullableFilter<"public_holidays"> | string | null
     created_at?: DateTimeNullableFilter<"public_holidays"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }
@@ -48603,6 +48675,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     description?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     companies?: companiesOrderByWithRelationInput
   }
@@ -48615,6 +48688,7 @@ export namespace Prisma {
     company_id?: IntFilter<"public_holidays"> | number
     date?: DateTimeFilter<"public_holidays"> | Date | string
     description?: StringNullableFilter<"public_holidays"> | string | null
+    status?: StringNullableFilter<"public_holidays"> | string | null
     created_at?: DateTimeNullableFilter<"public_holidays"> | Date | string | null
     companies?: XOR<CompaniesScalarRelationFilter, companiesWhereInput>
   }, "id">
@@ -48624,6 +48698,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     description?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     _count?: public_holidaysCountOrderByAggregateInput
     _avg?: public_holidaysAvgOrderByAggregateInput
@@ -48640,6 +48715,7 @@ export namespace Prisma {
     company_id?: IntWithAggregatesFilter<"public_holidays"> | number
     date?: DateTimeWithAggregatesFilter<"public_holidays"> | Date | string
     description?: StringNullableWithAggregatesFilter<"public_holidays"> | string | null
+    status?: StringNullableWithAggregatesFilter<"public_holidays"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"public_holidays"> | Date | string | null
   }
 
@@ -51380,6 +51456,7 @@ export namespace Prisma {
 
   export type departmentsCreateInput = {
     name: string
+    status?: string | null
     created_at?: Date | string | null
     companies: companiesCreateNestedOneWithoutDepartmentsInput
   }
@@ -51388,11 +51465,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type departmentsUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     companies?: companiesUpdateOneRequiredWithoutDepartmentsNestedInput
   }
@@ -51401,6 +51480,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -51408,11 +51488,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type departmentsUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -51420,11 +51502,13 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type leave_typesCreateInput = {
     name: string
+    status?: string | null
     created_at?: Date | string | null
     companies: companiesCreateNestedOneWithoutLeave_typesInput
   }
@@ -51433,11 +51517,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type leave_typesUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     companies?: companiesUpdateOneRequiredWithoutLeave_typesNestedInput
   }
@@ -51446,6 +51532,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -51453,11 +51540,13 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type leave_typesUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -51465,11 +51554,13 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_categoriesCreateInput = {
     name: string
+    status?: string | null
     target_type?: string | null
     created_at?: Date | string | null
     companies: companiesCreateNestedOneWithoutDocument_categoriesInput
@@ -51479,12 +51570,14 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    status?: string | null
     target_type?: string | null
     created_at?: Date | string | null
   }
 
   export type document_categoriesUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     companies?: companiesUpdateOneRequiredWithoutDocument_categoriesNestedInput
@@ -51494,6 +51587,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -51502,12 +51596,14 @@ export namespace Prisma {
     id?: number
     company_id: number
     name: string
+    status?: string | null
     target_type?: string | null
     created_at?: Date | string | null
   }
 
   export type document_categoriesUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -51516,6 +51612,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     company_id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -51722,6 +51819,7 @@ export namespace Prisma {
   export type public_holidaysCreateInput = {
     date: Date | string
     description?: string | null
+    status?: string | null
     created_at?: Date | string | null
     companies: companiesCreateNestedOneWithoutPublic_holidaysInput
   }
@@ -51731,12 +51829,14 @@ export namespace Prisma {
     company_id: number
     date: Date | string
     description?: string | null
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type public_holidaysUpdateInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     companies?: companiesUpdateOneRequiredWithoutPublic_holidaysNestedInput
   }
@@ -51746,6 +51846,7 @@ export namespace Prisma {
     company_id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -51754,12 +51855,14 @@ export namespace Prisma {
     company_id: number
     date: Date | string
     description?: string | null
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type public_holidaysUpdateManyMutationInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -51768,6 +51871,7 @@ export namespace Prisma {
     company_id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -53912,6 +54016,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -53924,6 +54029,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -53931,6 +54037,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -53943,6 +54050,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -53955,6 +54063,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -53962,6 +54071,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -53974,6 +54084,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     target_type?: SortOrder
     created_at?: SortOrder
   }
@@ -53987,6 +54098,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     target_type?: SortOrder
     created_at?: SortOrder
   }
@@ -53995,6 +54107,7 @@ export namespace Prisma {
     id?: SortOrder
     company_id?: SortOrder
     name?: SortOrder
+    status?: SortOrder
     target_type?: SortOrder
     created_at?: SortOrder
   }
@@ -54141,6 +54254,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     description?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -54154,6 +54268,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     description?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -54162,6 +54277,7 @@ export namespace Prisma {
     company_id?: SortOrder
     date?: SortOrder
     description?: SortOrder
+    status?: SortOrder
     created_at?: SortOrder
   }
 
@@ -56946,12 +57062,14 @@ export namespace Prisma {
 
   export type departmentsCreateWithoutCompaniesInput = {
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type departmentsUncheckedCreateWithoutCompaniesInput = {
     id?: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
@@ -56966,12 +57084,14 @@ export namespace Prisma {
 
   export type leave_typesCreateWithoutCompaniesInput = {
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type leave_typesUncheckedCreateWithoutCompaniesInput = {
     id?: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
@@ -56986,6 +57106,7 @@ export namespace Prisma {
 
   export type document_categoriesCreateWithoutCompaniesInput = {
     name: string
+    status?: string | null
     target_type?: string | null
     created_at?: Date | string | null
   }
@@ -56993,6 +57114,7 @@ export namespace Prisma {
   export type document_categoriesUncheckedCreateWithoutCompaniesInput = {
     id?: number
     name: string
+    status?: string | null
     target_type?: string | null
     created_at?: Date | string | null
   }
@@ -57077,6 +57199,7 @@ export namespace Prisma {
   export type public_holidaysCreateWithoutCompaniesInput = {
     date: Date | string
     description?: string | null
+    status?: string | null
     created_at?: Date | string | null
   }
 
@@ -57084,6 +57207,7 @@ export namespace Prisma {
     id?: number
     date: Date | string
     description?: string | null
+    status?: string | null
     created_at?: Date | string | null
   }
 
@@ -57433,6 +57557,7 @@ export namespace Prisma {
     id?: IntFilter<"departments"> | number
     company_id?: IntFilter<"departments"> | number
     name?: StringFilter<"departments"> | string
+    status?: StringNullableFilter<"departments"> | string | null
     created_at?: DateTimeNullableFilter<"departments"> | Date | string | null
   }
 
@@ -57459,6 +57584,7 @@ export namespace Prisma {
     id?: IntFilter<"leave_types"> | number
     company_id?: IntFilter<"leave_types"> | number
     name?: StringFilter<"leave_types"> | string
+    status?: StringNullableFilter<"leave_types"> | string | null
     created_at?: DateTimeNullableFilter<"leave_types"> | Date | string | null
   }
 
@@ -57485,6 +57611,7 @@ export namespace Prisma {
     id?: IntFilter<"document_categories"> | number
     company_id?: IntFilter<"document_categories"> | number
     name?: StringFilter<"document_categories"> | string
+    status?: StringNullableFilter<"document_categories"> | string | null
     target_type?: StringNullableFilter<"document_categories"> | string | null
     created_at?: DateTimeNullableFilter<"document_categories"> | Date | string | null
   }
@@ -57595,6 +57722,7 @@ export namespace Prisma {
     company_id?: IntFilter<"public_holidays"> | number
     date?: DateTimeFilter<"public_holidays"> | Date | string
     description?: StringNullableFilter<"public_holidays"> | string | null
+    status?: StringNullableFilter<"public_holidays"> | string | null
     created_at?: DateTimeNullableFilter<"public_holidays"> | Date | string | null
   }
 
@@ -63620,18 +63748,21 @@ export namespace Prisma {
   export type departmentsCreateManyCompaniesInput = {
     id?: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type leave_typesCreateManyCompaniesInput = {
     id?: number
     name: string
+    status?: string | null
     created_at?: Date | string | null
   }
 
   export type document_categoriesCreateManyCompaniesInput = {
     id?: number
     name: string
+    status?: string | null
     target_type?: string | null
     created_at?: Date | string | null
   }
@@ -63662,6 +63793,7 @@ export namespace Prisma {
     id?: number
     date: Date | string
     description?: string | null
+    status?: string | null
     created_at?: Date | string | null
   }
 
@@ -64054,40 +64186,47 @@ export namespace Prisma {
 
   export type departmentsUpdateWithoutCompaniesInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type departmentsUncheckedUpdateWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type departmentsUncheckedUpdateManyWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type leave_typesUpdateWithoutCompaniesInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type leave_typesUncheckedUpdateWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type leave_typesUncheckedUpdateManyWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type document_categoriesUpdateWithoutCompaniesInput = {
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -64095,6 +64234,7 @@ export namespace Prisma {
   export type document_categoriesUncheckedUpdateWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -64102,6 +64242,7 @@ export namespace Prisma {
   export type document_categoriesUncheckedUpdateManyWithoutCompaniesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     target_type?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -64172,6 +64313,7 @@ export namespace Prisma {
   export type public_holidaysUpdateWithoutCompaniesInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -64179,6 +64321,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -64186,6 +64329,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
