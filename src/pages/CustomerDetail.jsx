@@ -1405,13 +1405,14 @@ export default function CustomerDetail() {
                         method: 'CASH',
                         amount: paymentWork ? (paymentWork.total_price || 0) : (customer.total_receivable || 0),
                         description: paymentWork 
-                            ? `[TAHSİLAT] İş: ${paymentWork.title} - Müşteri: ${customer.name}`
-                            : `[TAHSİLAT] Cari Ödeme - Müşteri: ${customer.name}`,
+                            ? `İş: ${paymentWork.title} - Müşteri: ${customer.name}`
+                            : `Cari Ödeme - Müşteri: ${customer.name}`,
                         date: new Date().toISOString().split('T')[0]
                     }}
                     onSubmit={async (data) => {
                         setSaving(true)
                         try {
+                            let res;
                             if (paymentWork) {
                                 // 1. İş tablosunda konumu paid olarak güncelle
                                 await window.electronAPI.updateWork({
@@ -1419,24 +1420,29 @@ export default function CustomerDetail() {
                                     status: 'paid'
                                 });
                                 // 2. Bir gelir işlemi oluştur (finans)
-                                await window.electronAPI.createFinance({
+                                res = await window.electronAPI.createFinance({
                                     ...data,
                                     category: `WORK_PAYMENT_${paymentWork.id}`,
-                                    companyId: customer.company_id
+                                    companyId: currentCompany.id
                                 });
                             } else {
                                 // Cari genel tahsilat kaydet
-                                await window.electronAPI.createFinance({
+                                res = await window.electronAPI.createFinance({
                                     ...data,
                                     category: `CUSTOMER_PAYMENT_${customer.id}`,
-                                    companyId: customer.company_id
+                                    companyId: currentCompany.id
                                 });
                             }
                             
-                            setPaymentModalOpen(false);
-                            loadCustomer(); // Yenile
+                            if (res && !res.success) {
+                                alert('Tahsilat kaydedilemedi: ' + res.error);
+                            } else {
+                                setPaymentModalOpen(false);
+                                loadCustomer(); // Yenile
+                            }
                         } catch (err) {
                             console.error('Payment error', err);
+                            alert('Tahsilat sırasında bir hata oluştu: ' + err.message);
                         } finally {
                             setSaving(false);
                         }
