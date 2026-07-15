@@ -115,12 +115,15 @@ async function getCustomerDetails(id) {
             return dateB - dateA;
         });
 
-        // Fetch payments linked to this customer's works
+        // Fetch payments linked to this customer's works and general customer collections
         const workIds = customer.works.map(w => w.id);
         const payments = await prisma.transactions.findMany({
             where: {
                 category: {
-                    in: workIds.map(id => `WORK_PAYMENT_${id}`)
+                    in: [
+                        ...workIds.map(id => `WORK_PAYMENT_${id}`),
+                        `CUSTOMER_PAYMENT_${customer.id}`
+                    ]
                 },
                 is_archived: 0
             },

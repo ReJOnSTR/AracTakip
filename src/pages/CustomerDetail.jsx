@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, ArchiveRestore, FileText, Plus, Trash2, Folder, AlertCircle, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, ArchiveRestore, FileText, Plus, Trash2, Folder, AlertCircle, ChevronRight, Printer, FileDown, Settings, ChevronDown, Save } from 'lucide-react'
 import DataTable from '../components/DataTable'
 import TopProgressBar from '../components/TopProgressBar'
 import { formatDate, formatCurrency } from '../utils/helpers'
@@ -37,6 +37,16 @@ export default function CustomerDetail() {
 
     const [paymentModalOpen, setPaymentModalOpen] = useState(false)
     const [paymentWork, setPaymentWork] = useState(null)
+
+    // Report Modal States
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+    const [reportShowSignature, setReportShowSignature] = useState(true)
+    const [reportShowBalance, setReportShowBalance] = useState(true)
+    const [reportStartDate, setReportStartDate] = useState('')
+    const [reportEndDate, setReportEndDate] = useState('')
+    const [reportTitle, setReportTitle] = useState('CARİ HESAP EKSTRE RAPORU')
+    const [sidebarCollapsed, setSidebarCollapsed] = useState({ options: false })
+    const [generatingPdf, setGeneratingPdf] = useState(false)
 
     // Filter states
     const [showArchived, setShowArchived] = useState(false)
@@ -672,6 +682,117 @@ export default function CustomerDetail() {
         }).reverse(); // Display newest transaction first in the table
     }, [customer]);
 
+    const reportPreviousBalance = useMemo(() => {
+        if (!reportStartDate) return 0;
+        const start = new Date(reportStartDate);
+        const allOldestFirst = [...ledgerData].reverse();
+        
+        let prevBal = 0;
+        allOldestFirst.forEach(item => {
+            if (new Date(item.date) < start) {
+                prevBal += (item.debit - item.credit);
+            }
+        });
+        return prevBal;
+    }, [ledgerData, reportStartDate]);
+
+    const reportLedgerData = useMemo(() => {
+        let filtered = [...ledgerData];
+        filtered.reverse(); // put oldest first
+
+        if (reportStartDate) {
+            const start = new Date(reportStartDate);
+            filtered = filtered.filter(item => new Date(item.date) >= start);
+        }
+        if (reportEndDate) {
+            const end = new Date(reportEndDate);
+            end.setHours(23, 59, 59, 999);
+            filtered = filtered.filter(item => new Date(item.date) <= end);
+        }
+        
+        let runningBalance = 0;
+        return filtered.map(item => {
+            runningBalance += (item.debit - item.credit);
+            return {
+                ...item,
+                balance: runningBalance
+            };
+        });
+    }, [ledgerData, reportStartDate, reportEndDate]);
+
+    const handlePrintReport = () => {
+        const printData = {
+            isCustomerLedgerReport: true,
+            customer: customer,
+            ledgerData: reportLedgerData,
+            previousBalance: reportPreviousBalance,
+            companyName: currentCompany?.name || '',
+            config: {
+                title: reportTitle,
+                showSignature: reportShowSignature,
+                showBalance: reportShowBalance,
+                startDate: reportStartDate,
+                endDate: reportEndDate
+            }
+        };
+        localStorage.setItem('printData', JSON.stringify(printData));
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.left = '-9999px';
+        iframe.src = '#/print';
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 3000);
+    };
+
+    const handleSavePdf = async () => {
+        if (!window.electronAPI?.saveReportPdf) {
+            alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.');
+            return;
+        }
+
+        const printData = {
+            isCustomerLedgerReport: true,
+            customer: customer,
+            ledgerData: reportLedgerData,
+            previousBalance: reportPreviousBalance,
+            companyName: currentCompany?.name || '',
+            isPdfSave: true,
+            config: {
+                title: reportTitle,
+                showSignature: reportShowSignature,
+                showBalance: reportShowBalance,
+                startDate: reportStartDate,
+                endDate: reportEndDate
+            }
+        };
+        localStorage.setItem('printData', JSON.stringify(printData));
+        
+        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+        const customerNameStr = sanitizeFileName(customer.name);
+        const defaultFileName = `Cari_Ekstre_${customerNameStr}_${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        setGeneratingPdf(true);
+        setTimeout(async () => {
+            try {
+                setIsReportModalOpen(false);
+                const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName });
+                if (res && !res.success && !res.canceled) {
+                    alert('PDF Kaydedilirken Hata: ' + res.error);
+                }
+            } catch (err) {
+                console.error('PDF error:', err);
+            } finally {
+                setGeneratingPdf(false);
+            }
+        }, 100);
+    };
+
     if (loading) return <div><TopProgressBar loading={loading} /></div>
     if (!customer) return <div className="empty-state"><h2 className="empty-state-title">Müşteri Bulunamadı</h2><Link className="btn btn-primary" to="/customers">Müşterilere Dön</Link></div>
 
@@ -943,15 +1064,6 @@ export default function CustomerDetail() {
                                     }} title="Düzenle">
                                         <Pencil size={16} />
                                     </button>
-                                    <button className="icon-btn success" style={{ background: row.status === 'paid' ? 'var(--success-subtle)' : 'var(--bg-secondary)', color: row.status === 'paid' ? 'var(--success)' : 'var(--text-secondary)' }} onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        if(row.status !== 'paid') {
-                                            setPaymentWork(row); 
-                                            setPaymentModalOpen(true);
-                                        }
-                                    }} title={row.status === 'paid' ? "Tahsilat Alındı" : "Tahsilat Ekle"}>
-                                        {row.status === 'paid' ? <CheckCircle2 size={16} /> : <Banknote size={16} />}
-                                    </button>
                                 </div>
                             )}
                         />
@@ -964,6 +1076,17 @@ export default function CustomerDetail() {
                             <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                                 Cari Hesap Ekstresi (Ledger)
                             </h3>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button className="btn btn-secondary" onClick={() => setIsReportModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FileText size={18} /> Rapor Görüntüle
+                                </button>
+                                <button className="btn btn-primary" onClick={() => {
+                                    setPaymentWork(null);
+                                    setPaymentModalOpen(true);
+                                }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Banknote size={18} /> Tahsilat Ekle
+                                </button>
+                            </div>
                         </div>
                         <DataTable
                             columns={[
@@ -1274,30 +1397,41 @@ export default function CustomerDetail() {
             <Modal
                 isOpen={paymentModalOpen}
                 onClose={() => setPaymentModalOpen(false)}
-                title={`${paymentWork?.title || 'İş'} İçin Tahsilat Al`}
+                title={paymentWork ? `${paymentWork.title} İçin Tahsilat Al` : 'Cari Hesap Tahsilatı Ekle'}
             >
                 <TransactionForm
                     initialData={{
                         type: 'IN',
                         method: 'CASH',
-                        amount: paymentWork?.total_price || 0,
-                        description: `[TAHSİLAT] İş: ${paymentWork?.title} - Müşteri: ${customer.name}`,
+                        amount: paymentWork ? (paymentWork.total_price || 0) : (customer.total_receivable || 0),
+                        description: paymentWork 
+                            ? `[TAHSİLAT] İş: ${paymentWork.title} - Müşteri: ${customer.name}`
+                            : `[TAHSİLAT] Cari Ödeme - Müşteri: ${customer.name}`,
                         date: new Date().toISOString().split('T')[0]
                     }}
                     onSubmit={async (data) => {
                         setSaving(true)
                         try {
-                            // 1. İş tablosunda konumu paid olarak güncelle
-                            await window.electronAPI.updateWork({
-                                id: paymentWork.id,
-                                status: 'paid'
-                            });
-                            // 2. Bir gelir işlemi oluştur (finans)
-                            await window.electronAPI.createFinance({
-                                ...data,
-                                category: `WORK_PAYMENT_${paymentWork.id}`,
-                                companyId: customer.company_id
-                            });
+                            if (paymentWork) {
+                                // 1. İş tablosunda konumu paid olarak güncelle
+                                await window.electronAPI.updateWork({
+                                    id: paymentWork.id,
+                                    status: 'paid'
+                                });
+                                // 2. Bir gelir işlemi oluştur (finans)
+                                await window.electronAPI.createFinance({
+                                    ...data,
+                                    category: `WORK_PAYMENT_${paymentWork.id}`,
+                                    companyId: customer.company_id
+                                });
+                            } else {
+                                // Cari genel tahsilat kaydet
+                                await window.electronAPI.createFinance({
+                                    ...data,
+                                    category: `CUSTOMER_PAYMENT_${customer.id}`,
+                                    companyId: customer.company_id
+                                });
+                            }
                             
                             setPaymentModalOpen(false);
                             loadCustomer(); // Yenile
@@ -1466,6 +1600,201 @@ export default function CustomerDetail() {
                             >
                                 {saving ? 'Kaydediliyor...' : (folderModalMode === 'create' ? 'Klasör Oluştur' : 'Kaydet')}
                             </button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+            {/* Cari Hesap Raporu Modal */}
+            {isReportModalOpen && (
+                <Modal
+                    isOpen={isReportModalOpen}
+                    onClose={() => setIsReportModalOpen(false)}
+                    title={`Cari Hesap Raporu: ${customer.name}`}
+                    size="fullscreen"
+                    footer={
+                        <>
+                            <button className="btn btn-secondary" onClick={() => setIsReportModalOpen(false)}>Kapat</button>
+                            <div style={{ marginRight: 'auto' }}></div>
+                            <button className="btn btn-primary" onClick={handleSavePdf} disabled={generatingPdf} style={{ gap: '6px' }}>
+                                <FileDown size={16} /> {generatingPdf ? 'Hazırlanıyor...' : 'PDF Olarak Kaydet'}
+                            </button>
+                            <button className="btn btn-primary" onClick={handlePrintReport} style={{ gap: '6px' }}>
+                                <Printer size={16} /> Yazdır
+                            </button>
+                        </>
+                    }
+                >
+                    <div style={{ display: 'flex', gap: '0', height: '100%', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+                        {/* Left Settings Panel */}
+                        <div style={{ width: '300px', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '0', flexShrink: 0, overflowY: 'auto', background: 'var(--bg-secondary)', borderRight: '1px solid var(--border-color)' }}>
+                            <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                    <Settings size={16} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rapor Parametreleri</h4>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <CustomInput
+                                        label="Rapor Başlığı"
+                                        value={reportTitle}
+                                        onChange={setReportTitle}
+                                    />
+                                    <CustomInput
+                                        label="Başlangıç Tarihi"
+                                        type="date"
+                                        value={reportStartDate}
+                                        onChange={setReportStartDate}
+                                    />
+                                    <CustomInput
+                                        label="Bitiş Tarihi"
+                                        type="date"
+                                        value={reportEndDate}
+                                        onChange={setReportEndDate}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                    <Info size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Görünüm Seçenekleri</h4>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 8px', borderRadius: '8px' }}>
+                                        <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Bakiye Kolonunu Göster</span>
+                                        <input type="checkbox" checked={reportShowBalance} onChange={e => setReportShowBalance(e.target.checked)} style={{ width: '16px', height: '16px' }} />
+                                    </label>
+
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 8px', borderRadius: '8px' }}>
+                                        <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>İmza Bloklarını Göster</span>
+                                        <input type="checkbox" checked={reportShowSignature} onChange={e => setReportShowSignature(e.target.checked)} style={{ width: '16px', height: '16px' }} />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Preview Panel */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '30px', background: '#525659', display: 'flex', justifyContent: 'center' }}>
+                            <div style={{
+                                width: '210mm',
+                                minHeight: '297mm',
+                                background: 'white',
+                                padding: '20mm 15mm',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                color: '#1e293b',
+                                fontFamily: 'system-ui, sans-serif',
+                                boxSizing: 'border-box'
+                            }}>
+                                {/* Report Header */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #3b82f6', paddingBottom: '15px', marginBottom: '20px' }}>
+                                    <div>
+                                        <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1e3a8a', margin: '0 0 5px 0' }}>{currentCompany?.name || ''}</h2>
+                                        <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Cari Hesap Ekstre Raporu</p>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <h1 style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b', margin: '0 0 5px 0' }}>{reportTitle}</h1>
+                                        <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Rapor Tarihi: {new Date().toLocaleDateString('tr-TR')}</p>
+                                    </div>
+                                </div>
+
+                                {/* Customer details card */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', padding: '12px 15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px', fontSize: '11px', color: '#1e293b' }}>
+                                    <div>
+                                        <div style={{ fontWeight: '700', color: '#475569', marginBottom: '4px', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.5px' }}>Müşteri (Cari) Bilgileri</div>
+                                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>{customer.name}</div>
+                                        {customer.phone && <div style={{ margin: '2px 0' }}><b>Tel:</b> {customer.phone}</div>}
+                                        {customer.email && <div style={{ margin: '2px 0' }}><b>E-posta:</b> {customer.email}</div>}
+                                        {customer.address && <div style={{ margin: '2px 0', lineHeight: '1.4' }}><b>Adres:</b> {customer.address}</div>}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: '700', color: '#475569', marginBottom: '4px', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.5px' }}>Kurumsal Detaylar</div>
+                                        {customer.tax_office && <div style={{ margin: '2px 0' }}><b>Vergi Dairesi:</b> {customer.tax_office}</div>}
+                                        {customer.tax_number && <div style={{ margin: '2px 0' }}><b>Vergi No / TC:</b> {customer.tax_number}</div>}
+                                        <div style={{ margin: '2px 0' }}><b>Dönem:</b> {reportStartDate ? `${new Date(reportStartDate).toLocaleDateString('tr-TR')} - ` : ''}{reportEndDate ? `${new Date(reportEndDate).toLocaleDateString('tr-TR')}` : 'Tüm Dönemler'}</div>
+                                    </div>
+                                </div>
+
+                                {/* Summary Boxes */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '20px' }}>
+                                    <div style={{ padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '9px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '2px' }}>Toplam Borç</div>
+                                        <div style={{ fontSize: '14px', fontWeight: '700' }}>{formatCurrency(reportLedgerData.reduce((sum, r) => sum + r.debit, 0) + (reportPreviousBalance > 0 ? reportPreviousBalance : 0))}</div>
+                                    </div>
+                                    <div style={{ padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '9px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '2px' }}>Toplam Tahsilat</div>
+                                        <div style={{ fontSize: '14px', fontWeight: '700', color: '#10b981' }}>{formatCurrency(reportLedgerData.reduce((sum, r) => sum + r.credit, 0) + (reportPreviousBalance < 0 ? -reportPreviousBalance : 0))}</div>
+                                    </div>
+                                    {(() => {
+                                        const totalD = reportLedgerData.reduce((sum, r) => sum + r.debit, 0) + (reportPreviousBalance > 0 ? reportPreviousBalance : 0);
+                                        const totalC = reportLedgerData.reduce((sum, r) => sum + r.credit, 0) + (reportPreviousBalance < 0 ? -reportPreviousBalance : 0);
+                                        const bal = totalD - totalC;
+                                        return (
+                                            <div style={{ padding: '10px', background: bal > 0 ? '#fef2f2' : '#f0fdf4', border: bal > 0 ? '1px solid #fca5a5' : '1px solid #86efac', borderRadius: '6px', textAlign: 'center' }}>
+                                                <div style={{ fontSize: '9px', fontWeight: '700', color: bal > 0 ? '#b91c1c' : '#15803d', textTransform: 'uppercase', marginBottom: '2px' }}>Bakiye</div>
+                                                <div style={{ fontSize: '14px', fontWeight: '700', color: bal > 0 ? '#b91c1c' : '#15803d' }}>{formatCurrency(bal)}</div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+
+                                {/* Table */}
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', color: '#334155' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f1f5f9', borderTop: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', fontWeight: '700' }}>
+                                            <th style={{ padding: '6px 8px', textAlign: 'left', width: '80px' }}>Tarih</th>
+                                            <th style={{ padding: '6px 8px', textAlign: 'left', width: '80px' }}>Belge No</th>
+                                            <th style={{ padding: '6px 8px', textAlign: 'left' }}>Açıklama</th>
+                                            <th style={{ padding: '6px 8px', textAlign: 'right', width: '90px' }}>Borç</th>
+                                            <th style={{ padding: '6px 8px', textAlign: 'right', width: '90px' }}>Alacak</th>
+                                            {reportShowBalance && <th style={{ padding: '6px 8px', textAlign: 'right', width: '100px' }}>Bakiye</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportPreviousBalance !== 0 && (
+                                            <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#faf5ff' }}>
+                                                <td style={{ padding: '6px 8px', color: '#64748b' }}>{reportStartDate ? new Date(reportStartDate).toLocaleDateString('tr-TR') : '-'}</td>
+                                                <td style={{ padding: '6px 8px', fontWeight: '600', color: '#7c3aed' }}>DEVİR</td>
+                                                <td style={{ padding: '6px 8px', color: '#64748b', fontStyle: 'italic' }}>Önceki Dönemden Devreden Bakiye</td>
+                                                <td style={{ padding: '6px 8px', textAlign: 'right' }}>{reportPreviousBalance > 0 ? formatCurrency(reportPreviousBalance) : '-'}</td>
+                                                <td style={{ padding: '6px 8px', textAlign: 'right' }}>{reportPreviousBalance < 0 ? formatCurrency(-reportPreviousBalance) : '-'}</td>
+                                                {reportShowBalance && <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: '600' }}>{formatCurrency(reportPreviousBalance)}</td>}
+                                            </tr>
+                                        )}
+                                        {reportLedgerData.map((row, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                <td style={{ padding: '6px 8px' }}>{new Date(row.date).toLocaleDateString('tr-TR')}</td>
+                                                <td style={{ padding: '6px 8px', fontWeight: '500' }}>{row.ref}</td>
+                                                <td style={{ padding: '6px 8px' }}>{row.description}</td>
+                                                <td style={{ padding: '6px 8px', textAlign: 'right' }}>{row.debit > 0 ? formatCurrency(row.debit) : '-'}</td>
+                                                <td style={{ padding: '6px 8px', textAlign: 'right', color: '#10b981' }}>{row.credit > 0 ? formatCurrency(row.credit) : '-'}</td>
+                                                {reportShowBalance && (
+                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: '600', color: (row.balance + reportPreviousBalance) > 0 ? '#ef4444' : '#10b981' }}>
+                                                        {formatCurrency(row.balance + reportPreviousBalance)}
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {/* Signature block */}
+                                {reportShowSignature && (
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '40px', fontSize: '11px' }}>
+                                        <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: '8px' }}>
+                                            <p style={{ fontWeight: '700', margin: '0 0 4px 0' }}>TESLİM EDEN</p>
+                                            <p style={{ color: '#64748b', margin: 0, fontSize: '9px' }}>{currentCompany?.name || ''}</p>
+                                            <div style={{ height: '35px' }}></div>
+                                            <p style={{ color: '#94a3b8', margin: 0 }}>(İmza / Kaşe)</p>
+                                        </div>
+                                        <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: '8px' }}>
+                                            <p style={{ fontWeight: '700', margin: '0 0 4px 0' }}>TESLİM ALAN</p>
+                                            <p style={{ color: '#64748b', margin: 0, fontSize: '9px' }}>{customer.name}</p>
+                                            <div style={{ height: '35px' }}></div>
+                                            <p style={{ color: '#94a3b8', margin: 0 }}>(İmza / Kaşe)</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </Modal>
