@@ -180,7 +180,7 @@ export default function Customers() {
         },
         {
             key: 'total_volume',
-            label: 'İşlem Hacmi',
+            label: 'Bu Ayki Hacim',
             render: (v) => <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(v || 0)}</span>
         },
         {
@@ -230,7 +230,7 @@ export default function Customers() {
                     </div>
                     <div className="stat-content">
                         <div className="stat-value">{formatCurrency(stats.totalVolume)}</div>
-                        <div className="stat-label">Toplam İşlem Hacmi</div>
+                        <div className="stat-label">Bu Ayki İşlem Hacmi</div>
                     </div>
                 </div>
                 <div className="stat-card">

@@ -23,6 +23,16 @@ async function getCustomers(companyId, isArchived = 0) {
             }
         });
 
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        const isCurrentMonth = (dateVal) => {
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+        };
+
         const collator = new Intl.Collator('tr');
         customersList.sort((a, b) => collator.compare(a.name, b.name));
 
@@ -39,22 +49,28 @@ async function getCustomers(companyId, isArchived = 0) {
                 }
             });
 
-            // Calculate total volume from works (excluding cancelled)
-            let totalVolume = 0;
+            // Calculate total volume (cumulative and this month) from works (excluding cancelled)
+            let cumulativeVolume = 0;
+            let thisMonthVolume = 0;
             c.works.forEach(w => {
                 if (w.status !== 'cancelled') {
                     const stats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5);
-                    totalVolume += stats.grandTotal || 0;
+                    cumulativeVolume += stats.grandTotal || 0;
+                    
+                    const workDate = w.start_date || w.created_at;
+                    if (isCurrentMonth(workDate)) {
+                        thisMonthVolume += stats.grandTotal || 0;
+                    }
                 }
             });
 
-            // Net balance receivable
-            const totalWorkReceivable = totalVolume - totalPayments;
+            // Net balance receivable (Cumulative Debit - Cumulative Credit)
+            const totalWorkReceivable = cumulativeVolume - totalPayments;
 
             return {
                 ...c,
                 total_receivable: totalWorkReceivable,
-                total_volume: totalVolume,
+                total_volume: thisMonthVolume,
                 work_count: c.works.length
             }
         })
