@@ -624,15 +624,6 @@ export default function CustomerDetail() {
         });
     }, [customer, showArchived]);
 
-    if (loading) return <div><TopProgressBar loading={loading} /></div>
-    if (!customer) return <div className="empty-state"><h2 className="empty-state-title">Müşteri Bulunamadı</h2><Link className="btn btn-primary" to="/customers">Müşterilere Dön</Link></div>
-
-    const tabs = [
-        { id: 'works', label: 'İş ve Projeler', icon: Briefcase },
-        { id: 'ledger', label: 'Cari Hesap Ekstresi', icon: Banknote },
-        { id: 'documents', label: 'Dosyalar ve Belgeler', icon: FileText }
-    ]
-
     const ledgerData = useMemo(() => {
         if (!customer) return [];
         const works = customer.works || [];
@@ -680,6 +671,15 @@ export default function CustomerDetail() {
             };
         }).reverse(); // Display newest transaction first in the table
     }, [customer]);
+
+    if (loading) return <div><TopProgressBar loading={loading} /></div>
+    if (!customer) return <div className="empty-state"><h2 className="empty-state-title">Müşteri Bulunamadı</h2><Link className="btn btn-primary" to="/customers">Müşterilere Dön</Link></div>
+
+    const tabs = [
+        { id: 'works', label: 'İş ve Projeler', icon: Briefcase },
+        { id: 'ledger', label: 'Cari Hesap Ekstresi', icon: Banknote },
+        { id: 'documents', label: 'Dosyalar ve Belgeler', icon: FileText }
+    ]
 
     const completedWorks = customer.works?.filter(w => w.status === 'completed' && w.is_archived !== 1) || []
     const pendingWorks = customer.works?.filter(w => w.status !== 'completed' && w.status !== 'cancelled' && w.status !== 'paid' && w.is_archived !== 1) || []
