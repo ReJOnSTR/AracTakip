@@ -15,24 +15,41 @@ async function getCustomers(companyId, isArchived = 0) {
             }
         })
 
+        // Fetch all non-archived transactions for the company to calculate payments
+        const allTransactions = await prisma.transactions.findMany({
+            where: {
+                company_id: parseInt(companyId),
+                is_archived: 0
+            }
+        });
+
         const collator = new Intl.Collator('tr');
         customersList.sort((a, b) => collator.compare(a.name, b.name));
 
-        // Format and calculate balance (bakiye = works total_price - transactions amount where customer is referenced... wait, we don't have transactions linked to customer yet!)
-        // Wait, the user said "ödeme bilgileri yönetmebileceğim bir sistem", if we just look at works, total_price is the receivable. 
-        // We might need to add customer_id to transactions later, or just calculate total work price for now and a basic collection from works if we had one.
-        // Actually, we can sum the work_items total_price for balances right now.
         const formatted = customersList.map(c => {
-            let totalWorkReceivable = 0
-            let totalVolume = 0
+            const workIds = c.works.map(w => w.id);
+            const workPaymentCategories = workIds.map(id => `WORK_PAYMENT_${id}`);
+            const customerPaymentCategory = `CUSTOMER_PAYMENT_${c.id}`;
 
-            c.works.forEach(w => {
-                const stats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5)
-                totalVolume += stats.grandTotal
-                if (w.status !== 'paid' && w.status !== 'cancelled') {
-                    totalWorkReceivable += stats.grandTotal
+            // Find all payments belonging to this customer
+            let totalPayments = 0;
+            allTransactions.forEach(t => {
+                if (t.category && (workPaymentCategories.includes(t.category) || t.category === customerPaymentCategory)) {
+                    totalPayments += t.amount || 0;
                 }
-            })
+            });
+
+            // Calculate total volume from works (excluding cancelled)
+            let totalVolume = 0;
+            c.works.forEach(w => {
+                if (w.status !== 'cancelled') {
+                    const stats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5);
+                    totalVolume += stats.grandTotal || 0;
+                }
+            });
+
+            // Net balance receivable
+            const totalWorkReceivable = totalVolume - totalPayments;
 
             return {
                 ...c,
