@@ -612,8 +612,12 @@ export default function CustomerDetail() {
             label: 'Toplam Süre',
             render: (_, row) => {
                 const parts = [];
-                if (row.total_days > 0) parts.push(`${row.total_days} Gün`);
-                if (row.total_hours > 0) parts.push(`${row.total_hours} Saat`);
+                if (row.total_hours > 0) {
+                    parts.push(`${row.total_hours} ${row.is_hourly ? 'Saat' : 'Gün'}`);
+                }
+                if (row.total_overtime > 0) {
+                    parts.push(`(+ ${row.total_overtime} Saat Mesai)`);
+                }
                 return parts.length > 0 ? parts.join(' ') : '-';
             }
         },

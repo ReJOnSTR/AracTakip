@@ -118,7 +118,8 @@ async function getCustomerDetails(id) {
             })).size;
 
             // Use shared calculation (same as PDF report)
-            const workStats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5)
+            const workStats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5);
+            const isHourly = w.work_items.some(i => (i.description || '').toUpperCase().includes('[SAATLİK]'));
 
             return {
                 ...w,
@@ -127,6 +128,8 @@ async function getCustomerDetails(id) {
                 total_days: uniqueDays > 0 ? uniqueDays : 0,
                 item_count: w.work_items.length,
                 total_hours: workStats.totalHours,
+                total_overtime: workStats.totalOvertime,
+                is_hourly: isHourly,
                 total_price: workStats.grandTotal
             }
         })
