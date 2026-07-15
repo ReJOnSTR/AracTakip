@@ -98,23 +98,6 @@ async function getCustomerDetails(id) {
             }
         })
 
-        // Calculate totals from enhanced works (already computed via calculateWorkStats)
-        let totalWorkReceivable = 0
-        let totalVolume = 0
-        enhancedWorks.forEach(w => {
-            totalVolume += w.total_price
-            if (w.status !== 'paid' && w.status !== 'cancelled') {
-                totalWorkReceivable += w.total_price
-            }
-        })
-
-        // Sort enhanced works by start_date descending
-        enhancedWorks.sort((a, b) => {
-            const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
-            const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
-            return dateB - dateA;
-        });
-
         // Fetch payments linked to this customer's works and general customer collections
         const workIds = customer.works.map(w => w.id);
         const payments = await prisma.transactions.findMany({
@@ -128,6 +111,30 @@ async function getCustomerDetails(id) {
                 is_archived: 0
             },
             orderBy: { date: 'desc' }
+        });
+
+        // Calculate total payments received (credit)
+        let totalPayments = 0;
+        payments.forEach(p => {
+            totalPayments += p.amount || 0;
+        });
+
+        // Calculate total volume (debit) from enhanced works, excluding cancelled works
+        let totalVolume = 0;
+        enhancedWorks.forEach(w => {
+            if (w.status !== 'cancelled') {
+                totalVolume += w.total_price || 0;
+            }
+        });
+
+        // Net balance receivable (Total Debit - Total Credit)
+        let totalWorkReceivable = totalVolume - totalPayments;
+
+        // Sort enhanced works by start_date descending
+        enhancedWorks.sort((a, b) => {
+            const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+            const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
+            return dateB - dateA;
         });
 
         return {
