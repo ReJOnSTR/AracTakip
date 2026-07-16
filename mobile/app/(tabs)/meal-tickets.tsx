@@ -191,15 +191,21 @@ export default function MealTicketsScreen() {
         />
         
         {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-          <View style={{ flex: 1 }}>
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+          <View>
             <Text style={[styles.title, { color: c.text }]}>Yemek Fişleri</Text>
             <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} fiş</Text>
           </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <GlassIconButton
+              icon="add"
+              onPress={() => setIsModalVisible(true)}
+            />
+            <GlassIconButton
+              icon="funnel-outline"
+              onPress={() => setIsFilterModalVisible(true)}
+            />
+          </View>
         </View>
 
         {/* Month Navigator */}

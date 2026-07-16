@@ -562,7 +562,10 @@ function HrModuleContent() {
                                 {personnelSettings.leaveTypes.map(type => {
                                     const lower = type.name.toLowerCase();
                                     let hint = '';
-                                    if (lower.includes('yıllık')) hint = '1-5 yıl: 14 gün, 5-15 yıl: 20 gün, 15+ yıl: 26 gün';
+                                    const isAdditiveAnnual = ['ekleme', 'ilave', 'artı', 'arttır', 'kazanılan', 'devir'].some(kw => lower.includes(kw)) && (lower.includes('yıllık') || lower === 'annual');
+                                     
+                                    if (isAdditiveAnnual) hint = 'Sistem: Yıllık izin bakiyesini arttırır';
+                                    else if (lower.includes('yıllık')) hint = '1-5 yıl: 14 gün, 5-15 yıl: 20 gün, 15+ yıl: 26 gün';
                                     else if (lower.includes('evlilik')) hint = 'Yasal: 3 Gün';
                                     else if (lower.includes('ölüm')) hint = 'Yasal: 3 Gün';
                                     else if (lower.includes('babalık')) hint = 'Yasal: 5 Gün';

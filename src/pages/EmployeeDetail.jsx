@@ -482,7 +482,6 @@ export default function EmployeeDetail() {
             if (bulkMoveClearSelection) bulkMoveClearSelection()
             setBulkMoveModalOpen(false)
             setBulkMoveSelectedFolder('')
-            loadFolders()
             loadEmployeeData()
         } catch (err) {
             console.error('Bulk move error:', err)
@@ -812,7 +811,6 @@ export default function EmployeeDetail() {
             } else {
                 await deleteRecord(type, item.id)
             }
-            await loadFolders()
             await loadEmployeeData()
         } catch (err) { console.error('Delete failed:', err) }
         setConfirmModal(null)
@@ -1314,7 +1312,6 @@ export default function EmployeeDetail() {
                 }
             }
             loadEmployeeData()
-            loadFolders()
         } catch (err) {
             console.error('Bulk archive failed:', err)
         }
@@ -2093,11 +2090,29 @@ export default function EmployeeDetail() {
                                         }
 
                                         const pastUsed = employee.past_used_leaves || 0
-                                        // Count both 'annual' and localized names like 'Yıllık Ücretli İzin'
-                                        const systemUsedAnnual = leaves.filter(l => 
-                                            l.status === 'approved' && 
-                                            (l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık')))
-                                        ).reduce((acc, l) => acc + (l.days || 0), 0)
+                                         const isAdditiveAnnual = (type) => {
+                                             if (!type) return false;
+                                             const normalized = type
+                                                 .replace(/İ/g, 'i')
+                                                 .replace(/I/g, 'ı')
+                                                 .replace(/ı/g, 'i')
+                                                 .replace(/ö/g, 'o')
+                                                 .replace(/ü/g, 'u')
+                                                 .replace(/ş/g, 's')
+                                                 .replace(/ğ/g, 'g')
+                                                 .replace(/ç/g, 'c')
+                                                 .toLowerCase()
+                                                 .normalize('NFD')
+                                                 .replace(/[\u0300-\u036f]/g, '');
+                                             const hasYillik = normalized.includes('yillik') || normalized === 'annual';
+                                             const hasAdditiveKeyword = ['ekleme', 'ilave', 'arti', 'arttir', 'kazanilan', 'devir'].some(keyword => normalized.includes(keyword));
+                                             return hasYillik && hasAdditiveKeyword;
+                                         };
+                                         // Count both 'annual' and localized names like 'Yıllık Ücretli İzin' (excluding additive ones)
+                                         const systemUsedAnnual = leaves.filter(l => 
+                                             l.status === 'approved' && 
+                                             ((l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))) && !isAdditiveAnnual(l.type))
+                                         ).reduce((acc, l) => acc + (l.days || 0), 0)
                                         
                                         // Calculate OT balance for the offset button
                                         const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
@@ -2111,7 +2126,7 @@ export default function EmployeeDetail() {
                                          const otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100
 
                                          const totalOffsets = leaves
-                                             .filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup'))
+                                             .filter(l => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup' || isAdditiveAnnual(l.type)))
                                              .reduce((acc, l) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0)
                                         const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
 

@@ -20,6 +20,7 @@ import { Colors } from '../../constants/Colors';
 import { customerService } from '../../services/dataServices';
 import { useAuthStore } from '../../stores/authStore';
 import MovingBackground from '../../components/ui/MovingBackground';
+import GlassIconButton from '../../components/ui/GlassIconButton';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -55,11 +56,12 @@ export default function CustomersScreen() {
   const { selectedCompanyId } = useAuthStore();
 
   const query = useQuery({
+    key: 'customers',
     queryKey: ['customers', selectedCompanyId],
     queryFn: () => customerService.getAll(selectedCompanyId!),
     enabled: !!selectedCompanyId,
     refetchInterval: 5000,
-  });
+  } as any);
 
   const customers = query.data?.data || [];
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -130,9 +132,15 @@ export default function CustomersScreen() {
         />
         
         {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20, marginBottom: 0 }]}>
-          <Text style={[styles.title, { color: c.text }]}>Müşteriler</Text>
-          <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
+        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20, marginBottom: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+          <View>
+            <Text style={[styles.title, { color: c.text }]}>Müşteriler</Text>
+            <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
+          </View>
+          <GlassIconButton
+            icon="add"
+            onPress={() => setIsModalVisible(true)}
+          />
         </View>
 
         {/* Searchbar */}

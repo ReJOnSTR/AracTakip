@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aractakip.mobile"
+      "bundleIdentifier": "com.aractakip.mobile",
+      "deploymentTarget": "26.0"
     },
     "android": {
       "adaptiveIcon": {

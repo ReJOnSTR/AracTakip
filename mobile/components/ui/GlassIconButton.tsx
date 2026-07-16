@@ -11,6 +11,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../../constants/Colors';
+import { NativeUiGlassButton } from '../../modules/native-ui';
 
 interface GlassIconButtonProps {
   icon: ComponentProps<typeof Ionicons>['name'];
@@ -19,6 +20,21 @@ interface GlassIconButtonProps {
   iconSize?: number;
   style?: ViewStyle | ViewStyle[];
 }
+
+// Map Ionicons icons to iOS native SF Symbols
+const getSfSymbolName = (icon: string) => {
+  switch (icon) {
+    case 'chevron-back': return 'chevron.backward';
+    case 'funnel-outline': return 'slider.horizontal.3';
+    case 'add': return 'plus';
+    case 'options-outline': return 'slider.horizontal.3';
+    case 'search-outline': return 'magnifyingglass';
+    case 'close':
+    case 'close-outline': return 'xmark';
+    case 'settings-outline': return 'gearshape';
+    default: return icon; // Fallback to icon name
+  }
+};
 
 export default function GlassIconButton({
   icon,
@@ -40,6 +56,18 @@ export default function GlassIconButton({
     triggerHaptic();
     onPress();
   };
+
+  // If running on iOS, render Apple's native GlassButtonStyle button!
+  if (Platform.OS === 'ios') {
+    return (
+      <NativeUiGlassButton
+        icon={getSfSymbolName(icon)}
+        size={size}
+        onPress={handlePress}
+        style={[{ width: size, height: size }, ...(Array.isArray(style) ? style : [style])]}
+      />
+    );
+  }
 
   const glassBgColor = Platform.OS === 'web'
     ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')

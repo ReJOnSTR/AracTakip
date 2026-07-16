@@ -246,10 +246,16 @@ export default function FinanceListScreen() {
             <Text style={[styles.title, { color: c.text }]}>Kasa Defteri</Text>
             <Text style={[styles.count, { color: c.textSecondary }]}>İşlemler</Text>
           </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <GlassIconButton
+              icon="funnel-outline"
+              onPress={() => setIsFilterModalVisible(true)}
+            />
+            <GlassIconButton
+              icon="add"
+              onPress={() => setIsModalVisible(true)}
+            />
+          </View>
         </View>
 
         {/* Month Navigator */}

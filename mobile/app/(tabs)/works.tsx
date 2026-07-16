@@ -171,10 +171,16 @@ export default function WorksScreen() {
             <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
             <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} iş</Text>
           </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <GlassIconButton
+              icon="funnel-outline"
+              onPress={() => setIsFilterModalVisible(true)}
+            />
+            <GlassIconButton
+              icon="add"
+              onPress={() => setIsModalVisible(true)}
+            />
+          </View>
         </View>
 
         {/* Searchbar */}

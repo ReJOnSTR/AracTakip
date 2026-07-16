@@ -23,6 +23,7 @@ import Animated, {
 import { useAuthStore } from '../../stores/authStore';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassCard from '../../components/ui/GlassCard';
+import { NativeUiTabBar } from '../../modules/native-ui';
 
 // Custom Tab Bar Component to bypass React Navigation container style limits
 function CustomTabBar({ c, colorScheme }: any) {
@@ -52,7 +53,7 @@ function CustomTabBar({ c, colorScheme }: any) {
     'vehicles-list', 
     'finance-list'
   ];
-  const showPlusButton = listScreens.includes(currentRouteName);
+  const showPlusButton = false; // Plus buttons moved to top header next to filters
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isIpModalVisible, setIsIpModalVisible] = useState(false);
@@ -214,6 +215,142 @@ function CustomTabBar({ c, colorScheme }: any) {
   const indicatorGradientColors: readonly [string, string, ...string[]] = colorScheme === 'dark'
     ? ['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.03)']
     : ['rgba(99, 102, 241, 0.25)', 'rgba(99, 102, 241, 0.05)'];
+
+  if (Platform.OS === 'ios') {
+    return (
+      <View style={[styles.tabBarOuterWrapper, { bottom: 0, left: 0, right: 0, width: '100%', alignItems: 'stretch' }]}>
+        <View style={{ width: '100%', overflow: 'visible' }}>
+          {/* FLOATING DIĞER MENU OVERLAY */}
+          {isMenuVisible && (
+            <View style={{ width: '100%', alignItems: 'center' }}>
+              <Animated.View
+                entering={FadeInDown.duration(200)}
+                exiting={FadeOutDown.duration(150)}
+                style={[
+                  shadowStyle,
+                  styles.menuOverlayOuter,
+                  {
+                    width: tabWidth,
+                    borderColor: glassBorderColor,
+                    borderWidth: 1.5,
+                    backgroundColor: glassBgColor,
+                    marginBottom: 10,
+                  }
+                ]}
+              >
+                {Platform.OS !== 'web' && (
+                  <BlurView intensity={75} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                )}
+                <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic();
+                    setIsMenuVisible(false);
+                    router.push('/(tabs)/finance');
+                  }}
+                  style={styles.menuOverlayItem}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+                >
+                  <Ionicons name="wallet-outline" size={20} color={c.primary} />
+                  <Text style={[styles.menuOverlayText, { color: c.text }]}>Finans</Text>
+                </Pressable>
+                <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic();
+                    setIsMenuVisible(false);
+                    router.push('/(tabs)/works');
+                  }}
+                  style={styles.menuOverlayItem}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+                >
+                  <Ionicons name="briefcase-outline" size={20} color={c.primary} />
+                  <Text style={[styles.menuOverlayText, { color: c.text }]}>İş Takibi</Text>
+                </Pressable>
+                <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic();
+                    setIsMenuVisible(false);
+                    router.push('/(tabs)/customers');
+                  }}
+                  style={styles.menuOverlayItem}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+                >
+                  <Ionicons name="people-outline" size={20} color={c.primary} />
+                  <Text style={[styles.menuOverlayText, { color: c.text }]}>Müşteriler (Cari)</Text>
+                </Pressable>
+                <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic();
+                    setIsMenuVisible(false);
+                    router.push('/(tabs)/meal-tickets');
+                  }}
+                  style={styles.menuOverlayItem}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+                >
+                  <Ionicons name="receipt-outline" size={20} color={c.primary} />
+                  <Text style={[styles.menuOverlayText, { color: c.text }]}>Yemek Fişleri</Text>
+                </Pressable>
+                <View style={[styles.menuDivider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }]} />
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic();
+                    setIsMenuVisible(false);
+                    setIsIpModalVisible(true);
+                  }}
+                  style={styles.menuOverlayItem}
+                  android_ripple={{ color: 'rgba(255, 255, 255, 0.08)' }}
+                >
+                  <Ionicons name="settings-outline" size={20} color={c.primary} />
+                  <Text style={[styles.menuOverlayText, { color: c.text }]}>Sunucu Ayarları</Text>
+                </Pressable>
+              </Animated.View>
+            </View>
+          )}
+
+          {/* SWIFTUI NATIVE TAB BAR */}
+          <NativeUiTabBar
+            activeTab={activeTab}
+            showPlusButton={showPlusButton}
+            colorScheme={colorScheme}
+            onTabPress={(event) => {
+              const tab = event.nativeEvent.tabName;
+              if (tab === 'more') {
+                setIsMenuVisible(!isMenuVisible);
+              } else {
+                setIsMenuVisible(false);
+                if (tab === 'index') router.navigate('/(tabs)');
+                else if (tab === 'vehicles') router.navigate('/(tabs)/vehicles');
+                else if (tab === 'employees') router.navigate('/(tabs)/employees');
+                else if (tab === 'profile') router.navigate('/(tabs)/profile');
+              }
+            }}
+            onPlusPress={handlePlusPress}
+            style={{ width: '100%', height: 49 + 34 }}
+          />
+        </View>
+
+        {/* Sunucu Ayarları Modal */}
+        <GlassModal visible={isIpModalVisible} onDismiss={() => setIsIpModalVisible(false)}>
+          <Text style={[styles.modalTitle, { color: c.text }]}>Sunucu Ayarları</Text>
+          <ScrollView style={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
+            <GlassInput label="Sunucu API Adresi" value={ipInput} onChangeText={setIpInput} placeholder="http://192.168.1.X:9999" />
+            <View style={styles.modalButtons}>
+              <Button mode="text" onPress={() => setIsIpModalVisible(false)} textColor={c.textSecondary}>İptal</Button>
+              <Button mode="contained" onPress={handleUpdateIp} loading={isUpdatingIp} disabled={isUpdatingIp || !ipInput.trim()} buttonColor={c.primary} textColor="#ffffff">Güncelle</Button>
+            </View>
+          </ScrollView>
+        </GlassModal>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.tabBarOuterWrapper}>

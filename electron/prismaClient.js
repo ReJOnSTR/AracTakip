@@ -379,6 +379,7 @@ async function runAutoMigrations() {
             'Süt İzni', 
             'İdari İzin', 
             'Mesai İzni (Mahsup)', 
+            'İlave Yıllık İzin',
             'Diğer'
         ];
         const defaultDocCats = ['Ehliyet', 'SRC Belgesi', 'Psikoteknik', 'İş Sözleşmesi', 'Kimlik Fotokopisi', 'Adli Sicil Kaydı', 'Sağlık Raporu', 'İkametgah', 'Diploma', 'Sertifika / Belge', 'Diğer'];

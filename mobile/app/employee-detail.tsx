@@ -2045,9 +2045,28 @@ export default function EmployeeDetailScreen() {
           }
 
           const pastUsed = employee.past_used_leaves || 0;
+          const isAdditiveAnnual = (type: string | null | undefined): boolean => {
+            if (!type) return false;
+            const normalized = type
+              .replace(/İ/g, 'i')
+              .replace(/I/g, 'ı')
+              .replace(/ı/g, 'i')
+              .replace(/ö/g, 'o')
+              .replace(/ü/g, 'u')
+              .replace(/ş/g, 's')
+              .replace(/ğ/g, 'g')
+              .replace(/ç/g, 'c')
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '');
+            const hasYillik = normalized.includes('yillik') || normalized === 'annual';
+            const hasAdditiveKeyword = ['ekleme', 'ilave', 'arti', 'arttir', 'kazanilan', 'devir'].some(keyword => normalized.includes(keyword));
+            return hasYillik && hasAdditiveKeyword;
+          };
+
           const systemUsedAnnual = allLeaves.filter((l: any) => 
             l.status === 'approved' && 
-            (l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık')))
+            ((l.type === 'annual' || (l.type && l.type.toLowerCase().includes('yıllık'))) && !isAdditiveAnnual(l.type))
           ).reduce((acc: number, l: any) => acc + (l.days || 0), 0);
 
           const whpl = 8;
@@ -2058,7 +2077,7 @@ export default function EmployeeDetailScreen() {
           const totalUsedOT = allLeaves.filter((l: any) => l.status === 'approved' && l.type && (l.type.toLowerCase().includes('mesai') || l.type.toLowerCase().includes('mahsup') || l.type === 'offset')).reduce((sum: number, l: any) => sum + (l.hours ? l.hours / whpl : (l.days || 0)), 0);
           otBalance = Math.round((totalEarned - totalUsedOT) * 100) / 100;
 
-          const totalOffsets = allLeaves.filter((l: any) => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup')).reduce((acc: number, l: any) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0);
+          const totalOffsets = allLeaves.filter((l: any) => l.status === 'approved' && l.type && (l.type === 'offset' || l.type.toLowerCase() === 'mahsup' || isAdditiveAnnual(l.type))).reduce((acc: number, l: any) => acc + (l.hours ? l.hours / whpl : (l.days || 0)), 0);
           balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets;
         }
 

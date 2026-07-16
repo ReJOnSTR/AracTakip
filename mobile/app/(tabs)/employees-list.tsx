@@ -209,10 +209,16 @@ export default function EmployeesListScreen() {
             <Text style={[styles.title, { color: c.text }]}>Personel Listesi</Text>
             <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} kişi</Text>
           </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <GlassIconButton
+              icon="funnel-outline"
+              onPress={() => setIsFilterModalVisible(true)}
+            />
+            <GlassIconButton
+              icon="add"
+              onPress={() => setIsModalVisible(true)}
+            />
+          </View>
         </View>
 
         <View style={styles.searchRow}>
