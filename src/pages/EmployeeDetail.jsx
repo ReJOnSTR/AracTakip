@@ -600,9 +600,10 @@ export default function EmployeeDetail() {
             })
         } else if (type === 'overtime') {
             const isHoliday = item.notes && item.notes.includes('[BAYRAM]')
-            const otType = isHoliday ? 'holiday' : (Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday')
+            const isGurbet = item.notes && item.notes.includes('[GURBET]')
+            const otType = isHoliday ? 'holiday' : (isGurbet ? 'gurbet' : (Math.abs((item.rate || 0) - calcOvertimeRate('weekday')) < 1 ? 'weekday' : 'sunday'))
             const isUsedAsLeave = item.notes && item.notes.includes('[İZİN OLARAK KULLANILDI]')
-            const strippedNotes = (item.notes || '').replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[LID:\d+\]/g, '').trim()
+            const strippedNotes = (item.notes || '').replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[GURBET\]/g, '').replace(/\[LID:\d+\]/g, '').trim()
             setFormData({ 
                 overtimeType: otType, 
                 date: formatDateForInput(item.date), 
@@ -1152,11 +1153,14 @@ export default function EmployeeDetail() {
         let finalNotes = formData.notes || ''
         const marker = '[İZİN OLARAK KULLANILDI]'
         const holidayMarker = '[BAYRAM]'
+        const gurbetMarker = '[GURBET]'
         
-        // Ensure holiday marker is in sync
-        finalNotes = finalNotes.replace(holidayMarker, '').trim()
+        // Ensure markers are in sync
+        finalNotes = finalNotes.replace(holidayMarker, '').replace(gurbetMarker, '').trim()
         if (formData.overtimeType === 'holiday') {
             finalNotes = (holidayMarker + ' ' + finalNotes).trim()
+        } else if (formData.overtimeType === 'gurbet') {
+            finalNotes = (gurbetMarker + ' ' + finalNotes).trim()
         }
         
         const lidMatch = editingItem?.notes?.match(/\[LID:(\d+)\]/)
