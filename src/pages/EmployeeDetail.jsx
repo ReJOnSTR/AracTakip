@@ -113,8 +113,12 @@ const StatCard = ({ label, value, valueColor }) => (
 
 const calculateEarnedOtDays = (o, employee, whpl, sdpl, hdpl) => {
     const isHoliday = o.notes && o.notes.includes('[BAYRAM]')
+    const isGurbet = o.notes && o.notes.includes('[GURBET]')
     if (isHoliday) {
         return (o.hours || 0) / hdpl
+    }
+    if (isGurbet) {
+        return o.hours || 0
     }
     const oRate = o.rate || 0
     let isWeekday = false
@@ -1481,10 +1485,13 @@ export default function EmployeeDetail() {
         {
             key: 'rate', label: 'Tür', render: (v, row) => {
                 const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
+                const isGurbet = row.notes && row.notes.includes('[GURBET]')
                 const isUsedAsLeave = row.notes && row.notes.includes('[İZİN OLARAK KULLANILDI]')
                 let typeLabel = 'Hafta İçi'
                 if (isHoliday) {
                     typeLabel = 'Bayram'
+                } else if (isGurbet) {
+                    typeLabel = 'Gurbet'
                 } else {
                     let isWeekday = false
                     const oRate = row.rate || 0
@@ -1517,6 +1524,7 @@ export default function EmployeeDetail() {
             label: 'Süre', 
             render: (v, row) => {
                 const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
+                const isGurbet = row.notes && row.notes.includes('[GURBET]')
                 let isWeekday = false
                 const oRate = row.rate || 0
                 if (oRate > 0 && oRate < 5) {
@@ -1530,12 +1538,12 @@ export default function EmployeeDetail() {
                     const oExpectedWeekdayRate = Math.round(oHourlyRate * 1.5 * 100) / 100
                     isWeekday = Math.abs(oRate - oExpectedWeekdayRate) < (oExpectedWeekdayRate * 0.3)
                 }
-                const isSunday = !isHoliday && !isWeekday
-                return `${v} ${isSunday || isHoliday ? 'Gün' : 'Saat'}`
+                const isSunday = !isHoliday && !isGurbet && !isWeekday
+                return `${v} ${isSunday || isHoliday || isGurbet ? 'Gün' : 'Saat'}`
             }
         },
         { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
-        { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
+        { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[GURBET\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
     const assignmentColumns = [
@@ -2292,10 +2300,16 @@ export default function EmployeeDetail() {
                             });
                              const weekdayRate = calcOvertimeRate('weekday');
                              const monthlyWeekdayHours = monthlyOvertimesList
-                                 .filter(o => Math.abs((o.rate || 0) - weekdayRate) < 1)
+                                 .filter(o => !(o.notes && o.notes.includes('[BAYRAM]')) && !(o.notes && o.notes.includes('[GURBET]')) && Math.abs((o.rate || 0) - weekdayRate) < 1)
                                  .reduce((sum, o) => sum + (o.hours || 0), 0);
                              const monthlySundayDays = monthlyOvertimesList
-                                 .filter(o => Math.abs((o.rate || 0) - weekdayRate) >= 1)
+                                 .filter(o => !(o.notes && o.notes.includes('[BAYRAM]')) && !(o.notes && o.notes.includes('[GURBET]')) && Math.abs((o.rate || 0) - weekdayRate) >= 1)
+                                 .reduce((sum, o) => sum + (o.hours || 0), 0);
+                             const monthlyHolidayDays = monthlyOvertimesList
+                                 .filter(o => o.notes && o.notes.includes('[BAYRAM]'))
+                                 .reduce((sum, o) => sum + (o.hours || 0), 0);
+                             const monthlyGurbetDays = monthlyOvertimesList
+                                 .filter(o => o.notes && o.notes.includes('[GURBET]'))
                                  .reduce((sum, o) => sum + (o.hours || 0), 0);
                              
                              const monthlyTotalAmount = monthlyOvertimesList.reduce((sum, o) => sum + (o.amount || 0), 0)
@@ -2305,11 +2319,12 @@ export default function EmployeeDetail() {
                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                                          <div className="card" style={{ padding: '14px 16px' }}>
                                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Mesai</div>
-                                             <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                             <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                                  {monthlyWeekdayHours > 0 && <span>{monthlyWeekdayHours} sa</span>}
-                                                 {monthlyWeekdayHours > 0 && monthlySundayDays > 0 && <span>/</span>}
-                                                 {monthlySundayDays > 0 && <span>{monthlySundayDays} Pazar</span>}
-                                                 {monthlyWeekdayHours === 0 && monthlySundayDays === 0 && <span>0 sa</span>}
+                                                 {monthlySundayDays > 0 && <span style={{ color: 'var(--accent-primary)', fontSize: '14px' }}>{monthlySundayDays} Pz</span>}
+                                                 {monthlyHolidayDays > 0 && <span style={{ color: 'var(--warning)', fontSize: '14px' }}>{monthlyHolidayDays} By</span>}
+                                                 {monthlyGurbetDays > 0 && <span style={{ color: 'var(--success)', fontSize: '14px' }}>{monthlyGurbetDays} Gr</span>}
+                                                 {monthlyWeekdayHours === 0 && monthlySundayDays === 0 && monthlyHolidayDays === 0 && monthlyGurbetDays === 0 && <span>0 sa</span>}
                                              </div>
                                          </div>
                                         <div className="card" style={{ padding: '14px 16px' }}>
