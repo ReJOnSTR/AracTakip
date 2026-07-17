@@ -214,9 +214,31 @@ async function getPayrollSummary(companyId, month) {
             };
         });
 
-        // Only list active employees in payroll summary
+        // Filter employees based on their start date and archived/end date for targetMonth
         const resultEmployees = filteredEmployees.filter(emp => {
-            return emp.status === 'active';
+            const startMonth = emp.start_date ? new Date(emp.start_date).toISOString().slice(0, 7) : null;
+            const endMonth = emp.end_date ? new Date(emp.end_date).toISOString().slice(0, 7) : null;
+
+            // 1. Skip if before start date
+            if (startMonth && targetMonth < startMonth) {
+                return false;
+            }
+
+            // 2. Skip if after end date
+            if (endMonth && targetMonth > endMonth) {
+                return false;
+            }
+
+            // 3. Skip if passive/archived and no end_date, unless they have records in this month
+            if (emp.status !== 'active' && !emp.end_date) {
+                const hasSalaries = emp.salaries && emp.salaries.length > 0;
+                const hasOvertimes = emp.overtimes && emp.overtimes.length > 0;
+                if (!hasSalaries && !hasOvertimes) {
+                    return false;
+                }
+            }
+
+            return true;
         });
 
         const collator = new Intl.Collator('tr');

@@ -818,6 +818,8 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  position: relative;
+  z-index: 100;
 }
 
 .header-left {
@@ -3961,6 +3963,8 @@ body {
   max-height: 48px;
   overflow: visible;
   /* Must be visible for dropdowns to escape, but children will restrict Y */
+  position: relative;
+  z-index: 100;
 }
 
 .tab-bar-left {

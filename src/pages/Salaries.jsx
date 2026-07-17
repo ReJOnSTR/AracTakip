@@ -62,15 +62,20 @@ export default function Salaries() {
         if (!currentCompany) return
         setLoading(true)
         try {
-            const [empResult, moveResult, overtimeResult, salaryResult] = await Promise.all([
-                window.electronAPI.getEmployees(currentCompany.id),
+            const [empResult, archiveResult, moveResult, overtimeResult, salaryResult] = await Promise.all([
+                window.electronAPI.getEmployees(currentCompany.id, 0),
+                window.electronAPI.getEmployees(currentCompany.id, 1),
                 window.electronAPI.getAllEmployeeMovements(currentCompany.id),
                 window.electronAPI.getAllOvertimes(currentCompany.id),
                 window.electronAPI.getSalariesByCompany(currentCompany.id)
             ])
 
             if (empResult.success) {
-                setEmployees(empResult.data)
+                let merged = empResult.data || []
+                if (archiveResult.success && archiveResult.data) {
+                    merged = [...merged, ...archiveResult.data]
+                }
+                setEmployees(merged)
             }
             if (moveResult.success) {
                 setMovements(moveResult.data)
@@ -439,7 +444,34 @@ export default function Salaries() {
         }
         const nextMonth = getNextMonth(selectedMonth)
 
-        const data = employees.map(emp => {
+        const filteredEmployees = employees.filter(emp => {
+            const startMonth = emp.start_date ? new Date(emp.start_date).toISOString().slice(0, 7) : null
+            const endMonth = emp.end_date ? new Date(emp.end_date).toISOString().slice(0, 7) : null
+
+            // 1. Skip if before start date
+            if (startMonth && selectedMonth < startMonth) {
+                return false
+            }
+
+            // 2. Skip if after end date
+            if (endMonth && selectedMonth > endMonth) {
+                return false
+            }
+
+            // 3. Skip if passive/archived and no end_date, unless they have records in this month
+            if (emp.status !== 'active' && !emp.end_date) {
+                const hasMovements = monthlyMovements.some(m => m.employee_id === emp.id)
+                const hasOvertimes = monthlyOvertimes.some(o => o.employee_id === emp.id)
+                const hasSalaries = monthlySalaries.some(s => s.employee_id === emp.id)
+                if (!hasMovements && !hasOvertimes && !hasSalaries) {
+                    return false
+                }
+            }
+
+            return true
+        })
+
+        const data = filteredEmployees.map(emp => {
             // Stats buckets
             let advances = 0
             let bonuses = 0
