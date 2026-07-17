@@ -35,6 +35,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
         position: '',
         department: '',
         startDate: '',
+        endDate: '',
         birthDate: '',
         salary: '',
         effectiveDate: new Date().toISOString().split('T')[0],
@@ -58,6 +59,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                 position: initialData.position || '',
                 department: initialData.department || '',
                 startDate: formatDateForInput(initialData.start_date),
+                endDate: formatDateForInput(initialData.end_date),
                 birthDate: formatDateForInput(initialData.birth_date),
                 salary: initialData.salary || '',
                 effectiveDate: formatDateForInput(new Date()),
@@ -81,6 +83,11 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
     const handleChange = (key, value) => {
         setForm(prev => {
             const next = { ...prev, [key]: value }
+            if (key === 'status' && (value === 'inactive' || value === 'passive') && !prev.endDate) {
+                next.endDate = new Date().toISOString().split('T')[0]
+            } else if (key === 'status' && value === 'active') {
+                next.endDate = ''
+            }
             if (key === 'salary' && initialData) {
                 setSalaryChanged(parseFloat(value || 0) !== parseFloat(initialData.salary || 0))
             }
@@ -230,6 +237,14 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     onChange={(val) => handleChange('status', val)}
                     options={statusOptions}
                 />
+                {(form.status === 'inactive' || form.status === 'passive') && (
+                    <CustomInput
+                        label="İşten Çıkış Tarihi"
+                        type="date"
+                        value={form.endDate}
+                        onChange={(val) => handleChange('endDate', val)}
+                    />
+                )}
                 <CustomMultiSelect
                     label="Haftalık İzin Günleri (Of Günleri)"
                     value={offDays}

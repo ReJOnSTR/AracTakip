@@ -179,40 +179,92 @@ export function getLeaveStatusInfo(status) {
  */
 export function getHistoricalBaseSalary(employee, targetMonth) {
     if (!employee) return 0
+    
+    let baseSalary = 0
     // If no history exists, fallback to standard salary field
     if (!employee.employee_salary_history || employee.employee_salary_history.length === 0) {
-        return employee.salary || 0
-    }
+        baseSalary = employee.salary || 0
+    } else {
+        const tMonth = new Date(targetMonth)
+        // Find the record valid in this month.
+        // Validity: start_date is before or ON the target month's end, and end_date is after or null.
+        // If we only have "YYYY-MM", we compare to the end of the month.
+        const year = tMonth.getFullYear()
+        const month = tMonth.getMonth()
+        const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59)
 
-    const tMonth = new Date(targetMonth)
-    // Find the record valid in this month.
-    // Validity: start_date is before or ON the target month's end, and end_date is after or null.
-    // If we only have "YYYY-MM", we compare to the end of the month.
-    const year = tMonth.getFullYear()
-    const month = tMonth.getMonth()
-    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59)
+        // Sort history by start date descending to find the closest match going backwards
+        const sortedHistory = [...employee.employee_salary_history].sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
 
-    // Sort history by start date descending to find the closest match going backwards
-    const sortedHistory = [...employee.employee_salary_history].sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+        let found = false
+        for (const record of sortedHistory) {
+            const start = new Date(record.start_date)
+            const end = record.end_date ? new Date(record.end_date) : null
 
-    for (const record of sortedHistory) {
-        const start = new Date(record.start_date)
-        const end = record.end_date ? new Date(record.end_date) : null
+            // This record was active during this month if:
+            // - start date is before or equal to the end of the month
+            // - end date is null OR after the START of the month
+            const startOfMonth = new Date(year, month, 1, 0, 0, 0)
+            
+            if (start <= endOfMonth && (!end || end >= startOfMonth)) {
+                baseSalary = record.amount || 0
+                found = true
+                break
+            }
+        }
 
-        // This record was active during this month if:
-        // - start date is before or equal to the end of the month
-        // - end date is null OR after the START of the month
-        const startOfMonth = new Date(year, month, 1, 0, 0, 0)
-        
-        if (start <= endOfMonth && (!end || end >= startOfMonth)) {
-            return record.amount || 0
+        if (!found) {
+            // Default fallback: if no match found, take the EARLIEST known salary record
+            // This handles cases where target month is before the first recorded history entry
+            const earliestRecord = [...employee.employee_salary_history].sort((a, b) => new Date(a.start_date) - new Date(b.start_date))[0]
+            baseSalary = earliestRecord?.amount || employee.salary || 0
         }
     }
 
-    // Default fallback: if no match found, take the EARLIEST known salary record
-    // This handles cases where target month is before the first recorded history entry
-    const earliestRecord = [...employee.employee_salary_history].sort((a, b) => new Date(a.start_date) - new Date(b.start_date))[0]
-    return earliestRecord?.amount || employee.salary || 0
+    if (!baseSalary) return 0
+
+    // Parse target month string (format YYYY-MM)
+    const monthStr = typeof targetMonth === 'string' ? targetMonth.slice(0, 7) : new Date(targetMonth).toISOString().slice(0, 7)
+    const parts = monthStr.split('-')
+    const year = parseInt(parts[0])
+    const month = parseInt(parts[1])
+
+    const startOfMonth = new Date(year, month - 1, 1)
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59)
+    const totalDaysInMonth = new Date(year, month, 0).getDate()
+
+    let start = startOfMonth
+    if (employee.start_date) {
+        const sd = new Date(employee.start_date)
+        const sdStr = sd.toISOString().slice(0, 7)
+        if (sdStr === monthStr) {
+            start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate())
+        } else if (sdStr > monthStr) {
+            return 0 // Hasn't started yet in this month
+        }
+    }
+
+    let end = endOfMonth
+    if (employee.end_date) {
+        const ed = new Date(employee.end_date)
+        const edStr = ed.toISOString().slice(0, 7)
+        if (edStr === monthStr) {
+            end = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate())
+        } else if (edStr < monthStr) {
+            return 0 // Already left before this month
+        }
+    }
+
+    if (start > end) return 0
+
+    const diffTime = Math.abs(end - start)
+    const activeDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+
+    if (activeDays >= totalDaysInMonth) {
+        return baseSalary
+    }
+
+    return Math.round(baseSalary * (activeDays / totalDaysInMonth) * 100) / 100
 }
 
 /**

@@ -183,6 +183,7 @@ export default function EmployeeDetail() {
     const [documentFolders, setDocumentFolders] = useState([])
     const [customFolders, setCustomFolders] = useState([])
     const [confirmModal, setConfirmModal] = useState(null)
+    const [archiveEndDate, setArchiveEndDate] = useState('')
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
     const [uploadCategory, setUploadCategory] = useState('')
@@ -724,25 +725,61 @@ export default function EmployeeDetail() {
         setConfirmModal({ type, item, ids, title, message })
     }
 
+    const handleArchiveSubmit = async (status) => {
+        try {
+            const res = await window.electronAPI.updateEmployee({
+                id: parseInt(id),
+                firstName: employee.first_name,
+                lastName: employee.last_name,
+                tcNo: employee.tc_no || null,
+                phone: employee.phone || null,
+                email: employee.email || null,
+                position: employee.position || null,
+                department: employee.department || null,
+                startDate: employee.start_date ? new Date(employee.start_date).toISOString().split('T')[0] : null,
+                endDate: status === 1 ? (archiveEndDate || null) : null,
+                salary: employee.salary || 0,
+                status: status === 1 ? 'passive' : 'active',
+                notes: employee.notes || null,
+                image: employee.image || null,
+                signaturePath: employee.signature_path || null,
+                pastUsedLeaves: employee.past_used_leaves || 0,
+                birthDate: employee.birth_date ? new Date(employee.birth_date).toISOString().split('T')[0] : null,
+                iban: employee.iban || null,
+                offDays: employee.off_days
+            });
+            if (res.success) {
+                await loadEmployeeData()
+                if (window.showToast) {
+                    window.showToast(status === 1 ? 'Personel arşivlendi.' : 'Personel aktif edildi.', 'success')
+                }
+            } else {
+                alert('Hata: ' + res.error)
+            }
+        } catch (err) {
+            console.error('Archive error:', err)
+            alert('Hata: ' + err.message)
+        }
+        setConfirmModal(null)
+    }
+
     const handleConfirmArchive = async (status) => {
         const title = status === 1 ? 'Personeli Arşivle' : 'Personeli Geri Yükle'
         const message = status === 1 
             ? `"${employee.first_name} ${employee.last_name}" personelini arşivlemek istediğinize emin misiniz? Arşivlenen personellere yeni veri girişi yapılamaz.`
             : `"${employee.first_name} ${employee.last_name}" personelini tekrar aktif etmek istediğinize emin misiniz?`
         
+        if (status === 1) {
+            setArchiveEndDate(new Date().toISOString().split('T')[0])
+        }
+
         setConfirmModal({ 
             type: 'archive_employee', 
             status, 
             title, 
             message,
-            onConfirm: async () => {
-                const res = await window.electronAPI.archiveItem('employees', parseInt(id), status)
-                if (res.success) {
-                    await loadEmployeeData()
-                    if (window.showToast) window.showToast(status === 1 ? 'Personel arşivlendi.' : 'Personel aktif edildi.', 'success')
-                }
-                setConfirmModal(null)
-            }
+            confirmText: status === 1 ? 'Arşivle' : 'Geri Yükle',
+            onConfirm: () => handleArchiveSubmit(status)
         })
     }
 
@@ -1715,13 +1752,19 @@ export default function EmployeeDetail() {
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>İşe Başlama</div>
                             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{employee.start_date ? formatDate(employee.start_date) : '-'}</div>
                         </div>
+                        {employee.end_date && (
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>İşten Çıkış</div>
+                                <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--danger)' }}>{formatDate(employee.end_date)}</div>
+                            </div>
+                        )}
                         <div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Çalışma Süresi</div>
                             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-primary)' }}>
                                 {employee.start_date ? (() => {
                                     const start = new Date(employee.start_date);
-                                    const now = new Date();
-                                    const totalMonths = (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth() - (now.getDate() < start.getDate() ? 1 : 0);
+                                    const end = employee.end_date ? new Date(employee.end_date) : new Date();
+                                    const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth() - (end.getDate() < start.getDate() ? 1 : 0);
                                     const years = Math.floor(totalMonths / 12);
                                     const months = totalMonths % 12;
                                     if (years === 0 && months === 0) return '1 Aydan Az';
@@ -2869,15 +2912,63 @@ export default function EmployeeDetail() {
                 onSuccess={loadEmployeeData}
             />
 
-            <ConfirmModal 
-                isOpen={!!confirmModal} 
-                onClose={() => setConfirmModal(null)} 
-                onConfirm={confirmModal?.onConfirm || handleConfirmDelete} 
-                title={confirmModal?.title} 
-                message={confirmModal?.message} 
-                confirmText={confirmModal?.confirmText}
-                type={confirmModal?.styleType}
-            />
+            {confirmModal?.type === 'archive_employee' ? (
+                <Modal
+                    isOpen={true}
+                    onClose={() => setConfirmModal(null)}
+                    title={confirmModal.title}
+                    size="sm"
+                    footer={
+                        <>
+                            <button className="btn btn-secondary" onClick={() => setConfirmModal(null)}>İptal</button>
+                            <button 
+                                className={`btn btn-${confirmModal.status === 1 ? 'danger' : 'primary'}`} 
+                                onClick={confirmModal.onConfirm}
+                            >
+                                {confirmModal.confirmText || 'Onayla'}
+                            </button>
+                        </>
+                    }
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.5' }}>
+                            {confirmModal.message}
+                        </div>
+                        {confirmModal.status === 1 && (
+                            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    İşten Çıkış Tarihi
+                                </label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    value={archiveEndDate}
+                                    onChange={(e) => setArchiveEndDate(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        background: 'var(--bg-primary)',
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: 'var(--radius-md)',
+                                        color: 'var(--text-primary)',
+                                        fontSize: '14px'
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </Modal>
+            ) : (
+                <ConfirmModal 
+                    isOpen={!!confirmModal} 
+                    onClose={() => setConfirmModal(null)} 
+                    onConfirm={confirmModal?.onConfirm || handleConfirmDelete} 
+                    title={confirmModal?.title} 
+                    message={confirmModal?.message} 
+                    confirmText={confirmModal?.confirmText}
+                    type={confirmModal?.styleType}
+                />
+            )}
 
             {/* Document Preview Modal */}
             <DocumentPreviewModal
