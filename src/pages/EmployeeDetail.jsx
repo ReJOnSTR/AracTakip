@@ -62,7 +62,8 @@ const assignmentStatuses = [
 const overtimeTypes = [
     { value: 'weekday', label: 'Hafta İçi Mesai' },
     { value: 'sunday', label: 'Pazar Mesaisi' },
-    { value: 'holiday', label: 'Bayram Mesaisi' }
+    { value: 'holiday', label: 'Bayram Mesaisi' },
+    { value: 'gurbet', label: 'Gurbet Mesaisi' }
 ]
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -514,9 +515,11 @@ export default function EmployeeDetail() {
         const weekdayMultiplier = parseFloat(localStorage.getItem('hr_overtime_weekday_multiplier')) || 1.5
         const sundayMultiplier = parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
         const holidayMultiplier = parseFloat(localStorage.getItem('hr_overtime_holiday_multiplier')) || 2.0
+        const gurbetMultiplier = parseFloat(localStorage.getItem('hr_overtime_gurbet_multiplier')) || 1.0
         if (type === 'weekday') return Math.round(hourlyRate * weekdayMultiplier * 100) / 100
         if (type === 'sunday') return Math.round(dailyRate * sundayMultiplier * 100) / 100
         if (type === 'holiday') return Math.round(dailyRate * holidayMultiplier * 100) / 100
+        if (type === 'gurbet') return Math.round(dailyRate * gurbetMultiplier * 100) / 100
         return 0
     }
 
@@ -1800,6 +1803,10 @@ export default function EmployeeDetail() {
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Bayram Mesaisi (Güncel)</div>
                             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('holiday', employee.salary)) + ' / gün' : '-'}</div>
                         </div>
+                        <div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Gurbet Mesaisi (Güncel)</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('gurbet', employee.salary)) + ' / gün' : '-'}</div>
+                        </div>
                         {employee.notes && (
                             <div style={{ gridColumn: '1 / -1' }}>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Notlar</div>
@@ -2844,7 +2851,7 @@ export default function EmployeeDetail() {
                                 {employee?.salary && !formData.useAsLeave && (
                                     <div style={{ marginTop: '16px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)' }}>
                                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                                            <strong>Birim Ücret:</strong> {formData.overtimeType === 'sunday' ? `${formatCurrency(calcOvertimeRate('sunday'))} / gün` : formData.overtimeType === 'holiday' ? `${formatCurrency(calcOvertimeRate('holiday'))} / gün` : `${formatCurrency(calcOvertimeRate('weekday'))} / saat`} (Maaş üzerinden otomatik hesaplandı)
+                                            <strong>Birim Ücret:</strong> {formData.overtimeType === 'sunday' ? `${formatCurrency(calcOvertimeRate('sunday'))} / gün` : formData.overtimeType === 'holiday' ? `${formatCurrency(calcOvertimeRate('holiday'))} / gün` : formData.overtimeType === 'gurbet' ? `${formatCurrency(calcOvertimeRate('gurbet'))} / gün` : `${formatCurrency(calcOvertimeRate('weekday'))} / saat`} (Maaş üzerinden otomatik hesaplandı)
                                         </div>
                                         <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '10px', marginTop: '4px' }}>
                                             <span>Toplam Hak Ediş:</span>

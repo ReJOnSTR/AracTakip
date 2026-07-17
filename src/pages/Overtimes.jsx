@@ -23,7 +23,8 @@ const paymentMethods = [
 const overtimeTypes = [
     { value: 'weekday', label: 'Hafta İçi Mesai' },
     { value: 'sunday', label: 'Pazar Mesaisi' },
-    { value: 'holiday', label: 'Bayram Mesaisi' }
+    { value: 'holiday', label: 'Bayram Mesaisi' },
+    { value: 'gurbet', label: 'Gurbet Mesaisi' }
 ]
 
 export default function Overtimes() {
@@ -228,12 +229,16 @@ export default function Overtimes() {
                     let otHours = 0;
                     let otDays = 0;
                     let otHolidays = 0;
+                    let otGurbet = 0;
                     const weekdayRate = calcOvertimeRate('weekday', emp);
 
                     otEntries.forEach(o => {
                         const isHoliday = o.notes && o.notes.includes('[BAYRAM]');
+                        const isGurbet = o.notes && o.notes.includes('[GURBET]');
                         if (isHoliday) {
                             otHolidays += (o.hours || 0);
+                        } else if (isGurbet) {
+                            otGurbet += (o.hours || 0);
                         } else {
                             const isSunday = Math.abs(o.rate - weekdayRate) > (weekdayRate * 0.5);
                             if (isSunday) {
@@ -257,6 +262,7 @@ export default function Overtimes() {
                         calc_hours: otHours,
                         calc_days: otDays,
                         calc_holidays: otHolidays,
+                        calc_gurbet: otGurbet,
                         calc_required: otAmount,
                         calc_paid: paidAmount,
                         calc_remaining: remainingPay
@@ -284,10 +290,12 @@ export default function Overtimes() {
         const weekdayMultiplier = parseFloat(localStorage.getItem('hr_overtime_weekday_multiplier')) || 1.5
         const sundayMultiplier = parseFloat(localStorage.getItem('hr_overtime_sunday_multiplier')) || 1.5
         const holidayMultiplier = parseFloat(localStorage.getItem('hr_overtime_holiday_multiplier')) || 2.0
+        const gurbetMultiplier = parseFloat(localStorage.getItem('hr_overtime_gurbet_multiplier')) || 1.0
         
         if (type === 'weekday') return Math.round(hourlyRate * weekdayMultiplier * 100) / 100
         if (type === 'sunday') return Math.round(dailyRate * sundayMultiplier * 100) / 100
         if (type === 'holiday') return Math.round(dailyRate * holidayMultiplier * 100) / 100
+        if (type === 'gurbet') return Math.round(dailyRate * gurbetMultiplier * 100) / 100
         return 0
     }
 
@@ -355,10 +363,13 @@ export default function Overtimes() {
         
         // Determine type for editing
         let overtimeType = 'weekday'
-        if (isEditing) {
+        if (row && row.notes) {
             const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
+            const isGurbet = row.notes && row.notes.includes('[GURBET]')
             if (isHoliday) {
                 overtimeType = 'holiday'
+            } else if (isGurbet) {
+                overtimeType = 'gurbet'
             } else {
                 const weekdayRate = calcOvertimeRate('weekday', emp)
                 if (Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)) {
@@ -461,11 +472,14 @@ export default function Overtimes() {
                 let finalNotes = item.notes || ''
                 const leaveMarker = '[İZİN OLARAK KULLANILDI]'
                 const holidayMarker = '[BAYRAM]'
+                const gurbetMarker = '[GURBET]'
                 
-                // Ensure holiday marker is in sync
-                finalNotes = finalNotes.replace(holidayMarker, '').trim()
+                // Ensure markers are in sync
+                finalNotes = finalNotes.replace(holidayMarker, '').replace(gurbetMarker, '').trim()
                 if (item.overtimeType === 'holiday') {
                     finalNotes = (holidayMarker + ' ' + finalNotes).trim()
+                } else if (item.overtimeType === 'gurbet') {
+                    finalNotes = (gurbetMarker + ' ' + finalNotes).trim()
                 }
                 
                 if (item.useAsLeave && !finalNotes.includes(leaveMarker)) {
@@ -678,6 +692,19 @@ export default function Overtimes() {
                         </span>
                     )
                 }
+                const isGurbet = row.notes && row.notes.includes('[GURBET]')
+                if (isGurbet) {
+                    return (
+                        <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: '600', 
+                            color: 'var(--success)',
+                            textTransform: 'uppercase'
+                        }}>
+                            Gurbet
+                        </span>
+                    )
+                }
                 const emp = allEmployees.find(e => e.id === row.employeeId) || row
                 const weekdayRate = calcOvertimeRate('weekday', emp)
                 // If rate is much higher than weekday rate, it's likely Sunday
@@ -720,8 +747,9 @@ export default function Overtimes() {
             width: '120px',
             render: (value, row) => {
                 const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
+                const isGurbet = row.notes && row.notes.includes('[GURBET]')
                 let isSunday = false
-                if (!isHoliday) {
+                if (!isHoliday && !isGurbet) {
                     const emp = allEmployees.find(e => e.id === row.employeeId) || row
                     const weekdayRate = calcOvertimeRate('weekday', emp)
                     isSunday = Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)
@@ -730,7 +758,7 @@ export default function Overtimes() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Clock size={14} style={{ color: 'var(--text-muted)' }} />
                         <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-                            {value || 0} {isSunday || isHoliday ? 'Gün' : 'Saat'}
+                            {value || 0} {isSunday || isHoliday || isGurbet ? 'Gün' : 'Saat'}
                         </span>
                     </div>
                 )
@@ -838,7 +866,13 @@ export default function Overtimes() {
                             <span style={{ fontWeight: '600', color: 'var(--warning)' }}>{Math.round(row.calc_holidays * 100) / 100} Bayram</span>
                         </div>
                     )}
-                    {(row.calc_hours === 0 && row.calc_days === 0 && row.calc_holidays === 0) && (
+                    {row.calc_gurbet > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={14} style={{ color: 'var(--success)' }} />
+                            <span style={{ fontWeight: '600', color: 'var(--success)' }}>{Math.round(row.calc_gurbet * 100) / 100} Gurbet</span>
+                        </div>
+                    )}
+                    {(row.calc_hours === 0 && row.calc_days === 0 && row.calc_holidays === 0 && row.calc_gurbet === 0) && (
                         <span style={{ color: 'var(--text-muted)' }}>-</span>
                     )}
                 </div>

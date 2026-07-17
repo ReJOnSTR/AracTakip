@@ -112,6 +112,9 @@ function HrModuleContent() {
     const [holidayMultiplier, setHolidayMultiplier] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_holiday_multiplier')) || 2.0
     })
+    const [gurbetMultiplier, setGurbetMultiplier] = useState(() => {
+        return parseFloat(localStorage.getItem('hr_overtime_gurbet_multiplier')) || 1.0
+    })
     const [weekdayHoursPerLeave, setWeekdayHoursPerLeave] = useState(() => {
         return parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
     })
@@ -172,6 +175,14 @@ function HrModuleContent() {
             value: holidayMultiplier,
             unit: 'x',
             storageKey: 'hr_overtime_holiday_multiplier'
+        },
+        {
+            id: 'gurbet',
+            label: 'Gurbet Mesai Katsayısı',
+            description: 'Günlük ücret × katsayı (Maaş ÷ 30 × katsayı)',
+            value: gurbetMultiplier,
+            unit: 'x',
+            storageKey: 'hr_overtime_gurbet_multiplier'
         },
         {
             id: 'weekday_leave',
@@ -345,6 +356,7 @@ function HrModuleContent() {
         if (editingItem.id === 'weekday') setWeekdayMultiplier(numVal)
         if (editingItem.id === 'sunday') setSundayMultiplier(numVal)
         if (editingItem.id === 'holiday') setHolidayMultiplier(numVal)
+        if (editingItem.id === 'gurbet') setGurbetMultiplier(numVal)
         if (editingItem.id === 'weekday_leave') setWeekdayHoursPerLeave(numVal)
         if (editingItem.id === 'sunday_leave') setSundayDaysPerLeave(numVal)
         if (editingItem.id === 'holiday_leave') setHolidayDaysPerLeave(numVal)
@@ -385,6 +397,16 @@ function HrModuleContent() {
                     </div>
                     <div>
                         <div className="stat-value" style={{ fontSize: '22px' }}>{holidayMultiplier}x</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Mesai katsayısı</div>
+                    </div>
+                </div>
+                <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                        <div className="stat-label">GURBET</div>
+                        <div className="stat-icon primary" style={{ width: '32px', height: '32px' }}><Calculator size={16} /></div>
+                    </div>
+                    <div>
+                        <div className="stat-value" style={{ fontSize: '22px' }}>{gurbetMultiplier}x</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Mesai katsayısı</div>
                     </div>
                 </div>
@@ -718,6 +740,7 @@ function HrModuleContent() {
                                 {editingItem.id === 'weekday' && <>Hesaplama: Maaş ÷ 30 ÷ 10 × <strong>{editValue || '?'}</strong> = Saatlik mesai ücreti</>}
                                 {editingItem.id === 'sunday' && <>Hesaplama: Maaş ÷ 30 × <strong>{editValue || '?'}</strong> = Günlük pazar mesai ücreti</>}
                                 {editingItem.id === 'holiday' && <>Hesaplama: Maaş ÷ 30 × <strong>{editValue || '?'}</strong> = Günlük bayram mesai ücreti</>}
+                                {editingItem.id === 'gurbet' && <>Hesaplama: Maaş ÷ 30 × <strong>{editValue || '?'}</strong> = Günlük gurbet mesai ücreti</>}
                                 {editingItem.id === 'weekday_leave' && <><strong>{editValue || '?'}</strong> saat hafta içi mesai yapan personel 1 gün izin hak eder</>}
                                 {editingItem.id === 'sunday_leave' && <><strong>{editValue || '?'}</strong> gün pazar mesai yapan personel 1 gün izin hak eder</>}
                                 {editingItem.id === 'holiday_leave' && <><strong>{editValue || '?'}</strong> gün bayram mesai yapan personel 1 gün izin hak eder</>}
