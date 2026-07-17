@@ -21,7 +21,7 @@ import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
     UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet,
-    Upload, X, ExternalLink, Archive, ArchiveRestore, Folder, ChevronRight
+    Upload, X, ExternalLink, Archive, ArchiveRestore, Folder, ChevronRight, Info
 } from 'lucide-react'
 
 const paymentTypes = [
@@ -1798,29 +1798,50 @@ export default function EmployeeDetail() {
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Wallet size={13} /> Finansal Bilgiler
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px 20px' }}>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Güncel Maaş (Net)</div>
-                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
-                        </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hafta İçi Mesai (Güncel)</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday', employee.salary)) + ' / saat' : '-'}</div>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Pazar Mesaisi (Güncel)</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday', employee.salary)) + ' / gün' : '-'}</div>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Bayram Mesaisi (Güncel)</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('holiday', employee.salary)) + ' / gün' : '-'}</div>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Gurbet Mesaisi (Güncel)</div>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('gurbet', employee.salary)) + ' / gün' : '-'}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px', display: 'flex', alignItems: 'center' }}>
+                                <span>Güncel Maaş (Net)</span>
+                                <div className="info-tooltip-container" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '6px' }}>
+                                    <Info 
+                                        size={13} 
+                                        style={{ 
+                                            color: 'var(--text-muted)', 
+                                            cursor: 'pointer',
+                                            transition: 'color 0.2s'
+                                        }} 
+                                        onMouseEnter={(e) => e.target.style.color = 'var(--accent-primary)'}
+                                        onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
+                                    />
+                                    <div className="info-tooltip" style={{ width: '220px' }}>
+                                        <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            Mesai Birim Ücretleri
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ color: 'var(--text-secondary)' }}>Hafta İçi:</span>
+                                                <span style={{ fontWeight: '600', color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('weekday', employee.salary)) + ' / sa' : '-'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ color: 'var(--text-secondary)' }}>Pazar:</span>
+                                                <span style={{ fontWeight: '600', color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('sunday', employee.salary)) + ' / gün' : '-'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ color: 'var(--text-secondary)' }}>Bayram:</span>
+                                                <span style={{ fontWeight: '600', color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('holiday', employee.salary)) + ' / gün' : '-'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ color: 'var(--text-secondary)' }}>Gurbet:</span>
+                                                <span style={{ fontWeight: '600', color: 'var(--success)' }}>{employee.salary ? formatCurrency(calcOvertimeRate('gurbet', employee.salary)) + ' / gün' : '-'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>{employee.salary ? formatCurrency(employee.salary) : '-'}</div>
                         </div>
                         {employee.notes && (
-                            <div style={{ gridColumn: '1 / -1' }}>
+                            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>Notlar</div>
                                 <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.5 }}>{employee.notes}</div>
                             </div>
