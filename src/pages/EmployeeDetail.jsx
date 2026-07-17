@@ -2325,9 +2325,9 @@ export default function EmployeeDetail() {
                                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Bu Ay Toplam Mesai</div>
                                              <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                                  {monthlyWeekdayHours > 0 && <span>{monthlyWeekdayHours} sa</span>}
-                                                 {monthlySundayDays > 0 && <span style={{ color: 'var(--accent-primary)', fontSize: '14px' }}>{monthlySundayDays} Pz</span>}
-                                                 {monthlyHolidayDays > 0 && <span style={{ color: 'var(--warning)', fontSize: '14px' }}>{monthlyHolidayDays} By</span>}
-                                                 {monthlyGurbetDays > 0 && <span style={{ color: 'var(--success)', fontSize: '14px' }}>{monthlyGurbetDays} Gr</span>}
+                                                 {monthlySundayDays > 0 && <span style={{ color: 'var(--accent-primary)' }}>{monthlySundayDays} Pazar</span>}
+                                                 {monthlyHolidayDays > 0 && <span style={{ color: 'var(--warning)' }}>{monthlyHolidayDays} Bayram</span>}
+                                                 {monthlyGurbetDays > 0 && <span style={{ color: 'var(--success)' }}>{monthlyGurbetDays} Gurbet</span>}
                                                  {monthlyWeekdayHours === 0 && monthlySundayDays === 0 && monthlyHolidayDays === 0 && monthlyGurbetDays === 0 && <span>0 sa</span>}
                                              </div>
                                          </div>
