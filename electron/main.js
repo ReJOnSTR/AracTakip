@@ -2179,50 +2179,150 @@ ipcMain.handle('window:setFullScreen', (event, flag) => {
 // Database Migration to Postgres
 ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
     const webContents = event.sender;
-    const { spawn, exec } = require('child_process');
+    const { Client } = require('pg');
+    const Database = require('better-sqlite3');
+    const { app } = require('electron');
     const path = require('path');
-    
-    return new Promise((resolve) => {
+    const fs = require('fs');
+
+    const sqlitePath = path.join(app.getPath('userData'), 'data', 'aractakip.db');
+
+    return new Promise(async (resolve) => {
         webContents.send('migration-log', 'PostgreSQL şema senkronizasyonu başlatılıyor...');
-        
+
         const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.postgres.prisma');
         const env = { ...process.env, POSTGRES_URL: postgresUrl };
-        
-        exec(`npx prisma db push --schema="${schemaPath}" --url="${postgresUrl}" --accept-data-loss`, { env }, (err, stdout, stderr) => {
+        const { exec } = require('child_process');
+
+        exec(`npx prisma db push --schema="${schemaPath}" --url="${postgresUrl}" --accept-data-loss`, { env }, async (err, stdout, stderr) => {
             if (err) {
                 webContents.send('migration-log', `Şema oluşturma hatası: ${stderr || err.message}`);
                 resolve({ success: false, error: `Şema oluşturma hatası: ${stderr || err.message}` });
                 return;
             }
-            
-            webContents.send('migration-log', 'Şema oluşturuldu. Veri aktarımı başlatılıyor...');
-            
-            const scriptPath = path.join(__dirname, '..', 'scripts', 'migrateToPostgres.js');
-            const child = spawn('node', [scriptPath], { env });
-            
-            child.stdout.on('data', (data) => {
-                const text = data.toString().trim();
-                if (text) {
-                    webContents.send('migration-log', text);
+
+            webContents.send('migration-log', 'Şema başarıyla oluşturuldu. Veri aktarımı başlatılıyor...');
+
+            let sqliteDb = null;
+            let pgClient = null;
+
+            try {
+                sqliteDb = new Database(sqlitePath);
+                pgClient = new Client({ connectionString: postgresUrl });
+
+                await pgClient.connect();
+                webContents.send('migration-log', 'PostgreSQL bağlantısı kuruldu.');
+
+                const tablesQuery = sqliteDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '_prisma_migrations'");
+                const tables = tablesQuery.all().map(row => row.name);
+
+                webContents.send('migration-log', `${tables.length} adet tablo aktarılacak.`);
+
+                // Disable foreign key constraints
+                await pgClient.query("SET session_replication_role = 'replica'");
+
+                for (const tableName of tables) {
+                    webContents.send('migration-log', `[Tablo] ${tableName} aktarılıyor...`);
+
+                    const pragma = sqliteDb.pragma(`table_info("${tableName}")`);
+                    const columns = pragma.map(col => col.name);
+
+                    const rows = sqliteDb.prepare(`SELECT * FROM "${tableName}"`).all();
+                    
+                    if (rows.length > 0) {
+                        // Clear old data
+                        await pgClient.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
+
+                        const colEscaped = columns.map(c => `"${c}"`).join(', ');
+                        const chunkSize = Math.max(1, Math.floor(60000 / columns.length));
+
+                        for (let i = 0; i < rows.length; i += chunkSize) {
+                            const chunk = rows.slice(i, i + chunkSize);
+                            const valuePlaceholders = [];
+                            const valueParams = [];
+
+                            chunk.forEach((row) => {
+                                const rowPlaceholders = [];
+                                columns.forEach((col) => {
+                                    rowPlaceholders.push(`$${valueParams.length + 1}`);
+                                    let val = row[col];
+
+                                    // Parse dates
+                                    if (val !== null && val !== undefined) {
+                                        if (typeof val === 'string' && (
+                                            col.endsWith('_date') || col === 'date' || 
+                                            col.endsWith('_at') || col === 'created_at' || 
+                                            col === 'applied_at' || col === 'gps_date' || 
+                                            col === 'expiry_date' || col === 'issue_date' || 
+                                            col.endsWith('_due_date') || col === 'start_date' || 
+                                            col === 'end_date' || col === 'devir_tarihi' || 
+                                            col === 'birth_date' || col === 'change_date'
+                                        )) {
+                                            const parsedDate = new Date(val);
+                                            if (!isNaN(parsedDate.getTime())) {
+                                                val = parsedDate;
+                                            }
+                                        }
+                                    }
+                                    valueParams.push(val === undefined ? null : val);
+                                });
+                                valuePlaceholders.push(`(${rowPlaceholders.join(', ')})`);
+                            });
+
+                            const insertQuery = `INSERT INTO "${tableName}" (${colEscaped}) VALUES ${valuePlaceholders.join(', ')}`;
+                            await pgClient.query(insertQuery, valueParams);
+                        }
+                        webContents.send('migration-log', `  - ${rows.length} satır başarıyla aktarıldı.`);
+                    } else {
+                        webContents.send('migration-log', `  - Tablo boş.`);
+                    }
+
+                    // Reset sequence counters
+                    const seqQuery = `
+                        SELECT column_name 
+                        FROM information_schema.columns 
+                        WHERE table_name = $1 AND column_default LIKE 'nextval%';
+                    `;
+                    const seqRes = await pgClient.query(seqQuery, [tableName]);
+                    for (const seqRow of seqRes.rows) {
+                        const colName = seqRow.column_name;
+                        const resetQuery = `
+                            SELECT setval(pg_get_serial_sequence('"${tableName}"', '${colName}'), coalesce(max("${colName}"), 1)) 
+                            FROM "${tableName}";
+                        `;
+                        await pgClient.query(resetQuery);
+                        webContents.send('migration-log', `  - Sayaç güncellendi: ${colName}`);
+                    }
                 }
-            });
-            
-            child.stderr.on('data', (data) => {
-                const text = data.toString().trim();
-                if (text) {
-                    webContents.send('migration-log', `Hata: ${text}`);
+
+                // Enable foreign key constraints
+                await pgClient.query("SET session_replication_role = 'origin'");
+
+                webContents.send('migration-log', 'Aktarım işlemi başarıyla tamamlandı!');
+                resolve({ success: true });
+
+            } catch (migrationErr) {
+                webContents.send('migration-log', `Aktarım sırasında hata oluştu: ${migrationErr.message}`);
+                
+                if (pgClient) {
+                    try {
+                        await pgClient.query("SET session_replication_role = 'origin'");
+                    } catch (e) {}
                 }
-            });
-            
-            child.on('close', (code) => {
-                if (code === 0) {
-                    webContents.send('migration-log', 'Aktarım işlemi başarıyla tamamlandı!');
-                    resolve({ success: true });
-                } else {
-                    webContents.send('migration-log', `Aktarım başarısız oldu. Çıkış kodu: ${code}`);
-                    resolve({ success: false, error: `Aktarım başarısız oldu (kod: ${code})` });
+                
+                resolve({ success: false, error: migrationErr.message });
+            } finally {
+                if (sqliteDb) {
+                    try {
+                        sqliteDb.close();
+                    } catch (e) {}
                 }
-            });
+                if (pgClient) {
+                    try {
+                        await pgClient.end();
+                    } catch (e) {}
+                }
+            }
         });
     });
 });
