@@ -62,7 +62,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     // Gruplama (Araçlara / Makinalara göre)
     const groupedItems = {};
     work.items.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : `custom_${item.id || Math.random()}`;
+        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
         if (!groupedItems[key]) {
             groupedItems[key] = {
                 machineName: item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş',

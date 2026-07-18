@@ -51,7 +51,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         if (item.vehicle_id) {
             uniqueVehicles.add(String(item.vehicle_id))
         } else if (item.custom_vehicle) {
-            uniqueVehicles.add(`custom_${item.id || Math.random()}`)
+            uniqueVehicles.add(`custom_${item.custom_vehicle}`)
         }
         if (item.employee_id) uniqueEmployees.add(item.employee_id)
 
@@ -71,7 +71,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     })
 
     processedItems.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : `custom_${item.id || Math.random()}`
+        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
         if (!groupedItems[key]) {
             groupedItems[key] = {
                 items: [],
