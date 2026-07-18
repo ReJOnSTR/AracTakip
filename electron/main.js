@@ -2188,7 +2188,7 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
         const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.postgres.prisma');
         const env = { ...process.env, POSTGRES_URL: postgresUrl };
         
-        exec(`npx prisma db push --schema="${schemaPath}" --accept-data-loss`, { env }, (err, stdout, stderr) => {
+        exec(`npx prisma db push --schema="${schemaPath}" --url="${postgresUrl}" --accept-data-loss`, { env }, (err, stdout, stderr) => {
             if (err) {
                 webContents.send('migration-log', `Şema oluşturma hatası: ${stderr || err.message}`);
                 resolve({ success: false, error: `Şema oluşturma hatası: ${stderr || err.message}` });
