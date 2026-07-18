@@ -2175,3 +2175,55 @@ ipcMain.handle('window:setFullScreen', (event, flag) => {
         return { success: false, error: e.message };
     }
 });
+
+// Database Migration to Postgres
+ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
+    const webContents = event.sender;
+    const { spawn, exec } = require('child_process');
+    const path = require('path');
+    
+    return new Promise((resolve) => {
+        webContents.send('migration-log', 'PostgreSQL şema senkronizasyonu başlatılıyor...');
+        
+        const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.postgres.prisma');
+        const env = { ...process.env, POSTGRES_URL: postgresUrl };
+        
+        exec(`npx prisma db push --schema="${schemaPath}" --accept-data-loss`, { env }, (err, stdout, stderr) => {
+            if (err) {
+                webContents.send('migration-log', `Şema oluşturma hatası: ${stderr || err.message}`);
+                resolve({ success: false, error: `Şema oluşturma hatası: ${stderr || err.message}` });
+                return;
+            }
+            
+            webContents.send('migration-log', 'Şema oluşturuldu. Veri aktarımı başlatılıyor...');
+            
+            const scriptPath = path.join(__dirname, '..', 'scripts', 'migrateToPostgres.js');
+            const child = spawn('node', [scriptPath], { env });
+            
+            child.stdout.on('data', (data) => {
+                const text = data.toString().trim();
+                if (text) {
+                    webContents.send('migration-log', text);
+                }
+            });
+            
+            child.stderr.on('data', (data) => {
+                const text = data.toString().trim();
+                if (text) {
+                    webContents.send('migration-log', `Hata: ${text}`);
+                }
+            });
+            
+            child.on('close', (code) => {
+                if (code === 0) {
+                    webContents.send('migration-log', 'Aktarım işlemi başarıyla tamamlandı!');
+                    resolve({ success: true });
+                } else {
+                    webContents.send('migration-log', `Aktarım başarısız oldu. Çıkış kodu: ${code}`);
+                    resolve({ success: false, error: `Aktarım başarısız oldu (kod: ${code})` });
+                }
+            });
+        });
+    });
+});
+

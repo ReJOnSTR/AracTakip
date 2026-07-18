@@ -263,4 +263,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     arventoGetDailyReport: (date) => ipcRenderer.invoke('arvento:getDailyReport', date),
     arventoGetAlarms: () => ipcRenderer.invoke('arvento:getAlarms'),
     arventoGetHistory: (filters) => ipcRenderer.invoke('arvento:getHistory', filters),
+
+    // Database Migration to Postgres
+    migrateToPostgres: (postgresUrl) => ipcRenderer.invoke('database:migrateToPostgres', postgresUrl),
+    onMigrationLog: (callback) => {
+        const subscription = (event, data) => callback(data)
+        ipcRenderer.on('migration-log', subscription)
+        return () => ipcRenderer.removeListener('migration-log', subscription)
+    }
 })

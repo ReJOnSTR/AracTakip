@@ -55,6 +55,35 @@ export default function Settings() {
     const [testingConnection, setTestingConnection] = useState(false)
     const [connectionTestResult, setConnectionTestResult] = useState(null)
 
+    const [postgresUrl, setPostgresUrl] = useState(() => localStorage.getItem('aractakip_postgres_migration_url') || '')
+    const [migrating, setMigrating] = useState(false)
+    const [migrationLogs, setMigrationLogs] = useState([])
+
+    const handlePostgresMigration = async () => {
+        if (!postgresUrl) return
+        localStorage.setItem('aractakip_postgres_migration_url', postgresUrl)
+        setMigrating(true)
+        setMigrationLogs([])
+        
+        const unsubscribe = window.electronAPI.onMigrationLog((logText) => {
+            setMigrationLogs(prev => [...prev, logText])
+        })
+        
+        try {
+            const res = await window.electronAPI.migrateToPostgres(postgresUrl)
+            if (res.success) {
+                alert('Aktarım başarıyla tamamlandı!')
+            } else {
+                alert(`Aktarım hatası: ${res.error}`)
+            }
+        } catch (err) {
+            alert(`Sistem hatası: ${err.message}`)
+        } finally {
+            unsubscribe()
+            setMigrating(false)
+        }
+    }
+
     const testArventoConnection = async () => {
         setTestingConnection(true)
         setConnectionTestResult(null)
@@ -687,6 +716,66 @@ export default function Settings() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="settings-card" style={{ marginTop: '24px' }}>
+                                <h2 className="settings-card-title"><RefreshCw size={20} className="text-primary" /> PostgreSQL Veri Aktarımı</h2>
+                                <div className="settings-item" style={{ alignItems: 'flex-start' }}>
+                                    <div className="settings-item-content" style={{ width: '100%' }}>
+                                        <div className="settings-item-label">Veritabanını Sunucuya Kopyala</div>
+                                        <div className="settings-item-desc" style={{ marginBottom: '16px' }}>
+                                            Yerel bilgisayarınızdaki tüm verileri Dokploy veya sunucunuzdaki PostgreSQL veritabanınıza kopyalar.
+                                        </div>
+                                        
+                                        <div className="form-group floating-label-group has-value" style={{ maxWidth: '600px', marginBottom: '16px' }}>
+                                            <div className="input-wrapper">
+                                                <input 
+                                                    type="text" 
+                                                    className="form-input" 
+                                                    value={postgresUrl} 
+                                                    onChange={(e) => setPostgresUrl(e.target.value)}
+                                                    placeholder="postgresql://kullanici:sifre@sunucu:5432/veritabani"
+                                                />
+                                                <label className="form-label">PostgreSQL Bağlantı Adresi (URI)</label>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            className="btn btn-primary" 
+                                            onClick={handlePostgresMigration} 
+                                            disabled={migrating || !postgresUrl}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                        >
+                                            {migrating ? <RefreshCw size={16} className="spin" /> : <Database size={16} />}
+                                            {migrating ? 'Aktarılıyor...' : 'Aktarımı Başlat'}
+                                        </button>
+
+                                        {migrationLogs.length > 0 && (
+                                            <div style={{ 
+                                                marginTop: '20px', 
+                                                background: 'var(--bg-tertiary)', 
+                                                border: '1px solid var(--border-color)', 
+                                                borderRadius: '12px', 
+                                                padding: '16px', 
+                                                maxHeight: '200px', 
+                                                overflowY: 'auto',
+                                                fontFamily: 'monospace',
+                                                fontSize: '12px',
+                                                lineHeight: '1.6',
+                                                color: 'var(--text-secondary)'
+                                            }}>
+                                                <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
+                                                    Aktarım Günlüğü (Logs)
+                                                </div>
+                                                {migrationLogs.map((log, idx) => (
+                                                    <div key={idx} style={{ color: log.startsWith('Hata:') ? 'var(--danger)' : log.startsWith('Başarıyla') || log.includes('tamamlandı') ? 'var(--success)' : 'inherit' }}>
+                                                        {log}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
