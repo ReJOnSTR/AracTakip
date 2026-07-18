@@ -48,7 +48,11 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     // First pass: mark isPazar on each item (same as PDF report line 88-97)
     // This ensures sampleGunPrice filter correctly excludes Sunday items
     const processedItems = items.map(item => {
-        if (item.vehicle_id || item.custom_vehicle) uniqueVehicles.add(item.vehicle_id || item.custom_vehicle)
+        if (item.vehicle_id) {
+            uniqueVehicles.add(String(item.vehicle_id))
+        } else if (item.custom_vehicle) {
+            uniqueVehicles.add(`custom_${item.id || Math.random()}`)
+        }
         if (item.employee_id) uniqueEmployees.add(item.employee_id)
 
         const descUpper = (item.description || '').toUpperCase()
@@ -67,7 +71,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     })
 
     processedItems.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle || 'diger')
+        const key = item.vehicle_id ? String(item.vehicle_id) : `custom_${item.id || Math.random()}`
         if (!groupedItems[key]) {
             groupedItems[key] = {
                 items: [],

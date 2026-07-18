@@ -48,7 +48,7 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
     })
 
     processedItems.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle || 'diger')
+        const key = item.vehicle_id ? String(item.vehicle_id) : `custom_${item.id || Math.random()}`
         if (!groupedItems[key]) {
             groupedItems[key] = {
                 items: [],
