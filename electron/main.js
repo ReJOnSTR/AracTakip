@@ -2248,19 +2248,23 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                                     let val = row[col];
 
                                     // Parse dates
-                                    if (val !== null && val !== undefined) {
-                                        if (typeof val === 'string' && (
-                                            col.endsWith('_date') || col === 'date' || 
-                                            col.endsWith('_at') || col === 'created_at' || 
-                                            col === 'applied_at' || col === 'gps_date' || 
-                                            col === 'expiry_date' || col === 'issue_date' || 
-                                            col.endsWith('_due_date') || col === 'start_date' || 
-                                            col === 'end_date' || col === 'devir_tarihi' || 
-                                            col === 'birth_date' || col === 'change_date'
-                                        )) {
+                                    if (
+                                        col.endsWith('_date') || col === 'date' || 
+                                        col.endsWith('_at') || col === 'created_at' || 
+                                        col === 'applied_at' || col === 'gps_date' || 
+                                        col === 'expiry_date' || col === 'issue_date' || 
+                                        col.endsWith('_due_date') || col === 'start_date' || 
+                                        col === 'end_date' || col === 'devir_tarihi' || 
+                                        col === 'birth_date' || col === 'change_date'
+                                    ) {
+                                        if (val === null || val === undefined || (typeof val === 'string' && val.trim() === '')) {
+                                            val = null;
+                                        } else {
                                             const parsedDate = new Date(val);
                                             if (!isNaN(parsedDate.getTime())) {
                                                 val = parsedDate;
+                                            } else {
+                                                val = null;
                                             }
                                         }
                                     }
