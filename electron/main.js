@@ -2293,7 +2293,7 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                 await pgClient.query("SET session_replication_role = 'origin'");
 
                 webContents.send('migration-log', 'Aktarım işlemi başarıyla tamamlandı!');
-                resolve({ success: true });
+                return { success: true };
 
             } catch (migrationErr) {
                 webContents.send('migration-log', `Aktarım sırasında hata oluştu: ${migrationErr.message}`);
@@ -2304,7 +2304,7 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                     } catch (e) {}
                 }
                 
-                resolve({ success: false, error: migrationErr.message });
+                return { success: false, error: migrationErr.message };
             } finally {
                 if (sqliteDb) {
                     try {
@@ -2317,7 +2317,5 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                     } catch (e) {}
                 }
             }
-        });
-    });
 });
 
