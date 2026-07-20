@@ -62,12 +62,14 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "employee_id" INTEGER NOT NULL,
     "item_name" TEXT NOT NULL,
+    "serial_number" TEXT,
     "quantity" INTEGER DEFAULT 1,
-    "assigned_date" DATETIME,
+    "assign_date" DATETIME,
     "return_date" DATETIME,
     "status" TEXT DEFAULT 'active',
     "notes" TEXT,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    "is_archived" INTEGER DEFAULT 0,
     CONSTRAINT "employee_assignments_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE TABLE IF NOT EXISTS "employee_attendance" (
@@ -88,6 +90,7 @@ const allTablesSQL = [
     "category" TEXT,
     "folder" TEXT,
     "issue_date" DATETIME,
+    "start_date" DATETIME,
     "expiry_date" DATETIME,
     "is_archived" INTEGER DEFAULT 0,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -132,9 +135,16 @@ const allTablesSQL = [
     "status" TEXT DEFAULT 'active',
     "notes" TEXT,
     "image" TEXT,
+    "signature_path" TEXT,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "past_used_leaves" INTEGER DEFAULT 0,
     "birth_date" DATETIME,
+    "devir_izin_bakiyesi" INTEGER DEFAULT 0,
+    "devir_maas_bakiyesi" REAL DEFAULT 0,
+    "devir_tarihi" DATETIME,
+    "iban" TEXT,
+    "off_days" TEXT DEFAULT '0',
+    "is_archived" INTEGER DEFAULT 0,
     CONSTRAINT "employees_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE TABLE IF NOT EXISTS "inspections" (
@@ -263,7 +273,7 @@ const allTablesSQL = [
     "notes" TEXT,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "is_archived" INTEGER DEFAULT 0,
-    "payment_method" TEXT DEFAULT 'nakit',
+    "payment_method" TEXT DEFAULT 'cash',
     CONSTRAINT "salaries_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "employees" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE TABLE IF NOT EXISTS "schema_migrations" (
@@ -368,6 +378,8 @@ const allTablesSQL = [
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     "start_date" DATETIME,
     "end_date" DATETIME,
+    "work_start_time" TEXT DEFAULT '08:00',
+    "work_end_time" TEXT DEFAULT '17:00',
     "is_archived" INTEGER DEFAULT 0,
     "pazar_multiplier" REAL DEFAULT 1.5,
     "mesai_multiplier" REAL DEFAULT 1.5,
@@ -380,6 +392,7 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "company_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "status" TEXT DEFAULT 'active',
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "departments_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
@@ -387,6 +400,7 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "company_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "status" TEXT DEFAULT 'active',
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "leave_types_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
@@ -394,6 +408,7 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "company_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "status" TEXT DEFAULT 'active',
     "target_type" TEXT DEFAULT 'employee',
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_categories_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
@@ -402,6 +417,8 @@ const allTablesSQL = [
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "company_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "related_type" TEXT,
+    "related_id" INTEGER,
     "is_archived" INTEGER DEFAULT 0,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_folders_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
@@ -412,6 +429,15 @@ const allTablesSQL = [
     "name" TEXT NOT NULL,
     "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "vehicle_types_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+)`,
+`CREATE TABLE IF NOT EXISTS "public_holidays" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "company_id" INTEGER NOT NULL,
+    "date" DATETIME NOT NULL,
+    "description" TEXT,
+    "status" TEXT DEFAULT 'active',
+    "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "public_holidays_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 )`,
 `CREATE INDEX IF NOT EXISTS "idx_assignments_vehicle" ON "assignments"("vehicle_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_companies_user" ON "companies"("user_id")`,
@@ -438,6 +464,7 @@ const allTablesSQL = [
 `CREATE INDEX IF NOT EXISTS "idx_work_items_work" ON "work_items"("work_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_works_company" ON "works"("company_id")`,
 `CREATE INDEX IF NOT EXISTS "idx_works_customer" ON "works"("customer_id")`,
+`CREATE INDEX IF NOT EXISTS "idx_public_holidays_company" ON "public_holidays"("company_id")`,
 `CREATE TABLE IF NOT EXISTS "arvento_history" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "plate" TEXT NOT NULL,

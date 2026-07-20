@@ -363,6 +363,66 @@ async function runAutoMigrations() {
         log.error('Migration step 11e (settings status columns) error:', error.message);
     }
 
+    // 11f. Employees extra fields (devir, iban, off_days)
+    try {
+        const empCols = await p.$queryRawUnsafe("PRAGMA table_info('employees')");
+        if (empCols.length > 0) {
+            if (!empCols.some(c => c.name === 'devir_izin_bakiyesi')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN devir_izin_bakiyesi INTEGER DEFAULT 0');
+            }
+            if (!empCols.some(c => c.name === 'devir_maas_bakiyesi')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN devir_maas_bakiyesi REAL DEFAULT 0');
+            }
+            if (!empCols.some(c => c.name === 'devir_tarihi')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN devir_tarihi DATETIME');
+            }
+            if (!empCols.some(c => c.name === 'iban')) {
+                await p.$executeRawUnsafe('ALTER TABLE employees ADD COLUMN iban TEXT');
+            }
+            if (!empCols.some(c => c.name === 'off_days')) {
+                await p.$executeRawUnsafe("ALTER TABLE employees ADD COLUMN off_days TEXT DEFAULT '0'");
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11f (employees extra fields) error:', error.message);
+    }
+
+    // 11g. Works shift times (work_start_time, work_end_time, multipliers)
+    try {
+        const wCols = await p.$queryRawUnsafe("PRAGMA table_info('works')");
+        if (wCols.length > 0) {
+            if (!wCols.some(c => c.name === 'work_start_time')) {
+                await p.$executeRawUnsafe("ALTER TABLE works ADD COLUMN work_start_time TEXT DEFAULT '08:00'");
+            }
+            if (!wCols.some(c => c.name === 'work_end_time')) {
+                await p.$executeRawUnsafe("ALTER TABLE works ADD COLUMN work_end_time TEXT DEFAULT '17:00'");
+            }
+            if (!wCols.some(c => c.name === 'pazar_multiplier')) {
+                await p.$executeRawUnsafe("ALTER TABLE works ADD COLUMN pazar_multiplier REAL DEFAULT 1.5");
+            }
+            if (!wCols.some(c => c.name === 'mesai_multiplier')) {
+                await p.$executeRawUnsafe("ALTER TABLE works ADD COLUMN mesai_multiplier REAL DEFAULT 1.5");
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11g (works shift times) error:', error.message);
+    }
+
+    // 11h. Document folders relations (related_type, related_id)
+    try {
+        const dfCols = await p.$queryRawUnsafe("PRAGMA table_info('document_folders')");
+        if (dfCols.length > 0) {
+            if (!dfCols.some(c => c.name === 'related_type')) {
+                await p.$executeRawUnsafe('ALTER TABLE document_folders ADD COLUMN related_type TEXT');
+            }
+            if (!dfCols.some(c => c.name === 'related_id')) {
+                await p.$executeRawUnsafe('ALTER TABLE document_folders ADD COLUMN related_id INTEGER');
+            }
+        }
+    } catch (error) {
+        log.error('Migration step 11h (document_folders relations) error:', error.message);
+    }
+
     // 12. Seed Default Personnel Settings for all companies
     try {
         const companies = await p.companies.findMany();
