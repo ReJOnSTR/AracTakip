@@ -2185,38 +2185,26 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
     const Database = require('better-sqlite3');
     const { app } = require('electron');
     const path = require('path');
-    const fs = require('fs');
+    const { postgresDdlSql } = require('./utils/postgresDdl');
 
     const sqlitePath = path.join(app.getPath('userData'), 'data', 'aractakip.db');
 
-    return new Promise(async (resolve) => {
-        webContents.send('migration-log', 'PostgreSQL şema senkronizasyonu başlatılıyor...');
+    let sqliteDb = null;
+    let pgClient = null;
 
-        const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.postgres.prisma');
-        const env = { ...process.env, POSTGRES_URL: postgresUrl };
-        const { exec } = require('child_process');
+    try {
+        webContents.send('migration-log', 'PostgreSQL bağlantısı kuruldu...');
+        pgClient = new Client({ connectionString: postgresUrl });
+        await pgClient.connect();
+        webContents.send('migration-log', 'PostgreSQL bağlantısı sağlandı.');
 
-        exec(`npx prisma db push --schema="${schemaPath}" --url="${postgresUrl}" --accept-data-loss`, { env }, async (err, stdout, stderr) => {
-            if (err) {
-                webContents.send('migration-log', `Şema oluşturma hatası: ${stderr || err.message}`);
-                resolve({ success: false, error: `Şema oluşturma hatası: ${stderr || err.message}` });
-                return;
-            }
+        webContents.send('migration-log', 'PostgreSQL şema ve tabloları oluşturuluyor...');
+        await pgClient.query(postgresDdlSql);
+        webContents.send('migration-log', 'Şema başarıyla oluşturuldu. Veri aktarımı başlatılıyor...');
 
-            webContents.send('migration-log', 'Şema başarıyla oluşturuldu. Veri aktarımı başlatılıyor...');
-
-            let sqliteDb = null;
-            let pgClient = null;
-
-            try {
-                sqliteDb = new Database(sqlitePath);
-                pgClient = new Client({ connectionString: postgresUrl });
-
-                await pgClient.connect();
-                webContents.send('migration-log', 'PostgreSQL bağlantısı kuruldu.');
-
-                const tablesQuery = sqliteDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '_prisma_migrations'");
-                const tables = tablesQuery.all().map(row => row.name);
+        sqliteDb = new Database(sqlitePath);
+        const tablesQuery = sqliteDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '_prisma_migrations'");
+        const tables = tablesQuery.all().map(row => row.name);
 
                 webContents.send('migration-log', `${tables.length} adet tablo aktarılacak.`);
 

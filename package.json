@@ -1,6 +1,6 @@
 {
   "name": "muayen",
-  "version": "1.0.315",
+  "version": "1.0.316",
   "description": "Kontrol - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -76,7 +76,9 @@
     "files": [
       "electron/**/*",
       "dist/**/*",
-      "data/**/*"
+      "data/**/*",
+      "prisma/**/*",
+      "scripts/**/*"
     ],
     "asarUnpack": [
       "**/*.node"
