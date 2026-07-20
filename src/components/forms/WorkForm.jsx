@@ -258,12 +258,12 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                     control={control}
                     render={({ field }) => (
                         <CustomInput
-                            label="Açıklama"
+                            label="Not"
                             value={field.value}
                             onChange={field.onChange}
                             multiline={true}
                             rows={3}
-                            placeholder="İş detayları..."
+                            placeholder="Raporun altında görünecek not..."
                             error={errors.description?.message}
                             maxLength={1000}
                         />

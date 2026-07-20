@@ -463,10 +463,12 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 </table>
             </div>
 
-            <div className="pdf-footer-note">
-                <span className="bold" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>NOT:</span>
-                <div style={{ marginLeft: '10px', display: 'inline-block' }}>Oluşturma Tarihi: {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR')} - {work.title}</div>
-            </div>
+            {work?.description && work.description.trim() !== '' && (
+                <div className="pdf-footer-note">
+                    <span className="bold" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>NOT:</span>
+                    <div style={{ marginLeft: '10px', display: 'inline-block', whiteSpace: 'pre-wrap' }}>{work.description.trim()}</div>
+                </div>
+            )}
 
             <div className="pdf-footer-standard">Puantaj Raporları</div>
         </div>
