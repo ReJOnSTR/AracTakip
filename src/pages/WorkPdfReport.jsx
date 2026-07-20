@@ -322,7 +322,9 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                 marginTop: '15px', 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '8px'
+                                gap: '8px',
+                                pageBreakAfter: 'avoid',
+                                breakAfter: 'avoid'
                             }}
                         >
                             <span>{group.machineName.toUpperCase()} DETAYLARI</span>
