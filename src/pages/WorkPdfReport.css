@@ -374,9 +374,35 @@
     transform: none;
 }
 
-/* Hide actions bar exactly when saving */
+/* PDF Generation State Overrides */
+html:has(.is-generating-pdf),
+body:has(.is-generating-pdf),
+.is-generating-pdf,
+.is-generating-pdf * {
+    color-scheme: light !important;
+}
+
+html:has(.is-generating-pdf),
+body:has(.is-generating-pdf),
+.is-generating-pdf {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
 .is-generating-pdf .pdf-actions-bar {
     display: none !important;
+}
+
+.is-generating-pdf .pdf-report-container {
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 12mm 10mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
 }
 
 @media print {

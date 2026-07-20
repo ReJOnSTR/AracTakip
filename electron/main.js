@@ -2039,7 +2039,8 @@ ipcMain.handle('save-pdf', async (event) => {
         const pdfData = await win.webContents.printToPDF({
             printBackground: true,
             pageSize: 'A4',
-            margins: { marginType: 'printableArea' } // Allow default margins but capture perfectly
+            margins: { marginType: 'none' },
+            preferCSSPageSize: true
         });
 
         fs.writeFileSync(filePath, pdfData);
@@ -2145,7 +2146,8 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
         const pdfData = await hiddenWin.webContents.printToPDF({
             printBackground: true,
             pageSize: 'A4',
-            margins: { marginType: 'default' }
+            margins: { marginType: 'none' },
+            preferCSSPageSize: true
         });
 
         fs.writeFileSync(filePath, pdfData);
