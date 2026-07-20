@@ -78,8 +78,6 @@
 
 .pdf-vehicle-group {
     margin-bottom: 25px;
-    page-break-inside: avoid;
-    break-inside: avoid;
     background: transparent;
     padding: 0;
     border: none;
@@ -87,7 +85,6 @@
 
 .pdf-table {
     width: 100%;
-    table-layout: fixed;
     border-collapse: collapse;
     margin-bottom: 15px;
     background: #fff;
@@ -101,12 +98,13 @@
 
 .pdf-table tr {
     page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 .pdf-table th,
 .pdf-table td {
-    padding: 2px 4px; /* Reduced padding */
-    line-height: 1.1;
+    padding: 5px 6px;
+    line-height: 1.35;
     border: 1px solid #ddd;
 }
 
@@ -116,17 +114,17 @@
 }
 
 .pdf-table th {
-    font-size: 8.5px; /* Slightly larger but still compact */
+    font-size: 9px;
     font-weight: bold;
-    text-align: left; /* Matched ReportRenderer */
+    text-align: left;
     vertical-align: middle;
     color: #000;
-    background-color: #eee; /* Matched ReportRenderer */
-    padding: 4px 6px;
+    background-color: #eee;
+    padding: 5px 6px;
 }
 
 .pdf-table td {
-    font-size: 8.5px; /* Slightly smaller font */
+    font-size: 9px;
     color: #000;
 }
 
@@ -140,7 +138,6 @@
 .pdf-summary-block {
     display: flex;
     justify-content: flex-end;
-    width: 100%;
     margin-top: 10px;
     page-break-inside: avoid;
     break-inside: avoid;
@@ -148,8 +145,7 @@
 
 .pdf-summary-table {
     border-collapse: collapse;
-    width: 100%;
-    table-layout: fixed;
+    width: 320px;
     background: #ffffff;
     border: 1px solid #ddd; 
     page-break-inside: avoid;
@@ -274,11 +270,11 @@
         background: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-        zoom: 0.88; /* Default zoom */
+        zoom: 1;
     }
 
     .pdf-report-container.with-kdv {
-        zoom: 0.80 !important; /* Shrink only when KDV is added */
+        zoom: 1;
     }
 
     .pdf-header-standard {
@@ -289,9 +285,7 @@
     .pdf-vehicle-group {
         border: none;
         margin-top: 0 !important;
-        margin-bottom: 12px !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
+        margin-bottom: 15px !important;
     }
 
     .pdf-table {
