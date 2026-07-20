@@ -221,6 +221,13 @@
 }
 
 @media print {
+    :root, html, body, #root, .app-container, .main-content, .page-content, .pdf-viewer-layout, .print-body {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        color-scheme: light !important;
+    }
+
     /* Hide non-report elements */
     .pdf-actions-bar,
     .sidebar,
@@ -233,7 +240,7 @@
     .pdf-viewer-layout {
         padding: 0 !important;
         margin: 0 !important;
-        background: white !important;
+        background: #ffffff !important;
         display: block !important;
     }
 
@@ -243,13 +250,14 @@
 
     /* Reset some body/html styles for print */
     body, html {
-        background: white !important;
+        background: #ffffff !important;
         margin: 0 !important;
         padding: 0 !important;
         height: auto !important;
         overflow: visible !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        color-scheme: light !important;
     }
 
     .pdf-report-container {
@@ -260,7 +268,7 @@
         padding: 0 !important; /* Equal top/bottom margins handled by @page for ALL pages */
         box-shadow: none !important;
         border: none !important;
-        background: white !important;
+        background: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         zoom: 0.88; /* Default zoom */

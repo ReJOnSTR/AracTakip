@@ -96,10 +96,13 @@ export default function PrintPage() {
                         size: A4;
                         margin: 12mm 10mm;
                     }
-                    body, html {
+                    :root, html, body {
+                        background: #ffffff !important;
+                        background-color: #ffffff !important;
+                        color: #000000 !important;
+                        color-scheme: light !important;
                         margin: 0px !important;
                         padding: 0px !important;
-                        background: white !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }

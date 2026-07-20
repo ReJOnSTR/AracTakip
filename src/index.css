@@ -3848,6 +3848,13 @@ body {
 }
 
 @media print {
+  :root, html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    color-scheme: light !important;
+  }
+
   @page {
     margin: 0;
     size: A4;
@@ -3856,8 +3863,8 @@ body {
   /* Hide everything by default */
   body {
     margin: 0;
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   /* Hide app chrome */
