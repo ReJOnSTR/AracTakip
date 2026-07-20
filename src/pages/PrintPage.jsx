@@ -94,7 +94,7 @@ export default function PrintPage() {
                     {`
                     @page {
                         size: A4;
-                        margin: 0mm;
+                        margin: 12mm 10mm;
                     }
                     body, html {
                         margin: 0px !important;

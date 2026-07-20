@@ -253,10 +253,11 @@
     }
 
     .pdf-report-container {
-        width: 210mm !important;
-        min-height: 297mm !important;
+        width: 100% !important;
+        max-width: 210mm !important;
+        min-height: auto !important;
         margin: 0 auto !important; /* Centered horizontally */
-        padding: 10mm !important; /* Reduced padding to fit more content */
+        padding: 0 !important; /* Equal top/bottom margins handled by @page for ALL pages */
         box-shadow: none !important;
         border: none !important;
         background: white !important;
@@ -276,7 +277,8 @@
 
     .pdf-vehicle-group {
         border: none;
-        margin-bottom: 10px !important;
+        margin-top: 0 !important;
+        margin-bottom: 12px !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
     }
@@ -299,7 +301,7 @@
     }
 
     @page {
-        margin: 0mm; /* Using 0 disables browser default headers/footers in many browsers */
+        margin: 12mm 10mm; /* Consistent 12mm top/bottom page margin on all printed pages */
         size: A4 portrait;
     }
 }
