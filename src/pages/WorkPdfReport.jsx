@@ -330,21 +330,32 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                             <span>{group.machineName.toUpperCase()} DETAYLARI</span>
                         </h3>
                         <div>
-                            <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
+                            <table className="pdf-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                                <colgroup>
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '11%' }} />
+                                    <col style={{ width: '12%' }} />
+                                    <col style={{ width: '11%' }} />
+                                </colgroup>
                                 <thead>
                                     <tr>
-                                        <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
-                                        <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
-                                        <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
+                                        <th rowSpan="2" className="center">TARİH</th>
+                                        <th rowSpan="2" className="center">FİŞ NO</th>
+                                        <th colSpan="2" className="center">Çalışma Süresi</th>
+                                        <th rowSpan="2" className="center">Süre/Adet</th>
+                                        <th rowSpan="2" className="center">Fazla Mesai</th>
+                                        <th rowSpan="2" className="center">MAKİNA</th>
+                                        <th rowSpan="2" className="left">AÇIKLAMA</th>
+                                        <th rowSpan="2" className="right">FİYAT</th>
                                     </tr>
                                     <tr>
-                                        <th style={{ width: '11%' }}>Başlama</th>
-                                        <th style={{ width: '11%' }}>Bitiş</th>
+                                        <th className="center">Başlama</th>
+                                        <th className="center">Bitiş</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -370,12 +381,12 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                             {/* Summary Block */}
                             <div className="pdf-summary-block">
-                                <table className="pdf-summary-table" style={{ width: '550px' }}>
+                                <table className="pdf-summary-table" style={{ width: '100%', tableLayout: 'fixed' }}>
                                     <colgroup>
-                                        <col style={{ width: '125px' }} />
-                                        <col style={{ width: '125px' }} />
-                                        <col style={{ width: '150px' }} />
-                                        <col style={{ width: '150px' }} />
+                                        <col style={{ width: '25%' }} />
+                                        <col style={{ width: '25%' }} />
+                                        <col style={{ width: '25%' }} />
+                                        <col style={{ width: '25%' }} />
                                     </colgroup>
                                     <tbody>
                                         <tr className="bg-light-gray">
@@ -437,10 +448,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
             {/* General Grand Total Summary */}
             <div className="pdf-grand-total">
-                <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: (groups.length > 0 ? '20px' : '0') }}>
+                <table className="pdf-summary-table" style={{ width: '100%', tableLayout: 'fixed', marginTop: (groups.length > 0 ? '20px' : '0') }}>
                     <colgroup>
-                        <col style={{ width: '170px' }} />
-                        <col style={{ width: '180px' }} />
+                        <col style={{ width: '50%' }} />
+                        <col style={{ width: '50%' }} />
                     </colgroup>
                     <tbody>
                             <tr style={{ borderTop: '1px solid #ddd' }}>
