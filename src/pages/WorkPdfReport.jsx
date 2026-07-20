@@ -370,12 +370,12 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                             {/* Summary Block */}
                             <div className="pdf-summary-block">
-                                <table className="pdf-summary-table" style={{ width: '100%', tableLayout: 'fixed' }}>
+                                <table className="pdf-summary-table" style={{ width: '550px' }}>
                                     <colgroup>
-                                        <col style={{ width: '25%' }} />
-                                        <col style={{ width: '25%' }} />
-                                        <col style={{ width: '25%' }} />
-                                        <col style={{ width: '25%' }} />
+                                        <col style={{ width: '125px' }} />
+                                        <col style={{ width: '125px' }} />
+                                        <col style={{ width: '150px' }} />
+                                        <col style={{ width: '150px' }} />
                                     </colgroup>
                                     <tbody>
                                         <tr className="bg-light-gray">
@@ -437,10 +437,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
             {/* General Grand Total Summary */}
             <div className="pdf-grand-total">
-                <table className="pdf-summary-table" style={{ width: '100%', tableLayout: 'fixed', marginTop: (groups.length > 0 ? '20px' : '0') }}>
+                <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: (groups.length > 0 ? '20px' : '0') }}>
                     <colgroup>
-                        <col style={{ width: '50%' }} />
-                        <col style={{ width: '50%' }} />
+                        <col style={{ width: '170px' }} />
+                        <col style={{ width: '180px' }} />
                     </colgroup>
                     <tbody>
                             <tr style={{ borderTop: '1px solid #ddd' }}>
