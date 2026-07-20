@@ -138,6 +138,7 @@
 .pdf-summary-block {
     display: flex;
     justify-content: flex-end;
+    width: 100%;
     margin-top: 10px;
     page-break-inside: avoid;
     break-inside: avoid;
@@ -145,7 +146,8 @@
 
 .pdf-summary-table {
     border-collapse: collapse;
-    width: 320px;
+    width: 100%;
+    table-layout: fixed;
     background: #ffffff;
     border: 1px solid #ddd; 
     page-break-inside: avoid;
