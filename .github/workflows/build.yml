@@ -53,6 +53,7 @@ jobs:
             dist-electron/latest*.yml
           draft: false
           prerelease: false
+          make_latest: "true"
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
