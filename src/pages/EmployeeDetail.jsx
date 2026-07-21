@@ -16,7 +16,7 @@ import DocumentForm from '../components/forms/DocumentForm'
 import DocumentGeneratorModal from '../components/DocumentGeneratorModal'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
-import { formatCurrency, formatDate, getHistoricalBaseSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers'
+import { formatCurrency, formatDate, getHistoricalBaseSalary, getHistoricalFullSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers'
 import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -127,7 +127,7 @@ const calculateEarnedOtDays = (o, employee, whpl, sdpl, hdpl) => {
     } else {
         const oDateStr = typeof o.date === 'string' ? o.date : new Date(o.date).toISOString()
         const oMonth = oDateStr.slice(0, 7)
-        const oSalary = getHistoricalBaseSalary(employee, oMonth) || employee.salary || 0
+        const oSalary = getHistoricalFullSalary(employee, oMonth) || employee.salary || 0
         const oDailyRate = oSalary / 30
         const oHourlyRate = oDailyRate / 10
         const oExpectedWeekdayRate = Math.round(oHourlyRate * 1.5 * 100) / 100
@@ -512,7 +512,7 @@ export default function EmployeeDetail() {
 
     const calcOvertimeRate = (type, customSalary) => {
         if (!employee) return 0
-        const activeSalary = customSalary !== undefined ? customSalary : getHistoricalBaseSalary(employee, selectedMonth)
+        const activeSalary = customSalary !== undefined ? customSalary : getHistoricalFullSalary(employee, selectedMonth)
         if (!activeSalary) return 0
         const dailyRate = activeSalary / 30
         const hourlyRate = dailyRate / 10
@@ -1536,7 +1536,7 @@ export default function EmployeeDetail() {
                 } else {
                     const oDateStr = typeof row.date === 'string' ? row.date : new Date(row.date).toISOString()
                     const oMonth = oDateStr.slice(0, 7)
-                    const oSalary = getHistoricalBaseSalary(employee, oMonth) || employee.salary || 0
+                    const oSalary = getHistoricalFullSalary(employee, oMonth) || employee.salary || 0
                     const oDailyRate = oSalary / 30
                     const oHourlyRate = oDailyRate / 10
                     const oExpectedWeekdayRate = Math.round(oHourlyRate * 1.5 * 100) / 100

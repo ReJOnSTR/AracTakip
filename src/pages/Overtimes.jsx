@@ -10,7 +10,7 @@ import CustomSelect from '../components/CustomSelect'
 import MonthFilter from '../components/MonthFilter'
 import ConfirmModal from '../components/ConfirmModal'
 import CustomMultiSelect from '../components/CustomMultiSelect'
-import { formatCurrency, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
+import { formatCurrency, getHistoricalBaseSalary, getHistoricalFullSalary, formatDateForInput } from '../utils/helpers'
 import { Clock, Users, User, Building2, Wallet, Banknote, X, Plus, Calendar, Calculator, Trash2, ChevronRight, ChevronLeft, CheckCircle, Pencil, Search, Check } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 
@@ -280,8 +280,8 @@ export default function Overtimes() {
 
     const calcOvertimeRate = (type, employee) => {
         if (!employee) return 0
-        // Use selectedMonth for historical salary
-        const activeSalary = getHistoricalBaseSalary(employee, selectedMonth)
+        // Use full monthly base salary (unprorated) for overtime unit rate calculation
+        const activeSalary = getHistoricalFullSalary(employee, selectedMonth)
         if (!activeSalary) return 0
         
         const dailyRate = activeSalary / 30

@@ -274,6 +274,52 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
 }
 
 /**
+ * Calculates the UNPRORATED full monthly base salary for a given month by evaluating the employee_salary_history timeline.
+ * Used for overtime rate calculations so unit rates are based on the full monthly salary, not partial month amounts.
+ * @param {Object} employee - Employee object
+ * @param {String} targetMonth - The target month string (e.g. "2026-04")
+ * @returns {Number} Full unprorated monthly base salary
+ */
+export function getHistoricalFullSalary(employee, targetMonth) {
+    if (!employee) return 0
+    if (typeof employee === 'number') return employee
+    
+    let baseSalary = 0
+    if (!employee.employee_salary_history || employee.employee_salary_history.length === 0) {
+        baseSalary = employee.salary || 0
+    } else {
+        const targetStr = typeof targetMonth === 'string' ? targetMonth.slice(0, 7) : new Date(targetMonth).toISOString().slice(0, 7)
+        const parts = targetStr.split('-')
+        const tYear = parseInt(parts[0], 10)
+        const tMonth = parseInt(parts[1], 10)
+        
+        const startOfMonth = new Date(tYear, tMonth - 1, 1, 0, 0, 0)
+        const endOfMonth = new Date(tYear, tMonth, 0, 23, 59, 59)
+
+        const sortedHistory = [...employee.employee_salary_history].sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+
+        let found = false
+        for (const record of sortedHistory) {
+            const start = new Date(record.start_date)
+            const end = record.end_date ? new Date(record.end_date) : null
+
+            if (start <= endOfMonth && (!end || end >= startOfMonth)) {
+                baseSalary = record.amount || 0
+                found = true
+                break
+            }
+        }
+
+        if (!found) {
+            const earliestRecord = [...employee.employee_salary_history].sort((a, b) => new Date(a.start_date) - new Date(b.start_date))[0]
+            baseSalary = earliestRecord?.amount || employee.salary || 0
+        }
+    }
+
+    return baseSalary || 0
+}
+
+/**
  * Safely formats any date-like string or object into YYYY-MM-DD for HTML date inputs.
  * @param {any} dateValue - The date to format
  * @returns {string} - YYYY-MM-DD or empty string
