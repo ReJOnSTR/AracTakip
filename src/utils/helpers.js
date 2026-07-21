@@ -185,13 +185,13 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
     if (!employee.employee_salary_history || employee.employee_salary_history.length === 0) {
         baseSalary = employee.salary || 0
     } else {
-        const tMonth = new Date(targetMonth)
-        // Find the record valid in this month.
-        // Validity: start_date is before or ON the target month's end, and end_date is after or null.
-        // If we only have "YYYY-MM", we compare to the end of the month.
-        const year = tMonth.getFullYear()
-        const month = tMonth.getMonth()
-        const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59)
+        const targetStr = typeof targetMonth === 'string' ? targetMonth.slice(0, 7) : new Date(targetMonth).toISOString().slice(0, 7)
+        const parts = targetStr.split('-')
+        const tYear = parseInt(parts[0], 10)
+        const tMonth = parseInt(parts[1], 10)
+        
+        const startOfMonth = new Date(tYear, tMonth - 1, 1, 0, 0, 0)
+        const endOfMonth = new Date(tYear, tMonth, 0, 23, 59, 59)
 
         // Sort history by start date descending to find the closest match going backwards
         const sortedHistory = [...employee.employee_salary_history].sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
@@ -201,11 +201,6 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
             const start = new Date(record.start_date)
             const end = record.end_date ? new Date(record.end_date) : null
 
-            // This record was active during this month if:
-            // - start date is before or equal to the end of the month
-            // - end date is null OR after the START of the month
-            const startOfMonth = new Date(year, month, 1, 0, 0, 0)
-            
             if (start <= endOfMonth && (!end || end >= startOfMonth)) {
                 baseSalary = record.amount || 0
                 found = true
@@ -214,8 +209,6 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
         }
 
         if (!found) {
-            // Default fallback: if no match found, take the EARLIEST known salary record
-            // This handles cases where target month is before the first recorded history entry
             const earliestRecord = [...employee.employee_salary_history].sort((a, b) => new Date(a.start_date) - new Date(b.start_date))[0]
             baseSalary = earliestRecord?.amount || employee.salary || 0
         }
@@ -223,48 +216,61 @@ export function getHistoricalBaseSalary(employee, targetMonth) {
 
     if (!baseSalary) return 0
 
-    // Parse target month string (format YYYY-MM)
-    const monthStr = typeof targetMonth === 'string' ? targetMonth.slice(0, 7) : new Date(targetMonth).toISOString().slice(0, 7)
-    const parts = monthStr.split('-')
-    const year = parseInt(parts[0])
-    const month = parseInt(parts[1])
+    // Target Year and Month
+    const targetStr = typeof targetMonth === 'string' ? targetMonth.slice(0, 7) : new Date(targetMonth).toISOString().slice(0, 7)
+    const parts = targetStr.split('-')
+    const tYear = parseInt(parts[0], 10)
+    const tMonth = parseInt(parts[1], 10) // 1 to 12
 
-    const startOfMonth = new Date(year, month - 1, 1)
-    const endOfMonth = new Date(year, month, 0, 23, 59, 59)
-    const totalDaysInMonth = new Date(year, month, 0).getDate()
+    const parseDateComponents = (val) => {
+        if (!val) return null
+        const s = typeof val === 'string' ? val.split('T')[0] : new Date(val).toISOString().split('T')[0]
+        const p = s.split('-')
+        if (p.length !== 3) return null
+        return { year: parseInt(p[0], 10), month: parseInt(p[1], 10), day: parseInt(p[2], 10) }
+    }
 
-    let start = startOfMonth
-    if (employee.start_date) {
-        const sd = new Date(employee.start_date)
-        const sdStr = sd.toISOString().slice(0, 7)
-        if (sdStr === monthStr) {
-            start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate())
-        } else if (sdStr > monthStr) {
-            return 0 // Hasn't started yet in this month
+    const startObj = parseDateComponents(employee.start_date)
+    const endObj = parseDateComponents(employee.end_date)
+
+    // Check if employee started after this target month
+    if (startObj) {
+        if (startObj.year > tYear || (startObj.year === tYear && startObj.month > tMonth)) {
+            return 0 // Has not started yet in this month
         }
     }
 
-    let end = endOfMonth
-    if (employee.end_date) {
-        const ed = new Date(employee.end_date)
-        const edStr = ed.toISOString().slice(0, 7)
-        if (edStr === monthStr) {
-            end = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate())
-        } else if (edStr < monthStr) {
+    // Check if employee left before this target month
+    if (endObj) {
+        if (endObj.year < tYear || (endObj.year === tYear && endObj.month < tMonth)) {
             return 0 // Already left before this month
         }
     }
 
-    if (start > end) return 0
+    // Determine start day in this month (1-based day)
+    let startDay = 1
+    if (startObj && startObj.year === tYear && startObj.month === tMonth) {
+        startDay = startObj.day
+    }
 
-    const diffTime = Math.abs(end - start)
-    const activeDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+    // Determine end day in this month (30-day standard)
+    let endDay = 30
+    if (endObj && endObj.year === tYear && endObj.month === tMonth) {
+        endDay = Math.min(endObj.day, 30)
+    }
 
-    if (activeDays >= totalDaysInMonth) {
+    // Full month worked under 30-day standard
+    if (startDay === 1 && endDay >= 30) {
         return baseSalary
     }
 
-    return Math.round(baseSalary * (activeDays / totalDaysInMonth) * 100) / 100
+    const activeDays = Math.max(0, endDay - startDay + 1)
+    if (activeDays <= 0) return 0
+    if (activeDays >= 30) return baseSalary
+
+    // 30-day Turkish Labor Law standard: dailyRate = baseSalary / 30
+    const dailyRate = baseSalary / 30
+    return Math.round(dailyRate * activeDays * 100) / 100
 }
 
 /**

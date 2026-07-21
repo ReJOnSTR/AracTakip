@@ -27,89 +27,6 @@ const overtimeTypes = [
     { value: 'gurbet', label: 'Gurbet Mesaisi' }
 ]
 
-function InlineOvertimeAmount({ value, onSave, color = 'var(--primary-color)' }) {
-    const [isEditing, setIsEditing] = useState(false)
-    const [tempValue, setTempValue] = useState(value ?? 0)
-
-    useEffect(() => {
-        setTempValue(value ?? 0)
-    }, [value])
-
-    const handleCommit = () => {
-        setIsEditing(false)
-        const parsed = parseFloat(String(tempValue).replace(',', '.'))
-        if (!isNaN(parsed) && parsed !== value) {
-            onSave(parsed)
-        } else {
-            setTempValue(value ?? 0)
-        }
-    }
-
-    if (isEditing) {
-        return (
-            <input
-                type="number"
-                step="any"
-                autoFocus
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                onBlur={handleCommit}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleCommit()
-                    if (e.key === 'Escape') {
-                        setIsEditing(false)
-                        setTempValue(value ?? 0)
-                    }
-                }}
-                style={{
-                    width: '100px',
-                    padding: '3px 6px',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    color: color,
-                    background: 'var(--bg-secondary)',
-                    border: '1.5px solid var(--primary-color)',
-                    borderRadius: '6px',
-                    outline: 'none'
-                }}
-            />
-        )
-    }
-
-    return (
-        <span
-            onClick={(e) => {
-                e.stopPropagation()
-                setIsEditing(true)
-            }}
-            title="Tutar üzerine tıklayarak direkt değiştirebilirsiniz"
-            style={{
-                fontWeight: '700',
-                color: color,
-                cursor: 'pointer',
-                padding: '3px 6px',
-                borderRadius: '4px',
-                transition: 'all 0.15s ease',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                border: '1px solid transparent'
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--bg-tertiary)'
-                e.currentTarget.style.borderColor = 'var(--border-color)'
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.borderColor = 'transparent'
-            }}
-        >
-            {formatCurrency(value || 0)}
-            <Pencil size={11} style={{ opacity: 0.5 }} />
-        </span>
-    )
-}
-
 export default function Overtimes() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
@@ -850,28 +767,11 @@ export default function Overtimes() {
         {
             key: 'amount',
             label: 'Hakediş',
-            width: '130px',
-            render: (value, row) => (
-                <InlineOvertimeAmount
-                    value={value}
-                    color="var(--primary-color)"
-                    onSave={async (newAmount) => {
-                        try {
-                            const res = await window.electronAPI.updateOvertime({
-                                id: row.id,
-                                amount: newAmount
-                            })
-                            if (res.success) {
-                                loadOvertimes(true)
-                                showToast('Mesai tutarı güncellendi', 'success')
-                            } else {
-                                showToast('Tutar güncellenemedi: ' + res.error, 'error')
-                            }
-                        } catch (err) {
-                            showToast('Tutar güncellenemedi', 'error')
-                        }
-                    }}
-                />
+            width: '120px',
+            render: (value) => (
+                <span style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
+                    {formatCurrency(value || 0)}
+                </span>
             )
         },
         {
@@ -1696,15 +1596,39 @@ export default function Overtimes() {
                                                 </div>
                                             </div>
                                             
-                                            {/* Hakediş Display */}
+                                            {/* Hakediş Editable Input */}
                                             <div style={{ 
-                                                padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-tertiary)',
+                                                padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-tertiary)',
                                                 border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center'
                                             }}>
-                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hakediş</span>
-                                                <span style={{ fontSize: '14px', fontWeight: 700, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-muted)' : 'var(--accent-primary)' }}>
-                                                    {overtimeQueue[overtimeQueueIndex].useAsLeave ? 'İzin Hakedişi' : formatCurrency(overtimeQueue[overtimeQueueIndex].amount || 0)}
-                                                </span>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Hakediş Tutar (TL)</span>
+                                                {overtimeQueue[overtimeQueueIndex].useAsLeave ? (
+                                                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)' }}>İzin Hakedişi</span>
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        value={overtimeQueue[overtimeQueueIndex].amount ?? ''}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value.replace(',', '.')
+                                                            if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                                updateOvertimeField('amount', val)
+                                                            }
+                                                        }}
+                                                        placeholder="0.00"
+                                                        style={{
+                                                            fontSize: '15px',
+                                                            fontWeight: 700,
+                                                            color: 'var(--accent-primary)',
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            borderBottom: '1.5px dashed var(--accent-primary)',
+                                                            outline: 'none',
+                                                            width: '100%',
+                                                            padding: '2px 0'
+                                                        }}
+                                                    />
+                                                )}
                                             </div>
                                         </div>
 
