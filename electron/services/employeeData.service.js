@@ -236,15 +236,16 @@ async function addOvertime(data) {
 
 async function updateOvertime(data) {
     try {
+        const updateData = {};
+        if (data.date !== undefined && data.date !== null) updateData.date = new Date(data.date);
+        if (data.hours !== undefined && data.hours !== null) updateData.hours = parseFloat(data.hours);
+        if (data.rate !== undefined && data.rate !== null) updateData.rate = parseFloat(data.rate);
+        if (data.amount !== undefined && data.amount !== null) updateData.amount = parseFloat(data.amount);
+        if (data.notes !== undefined) updateData.notes = data.notes || null;
+
         const result = await prisma.overtimes.update({
             where: { id: parseInt(data.id) },
-            data: {
-                date: new Date(data.date),
-                hours: parseFloat(data.hours),
-                rate: data.rate ? parseFloat(data.rate) : 1.5,
-                amount: parseFloat(data.amount),
-                notes: data.notes || null
-            }
+            data: updateData
         });
         return { success: true, data: result };
     } catch (error) { return { success: false, error: error.message }; }

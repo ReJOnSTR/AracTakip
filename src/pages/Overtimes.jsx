@@ -27,6 +27,89 @@ const overtimeTypes = [
     { value: 'gurbet', label: 'Gurbet Mesaisi' }
 ]
 
+function InlineOvertimeAmount({ value, onSave, color = 'var(--primary-color)' }) {
+    const [isEditing, setIsEditing] = useState(false)
+    const [tempValue, setTempValue] = useState(value ?? 0)
+
+    useEffect(() => {
+        setTempValue(value ?? 0)
+    }, [value])
+
+    const handleCommit = () => {
+        setIsEditing(false)
+        const parsed = parseFloat(String(tempValue).replace(',', '.'))
+        if (!isNaN(parsed) && parsed !== value) {
+            onSave(parsed)
+        } else {
+            setTempValue(value ?? 0)
+        }
+    }
+
+    if (isEditing) {
+        return (
+            <input
+                type="number"
+                step="any"
+                autoFocus
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                onBlur={handleCommit}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCommit()
+                    if (e.key === 'Escape') {
+                        setIsEditing(false)
+                        setTempValue(value ?? 0)
+                    }
+                }}
+                style={{
+                    width: '100px',
+                    padding: '3px 6px',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    color: color,
+                    background: 'var(--bg-secondary)',
+                    border: '1.5px solid var(--primary-color)',
+                    borderRadius: '6px',
+                    outline: 'none'
+                }}
+            />
+        )
+    }
+
+    return (
+        <span
+            onClick={(e) => {
+                e.stopPropagation()
+                setIsEditing(true)
+            }}
+            title="Tutar üzerine tıklayarak direkt değiştirebilirsiniz"
+            style={{
+                fontWeight: '700',
+                color: color,
+                cursor: 'pointer',
+                padding: '3px 6px',
+                borderRadius: '4px',
+                transition: 'all 0.15s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                border: '1px solid transparent'
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--bg-tertiary)'
+                e.currentTarget.style.borderColor = 'var(--border-color)'
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.borderColor = 'transparent'
+            }}
+        >
+            {formatCurrency(value || 0)}
+            <Pencil size={11} style={{ opacity: 0.5 }} />
+        </span>
+    )
+}
+
 export default function Overtimes() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
@@ -312,26 +395,24 @@ export default function Overtimes() {
                     newItem.rate = calcOvertimeRate(value, newItem.employee)
                 }
 
-                // Auto-calculate amount ONLY when hours, overtimeType, or rate is modified
+                // Auto-calculate amount
                 if (key === 'hours' || key === 'overtimeType' || key === 'rate') {
                     const hours = parseFloat(newItem.hours) || 0
-                    const rate = parseFloat(newItem.rate) || 0
-                    if (hours > 0 && rate > 0) {
-                        newItem.amount = Math.round(hours * rate * 100) / 100
-                    }
+                    const rate = newItem.rate
+                    newItem.amount = hours > 0 ? Math.round(hours * rate * 100) / 100 : ''
                 }
                 return newItem
             }))
             return
         }
 
-        // Otherwise update the main formData (Step 1 / single edit)
+        // Otherwise update the main formData (Step 1)
         setOvertimeFormData(prev => {
             const newData = { ...prev, [key]: value }
             
             if (newData.employeeId && (key === 'hours' || key === 'overtimeType' || key === 'rate' || key === 'employeeId')) {
                 const hours = parseFloat(newData.hours) || 0
-                let rate = parseFloat(newData.rate) || 0
+                let rate = newData.rate
                 
                 if (key === 'overtimeType' || key === 'employeeId') {
                     const empId = newData.employeeId
@@ -769,11 +850,28 @@ export default function Overtimes() {
         {
             key: 'amount',
             label: 'Hakediş',
-            width: '120px',
-            render: (value) => (
-                <span style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
-                    {formatCurrency(value || 0)}
-                </span>
+            width: '130px',
+            render: (value, row) => (
+                <InlineOvertimeAmount
+                    value={value}
+                    color="var(--primary-color)"
+                    onSave={async (newAmount) => {
+                        try {
+                            const res = await window.electronAPI.updateOvertime({
+                                id: row.id,
+                                amount: newAmount
+                            })
+                            if (res.success) {
+                                loadOvertimes(true)
+                                showToast('Mesai tutarı güncellendi', 'success')
+                            } else {
+                                showToast('Tutar güncellenemedi: ' + res.error, 'error')
+                            }
+                        } catch (err) {
+                            showToast('Tutar güncellenemedi', 'error')
+                        }
+                    }}
+                />
             )
         },
         {
@@ -1577,45 +1675,36 @@ export default function Overtimes() {
                                             />
                                         </div>
 
-                                        {/* Rate & Manual Amount Section */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '16px' }}>
-                                            <CustomInput 
-                                                label="Birim Ücret (TL)" 
-                                                type="number" 
-                                                value={overtimeQueue[overtimeQueueIndex].rate} 
-                                                onChange={(val) => updateOvertimeField('rate', val)} 
-                                                step="0.01" 
-                                                min={0} 
-                                                placeholder="Birim ücret"
-                                            />
-                                            <CustomInput 
-                                                label="Mesai Tutarı (Hakediş TL) *" 
-                                                type="number" 
-                                                value={overtimeQueue[overtimeQueueIndex].amount} 
-                                                onChange={(val) => updateOvertimeField('amount', val)} 
-                                                step="0.01" 
-                                                min={0} 
-                                                placeholder="Manuel tutar yazabilirsiniz"
-                                                required={!overtimeQueue[overtimeQueueIndex].useAsLeave}
-                                            />
+                                        {/* Payment style toggle & earnings */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
                                             {/* Toggle Card */}
                                             <div style={{
-                                                display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px',
+                                                display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px',
                                                 background: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
                                                 border: `1px solid ${overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                                                borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer',
-                                                marginTop: '22px'
+                                                borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
                                             }} onClick={() => updateOvertimeField('useAsLeave', !overtimeQueue[overtimeQueueIndex].useAsLeave)}>
                                                 <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                                                     <input type="checkbox" checked={overtimeQueue[overtimeQueueIndex].useAsLeave} onChange={(e) => updateOvertimeField('useAsLeave', e.target.checked)} />
                                                     <span className="toggle-slider"></span>
                                                 </label>
                                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Ödeme Şekli</span>
-                                                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ödeme Şekli</span>
+                                                    <span style={{ fontSize: '14px', fontWeight: 600, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                                                         {overtimeQueue[overtimeQueueIndex].useAsLeave ? 'İzin Olarak' : 'Nakit Hakediş'}
                                                     </span>
                                                 </div>
+                                            </div>
+                                            
+                                            {/* Hakediş Display */}
+                                            <div style={{ 
+                                                padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-tertiary)',
+                                                border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center'
+                                            }}>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hakediş</span>
+                                                <span style={{ fontSize: '14px', fontWeight: 700, color: overtimeQueue[overtimeQueueIndex].useAsLeave ? 'var(--text-muted)' : 'var(--accent-primary)' }}>
+                                                    {overtimeQueue[overtimeQueueIndex].useAsLeave ? 'İzin Hakedişi' : formatCurrency(overtimeQueue[overtimeQueueIndex].amount || 0)}
+                                                </span>
                                             </div>
                                         </div>
 

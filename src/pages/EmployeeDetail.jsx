@@ -68,6 +68,89 @@ const overtimeTypes = [
 
 const today = () => new Date().toISOString().split('T')[0]
 
+function InlineOvertimeAmount({ value, onSave, color = 'var(--accent-primary)' }) {
+    const [isEditing, setIsEditing] = useState(false)
+    const [tempValue, setTempValue] = useState(value ?? 0)
+
+    useEffect(() => {
+        setTempValue(value ?? 0)
+    }, [value])
+
+    const handleCommit = () => {
+        setIsEditing(false)
+        const parsed = parseFloat(String(tempValue).replace(',', '.'))
+        if (!isNaN(parsed) && parsed !== value) {
+            onSave(parsed)
+        } else {
+            setTempValue(value ?? 0)
+        }
+    }
+
+    if (isEditing) {
+        return (
+            <input
+                type="number"
+                step="any"
+                autoFocus
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                onBlur={handleCommit}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCommit()
+                    if (e.key === 'Escape') {
+                        setIsEditing(false)
+                        setTempValue(value ?? 0)
+                    }
+                }}
+                style={{
+                    width: '100px',
+                    padding: '3px 6px',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    color: color,
+                    background: 'var(--bg-secondary)',
+                    border: '1.5px solid var(--accent-primary)',
+                    borderRadius: '6px',
+                    outline: 'none'
+                }}
+            />
+        )
+    }
+
+    return (
+        <span
+            onClick={(e) => {
+                e.stopPropagation()
+                setIsEditing(true)
+            }}
+            title="Tutar üzerine tıklayarak direkt değiştirebilirsiniz"
+            style={{
+                fontWeight: '700',
+                color: color,
+                cursor: 'pointer',
+                padding: '3px 6px',
+                borderRadius: '4px',
+                transition: 'all 0.15s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                border: '1px solid transparent'
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--bg-tertiary)'
+                e.currentTarget.style.borderColor = 'var(--border-color)'
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.borderColor = 'transparent'
+            }}
+        >
+            {formatCurrency(value || 0)}
+            <Pencil size={11} style={{ opacity: 0.5 }} />
+        </span>
+    )
+}
+
 const emptyForms = {
     salary: { paymentType: 'salary', amount: '', paymentDate: '', status: 'pending', paymentMethod: 'nakit', notes: '' },
     leave: { type: 'annual', status: 'approved', startDate: '', endDate: '', days: 1, notes: '' },
@@ -1546,7 +1629,33 @@ export default function EmployeeDetail() {
                 return `${v} ${isSunday || isHoliday || isGurbet ? 'Gün' : 'Saat'}`
             }
         },
-        { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
+        { 
+            key: 'amount', 
+            label: 'Tutar', 
+            render: (value, row) => (
+                <InlineOvertimeAmount
+                    value={value}
+                    color="var(--accent-primary)"
+                    onSave={async (newAmount) => {
+                        try {
+                            const res = await window.electronAPI.updateOvertime({
+                                id: row.id,
+                                amount: newAmount
+                            })
+                            if (res.success) {
+                                await loadEmployeeData()
+                                if (window.showToast) window.showToast('Mesai tutarı güncellendi', 'success')
+                            } else {
+                                alert('Tutar güncellenemedi: ' + res.error)
+                            }
+                        } catch (err) {
+                            console.error(err)
+                            alert('Tutar güncellenemedi: ' + err.message)
+                        }
+                    }}
+                />
+            ) 
+        },
         { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[GURBET\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
