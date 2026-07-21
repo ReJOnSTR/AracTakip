@@ -1638,6 +1638,8 @@ function setupNotificationCheck() {
 // Configure auto updater
 autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
+autoUpdater.allowPrerelease = true
+autoUpdater.allowDowngrade = false
 
 // Update Events
 autoUpdater.on('checking-for-update', () => {
