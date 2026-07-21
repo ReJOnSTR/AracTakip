@@ -1686,7 +1686,7 @@ ipcMain.handle('app:downloadUpdate', () => {
 })
 
 ipcMain.handle('app:quitAndInstall', () => {
-    autoUpdater.quitAndInstall()
+    autoUpdater.quitAndInstall(false, true)
 })
 
 ipcMain.handle('app:getVersion', () => {

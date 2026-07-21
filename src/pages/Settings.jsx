@@ -345,7 +345,21 @@ export default function Settings() {
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                                             <span className="badge badge-outline">v{appVersion}</span>
                                             {updateStatus === 'not-available' && <span className="text-success" style={{ fontSize: '11px' }}>Güncel</span>}
-                                            {updateStatus === 'error' && <span className="text-danger" style={{ fontSize: '11px' }}>Hata</span>}
+                                            {updateStatus === 'error' && (
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                                    <span className="text-danger" style={{ fontSize: '11px', textAlign: 'right' }}>
+                                                        Hata: {errorMsg || 'Kurulum başlatılamadı'}
+                                                    </span>
+                                                    <button 
+                                                        type="button"
+                                                        className="btn btn-xs btn-outline-danger"
+                                                        style={{ fontSize: '11px', padding: '2px 8px' }}
+                                                        onClick={() => window.electronAPI.openExternal('https://github.com/ReJOnSTR/AracTakip/releases/latest')}
+                                                    >
+                                                        GitHub'dan İndir
+                                                    </button>
+                                                </div>
+                                            )}
                                             
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 {(updateStatus === 'idle' || updateStatus === 'not-available' || updateStatus === 'error' || updateStatus === 'dev-mode') && (
