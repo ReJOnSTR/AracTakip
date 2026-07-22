@@ -59,13 +59,39 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
 
-    // Gruplama (Araçlara / Makinalara göre)
+    // Gruplama (Araçlara ve Tarifelere göre)
+    const vehicleRateCounts = {};
+    work.items.forEach(item => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        if (!vehicleRateCounts[vehicleBaseKey]) vehicleRateCounts[vehicleBaseKey] = new Set();
+        vehicleRateCounts[vehicleBaseKey].add(Number(item.unit_price) || 0);
+    });
+
     const groupedItems = {};
     work.items.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        const unitPriceVal = Number(item.unit_price) || 0;
+        const descUpper = (item.description || '').toUpperCase();
+        const isSaatlik = descUpper.includes('[SAATLİK]');
+        const isAylik = descUpper.includes('[AYLIK]');
+        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun');
+        const key = `${vehicleBaseKey}_${rateTypeKey}_rate_${unitPriceVal}`;
+
         if (!groupedItems[key]) {
+            const rawMachineName = item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş';
+            const hasMultipleRates = (vehicleRateCounts[vehicleBaseKey]?.size || 0) > 1;
+            let displayTitle = rawMachineName;
+            if (hasMultipleRates) {
+                if (unitPriceVal > 0) {
+                    displayTitle = `${rawMachineName} (${formatCurrency(unitPriceVal)} Tarifesi)`;
+                } else {
+                    displayTitle = `${rawMachineName} (Ücretsiz / Fiyatsız)`;
+                }
+            }
+
             groupedItems[key] = {
-                machineName: item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş',
+                machineName: displayTitle,
+                unitPriceVal: unitPriceVal,
                 items: [],
                 totalGun: 0,
                 totalYol: 0,
@@ -82,7 +108,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const gunSayisi = Number(item.hours) || 0;
         const mesaiSayisi = Number(item.overtime_hours) || 0;
         const travelPrice = Number(item.travel_price) || 0;
-        const descUpper = (item.description || '').toUpperCase();
 
         const dateObj = new Date(item.date);
         const isSunday = dateObj.getDay() === 0;
@@ -95,10 +120,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         if (isSunday && !descUpper.includes('PAZAR')) {
             item.description = item.description ? `[PAZAR] ${item.description}` : '[PAZAR]';
         }
-        // Saatlik kontrolü
-        const isSaatlik = descUpper.includes('[SAATLİK]');
-        // Aylık kontrolü
-        const isAylik = descUpper.includes('[AYLIK]');
 
         if (isAylik) {
             groupedItems[key].isAylik = true;
@@ -161,18 +182,18 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
     const groups = Object.values(groupedItems).map(group => {
-        const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
+        const sampleGunPrice = group.unitPriceVal || group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
         const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
-        const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
+        const sampleSaatlikPrice = group.unitPriceVal || group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
 
         // Pazar is calculated using the configured pazarMultiplier multiplier
-        let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR'))?.unit_price || 0;
+        let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR') && Number(i.unit_price) > 0)?.unit_price || 0;
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
             samplePazarPrice = sampleGunPrice * pazarMultiplier;
         }
 
         // Mesai is calculated using the configured mesaiMultiplier multiplier (hourly wage = daily / 8)
-        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0;
+        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0 && Number(i.unit_price) > 0)?.unit_price || 0;
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
             sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplier).toFixed(2));
         }

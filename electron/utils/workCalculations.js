@@ -48,15 +48,24 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
     })
 
     processedItems.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+        const unitPriceVal = Number(item.unit_price) || 0
+        const descUpper = (item._normalizedDesc || '').toUpperCase()
+        const isSaatlik = descUpper.includes('[SAATLİK]')
+        const isAylik = descUpper.includes('[AYLIK]')
+        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun')
+        const key = `${vehicleBaseKey}_${rateTypeKey}_rate_${unitPriceVal}`
+
         if (!groupedItems[key]) {
             groupedItems[key] = {
+                unitPriceVal: unitPriceVal,
                 items: [],
                 totalGun: 0,
                 totalPazar: 0,
                 totalSaatlik: 0,
                 totalMesai: 0,
                 isAylik: false,
+                isSaatlik: isSaatlik,
                 additions: {}
             }
         }
@@ -65,9 +74,6 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         const gunSayisi = Number(item.hours) || 0
         const mesaiSaatleri = Number(item.overtime_hours) || 0
         const travelPrice = Number(item.travel_price) || 0
-        const descUpper = (item._normalizedDesc || '').toUpperCase()
-        const isSaatlik = descUpper.includes('[SAATLİK]')
-        const isAylik = descUpper.includes('[AYLIK]')
 
         if (isAylik) groupedItems[key].isAylik = true
 
@@ -116,34 +122,27 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
     let totalEkOdemeler = 0
 
     Object.values(groupedItems).forEach(group => {
-        // sampleGunPrice: normal gün fiyatı 
-        // Uses _normalizedDesc so Sunday items are correctly excluded via PAZAR keyword
-        const sampleGunPrice = group.items.find(i =>
+        const sampleGunPrice = group.unitPriceVal || group.items.find(i =>
             !(i._normalizedDesc || '').toUpperCase().includes('PAZAR') &&
             !(i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]') &&
             (Number(i.hours) > 0)
         )?.unit_price || 0
 
-        const sampleSaatlikPrice = group.items.find(i =>
+        const sampleSaatlikPrice = group.unitPriceVal || group.items.find(i =>
             (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
         )?.unit_price || 0
 
-        // Pazar fiyatı: Use isPazar flag (catches both description and date-based Sundays)
-        let samplePazarPrice = group.items.find(i => i.isPazar)?.unit_price || 0
+        let samplePazarPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
         if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
             samplePazarPrice = sampleGunPrice * pazarMultiplier
         }
 
-        // Mesai fiyatı
-        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0)?.unit_price || 0
+        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0 && Number(i.unit_price) > 0)?.unit_price || 0
         if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
             sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplier).toFixed(2))
         }
 
-        const cg = group.isAylik ? (26 * sampleGunPrice) : group.items.reduce((sum, i) => {
-            if (i.isPazar || (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')) return sum
-            return sum + (Number(i.hours) || 0) * (Number(i.unit_price) || 0)
-        }, 0)
+        const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
         const mesaiTutar = group.totalMesai * sampleMesaiPrice
         const pazarTutar = group.totalPazar * samplePazarPrice
         const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice
