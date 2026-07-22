@@ -89,16 +89,9 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
         if (!groupedItems[key]) {
             const rawMachineName = item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş';
-            const hasMultipleSubGroups = (vehicleSubGroupKeys[vehicleBaseKey]?.size || 0) > 1;
             let displayTitle = rawMachineName;
-            if (hasMultipleSubGroups) {
-                if (cleanDesc) {
-                    displayTitle = `${rawMachineName} (${cleanDesc})`;
-                } else if (unitPriceVal > 0) {
-                    displayTitle = `${rawMachineName} (${formatCurrency(unitPriceVal)})`;
-                } else {
-                    displayTitle = `${rawMachineName} (Ücretsiz / Fiyatsız)`;
-                }
+            if (cleanDesc) {
+                displayTitle = `${rawMachineName} (${cleanDesc})`;
             }
 
             groupedItems[key] = {
