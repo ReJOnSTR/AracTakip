@@ -71,24 +71,15 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     })
 
     processedItems.forEach(item => {
-        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
-        const unitPriceVal = Number(item.unit_price) || 0
-        const descUpper = (item._normalizedDesc || '').toUpperCase()
-        const isSaatlik = descUpper.includes('[SAATLİK]')
-        const isAylik = descUpper.includes('[AYLIK]')
-        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun')
-        const key = `${vehicleBaseKey}_${rateTypeKey}_rate_${unitPriceVal}`
-
+        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
         if (!groupedItems[key]) {
             groupedItems[key] = {
-                unitPriceVal: unitPriceVal,
                 items: [],
                 totalGun: 0,
                 totalPazar: 0,
                 totalSaatlik: 0,
                 totalMesai: 0,
                 isAylik: false,
-                isSaatlik: isSaatlik,
                 additions: {}
             }
         }
@@ -97,6 +88,9 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         const gunSayisi = Number(item.hours) || 0
         const mesaiSaatleri = Number(item.overtime_hours) || 0
         const travelPrice = Number(item.travel_price) || 0
+        const descUpper = (item._normalizedDesc || '').toUpperCase()
+        const isSaatlik = descUpper.includes('[SAATLİK]')
+        const isAylik = descUpper.includes('[AYLIK]')
 
         if (isAylik) groupedItems[key].isAylik = true
 
@@ -145,30 +139,60 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     let totalEkOdemeler = 0
 
     Object.values(groupedItems).forEach(group => {
-        const sampleGunPrice = group.unitPriceVal || group.items.find(i =>
+        // Base price for vehicle
+        const sampleGunPrice = group.items.find(i =>
             !(i._normalizedDesc || '').toUpperCase().includes('PAZAR') &&
             !(i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]') &&
-            (Number(i.hours) > 0)
+            (Number(i.hours) > 0) &&
+            (Number(i.unit_price) > 0)
         )?.unit_price || 0
 
-        const sampleSaatlikPrice = group.unitPriceVal || group.items.find(i =>
-            (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
+        const sampleSaatlikPrice = group.items.find(i =>
+            (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]') &&
+            (Number(i.unit_price) > 0)
         )?.unit_price || 0
 
-        let samplePazarPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
-        if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            samplePazarPrice = sampleGunPrice * parsedPazarMultiplier
-        }
+        // Normal Day Total (sum of hours * unit_price per item)
+        const cg = group.isAylik ? (26 * sampleGunPrice) : group.items.reduce((sum, i) => {
+            if (i.isPazar || (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')) return sum
+            return sum + (Number(i.hours) || 0) * (Number(i.unit_price) || 0)
+        }, 0)
 
-        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0 && Number(i.unit_price) > 0)?.unit_price || 0
-        if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * parsedMesaiMultiplier).toFixed(2))
-        }
+        // Mesai Total (per item or fallback to base price)
+        let mesaiTutar = 0
+        group.items.forEach(i => {
+            const mesaiHours = Number(i.overtime_hours) || 0
+            if (mesaiHours <= 0) return
+            let itemMesaiRate = Number(i.unit_price) || 0
+            if (itemMesaiRate <= 0) {
+                itemMesaiRate = sampleGunPrice > 0 ? parseFloat(((sampleGunPrice / 8) * parsedMesaiMultiplier).toFixed(2)) : 0
+            } else if (itemMesaiRate <= sampleGunPrice) {
+                itemMesaiRate = parseFloat(((itemMesaiRate / 8) * parsedMesaiMultiplier).toFixed(2))
+            }
+            mesaiTutar += mesaiHours * itemMesaiRate
+        })
 
-        const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
-        const mesaiTutar = group.totalMesai * sampleMesaiPrice
-        const pazarTutar = group.totalPazar * samplePazarPrice
-        const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice
+        // Pazar Total (per item or fallback to base price)
+        let pazarTutar = 0
+        group.items.forEach(i => {
+            if (!i.isPazar) return
+            const hours = Number(i.hours) || 0
+            let itemPazarRate = Number(i.unit_price) || 0
+            if (itemPazarRate <= 0) {
+                itemPazarRate = sampleGunPrice > 0 ? sampleGunPrice * parsedPazarMultiplier : 0
+            }
+            pazarTutar += hours * itemPazarRate
+        })
+
+        // Saatlik Total
+        let saatlikTutar = 0
+        group.items.forEach(i => {
+            const descUpper = (i._normalizedDesc || '').toUpperCase()
+            if (!descUpper.includes('[SAATLİK]')) return
+            const hours = Number(i.hours) || 0
+            const rate = Number(i.unit_price) || sampleSaatlikPrice
+            saatlikTutar += hours * rate
+        })
 
         // Ek ödemeler (additions: Yol, EK:xxx vb.)
         let additionsTutar = 0
