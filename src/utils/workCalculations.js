@@ -163,7 +163,10 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * parsedMesaiMultiplier).toFixed(2))
         }
 
-        const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
+        const cg = group.isAylik ? (26 * sampleGunPrice) : group.items.reduce((sum, i) => {
+            if (i.isPazar || (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')) return sum
+            return sum + (Number(i.hours) || 0) * (Number(i.unit_price) || 0)
+        }, 0)
         const mesaiTutar = group.totalMesai * sampleMesaiPrice
         const pazarTutar = group.totalPazar * samplePazarPrice
         const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice

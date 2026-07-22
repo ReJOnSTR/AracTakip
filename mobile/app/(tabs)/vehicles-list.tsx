@@ -211,6 +211,7 @@ export default function VehiclesScreen() {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <GlassIconButton
               icon="funnel-outline"
+              active={!!(statusFilter || typeFilter)}
               onPress={() => setIsFilterModalVisible(true)}
             />
             <GlassIconButton

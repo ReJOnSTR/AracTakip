@@ -20,6 +20,10 @@ public class NativeUiGlassButtonModule: Module {
         view.setProminent(prominent)
       }
       
+      Prop("colorScheme") { (view: NativeUiGlassButtonViewWrapper, colorScheme: String) in
+        view.setColorScheme(colorScheme)
+      }
+      
       // Define event listeners in React Native (Renamed to avoid reserved name conflict)
       Events("onButtonPress")
     }

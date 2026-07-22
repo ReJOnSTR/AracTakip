@@ -178,10 +178,19 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         }
 
         let calculatedGun = 0;
+        let totalPricedGun = 0;
         if (group.isAylik) {
             calculatedGun = 26 * sampleGunPrice;
+            totalPricedGun = 1;
         } else {
-            calculatedGun = group.totalGun * sampleGunPrice;
+            group.items.forEach(i => {
+                const desc = (i.description || '').toUpperCase();
+                if (i.isPazar || desc.includes('PAZAR') || desc.includes('[SAATLİK]')) return;
+                const price = Number(i.unit_price) || 0;
+                const hours = Number(i.hours) || 0;
+                calculatedGun += hours * price;
+                if (price > 0) totalPricedGun += hours;
+            });
         }
 
         const calculatedPazar = group.totalPazar * samplePazarPrice;
@@ -203,6 +212,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
         return {
             ...group,
+            calculatedGun,
+            totalPricedGun,
             sampleGunPrice,
             sampleYolPrice,
             sampleSaatlikPrice,
@@ -386,9 +397,9 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                         {(group.totalGun > 0 || group.isAylik) && (
                                             <tr className="bg-light-gray">
                                                 <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
-                                                <td className="center">{group.isAylik ? '1 AY' : (group.totalGun > 0 ? `${group.totalGun} GÜN` : '')}</td>
-                                                <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
-                                                <td className="right bold total-text">{(group.totalGun > 0 || group.isAylik) ? formatCurrency(group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)) : ''}</td>
+                                                <td className="center">{group.isAylik ? '1 AY' : `${group.totalPricedGun > 0 ? group.totalPricedGun : group.totalGun} GÜN`}</td>
+                                                <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (group.calculatedGun > 0 ? formatCurrency(group.calculatedGun / (group.totalPricedGun || 1)) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : ''))}</td>
+                                                <td className="right bold total-text">{formatCurrency(group.isAylik ? (26 * sampleGunPrice) : group.calculatedGun)}</td>
                                             </tr>
                                         )}
                                         {group.totalSaatlik > 0 && (

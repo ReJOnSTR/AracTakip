@@ -1,102 +1,118 @@
 import SwiftUI
 import ExpoModulesCore
+import UIKit
 
-// State object to share react native props with SwiftUI view
-class TabBarState: ObservableObject {
-  @Published var activeTab: String = "index"
-  @Published var showPlusButton: Bool = false
-  @Published var colorScheme: String = "dark"
-}
-
-// SwiftUI Native Tab Bar Layout - Pure Official TabView with sidebarAdaptable (iOS 18 / iOS 26 Style)
-struct NativeTabBarSwiftUIView: View {
-  @ObservedObject var state: TabBarState
-  var onTabPress: (String) -> Void
+// 100% Official Apple UITabBar Implementation with UITabBarDelegate & UITabBarAppearance
+class NativeUiTabBarViewWrapper: ExpoView, UITabBarDelegate {
+  private let tabBar = UITabBar()
+  private var activeTab: String = "index"
+  private var colorScheme: String = "dark"
   
-  var body: some View {
-    // 1. Apple's Official TabView with the new Adaptive Sidebar style
-    TabView(selection: Binding(
-      get: { state.activeTab },
-      set: { newValue in
-        // Sync selection changes back to React Native
-        state.activeTab = newValue
-        onTabPress(newValue)
-      }
-    )) {
-      // 2. Modern Tab views with native titles and SF Symbols
-      Tab("Panel", systemImage: "house", value: "index") {
-        Color.clear // Transparent content since screens are managed in React Native JS
-      }
-      
-      Tab("Araçlar", systemImage: "car", value: "vehicles") {
-        Color.clear
-      }
-      
-      Tab("Personel", systemImage: "person.2", value: "employees") {
-        Color.clear
-      }
-      
-      Tab("Diğer", systemImage: "ellipsis.circle", value: "more") {
-        Color.clear
-      }
-      
-      Tab("Profil", systemImage: "person.crop.circle", value: "profile") {
-        Color.clear
-      }
-    }
-    .tabViewStyle(.sidebarAdaptable)
-    .background(Color.clear)
-    .onAppear {
-      // Remove default UIKit tab bar backgrounds to allow absolute transparency
-      let appearance = UITabBarAppearance()
-      appearance.configureWithTransparentBackground()
-      UITabBar.appearance().standardAppearance = appearance
-      UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-    .ignoresSafeArea()
-  }
-}
-
-// UIKit wrapper class that Expo will mount
-class NativeUiTabBarViewWrapper: ExpoView {
-  private let hostingController = UIHostingController(rootView: NativeTabBarSwiftUIView(state: TabBarState(), onTabPress: { _ in }))
-  private let state = TabBarState()
-  
-  // React Native event dispatcher
   let onTabPress = EventDispatcher()
+  let onPlusPress = EventDispatcher()
+  
+  private let tabItemsMap: [(id: String, title: String, icon: String, selectedIcon: String)] = [
+    ("index", "Panel", "house", "house.fill"),
+    ("vehicles", "Araçlar", "car", "car.fill"),
+    ("employees", "Personel", "person.2", "person.2.fill"),
+    ("more", "Diğer", "ellipsis.circle", "ellipsis.circle.fill"),
+    ("profile", "Profil", "person.crop.circle", "person.crop.circle.fill")
+  ]
   
   required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
+    backgroundColor = .clear
+    isOpaque = false
+    setupTabBar()
+  }
+  
+  private func setupTabBar() {
+    tabBar.delegate = self
+    tabBar.isTranslucent = true
+    tabBar.backgroundColor = .clear
     
-    // Bind actions
-    hostingController.rootView = NativeTabBarSwiftUIView(
-      state: state,
-      onTabPress: { [weak self] tabName in
-        self?.onTabPress([
-          "tabName": tabName
-        ])
-      }
-    )
+    var uiTabBarItems: [UITabBarItem] = []
+    for (index, item) in tabItemsMap.enumerated() {
+      let normalImg = UIImage(systemName: item.icon)
+      let selectedImg = UIImage(systemName: item.selectedIcon)
+      let tabBarItem = UITabBarItem(title: item.title, image: normalImg, selectedImage: selectedImg)
+      tabBarItem.tag = index
+      uiTabBarItems.append(tabBarItem)
+    }
     
-    addSubview(hostingController.view)
-    hostingController.view.backgroundColor = .clear
+    tabBar.setItems(uiTabBarItems, animated: false)
+    if let first = uiTabBarItems.first {
+      tabBar.selectedItem = first
+    }
+    
+    addSubview(tabBar)
+    updateAppearance()
+  }
+  
+  private func updateAppearance() {
+    let isDark = colorScheme == "dark"
+    let appearance = UITabBarAppearance()
+    appearance.configureWithTransparentBackground()
+    appearance.backgroundColor = .clear
+    appearance.backgroundEffect = UIBlurEffect(style: isDark ? .systemUltraThinMaterialDark : .systemUltraThinMaterialLight)
+    appearance.shadowColor = .clear
+    appearance.shadowImage = UIImage()
+    
+    // Configure item tint colors
+    let activeColor = isDark ? UIColor.white : UIColor(red: 0.25, green: 0.35, blue: 0.95, alpha: 1.0)
+    let inactiveColor = isDark ? UIColor.white.withAlphaComponent(0.55) : UIColor.black.withAlphaComponent(0.45)
+    
+    appearance.stackedLayoutAppearance.selected.iconColor = activeColor
+    appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: activeColor]
+    
+    appearance.stackedLayoutAppearance.normal.iconColor = inactiveColor
+    appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: inactiveColor]
+    
+    tabBar.standardAppearance = appearance
+    if #available(iOS 15.0, *) {
+      tabBar.scrollEdgeAppearance = appearance
+    }
+    tabBar.tintColor = activeColor
+    tabBar.barTintColor = .clear
+    tabBar.backgroundColor = .clear
   }
   
   override func layoutSubviews() {
     super.layoutSubviews()
-    hostingController.view.frame = bounds
+    tabBar.frame = bounds
+    tabBar.backgroundColor = .clear
   }
   
-  // Prop setters
+  func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+    let index = item.tag
+    if index >= 0 && index < tabItemsMap.count {
+      let selectedId = tabItemsMap[index].id
+      self.activeTab = selectedId
+      onTabPress(["tabName": selectedId])
+    }
+  }
+  
   func setActiveTab(_ activeTab: String) {
-    state.activeTab = activeTab
+    self.activeTab = activeTab
+    if let index = tabItemsMap.firstIndex(where: { $0.id == activeTab }),
+       let items = tabBar.items, index < items.count {
+      tabBar.selectedItem = items[index]
+    }
   }
   
-  func setShowPlusButton(_ show: Bool) {
-    state.showPlusButton = show
-  }
+  func setShowPlusButton(_ show: Bool) {}
   
   func setColorScheme(_ scheme: String) {
-    state.colorScheme = scheme
+    self.colorScheme = scheme
+    updateAppearance()
   }
 }
+
+
+
+
+
+
+
+
+

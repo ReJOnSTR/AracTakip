@@ -18,6 +18,8 @@ interface GlassIconButtonProps {
   onPress: () => void;
   size?: number;
   iconSize?: number;
+  prominent?: boolean;
+  active?: boolean;
   style?: ViewStyle | ViewStyle[];
 }
 
@@ -25,22 +27,37 @@ interface GlassIconButtonProps {
 const getSfSymbolName = (icon: string) => {
   switch (icon) {
     case 'chevron-back': return 'chevron.backward';
-    case 'funnel-outline': return 'slider.horizontal.3';
-    case 'add': return 'plus';
-    case 'options-outline': return 'slider.horizontal.3';
-    case 'search-outline': return 'magnifyingglass';
+    case 'chevron-forward': return 'chevron.forward';
+    case 'funnel-outline':
+    case 'funnel': return 'slider.horizontal.3';
+    case 'add':
+    case 'add-outline': return 'plus';
+    case 'options-outline':
+    case 'options':
+    case 'ellipsis-vertical':
+    case 'ellipsis-horizontal': return 'ellipsis';
+    case 'search-outline':
+    case 'search': return 'magnifyingglass';
     case 'close':
     case 'close-outline': return 'xmark';
-    case 'settings-outline': return 'gearshape';
-    default: return icon; // Fallback to icon name
+    case 'settings-outline':
+    case 'settings': return 'gearshape';
+    case 'person-outline': return 'person';
+    case 'car-outline': return 'car';
+    case 'trash-outline': return 'trash';
+    case 'pencil-outline': return 'pencil';
+    case 'filter-outline': return 'line.3.horizontal.decrease.circle';
+    default: return icon.replace('-outline', '').replace('-', '.');
   }
 };
 
 export default function GlassIconButton({
   icon,
   onPress,
-  size = 40,
+  size = 38,
   iconSize = 20,
+  prominent,
+  active = false,
   style,
 }: GlassIconButtonProps) {
   const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
@@ -57,12 +74,16 @@ export default function GlassIconButton({
     onPress();
   };
 
+  const isProminent = prominent ?? (icon === 'add' || active);
+
   // If running on iOS, render Apple's native GlassButtonStyle button!
   if (Platform.OS === 'ios') {
     return (
       <NativeUiGlassButton
         icon={getSfSymbolName(icon)}
         size={size}
+        prominent={isProminent}
+        colorScheme={colorScheme}
         onPress={handlePress}
         style={[{ width: size, height: size }, ...(Array.isArray(style) ? style : [style])]}
       />

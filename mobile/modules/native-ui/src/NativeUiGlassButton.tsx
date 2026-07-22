@@ -6,6 +6,7 @@ export interface NativeUiGlassButtonProps extends ViewProps {
   icon: string;
   size?: number;
   prominent?: boolean;
+  colorScheme?: 'light' | 'dark';
   onPress?: () => void;
 }
 

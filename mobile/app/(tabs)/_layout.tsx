@@ -333,7 +333,7 @@ function CustomTabBar({ c, colorScheme }: any) {
               }
             }}
             onPlusPress={handlePlusPress}
-            style={{ width: '100%', height: 49 + 34 }}
+            style={{ width: '100%', height: 49 + 34, backgroundColor: 'transparent' }}
           />
         </View>
 
@@ -560,6 +560,7 @@ export default function TabLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
           animation: Platform.OS === 'ios' ? 'slide_from_right' : 'slide_from_right',
         }}
       >

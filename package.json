@@ -1,13 +1,13 @@
 {
   "name": "muayen",
-  "version": "1.0.326",
+  "version": "1.0.327",
   "description": "Kontrol - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
   "scripts": {
     "dev": "node scripts/clear-port.js && concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
-    "dev:electron": "wait-on http://localhost:5173 && electron .",
+    "dev:electron": "wait-on http://127.0.0.1:5173 && electron .",
     "build": "npx prisma generate && vite build && electron-builder",
     "publish": "npx prisma generate && vite build && electron-builder --publish always",
     "preview": "vite preview",

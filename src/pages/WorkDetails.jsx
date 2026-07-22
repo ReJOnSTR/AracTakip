@@ -144,35 +144,23 @@ export default function WorkDetails(props) {
             const workStart = wSH + (wSM / 60);
             const workEnd = wEH + (wEM / 60);
             
-            // Standard workday duration in hours (e.g. 17:00 - 08:00 = 9)
-            let standardDuration = workEnd - workStart;
-            if (standardDuration < 0) standardDuration += 24;
-
-            // 1. Overtime due to duration (> standard duration)
-            const durationOvertime = diffHours > standardDuration ? diffHours - standardDuration : 0;
-
-            // 2. Overtime due to window (before workStart or after workEnd)
-            let windowOvertime = 0;
-            
             const currentStart = startH + (startM / 60);
             const currentEnd = endH + (endM / 60);
 
-            // Before workStart
-            if (currentStart < workStart) {
-                windowOvertime += (workStart - currentStart);
-            }
-            
-            // After workEnd
-            if (endH > wEH || (endH === wEH && endM > wEM)) {
-                windowOvertime += (currentEnd - workEnd);
-            } else if (currentEnd < currentStart) {
-                // If ended next day, all hours from workEnd of day 1 to end are overtime
-                windowOvertime += (24 - workEnd) + currentEnd;
+            let standardOverlap = 0;
+            if (currentEnd >= currentStart) {
+                // Same day interval
+                standardOverlap = Math.max(0, Math.min(currentEnd, workEnd) - Math.max(currentStart, workStart));
+            } else {
+                // Overnight interval (spans midnight)
+                const day1Overlap = Math.max(0, Math.min(24, workEnd) - Math.max(currentStart, workStart));
+                const day2Overlap = Math.max(0, Math.min(currentEnd, workEnd) - Math.max(0, workStart));
+                standardOverlap = day1Overlap + day2Overlap;
             }
 
+            const overtimeHours = Math.max(0, diffHours - standardOverlap);
             calculatedHours = 1;
-            calculatedOvertime = Math.max(durationOvertime, windowOvertime);
-            calculatedOvertime = parseFloat(calculatedOvertime.toFixed(2));
+            calculatedOvertime = parseFloat(Math.min(diffHours, overtimeHours).toFixed(2));
         }
 
         return { hours: calculatedHours, overtimeHours: calculatedOvertime };

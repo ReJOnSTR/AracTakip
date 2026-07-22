@@ -79,8 +79,18 @@ function createWindow() {
 
     // Development or production mode
     if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
-        mainWindow.loadURL('http://localhost:5173')
+        const devUrl = 'http://127.0.0.1:5173'
+        mainWindow.loadURL(devUrl)
         mainWindow.webContents.openDevTools()
+
+        mainWindow.webContents.on('did-fail-load', () => {
+            log.warn('Dev server loading failed, retrying in 1s...')
+            setTimeout(() => {
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.loadURL(devUrl)
+                }
+            }, 1000)
+        })
     } else {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
     }
@@ -2116,7 +2126,7 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
         // Load the print page route (cross-platform compatible on Windows/macOS)
         if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
             const devRoute = route.startsWith('/') ? route : `/${route}`;
-            await hiddenWin.loadURL(`http://localhost:5173/#${devRoute}`);
+            await hiddenWin.loadURL(`http://127.0.0.1:5173/#${devRoute}`);
         } else {
             const cleanHash = route.startsWith('#') ? route.substring(1) : (route.startsWith('/') ? route : `/${route}`);
             await hiddenWin.loadFile(path.join(__dirname, '../dist/index.html'), { hash: cleanHash });

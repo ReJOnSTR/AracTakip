@@ -212,6 +212,7 @@ export default function EmployeesListScreen() {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <GlassIconButton
               icon="funnel-outline"
+              active={!!(statusFilter || departmentFilter)}
               onPress={() => setIsFilterModalVisible(true)}
             />
             <GlassIconButton
