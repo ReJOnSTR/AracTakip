@@ -59,16 +59,65 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
 
-    // Gruplama (Araçlara, Açıklamalara ve Tarifelere göre)
-    const vehicleSubGroupKeys = {};
+    // Araç bazında birim fiyat ve açıklama kalıtımı (Fiyatsız devam/mesai satırlarının ana güne bağlanması)
+    const vehiclePrimaryInfo = {};
     work.items.forEach(item => {
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
         const unitPriceVal = Number(item.unit_price) || 0;
+        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
+        const descKey = cleanDesc.toLowerCase();
+
+        if (!vehiclePrimaryInfo[vehicleBaseKey]) {
+            vehiclePrimaryInfo[vehicleBaseKey] = {
+                byDescPrice: {},
+                firstPositivePrice: 0,
+                firstCleanDesc: ''
+            };
+        }
+
+        if (unitPriceVal > 0) {
+            if (!vehiclePrimaryInfo[vehicleBaseKey].firstPositivePrice) {
+                vehiclePrimaryInfo[vehicleBaseKey].firstPositivePrice = unitPriceVal;
+            }
+            if (descKey && !vehiclePrimaryInfo[vehicleBaseKey].byDescPrice[descKey]) {
+                vehiclePrimaryInfo[vehicleBaseKey].byDescPrice[descKey] = unitPriceVal;
+            }
+        }
+        if (cleanDesc && !vehiclePrimaryInfo[vehicleBaseKey].firstCleanDesc) {
+            vehiclePrimaryInfo[vehicleBaseKey].firstCleanDesc = cleanDesc;
+        }
+    });
+
+    const resolveItemEffectiveInfo = (item) => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        let unitPriceVal = Number(item.unit_price) || 0;
+        let cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
+        const descKey = cleanDesc.toLowerCase();
+
+        const info = vehiclePrimaryInfo[vehicleBaseKey];
+        if (info) {
+            if (unitPriceVal === 0) {
+                if (descKey && info.byDescPrice[descKey]) {
+                    unitPriceVal = info.byDescPrice[descKey];
+                } else if (info.firstPositivePrice) {
+                    unitPriceVal = info.firstPositivePrice;
+                }
+            }
+            if (!cleanDesc && info.firstCleanDesc) {
+                cleanDesc = info.firstCleanDesc;
+            }
+        }
+        return { unitPriceVal, cleanDesc };
+    };
+
+    const vehicleSubGroupKeys = {};
+    work.items.forEach(item => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        const { unitPriceVal, cleanDesc } = resolveItemEffectiveInfo(item);
         const descUpper = (item.description || '').toUpperCase();
         const isSaatlik = descUpper.includes('[SAATLİK]');
         const isAylik = descUpper.includes('[AYLIK]');
         const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun');
-        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
         
         const subKey = `${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`;
         if (!vehicleSubGroupKeys[vehicleBaseKey]) vehicleSubGroupKeys[vehicleBaseKey] = new Set();
@@ -78,12 +127,11 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     const groupedItems = {};
     work.items.forEach(item => {
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
-        const unitPriceVal = Number(item.unit_price) || 0;
+        const { unitPriceVal, cleanDesc } = resolveItemEffectiveInfo(item);
         const descUpper = (item.description || '').toUpperCase();
         const isSaatlik = descUpper.includes('[SAATLİK]');
         const isAylik = descUpper.includes('[AYLIK]');
         const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun');
-        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
         
         const key = `${vehicleBaseKey}_${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`;
 

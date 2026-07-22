@@ -70,14 +70,64 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         return { ...item, isPazar, _normalizedDesc: normalizedDesc }
     })
 
+    // Araç bazında birim fiyat ve açıklama kalıtımı (Fiyatsız devam/mesai satırlarının ana güne bağlanması)
+    const vehiclePrimaryInfo = {}
     processedItems.forEach(item => {
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
         const unitPriceVal = Number(item.unit_price) || 0
+        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim()
+        const descKey = cleanDesc.toLowerCase()
+
+        if (!vehiclePrimaryInfo[vehicleBaseKey]) {
+            vehiclePrimaryInfo[vehicleBaseKey] = {
+                byDescPrice: {},
+                firstPositivePrice: 0,
+                firstCleanDesc: ''
+            }
+        }
+
+        if (unitPriceVal > 0) {
+            if (!vehiclePrimaryInfo[vehicleBaseKey].firstPositivePrice) {
+                vehiclePrimaryInfo[vehicleBaseKey].firstPositivePrice = unitPriceVal
+            }
+            if (descKey && !vehiclePrimaryInfo[vehicleBaseKey].byDescPrice[descKey]) {
+                vehiclePrimaryInfo[vehicleBaseKey].byDescPrice[descKey] = unitPriceVal
+            }
+        }
+        if (cleanDesc && !vehiclePrimaryInfo[vehicleBaseKey].firstCleanDesc) {
+            vehiclePrimaryInfo[vehicleBaseKey].firstCleanDesc = cleanDesc
+        }
+    })
+
+    const resolveItemEffectiveInfo = (item) => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+        let unitPriceVal = Number(item.unit_price) || 0
+        let cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim()
+        const descKey = cleanDesc.toLowerCase()
+
+        const info = vehiclePrimaryInfo[vehicleBaseKey]
+        if (info) {
+            if (unitPriceVal === 0) {
+                if (descKey && info.byDescPrice[descKey]) {
+                    unitPriceVal = info.byDescPrice[descKey]
+                } else if (info.firstPositivePrice) {
+                    unitPriceVal = info.firstPositivePrice
+                }
+            }
+            if (!cleanDesc && info.firstCleanDesc) {
+                cleanDesc = info.firstCleanDesc
+            }
+        }
+        return { unitPriceVal, cleanDesc }
+    }
+
+    processedItems.forEach(item => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+        const { unitPriceVal, cleanDesc } = resolveItemEffectiveInfo(item)
         const descUpper = (item._normalizedDesc || '').toUpperCase()
         const isSaatlik = descUpper.includes('[SAATLİK]')
         const isAylik = descUpper.includes('[AYLIK]')
         const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun')
-        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim()
         const key = `${vehicleBaseKey}_${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`
 
         if (!groupedItems[key]) {
