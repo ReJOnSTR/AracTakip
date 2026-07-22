@@ -134,6 +134,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
             groupedItems[key] = {
                 machineName: displayTitle,
+                rawMachineName: rawMachineName,
                 unitPriceVal: unitPriceVal,
                 cleanDesc: cleanDesc,
                 items: [],
@@ -429,7 +430,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                     {item.hours || 0} {((item.description || '').toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
                                                 </td>
                                                 <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
-                                                <td className="center">{group.machineName}</td>
+                                                <td className="center">{group.rawMachineName || group.machineName}</td>
                                                 <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/g, '')}</td>
                                                 <td className="right">{showPrices ? (item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')) : ''}</td>
                                             </tr>
@@ -450,7 +451,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                     <tbody>
                                         <tr className="bg-light-gray">
                                             <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
-                                                {group.machineName.toUpperCase()}
+                                                {(group.rawMachineName || group.machineName).toUpperCase()}
                                             </td>
                                         </tr>
                                         {(group.totalGun > 0 || group.isAylik) && (
