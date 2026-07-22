@@ -59,13 +59,52 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
 
-    // Gruplama (Araçlara / Makinalara göre)
+    // Gruplama (Araçlara, Açıklamalara ve Tarifelere göre)
+    const vehicleSubGroupKeys = {};
+    work.items.forEach(item => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        const unitPriceVal = Number(item.unit_price) || 0;
+        const descUpper = (item.description || '').toUpperCase();
+        const isSaatlik = descUpper.includes('[SAATLİK]');
+        const isAylik = descUpper.includes('[AYLIK]');
+        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun');
+        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
+        
+        const subKey = `${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`;
+        if (!vehicleSubGroupKeys[vehicleBaseKey]) vehicleSubGroupKeys[vehicleBaseKey] = new Set();
+        vehicleSubGroupKeys[vehicleBaseKey].add(subKey);
+    });
+
     const groupedItems = {};
     work.items.forEach(item => {
-        const key = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
+        const unitPriceVal = Number(item.unit_price) || 0;
+        const descUpper = (item.description || '').toUpperCase();
+        const isSaatlik = descUpper.includes('[SAATLİK]');
+        const isAylik = descUpper.includes('[AYLIK]');
+        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun');
+        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
+        
+        const key = `${vehicleBaseKey}_${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`;
+
         if (!groupedItems[key]) {
+            const rawMachineName = item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş';
+            const hasMultipleSubGroups = (vehicleSubGroupKeys[vehicleBaseKey]?.size || 0) > 1;
+            let displayTitle = rawMachineName;
+            if (hasMultipleSubGroups) {
+                if (cleanDesc) {
+                    displayTitle = `${rawMachineName} (${cleanDesc})`;
+                } else if (unitPriceVal > 0) {
+                    displayTitle = `${rawMachineName} (${formatCurrency(unitPriceVal)})`;
+                } else {
+                    displayTitle = `${rawMachineName} (Ücretsiz / Fiyatsız)`;
+                }
+            }
+
             groupedItems[key] = {
-                machineName: item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş',
+                machineName: displayTitle,
+                unitPriceVal: unitPriceVal,
+                cleanDesc: cleanDesc,
                 items: [],
                 totalGun: 0,
                 totalYol: 0,
@@ -82,7 +121,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const gunSayisi = Number(item.hours) || 0;
         const mesaiSayisi = Number(item.overtime_hours) || 0;
         const travelPrice = Number(item.travel_price) || 0;
-        const descUpper = (item.description || '').toUpperCase();
 
         const dateObj = new Date(item.date);
         const isSunday = dateObj.getDay() === 0;
@@ -95,10 +133,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         if (isSunday && !descUpper.includes('PAZAR')) {
             item.description = item.description ? `[PAZAR] ${item.description}` : '[PAZAR]';
         }
-        // Saatlik kontrolü
-        const isSaatlik = descUpper.includes('[SAATLİK]');
-        // Aylık kontrolü
-        const isAylik = descUpper.includes('[AYLIK]');
 
         if (isAylik) {
             groupedItems[key].isAylik = true;
@@ -161,12 +195,9 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
     const groups = Object.values(groupedItems).map(group => {
-        const nonZeroPrices = new Set(group.items.filter(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && Number(i.unit_price) > 0).map(i => Number(i.unit_price)));
-        const isVariablePrice = nonZeroPrices.size > 1;
-
-        const sampleGunPrice = group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0) && (Number(i.unit_price) > 0))?.unit_price || 0;
+        const sampleGunPrice = group.unitPriceVal || group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
         const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
-        const sampleSaatlikPrice = group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]') && Number(i.unit_price) > 0)?.unit_price || 0;
+        const sampleSaatlikPrice = group.unitPriceVal || group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
 
         // Pazar is calculated using the configured pazarMultiplier multiplier
         let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR') && Number(i.unit_price) > 0)?.unit_price || 0;
@@ -186,41 +217,12 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             calculatedGun = 26 * sampleGunPrice;
             totalPricedGun = 1;
         } else {
-            group.items.forEach(i => {
-                const desc = (i.description || '').toUpperCase();
-                if (i.isPazar || desc.includes('PAZAR') || desc.includes('[SAATLİK]')) return;
-                const price = Number(i.unit_price) || 0;
-                const hours = Number(i.hours) || 0;
-                calculatedGun += hours * price;
-                if (price > 0) totalPricedGun += hours;
-            });
+            calculatedGun = group.totalGun * sampleGunPrice;
+            totalPricedGun = sampleGunPrice > 0 ? group.totalGun : 0;
         }
 
-        // Mesai Total (per item or fallback to base price)
-        let calculatedMesai = 0;
-        group.items.forEach(i => {
-            const mesaiHours = Number(i.overtime_hours) || 0;
-            if (mesaiHours <= 0) return;
-            let itemMesaiRate = Number(i.unit_price) || 0;
-            if (itemMesaiRate <= 0) {
-                itemMesaiRate = sampleGunPrice > 0 ? parseFloat(((sampleGunPrice / 8) * mesaiMultiplier).toFixed(2)) : 0;
-            } else if (itemMesaiRate <= sampleGunPrice) {
-                itemMesaiRate = parseFloat(((itemMesaiRate / 8) * mesaiMultiplier).toFixed(2));
-            }
-            calculatedMesai += mesaiHours * itemMesaiRate;
-        });
-
-        // Pazar Total (per item or fallback to base price)
-        let calculatedPazar = 0;
-        group.items.forEach(i => {
-            if (!i.isPazar) return;
-            const hours = Number(i.hours) || 0;
-            let itemPazarRate = Number(i.unit_price) || 0;
-            if (itemPazarRate <= 0) {
-                itemPazarRate = sampleGunPrice > 0 ? sampleGunPrice * pazarMultiplier : 0;
-            }
-            calculatedPazar += hours * itemPazarRate;
-        });
+        const calculatedMesai = group.totalMesai * sampleMesaiPrice;
+        const calculatedPazar = group.totalPazar * samplePazarPrice;
 
         // Calculate additions total
         let calculatedAdditions = 0;
@@ -240,7 +242,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             ...group,
             calculatedGun,
             totalPricedGun,
-            isVariablePrice,
             sampleGunPrice,
             sampleYolPrice,
             sampleSaatlikPrice,
@@ -425,7 +426,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <tr className="bg-light-gray">
                                                 <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
                                                 <td className="center">{group.isAylik ? '1 AY' : `${group.totalPricedGun > 0 ? group.totalPricedGun : group.totalGun} GÜN`}</td>
-                                                <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (group.isVariablePrice ? 'Değişken' : (sampleGunPrice ? formatCurrency(sampleGunPrice) : ''))}</td>
+                                                <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
                                                 <td className="right bold total-text">{formatCurrency(group.isAylik ? (26 * sampleGunPrice) : group.calculatedGun)}</td>
                                             </tr>
                                         )}
