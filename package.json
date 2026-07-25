@@ -1,6 +1,6 @@
 {
   "name": "kontrol-app",
-  "version": "1.0.500",
+  "version": "1.0.501",
   "description": "Kontrol - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -91,11 +91,13 @@
       "icon": "resources/icon.icns",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "identity": null
+      "identity": null,
+      "artifactName": "${productName}-${version}.${ext}"
     },
     "win": {
       "target": "nsis",
-      "icon": "resources/icon-win.png"
+      "icon": "resources/icon-win.png",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": true,
