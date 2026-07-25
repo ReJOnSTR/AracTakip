@@ -42,7 +42,7 @@ export default function Login() {
 
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
-                            <label className="form-label">E-posta</label>
+                            <label className="form-label">Kullanıcı Adı veya E-posta</label>
                             <div style={{ position: 'relative' }}>
                                 <Mail
                                     size={18}
@@ -55,10 +55,10 @@ export default function Login() {
                                     }}
                                 />
                                 <input
-                                    type="email"
+                                    type="text"
                                     className="form-input"
                                     style={{ paddingLeft: '44px' }}
-                                    placeholder="ornek@email.com"
+                                    placeholder="admin veya ornek@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />

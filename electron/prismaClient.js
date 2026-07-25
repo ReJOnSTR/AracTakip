@@ -9,20 +9,47 @@ const Database = require('better-sqlite3');
 let prisma = null;
 
 function getDbPath() {
-    const homeDir = app.getPath('home');
-    const muayenDbPath = path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data', 'aractakip.db');
-    if (fs.existsSync(muayenDbPath)) {
-        return muayenDbPath;
-    }
-
     const userDataPath = app.getPath('userData');
     const dataDir = path.join(userDataPath, 'data');
+    const targetDbPath = path.join(dataDir, 'aractakip.db');
+
+    if (fs.existsSync(targetDbPath)) {
+        return targetDbPath;
+    }
 
     if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    return path.join(dataDir, 'aractakip.db');
+    const homeDir = app.getPath('home');
+    const appDataPath = app.getPath('appData');
+
+    const legacyCandidates = [
+        path.join(appDataPath, 'AracTakip', 'data', 'aractakip.db'),
+        path.join(appDataPath, 'muayen', 'data', 'aractakip.db'),
+        path.join(appDataPath, 'kontrol-app', 'data', 'aractakip.db'),
+        path.join(appDataPath, 'Kontrol', 'data', 'aractakip.db'),
+        path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'data', 'aractakip.db'),
+        path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data', 'aractakip.db'),
+        path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'data', 'aractakip.db'),
+        path.join(homeDir, 'Library', 'Application Support', 'Kontrol', 'data', 'aractakip.db'),
+    ];
+
+    for (const legacyDbPath of legacyCandidates) {
+        if (fs.existsSync(legacyDbPath)) {
+            log.info(`Migrating database from legacy path: ${legacyDbPath} -> ${targetDbPath}`);
+            try {
+                fs.copyFileSync(legacyDbPath, targetDbPath);
+                if (fs.existsSync(legacyDbPath + '-wal')) fs.copyFileSync(legacyDbPath + '-wal', targetDbPath + '-wal');
+                if (fs.existsSync(legacyDbPath + '-shm')) fs.copyFileSync(legacyDbPath + '-shm', targetDbPath + '-shm');
+                return targetDbPath;
+            } catch (err) {
+                log.error(`Failed to copy legacy database from ${legacyDbPath}:`, err.message);
+            }
+        }
+    }
+
+    return targetDbPath;
 }
 
 /**
@@ -1164,6 +1191,41 @@ async function seedDefaultPublicHolidays(prisma) {
         }
     }
     log.info('Seeding of Turkish public holidays completed.');
+
+    // 12. Ensure default admin user exists if users table is empty
+    try {
+        const userCount = await p.users.count();
+        if (userCount === 0) {
+            const bcrypt = require('bcryptjs');
+            const defaultPasswordHash = bcrypt.hashSync('admin', 10);
+
+            // Ensure a company exists first
+            let company = await p.companies.findFirst();
+            if (!company) {
+                company = await p.companies.create({
+                    data: {
+                        name: 'Varsayılan Şirket'
+                    }
+                });
+            }
+
+            await p.users.create({
+                data: {
+                    username: 'admin',
+                    email: 'admin@kontrol.app',
+                    password_hash: defaultPasswordHash,
+                    full_name: 'Yönetici',
+                    role: 'admin',
+                    company_id: company.id,
+                    is_active: 1,
+                    must_change_password: 0
+                }
+            });
+            log.info('Bootstrap: Created default admin user (username: admin, password: admin)');
+        }
+    } catch (error) {
+        log.error('Bootstrap step 12 (default user) error:', error.message);
+    }
 }
 
 module.exports = { getPrismaClient, runAutoMigrations };
