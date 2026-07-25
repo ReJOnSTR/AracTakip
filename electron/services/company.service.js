@@ -19,17 +19,20 @@ async function getCompanies(userId) {
         }
 
         let whereClause = {};
-        if (user.role === 'personnel' && user.employee) {
+        if (user.role === 'personnel' && user.employee && user.employee.company_id) {
             whereClause = { id: parseInt(user.employee.company_id, 10) };
-        } else if (user.role === 'admin' || user.role === 'ADMIN') {
-            whereClause = {}; // Admin sees all companies
         } else {
-            whereClause = { user_id: parseInt(userId, 10) };
+            whereClause = {}; // Admin, Manager, User see all companies
         }
 
-        const companies = await prisma.companies.findMany({
+        let companies = await prisma.companies.findMany({
             where: whereClause
         });
+
+        // Fallback: If no company found for specific filter, load all companies
+        if (companies.length === 0) {
+            companies = await prisma.companies.findMany();
+        }
 
         const collator = new Intl.Collator('tr');
         companies.sort((a, b) => collator.compare(a.name, b.name));
