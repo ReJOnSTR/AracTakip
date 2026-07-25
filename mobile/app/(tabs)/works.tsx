@@ -19,18 +19,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { workService, customerService } from '../../services/dataServices';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassDropdown from '../../components/ui/GlassDropdown';
 import GlassIconButton from '../../components/ui/GlassIconButton';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { formatCurrency, formatDate, getStatusLabel, getStatusColor } from '../../utils/format';
 
 export default function WorksScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode === 'light' ? 'light' : 'dark';
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -150,49 +153,30 @@ export default function WorksScreen() {
     <View style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY (No wall, no canvas, no header container) */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.back()}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20 }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: c.text }]}>İş Takibi</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} iş</Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <GlassIconButton
-              icon="funnel-outline"
-              onPress={() => setIsFilterModalVisible(true)}
-            />
-            <GlassIconButton
-              icon="add"
-              onPress={() => setIsModalVisible(true)}
-            />
-          </View>
-        </View>
-
-        {/* Searchbar */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="İş veya açıklama ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textSecondary}
-            iconColor={c.textSecondary}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <GlassIconButton
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
+          />
+          <GlassIconButton
+            icon="add"
+            onPress={() => setIsModalVisible(true)}
           />
         </View>
       </View>
@@ -206,55 +190,60 @@ export default function WorksScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-              <GlassCard intensity={30} style={styles.cardGlass}>
-                <View style={styles.cardInner}>
-                  <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
-                    <Ionicons name="briefcase-outline" size={22} color={c.primary} />
-                  </View>
-                  <View style={styles.info}>
-                    <Text style={[styles.cardTitle, { color: c.text }]}>{item.title || 'İş Tanımsız'}</Text>
-                    <Text style={[styles.cardSubtitle, { color: c.textSecondary }]} numberOfLines={1}>
-                      {item.customer_name || 'Müşteri Belirtilmemiş'}
-                    </Text>
-                    <View style={styles.cardMeta}>
-                      <View style={styles.metaItem}>
-                        <Ionicons name="time-outline" size={11} color={c.textTertiary} />
-                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.total_hours || 0} sa</Text>
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+              <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>İş Takibi & Görevler</Text>
+                <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} iş</Text>
+              </View>
+              <GlassSearchBar
+                placeholder="İş veya açıklama ara..."
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
+          }
+          renderItem={({ item, index }) => {
+            const isDark = colorScheme === 'dark';
+            const textColor = isDark ? '#FFFFFF' : c.text;
+            const subTextColor = isDark ? '#E2E8F0' : c.textSecondary;
+            const metaTextColor = isDark ? '#94A3B8' : c.textTertiary;
+
+            return (
+              <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
+                <GlassCard intensity={45} style={styles.cardGlass}>
+                  <View style={styles.cardInner}>
+                    <View style={styles.info}>
+                      <Text style={[styles.cardTitle, { color: textColor }]}>{item.title || 'İş Tanımsız'}</Text>
+                      <Text style={[styles.cardSubtitle, { color: subTextColor }]} numberOfLines={1}>
+                        {item.customer_name || 'Müşteri Belirtilmemiş'}
+                      </Text>
+                      <View style={styles.cardMeta}>
+                        <Text style={[styles.metaText, { color: metaTextColor }]}>
+                          {item.total_hours || 0} sa • {item.total_days || 0} gün {item.start_date ? `• ${formatDate(item.start_date)}` : ''}
+                        </Text>
                       </View>
-                      <View style={styles.metaItem}>
-                        <Ionicons name="calendar-outline" size={11} color={c.textTertiary} />
-                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.total_days || 0} gün</Text>
-                      </View>
-                      {item.start_date && (
-                        <View style={styles.metaItem}>
-                          <Ionicons name="play-outline" size={11} color={c.textTertiary} />
-                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.start_date)}</Text>
-                        </View>
-                      )}
                     </View>
-                  </View>
-                  <View style={styles.right}>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) === 'success' ? c.success + '15' : getStatusColor(item.status) === 'warning' ? c.warning + '15' : c.textSecondary + '15' }]}>
-                      <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) === 'success' ? c.success : getStatusColor(item.status) === 'warning' ? c.warning : c.textSecondary }]} />
-                      <Text style={[styles.statusText, { color: getStatusColor(item.status) === 'success' ? c.success : getStatusColor(item.status) === 'warning' ? c.warning : c.textSecondary }]}>
-                        {getStatusLabel(item.status)}
+                    <View style={styles.right}>
+                      <View style={[styles.statusBadge, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.06)' }]}>
+                        <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) === 'success' ? '#34D399' : (getStatusColor(item.status) === 'warning' ? '#FBBF24' : '#F87171') }]} />
+                        <Text style={[styles.statusText, { color: textColor }]}>
+                          {getStatusLabel(item.status)}
+                        </Text>
+                      </View>
+                      <Text style={[styles.priceText, { color: textColor, marginTop: 4 }]}>
+                        {formatCurrency(item.total_price)}
                       </Text>
                     </View>
-                    <Text style={[styles.priceText, { color: c.text }]}>
-                      {formatCurrency(item.total_price)}
-                    </Text>
                   </View>
-                </View>
-              </GlassCard>
-            </Animated.View>
-          )}
+                </GlassCard>
+              </Animated.View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="briefcase-outline" size={48} color={c.textTertiary} />
@@ -268,93 +257,123 @@ export default function WorksScreen() {
 
       {/* Add Work Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İş Ekle</Text>
-            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
-                label="İş Başlığı"
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Örn: Vinç Kiralama"
-              />
-              <GlassDropdown
-                label="Müşteri / Cari"
-                value={customerId}
-                options={customerOptions}
-                onSelect={setCustomerId}
-                placeholder="Müşteri seçin..."
-              />
-              <GlassDropdown
-                label="Durum"
-                value={status}
-                options={[
-                  { label: 'Bekliyor', value: 'pending' },
-                  { label: 'Devam Ediyor', value: 'in_progress' },
-                  { label: 'Tamamlandı', value: 'completed' },
-                  { label: 'İptal Edildi', value: 'cancelled' },
-                ]}
-                onSelect={setStatus}
-                placeholder="Seçiniz..."
-              />
-              <GlassInput
-                label="Konum / Adres"
-                value={location}
-                onChangeText={setLocation}
-                placeholder="İş adresi..."
-              />
-              <GlassInput
-                label="Standart Mesai Başlangıç"
-                value={workStartTime}
-                onChangeText={setWorkStartTime}
-                placeholder="08:00"
-              />
-              <GlassInput
-                label="Standart Mesai Bitiş"
-                value={workEndTime}
-                onChangeText={setWorkEndTime}
-                placeholder="17:00"
-              />
-              <GlassInput
-                label="Pazar Mesai Katsayısı"
-                value={pazarMultiplier}
-                onChangeText={setPazarMultiplier}
-                keyboardType="numeric"
-                placeholder="1.5"
-              />
-              <GlassInput
-                label="Mesai Farkı Katsayısı"
-                value={mesaiMultiplier}
-                onChangeText={setMesaiMultiplier}
-                keyboardType="numeric"
-                placeholder="1.5"
-              />
-              <GlassInput
-                label="Açıklama"
-                value={description}
-                onChangeText={setDescription}
-                placeholder="İş detayları..."
-                multiline
-              />
-            </ScrollView>
-            <View style={styles.modalButtons}>
-              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
-                İptal
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleCreate}
-                loading={createMutation.isPending}
-                disabled={createMutation.isPending || !title || !customerId}
-                buttonColor={c.primary}
-                textColor="#ffffff"
-              >
-                Kaydet
-              </Button>
-            </View>
-          </GlassModal>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Yeni İş Ekle</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>İş ve görev detaylarını girin</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsModalVisible(false)}
+          />
+        </View>
+
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="İş Başlığı"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Örn: Vinç Kiralama"
+          />
+          <GlassDropdown
+            label="Müşteri / Cari"
+            value={customerId}
+            options={customerOptions}
+            onSelect={setCustomerId}
+            placeholder="Müşteri seçin..."
+          />
+          <GlassDropdown
+            label="Durum"
+            value={status}
+            options={[
+              { label: 'Bekliyor', value: 'pending' },
+              { label: 'Devam Ediyor', value: 'in_progress' },
+              { label: 'Tamamlandı', value: 'completed' },
+              { label: 'İptal Edildi', value: 'cancelled' },
+            ]}
+            onSelect={setStatus}
+            placeholder="Seçiniz..."
+          />
+          <GlassInput
+            label="Konum / Adres"
+            value={location}
+            onChangeText={setLocation}
+            placeholder="İş adresi..."
+          />
+          <GlassInput
+            label="Standart Mesai Başlangıç"
+            value={workStartTime}
+            onChangeText={setWorkStartTime}
+            placeholder="08:00"
+          />
+          <GlassInput
+            label="Standart Mesai Bitiş"
+            value={workEndTime}
+            onChangeText={setWorkEndTime}
+            placeholder="17:00"
+          />
+          <GlassInput
+            label="Pazar Mesai Katsayısı"
+            value={pazarMultiplier}
+            onChangeText={setPazarMultiplier}
+            keyboardType="numeric"
+            placeholder="1.5"
+          />
+          <GlassInput
+            label="Mesai Farkı Katsayısı"
+            value={mesaiMultiplier}
+            onChangeText={setMesaiMultiplier}
+            keyboardType="numeric"
+            placeholder="1.5"
+          />
+          <GlassInput
+            label="Açıklama"
+            value={description}
+            onChangeText={setDescription}
+            placeholder="İş detayları..."
+            multiline
+          />
+        </ScrollView>
+
+        <View style={styles.modalFooterRow}>
+          <Button
+            mode="text"
+            onPress={() => setIsModalVisible(false)}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
+          >
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreate}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending || !title || !customerId}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
 
       {/* Filter Modal */}
       <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Filtrele</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>İş ve görev filtreleme seçenekleri</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsFilterModalVisible(false)}
+          />
+        </View>
+
         <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
           
           <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Durum</Text>
@@ -413,7 +432,7 @@ export default function WorksScreen() {
           />
 
         </ScrollView>
-        <View style={styles.modalButtons}>
+        <View style={styles.modalFooterRow}>
           <Button 
             mode="text" 
             onPress={() => {
@@ -421,11 +440,17 @@ export default function WorksScreen() {
               setEndDateFilter('');
               setStatusFilter(null);
             }} 
-            textColor={c.textSecondary}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
           >
             Temizle
           </Button>
-          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+          <Button
+            mode="contained"
+            onPress={() => setIsFilterModalVisible(false)}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
             Uygula
           </Button>
         </View>
@@ -540,9 +565,27 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: 40,
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
   filterSectionTitle: { fontSize: 14, fontWeight: '700', marginVertical: 8 },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 4 },

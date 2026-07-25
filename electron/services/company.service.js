@@ -3,7 +3,29 @@ const prisma = getPrismaClient();
 
 async function getCompanies(userId) {
     try {
-        const whereClause = userId ? { user_id: parseInt(userId, 10) } : {};
+        if (!userId) {
+            return { success: false, error: 'Kullanıcı ID zorunludur' };
+        }
+
+        const user = await prisma.users.findUnique({
+            where: { id: parseInt(userId, 10) },
+            include: {
+                employee: true
+            }
+        });
+
+        if (!user) {
+            return { success: false, error: 'Kullanıcı bulunamadı' };
+        }
+
+        let whereClause = {};
+        if (user.role === 'personnel' && user.employee) {
+            whereClause = { id: parseInt(user.employee.company_id, 10) };
+        } else if (user.role === 'admin' || user.role === 'ADMIN') {
+            whereClause = {}; // Admin sees all companies
+        } else {
+            whereClause = { user_id: parseInt(userId, 10) };
+        }
 
         const companies = await prisma.companies.findMany({
             where: whereClause

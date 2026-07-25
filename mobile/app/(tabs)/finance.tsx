@@ -14,13 +14,15 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { financeService } from '../../services/dataServices';
 import { formatCurrency } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 
 export default function FinanceMenuScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const router = useRouter();

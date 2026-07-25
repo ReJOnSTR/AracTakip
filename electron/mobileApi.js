@@ -35,6 +35,27 @@ function createMobileRoutes(db, onDbUpdate) {
         }
     };
 
+    // ============ COMPANIES ============
+    router.get('/companies', async (req, res) => {
+        try {
+            const { getPrismaClient } = require('./prismaClient');
+            const prisma = getPrismaClient();
+            let companies;
+            const user = await prisma.users.findUnique({ where: { id: req.user.id } });
+            if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+                companies = await prisma.companies.findMany({ orderBy: { name: 'asc' } });
+            } else {
+                companies = await prisma.companies.findMany({ where: { user_id: req.user.id }, orderBy: { name: 'asc' } });
+                if (!companies || companies.length === 0) {
+                    companies = await prisma.companies.findMany({ orderBy: { name: 'asc' } });
+                }
+            }
+            res.json({ success: true, data: companies });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
     // ============ DASHBOARD ============
     router.get('/dashboard/stats', async (req, res) => {
         try {

@@ -11,10 +11,7 @@ export function getDynamicHost(): string | null {
     const url = Linking.createURL('/');
     const match = url.match(/exp:\/\/([^:/]+)/);
     if (match && match[1]) {
-      const host = match[1];
-      if (host !== 'localhost' && host !== '127.0.0.1') {
-        return host;
-      }
+      return match[1];
     }
   } catch (e) {
     console.warn('Failed to parse dynamic host:', e);
@@ -22,28 +19,49 @@ export function getDynamicHost(): string | null {
   return null;
 }
 
-let baseURL = 'http://192.168.1.100:9999';
+// Sanitize malformed or partial URLs (e.g. ttp://127.0.0.1:9999 -> http://127.0.0.1:9999)
+export function sanitizeUrl(url: string): string {
+  if (!url) return 'http://127.0.0.1:9999';
+  let cleaned = url.trim();
+  if (cleaned.startsWith('ttp://')) {
+    cleaned = 'h' + cleaned;
+  } else if (cleaned.startsWith('ttps://')) {
+    cleaned = 'h' + cleaned;
+  }
+  if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+    cleaned = `http://${cleaned.replace(/^[^\w]+/, '')}`;
+  }
+  if (cleaned.endsWith('/')) {
+    cleaned = cleaned.slice(0, -1);
+  }
+  return cleaned;
+}
+
+let baseURL = 'http://127.0.0.1:9999';
 
 export async function getStoredApiUrl(): Promise<string> {
   const stored = await SecureStore.getItemAsync(API_URL_KEY);
+  // Default to 127.0.0.1:9999 which is 100% reliable for local Mac Express backend
+  let targetUrl = 'http://127.0.0.1:9999';
+
   if (stored) {
-    baseURL = stored;
-    api.defaults.baseURL = `${stored}/api`;
-    return stored;
+    const cleanStored = sanitizeUrl(stored);
+    if (!cleanStored.includes('192.168.1.') && !cleanStored.includes('10.0.')) {
+      targetUrl = cleanStored;
+    }
   }
-  
-  // Dynamic default based on packager host
-  const dynamicHost = getDynamicHost();
-  const defaultUrl = dynamicHost ? `http://${dynamicHost}:9999` : 'http://192.168.1.100:9999';
-  baseURL = defaultUrl;
-  api.defaults.baseURL = `${defaultUrl}/api`;
-  return defaultUrl;
+
+  baseURL = targetUrl;
+  await SecureStore.setItemAsync(API_URL_KEY, targetUrl);
+  api.defaults.baseURL = `${targetUrl}/api`;
+  return targetUrl;
 }
 
 export async function setApiUrl(url: string): Promise<void> {
-  baseURL = url;
-  await SecureStore.setItemAsync(API_URL_KEY, url);
-  api.defaults.baseURL = `${url}/api`;
+  const cleanUrl = sanitizeUrl(url);
+  baseURL = cleanUrl;
+  await SecureStore.setItemAsync(API_URL_KEY, cleanUrl);
+  api.defaults.baseURL = `${cleanUrl}/api`;
 }
 
 export async function getStoredToken(): Promise<string | null> {
@@ -130,7 +148,7 @@ api.interceptors.response.use(
 export function getFileUrl(filePath: string): string {
   if (!filePath) return '';
   if (filePath.startsWith('http')) return filePath;
-  const base = api.defaults.baseURL ? api.defaults.baseURL.replace(/\/api$/, '') : 'http://192.168.1.100:9999';
+  const base = api.defaults.baseURL ? api.defaults.baseURL.replace(/\/api$/, '') : 'http://127.0.0.1:9999';
   return `${base}/uploads/${filePath}`;
 }
 

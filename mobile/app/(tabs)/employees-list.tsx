@@ -20,15 +20,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { employeeService } from '../../services/dataServices';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassDropdown from '../../components/ui/GlassDropdown';
 import GlassIconButton from '../../components/ui/GlassIconButton';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
+import GlassButtonGroup from '../../components/ui/GlassButtonGroup';
 
 export default function EmployeesListScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -184,53 +188,34 @@ export default function EmployeesListScreen() {
     <SwipeBackView onSwipeBack={() => router.push('/employees')} style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY (No wall, no canvas, no header container) */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        {/* Left Back Button */}
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/employees')}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-          <GlassIconButton
-            icon="chevron-back"
-            onPress={() => router.push('/employees')}
-          />
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text }]}>Personel Listesi</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} kişi</Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <GlassIconButton
-              icon="funnel-outline"
-              active={!!(statusFilter || departmentFilter)}
-              onPress={() => setIsFilterModalVisible(true)}
-            />
-            <GlassIconButton
-              icon="add"
-              onPress={() => setIsModalVisible(true)}
-            />
-          </View>
-        </View>
 
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Ad, pozisyon veya telefon ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textTertiary}
-            iconColor={c.textSecondary}
+        {/* Right Action Buttons */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <GlassIconButton
+            icon="funnel-outline"
+            active={!!(statusFilter || departmentFilter)}
+            onPress={() => setIsFilterModalVisible(true)}
+          />
+          <GlassIconButton
+            icon="add"
+            onPress={() => setIsModalVisible(true)}
           />
         </View>
       </View>
@@ -240,7 +225,23 @@ export default function EmployeesListScreen() {
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderEmployee}
-        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
+        ListHeaderComponent={
+          <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+            {/* Scrollable Title (Scrolls away with list) */}
+            <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+              <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Personel Listesi</Text>
+              <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} kişi</Text>
+            </View>
+
+            {/* GlassSearchBar */}
+            <GlassSearchBar
+              placeholder="Ad, pozisyon veya telefon ara..."
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+        }
+        contentContainerStyle={[styles.listContent, { paddingTop: 0 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={query.isFetching} onRefresh={() => query.refetch()} tintColor={c.primary} />
@@ -257,7 +258,18 @@ export default function EmployeesListScreen() {
 
       {/* Filter Modal */}
       <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Filtrele</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Personel listesi filtreleme seçenekleri</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsFilterModalVisible(false)}
+          />
+        </View>
         <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
 
           {/* Department Filter */}
@@ -366,18 +378,24 @@ export default function EmployeesListScreen() {
           </View>
 
         </ScrollView>
-        <View style={styles.modalButtons}>
+        <View style={styles.modalFooterRow}>
           <Button 
             mode="text" 
             onPress={() => {
               setDeptFilter(null);
               setStatusFilter('active');
             }} 
-            textColor={c.textSecondary}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
           >
             Temizle
           </Button>
-          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+          <Button
+            mode="contained"
+            onPress={() => setIsFilterModalVisible(false)}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
             Uygula
           </Button>
         </View>
@@ -385,131 +403,147 @@ export default function EmployeesListScreen() {
 
       {/* Add Employee Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Personel Ekle</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Yeni Personel Ekle</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Personel kimlik ve görev bilgilerini girin</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsModalVisible(false)}
+          />
+        </View>
             
-            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
-                label="Ad"
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="örn: Ahmet"
-              />
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Ad"
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholder="örn: Ahmet"
+          />
 
-              <GlassInput
-                label="Soyad"
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="örn: Yılmaz"
-              />
+          <GlassInput
+            label="Soyad"
+            value={lastName}
+            onChangeText={setLastName}
+            placeholder="örn: Yılmaz"
+          />
 
-              <GlassInput
-                label="T.C. Kimlik No"
-                value={tcNo}
-                onChangeText={setTcNo}
-                keyboardType="numeric"
-                maxLength={11}
-                placeholder="11 haneli T.C. No"
-              />
+          <GlassInput
+            label="T.C. Kimlik No"
+            value={tcNo}
+            onChangeText={setTcNo}
+            keyboardType="numeric"
+            maxLength={11}
+            placeholder="11 haneli T.C. No"
+          />
 
-              <GlassInput
-                label="Telefon"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                placeholder="örn: 05551234567"
-              />
+          <GlassInput
+            label="Telefon"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            placeholder="örn: 05551234567"
+          />
 
-              <GlassInput
-                label="E-posta"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                placeholder="örn: ahmet@sirket.com"
-                autoCapitalize="none"
-              />
+          <GlassInput
+            label="E-posta"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            placeholder="örn: ahmet@sirket.com"
+            autoCapitalize="none"
+          />
 
-              <GlassInput
-                label="Pozisyon"
-                value={position}
-                onChangeText={setPosition}
-                placeholder="örn: Şoför, Muhasebeci"
-              />
+          <GlassInput
+            label="Pozisyon"
+            value={position}
+            onChangeText={setPosition}
+            placeholder="örn: Şoför, Muhasebeci"
+          />
 
-              <GlassDropdown
-                label="Departman"
-                value={department}
-                options={[
-                  { label: 'Lojistik', value: 'Lojistik' },
-                  { label: 'Muhasebe', value: 'Muhasebe' },
-                  { label: 'İdari İşler', value: 'İdari İşler' },
-                  { label: 'Satış', value: 'Satış' },
-                  { label: 'Teknik Servis', value: 'Teknik Servis' },
-                  { label: 'Bilgi İşlem', value: 'Bilgi İşlem' },
-                  { label: 'Diğer', value: 'Diğer' },
-                ]}
-                onSelect={setDepartment}
-                placeholder="Departman Seçiniz"
-              />
+          <GlassDropdown
+            label="Departman"
+            value={department}
+            options={[
+              { label: 'Lojistik', value: 'Lojistik' },
+              { label: 'Muhasebe', value: 'Muhasebe' },
+              { label: 'İdari İşler', value: 'İdari İşler' },
+              { label: 'Satış', value: 'Satış' },
+              { label: 'Teknik Servis', value: 'Teknik Servis' },
+              { label: 'Bilgi İşlem', value: 'Bilgi İşlem' },
+              { label: 'Diğer', value: 'Diğer' },
+            ]}
+            onSelect={setDepartment}
+            placeholder="Departman Seçiniz"
+          />
 
-              <GlassInput
-                label="Maaş (₺)"
-                value={salary}
-                onChangeText={setSalary}
-                keyboardType="numeric"
-                placeholder="örn: 30000"
-              />
+          <GlassInput
+            label="Maaş (₺)"
+            value={salary}
+            onChangeText={setSalary}
+            keyboardType="numeric"
+            placeholder="örn: 30000"
+          />
 
-              <GlassInput
-                label="IBAN"
-                value={iban}
-                onChangeText={setIban}
-                placeholder="TR00..."
-                autoCapitalize="characters"
-              />
+          <GlassInput
+            label="IBAN"
+            value={iban}
+            onChangeText={setIban}
+            placeholder="TR00..."
+            autoCapitalize="characters"
+          />
 
-              <GlassInput
-                label="İşe Başlama Tarihi"
-                value={startDate}
-                onChangeText={setStartDate}
-                placeholder="YYYY-MM-DD"
-              />
+          <GlassInput
+            label="İşe Başlama Tarihi"
+            value={startDate}
+            onChangeText={setStartDate}
+            placeholder="YYYY-MM-DD"
+          />
 
-              <GlassDropdown
-                label="Durum"
-                value={status}
-                options={[
-                  { label: 'Aktif', value: 'active' },
-                  { label: 'Pasif', value: 'passive' },
-                ]}
-                onSelect={setStatus}
-                placeholder="Durum Seçiniz"
-              />
+          <GlassDropdown
+            label="Durum"
+            value={status}
+            options={[
+              { label: 'Aktif', value: 'active' },
+              { label: 'Pasif', value: 'passive' },
+            ]}
+            onSelect={setStatus}
+            placeholder="Durum Seçiniz"
+          />
 
-              <GlassInput
-                label="Notlar"
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Personel ile ilgili notlar..."
-                multiline
-              />
-            </ScrollView>
+          <GlassInput
+            label="Notlar"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Personel ile ilgili notlar..."
+            multiline
+          />
+        </ScrollView>
 
-            <View style={styles.modalButtons}>
-              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
-                İptal
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleCreate}
-                loading={createMutation.isPending}
-                disabled={createMutation.isPending || !firstName || !lastName}
-                buttonColor={c.primary}
-                textColor="#ffffff"
-              >
-                Kaydet
-              </Button>
-            </View>
-          </GlassModal>
+        <View style={styles.modalFooterRow}>
+          <Button
+            mode="text"
+            onPress={() => setIsModalVisible(false)}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
+          >
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreate}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending || !firstName || !lastName}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
     </SwipeBackView>
   );
 }
@@ -602,8 +636,26 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: 40,
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });

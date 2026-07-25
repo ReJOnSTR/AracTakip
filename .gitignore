@@ -14,3 +14,5 @@ reproduce_issue.js
 database.sqlite
 
 /src/generated/prisma
+scratch/
+*.timestamp-*.mjs

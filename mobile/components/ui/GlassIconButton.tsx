@@ -51,6 +51,8 @@ const getSfSymbolName = (icon: string) => {
   }
 };
 
+import { useThemeStore } from '../../stores/themeStore';
+
 export default function GlassIconButton({
   icon,
   onPress,
@@ -60,7 +62,8 @@ export default function GlassIconButton({
   active = false,
   style,
 }: GlassIconButtonProps) {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
 
   const triggerHaptic = () => {
@@ -129,7 +132,7 @@ export default function GlassIconButton({
         end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <Ionicons name={icon as any} size={iconSize} color={c.primary} />
+      <Ionicons name={icon as any} size={iconSize} color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'} />
     </Pressable>
   );
 }

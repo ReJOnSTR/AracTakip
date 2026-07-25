@@ -57,10 +57,25 @@ async function getEmployees(companyId, isArchived = 0) {
 
 async function getEmployeeById(id) {
     try {
-        const data = await prisma.employees.findUnique({
-            where: { id: parseInt(id) },
-            include: { employee_salary_history: { orderBy: { start_date: 'asc' } } }
-        });
+        let data;
+        try {
+            data = await prisma.employees.findUnique({
+                where: { id: parseInt(id) },
+                include: { 
+                    employee_salary_history: { orderBy: { start_date: 'asc' } },
+                    user: {
+                        select: { id: true, username: true, email: true, role: true, role_id: true, custom_role: { select: { id: true, name: true } }, is_active: true, created_at: true }
+                    }
+                }
+            });
+        } catch (innerErr) {
+            data = await prisma.employees.findUnique({
+                where: { id: parseInt(id) },
+                include: { 
+                    employee_salary_history: { orderBy: { start_date: 'asc' } }
+                }
+            });
+        }
         return { success: true, data };
     } catch (error) { return { success: false, error: error.message }; }
 }

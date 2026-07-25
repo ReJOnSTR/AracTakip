@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Lock, Eye, EyeOff } from 'lucide-react'
+import { Lock, Eye, EyeOff, LogOut, ArrowLeft } from 'lucide-react'
 
 export default function ChangePassword() {
-    const { user, login } = useAuth()
+    const { user, login, logout } = useAuth()
     const navigate = useNavigate()
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+
+    const handleSkip = () => {
+        login({ ...user, mustChangePassword: false })
+        navigate('/', { replace: true })
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -29,7 +34,7 @@ export default function ChangePassword() {
         setLoading(true)
         try {
             const result = await window.electronAPI.changePassword({
-                userId: user.id,
+                userId: Number(user?.id),
                 newPassword: password
             })
 
@@ -41,7 +46,7 @@ export default function ChangePassword() {
                 setError(result.error || 'Şifre değiştirilemedi.')
             }
         } catch (err) {
-            setError('Bir hata oluştu.')
+            setError('Bir hata oluştu: ' + err.message)
         }
         setLoading(false)
     }
@@ -53,17 +58,58 @@ export default function ChangePassword() {
             justifyContent: 'center',
             height: '100vh',
             background: 'var(--bg-primary)',
+            position: 'relative'
         }}>
             <div style={{
                 width: '100%',
-                maxWidth: '400px',
-                padding: '40px',
+                maxWidth: '420px',
+                padding: '32px 36px',
                 background: 'var(--bg-secondary)',
-                borderRadius: '12px',
+                borderRadius: '16px',
                 border: '1px solid var(--border-color)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+                position: 'relative'
             }}>
-                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                {/* Header Action Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <button
+                        type="button"
+                        onClick={handleSkip}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            padding: 0
+                        }}
+                    >
+                        <ArrowLeft size={16} /> Uygulamaya Geç
+                    </button>
+                    <button
+                        type="button"
+                        onClick={logout}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            color: '#ef4444',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            padding: '6px 12px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <LogOut size={14} /> Çıkış Yap
+                    </button>
+                </div>
+
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
                         width: '56px',
                         height: '56px',
@@ -80,7 +126,7 @@ export default function ChangePassword() {
                         Şifre Değiştir
                     </h1>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                        İlk girişinizde varsayılan şifrenizi değiştirmeniz gerekmektedir.
+                        Güvenliğiniz için şifrenizi güncelleyebilir veya doğrudan uygulamaya geçebilirsiniz.
                     </p>
                 </div>
 
@@ -147,14 +193,24 @@ export default function ChangePassword() {
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={loading}
-                        style={{ width: '100%', justifyContent: 'center', height: '42px' }}
-                    >
-                        {loading ? 'Kaydediliyor...' : 'Şifreyi Değiştir'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={handleSkip}
+                            style={{ flex: 1, justifyContent: 'center', height: '42px' }}
+                        >
+                            Şimdilik Geç
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={loading}
+                            style={{ flex: 1.5, justifyContent: 'center', height: '42px' }}
+                        >
+                            {loading ? 'Kaydediliyor...' : 'Şifreyi Değiştir'}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

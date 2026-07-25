@@ -76,8 +76,31 @@ export function AuthProvider({ children }) {
         }
     }
 
+    const isAdmin = user?.role === 'admin' || user?.role === 'user' || !user?.role
+    const isManager = user?.role === 'manager' || isAdmin
+    const isPersonnel = user?.role === 'personnel'
+
+    const hasPermission = (moduleName, action = 'can_read') => {
+        if (isAdmin) return true;
+        if (!user || !user.permissions) return false;
+        const perm = user.permissions.find(p => p.module === moduleName);
+        if (!perm) return false;
+        return !!perm[action];
+    }
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            loading, 
+            login, 
+            register, 
+            logout, 
+            updateProfile,
+            isAdmin,
+            isManager,
+            isPersonnel,
+            hasPermission
+        }}>
             {children}
         </AuthContext.Provider>
     )

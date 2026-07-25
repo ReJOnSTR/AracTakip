@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   companies: [],
   selectedCompanyId: null,
-  apiUrl: 'http://192.168.1.100:9999',
+  apiUrl: 'http://127.0.0.1:9999',
   isLoading: true,
   isAuthenticated: false,
 
@@ -52,6 +52,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           token: result.token,
           isAuthenticated: true,
         });
+        if (result.user) {
+          await SecureStore.setItemAsync('kontrol_user_data', JSON.stringify(result.user));
+        }
         await get().fetchCompanies();
         return { success: true };
       }
@@ -64,6 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await clearToken();
+    await SecureStore.deleteItemAsync('kontrol_user_data');
     set({
       user: null,
       token: null,
@@ -77,6 +81,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const apiUrl = await getStoredApiUrl();
       const token = await authService.getStoredToken();
+      let storedUser: User | null = null;
+      try {
+        const rawUser = await SecureStore.getItemAsync('kontrol_user_data');
+        if (rawUser) storedUser = JSON.parse(rawUser);
+      } catch {}
 
       if (token) {
         // Try to fetch companies to validate token
@@ -85,6 +94,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           if (companiesRes.success && companiesRes.data?.length > 0) {
             const savedCompanyId = await SecureStore.getItemAsync('kontrol_selected_company');
             set({
+              user: storedUser,
               token,
               isAuthenticated: true,
               companies: companiesRes.data,
@@ -97,10 +107,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         } catch {
           // Token expired or invalid
           await clearToken();
+          await SecureStore.deleteItemAsync('kontrol_user_data');
         }
       }
 
-      set({ isLoading: false, apiUrl });
+      set({ isLoading: false, apiUrl, user: storedUser });
     } catch {
       set({ isLoading: false });
     }
@@ -112,8 +123,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   updateApiUrl: async (url) => {
-    await setApiUrl(url);
-    set({ apiUrl: url });
+    const { sanitizeUrl } = require('../services/api');
+    const clean = sanitizeUrl(url);
+    await setApiUrl(clean);
+    set({ apiUrl: clean });
   },
 
   fetchCompanies: async () => {

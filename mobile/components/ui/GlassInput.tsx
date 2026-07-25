@@ -4,6 +4,8 @@ import { Text } from 'react-native-paper';
 import { BlurView } from 'expo-blur';
 import { Colors } from '../../constants/Colors';
 
+import { useThemeStore } from '../../stores/themeStore';
+
 interface GlassInputProps extends TextInputProps {
   label?: string;
   error?: string;
@@ -11,7 +13,8 @@ interface GlassInputProps extends TextInputProps {
 }
 
 export default function GlassInput({ label, error, containerStyle, ...props }: GlassInputProps) {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
 
   const [isFocused, setIsFocused] = useState(false);
@@ -21,20 +24,20 @@ export default function GlassInput({ label, error, containerStyle, ...props }: G
     {
       backgroundColor: Platform.OS === 'web'
         ? (colorScheme === 'dark' ? 'rgba(35, 35, 64, 0.6)' : 'rgba(241, 245, 249, 0.6)')
-        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+        : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.35)'),
       borderColor: error
         ? c.error
         : isFocused
         ? c.primary
         : colorScheme === 'dark'
-        ? 'rgba(255, 255, 255, 0.12)'
+        ? 'rgba(255, 255, 255, 0.20)'
         : 'rgba(0, 0, 0, 0.12)',
     },
   ];
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
-      {label && <Text style={[styles.label, { color: c.textSecondary }]}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.70)' : c.textSecondary }]}>{label}</Text>}
       <View style={inputContainerStyle}>
         {Platform.OS !== 'web' && (
           <BlurView
@@ -44,8 +47,8 @@ export default function GlassInput({ label, error, containerStyle, ...props }: G
           />
         )}
         <TextInput
-          style={[styles.input, { color: c.text }]}
-          placeholderTextColor={c.textTertiary}
+          style={[styles.input, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}
+          placeholderTextColor={colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.45)' : c.textTertiary}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...props}

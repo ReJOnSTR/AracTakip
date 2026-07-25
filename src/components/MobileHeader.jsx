@@ -21,7 +21,8 @@ const pageTitles = {
     '/works': 'İş Takibi',
     '/customers': 'Cari & Müşteriler',
     '/profile': 'Profil Ayarları',
-    '/settings': 'Genel Ayarlar'
+    '/settings': 'Genel Ayarlar',
+    '/personnel-profile': 'Profilim & Bilgilerim'
 }
 
 export default function MobileHeader() {
@@ -38,7 +39,7 @@ export default function MobileHeader() {
         return pageTitles[location.pathname] || 'Kontrol'
     }
 
-    const showBack = !['/portal', '/dashboard', '/personel-dashboard', '/finance-dashboard', '/works'].includes(location.pathname)
+    const showBack = !['/portal', '/dashboard', '/personel-dashboard', '/finance-dashboard', '/works', '/personnel-profile'].includes(location.pathname)
 
     return (
         <div className="mobile-header">

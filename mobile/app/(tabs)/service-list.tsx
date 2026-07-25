@@ -9,7 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Text, Searchbar, ActivityIndicator, Chip, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, Button } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { vehicleService } from '../../services/dataServices';
 import { formatCurrency, formatDate } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
@@ -24,11 +25,12 @@ import GlassCard from '../../components/ui/GlassCard';
 import GlassIconButton from '../../components/ui/GlassIconButton';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
-import { BlurView } from 'expo-blur';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
 
 export default function ServiceListScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -39,7 +41,6 @@ export default function ServiceListScreen() {
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const query = useQuery({
     queryKey: ['all-services', selectedCompanyId],
@@ -47,33 +48,31 @@ export default function ServiceListScreen() {
     enabled: !!selectedCompanyId,
   });
 
-  const onRefresh = async () => {
-    setIsRefreshing(true);
-    await query.refetch();
-    setIsRefreshing(false);
-  };
+  const isRefreshing = query.isRefetching;
+  const onRefresh = () => query.refetch();
 
-  const records = query.data?.data || [];
+  const rawData = query.data;
+  const records = Array.isArray(rawData) ? rawData : (rawData?.data || []);
 
-  const filtered = records.filter((s: any) => {
+  const filtered = records.filter((srv: any) => {
     const term = search.toLowerCase();
     const matchesSearch =
-      s.vehicles?.plate?.toLowerCase().includes(term) ||
-      s.service_name?.toLowerCase().includes(term) ||
-      s.description?.toLowerCase().includes(term) ||
-      s.type?.toLowerCase().includes(term);
+      srv.vehicles?.plate?.toLowerCase().includes(term) ||
+      srv.service_name?.toLowerCase().includes(term) ||
+      srv.type?.toLowerCase().includes(term) ||
+      (srv.notes && srv.notes.toLowerCase().includes(term));
 
-    const matchesType = selectedType === 'all' || s.type === selectedType;
+    const matchesType = selectedType === 'all' || srv.type === selectedType;
 
-    const cost = s.cost || 0;
     let matchesCost = true;
-    if (costFilter === 'low') matchesCost = cost < 5000;
-    else if (costFilter === 'mid') matchesCost = cost >= 5000 && cost <= 20000;
-    else if (costFilter === 'high') matchesCost = cost > 20000;
+    const cost = srv.cost || 0;
+    if (costFilter === 'low' && cost > 5000) matchesCost = false;
+    if (costFilter === 'mid' && (cost <= 5000 || cost > 20000)) matchesCost = false;
+    if (costFilter === 'high' && cost <= 20000) matchesCost = false;
 
     let matchesDate = true;
     if (startDateFilter || endDateFilter) {
-      const itemDate = s.date ? (typeof s.date === 'string' ? s.date : new Date(s.date).toISOString().split('T')[0]) : '';
+      const itemDate = srv.date ? (typeof srv.date === 'string' ? srv.date : new Date(srv.date).toISOString().split('T')[0]) : '';
       if (startDateFilter && itemDate < startDateFilter) matchesDate = false;
       if (endDateFilter && itemDate > endDateFilter) matchesDate = false;
     }
@@ -82,62 +81,33 @@ export default function ServiceListScreen() {
   });
 
   const uniqueTypes = Array.from(new Set(records.map((r: any) => r.type).filter(Boolean))) as string[];
-  const totalCost = filtered.reduce((sum: number, item: any) => sum + (item.cost || 0), 0);
-
-  const glassBgColor = Platform.OS === 'web'
-    ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
-    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.2)');
-  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
+  const totalCost = filtered.reduce((acc: number, item: any) => acc + (item.cost || 0), 0);
 
   return (
     <SwipeBackView onSwipeBack={() => router.push('/vehicles')} style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/vehicles')}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-          <GlassIconButton
-            icon="chevron-back"
-            onPress={() => router.push('/vehicles')}
-          />
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text }]}>Servis Raporları</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>
-              {filtered.length} servis kaydı • Toplam: {formatCurrency(totalCost)}
-            </Text>
-          </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
-        </View>
-
-        {/* Search */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Plaka, servis adı veya türü ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textTertiary}
-            iconColor={c.textSecondary}
-          />
-        </View>
+        <GlassIconButton
+          icon="funnel-outline"
+          active={!!(selectedType !== 'all' || costFilter !== 'all' || startDateFilter || endDateFilter)}
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
       {query.isLoading ? (
@@ -148,50 +118,56 @@ export default function ServiceListScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
-              <GlassCard intensity={30} style={styles.cardGlass}>
-                <View style={styles.cardInner}>
-                  <View style={[styles.plateBox, { backgroundColor: c.primaryContainer + '20' }]}>
-                    <Text style={[styles.plateText, { color: c.primary }]}>
-                      {item.vehicles?.plate || 'Plakasız'}
-                    </Text>
-                  </View>
-                  <View style={styles.infoBox}>
-                    <Text style={[styles.typeName, { color: c.text }]}>{item.service_name || 'Servis'}</Text>
-                    <Text style={[styles.desc, { color: c.textSecondary }]} numberOfLines={2}>
-                      Açıklama: {item.description || '-'}
-                    </Text>
-                    <View style={styles.metaRow}>
-                      <View style={styles.metaItem}>
-                        <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
-                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.date)}</Text>
-                      </View>
-                      {item.km && (
-                        <View style={styles.metaItem}>
-                          <Ionicons name="speedometer-outline" size={12} color={c.textTertiary} />
-                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.km.toLocaleString('tr-TR')} km</Text>
-                        </View>
-                      )}
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+              <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Servis Raporları</Text>
+                <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>
+                  {filtered.length} kayıt • Toplam: {formatCurrency(totalCost)}
+                </Text>
+              </View>
+
+              <GlassSearchBar
+                placeholder="Plaka, servis adı veya türü ara..."
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
+          }
+          renderItem={({ item, index }) => {
+            const isDark = colorScheme === 'dark';
+            const textColor = isDark ? '#FFFFFF' : c.text;
+            const subTextColor = isDark ? '#E2E8F0' : c.textSecondary;
+
+            return (
+              <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
+                <GlassCard intensity={45} style={styles.cardGlass}>
+                  <View style={styles.cardInner}>
+                    <View style={styles.infoBox}>
+                      <Text style={[styles.plateText, { color: isDark ? '#38BDF8' : c.primary, fontWeight: '800', fontSize: 16 }]}>
+                        {item.vehicles?.plate || 'Plakasız'}
+                      </Text>
+                      <Text style={[styles.typeName, { color: textColor, marginTop: 2 }]}>
+                        {item.service_name || 'Özel Servis'} • {item.type || 'Bakım/Onarım'}
+                      </Text>
+                      <Text style={[styles.desc, { color: subTextColor, marginTop: 2 }]}>
+                        Tarih: {formatDate(item.date)} {item.notes ? `• ${item.notes}` : ''}
+                      </Text>
+                    </View>
+                    <View style={styles.rightBox}>
+                      <Text style={[styles.costText, { color: isDark ? '#34D399' : c.primary, fontWeight: '800', fontSize: 15 }]}>
+                        {formatCurrency(item.cost)}
+                      </Text>
                     </View>
                   </View>
-                  <View style={styles.rightBox}>
-                    <Text style={[styles.price, { color: c.error }]}>{formatCurrency(item.cost || 0)}</Text>
-                    {item.type && (
-                      <View style={[styles.typeBadge, { backgroundColor: c.primaryContainer + '20', marginTop: 6 }]}>
-                        <Text style={[styles.typeText, { color: c.primary }]}>{item.type}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </GlassCard>
-            </Animated.View>
-          )}
+                </GlassCard>
+              </Animated.View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="hammer-outline" size={48} color={c.textTertiary} />

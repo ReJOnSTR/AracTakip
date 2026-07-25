@@ -72,10 +72,14 @@ const resultOptions = [
 
 type TabValue = 'details' | 'maintenances' | 'inspections' | 'insurances' | 'services' | 'assignments' | 'documents';
 
+import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
+
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

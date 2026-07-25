@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { financeService } from '../../services/dataServices';
 import { formatCurrency, formatDate } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
@@ -28,9 +29,11 @@ import GlassMonthPicker from '../../components/ui/GlassMonthPicker';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassDropdown from '../../components/ui/GlassDropdown';
 import GlassIconButton from '../../components/ui/GlassIconButton';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
 
 export default function FinanceListScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode === 'light' ? 'light' : 'dark';
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const { selectedCompanyId } = useAuthStore();
@@ -221,85 +224,33 @@ export default function FinanceListScreen() {
     <SwipeBackView onSwipeBack={() => router.push('/finance')} style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY (No wall, no canvas, no header container) */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        {/* Left Back Button */}
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/finance')}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
+
+        {/* Right Action Buttons */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
           <GlassIconButton
-            icon="chevron-back"
-            onPress={() => router.push('/finance')}
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
           />
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text }]}>Kasa Defteri</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>İşlemler</Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <GlassIconButton
-              icon="funnel-outline"
-              onPress={() => setIsFilterModalVisible(true)}
-            />
-            <GlassIconButton
-              icon="add"
-              onPress={() => setIsModalVisible(true)}
-            />
-          </View>
-        </View>
-
-        {/* Month Navigator */}
-        <View style={styles.monthNavRow}>
-          <GlassMonthPicker
-            value={currentDate}
-            onChange={setCurrentDate}
-          />
-        </View>
-
-        {/* Gelir / Gider Özeti (GlassCard) */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-          <GlassCard intensity={30} style={{ padding: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gelir</Text>
-                <Text style={{ fontSize: 15, color: c.success, fontWeight: '800', marginTop: 4 }}>+{formatCurrency(stats.currentMonthIn)}</Text>
-              </View>
-              <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Toplam Gider</Text>
-                <Text style={{ fontSize: 15, color: c.error, fontWeight: '800', marginTop: 4 }}>-{formatCurrency(stats.currentMonthOut)}</Text>
-              </View>
-              <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: c.textSecondary, fontWeight: '600' }}>Net Bakiye</Text>
-                <Text style={{ fontSize: 15, color: stats.totalBalance >= 0 ? c.success : c.error, fontWeight: '800', marginTop: 4 }}>
-                  {stats.totalBalance >= 0 ? '+' : ''}{formatCurrency(stats.totalBalance)}
-                </Text>
-              </View>
-            </View>
-          </GlassCard>
-        </View>
-
-        {/* Search and Filters */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="İşlem veya kategori ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textTertiary}
-            iconColor={c.textSecondary}
+          <GlassIconButton
+            icon="add"
+            onPress={() => setIsModalVisible(true)}
           />
         </View>
       </View>
@@ -311,10 +262,54 @@ export default function FinanceListScreen() {
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderTransaction}
-        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 235 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
+        }
+        ListHeaderComponent={
+          <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+            <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+              <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Kasa Defteri & Finans</Text>
+              <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} işlem</Text>
+            </View>
+
+            {/* Month Navigator */}
+            <View style={{ marginBottom: 12 }}>
+              <GlassMonthPicker
+                value={currentDate}
+                onChange={setCurrentDate}
+              />
+            </View>
+
+            {/* Gelir / Gider Özeti (GlassCard) */}
+            <GlassCard intensity={45} style={{ marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 8 }}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontSize: 11, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, fontWeight: '600' }}>Toplam Gelir</Text>
+                  <Text style={{ fontSize: 15, color: '#34D399', fontWeight: '800', marginTop: 4 }}>+{formatCurrency(stats.currentMonthIn)}</Text>
+                </View>
+                <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontSize: 11, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, fontWeight: '600' }}>Toplam Gider</Text>
+                  <Text style={{ fontSize: 15, color: '#F87171', fontWeight: '800', marginTop: 4 }}>-{formatCurrency(stats.currentMonthOut)}</Text>
+                </View>
+                <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontSize: 11, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, fontWeight: '600' }}>Net Bakiye</Text>
+                  <Text style={{ fontSize: 15, color: stats.totalBalance >= 0 ? '#34D399' : '#F87171', fontWeight: '800', marginTop: 4 }}>
+                    {stats.totalBalance >= 0 ? '+' : ''}{formatCurrency(stats.totalBalance)}
+                  </Text>
+                </View>
+              </View>
+            </GlassCard>
+
+            {/* Searchbar */}
+            <GlassSearchBar
+              placeholder="İşlem veya kategori ara..."
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
@@ -328,7 +323,18 @@ export default function FinanceListScreen() {
 
       {/* Filter Modal */}
       <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Filtrele</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Finansal hareket filtreleme seçenekleri</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsFilterModalVisible(false)}
+          />
+        </View>
         <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
           
           <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>İşlem Türü</Text>
@@ -425,7 +431,7 @@ export default function FinanceListScreen() {
           />
 
         </ScrollView>
-        <View style={styles.modalButtons}>
+        <View style={styles.modalFooterRow}>
           <Button 
             mode="text" 
             onPress={() => {
@@ -434,11 +440,17 @@ export default function FinanceListScreen() {
               setMethodFilter(null);
               setTypeFilter(null);
             }} 
-            textColor={c.textSecondary}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
           >
             Temizle
           </Button>
-          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+          <Button
+            mode="contained"
+            onPress={() => setIsFilterModalVisible(false)}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
             Uygula
           </Button>
         </View>
@@ -446,7 +458,18 @@ export default function FinanceListScreen() {
 
       {/* Add Transaction Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni İşlem Ekle</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Yeni İşlem Ekle</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Gelir veya gider kaydı tanımlayın</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsModalVisible(false)}
+          />
+        </View>
             
             <View style={styles.typeSelector}>
               <Button
@@ -514,22 +537,27 @@ export default function FinanceListScreen() {
               placeholder="YYYY-MM-DD"
             />
 
-            <View style={styles.modalButtons}>
-              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
-                İptal
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleCreate}
-                loading={createMutation.isPending}
-                disabled={createMutation.isPending || !amount || !description || !category}
-                buttonColor={c.primary}
-                textColor="#ffffff"
-              >
-                Kaydet
-              </Button>
-            </View>
-          </GlassModal>
+        <View style={styles.modalFooterRow}>
+          <Button
+            mode="text"
+            onPress={() => setIsModalVisible(false)}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
+          >
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreate}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending || !amount || !description || !category}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
     </SwipeBackView>
   );
 }
@@ -615,9 +643,27 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: 40,
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
   typeSelector: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   typeButton: { flex: 1 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },

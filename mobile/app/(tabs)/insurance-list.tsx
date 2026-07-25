@@ -9,7 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Text, Searchbar, ActivityIndicator, Chip, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, Button } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { vehicleService } from '../../services/dataServices';
 import { formatCurrency, formatDate } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
@@ -24,11 +25,12 @@ import GlassCard from '../../components/ui/GlassCard';
 import GlassIconButton from '../../components/ui/GlassIconButton';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
-import { BlurView } from 'expo-blur';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
 
 export default function InsuranceListScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -39,7 +41,6 @@ export default function InsuranceListScreen() {
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const query = useQuery({
     queryKey: ['all-insurances', selectedCompanyId],
@@ -47,13 +48,11 @@ export default function InsuranceListScreen() {
     enabled: !!selectedCompanyId,
   });
 
-  const onRefresh = async () => {
-    setIsRefreshing(true);
-    await query.refetch();
-    setIsRefreshing(false);
-  };
+  const isRefreshing = query.isRefetching;
+  const onRefresh = () => query.refetch();
 
-  const records = query.data?.data || [];
+  const rawData = query.data;
+  const records = Array.isArray(rawData) ? rawData : (rawData?.data || []);
 
   const getRemainingDays = (dateStr: string) => {
     if (!dateStr) return null;
@@ -65,7 +64,7 @@ export default function InsuranceListScreen() {
     const term = search.toLowerCase();
     const matchesSearch =
       ins.vehicles?.plate?.toLowerCase().includes(term) ||
-      ins.company?.toLowerCase().includes(term) ||
+      ins.insurance_company?.toLowerCase().includes(term) ||
       ins.policy_no?.toLowerCase().includes(term) ||
       ins.type?.toLowerCase().includes(term);
 
@@ -73,10 +72,10 @@ export default function InsuranceListScreen() {
 
     const daysLeft = getRemainingDays(ins.end_date);
     let matchesStatus = true;
-    if (statusFilter === 'active') {
-      matchesStatus = daysLeft === null || daysLeft >= 0;
-    } else if (statusFilter === 'overdue') {
+    if (statusFilter === 'overdue') {
       matchesStatus = daysLeft !== null && daysLeft < 0;
+    } else if (statusFilter === 'active') {
+      matchesStatus = daysLeft !== null && daysLeft >= 0;
     }
 
     let matchesDate = true;
@@ -91,58 +90,30 @@ export default function InsuranceListScreen() {
 
   const uniqueTypes = Array.from(new Set(records.map((r: any) => r.type).filter(Boolean))) as string[];
 
-  const glassBgColor = Platform.OS === 'web'
-    ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
-    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.2)');
-  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
-
   return (
     <SwipeBackView onSwipeBack={() => router.push('/vehicles')} style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/vehicles')}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-          <GlassIconButton
-            icon="chevron-back"
-            onPress={() => router.push('/vehicles')}
-          />
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text }]}>Poliçeler (Trafik & Kasko)</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} poliçe kaydı</Text>
-          </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
-        </View>
-
-        {/* Search */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Plaka, şirket veya poliçe no ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textTertiary}
-            iconColor={c.textSecondary}
-          />
-        </View>
+        <GlassIconButton
+          icon="funnel-outline"
+          active={!!(selectedType !== 'all' || statusFilter !== 'all' || startDateFilter || endDateFilter)}
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
       {query.isLoading ? (
@@ -153,64 +124,48 @@ export default function InsuranceListScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
-          renderItem={({ item, index }) => {
-            const daysLeft = getRemainingDays(item.end_date);
-            const isOverdue = daysLeft !== null && daysLeft < 0;
-            const isWarning = daysLeft !== null && daysLeft >= 0 && daysLeft <= 30;
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+              <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Poliçeler (Sigorta & Kasko)</Text>
+                <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} kayıt</Text>
+              </View>
 
-            let badgeColor = c.success;
-            let badgeText = `${daysLeft} gün kaldı`;
-            if (isOverdue) {
-              badgeColor = c.error;
-              badgeText = `${Math.abs(daysLeft!)} gün geçti`;
-            } else if (isWarning) {
-              badgeColor = c.warning;
-            } else if (daysLeft === null) {
-              badgeText = 'Belirtilmemiş';
-              badgeColor = c.textSecondary;
-            }
+              <GlassSearchBar
+                placeholder="Plaka, şirket veya poliçe no ara..."
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
+          }
+          renderItem={({ item, index }) => {
+            const isDark = colorScheme === 'dark';
+            const textColor = isDark ? '#FFFFFF' : c.text;
+            const subTextColor = isDark ? '#E2E8F0' : c.textSecondary;
 
             return (
               <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
-                <GlassCard intensity={30} style={styles.cardGlass}>
+                <GlassCard intensity={45} style={styles.cardGlass}>
                   <View style={styles.cardInner}>
-                    <View style={[styles.plateBox, { backgroundColor: c.primaryContainer + '20' }]}>
-                      <Text style={[styles.plateText, { color: c.primary }]}>
+                    <View style={styles.infoBox}>
+                      <Text style={[styles.plateText, { color: isDark ? '#38BDF8' : c.primary, fontWeight: '800', fontSize: 16 }]}>
                         {item.vehicles?.plate || 'Plakasız'}
                       </Text>
-                    </View>
-                    <View style={styles.infoBox}>
-                      <Text style={[styles.typeName, { color: c.text }]}>
-                        {item.type || 'Poliçe'}
+                      <Text style={[styles.typeName, { color: textColor, marginTop: 2 }]}>
+                        {item.insurance_company || 'Sigorta Şirketi Yok'} • {item.type === 'kasko' ? 'Kasko' : 'Trafik Sigortası'}
                       </Text>
-                      <Text style={[styles.desc, { color: c.textSecondary }]} numberOfLines={2}>
-                        Şirket: {item.company || 'Bilinmiyor'} • Poliçe No: {item.policy_no || '-'}
+                      <Text style={[styles.desc, { color: subTextColor, marginTop: 2 }]}>
+                        Poliçe No: {item.policy_no || 'Yok'} • Bitiş: {formatDate(item.end_date)}
                       </Text>
-                      <View style={styles.metaRow}>
-                        <View style={styles.metaItem}>
-                          <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
-                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.start_date)}</Text>
-                        </View>
-                        {item.end_date && (
-                          <View style={styles.metaItem}>
-                            <Ionicons name="alarm-outline" size={12} color={c.textTertiary} />
-                            <Text style={[styles.metaText, { color: c.textTertiary }]}>Bitiş: {formatDate(item.end_date)}</Text>
-                          </View>
-                        )}
-                      </View>
                     </View>
                     <View style={styles.rightBox}>
-                      <View style={[styles.statusBadge, { backgroundColor: badgeColor + '15', borderColor: badgeColor, borderWidth: 0.5 }]}>
-                        <Text style={[styles.statusText, { color: badgeColor }]}>{badgeText}</Text>
-                      </View>
-                      {item.premium > 0 && (
-                        <Text style={[styles.price, { color: c.text, marginTop: 6 }]}>{formatCurrency(item.premium)}</Text>
-                      )}
+                      <Text style={[styles.costText, { color: isDark ? '#34D399' : c.primary, fontWeight: '800', fontSize: 15 }]}>
+                        {formatCurrency(item.amount || item.premium)}
+                      </Text>
                     </View>
                   </View>
                 </GlassCard>

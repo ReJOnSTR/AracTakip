@@ -6,6 +6,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     login: (credentials) => ipcRenderer.invoke('auth:login', credentials),
     changePassword: (data) => ipcRenderer.invoke('auth:changePassword', data),
     updateProfile: (data) => ipcRenderer.invoke('auth:updateProfile', data),
+    createEmployeeUser: (data) => ipcRenderer.invoke('auth:createEmployeeUser', data),
+
+    // Requests & Approvals
+    createRequest: (data) => ipcRenderer.invoke('requests:create', data),
+    getRequests: (filters) => ipcRenderer.invoke('requests:getAll', filters),
+    processApproval: (data) => ipcRenderer.invoke('requests:processApproval', data),
+
+    // Roles & Granular Permissions
+    getRoles: (companyId) => ipcRenderer.invoke('roles:getAll', companyId),
+    saveRole: (data) => ipcRenderer.invoke('roles:save', data),
+    deleteRole: (roleId) => ipcRenderer.invoke('roles:delete', roleId),
+    assignUserRole: (data) => ipcRenderer.invoke('roles:assignUserRole', data),
+    deleteUserAccount: (userId) => ipcRenderer.invoke('roles:deleteUserAccount', userId),
 
     // Companies
     getCompanies: (userId) => ipcRenderer.invoke('companies:getAll', userId),
@@ -257,12 +270,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Arvento API
     arventoTestConnection: (credentials) => ipcRenderer.invoke('arvento:testConnection', credentials),
-    arventoGetStatus: () => ipcRenderer.invoke('arvento:getStatus'),
-    arventoGetMappings: () => ipcRenderer.invoke('arvento:getMappings'),
-    arventoGetInfo: () => ipcRenderer.invoke('arvento:getInfo'),
-    arventoGetDailyReport: (date) => ipcRenderer.invoke('arvento:getDailyReport', date),
-    arventoGetAlarms: () => ipcRenderer.invoke('arvento:getAlarms'),
-    arventoGetHistory: (filters) => ipcRenderer.invoke('arvento:getHistory', filters),
+    arventoGetStatus: (credentials) => ipcRenderer.invoke('arvento:getStatus', credentials),
+    arventoGetMappings: (credentials) => ipcRenderer.invoke('arvento:getMappings', credentials),
+    arventoGetInfo: (credentials) => ipcRenderer.invoke('arvento:getInfo', credentials),
+    arventoGetDailyReport: (date, credentials) => ipcRenderer.invoke('arvento:getDailyReport', date, credentials),
+    arventoGetAlarms: (credentials) => ipcRenderer.invoke('arvento:getAlarms', credentials),
+    arventoGetHistory: (filters, credentials) => ipcRenderer.invoke('arvento:getHistory', filters, credentials),
 
     // Database Migration to Postgres
     migrateToPostgres: (postgresUrl) => ipcRenderer.invoke('database:migrateToPostgres', postgresUrl),

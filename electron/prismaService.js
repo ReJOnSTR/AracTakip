@@ -46,6 +46,12 @@ module.exports = {
     // Personnel Settings (Departments, Leaves, Doc Categories)
     ...require('./services/personnelSettings.service'),
 
+    // Requests & Approvals
+    ...require('./services/request.service'),
+
+    // Roles & Granular Permissions
+    ...require('./services/role.service'),
+
     // Arvento Tracking API
     ...arventoService
 };

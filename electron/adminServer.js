@@ -125,10 +125,23 @@ function startAdminServer(prisma, onDbUpdate) {
     // API: Get User's Companies (Used for the Dropdown)
     app.get('/api/my-companies', async (req, res) => {
         try {
-            const companies = await prisma.companies.findMany({
-                where: { user_id: req.user.id },
-                orderBy: { name: 'asc' }
-            });
+            let companies;
+            const user = await prisma.users.findUnique({ where: { id: req.user.id } });
+            if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+                companies = await prisma.companies.findMany({
+                    orderBy: { name: 'asc' }
+                });
+            } else {
+                companies = await prisma.companies.findMany({
+                    where: { user_id: req.user.id },
+                    orderBy: { name: 'asc' }
+                });
+                if (!companies || companies.length === 0) {
+                    companies = await prisma.companies.findMany({
+                        orderBy: { name: 'asc' }
+                    });
+                }
+            }
             res.json({ success: true, data: companies });
         } catch (error) {
             log.error('Admin panel error fetching my-companies:', error);

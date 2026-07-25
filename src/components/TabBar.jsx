@@ -169,7 +169,7 @@ export default function TabBar() {
                         </SortableContext>
                         <button
                             className="tab-add-btn"
-                            onClick={() => openNewTab('/portal', false, 'Ana Portal')}
+                            onClick={() => user?.role === 'personnel' ? openNewTab('/personnel-profile', false, 'Profilim & Bilgilerim') : openNewTab('/portal', false, 'Ana Portal')}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -186,7 +186,7 @@ export default function TabBar() {
                                 marginBottom: '4px',
                                 flexShrink: 0
                             }}
-                            title="Yeni Ana Portal Sekmesi Aç"
+                            title={user?.role === 'personnel' ? "Yeni Profilim Sekmesi Aç" : "Yeni Ana Portal Sekmesi Aç"}
                             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
@@ -213,14 +213,24 @@ export default function TabBar() {
                 <div className="header-right">
                     {/* Company Selector */}
                     <div className="company-selector">
-                        <button
-                            className="company-selector-btn"
-                            onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                        >
-                            <Building2 size={16} />
-                            <span>{currentCompany?.name || 'Şirket Seçin'}</span>
-                            <ChevronDown size={14} />
-                        </button>
+                        {user?.role === 'personnel' ? (
+                            <div
+                                className="company-selector-btn"
+                                style={{ cursor: 'default', opacity: 0.9, pointerEvents: 'none' }}
+                            >
+                                <Building2 size={16} />
+                                <span>{currentCompany?.name || ''}</span>
+                            </div>
+                        ) : (
+                            <button
+                                className="company-selector-btn"
+                                onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                            >
+                                <Building2 size={16} />
+                                <span>{currentCompany?.name || 'Şirket Seçin'}</span>
+                                <ChevronDown size={14} />
+                            </button>
+                        )}
 
                         {showCompanyDropdown && (
                             <>
@@ -281,7 +291,14 @@ export default function TabBar() {
                                     <div 
                                         className="user-dropdown-item" 
                                         style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
-                                        onClick={() => { openNewTab('/profile'); setShowUserDropdown(false) }}
+                                        onClick={() => { 
+                                            if (user?.role === 'personnel') {
+                                                openNewTab('/personnel-profile', false, 'Profilim & Bilgilerim')
+                                            } else {
+                                                openNewTab('/profile')
+                                            }
+                                            setShowUserDropdown(false) 
+                                        }}
                                     >
                                         <User size={16} />
                                         <div>
@@ -289,10 +306,17 @@ export default function TabBar() {
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
                                         </div>
                                     </div>
-                                    <div className="user-dropdown-item" onClick={() => { openNewTab('/settings?module=portal', false, 'Ayarlar'); setShowUserDropdown(false) }}>
-                                        <Settings size={16} />
-                                        <span>Genel Ayarlar</span>
-                                    </div>
+                                    {user?.role !== 'personnel' ? (
+                                        <div className="user-dropdown-item" onClick={() => { openNewTab('/settings?module=portal', false, 'Ayarlar'); setShowUserDropdown(false) }}>
+                                            <Settings size={16} />
+                                            <span>Genel Ayarlar</span>
+                                        </div>
+                                    ) : (
+                                        <div className="user-dropdown-item" onClick={() => { navigate('/change-password'); setShowUserDropdown(false) }}>
+                                            <Settings size={16} />
+                                            <span>Şifre Değiştir</span>
+                                        </div>
+                                    )}
                                     <div className="user-dropdown-item danger" onClick={logout}>
                                         <LogOut size={16} />
                                         <span>Çıkış Yap</span>

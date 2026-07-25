@@ -2,92 +2,65 @@ import SwiftUI
 import ExpoModulesCore
 import UIKit
 
-// State object for the Glass Button props
+// State object for Glass Button props
 class GlassButtonState: ObservableObject {
   @Published var icon: String = "plus"
   @Published var size: Double = 38.0
-  @Published var prominent: Bool = false
   @Published var colorScheme: String = "dark"
 }
 
-// SwiftUI Native Liquid Glass Button View with Translucent Material Blur & Tint Opacity
-struct NativeGlassButtonSwiftUIView: View {
+// GlassButton View (Exact code provided by user without color tint)
+struct GlassButtonView: View {
   @ObservedObject var state: GlassButtonState
-  var onPress: () -> Void
+  var action: () -> Void
+  
+  private var btnSize: CGFloat {
+    CGFloat(state.size > 0 ? state.size : 38.0)
+  }
   
   private var isDark: Bool {
     state.colorScheme == "dark"
   }
   
   var body: some View {
-    Button(action: {
-      onPress()
-    }) {
-      Image(systemName: state.icon)
-        .font(.system(size: state.size * 0.44, weight: .semibold))
-        .foregroundColor(
-          state.prominent
-            ? Color.white
-            : (isDark ? Color.white : Color(red: 0.22, green: 0.32, blue: 0.92))
-        )
-        .frame(width: state.size, height: state.size)
-        .contentShape(Circle())
-    }
-    .buttonStyle(.plain)
-    .background {
-      ZStack {
-        // Liquid Glass Translucency with Tint Opacity (0.15 iOS Standard / 0.45 Prominent Accent)
-        Circle()
-          .fill(
-            state.prominent
-              ? AnyShapeStyle(Color(red: 0.25, green: 0.35, blue: 0.95).opacity(0.75))
-              : AnyShapeStyle(Material.ultraThinMaterial)
-          )
-        
-        // Liquid Glass Ambient Tint Kırılması
-        Circle()
-          .fill(
-            state.prominent
-              ? Color.blue.opacity(0.35)
-              : (isDark ? Color.white.opacity(0.12) : Color.white.opacity(0.18))
-          )
-        
-        // Ambient Specular Light Reflection
-        Circle()
-          .fill(
-            LinearGradient(
-              colors: isDark
-                ? [Color.white.opacity(0.18), Color.white.opacity(0.04)]
-                : [Color.white.opacity(0.65), Color.white.opacity(0.15)],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            )
-          )
+    if #available(iOS 18.0, *) {
+      Button {
+        action()
+      } label: {
+        Image(systemName: state.icon)
+          .font(.system(size: btnSize * 0.44, weight: .semibold))
+          .foregroundStyle(isDark ? Color.white : Color.black)
+          .frame(width: btnSize, height: btnSize)
       }
+      .frame(width: btnSize, height: btnSize)
+      .contentShape(Circle())
+      .clipShape(Circle())
+      .glassEffect(
+        .regular.interactive(),
+        in: Circle()
+      )
+    } else {
+      Button {
+        action()
+      } label: {
+        Image(systemName: state.icon)
+          .font(.system(size: btnSize * 0.44, weight: .semibold))
+          .foregroundColor(isDark ? .white : .black)
+          .frame(width: btnSize, height: btnSize)
+      }
+      .frame(width: btnSize, height: btnSize)
+      .contentShape(Circle())
+      .clipShape(Circle())
+      .buttonStyle(.borderedProminent)
+      .tint(.clear)
     }
-    .overlay {
-      // Specular Glass Border
-      Circle()
-        .strokeBorder(
-          LinearGradient(
-            colors: isDark
-              ? [Color.white.opacity(0.35), Color.white.opacity(0.1)]
-              : [Color.white.opacity(0.8), Color.white.opacity(0.25)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          ),
-          lineWidth: 1.0
-        )
-    }
-    .shadow(color: Color.black.opacity(isDark ? 0.22 : 0.08), radius: 6, x: 0, y: 3)
-    .clipShape(Circle())
-    .frame(width: state.size, height: state.size)
   }
 }
 
+// Native Expo View wrapper around GlassButtonView UIHostingController
 class NativeUiGlassButtonViewWrapper: ExpoView {
-  private let hostingController = UIHostingController(rootView: NativeGlassButtonSwiftUIView(state: GlassButtonState(), onPress: {}))
   private let state = GlassButtonState()
+  private var hostingController: UIHostingController<GlassButtonView>?
   
   let onButtonPress = EventDispatcher()
   
@@ -97,24 +70,34 @@ class NativeUiGlassButtonViewWrapper: ExpoView {
     backgroundColor = .clear
     isOpaque = false
     
-    hostingController.view.backgroundColor = .clear
-    hostingController.view.isOpaque = false
-    
-    hostingController.rootView = NativeGlassButtonSwiftUIView(
+    let glassButton = GlassButtonView(
       state: state,
-      onPress: { [weak self] in
+      action: { [weak self] in
         self?.onButtonPress([:])
       }
     )
     
-    addSubview(hostingController.view)
+    let host = UIHostingController(rootView: glassButton)
+    host.view.backgroundColor = .clear
+    host.view.isOpaque = false
+    self.hostingController = host
+    
+    addSubview(host.view)
   }
   
   override func layoutSubviews() {
     super.layoutSubviews()
-    hostingController.view.frame = bounds
-    hostingController.view.backgroundColor = .clear
-    hostingController.view.isOpaque = false
+    if let hostView = hostingController?.view {
+      let size = CGFloat(state.size > 0 ? state.size : 38.0)
+      hostView.frame = CGRect(
+        x: (bounds.width - size) / 2,
+        y: (bounds.height - size) / 2,
+        width: size,
+        height: size
+      )
+      hostView.backgroundColor = .clear
+      hostView.isOpaque = false
+    }
   }
   
   func setIcon(_ icon: String) {
@@ -126,12 +109,12 @@ class NativeUiGlassButtonViewWrapper: ExpoView {
   func setSize(_ size: Double) {
     DispatchQueue.main.async {
       self.state.size = size
+      self.setNeedsLayout()
     }
   }
   
   func setProminent(_ prominent: Bool) {
     DispatchQueue.main.async {
-      self.state.prominent = prominent
     }
   }
   

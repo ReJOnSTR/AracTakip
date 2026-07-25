@@ -10,6 +10,7 @@ import TitleBar from './components/TitleBar'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import TabBar from './components/TabBar' // Import TabBar
+import PersonnelHeader from './components/PersonnelHeader'
 import TopProgressBar from './components/TopProgressBar'
 import BottomNav from './components/BottomNav'
 import MobileHeader from './components/MobileHeader'
@@ -57,6 +58,8 @@ const CustomerDetail = lazy(() => import('./pages/CustomerDetail'))
 const ModuleSettings = lazy(() => import('./pages/ModuleSettings'))
 const Profile = lazy(() => import('./pages/Profile'))
 const PrintDocument = lazy(() => import('./pages/PrintDocument'))
+const PersonnelDashboardPortal = lazy(() => import('./components/personnel/PersonnelDashboard'))
+const ApprovalCenter = lazy(() => import('./components/personnel/ApprovalCenter'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -76,7 +79,16 @@ function ProtectedRoute({ children }) {
     )
 }
 
+function AdminRoute({ children }) {
+    const { isAdmin, loading } = useAuth()
+
+    if (loading) return null
+    if (!isAdmin) return <Navigate to="/portal" replace />
+    return children
+}
+
 function MainLayout() {
+    const { user } = useAuth()
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         return localStorage.getItem('sidebarCollapsed') === 'true'
     })
@@ -111,6 +123,14 @@ function MainLayout() {
     )
 }
 
+function MainLayoutWrapper() {
+    return (
+        <TabProvider>
+            <MainLayout />
+        </TabProvider>
+    )
+}
+
 import { useDataListener } from './hooks/useDataListener'
 
 function AppRoutes() {
@@ -131,14 +151,12 @@ function AppRoutes() {
                     <Route element={
                         <ProtectedRoute>
                             <CompanyProvider>
-                                <TabProvider>
-                                    <MainLayout />
-                                </TabProvider>
+                                <MainLayoutWrapper />
                             </CompanyProvider>
                         </ProtectedRoute>
                     }>
-                        <Route path="/" element={<Navigate to="/portal" replace />} />
-                        <Route path="/portal" element={<MainPortal />} />
+                        <Route path="/" element={user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <Navigate to="/portal" replace />} />
+                        <Route path="/portal" element={user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <MainPortal />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/finance-dashboard" element={<FinanceDashboard />} />
                         <Route path="/finance" element={<Finance />} />
@@ -146,7 +164,7 @@ function AppRoutes() {
                         <Route path="/meal-tickets" element={<MealTickets />} />
                         <Route path="/meal-ticket-report" element={<MealTicketReport />} />
                         <Route path="/meal-ticket-settings" element={<MealTicketSettings />} />
-                        <Route path="/companies" element={<Companies />} />
+                        <Route path="/companies" element={<AdminRoute><Companies /></AdminRoute>} />
                         <Route path="/vehicles" element={<Vehicles />} />
                         <Route path="/vehicles/:id" element={<VehicleDetail />} />
                         <Route path="/arvento-tracking" element={<ArventoTracking />} />
@@ -166,11 +184,14 @@ function AppRoutes() {
                         <Route path="/works/:id" element={<WorkDetails />} />
                         <Route path="/customers" element={<Customers />} />
                         <Route path="/customers/:id" element={<CustomerDetail />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/module-settings/:module" element={<ModuleSettings />} />
+                        <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
+                        <Route path="/module-settings/:module" element={<AdminRoute><ModuleSettings /></AdminRoute>} />
+                        <Route path="/approvals" element={<ApprovalCenter />} />
+                        <Route path="/personnel-portal" element={<Navigate to="/personnel-profile" replace />} />
                         <Route path="/reports" element={<Reports />} />
                         <Route path="/employee-reports" element={<EmployeeReports />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/personnel-profile" element={<EmployeeDetail />} />
                     </Route>
 
                     <Route path="/print" element={<PrintPage />} />

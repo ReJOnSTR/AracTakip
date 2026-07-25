@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import GlassCard from './GlassCard';
 
+import { useThemeStore } from '../../stores/themeStore';
+
 interface Option {
   label: string;
   value: string;
@@ -22,18 +24,19 @@ interface GlassDropdownProps {
 }
 
 export default function GlassDropdown({ label, value, options, onSelect, placeholder, containerStyle }: GlassDropdownProps) {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedOption = options.find(o => o.value === value);
   const displayLabel = selectedOption ? selectedOption.label : (placeholder || 'Seçiniz...');
 
-  const containerBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)';
+  const containerBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.20)' : 'rgba(0, 0, 0, 0.12)';
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
-      {label && <Text style={[styles.label, { color: c.textSecondary }]}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.70)' : c.textSecondary }]}>{label}</Text>}
       <Pressable
         onPress={() => setIsOpen(true)}
         style={[
@@ -41,7 +44,7 @@ export default function GlassDropdown({ label, value, options, onSelect, placeho
           {
             backgroundColor: Platform.OS === 'web'
               ? (colorScheme === 'dark' ? 'rgba(35, 35, 64, 0.6)' : 'rgba(241, 245, 249, 0.6)')
-              : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.35)'),
+              : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.35)'),
             borderColor: containerBorderColor,
           },
         ]}
@@ -54,47 +57,48 @@ export default function GlassDropdown({ label, value, options, onSelect, placeho
           />
         )}
         <View style={styles.contentRow}>
-          <Text style={[styles.valueText, { color: selectedOption ? c.text : c.textTertiary }]}>
+          <Text style={[styles.valueText, { color: selectedOption ? (colorScheme === 'dark' ? '#FFFFFF' : c.text) : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.45)' : c.textTertiary) }]}>
             {displayLabel}
           </Text>
-          <Ionicons name="chevron-down" size={18} color={c.textSecondary} />
+          <Ionicons name="chevron-down" size={18} color={colorScheme === 'dark' ? '#FFFFFF' : c.textSecondary} />
         </View>
       </Pressable>
 
       <GlassModal visible={isOpen} onDismiss={() => setIsOpen(false)}>
-            <View style={styles.header}>
-              <Text style={[styles.modalTitle, { color: c.text }]}>{label || 'Seçim Yapın'}</Text>
-              <Pressable onPress={() => setIsOpen(false)}>
-                <Ionicons name="close" size={24} color={c.text} />
+        <View style={styles.header}>
+          <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>{label || 'Seçim Yapın'}</Text>
+          <Pressable onPress={() => setIsOpen(false)}>
+            <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#FFFFFF' : c.text} />
+          </Pressable>
+        </View>
+        <ScrollView style={styles.optionsList} showsVerticalScrollIndicator={false}>
+          {options.map((option, idx) => {
+            const isSelected = option.value === value;
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => {
+                  onSelect(option.value);
+                  setIsOpen(false);
+                }}
+                style={[
+                  styles.optionItem,
+                  {
+                    borderBottomColor: idx === options.length - 1 ? 'transparent' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'),
+                    backgroundColor: isSelected ? (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : c.primaryContainer + '25') : 'transparent',
+                    borderRadius: 10,
+                  }
+                ]}
+              >
+                <Text style={[styles.optionText, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, fontWeight: isSelected ? '700' : '400' }]}>
+                  {option.label}
+                </Text>
+                {isSelected && <Ionicons name="checkmark" size={20} color={colorScheme === 'dark' ? '#FFFFFF' : c.primary} />}
               </Pressable>
-            </View>
-            <ScrollView style={styles.optionsList} showsVerticalScrollIndicator={false}>
-              {options.map((option, idx) => {
-                const isSelected = option.value === value;
-                return (
-                  <Pressable
-                    key={option.value}
-                    onPress={() => {
-                      onSelect(option.value);
-                      setIsOpen(false);
-                    }}
-                    style={[
-                      styles.optionItem,
-                      {
-                        borderBottomColor: idx === options.length - 1 ? 'transparent' : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)'),
-                        backgroundColor: isSelected ? c.primaryContainer + '25' : 'transparent',
-                      }
-                    ]}
-                  >
-                    <Text style={[styles.optionText, { color: isSelected ? c.primary : c.text, fontWeight: isSelected ? '700' : '400' }]}>
-                      {option.label}
-                    </Text>
-                    {isSelected && <Ionicons name="checkmark" size={20} color={c.primary} />}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </GlassModal>
+            );
+          })}
+        </ScrollView>
+      </GlassModal>
     </View>
   );
 }

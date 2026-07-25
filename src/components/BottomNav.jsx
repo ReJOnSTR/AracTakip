@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Car, Users, Wallet, Menu, Briefcase, Building2, UtensilsCrossed, Settings, LogOut, X, User } from 'lucide-react'
+import { LayoutDashboard, Car, Users, Wallet, Menu, Briefcase, Building2, UtensilsCrossed, Settings, LogOut, X, User, ClipboardList } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import { getActiveModule } from '../config/navigation'
@@ -15,7 +15,9 @@ export default function BottomNav() {
     // Helper to determine active state
     const activeModule = getActiveModule(location.pathname, location.search)
 
-    const navItems = [
+    const navItems = user?.role === 'personnel' ? [
+        { id: 'profile', label: 'Profilim', icon: User, path: '/personnel-profile' }
+    ] : [
         { id: 'fleet', label: 'Filo', icon: Car, path: '/dashboard' },
         { id: 'hr', label: 'Personel', icon: Users, path: '/personel-dashboard' },
         { id: 'finance', label: 'Finans', icon: Wallet, path: '/finance-dashboard' },
@@ -90,31 +92,43 @@ export default function BottomNav() {
                             )}
                         </div>
 
-                        {/* Other Modules */}
-                        <div className="menu-group">
-                            <div className="menu-group-title">Diğer Modüller</div>
-                            <div className="mobile-menu-item" onClick={() => { navigate('/customers'); setIsMenuOpen(false); }}>
-                                <Building2 size={18} />
-                                <span>Cari & Müşteriler</span>
-                            </div>
-                            <div className="mobile-menu-item" onClick={() => { navigate('/meal-tickets'); setIsMenuOpen(false); }}>
-                                <UtensilsCrossed size={18} />
-                                <span>Yemek Fişleri</span>
-                            </div>
-                        </div>
+                        {user?.role !== 'personnel' ? (
+                            <>
+                                {/* Other Modules */}
+                                <div className="menu-group">
+                                    <div className="menu-group-title">Diğer Modüller</div>
+                                    <div className="mobile-menu-item" onClick={() => { navigate('/customers'); setIsMenuOpen(false); }}>
+                                        <Building2 size={18} />
+                                        <span>Cari & Müşteriler</span>
+                                    </div>
+                                    <div className="mobile-menu-item" onClick={() => { navigate('/meal-tickets'); setIsMenuOpen(false); }}>
+                                        <UtensilsCrossed size={18} />
+                                        <span>Yemek Fişleri</span>
+                                    </div>
+                                </div>
 
-                        {/* System */}
-                        <div className="menu-group">
-                            <div className="menu-group-title">Sistem & Profil</div>
-                            <div className="mobile-menu-item" onClick={() => { navigate('/profile'); setIsMenuOpen(false); }}>
-                                <User size={18} />
-                                <span>Profil Ayarları</span>
+                                {/* System */}
+                                <div className="menu-group">
+                                    <div className="menu-group-title">Sistem & Profil</div>
+                                    <div className="mobile-menu-item" onClick={() => { navigate('/profile'); setIsMenuOpen(false); }}>
+                                        <User size={18} />
+                                        <span>Profil Ayarları</span>
+                                    </div>
+                                    <div className="mobile-menu-item" onClick={() => { navigate('/settings?module=portal'); setIsMenuOpen(false); }}>
+                                        <Settings size={18} />
+                                        <span>Genel Ayarlar</span>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="menu-group">
+                                <div className="menu-group-title">Hesap</div>
+                                <div className="mobile-menu-item" onClick={() => { navigate('/change-password'); setIsMenuOpen(false); }}>
+                                    <Settings size={18} />
+                                    <span>Şifre Değiştir</span>
+                                </div>
                             </div>
-                            <div className="mobile-menu-item" onClick={() => { navigate('/settings?module=portal'); setIsMenuOpen(false); }}>
-                                <Settings size={18} />
-                                <span>Genel Ayarlar</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="mobile-menu-footer">

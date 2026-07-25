@@ -440,7 +440,10 @@ exports.Prisma.UsersScalarFieldEnum = {
   password_hash: 'password_hash',
   created_at: 'created_at',
   role: 'role',
-  must_change_password: 'must_change_password'
+  role_id: 'role_id',
+  employee_id: 'employee_id',
+  must_change_password: 'must_change_password',
+  is_active: 'is_active'
 };
 
 exports.Prisma.VehiclesScalarFieldEnum = {
@@ -567,6 +570,53 @@ exports.Prisma.Public_holidaysScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.RolesScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  name: 'name',
+  description: 'description',
+  created_at: 'created_at'
+};
+
+exports.Prisma.PermissionsScalarFieldEnum = {
+  id: 'id',
+  role_id: 'role_id',
+  module: 'module',
+  can_read: 'can_read',
+  can_create: 'can_create',
+  can_update: 'can_update',
+  can_delete: 'can_delete',
+  can_approve: 'can_approve',
+  scope: 'scope'
+};
+
+exports.Prisma.RequestsScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  created_by_id: 'created_by_id',
+  employee_id: 'employee_id',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  request_data: 'request_data',
+  status: 'status',
+  current_step: 'current_step',
+  total_steps: 'total_steps',
+  document_path: 'document_path',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Request_approvalsScalarFieldEnum = {
+  id: 'id',
+  request_id: 'request_id',
+  approver_id: 'approver_id',
+  step: 'step',
+  status: 'status',
+  comment: 'comment',
+  action_date: 'action_date'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -612,7 +662,11 @@ exports.Prisma.ModelName = {
   document_folders: 'document_folders',
   vehicle_types: 'vehicle_types',
   arvento_history: 'arvento_history',
-  public_holidays: 'public_holidays'
+  public_holidays: 'public_holidays',
+  roles: 'roles',
+  permissions: 'permissions',
+  requests: 'requests',
+  request_approvals: 'request_approvals'
 };
 
 /**

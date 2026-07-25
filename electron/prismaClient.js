@@ -9,6 +9,12 @@ const Database = require('better-sqlite3');
 let prisma = null;
 
 function getDbPath() {
+    const homeDir = app.getPath('home');
+    const muayenDbPath = path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data', 'aractakip.db');
+    if (fs.existsSync(muayenDbPath)) {
+        return muayenDbPath;
+    }
+
     const userDataPath = app.getPath('userData');
     const dataDir = path.join(userDataPath, 'data');
 
@@ -827,11 +833,99 @@ async function runAutoMigrations() {
         log.error('Self-healing operation documents alignment error:', err.message);
     }
 
-    // Self-healing database alignment for existing public holidays
+    // 27. Auto-migration for RBAC & Request system (roles, permissions, requests, request_approvals, users columns)
     try {
-        await seedDefaultPublicHolidays(p);
-    } catch (err) {
-        log.error('Self-healing public holidays error:', err.message);
+        const uCols = await p.$queryRawUnsafe("PRAGMA table_info('users')");
+        if (uCols.length > 0) {
+            if (!uCols.some(c => c.name === 'role_id')) {
+                await p.$executeRawUnsafe('ALTER TABLE users ADD COLUMN role_id INTEGER');
+                log.info('Migration: Added role_id to users');
+            }
+            if (!uCols.some(c => c.name === 'employee_id')) {
+                await p.$executeRawUnsafe('ALTER TABLE users ADD COLUMN employee_id INTEGER');
+                log.info('Migration: Added employee_id to users');
+            }
+            if (!uCols.some(c => c.name === 'is_active')) {
+                await p.$executeRawUnsafe('ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1');
+                log.info('Migration: Added is_active to users');
+            }
+        }
+
+        // Drop bad tables if they were created with the wrong columns
+        const permCols = await p.$queryRawUnsafe("PRAGMA table_info('permissions')");
+        if (permCols.length > 0 && permCols.some(c => c.name === 'action')) {
+            log.info('Migration: Found wrong permissions schema. Dropping tables to recreate correct columns...');
+            await p.$executeRawUnsafe('DROP TABLE IF EXISTS request_approvals');
+            await p.$executeRawUnsafe('DROP TABLE IF EXISTS requests');
+            await p.$executeRawUnsafe('DROP TABLE IF EXISTS permissions');
+            await p.$executeRawUnsafe('DROP TABLE IF EXISTS roles');
+        }
+
+        await p.$executeRawUnsafe(`
+            CREATE TABLE IF NOT EXISTS roles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+            )
+        `);
+
+        await p.$executeRawUnsafe(`
+            CREATE TABLE IF NOT EXISTS permissions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                role_id INTEGER NOT NULL,
+                module TEXT NOT NULL,
+                can_read INTEGER DEFAULT 0,
+                can_create INTEGER DEFAULT 0,
+                can_update INTEGER DEFAULT 0,
+                can_delete INTEGER DEFAULT 0,
+                can_approve INTEGER DEFAULT 0,
+                scope TEXT DEFAULT 'OWN',
+                FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+            )
+        `);
+
+        await p.$executeRawUnsafe(`
+            CREATE TABLE IF NOT EXISTS requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id INTEGER NOT NULL,
+                created_by_id INTEGER NOT NULL,
+                employee_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                request_data TEXT NOT NULL,
+                status TEXT DEFAULT 'PENDING',
+                current_step INTEGER DEFAULT 1,
+                total_steps INTEGER DEFAULT 1,
+                document_path TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+                FOREIGN KEY (created_by_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE
+            )
+        `);
+
+        await p.$executeRawUnsafe(`
+            CREATE TABLE IF NOT EXISTS request_approvals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                request_id INTEGER NOT NULL,
+                approver_id INTEGER,
+                step INTEGER DEFAULT 1,
+                status TEXT NOT NULL,
+                comment TEXT,
+                action_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (request_id) REFERENCES requests (id) ON DELETE CASCADE,
+                FOREIGN KEY (approver_id) REFERENCES users (id) ON DELETE SET NULL
+            )
+        `);
+
+        log.info('Migration: Verified/Created RBAC and Request system tables & columns');
+    } catch (error) {
+        log.error('Migration step 27 (RBAC & Request system) error:', error.message);
     }
 
     log.info('Auto-migrations loop completed.');

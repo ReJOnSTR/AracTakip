@@ -20,6 +20,7 @@ import { Colors } from '../../constants/Colors';
 import { mealTicketService } from '../../services/dataServices';
 import { formatCurrency, formatDate } from '../../utils/format';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassMonthPicker from '../../components/ui/GlassMonthPicker';
@@ -30,7 +31,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 export default function MealTicketsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -164,9 +166,6 @@ export default function MealTicketsScreen() {
   const totalTicketsCount = filtered.reduce((sum: number, item: any) => sum + (item.person_count || 1), 0);
   const totalTicketsCost = filtered.reduce((sum: number, item: any) => sum + (item.person_count || 1) * (item.price_per_person || 0), 0);
 
-  const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
-  const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
-
   return (
     <View 
       style={styles.container}
@@ -175,129 +174,94 @@ export default function MealTicketsScreen() {
     >
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.back()}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <View>
-            <Text style={[styles.title, { color: c.text }]}>Yemek Fişleri</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} fiş</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <GlassIconButton
-              icon="add"
-              onPress={() => setIsModalVisible(true)}
-            />
-            <GlassIconButton
-              icon="funnel-outline"
-              onPress={() => setIsFilterModalVisible(true)}
-            />
-          </View>
-        </View>
-
-        {/* Month Navigator */}
-        <View style={styles.monthNavRow}>
-          <GlassMonthPicker
-            value={currentDate}
-            onChange={setCurrentDate}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <GlassIconButton
+            icon="funnel-outline"
+            onPress={() => setIsFilterModalVisible(true)}
           />
-        </View>
-
-        {/* Summary Header */}
-        <View style={styles.summaryRow}>
-          <GlassCard intensity={40} style={styles.summaryCardGlass}>
-            <View style={styles.summaryContent}>
-              <View style={styles.summaryBox}>
-                <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>Toplam Adet</Text>
-                <Text style={[styles.summaryVal, { color: c.primary }]}>{totalTicketsCount}</Text>
-              </View>
-              <View style={[styles.divider, { backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }]} />
-              <View style={styles.summaryBox}>
-                <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>Toplam Tutar</Text>
-                <Text style={[styles.summaryVal, { color: c.success }]}>{formatCurrency(totalTicketsCost)}</Text>
-              </View>
-            </View>
-          </GlassCard>
-        </View>
-
-        {/* Searchbar */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Personel ismi veya tarih ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textSecondary}
-            iconColor={c.textSecondary}
+          <GlassIconButton
+            icon="add"
+            onPress={() => setIsModalVisible(true)}
           />
         </View>
       </View>
 
-      {/* List */}
       {listQuery.isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={c.primary} />
         </View>
       ) : (
         <FlatList
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 235 }]}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={onRefresh}
-              tintColor={c.primary}
-            />
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
+          }
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+              <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Yemek Fişleri & Kuponlar</Text>
+                <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} kayıt</Text>
+              </View>
+
+              <View style={{ marginBottom: 12 }}>
+                <GlassMonthPicker
+                  value={currentDate}
+                  onChange={setCurrentDate}
+                />
+              </View>
+
+              <GlassCard intensity={45} style={{ marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 6 }}>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 11, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, fontWeight: '600' }}>Toplam Fiş</Text>
+                    <Text style={{ fontSize: 16, color: colorScheme === 'dark' ? '#FFFFFF' : c.text, fontWeight: '800', marginTop: 2 }}>{totalTicketsCount} Adet</Text>
+                  </View>
+                  <View style={{ width: 1, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 11, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, fontWeight: '600' }}>Toplam Tutar</Text>
+                    <Text style={{ fontSize: 16, color: colorScheme === 'dark' ? '#34D399' : c.success, fontWeight: '800', marginTop: 2 }}>{formatCurrency(totalTicketsCost)}</Text>
+                  </View>
+                </View>
+              </GlassCard>
+            </View>
           }
           renderItem={({ item, index }) => {
-            const totalAmount = (item.person_count || 1) * (item.price_per_person || 0);
+            const isDark = colorScheme === 'dark';
+            const textColor = isDark ? '#FFFFFF' : c.text;
+            const subTextColor = isDark ? '#E2E8F0' : c.textSecondary;
+            const itemTotalCost = (item.person_count || 1) * (item.price_per_person || 0);
+
             return (
               <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-                <GlassCard intensity={30} style={styles.cardGlass}>
+                <GlassCard intensity={45} style={styles.cardGlass}>
                   <View style={styles.cardInner}>
-                    <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
-                      <Ionicons name="restaurant-outline" size={22} color={c.primary} />
-                    </View>
                     <View style={styles.info}>
-                      <Text style={[styles.cardTitle, { color: c.text }]}>Yemek Fişi</Text>
-                      <Text style={[styles.cardSubtitle, { color: c.textSecondary }]} numberOfLines={1}>
-                        {item.notes || 'Açıklama girilmemiş'}
+                      <Text style={[styles.cardTitle, { color: textColor }]}>{formatDate(item.date)}</Text>
+                      <Text style={[styles.cardSubtitle, { color: subTextColor }]}>
+                        {item.person_count || 1} Kişi • {item.notes || 'Açıklama yok'}
                       </Text>
-                      <View style={styles.cardMeta}>
-                        <View style={styles.metaItem}>
-                          <Ionicons name="calendar-outline" size={11} color={c.textTertiary} />
-                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{formatDate(item.date)}</Text>
-                        </View>
-                        <View style={styles.metaItem}>
-                          <Ionicons name="people-outline" size={11} color={c.textTertiary} />
-                          <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.person_count || 1} Kişi</Text>
-                        </View>
-                      </View>
                     </View>
                     <View style={styles.right}>
-                      <Text style={[styles.priceText, { color: c.success }]}>
-                        {formatCurrency(totalAmount)}
-                      </Text>
-                      <Text style={[styles.unitText, { color: c.textSecondary }]}>
-                        Birim: {formatCurrency(item.price_per_person)}
+                      <Text style={[styles.priceText, { color: isDark ? '#34D399' : c.success, fontWeight: '800' }]}>
+                        {formatCurrency(itemTotalCost)}
                       </Text>
                     </View>
                   </View>
@@ -318,49 +282,79 @@ export default function MealTicketsScreen() {
 
       {/* Add Meal Ticket Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Yemek Fişi</Text>
-            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
-                label="Tarih"
-                value={date}
-                onChangeText={setDate}
-                placeholder="YYYY-MM-DD"
-              />
-              <GlassInput
-                label="Kişi Sayısı"
-                value={personCount}
-                onChangeText={setPersonCount}
-                keyboardType="numeric"
-                placeholder="Kaç kişi yemeğe gitti?"
-              />
-              <GlassInput
-                label="Notlar"
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Ekstra bilgi (opsiyonel)"
-                multiline
-              />
-            </ScrollView>
-            <View style={styles.modalButtons}>
-              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
-                İptal
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleCreate}
-                loading={createMutation.isPending}
-                disabled={createMutation.isPending || !date || !personCount}
-                buttonColor={c.primary}
-                textColor="#ffffff"
-              >
-                Kaydet
-              </Button>
-            </View>
-          </GlassModal>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Yeni Yemek Fişi</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Yemek kuponu ve kişi sayısı bilgilerini girin</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsModalVisible(false)}
+          />
+        </View>
+
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Tarih"
+            value={date}
+            onChangeText={setDate}
+            placeholder="YYYY-MM-DD"
+          />
+          <GlassInput
+            label="Kişi Sayısı"
+            value={personCount}
+            onChangeText={setPersonCount}
+            keyboardType="numeric"
+            placeholder="Kaç kişi yemeğe gitti?"
+          />
+          <GlassInput
+            label="Notlar"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Ekstra bilgi (opsiyonel)"
+            multiline
+          />
+        </ScrollView>
+
+        <View style={styles.modalFooterRow}>
+          <Button
+            mode="text"
+            onPress={() => setIsModalVisible(false)}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
+          >
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreate}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending || !date || !personCount}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
 
       {/* Filter Modal */}
       <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Filtrele</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Yemek fişleri filtreleme seçenekleri</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsFilterModalVisible(false)}
+          />
+        </View>
+
         <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
           <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Tarih Aralığı</Text>
           <GlassInput
@@ -376,18 +370,25 @@ export default function MealTicketsScreen() {
             placeholder="YYYY-MM-DD"
           />
         </ScrollView>
-        <View style={styles.modalButtons}>
+
+        <View style={styles.modalFooterRow}>
           <Button 
             mode="text" 
             onPress={() => {
               setStartDateFilter('');
               setEndDateFilter('');
             }} 
-            textColor={c.textSecondary}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
           >
             Temizle
           </Button>
-          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+          <Button
+            mode="contained"
+            onPress={() => setIsFilterModalVisible(false)}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
             Uygula
           </Button>
         </View>
@@ -493,9 +494,27 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: 40,
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
   monthNavRow: {
     paddingHorizontal: 20,

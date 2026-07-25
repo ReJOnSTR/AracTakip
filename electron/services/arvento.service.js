@@ -236,10 +236,10 @@ async function testArventoConnection(credentials) {
     return await getArventoData('GetVehicleStatusJSON', {}, true, credentials)
 }
 
-async function getArventoVehicleStatus() {
-    const result = await getArventoData('GetVehicleStatusJSON', {}, true)
+async function getArventoVehicleStatus(credentialsOverride = null) {
+    const result = await getArventoData('GetVehicleStatusJSON', {}, true, credentialsOverride)
     if (result.success && Array.isArray(result.data)) {
-        savePositionsToHistory(result.data).catch(err => {
+        savePositionsToHistory(result.data, credentialsOverride).catch(err => {
             console.error('Error saving positions to history:', err)
         })
     }
@@ -480,12 +480,12 @@ async function getArventoHistory(filters) {
     }
 }
 
-async function getArventoLicensePlateNodeMappings() {
-    return await getArventoData('GetLicensePlateNodeMappings', {}, false)
+async function getArventoLicensePlateNodeMappings(credentialsOverride = null) {
+    return await getArventoData('GetLicensePlateNodeMappings', {}, false, credentialsOverride)
 }
 
-async function getArventoVehicleInfo() {
-    return await getArventoData('GetVehicleInfo', {}, false)
+async function getArventoVehicleInfo(credentialsOverride = null) {
+    return await getArventoData('GetVehicleInfo', {}, false, credentialsOverride)
 }
 
 function getTurkeyTodayString() {
@@ -507,7 +507,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c
 }
 
-async function getArventoVehicleDailyStatus(date) {
+async function getArventoVehicleDailyStatus(date, credentialsOverride = null) {
     let dateStr = date
     if (!dateStr) {
         dateStr = getTurkeyTodayString()
@@ -516,7 +516,7 @@ async function getArventoVehicleDailyStatus(date) {
     }
     
     try {
-        const mappingsRes = await getArventoLicensePlateNodeMappings()
+        const mappingsRes = await getArventoLicensePlateNodeMappings(credentialsOverride)
         if (!mappingsRes.success || !Array.isArray(mappingsRes.data)) {
             return { success: false, error: 'Araç eşleştirmeleri alınamadı.' }
         }
@@ -542,7 +542,7 @@ async function getArventoVehicleDailyStatus(date) {
                     chkMotion: "1",
                     chkContactAlarm: "1"
                 }
-                const reportResult = await getArventoData('GeneralReport', params, false)
+                const reportResult = await getArventoData('GeneralReport', params, false, credentialsOverride)
                 if (reportResult.success && Array.isArray(reportResult.data) && reportResult.data.length > 0) {
                     const sortedRecords = reportResult.data
                         .map(item => {
@@ -618,8 +618,8 @@ async function getArventoVehicleDailyStatus(date) {
     }
 }
 
-async function getArventoAlarms() {
-    return await getArventoData('GetVehicleAlarmStatusJson', {}, true)
+async function getArventoAlarms(credentialsOverride = null) {
+    return await getArventoData('GetVehicleAlarmStatusJson', {}, true, credentialsOverride)
 }
 
 module.exports = {

@@ -3,6 +3,8 @@ import { Modal as RNModal, StyleSheet, View, Pressable, Platform, useColorScheme
 import { BlurView } from 'expo-blur';
 import { Colors } from '../../constants/Colors';
 
+import { useThemeStore } from '../../stores/themeStore';
+
 interface GlassModalProps {
   visible: boolean;
   onDismiss: () => void;
@@ -12,7 +14,8 @@ interface GlassModalProps {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function GlassModal({ visible, onDismiss, children }: GlassModalProps) {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const [showModal, setShowModal] = useState(visible);
   
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -74,15 +77,14 @@ export default function GlassModal({ visible, onDismiss, children }: GlassModalP
           />
         </Animated.View>
 
-        {/* Animated sliding bottom card */}
         <Animated.View style={[
           styles.modalCard,
           {
             transform: [{ translateY: cardTranslateY }],
-            borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.45)',
+            borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.65)',
             backgroundColor: Platform.OS === 'web'
-              ? (colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)')
-              : (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.75)'),
+              ? (colorScheme === 'dark' ? 'rgba(20, 20, 25, 0.95)' : 'rgba(255, 255, 255, 0.95)')
+              : (colorScheme === 'dark' ? 'rgba(22, 22, 28, 0.85)' : 'rgba(255, 255, 255, 0.85)'),
           }
         ]}>
           {Platform.OS !== 'web' && (
@@ -113,23 +115,29 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    maxHeight: SCREEN_HEIGHT * 0.88,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderBottomWidth: 0,
     overflow: 'hidden',
     paddingBottom: Platform.OS === 'ios' ? 40 : 28,
+    shadowColor: '#000',
+    shadowOpacity: 0.20,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 10,
   },
   dragHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(150, 150, 150, 0.35)',
+    width: 38,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: 'rgba(150, 150, 150, 0.40)',
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 10,
   },
   content: {
     paddingHorizontal: 20,

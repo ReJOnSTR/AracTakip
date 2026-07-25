@@ -66,11 +66,23 @@ async function loginUser(credentials) {
                     { email: lookupValue },
                     { username: lookupValue }
                 ]
+            },
+            include: {
+                employee: true,
+                custom_role: {
+                    include: {
+                        permissions: true
+                    }
+                }
             }
         });
 
         if (!user) {
             return { success: false, error: 'Kullanıcı bulunamadı' };
+        }
+
+        if (user.is_active === 0) {
+            return { success: false, error: 'Hesabınız pasif duruma getirilmiştir. Yönetici ile iletişime geçiniz.' };
         }
 
         const isValid = bcrypt.compareSync(password, user.password_hash);
@@ -84,7 +96,20 @@ async function loginUser(credentials) {
             username: user.username,
             email: user.email,
             full_name: user.full_name,
-            mustChangePassword: user.must_change_password === 1
+            role: user.role || 'personnel',
+            role_id: user.role_id,
+            employee_id: user.employee_id,
+            mustChangePassword: user.must_change_password === 1,
+            employee: user.employee ? {
+                id: user.employee.id,
+                company_id: user.employee.company_id,
+                first_name: user.employee.first_name,
+                last_name: user.employee.last_name,
+                email: user.employee.email,
+                department: user.employee.department,
+                position: user.employee.position
+            } : null,
+            permissions: user.custom_role ? user.custom_role.permissions : []
         };
 
         return { success: true, user: safeUser };
@@ -98,9 +123,14 @@ async function loginUser(credentials) {
 async function changePassword(data) {
     try {
         const { userId, currentPassword, newPassword } = data;
+        const targetId = Number(userId);
+
+        if (!targetId || isNaN(targetId)) {
+            return { success: false, error: 'Geçersiz kullanıcı ID' };
+        }
 
         const user = await prisma.users.findUnique({
-            where: { id: userId }
+            where: { id: targetId }
         });
 
         if (!user) {
@@ -117,7 +147,7 @@ async function changePassword(data) {
         const password_hash = bcrypt.hashSync(newPassword, 10);
 
         await prisma.users.update({
-            where: { id: userId },
+            where: { id: targetId },
             data: {
                 password_hash,
                 must_change_password: 0
@@ -196,10 +226,67 @@ async function getUserPasswordHash(userId) {
     }
 }
 
+async function createEmployeeUser(data) {
+    try {
+        const { employeeId, username, email, password, role, roleId } = data;
+
+        if (!employeeId || !username || !password || !email) {
+            return { success: false, error: 'Personel, kullanıcı adı, e-posta ve şifre zorunludur' };
+        }
+
+        const employee = await prisma.employees.findUnique({
+            where: { id: Number(employeeId) }
+        });
+
+        if (!employee) {
+            return { success: false, error: 'Personel kaydı bulunamadı' };
+        }
+
+        const existingUser = await prisma.users.findFirst({
+            where: {
+                OR: [
+                    { username },
+                    { email },
+                    { employee_id: Number(employeeId) }
+                ]
+            }
+        });
+
+        if (existingUser) {
+            return { success: false, error: 'Bu kullanıcı adı, e-posta veya personel zaten bir kullanıcı hesabına sahip' };
+        }
+
+        const password_hash = bcrypt.hashSync(password, 10);
+
+        const newUser = await prisma.users.create({
+            data: {
+                username,
+                email,
+                full_name: `${employee.first_name} ${employee.last_name}`,
+                password_hash,
+                role: role || 'personnel',
+                role_id: roleId ? Number(roleId) : null,
+                employee_id: Number(employeeId),
+                must_change_password: 1,
+                is_active: 1,
+                companies: {
+                    connect: { id: Number(employee.company_id) }
+                }
+            }
+        });
+
+        return { success: true, user: { id: newUser.id, username: newUser.username, email: newUser.email } };
+    } catch (error) {
+        console.error('createEmployeeUser error:', error);
+        return { success: false, error: 'Personel kullanıcı hesabı oluşturulamadı: ' + error.message };
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     changePassword,
     updateProfile,
-    getUserPasswordHash
+    getUserPasswordHash,
+    createEmployeeUser
 };

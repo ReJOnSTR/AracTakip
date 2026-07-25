@@ -51,10 +51,10 @@ export default function LoginScreen() {
   };
 
   const handleSaveApiUrl = async () => {
-    let url = tempApiUrl.trim();
-    if (url.endsWith('/')) url = url.slice(0, -1);
-    if (!url.startsWith('http')) url = `http://${url}`;
-    await updateApiUrl(url);
+    const { sanitizeUrl } = require('../../services/api');
+    const clean = sanitizeUrl(tempApiUrl);
+    setTempApiUrl(clean);
+    await updateApiUrl(clean);
     setShowSettings(false);
   };
 

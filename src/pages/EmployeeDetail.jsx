@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
 import TopProgressBar from '../components/TopProgressBar'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
+import { useAuth } from '../context/AuthContext'
+import { requestService } from '../services/requests'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -21,7 +23,7 @@ import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
     UserCheck, DollarSign, Calendar, CreditCard, User, Briefcase, Wallet,
-    Upload, X, ExternalLink, Archive, ArchiveRestore, Folder, ChevronRight, Info
+    Upload, X, ExternalLink, Archive, ArchiveRestore, Folder, ChevronRight, Info, Check
 } from 'lucide-react'
 
 const paymentTypes = [
@@ -138,10 +140,14 @@ const calculateEarnedOtDays = (o, employee, whpl, sdpl, hdpl) => {
 }
 
 export default function EmployeeDetail() {
-    const { id } = useParams()
+    const { id: paramId } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const { currentCompany, companies } = useCompany()
     const { updateTabInfo } = useTabs()
+    const { user, isAdmin } = useAuth()
+    const id = paramId || user?.employee_id
+    const isPersonnel = user?.role === 'personnel'
 
     const [employee, setEmployee] = useState(null)
     const [activeTab, setActiveTab ] = usePersistentTab('EmployeeDetail', 'salary')
@@ -149,6 +155,128 @@ export default function EmployeeDetail() {
         const saved = localStorage.getItem(`payroll_selected_month_${currentCompany?.id || 'default'}`)
         return saved || new Date().toISOString().slice(0, 7)
     })
+
+    // Request Modal States & Handlers
+    const [vehicles, setVehicles] = useState([])
+    const [requestModalOpen, setRequestModalOpen] = useState(false)
+    const [requestType, setRequestType] = useState('LEAVE') // 'LEAVE', 'ADVANCE', 'OVERTIME', 'VEHICLE_ASSIGNMENT'
+    const [requestFormData, setRequestFormData] = useState({
+        title: '',
+        description: '',
+        leave_type: 'annual',
+        start_date: '',
+        end_date: '',
+        days: 1,
+        amount: '',
+        payment_date: '',
+        payment_type: 'advance',
+        salary_month: new Date().toISOString().slice(0, 7),
+        overtime_date: '',
+        overtime_hours: '2',
+        overtime_type: 'weekday',
+        use_as_leave: false,
+        vehicle_id: ''
+    })
+    const [submittingRequest, setSubmittingRequest] = useState(false)
+
+    useEffect(() => {
+        if (isPersonnel && currentCompany) {
+            window.electronAPI.getVehicles({ companyId: currentCompany.id }).then(res => {
+                if (res.success) setVehicles(res.data || [])
+            })
+        }
+    }, [isPersonnel, currentCompany])
+
+    const handleOpenRequestModal = (type) => {
+        let title = '';
+        if (type === 'LEAVE') title = 'İzin Talebi';
+        else if (type === 'ADVANCE') title = 'Ödeme Talebi';
+        else if (type === 'OVERTIME') title = 'Mesai Talebi';
+        else if (type === 'VEHICLE_ASSIGNMENT') title = 'Araç / Zimmet Talebi';
+
+        setRequestType(type);
+        setRequestFormData({
+            title,
+            description: '',
+            leave_type: 'annual',
+            start_date: new Date().toISOString().split('T')[0],
+            end_date: new Date().toISOString().split('T')[0],
+            days: 1,
+            amount: '',
+            payment_date: new Date().toISOString().split('T')[0],
+            payment_type: 'advance',
+            salary_month: new Date().toISOString().slice(0, 7),
+            overtime_date: new Date().toISOString().split('T')[0],
+            overtime_hours: '2',
+            overtime_type: 'weekday',
+            use_as_leave: false,
+            vehicle_id: ''
+        });
+        setRequestModalOpen(true);
+    }
+
+    const handleRequestSubmit = async (e) => {
+        e.preventDefault();
+        setSubmittingRequest(true);
+        try {
+            let requestDataPayload = {};
+            if (requestType === 'LEAVE') {
+                requestDataPayload = {
+                    leave_type: requestFormData.leave_type,
+                    start_date: requestFormData.start_date,
+                    end_date: requestFormData.end_date,
+                    days: Number(requestFormData.days)
+                };
+            } else if (requestType === 'ADVANCE') {
+                requestDataPayload = {
+                    amount: Number(requestFormData.amount),
+                    payment_date: requestFormData.payment_date,
+                    payment_type: requestFormData.payment_type || 'advance',
+                    salary_month: requestFormData.salary_month || new Date().toISOString().slice(0, 7)
+                };
+            } else if (requestType === 'OVERTIME') {
+                requestDataPayload = {
+                    date: requestFormData.overtime_date,
+                    hours: Number(requestFormData.overtime_hours),
+                    overtime_type: requestFormData.overtime_type || 'weekday',
+                    use_as_leave: !!requestFormData.use_as_leave,
+                    rate: 1.5,
+                    amount: 0
+                };
+            } else if (requestType === 'VEHICLE_ASSIGNMENT') {
+                const selectedVehicle = vehicles.find(v => v.id === Number(requestFormData.vehicle_id));
+                requestDataPayload = {
+                    vehicle_id: requestFormData.vehicle_id ? Number(requestFormData.vehicle_id) : null,
+                    vehicle_name: selectedVehicle ? `${selectedVehicle.plate} - ${selectedVehicle.brand || ''} ${selectedVehicle.model || ''}` : 'Şirket Aracı',
+                    start_date: requestFormData.start_date,
+                    end_date: requestFormData.end_date
+                };
+            }
+
+            const res = await requestService.createRequest({
+                companyId: currentCompany.id,
+                createdById: user.id,
+                employeeId: id,
+                type: requestType,
+                title: requestFormData.title,
+                description: requestFormData.description,
+                requestData: requestDataPayload,
+                documentPath: null
+            });
+
+            if (res.success) {
+                if (window.showToast) window.showToast('Talebiniz başarıyla oluşturulup onay merkezine gönderildi.', 'success');
+                setRequestModalOpen(false);
+                loadEmployeeData();
+            } else {
+                alert(res.error || 'Talep gönderilemedi.');
+            }
+        } catch (error) {
+            alert('Hata: ' + error.message);
+        } finally {
+            setSubmittingRequest(false);
+        }
+    }
     
     // Sync with global payroll month
     useEffect(() => {
@@ -189,6 +317,8 @@ export default function EmployeeDetail() {
     const [customFolders, setCustomFolders] = useState([])
     const [confirmModal, setConfirmModal] = useState(null)
     const [archiveEndDate, setArchiveEndDate] = useState('')
+    const [employeeRequests, setEmployeeRequests] = useState([])
+    const [approvingRequest, setApprovingRequest] = useState(null)
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
     const [selectedUploadFile, setSelectedUploadFile] = useState(null)
     const [uploadCategory, setUploadCategory] = useState('')
@@ -215,11 +345,51 @@ export default function EmployeeDetail() {
     const [showLoanHistory, setShowLoanHistory] = useState(false)
     const [isDocArchiveView, setIsDocArchiveView] = useState(false)
     const [isGenModalOpen, setIsGenModalOpen] = useState(false)
+    const [companyRoles, setCompanyRoles] = useState([])
+    const [userAccountModalOpen, setUserAccountModalOpen] = useState(false)
+    const [userAccountFormData, setUserAccountFormData] = useState({
+        username: '',
+        email: '',
+        password: '123456Password!',
+        roleValue: 'personnel',
+        role: 'personnel',
+        roleId: null,
+        isActive: true
+    })
     const confettiCanvasRef = useRef(null)
 
     useEffect(() => {
         if (currentCompany) loadEmployeeData()
     }, [currentCompany, id, isDocArchiveView])
+
+    useEffect(() => {
+        if (location.state?.approveRequestId && employeeRequests.length > 0) {
+            const reqId = Number(location.state.approveRequestId);
+            const req = employeeRequests.find(r => r.id === reqId);
+            if (req) {
+                let targetTab = 'salary';
+                if (req.type === 'LEAVE') targetTab = 'leave';
+                else if (req.type === 'OVERTIME') targetTab = 'overtime';
+                else if (req.type === 'VEHICLE_ASSIGNMENT') targetTab = 'assignment';
+                
+                setActiveTab(targetTab);
+                
+                // Find request element format and open
+                handleProcessApproval({ id: `req_${req.id}` }, 'APPROVED');
+                
+                // Clear state
+                navigate(location.pathname, { replace: true, state: {} });
+            }
+        }
+    }, [employeeRequests, location.state])
+
+    useEffect(() => {
+        if (currentCompany?.id && window.electronAPI?.getRoles) {
+            window.electronAPI.getRoles(currentCompany.id).then(res => {
+                if (res?.success) setCompanyRoles(res.data || []);
+            });
+        }
+    }, [currentCompany])
 
     // Real-time synchronization listener
     const loadEmployeeDataRef = useRef(null)
@@ -245,7 +415,77 @@ export default function EmployeeDetail() {
         if (activeElement) {
             setIndicatorStyle({ left: activeElement.offsetLeft, width: activeElement.offsetWidth })
         }
-    }, [activeTab, tabsRef, salaries, leaves, overtimes, assignments, documents])
+    }, [activeTab, tabsRef, salaries, leaves, overtimes, assignments, documents, employee?.user])
+
+    const handleOpenUserAccountModal = (existingUser = null) => {
+        const usr = existingUser || employee?.user;
+        if (usr) {
+            let roleVal = usr.role || 'personnel';
+            if (usr.role_id) {
+                roleVal = `custom_${usr.role_id}`;
+            }
+            setUserAccountFormData({
+                username: usr.username || '',
+                email: usr.email || '',
+                password: '',
+                roleValue: roleVal,
+                role: usr.role || 'personnel',
+                roleId: usr.role_id || null,
+                isActive: usr.is_active !== 0
+            });
+        } else {
+            setUserAccountFormData({
+                username: `${employee?.first_name || ''}.${employee?.last_name || ''}`.toLowerCase().replace(/\s+/g, ''),
+                email: employee?.email || '',
+                password: '123456Password!',
+                roleValue: 'personnel',
+                role: 'personnel',
+                roleId: null,
+                isActive: true
+            });
+        }
+        setUserAccountModalOpen(true);
+    }
+
+    const handleUserAccountSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (employee?.user) {
+                const res = await window.electronAPI.assignUserRole({
+                    userId: employee.user.id,
+                    role: userAccountFormData.role,
+                    roleId: userAccountFormData.roleId,
+                    isActive: userAccountFormData.isActive
+                });
+                if (res.success) {
+                    if (window.showToast) window.showToast('Giriş hesabı yetkileri güncellendi.', 'success');
+                    setUserAccountModalOpen(false);
+                    loadEmployeeData();
+                } else {
+                    if (window.showToast) window.showToast(res.error || 'Güncellenemedi.', 'error');
+                }
+            } else {
+                const res = await window.electronAPI.createEmployeeUser({
+                    employeeId: employee.id,
+                    username: userAccountFormData.username,
+                    email: userAccountFormData.email,
+                    password: userAccountFormData.password,
+                    role: userAccountFormData.role,
+                    roleId: userAccountFormData.roleId
+                });
+                if (res.success) {
+                    if (window.showToast) window.showToast('Giriş hesabı başarıyla tanımlandı.', 'success');
+                    setUserAccountModalOpen(false);
+                    loadEmployeeData();
+                } else {
+                    if (window.showToast) window.showToast(res.error || 'Hesap oluşturulamadı.', 'error');
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            if (window.showToast) window.showToast(err.message, 'error');
+        }
+    }
 
     useEffect(() => {
         if (employee?.start_date) {
@@ -309,7 +549,7 @@ export default function EmployeeDetail() {
     const loadEmployeeData = async (isBackground = false) => {
         if (!isBackground) setLoading(true)
         try {
-            const [empRes, salRes, leaveRes, otRes, assRes, docRes, ltRes, dcRes, deptRes, dfRes, holidaysRes] = await Promise.all([
+            const [empRes, salRes, leaveRes, otRes, assRes, docRes, ltRes, dcRes, deptRes, dfRes, holidaysRes, reqRes] = await Promise.all([
                 window.electronAPI.getEmployeeById(parseInt(id)),
                 window.electronAPI.getSalaries(parseInt(id)),
                 window.electronAPI.getLeaves(parseInt(id)),
@@ -320,7 +560,8 @@ export default function EmployeeDetail() {
                 window.electronAPI.getDocumentCategories(currentCompany.id, 'employee'),
                 window.electronAPI.getDepartments(currentCompany.id),
                 window.electronAPI.getDocumentFolders(currentCompany.id, 'employee', id),
-                window.electronAPI.getPublicHolidays(currentCompany.id)
+                window.electronAPI.getPublicHolidays(currentCompany.id),
+                window.electronAPI.getRequests({ employeeId: parseInt(id) })
             ])
             if (empRes.success) {
                 setEmployee(empRes.data)
@@ -339,6 +580,7 @@ export default function EmployeeDetail() {
             if (deptRes.success) setDepartments(deptRes.data || [])
             if (dfRes && dfRes.success) setDocumentFolders(dfRes.data.map(t => ({ value: t.name, label: t.name, id: t.id, is_archived: t.is_archived })))
             if (holidaysRes && holidaysRes.success) setPublicHolidays(holidaysRes.data || [])
+            if (reqRes && reqRes.success) setEmployeeRequests(reqRes.data || [])
         } catch (err) {
             console.error('Failed to load employee data:', err)
         }
@@ -637,6 +879,7 @@ export default function EmployeeDetail() {
     const closeModal = () => {
         setModalType(null)
         setEditingItem(null)
+        setApprovingRequest(null)
         setFormData({})
         setError('')
     }
@@ -793,6 +1036,11 @@ export default function EmployeeDetail() {
 
     const handleConfirmDelete = async () => {
         if (!confirmModal) return
+        if (!isAdmin) {
+            alert('Bu işlemi gerçekleştirme yetkiniz bulunmamaktadır. Sadece Ana Yönetici kayıt silebilir.')
+            setConfirmModal(null)
+            return
+        }
         const { type, item, ids } = confirmModal
         const apiMap = { salary: 'deleteSalary', leave: 'deleteLeave', overtime: 'deleteOvertime', assignment: 'deleteEmployeeAssignment', documents: 'deleteEmployeeDocument', salary_history: 'deleteSalaryHistory' }
         
@@ -861,6 +1109,90 @@ export default function EmployeeDetail() {
         setConfirmModal(null)
     }
 
+    const handleProcessApproval = async (item, status) => {
+        const requestId = parseInt(item.id.replace('req_', ''), 10);
+        
+        if (status === 'APPROVED') {
+            const req = employeeRequests.find(r => r.id === requestId);
+            if (!req) {
+                alert('Talep bulunamadı.');
+                return;
+            }
+            
+            // Set the state that we are approving this request
+            setApprovingRequest(req);
+            setEditingItem(null);
+            setError('');
+            
+            // Set the correct form data and open the modal based on request type
+            if (req.type === 'ADVANCE') {
+                setModalType('salary');
+                setFormData({
+                    paymentType: 'advance',
+                    amount: req.parsedData?.amount || '',
+                    paymentDate: formatDateForInput(req.parsedData?.payment_date) || today(),
+                    salaryMonth: req.parsedData?.payment_date ? String(req.parsedData.payment_date).substring(0, 7) : selectedMonth,
+                    status: 'paid',
+                    paymentMethod: req.parsedData?.payment_method || 'nakit',
+                    notes: `[Talep #${req.id}] ${req.description || ''}`.trim()
+                });
+            } else if (req.type === 'LEAVE') {
+                setModalType('leave');
+                setFormData({
+                    type: req.parsedData?.leave_type || 'annual',
+                    status: 'approved',
+                    startDate: formatDateForInput(req.parsedData?.start_date),
+                    endDate: formatDateForInput(req.parsedData?.end_date),
+                    days: req.parsedData?.days || 1,
+                    leaveUnit: req.parsedData?.hours ? 'hourly' : 'daily',
+                    hours: req.parsedData?.hours || '',
+                    notes: `[Talep #${req.id}] ${req.description || ''}`.trim()
+                });
+            } else if (req.type === 'OVERTIME') {
+                setModalType('overtime');
+                setFormData({
+                    overtimeType: req.parsedData?.overtime_type || 'weekday',
+                    date: formatDateForInput(req.parsedData?.date),
+                    hours: req.parsedData?.hours || '',
+                    rate: req.parsedData?.rate || 1.5,
+                    amount: req.parsedData?.amount || '',
+                    notes: `[Talep #${req.id}] ${req.description || ''}`.trim(),
+                    useAsLeave: !!req.parsedData?.use_as_leave
+                });
+            } else if (req.type === 'VEHICLE_ASSIGNMENT') {
+                setModalType('assignment');
+                setFormData({
+                    itemName: req.parsedData?.vehicle_name || 'Şirket Aracı',
+                    serialNumber: req.parsedData?.vehicle_id ? String(req.parsedData.vehicle_id) : '-',
+                    quantity: 1,
+                    assignedDate: formatDateForInput(req.parsedData?.start_date),
+                    returnDate: formatDateForInput(req.parsedData?.end_date),
+                    status: 'active',
+                    notes: `[Talep #${req.id}] ${req.description || ''}`.trim()
+                });
+            }
+        } else {
+            // REJECTED flow
+            if (!window.confirm('Bu talebi reddetmek istediğinize emin misiniz?')) return;
+            try {
+                const res = await requestService.processApproval({
+                    requestId,
+                    status: 'REJECTED',
+                    comment: 'Personel detay sayfasından doğrudan reddedildi.',
+                    approverId: user.id
+                });
+                if (res.success) {
+                    if (window.showToast) window.showToast('Talep başarıyla reddedildi.', 'success');
+                    await loadEmployeeData();
+                } else {
+                    alert(res.error || 'İşlem gerçekleştirilemedi.');
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+    }
+
     const handleEmployeeSave = async (data) => {
         setSaving(true); setError('')
         try {
@@ -901,7 +1233,19 @@ export default function EmployeeDetail() {
         const data = { employeeId: parseInt(id), period: formData.paymentType || 'salary', baseSalary: 0, bonus: 0, deduction: 0, netSalary: parseFloat(formData.amount) || 0, paymentDate: formData.paymentDate || null, salaryMonth: formData.salaryMonth || selectedMonth, status: formData.status || 'pending', paymentMethod: formData.paymentMethod || 'nakit', notes: formData.notes || null }
         try {
             const result = editingItem ? await window.electronAPI.updateSalary({ id: editingItem.id, ...data }) : await window.electronAPI.createSalary(data)
-            if (result.success) { await loadEmployeeData(); closeModal(); } else setError(result.error || 'Bir hata oluştu.')
+            if (result.success) {
+                if (approvingRequest) {
+                    await requestService.processApproval({
+                        requestId: approvingRequest.id,
+                        status: 'APPROVED',
+                        comment: 'Personel detay sayfasındaki ekleme penceresi ile onaylandı.',
+                        approverId: user.id,
+                        skipAutomation: true
+                    });
+                }
+                await loadEmployeeData();
+                closeModal();
+            } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
     }
@@ -1071,6 +1415,15 @@ export default function EmployeeDetail() {
         try {
             const result = editingItem ? await window.electronAPI.updateLeave({ id: editingItem.id, ...data }) : await window.electronAPI.createLeave(data)
             if (result.success) { 
+                if (approvingRequest) {
+                    await requestService.processApproval({
+                        requestId: approvingRequest.id,
+                        status: 'APPROVED',
+                        comment: 'Personel detay sayfasındaki ekleme penceresi ile onaylandı.',
+                        approverId: user.id,
+                        skipAutomation: true
+                    });
+                }
                 await loadEmployeeData();
                 closeModal(); 
                 if (window.showToast) window.showToast(editingItem ? 'İzin güncellendi.' : 'İzin kaydedildi.', 'success');
@@ -1195,6 +1548,16 @@ export default function EmployeeDetail() {
                     await window.electronAPI.deleteLeave(linkedLeaveId)
                 }
                 
+                if (approvingRequest) {
+                    await requestService.processApproval({
+                        requestId: approvingRequest.id,
+                        status: 'APPROVED',
+                        comment: 'Personel detay sayfasındaki ekleme penceresi ile onaylandı.',
+                        approverId: user.id,
+                        skipAutomation: true
+                    });
+                }
+                
                 await loadEmployeeData()
                 closeModal()
             } else {
@@ -1221,7 +1584,19 @@ export default function EmployeeDetail() {
         }
         try {
             const result = editingItem ? await window.electronAPI.updateEmployeeAssignment({ id: editingItem.id, ...data }) : await window.electronAPI.createEmployeeAssignment(data)
-            if (result.success) { await loadEmployeeData(); closeModal(); } else setError(result.error || 'Bir hata oluştu.')
+            if (result.success) {
+                if (approvingRequest) {
+                    await requestService.processApproval({
+                        requestId: approvingRequest.id,
+                        status: 'APPROVED',
+                        comment: 'Personel detay sayfasındaki ekleme penceresi ile onaylandı.',
+                        approverId: user.id,
+                        skipAutomation: true
+                    });
+                }
+                await loadEmployeeData();
+                closeModal();
+            } else setError(result.error || 'Bir hata oluştu.')
         } catch (err) { setError(err.message) }
         setSaving(false)
     }
@@ -1397,7 +1772,75 @@ export default function EmployeeDetail() {
 
     // ========== COMPUTED VALUES ==========
 
-    const monthlySalaries = salaries.filter(s => {
+    // Combined lists with pending/rejected requests
+    const combinedLeaves = [
+        ...leaves,
+        ...(employeeRequests || [])
+            .filter(r => r.type === 'LEAVE' && (r.status === 'PENDING' || r.status === 'REJECTED'))
+            .map(r => ({
+                id: `req_${r.id}`,
+                type: r.parsedData?.leave_type || 'annual',
+                start_date: r.parsedData?.start_date,
+                end_date: r.parsedData?.end_date,
+                days: r.parsedData?.days || 1,
+                hours: r.parsedData?.hours || null,
+                status: r.status === 'PENDING' ? 'talep_bekliyor' : 'talep_reddedildi',
+                notes: `[Talep] ${r.description || ''}`.trim(),
+                isRequest: true
+            }))
+    ];
+
+    const combinedSalaries = [
+        ...salaries,
+        ...(employeeRequests || [])
+            .filter(r => r.type === 'ADVANCE' && (r.status === 'PENDING' || r.status === 'REJECTED'))
+            .map(r => ({
+                id: `req_${r.id}`,
+                period: 'advance',
+                net_salary: r.parsedData?.amount || 0,
+                payment_date: r.parsedData?.payment_date,
+                salary_month: r.parsedData?.payment_date ? String(r.parsedData.payment_date).substring(0, 7) : null,
+                status: r.status === 'PENDING' ? 'talep_bekliyor' : 'talep_reddedildi',
+                payment_method: r.parsedData?.payment_method || 'cash',
+                notes: `[Talep] ${r.description || ''}`.trim(),
+                isRequest: true
+            }))
+    ];
+
+    const combinedOvertimes = [
+        ...overtimes,
+        ...(employeeRequests || [])
+            .filter(r => r.type === 'OVERTIME' && (r.status === 'PENDING' || r.status === 'REJECTED'))
+            .map(r => ({
+                id: `req_${r.id}`,
+                date: r.parsedData?.date || r.created_at,
+                hours: r.parsedData?.hours || 0,
+                rate: r.parsedData?.rate || 1.5,
+                amount: r.parsedData?.amount || 0,
+                status: r.status === 'PENDING' ? 'talep_bekliyor' : 'talep_reddedildi',
+                notes: `[Talep] ${r.description || ''}`.trim(),
+                isRequest: true
+            }))
+    ];
+
+    const combinedAssignments = [
+        ...assignments,
+        ...(employeeRequests || [])
+            .filter(r => r.type === 'VEHICLE_ASSIGNMENT' && (r.status === 'PENDING' || r.status === 'REJECTED'))
+            .map(r => ({
+                id: `req_${r.id}`,
+                item_name: r.parsedData?.vehicle_name || 'Şirket Aracı',
+                serial_number: r.parsedData?.vehicle_id ? String(r.parsedData.vehicle_id) : '-',
+                quantity: 1,
+                assign_date: r.parsedData?.start_date,
+                return_date: r.parsedData?.end_date,
+                status: r.status === 'PENDING' ? 'talep_bekliyor' : 'talep_reddedildi',
+                notes: `[Talep] ${r.description || ''}`.trim(),
+                isRequest: true
+            }))
+    ];
+
+    const monthlySalaries = combinedSalaries.filter(s => {
         // Use salary_month if available, otherwise fall back to payment_date
         if (s.salary_month) {
             return s.salary_month === selectedMonth
@@ -1414,19 +1857,37 @@ export default function EmployeeDetail() {
 
     const totalPayments = monthlySalaries.filter(s => s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0)
     const pendingPaymentCount = monthlySalaries.filter(s => s.status === 'pending').length
-    const totalLeaveDays = leaves.filter(l => l.status === 'approved').reduce((sum, l) => sum + (l.days || 0), 0)
-    const totalOvertimeHours = overtimes.reduce((sum, o) => sum + (o.hours || 0), 0)
-    const activeAssignments = assignments.filter(a => a.status === 'active')
+    const totalLeaveDays = combinedLeaves.filter(l => l.status === 'approved').reduce((sum, l) => sum + (l.days || 0), 0)
+    const totalOvertimeHours = combinedOvertimes.reduce((sum, o) => sum + (o.hours || 0), 0)
+    const activeAssignments = combinedAssignments.filter(a => a.status === 'active')
 
     // ========== TAB & COLUMN DEFINITIONS ==========
 
     const tabs = [
-        { id: 'salary', label: 'Ödeme', icon: CreditCard, count: salaries.length },
-        { id: 'leave', label: 'İzin', icon: CalendarOff, count: leaves.length },
-        { id: 'overtime', label: 'Mesai', icon: Clock, count: overtimes.length },
-        { id: 'assignment', label: 'Zimmet', icon: Package, count: assignments.length },
+        { id: 'salary', label: 'Ödeme', icon: CreditCard, count: combinedSalaries.length },
+        { id: 'leave', label: 'İzin', icon: CalendarOff, count: combinedLeaves.length },
+        { id: 'overtime', label: 'Mesai', icon: Clock, count: combinedOvertimes.length },
+        { id: 'assignment', label: 'Zimmet', icon: Package, count: combinedAssignments.length },
         { id: 'documents', label: 'Belgeler', icon: FileText, count: documents.length },
-        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee?.employee_salary_history?.length || 0 }
+        { id: 'salary_history', label: 'Maaş Geçmişi', icon: Banknote, count: employee?.employee_salary_history?.length || 0 },
+        ...(isPersonnel ? [] : [{ id: 'user_account', label: 'Giriş Hesabı', icon: UserCheck, count: employee?.user ? 1 : 0 }])
+    ]
+
+    const userAccountColumns = [
+        { key: 'username', label: 'Kullanıcı Adı', render: (v) => <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{v}</span> },
+        { key: 'email', label: 'E-Posta' },
+        { key: 'role', label: 'Sistem Rolü', render: (_, row) => {
+            if (row.custom_role?.name) return <span className="badge badge-primary">{row.custom_role.name}</span>;
+            if (row.role === 'personnel') return <span className="badge badge-info">Personel Portalı</span>;
+            if (row.role === 'manager') return <span className="badge badge-warning">Departman Müdürü</span>;
+            return <span className="badge badge-success">Yönetici</span>;
+        }},
+        { key: 'is_active', label: 'Durum', render: (v) => (
+            <span className={`badge badge-${v !== 0 ? 'success' : 'danger'}`}>
+                {v !== 0 ? 'Aktif' : 'Pasif'}
+            </span>
+        )},
+        { key: 'created_at', label: 'Tanımlanma Tarihi', render: (v) => v ? formatDate(v) : '-' }
     ]
 
     const salaryHistoryColumns = [
@@ -1447,7 +1908,11 @@ export default function EmployeeDetail() {
             const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
             return `${monthNames[parseInt(m) - 1]} ${y}`
         }},
-        { key: 'status', label: 'Durum', render: (v) => <span className={`badge badge-${v === 'paid' ? 'success' : 'warning'}`}>{v === 'paid' ? 'Ödendi' : 'Bekliyor'}</span> },
+        { key: 'status', label: 'Durum', render: (v) => {
+            if (v === 'talep_bekliyor') return <span className="badge badge-warning">Talep (Bekliyor)</span>;
+            if (v === 'talep_reddedildi') return <span className="badge badge-danger">Talep (Reddedildi)</span>;
+            return <span className={`badge badge-${v === 'paid' ? 'success' : 'warning'}`}>{v === 'paid' ? 'Ödendi' : 'Bekliyor'}</span>;
+        }},
         { key: 'payment_method', label: 'Ödeme Yöntemi', render: (v) => paymentMethods.find(t => t.value === v)?.label || (v === 'bank' ? 'Banka' : (v === 'kasa' ? 'Kasa' : 'Nakit')) },
         { key: 'notes', label: 'Not' }
     ]
@@ -1472,11 +1937,11 @@ export default function EmployeeDetail() {
             return <span style={{ fontWeight: 600 }}>{displayVal}</span>;
         }},
         {key: 'status', label: 'Durum', render: (v, row) => { 
-            const c = { approved: 'success', pending: 'warning', rejected: 'danger' }; 
-            let l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi' }; 
+            const c = { approved: 'success', pending: 'warning', rejected: 'danger', talep_bekliyor: 'warning', talep_reddedildi: 'danger' }; 
+            let l = { approved: 'Onaylandı', pending: 'Bekliyor', rejected: 'Reddedildi', talep_bekliyor: 'Talep (Bekliyor)', talep_reddedildi: 'Talep (Reddedildi)' }; 
             
             // Custom label for overtime accruals
-            if (v === 'pending' && row.type.toLowerCase().includes('mesai')) {
+            if (v === 'pending' && row.type && row.type.toLowerCase().includes('mesai')) {
                 return <span className="badge badge-info" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>Tanımlandı</span>
             }
             
@@ -1547,6 +2012,11 @@ export default function EmployeeDetail() {
             }
         },
         { key: 'amount', label: 'Tutar', render: (v) => formatCurrency(v) },
+        { key: 'status', label: 'Durum', render: (v) => {
+            if (v === 'talep_bekliyor') return <span className="badge badge-warning">Talep (Bekliyor)</span>;
+            if (v === 'talep_reddedildi') return <span className="badge badge-danger">Talep (Reddedildi)</span>;
+            return <span className="badge badge-success">Onaylandı</span>;
+        }},
         { key: 'notes', label: 'Not', render: (v) => v ? v.replace(/\[İZİN OLARAK KULLANILDI\]/g, '').replace(/\[BAYRAM\]/g, '').replace(/\[GURBET\]/g, '').replace(/\[LID:\d+\]/g, '').trim() || '-' : '-' }
     ]
 
@@ -1556,7 +2026,11 @@ export default function EmployeeDetail() {
         { key: 'quantity', label: 'Adet' },
         { key: 'assign_date', label: 'Teslim Tarihi', render: (v) => v ? formatDate(v) : '-' },
         { key: 'return_date', label: 'İade Tarihi', render: (v) => v ? formatDate(v) : <span className="badge badge-success">Aktif</span> },
-        { key: 'status', label: 'Durum', render: (v) => <span className={`badge badge-${v === 'active' ? 'success' : 'secondary'}`}>{v === 'active' ? 'Aktif' : 'İade Edildi'}</span> },
+        { key: 'status', label: 'Durum', render: (v) => {
+            if (v === 'talep_bekliyor') return <span className="badge badge-warning">Talep (Bekliyor)</span>;
+            if (v === 'talep_reddedildi') return <span className="badge badge-danger">Talep (Reddedildi)</span>;
+            return <span className={`badge badge-${v === 'active' ? 'success' : 'secondary'}`}>{v === 'active' ? 'Aktif' : 'İade Edildi'}</span>;
+        }},
         { key: 'notes', label: 'Not' }
     ]
 
@@ -1674,11 +2148,13 @@ export default function EmployeeDetail() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <button className="btn btn-secondary" onClick={() => openEditModal('employee', employee)}>
-                            <Pencil size={18} /> Düzenle
-                        </button>
-                    </div>
+                    {!isPersonnel && (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-secondary" onClick={() => openEditModal('employee', employee)}>
+                                <Pencil size={18} /> Düzenle
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -1916,37 +2392,80 @@ export default function EmployeeDetail() {
                                 />
                             </div>
                         )}
-                        {activeTab === 'documents' ? (
-                            !isDocArchiveView && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <button 
-                                        onClick={handleOpenCreateFolder} 
-                                        className="btn btn-secondary" 
-                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                                    >
-                                        <Plus size={16} /> Yeni Klasör
-                                    </button>
-                                    <button className="btn btn-secondary" onClick={() => setIsGenModalOpen(true)}>
-                                        <FileText size={18} /> Belge Oluştur
-                                    </button>
-                                    <button 
-                                        className="btn btn-primary" 
-                                        onClick={handleOpenUpload}
-                                    >
-                                        <Plus size={18} /> Ekle
-                                    </button>
-                                </div>
-                            )
-                        ) : (
-                            <button 
-                                className="btn btn-primary" 
-                                onClick={() => openAddModal(activeTab)}
-                                disabled={isArchived}
-                                style={{ opacity: isArchived ? 0.5 : 1, cursor: isArchived ? 'not-allowed' : 'pointer' }}
-                            >
-                                <Plus size={18} />
-                                Ekle
-                            </button>
+                        {!isPersonnel && (
+                            activeTab === 'user_account' ? (
+                                <button 
+                                    className="btn btn-primary" 
+                                    onClick={() => handleOpenUserAccountModal()}
+                                    disabled={isArchived}
+                                    style={{ opacity: isArchived ? 0.5 : 1, cursor: isArchived ? 'not-allowed' : 'pointer' }}
+                                >
+                                    <Plus size={18} />
+                                    {employee?.user ? 'Hesabı Düzenle' : 'Ekle'}
+                                </button>
+                            ) : (activeTab === 'documents' ? (
+                                !isDocArchiveView && (
+                                    <div style={{ display: 'flex', itemsCenter: 'center', gap: '10px' }}>
+                                        <button 
+                                            onClick={handleOpenCreateFolder} 
+                                            className="btn btn-secondary" 
+                                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        >
+                                            <Plus size={16} /> Yeni Klasör
+                                        </button>
+                                        <button className="btn btn-secondary" onClick={() => setIsGenModalOpen(true)}>
+                                            <FileText size={18} /> Belge Oluştur
+                                        </button>
+                                        <button 
+                                            className="btn btn-primary" 
+                                            onClick={handleOpenUpload}
+                                        >
+                                            <Plus size={18} /> Ekle
+                                        </button>
+                                    </div>
+                                )
+                            ) : (
+                                <button 
+                                    className="btn btn-primary" 
+                                    onClick={() => openAddModal(activeTab)}
+                                    disabled={isArchived}
+                                    style={{ opacity: isArchived ? 0.5 : 1, cursor: isArchived ? 'not-allowed' : 'pointer' }}
+                                >
+                                    <Plus size={18} />
+                                    Ekle
+                                </button>
+                            ))
+                        )}
+                        {isPersonnel && (
+                            activeTab === 'salary' ? (
+                                <button 
+                                    className="btn btn-primary" 
+                                    onClick={() => handleOpenRequestModal('ADVANCE')}
+                                >
+                                    <Plus size={18} /> Ödeme Talep Et
+                                </button>
+                            ) : (activeTab === 'leave' ? (
+                                <button 
+                                    className="btn btn-primary" 
+                                    onClick={() => handleOpenRequestModal('LEAVE')}
+                                >
+                                    <Plus size={18} /> İzin Talep Et
+                                </button>
+                            ) : (activeTab === 'overtime' ? (
+                                <button 
+                                    className="btn btn-primary" 
+                                    onClick={() => handleOpenRequestModal('OVERTIME')}
+                                >
+                                    <Plus size={18} /> Mesai Talep Et
+                                </button>
+                            ) : (activeTab === 'assignment' ? (
+                                <button 
+                                    className="btn btn-primary" 
+                                    onClick={() => handleOpenRequestModal('VEHICLE_ASSIGNMENT')}
+                                >
+                                    <Plus size={18} /> Araç / Zimmet Talep Et
+                                </button>
+                            ) : null)))
                         )}
                     </div>
                 </div>
@@ -2111,13 +2630,29 @@ export default function EmployeeDetail() {
                                 { key: 'period', label: 'Ödeme Türü', options: paymentTypes },
                                 { key: 'status', label: 'Durum', options: paymentStatuses }
                             ]}
-                            onBulkDelete={(ids) => handleDeleteClick('salary', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('salary', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('salary', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
+                            onBulkDelete={isPersonnel ? null : (ids) => {
+                                const nonRequestIds = ids.filter(id => typeof id !== 'string' || !id.startsWith('req_'));
+                                if (nonRequestIds.length > 0) handleDeleteClick('salary', null, nonRequestIds);
+                            }}
+                            actions={isPersonnel ? null : (item) => {
+                                if (item.isRequest) {
+                                    if (item.status === 'talep_bekliyor') {
+                                        return (
+                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                                <button className="success" onClick={() => handleProcessApproval(item, 'APPROVED')} title="Onayla"><Check size={16} /></button>
+                                                <button className="danger" onClick={() => handleProcessApproval(item, 'REJECTED')} title="Reddet"><X size={16} /></button>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }
+                                return (
+                                    <>
+                                        <button onClick={() => openEditModal('salary', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('salary', item)}><Trash2 size={16} /></button>
+                                    </>
+                                );
+                            }}
                         />
                     </div>
                 )}
@@ -2128,8 +2663,8 @@ export default function EmployeeDetail() {
                             columns={salaryHistoryColumns}
                             data={employee.employee_salary_history || []}
                             emptyMessage="Maaş geçmişi bulunmuyor."
-                            onBulkDelete={(ids) => handleDeleteClick('salary_history', null, ids)}
-                            actions={(item) => (
+                            onBulkDelete={isPersonnel ? null : (ids) => handleDeleteClick('salary_history', null, ids)}
+                            actions={isPersonnel ? null : (item) => (
                                 <>
                                     <button onClick={() => openEditModal('salary_history', item)}><Pencil size={16} /></button>
                                     <button className="danger" onClick={() => handleDeleteClick('salary_history', item)}><Trash2 size={16} /></button>
@@ -2298,19 +2833,35 @@ export default function EmployeeDetail() {
                         <DataTable persistenceKey="EmployeeDetail_table_1"
                             storageKey="emp_leave_cols"
                             columns={leaveColumns}
-                            data={leaves}
+                            data={combinedLeaves}
                             emptyMessage="Henüz izin kaydı bulunmuyor."
                             filters={[
                                 { key: 'type', label: 'İzin Türü', options: leaveTypes },
                                 { key: 'status', label: 'Durum', options: leaveStatuses }
                             ]}
-                            onBulkDelete={(ids) => handleDeleteClick('leave', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('leave', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('leave', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
+                            onBulkDelete={isPersonnel ? null : (ids) => {
+                                const nonRequestIds = ids.filter(id => typeof id !== 'string' || !id.startsWith('req_'));
+                                if (nonRequestIds.length > 0) handleDeleteClick('leave', null, nonRequestIds);
+                            }}
+                            actions={isPersonnel ? null : (item) => {
+                                if (item.isRequest) {
+                                    if (item.status === 'talep_bekliyor') {
+                                        return (
+                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                                <button className="success" onClick={() => handleProcessApproval(item, 'APPROVED')} title="Onayla"><Check size={16} /></button>
+                                                <button className="danger" onClick={() => handleProcessApproval(item, 'REJECTED')} title="Reddet"><X size={16} /></button>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }
+                                return (
+                                    <>
+                                        <button onClick={() => openEditModal('leave', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('leave', item)}><Trash2 size={16} /></button>
+                                    </>
+                                );
+                            }}
                         />
                     </div>
                 )}
@@ -2318,7 +2869,7 @@ export default function EmployeeDetail() {
                 {activeTab === 'overtime' && (
                     <div className="tab-pane">
                         {(() => {
-                            const monthlyOvertimesList = overtimes.filter(o => {
+                            const monthlyOvertimesList = combinedOvertimes.filter(o => {
                                 if (!o.date) return false;
                                 const dStr = typeof o.date === 'string' ? o.date : new Date(o.date).toISOString()
                                 return dStr.startsWith(selectedMonth)
@@ -2366,13 +2917,29 @@ export default function EmployeeDetail() {
                                         columns={overtimeColumns}
                                         data={monthlyOvertimesList}
                                         emptyMessage="Bu döneme ait mesai kaydı bulunmuyor."
-                                        onBulkDelete={(ids) => handleDeleteClick('overtime', null, ids)}
-                                        actions={(item) => (
-                                            <>
-                                                <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
-                                                <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
-                                            </>
-                                        )}
+                                        onBulkDelete={isPersonnel ? null : (ids) => {
+                                            const nonRequestIds = ids.filter(id => typeof id !== 'string' || !id.startsWith('req_'));
+                                            if (nonRequestIds.length > 0) handleDeleteClick('overtime', null, nonRequestIds);
+                                        }}
+                                         actions={isPersonnel ? null : (item) => {
+                                             if (item.isRequest) {
+                                                 if (item.status === 'talep_bekliyor') {
+                                                     return (
+                                                         <div style={{ display: 'flex', gap: '6px' }}>
+                                                             <button className="success" onClick={() => handleProcessApproval(item, 'APPROVED')} title="Onayla"><Check size={16} /></button>
+                                                             <button className="danger" onClick={() => handleProcessApproval(item, 'REJECTED')} title="Reddet"><X size={16} /></button>
+                                                         </div>
+                                                     );
+                                                 }
+                                                 return null;
+                                             }
+                                             return (
+                                                 <>
+                                                     <button onClick={() => openEditModal('overtime', item)}><Pencil size={16} /></button>
+                                                     <button className="danger" onClick={() => handleDeleteClick('overtime', item)}><Trash2 size={16} /></button>
+                                                 </>
+                                             );
+                                         }}
                                     />
                                 </>
                             )
@@ -2399,18 +2966,34 @@ export default function EmployeeDetail() {
                         <DataTable persistenceKey="EmployeeDetail_table_3"
                             storageKey="emp_assignment_cols"
                             columns={assignmentColumns}
-                            data={assignments}
+                            data={combinedAssignments}
                             emptyMessage="Henüz zimmet kaydı bulunmuyor."
                             filters={[
                                 { key: 'status', label: 'Durum', options: assignmentStatuses }
                             ]}
-                            onBulkDelete={(ids) => handleDeleteClick('assignment', null, ids)}
-                            actions={(item) => (
-                                <>
-                                    <button onClick={() => openEditModal('assignment', item)}><Pencil size={16} /></button>
-                                    <button className="danger" onClick={() => handleDeleteClick('assignment', item)}><Trash2 size={16} /></button>
-                                </>
-                            )}
+                            onBulkDelete={isPersonnel ? null : (ids) => {
+                                const nonRequestIds = ids.filter(id => typeof id !== 'string' || !id.startsWith('req_'));
+                                if (nonRequestIds.length > 0) handleDeleteClick('assignment', null, nonRequestIds);
+                            }}
+                            actions={isPersonnel ? null : (item) => {
+                                if (item.isRequest) {
+                                    if (item.status === 'talep_bekliyor') {
+                                        return (
+                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                                <button className="success" onClick={() => handleProcessApproval(item, 'APPROVED')} title="Onayla"><Check size={16} /></button>
+                                                <button className="danger" onClick={() => handleProcessApproval(item, 'REJECTED')} title="Reddet"><X size={16} /></button>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }
+                                return (
+                                    <>
+                                        <button onClick={() => openEditModal('assignment', item)}><Pencil size={16} /></button>
+                                        <button className="danger" onClick={() => handleDeleteClick('assignment', item)}><Trash2 size={16} /></button>
+                                    </>
+                                );
+                            }}
                         />
                     </div>
                 )}
@@ -2522,11 +3105,11 @@ export default function EmployeeDetail() {
                                     handleDocumentOpen(row);
                                 }
                             }}
-                            onBulkDelete={(ids) => handleDeleteClick('documents', null, ids)}
+                            onBulkDelete={isPersonnel ? null : (ids) => handleDeleteClick('documents', null, ids)}
                             isArchiveView={isDocArchiveView}
                             onToggleArchiveView={setIsDocArchiveView}
-                            onBulkArchive={(ids) => handleBulkArchiveDocs(ids, !isDocArchiveView)}
-                            customBulkActions={(selectedIds, clearSelection) => (
+                            onBulkArchive={isPersonnel ? null : (ids) => handleBulkArchiveDocs(ids, !isDocArchiveView)}
+                            customBulkActions={isPersonnel ? null : (selectedIds, clearSelection) => (
                                 <button 
                                     className="btn-bulk-action secondary" 
                                     onClick={() => {
@@ -2540,7 +3123,14 @@ export default function EmployeeDetail() {
                                     Klasöre Taşı
                                 </button>
                             )}
-                            actions={(item) => {
+                            actions={isPersonnel ? (item) => {
+                                if (item.isFolder) return null;
+                                return (
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleDocumentOpen(item) }} title="Aç"><FileText size={16} /></button>
+                                    </div>
+                                );
+                            } : (item) => {
                                 if (item.isFolder) {
                                     const folderObj = documentFolders.find(f => f.value === item.file_name)
                                     return !isDocArchiveView ? (
@@ -2567,6 +3157,90 @@ export default function EmployeeDetail() {
                         />
                     </div>
                 )}
+
+                {activeTab === 'user_account' && (
+                    <div className="tab-pane">
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                            <div className="card" style={{ padding: '14px 16px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Giriş Hesabı</div>
+                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: employee?.user ? 'var(--success)' : 'var(--text-muted)' }}>
+                                    {employee?.user ? 'TANIMLI' : 'TANIMSIZ'}
+                                </div>
+                            </div>
+                            <div className="card" style={{ padding: '14px 16px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sistem Rolü</div>
+                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--accent-primary)', textTransform: 'capitalize' }}>
+                                    {employee?.user ? (employee.user.role === 'personnel' ? 'Personel Portalı' : (employee.user.role === 'manager' ? 'Departman Müdürü' : 'Yönetici')) : '-'}
+                                </div>
+                            </div>
+                            <div className="card" style={{ padding: '14px 16px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Hesap Durumu</div>
+                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: employee?.user?.is_active !== 0 ? 'var(--success)' : 'var(--danger)' }}>
+                                    {employee?.user ? (employee.user.is_active !== 0 ? 'Aktif' : 'Pasif') : '-'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <DataTable
+                            persistenceKey="EmployeeUserAccount_table"
+                            storageKey="emp_user_account_cols"
+                            columns={userAccountColumns}
+                            data={employee?.user ? [employee.user] : []}
+                            emptyMessage="Bu personele tanımlanmış bir kullanıcı hesabı bulunmuyor. Yukarıdaki 'Ekle' butonunu kullanarak yeni hesap tanımlayabilirsiniz."
+                            actions={isPersonnel ? null : (item) => (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button onClick={() => handleOpenUserAccountModal(item)} title="Düzenle">
+                                        <Pencil size={16} />
+                                    </button>
+                                    <button 
+                                        className={item.is_active !== 0 ? 'danger' : ''} 
+                                        onClick={() => {
+                                            const newStatus = item.is_active === 0 ? 1 : 0;
+                                            const actionText = newStatus === 1 ? 'Aktifleştir' : 'Pasife Al';
+                                            setConfirmModal({
+                                                type: 'toggle_user_status',
+                                                item,
+                                                title: `Giriş Hesabını ${actionText}`,
+                                                message: `Bu kullanıcının giriş hesabı '${actionText}' işlemine tabi tutulacaktır. Emin misiniz?`,
+                                                confirmText: actionText,
+                                                onConfirm: async () => {
+                                                    await window.electronAPI.assignUserRole({ userId: item.id, isActive: newStatus === 1 });
+                                                    loadEmployeeData();
+                                                    setConfirmModal(null);
+                                                    if (window.showToast) window.showToast(`Hesap ${newStatus === 1 ? 'aktif' : 'pasif'} yapıldı.`, 'info');
+                                                }
+                                            });
+                                        }}
+                                        title={item.is_active !== 0 ? 'Pasife Al' : 'Aktifleştir'}
+                                    >
+                                        <UserCheck size={16} />
+                                    </button>
+                                    <button 
+                                        className="danger" 
+                                        onClick={() => {
+                                            setConfirmModal({
+                                                type: 'delete_user_account',
+                                                item,
+                                                title: 'Giriş Hesabını Sil',
+                                                message: 'Bu personelin kullanıcı hesabı tamamen silinecektir. Emin misiniz?',
+                                                confirmText: 'Hesabı Sil',
+                                                onConfirm: async () => {
+                                                    await window.electronAPI.deleteUserAccount(item.id);
+                                                    loadEmployeeData();
+                                                    setConfirmModal(null);
+                                                    if (window.showToast) window.showToast('Giriş hesabı silindi.', 'success');
+                                                }
+                                            });
+                                        }}
+                                        title="Giriş Hesabını Sil"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* ========== MODALS ========== */}
@@ -2585,7 +3259,7 @@ export default function EmployeeDetail() {
                     columns={salaryColumns}
                     data={salaries.filter(s => s.period === 'loan' || s.period === 'loan_payment')}
                     emptyMessage="Herhangi bir borç veya borç ödeme kaydı bulunmuyor."
-                    actions={(item) => (
+                    actions={isPersonnel ? null : (item) => (
                         <>
                             <button onClick={() => { setShowLoanHistory(false); openEditModal('salary', item); }}><Pencil size={16} /></button>
                             <button className="danger" onClick={() => { setShowLoanHistory(false); handleDeleteClick('salary', item); }}><Trash2 size={16} /></button>
@@ -3233,6 +3907,255 @@ export default function EmployeeDetail() {
                     </div>
                 </Modal>
             )}
+
+            {/* User Account Create/Edit Modal */}
+            <Modal
+                isOpen={userAccountModalOpen}
+                onClose={() => setUserAccountModalOpen(false)}
+                title={employee?.user ? 'Giriş Hesabını Düzenle' : 'Yeni Giriş Hesabı Tanımla'}
+                size="md"
+                footer={null}
+            >
+                <form onSubmit={handleUserAccountSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <CustomInput
+                        label="Kullanıcı Adı"
+                        required
+                        disabled={!!employee?.user}
+                        value={userAccountFormData.username}
+                        onChange={(val) => setUserAccountFormData({...userAccountFormData, username: val})}
+                    />
+                    <CustomInput
+                        label="E-Posta Adresi"
+                        type="email"
+                        required
+                        value={userAccountFormData.email}
+                        onChange={(val) => setUserAccountFormData({...userAccountFormData, email: val})}
+                    />
+                    {!employee?.user && (
+                        <div>
+                            <CustomInput
+                                label="Geçici Şifre"
+                                required
+                                value={userAccountFormData.password}
+                                onChange={(val) => setUserAccountFormData({...userAccountFormData, password: val})}
+                            />
+                            <span style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '4px', display: 'block' }}>💡 Personel ilk girişte şifresini değiştirmek zorunda olacaktır.</span>
+                        </div>
+                    )}
+                    <CustomSelect
+                        label="Sistem Rolü"
+                        value={userAccountFormData.roleValue}
+                        onChange={(val) => {
+                            if (val && val.startsWith('custom_')) {
+                                const rId = parseInt(val.replace('custom_', ''));
+                                setUserAccountFormData({
+                                    ...userAccountFormData,
+                                    roleValue: val,
+                                    role: 'personnel',
+                                    roleId: rId
+                                });
+                            } else {
+                                setUserAccountFormData({
+                                    ...userAccountFormData,
+                                    roleValue: val,
+                                    role: val,
+                                    roleId: null
+                                });
+                            }
+                        }}
+                        options={[
+                            { value: 'personnel', label: 'Personel (Kısıtlı Portal & Talep Girişi)' },
+                            { value: 'manager', label: 'Departman Müdürü (Onay Yetkisi)' },
+                            ...companyRoles.map(r => ({
+                                value: `custom_${r.id}`,
+                                label: `${r.name} (Özel Rol)`
+                            }))
+                        ]}
+                    />
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setUserAccountModalOpen(false)}>İptal</button>
+                        <button type="submit" className="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Request Modal for Personnel */}
+            <Modal
+                isOpen={requestModalOpen}
+                onClose={() => setRequestModalOpen(false)}
+                title={requestType === 'LEAVE' ? 'Yeni İzin Talebi' : (requestType === 'ADVANCE' ? 'Yeni Ödeme Talebi' : (requestType === 'OVERTIME' ? 'Yeni Mesai Talebi' : 'Yeni Araç / Zimmet Talebi'))}
+                size="md"
+                footer={null}
+            >
+                <form onSubmit={handleRequestSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <CustomInput
+                        label="Talep Başlığı"
+                        required
+                        value={requestFormData.title}
+                        onChange={(val) => setRequestFormData({ ...requestFormData, title: val })}
+                    />
+
+                    <CustomInput
+                        label="Açıklama / Gerekçe"
+                        value={requestFormData.description}
+                        onChange={(val) => setRequestFormData({ ...requestFormData, description: val })}
+                    />
+
+                    {requestType === 'LEAVE' && (
+                        <>
+                            <CustomSelect
+                                label="İzin Türü"
+                                value={requestFormData.leave_type}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, leave_type: val })}
+                                options={leaveTypes}
+                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <CustomInput
+                                    label="Başlangıç Tarihi"
+                                    type="date"
+                                    required
+                                    value={requestFormData.start_date}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, start_date: val })}
+                                />
+                                <CustomInput
+                                    label="Bitiş Tarihi"
+                                    type="date"
+                                    required
+                                    value={requestFormData.end_date}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, end_date: val })}
+                                />
+                            </div>
+                            <CustomInput
+                                label="Gün Sayısı"
+                                type="number"
+                                required
+                                value={requestFormData.days}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, days: val })}
+                            />
+                        </>
+                    )}
+
+                    {requestType === 'ADVANCE' && (
+                        <>
+                            <CustomSelect
+                                label="Ödeme Türü"
+                                value={requestFormData.payment_type}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, payment_type: val })}
+                                options={[
+                                    { value: 'advance', label: 'Avans' },
+                                    { value: 'loan', label: 'Borç (Avans/Geri Ödemeli)' },
+                                    { value: 'other', label: 'Diğer' }
+                                ]}
+                            />
+                            <CustomInput
+                                label="Talep Edilen Tutar (TL)"
+                                type="number"
+                                required
+                                value={requestFormData.amount}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, amount: val })}
+                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <CustomInput
+                                    label="İstenen Ödeme Tarihi"
+                                    type="date"
+                                    required
+                                    value={requestFormData.payment_date}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, payment_date: val })}
+                                />
+                                <CustomInput
+                                    label="Ait Olduğu Ay"
+                                    type="month"
+                                    required
+                                    value={requestFormData.salary_month}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, salary_month: val })}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {requestType === 'OVERTIME' && (
+                        <>
+                            <CustomSelect
+                                label="Mesai Türü"
+                                value={requestFormData.overtime_type}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, overtime_type: val })}
+                                options={[
+                                    { value: 'weekday', label: 'Hafta İçi Mesaisi' },
+                                    { value: 'weekend', label: 'Hafta Sonu / Pazar Mesaisi' },
+                                    { value: 'holiday', label: 'Resmi Tatil Mesaisi' },
+                                    { value: 'gurbet', label: 'Gurbet Mesaisi' }
+                                ]}
+                            />
+                            <CustomSelect
+                                label="Kullanım Tercihi"
+                                value={String(requestFormData.use_as_leave)}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, use_as_leave: val === 'true' })}
+                                options={[
+                                    { value: 'false', label: 'Mesai Ücreti Olarak Ödensin' },
+                                    { value: 'true', label: 'Mesai İzni (İzin Günü) Olarak Kullanılsın' }
+                                ]}
+                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <CustomInput
+                                    label="Mesai Tarihi"
+                                    type="date"
+                                    required
+                                    value={requestFormData.overtime_date}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, overtime_date: val })}
+                                />
+                                <CustomInput
+                                    label="Mesai Süresi (Saat)"
+                                    type="number"
+                                    required
+                                    value={requestFormData.overtime_hours}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, overtime_hours: val })}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {requestType === 'VEHICLE_ASSIGNMENT' && (
+                        <>
+                            <CustomSelect
+                                label="Talep Edilen Araç"
+                                value={requestFormData.vehicle_id}
+                                onChange={(val) => setRequestFormData({ ...requestFormData, vehicle_id: val })}
+                                options={[
+                                    { value: '', label: 'Şirket Aracı (Genel)' },
+                                    ...vehicles.map(v => ({
+                                        value: String(v.id),
+                                        label: `${v.plate} - ${v.brand || ''} ${v.model || ''}`
+                                    }))
+                                ]}
+                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <CustomInput
+                                    label="Zimmet Başlangıç Tarihi"
+                                    type="date"
+                                    required
+                                    value={requestFormData.start_date}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, start_date: val })}
+                                />
+                                <CustomInput
+                                    label="Zimmet Bitiş Tarihi"
+                                    type="date"
+                                    required
+                                    value={requestFormData.end_date}
+                                    onChange={(val) => setRequestFormData({ ...requestFormData, end_date: val })}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px' }}>
+                        <button type="button" className="btn btn-secondary" onClick={() => setRequestModalOpen(false)}>İptal</button>
+                        <button type="submit" disabled={submittingRequest} className="btn btn-primary">
+                            {submittingRequest ? 'Gönderiliyor...' : 'Talep Gönder'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     )
 }

@@ -254,11 +254,14 @@ function calculateMobileLeaveEndDate(startDateStr: string, daysCount: number, of
   return current.toISOString().split('T')[0];
 }
 
+import { useThemeStore } from '../stores/themeStore';
+
 export default function EmployeeDetailScreen() {
   const params = useLocalSearchParams<{ id: string; month?: string; openAdd?: string; hidePlus?: string }>();
   const { id, month } = params;
   const router = useRouter();
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

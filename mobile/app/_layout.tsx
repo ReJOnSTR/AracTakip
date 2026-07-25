@@ -7,6 +7,8 @@ import { useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { useAuthStore } from '../stores/authStore';
 
+import { useThemeStore } from '../stores/themeStore';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -73,8 +75,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const { themeMode, loadThemePreference } = useThemeStore();
+
+  useEffect(() => {
+    loadThemePreference();
+  }, []);
+
+  const theme = themeMode === 'dark' ? darkTheme : lightTheme;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -84,7 +91,7 @@ export default function RootLayout() {
             screenOptions={{
               headerShown: false,
               contentStyle: {
-                backgroundColor: colorScheme === 'dark' ? Colors.dark.background : Colors.light.background,
+                backgroundColor: Colors[themeMode].background,
               },
               animation: 'slide_from_right',
             }}
@@ -96,7 +103,7 @@ export default function RootLayout() {
             <Stack.Screen name="vehicle-detail" options={{ headerShown: false }} />
           </Stack>
         </AuthGuard>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
       </PaperProvider>
     </QueryClientProvider>
   );

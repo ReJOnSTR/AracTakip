@@ -19,8 +19,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { customerService } from '../../services/dataServices';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import MovingBackground from '../../components/ui/MovingBackground';
 import GlassIconButton from '../../components/ui/GlassIconButton';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -29,7 +31,8 @@ import { formatCurrency } from '../../utils/format';
 export default function CustomersScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -110,51 +113,30 @@ export default function CustomersScreen() {
   });
 
   const searchBg = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
-  const searchBorder = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
-
   return (
     <View style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY (No wall, no canvas, no header container) */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.back()}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 20, marginBottom: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <View>
-            <Text style={[styles.title, { color: c.text }]}>Müşteriler</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{customers.length} müşteri</Text>
-          </View>
-          <GlassIconButton
-            icon="add"
-            onPress={() => setIsModalVisible(true)}
-          />
-        </View>
-
-        {/* Searchbar */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Müşteri, şirket veya e-posta ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textSecondary}
-            iconColor={c.textSecondary}
-          />
-        </View>
+        <GlassIconButton
+          icon="add"
+          onPress={() => setIsModalVisible(true)}
+        />
       </View>
 
       {/* List */}
@@ -166,59 +148,63 @@ export default function CustomersScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
-              <GlassCard intensity={30} style={styles.cardGlass}>
-                <View style={styles.cardInner}>
-                  <View style={[styles.iconBox, { backgroundColor: c.primary + '15' }]}>
-                    <Ionicons name="business-outline" size={22} color={c.primary} />
-                  </View>
-                  <View style={styles.info}>
-                    <Text style={[styles.cardTitle, { color: c.text }]}>{item.name || 'Müşteri Ünvanı Belirtilmemiş'}</Text>
-                    
-                    <View style={styles.contactRow}>
-                      {item.phone ? (
-                        <View style={styles.contactItem}>
-                          <Ionicons name="call-outline" size={13} color={c.textSecondary} />
-                          <Text style={[styles.contactText, { color: c.textSecondary }]}>{item.phone}</Text>
-                        </View>
-                      ) : null}
-                      {item.email ? (
-                        <View style={styles.contactItem}>
-                          <Ionicons name="mail-outline" size={13} color={c.textSecondary} />
-                          <Text style={[styles.contactText, { color: c.textSecondary }]}>{item.email}</Text>
-                        </View>
-                      ) : null}
-                    </View>
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+              <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Müşteriler & Cari</Text>
+                <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{customers.length} müşteri</Text>
+              </View>
+              <GlassSearchBar
+                placeholder="Müşteri, şirket veya e-posta ara..."
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
+          }
+          renderItem={({ item, index }) => {
+            const isDark = colorScheme === 'dark';
+            const textColor = isDark ? '#FFFFFF' : c.text;
+            const subTextColor = isDark ? '#E2E8F0' : c.textSecondary;
 
-                    <View style={styles.cardMeta}>
-                      <View style={styles.metaItem}>
-                        <Ionicons name="stats-chart-outline" size={11} color={c.textTertiary} />
-                        <Text style={[styles.metaText, { color: c.textTertiary }]}>Hacim: {formatCurrency(item.total_volume)}</Text>
+            return (
+              <Animated.View entering={FadeInDown.delay(index * 30).duration(300)} style={styles.cardContainer}>
+                <GlassCard intensity={45} style={styles.cardGlass}>
+                  <View style={styles.cardInner}>
+                    <View style={styles.info}>
+                      <Text style={[styles.cardTitle, { color: textColor }]}>{item.name || 'Müşteri Ünvanı Belirtilmemiş'}</Text>
+                      
+                      <View style={styles.contactRow}>
+                        {item.phone ? (
+                          <View style={styles.contactItem}>
+                            <Ionicons name="call-outline" size={13} color={subTextColor} />
+                            <Text style={[styles.contactText, { color: subTextColor }]}>{item.phone}</Text>
+                          </View>
+                        ) : null}
+                        {item.email ? (
+                          <View style={styles.contactItem}>
+                            <Ionicons name="mail-outline" size={13} color={subTextColor} />
+                            <Text style={[styles.contactText, { color: subTextColor }]}>{item.email}</Text>
+                          </View>
+                        ) : null}
                       </View>
-                      <View style={styles.metaItem}>
-                        <Ionicons name="briefcase-outline" size={11} color={c.textTertiary} />
-                        <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.work_count || 0} iş</Text>
+                    </View>
+                    <View style={styles.right}>
+                      <View style={[styles.statusBadge, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.05)' }]}>
+                        <View style={[styles.statusDot, { backgroundColor: item.total_receivable > 0 ? '#FBBF24' : '#34D399', width: 6, height: 6, borderRadius: 3, marginRight: 6 }]} />
+                        <Text style={[styles.statusText, { color: textColor }]}>
+                          {item.total_receivable > 0 ? formatCurrency(item.total_receivable) : 'Borçsuz'}
+                        </Text>
                       </View>
                     </View>
                   </View>
-                  <View style={styles.right}>
-                    <View style={[styles.statusBadge, { backgroundColor: (item.total_receivable > 0 ? c.warning : c.success) + '15' }]}>
-                      <View style={[styles.statusDot, { backgroundColor: item.total_receivable > 0 ? c.warning : c.success }]} />
-                      <Text style={[styles.statusText, { color: item.total_receivable > 0 ? c.warning : c.success }]}>
-                        {item.total_receivable > 0 ? formatCurrency(item.total_receivable) : 'Borçsuz'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </GlassCard>
-            </Animated.View>
-          )}
+                </GlassCard>
+              </Animated.View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={48} color={c.textTertiary} />
@@ -230,77 +216,92 @@ export default function CustomersScreen() {
         />
       )}
 
-      {/* Add Customer Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Müşteri Ekle</Text>
-            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
-                label="Müşteri Adı / Ünvanı"
-                value={name}
-                onChangeText={setName}
-                placeholder="örn: Ahmet Yılmaz veya Kontrol A.Ş."
-              />
-              <GlassInput
-                label="Telefon"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                placeholder="(5XX) XXX XX XX"
-              />
-              <GlassInput
-                label="E-Posta"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                placeholder="ornek@firma.com"
-                autoCapitalize="none"
-              />
-              <GlassInput
-                label="Vergi Numarası / T.C. Kimlik"
-                value={taxNumber}
-                onChangeText={setTaxNumber}
-                keyboardType="numeric"
-                placeholder="Vergi No veya TCKN"
-              />
-              <GlassInput
-                label="Vergi Dairesi"
-                value={taxOffice}
-                onChangeText={setTaxOffice}
-                placeholder="Vergi Dairesi"
-              />
-              <GlassInput
-                label="Açık Adres"
-                value={address}
-                onChangeText={setAddress}
-                placeholder="Müşteri açık adresi..."
-                multiline
-              />
-              <GlassInput
-                label="Notlar"
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Özel notlar..."
-                multiline
-              />
-            </ScrollView>
-            <View style={styles.modalButtons}>
-              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
-                İptal
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleCreate}
-                loading={createMutation.isPending}
-                disabled={createMutation.isPending || !name.trim()}
-                buttonColor={c.primary}
-                textColor="#ffffff"
-              >
-                Kaydet
-              </Button>
-            </View>
-          </GlassModal>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Yeni Müşteri Ekle</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Müşteri cari kart bilgilerini girin</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsModalVisible(false)}
+          />
+        </View>
 
-      {/* Portal for Add Modal */}
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Müşteri Adı / Ünvanı"
+            value={name}
+            onChangeText={setName}
+            placeholder="örn: Ahmet Yılmaz veya Kontrol A.Ş."
+          />
+          <GlassInput
+            label="Telefon"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            placeholder="(5XX) XXX XX XX"
+          />
+          <GlassInput
+            label="E-Posta"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            placeholder="ornek@firma.com"
+            autoCapitalize="none"
+          />
+          <GlassInput
+            label="Vergi Numarası / T.C. Kimlik"
+            value={taxNumber}
+            onChangeText={setTaxNumber}
+            keyboardType="numeric"
+            placeholder="Vergi No veya TCKN"
+          />
+          <GlassInput
+            label="Vergi Dairesi"
+            value={taxOffice}
+            onChangeText={setTaxOffice}
+            placeholder="Vergi Dairesi"
+          />
+          <GlassInput
+            label="Açık Adres"
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Müşteri açık adresi..."
+            multiline
+          />
+          <GlassInput
+            label="Notlar"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Özel notlar..."
+            multiline
+          />
+        </ScrollView>
+
+        <View style={styles.modalFooterRow}>
+          <Button
+            mode="text"
+            onPress={() => setIsModalVisible(false)}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
+          >
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreate}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending || !name.trim()}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
     </View>
   );
 }
@@ -410,8 +411,26 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: 40,
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });

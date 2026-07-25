@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { vehicleService } from '../../services/dataServices';
 import { getStatusLabel, getStatusColor } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
@@ -27,9 +28,12 @@ import GlassCard from '../../components/ui/GlassCard';
 import GlassInput from '../../components/ui/GlassInput';
 import GlassDropdown from '../../components/ui/GlassDropdown';
 import GlassIconButton from '../../components/ui/GlassIconButton';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
+import GlassButtonGroup from '../../components/ui/GlassButtonGroup';
 
 export default function VehiclesScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -127,52 +131,47 @@ export default function VehiclesScreen() {
     sold: c.error,
   };
 
-  const renderVehicle = useCallback(({ item, index }: { item: any; index: number }) => (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(300)} style={styles.cardContainer}>
-      <Pressable
-        onPress={() => router.push({ pathname: '/vehicle-detail', params: { id: item.id } })}
-      >
-        <GlassCard intensity={30} style={styles.vehicleCardGlass}>
-          <View style={styles.vehicleCardInner}>
-            <View style={[styles.plateBox, { backgroundColor: c.primaryContainer + '20' }]}>
-              <Ionicons name="car" size={22} color={c.primary} />
-            </View>
-            <View style={styles.vehicleInfo}>
-              <Text style={[styles.plate, { color: c.text }]}>{item.plate}</Text>
-              <Text style={[styles.vehicleDetail, { color: c.textSecondary }]}>
-                {[item.brand, item.model, item.year].filter(Boolean).join(' ')}
-              </Text>
-              <View style={styles.vehicleMeta}>
-                <View style={styles.metaItem}>
-                  <Ionicons name="build-outline" size={11} color={c.textTertiary} />
-                  <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.maintenances_count || 0}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="shield-checkmark-outline" size={11} color={c.textTertiary} />
-                  <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.inspections_count || 0}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="construct-outline" size={11} color={c.textTertiary} />
-                  <Text style={[styles.metaText, { color: c.textTertiary }]}>{item.services_count || 0}</Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.vehicleRight}>
-              <View style={[styles.statusBadge, { backgroundColor: (statusColorMap[item.status] || c.textSecondary) + '15' }]}>
-                <View style={[styles.statusDot, { backgroundColor: statusColorMap[item.status] || c.textSecondary }]} />
-                <Text style={[styles.statusText, { color: statusColorMap[item.status] || c.textSecondary }]}>
-                  {getStatusLabel(item.status)}
+  const renderVehicle = useCallback(({ item, index }: { item: any; index: number }) => {
+    const isDark = themeMode === 'dark';
+    const textColor = isDark ? '#FFFFFF' : '#0F172A';
+    const subTextColor = isDark ? '#E2E8F0' : '#475569';
+    const metaTextColor = isDark ? '#94A3B8' : '#64748B';
+
+    return (
+      <Animated.View entering={FadeInDown.delay(index * 40).duration(300)} style={styles.cardContainer}>
+        <Pressable
+          onPress={() => router.push({ pathname: '/vehicle-detail', params: { id: item.id } })}
+        >
+          <GlassCard intensity={50} style={styles.vehicleCardGlass}>
+            <View style={styles.vehicleCardInner}>
+              <View style={styles.vehicleInfo}>
+                <Text style={[styles.plate, { color: textColor }]}>{item.plate}</Text>
+                <Text style={[styles.vehicleDetail, { color: subTextColor }]}>
+                  {[item.brand, item.model, item.year].filter(Boolean).join(' ')}
                 </Text>
+                <View style={styles.vehicleMeta}>
+                  <Text style={[styles.metaText, { color: metaTextColor }]}>
+                    {item.maintenances_count || 0} bakım • {item.inspections_count || 0} muayene • {item.services_count || 0} servis
+                  </Text>
+                </View>
               </View>
-              {item.type && (
-                <Text style={[styles.typeText, { color: c.textTertiary }]}>{item.type}</Text>
-              )}
+              <View style={styles.vehicleRight}>
+                <View style={[styles.statusBadge, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.06)' }]}>
+                  <View style={[styles.statusDot, { backgroundColor: item.status === 'active' ? '#34D399' : (item.status === 'maintenance' ? '#FBBF24' : '#F87171') }]} />
+                  <Text style={[styles.statusText, { color: textColor }]}>
+                    {getStatusLabel(item.status)}
+                  </Text>
+                </View>
+                {item.type && (
+                  <Text style={[styles.typeText, { color: metaTextColor }]}>{item.type}</Text>
+                )}
+              </View>
             </View>
-          </View>
-        </GlassCard>
-      </Pressable>
-    </Animated.View>
-  ), [c, router]);
+          </GlassCard>
+        </Pressable>
+      </Animated.View>
+    );
+  }, [themeMode, router]);
 
   const glassBgColor = Platform.OS === 'web'
     ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
@@ -183,54 +182,34 @@ export default function VehiclesScreen() {
     <SwipeBackView onSwipeBack={() => router.push('/vehicles')} style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY (No wall, no canvas, no header container) */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        {/* Left Back Button */}
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/vehicles')}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-          <GlassIconButton
-            icon="chevron-back"
-            onPress={() => router.push('/vehicles')}
-          />
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text }]}>Araçlar</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} araç</Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <GlassIconButton
-              icon="funnel-outline"
-              active={!!(statusFilter || typeFilter)}
-              onPress={() => setIsFilterModalVisible(true)}
-            />
-            <GlassIconButton
-              icon="add"
-              onPress={() => setIsModalVisible(true)}
-            />
-          </View>
-        </View>
 
-        {/* Search */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Plaka, marka veya model ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textTertiary}
-            iconColor={c.textSecondary}
+        {/* Right Action Buttons */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <GlassIconButton
+            icon="funnel-outline"
+            active={!!(statusFilter || typeFilter)}
+            onPress={() => setIsFilterModalVisible(true)}
+          />
+          <GlassIconButton
+            icon="add"
+            onPress={() => setIsModalVisible(true)}
           />
         </View>
       </View>
@@ -240,7 +219,23 @@ export default function VehiclesScreen() {
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderVehicle}
-        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
+        ListHeaderComponent={
+          <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+            {/* Scrollable Title (Scrolls away with list) */}
+            <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+              <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Araçlar</Text>
+              <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} araç</Text>
+            </View>
+
+            {/* GlassSearchBar */}
+            <GlassSearchBar
+              placeholder="Plaka, marka veya model ara..."
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+        }
+        contentContainerStyle={[styles.listContent, { paddingTop: 0 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -261,111 +256,138 @@ export default function VehiclesScreen() {
 
       {/* Add Vehicle Modal */}
       <GlassModal visible={isModalVisible} onDismiss={() => setIsModalVisible(false)}>
-            <Text style={[styles.modalTitle, { color: c.text }]}>Yeni Araç Ekle</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Yeni Araç Ekle</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Araç bilgilerini ve plakasını girin</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsModalVisible(false)}
+          />
+        </View>
             
-            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <GlassInput
-                label="Plaka"
-                value={plate}
-                onChangeText={setPlate}
-                placeholder="örn: 34ABC123"
-                autoCapitalize="characters"
-              />
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          <GlassInput
+            label="Plaka"
+            value={plate}
+            onChangeText={setPlate}
+            placeholder="örn: 34ABC123"
+            autoCapitalize="characters"
+          />
 
-              <GlassDropdown
-                label="Araç Türü"
-                value={type}
-                options={[
-                  { label: 'Otomobil', value: 'Otomobil' },
-                  { label: 'Çekici', value: 'Çekici' },
-                  { label: 'Dorse', value: 'Dorse' },
-                  { label: 'Kamyon', value: 'Kamyon' },
-                  { label: 'İş Makinesi', value: 'İş Makinesi' },
-                  { label: 'Diğer', value: 'Diğer' },
-                ]}
-                onSelect={setType}
-                placeholder="Araç Türü Seçiniz"
-              />
+          <GlassDropdown
+            label="Araç Türü"
+            value={type}
+            options={[
+              { label: 'Otomobil', value: 'Otomobil' },
+              { label: 'Çekici', value: 'Çekici' },
+              { label: 'Dorse', value: 'Dorse' },
+              { label: 'Kamyon', value: 'Kamyon' },
+              { label: 'İş Makinesi', value: 'İş Makinesi' },
+              { label: 'Diğer', value: 'Diğer' },
+            ]}
+            onSelect={setType}
+            placeholder="Araç Türü Seçiniz"
+          />
 
-              <GlassInput
-                label="Marka"
-                value={brand}
-                onChangeText={setBrand}
-                placeholder="örn: Ford, Renault"
-              />
+          <GlassInput
+            label="Marka"
+            value={brand}
+            onChangeText={setBrand}
+            placeholder="örn: Ford, Renault"
+          />
 
-              <GlassInput
-                label="Model"
-                value={model}
-                onChangeText={setModel}
-                placeholder="örn: Focus, Megane"
-              />
+          <GlassInput
+            label="Model"
+            value={model}
+            onChangeText={setModel}
+            placeholder="örn: Focus, Megane"
+          />
 
-              <GlassInput
-                label="Yıl"
-                value={year}
-                onChangeText={setYear}
-                keyboardType="numeric"
-                placeholder="örn: 2022"
-              />
+          <GlassInput
+            label="Yıl"
+            value={year}
+            onChangeText={setYear}
+            keyboardType="numeric"
+            placeholder="örn: 2022"
+          />
 
-              <GlassInput
-                label="Kilometre (KM)"
-                value={km}
-                onChangeText={setKm}
-                keyboardType="numeric"
-                placeholder="örn: 45000"
-              />
+          <GlassInput
+            label="Kilometre (KM)"
+            value={km}
+            onChangeText={setKm}
+            keyboardType="numeric"
+            placeholder="örn: 45000"
+          />
 
-              <GlassInput
-                label="Renk"
-                value={color}
-                onChangeText={setColor}
-                placeholder="örn: Beyaz, Siyah"
-              />
+          <GlassInput
+            label="Renk"
+            value={color}
+            onChangeText={setColor}
+            placeholder="örn: Beyaz, Siyah"
+          />
 
-              <GlassDropdown
-                label="Durum"
-                value={status}
-                options={[
-                  { label: 'Aktif', value: 'active' },
-                  { label: 'Bakımda', value: 'maintenance' },
-                  { label: 'Pasif', value: 'passive' },
-                  { label: 'Satıldı', value: 'sold' },
-                ]}
-                onSelect={setStatus}
-                placeholder="Durum Seçiniz"
-              />
+          <GlassDropdown
+            label="Durum"
+            value={status}
+            options={[
+              { label: 'Aktif', value: 'active' },
+              { label: 'Bakımda', value: 'maintenance' },
+              { label: 'Pasif', value: 'passive' },
+              { label: 'Satıldı', value: 'sold' },
+            ]}
+            onSelect={setStatus}
+            placeholder="Durum Seçiniz"
+          />
 
-              <GlassInput
-                label="Notlar"
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Araç ile ilgili notlar..."
-                multiline
-              />
-            </ScrollView>
+          <GlassInput
+            label="Notlar"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Araç ile ilgili notlar..."
+            multiline
+          />
+        </ScrollView>
 
-            <View style={styles.modalButtons}>
-              <Button mode="text" onPress={() => setIsModalVisible(false)} textColor={c.textSecondary}>
-                İptal
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleCreate}
-                loading={createMutation.isPending}
-                disabled={createMutation.isPending || !plate || !type}
-                buttonColor={c.primary}
-                textColor="#ffffff"
-              >
-                Kaydet
-              </Button>
-            </View>
-          </GlassModal>
+        <View style={styles.modalFooterRow}>
+          <Button
+            mode="text"
+            onPress={() => setIsModalVisible(false)}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
+          >
+            İptal
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreate}
+            loading={createMutation.isPending}
+            disabled={createMutation.isPending || !plate || !type}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
+            Kaydet
+          </Button>
+        </View>
+      </GlassModal>
 
       {/* Filter Modal */}
       <GlassModal visible={isFilterModalVisible} onDismiss={() => setIsFilterModalVisible(false)}>
-        <Text style={[styles.modalTitle, { color: c.text }]}>Filtrele</Text>
+        <View style={styles.modalHeaderRow}>
+          <View>
+            <Text style={[styles.modalTitle, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text }]}>Filtrele</Text>
+            <Text style={{ fontSize: 13, color: colorScheme === 'dark' ? '#94A3B8' : c.textSecondary, marginTop: 2 }}>Araç listesi filtreleme seçenekleri</Text>
+          </View>
+          <GlassIconButton
+            icon="close"
+            size={36}
+            iconSize={18}
+            onPress={() => setIsFilterModalVisible(false)}
+          />
+        </View>
         <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
           
           <Text style={[styles.filterSectionTitle, { color: c.textSecondary, marginTop: 8 }]}>Araç Türü</Text>
@@ -493,18 +515,24 @@ export default function VehiclesScreen() {
           </View>
 
         </ScrollView>
-        <View style={styles.modalButtons}>
+        <View style={styles.modalFooterRow}>
           <Button 
             mode="text" 
             onPress={() => {
               setTypeFilter(null);
               setStatusFilter('active');
             }} 
-            textColor={c.textSecondary}
+            textColor={colorScheme === 'dark' ? '#94A3B8' : c.textSecondary}
           >
             Temizle
           </Button>
-          <Button mode="contained" onPress={() => setIsFilterModalVisible(false)} buttonColor={c.primary} textColor="#fff">
+          <Button
+            mode="contained"
+            onPress={() => setIsFilterModalVisible(false)}
+            buttonColor={colorScheme === 'dark' ? '#FFFFFF' : c.primary}
+            textColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            style={{ borderRadius: 14, minWidth: 100 }}
+          >
             Uygula
           </Button>
         </View>
@@ -595,8 +623,26 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: 40,
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
 });

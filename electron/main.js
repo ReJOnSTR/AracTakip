@@ -14,6 +14,8 @@ const { startAdminServer, stopAdminServer } = require('./adminServer')
 // Optional: Override console to correct log file
 // console.log = log.log;
 
+app.setName('Kontrol')
+
 const store = new Store()
 
 let mainWindow
@@ -45,6 +47,7 @@ function createWindow() {
     }
 
     mainWindow = new BrowserWindow({
+        title: 'Kontrol',
         width,
         height,
         x,
@@ -353,6 +356,58 @@ ipcMain.handle('auth:changePassword', async (event, data) => {
 
 ipcMain.handle('auth:updateProfile', async (event, data) => {
     return await db.updateProfile(data)
+})
+
+ipcMain.handle('auth:createEmployeeUser', async (event, data) => {
+    const result = await db.createEmployeeUser(data)
+    if (result.success) notifyDbUpdate({ table: 'users', action: 'create' })
+    return result
+})
+
+// Request & Approval handlers
+ipcMain.handle('requests:create', async (event, data) => {
+    const result = await db.createRequest(data)
+    if (result.success) notifyDbUpdate({ table: 'requests', action: 'create' })
+    return result
+})
+
+ipcMain.handle('requests:getAll', async (event, filters) => {
+    return await db.getRequests(filters)
+})
+
+ipcMain.handle('requests:processApproval', async (event, data) => {
+    const result = await db.processApproval(data)
+    if (result.success) notifyDbUpdate({ table: 'requests', action: 'update' })
+    return result
+})
+
+// Role & Permission handlers
+ipcMain.handle('roles:getAll', async (event, companyId) => {
+    return await db.getRoles(companyId)
+})
+
+ipcMain.handle('roles:save', async (event, data) => {
+    const result = await db.saveRole(data)
+    if (result.success) notifyDbUpdate({ table: 'roles', action: 'update' })
+    return result
+})
+
+ipcMain.handle('roles:delete', async (event, roleId) => {
+    const result = await db.deleteRole(roleId)
+    if (result.success) notifyDbUpdate({ table: 'roles', action: 'delete' })
+    return result
+})
+
+ipcMain.handle('roles:assignUserRole', async (event, data) => {
+    const result = await db.assignUserRoleAndEmployee(data)
+    if (result.success) notifyDbUpdate({ table: 'users', action: 'update' })
+    return result
+})
+
+ipcMain.handle('roles:deleteUserAccount', async (event, userId) => {
+    const result = await db.deleteUserAccount(userId)
+    if (result.success) notifyDbUpdate({ table: 'users', action: 'delete' })
+    return result
 })
 
 // Company handlers
@@ -1337,23 +1392,23 @@ ipcMain.handle('settings:save', (event, newSettings) => {
 ipcMain.handle('arvento:testConnection', async (event, credentials) => {
     return await db.testArventoConnection(credentials)
 })
-ipcMain.handle('arvento:getStatus', async () => {
-    return await db.getArventoVehicleStatus()
+ipcMain.handle('arvento:getStatus', async (event, credentials) => {
+    return await db.getArventoVehicleStatus(credentials)
 })
-ipcMain.handle('arvento:getMappings', async () => {
-    return await db.getArventoLicensePlateNodeMappings()
+ipcMain.handle('arvento:getMappings', async (event, credentials) => {
+    return await db.getArventoLicensePlateNodeMappings(credentials)
 })
-ipcMain.handle('arvento:getInfo', async () => {
-    return await db.getArventoVehicleInfo()
+ipcMain.handle('arvento:getInfo', async (event, credentials) => {
+    return await db.getArventoVehicleInfo(credentials)
 })
-ipcMain.handle('arvento:getDailyReport', async (event, date) => {
-    return await db.getArventoVehicleDailyStatus(date)
+ipcMain.handle('arvento:getDailyReport', async (event, date, credentials) => {
+    return await db.getArventoVehicleDailyStatus(date, credentials)
 })
-ipcMain.handle('arvento:getAlarms', async () => {
-    return await db.getArventoAlarms()
+ipcMain.handle('arvento:getAlarms', async (event, credentials) => {
+    return await db.getArventoAlarms(credentials)
 })
-ipcMain.handle('arvento:getHistory', async (event, filters) => {
-    return await db.getArventoHistory(filters)
+ipcMain.handle('arvento:getHistory', async (event, filters, credentials) => {
+    return await db.getArventoHistory(filters, credentials)
 })
 
 // Public Holidays

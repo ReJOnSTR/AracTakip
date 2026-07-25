@@ -45,6 +45,8 @@ model companies {
   document_folders       document_folders[]
   meal_price_history     meal_price_history[]
   public_holidays        public_holidays[]
+  roles                  roles[]
+  requests               requests[]
 }
 
 model customers {
@@ -175,6 +177,8 @@ model employees {
   devir_tarihi            DateTime?
   iban                    String?
   off_days                String?                   @default("0")
+  user                    users?
+  requests                requests[]
   employee_assignments    employee_assignments[]
   employee_attendance     employee_attendance[]
   employee_documents      employee_documents[]
@@ -368,15 +372,22 @@ model transactions {
 }
 
 model users {
-  id                   Int         @id @default(autoincrement())
-  username             String      @unique
-  email                String      @unique
+  id                   Int                 @id @default(autoincrement())
+  username             String              @unique
+  email                String              @unique
   full_name            String?
   password_hash        String
-  created_at           DateTime?   @default(now())
-  role                 String?     @default("user")
-  must_change_password Int?        @default(0)
+  created_at           DateTime?           @default(now())
+  role                 String?             @default("user")
+  role_id              Int?
+  employee_id          Int?                @unique
+  must_change_password Int?                @default(0)
+  is_active            Int?                @default(1)
   companies            companies[]
+  employee             employees?          @relation(fields: [employee_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  custom_role          roles?              @relation(fields: [role_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  created_requests     requests[]          @relation("RequestCreator")
+  approval_actions     request_approvals[] @relation("ApprovalActor")
 }
 
 model vehicles {
@@ -525,3 +536,61 @@ model public_holidays {
   created_at  DateTime? @default(now())
   companies   companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
+
+model roles {
+  id          Int           @id @default(autoincrement())
+  company_id  Int
+  name        String
+  description String?
+  created_at  DateTime?     @default(now())
+  users       users[]
+  permissions permissions[]
+  companies   companies     @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model permissions {
+  id          Int     @id @default(autoincrement())
+  role_id     Int
+  module      String
+  can_read    Boolean @default(false)
+  can_create  Boolean @default(false)
+  can_update  Boolean @default(false)
+  can_delete  Boolean @default(false)
+  can_approve Boolean @default(false)
+  scope       String  @default("OWN")
+  roles       roles   @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model requests {
+  id            Int                 @id @default(autoincrement())
+  company_id    Int
+  created_by_id Int
+  employee_id   Int
+  type          String
+  title         String
+  description   String?
+  request_data  String
+  status        String              @default("PENDING")
+  current_step  Int                 @default(1)
+  total_steps   Int                 @default(1)
+  document_path String?
+  created_at    DateTime?           @default(now())
+  updated_at    DateTime?           @updatedAt
+  creator       users               @relation("RequestCreator", fields: [created_by_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  employee      employees           @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  approvals     request_approvals[]
+  companies     companies           @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model request_approvals {
+  id          Int       @id @default(autoincrement())
+  request_id  Int
+  approver_id Int?
+  step        Int       @default(1)
+  status      String
+  comment     String?
+  action_date DateTime? @default(now())
+  requests    requests  @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  approver    users?    @relation("ApprovalActor", fields: [approver_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+}
+

@@ -2,7 +2,7 @@ import SwiftUI
 import ExpoModulesCore
 import UIKit
 
-// 100% Official Apple UITabBar Implementation with UITabBarDelegate & UITabBarAppearance
+// Official Apple UITabBar Implementation with UITabBarDelegate & UITabBarAppearance
 class NativeUiTabBarViewWrapper: ExpoView, UITabBarDelegate {
   private let tabBar = UITabBar()
   private var activeTab: String = "index"
@@ -59,7 +59,7 @@ class NativeUiTabBarViewWrapper: ExpoView, UITabBarDelegate {
     appearance.shadowImage = UIImage()
     
     // Configure item tint colors
-    let activeColor = isDark ? UIColor.white : UIColor(red: 0.25, green: 0.35, blue: 0.95, alpha: 1.0)
+    let activeColor = isDark ? UIColor.white : UIColor.black
     let inactiveColor = isDark ? UIColor.white.withAlphaComponent(0.55) : UIColor.black.withAlphaComponent(0.45)
     
     appearance.stackedLayoutAppearance.selected.iconColor = activeColor
@@ -107,12 +107,3 @@ class NativeUiTabBarViewWrapper: ExpoView, UITabBarDelegate {
     updateAppearance()
   }
 }
-
-
-
-
-
-
-
-
-

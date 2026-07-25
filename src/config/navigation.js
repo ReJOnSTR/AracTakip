@@ -3,6 +3,7 @@ import {
     Car,
     Wrench,
     ClipboardCheck,
+    CheckCircle,
     Shield,
     Settings,
     FileText,
@@ -101,7 +102,8 @@ export const moduleMenus = {
         {
             title: 'Personel İşlemleri',
             items: [
-                { path: '/employees', label: 'Personeller', icon: Users }
+                { path: '/employees', label: 'Personeller', icon: Users },
+                { path: '/approvals', label: 'Onay Merkezi', icon: CheckCircle }
             ]
         },
         {
@@ -144,6 +146,14 @@ export const moduleMenus = {
             title: 'Sistem',
             items: [
                 { path: '/module-settings/customers', label: 'Müşteri Ayarları', icon: Settings }
+            ]
+        }
+    ],
+    personnel: [
+        {
+            title: 'Personel Portalı',
+            items: [
+                { path: '/personnel-profile', label: 'Profilim & Bilgilerim', icon: User }
             ]
         }
     ],
@@ -217,6 +227,14 @@ export const getRouteInfo = (path) => {
 }
 
 export const getActiveModule = (pathname, search = '') => {
+    // 0. Detect user role
+    try {
+        const user = JSON.parse(localStorage.getItem('aractakip_auth_user') || 'null')
+        if (user?.role === 'personnel') return 'personnel'
+    } catch (e) {
+        console.error(e)
+    }
+
     // 1. Prioritize module parameter from search string
     if (search) {
         const params = new URLSearchParams(search)

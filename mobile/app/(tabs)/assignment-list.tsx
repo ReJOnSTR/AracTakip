@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Text, Searchbar, ActivityIndicator, Chip, Button } from 'react-native-paper';
+import { Text, ActivityIndicator, Button } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors } from '../../constants/Colors';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { vehicleService } from '../../services/dataServices';
 import { formatDate } from '../../utils/format';
 import MovingBackground from '../../components/ui/MovingBackground';
@@ -26,9 +27,11 @@ import GlassIconButton from '../../components/ui/GlassIconButton';
 import GlassModal from '../../components/ui/GlassModal';
 import SwipeBackView from '../../components/ui/SwipeBackView';
 import GlassInput from '../../components/ui/GlassInput';
+import GlassSearchBar from '../../components/ui/GlassSearchBar';
 
 export default function AssignmentListScreen() {
-  const colorScheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const { themeMode } = useThemeStore();
+  const colorScheme = themeMode;
   const c = Colors[colorScheme];
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -38,94 +41,70 @@ export default function AssignmentListScreen() {
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const query = useQuery({
-    queryKey: ['all-assignments', selectedCompanyId],
-    queryFn: () => vehicleService.getAllAssignments(selectedCompanyId!),
+    queryKey: ['vehicle-assignments', selectedCompanyId],
+    queryFn: () => vehicleService.getAssignments(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
 
-  const onRefresh = async () => {
-    setIsRefreshing(true);
-    await query.refetch();
-    setIsRefreshing(false);
-  };
+  const rawAssignments = query.data;
+  const assignments: any[] = Array.isArray(rawAssignments) ? rawAssignments : (rawAssignments?.data || []);
 
-  const records = query.data?.data || [];
-
-  const filtered = records.filter((m: any) => {
-    const term = search.toLowerCase();
+  const filtered = assignments.filter((item: any) => {
     const matchesSearch =
-      m.vehicles?.plate?.toLowerCase().includes(term) ||
-      m.item_name?.toLowerCase().includes(term) ||
-      (m.assigned_to && m.assigned_to.toLowerCase().includes(term)) ||
-      (m.department && m.department.toLowerCase().includes(term));
+      !search ||
+      item.vehicles?.plate?.toLowerCase().includes(search.toLowerCase()) ||
+      item.item_name?.toLowerCase().includes(search.toLowerCase()) ||
+      item.assigned_to?.toLowerCase().includes(search.toLowerCase());
+
     const matchesStatus =
-      statusFilter === 'all' || m.status === statusFilter;
-      
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && item.status === 'active') ||
+      (statusFilter === 'returned' && item.status !== 'active');
+
     let matchesDate = true;
     if (startDateFilter || endDateFilter) {
-      const itemDate = m.start_date ? (typeof m.start_date === 'string' ? m.start_date : new Date(m.start_date).toISOString().split('T')[0]) : '';
+      const itemDate = item.start_date
+        ? typeof item.start_date === 'string'
+          ? item.start_date
+          : new Date(item.start_date).toISOString().split('T')[0]
+        : '';
       if (startDateFilter && itemDate < startDateFilter) matchesDate = false;
       if (endDateFilter && itemDate > endDateFilter) matchesDate = false;
     }
-    
+
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const glassBgColor = Platform.OS === 'web'
-    ? (colorScheme === 'dark' ? 'rgba(30, 30, 30, 0.7)' : 'rgba(255, 255, 255, 0.75)')
-    : (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.2)');
-  const glassBorderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.5)';
+  const isRefreshing = query.isRefetching;
+  const onRefresh = () => query.refetch();
 
   return (
     <SwipeBackView onSwipeBack={() => router.push('/vehicles')} style={styles.container}>
       <MovingBackground />
       
-      {/* Floating Header with Blur background */}
-      <View style={[
-        styles.floatingHeaderContainer,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(26, 26, 46, 0.45)' : 'rgba(255, 255, 255, 0.45)',
-          borderBottomColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 45 : 95}
-          tint={colorScheme === 'dark' ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
+      {/* Floating Action Buttons ONLY */}
+      <View style={{
+        position: 'absolute',
+        top: insets.top + 8,
+        left: 16,
+        right: 16,
+        zIndex: 100,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+      }}>
+        <GlassIconButton
+          icon="chevron-back"
+          onPress={() => router.push('/vehicles')}
         />
-        
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 16 }]}>
-          <GlassIconButton
-            icon="chevron-back"
-            onPress={() => router.push('/vehicles')}
-          />
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.title, { color: c.text }]}>Araç Zimmetleri</Text>
-            <Text style={[styles.count, { color: c.textSecondary }]}>{filtered.length} kayıt</Text>
-          </View>
-          <GlassIconButton
-            icon="funnel-outline"
-            onPress={() => setIsFilterModalVisible(true)}
-          />
-        </View>
-
-        {/* Search */}
-        <View style={styles.searchRow}>
-          <Searchbar
-            placeholder="Plaka, zimmet veya personel ara..."
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchBar, { backgroundColor: glassBgColor, borderColor: glassBorderColor }]}
-            inputStyle={[styles.searchInput, { color: c.text }]}
-            placeholderTextColor={c.textTertiary}
-            iconColor={c.textSecondary}
-          />
-        </View>
+        <GlassIconButton
+          icon="funnel-outline"
+          active={!!(statusFilter !== 'all' || startDateFilter || endDateFilter)}
+          onPress={() => setIsFilterModalVisible(true)}
+        />
       </View>
 
       {query.isLoading ? (
@@ -136,55 +115,63 @@ export default function AssignmentListScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={c.primary} />
           }
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
-              <GlassCard intensity={30} style={styles.cardGlass}>
-                <View style={styles.cardInner}>
-                  <View style={[styles.plateBox, { backgroundColor: c.primaryContainer + '20' }]}>
-                    <Text style={[styles.plateText, { color: c.primary }]}>
-                      {item.vehicles?.plate || 'Plakasız'}
-                    </Text>
-                  </View>
-                  <View style={styles.infoBox}>
-                    <Text style={[styles.typeName, { color: c.text }]}>
-                      {item.item_name} {item.quantity > 1 ? `(${item.quantity} Adet)` : ''}
-                    </Text>
-                    <Text style={[styles.desc, { color: c.textSecondary }]}>
-                      Zimmetli: {item.assigned_to || 'Belirtilmemiş'} {item.department ? `(${item.department})` : ''}
-                    </Text>
-                    <View style={styles.metaRow}>
-                      <View style={styles.metaItem}>
-                        <Ionicons name="calendar-outline" size={12} color={c.textTertiary} />
-                        <Text style={[styles.metaText, { color: c.textTertiary }]}>Başlangıç: {formatDate(item.start_date)}</Text>
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: 16, paddingTop: insets.top + 60, paddingBottom: 12 }}>
+              <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                <Text style={[styles.title, { color: colorScheme === 'dark' ? '#FFFFFF' : c.text, textAlign: 'center' }]}>Araç Zimmetleri</Text>
+                <Text style={[styles.count, { color: colorScheme === 'dark' ? '#E2E8F0' : c.textSecondary, textAlign: 'center', marginTop: 2 }]}>{filtered.length} kayıt</Text>
+              </View>
+
+              <GlassSearchBar
+                placeholder="Plaka, zimmet veya personel ara..."
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
+          }
+          renderItem={({ item, index }) => {
+            const isDark = colorScheme === 'dark';
+            const textColor = isDark ? '#FFFFFF' : c.text;
+            const subTextColor = isDark ? '#E2E8F0' : c.textSecondary;
+            const metaTextColor = isDark ? '#94A3B8' : c.textTertiary;
+
+            return (
+              <Animated.View entering={FadeInDown.delay(index * 20).duration(300)} style={styles.cardContainer}>
+                <GlassCard intensity={45} style={styles.cardGlass}>
+                  <View style={styles.cardInner}>
+                    <View style={styles.infoBox}>
+                      <Text style={[styles.plateText, { color: isDark ? '#38BDF8' : c.primary, fontWeight: '800', fontSize: 16 }]}>
+                        {item.vehicles?.plate || 'Plakasız'}
+                      </Text>
+                      <Text style={[styles.typeName, { color: textColor, marginTop: 2 }]}>
+                        {item.item_name} {item.quantity > 1 ? `(${item.quantity} Adet)` : ''}
+                      </Text>
+                      <Text style={[styles.desc, { color: subTextColor, marginTop: 2 }]}>
+                        Zimmetli: {item.assigned_to || 'Belirtilmemiş'} {item.department ? `(${item.department})` : ''}
+                      </Text>
+                      <View style={styles.metaRow}>
+                        <Text style={[styles.metaText, { color: metaTextColor }]}>
+                          Başlangıç: {formatDate(item.start_date)} {item.end_date ? `• Bitiş: ${formatDate(item.end_date)}` : ''}
+                        </Text>
                       </View>
-                      {item.end_date && (
-                        <View style={styles.metaItem}>
-                          <Ionicons name="calendar" size={12} color={c.textTertiary} />
-                          <Text style={[styles.metaText, { color: c.textTertiary }]}>Bitiş: {formatDate(item.end_date)}</Text>
-                        </View>
-                      )}
+                    </View>
+                    <View style={styles.rightBox}>
+                      <View style={[styles.statusBadge, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.05)' }]}>
+                        <View style={[styles.statusDot, { backgroundColor: item.status === 'active' ? '#34D399' : '#94A3B8', width: 6, height: 6, borderRadius: 3, marginRight: 6 }]} />
+                        <Text style={[styles.statusText, { color: textColor }]}>
+                          {item.status === 'active' ? 'Aktif' : 'İade Edildi'}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                  <View style={styles.rightBox}>
-                    {item.status === 'active' ? (
-                      <View style={[styles.statusBadge, { backgroundColor: c.successContainer + '20', borderColor: c.success }]}>
-                        <Text style={[styles.statusText, { color: c.success }]}>Aktif</Text>
-                      </View>
-                    ) : (
-                      <View style={[styles.statusBadge, { backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(0,0,0,0.2)' }]}>
-                        <Text style={[styles.statusText, { color: c.textSecondary }]}>İade Edildi</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </GlassCard>
-            </Animated.View>
-          )}
+                </GlassCard>
+              </Animated.View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="bookmark-outline" size={48} color={c.textTertiary} />

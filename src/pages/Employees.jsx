@@ -10,7 +10,8 @@ import EmployeeForm from '../components/forms/EmployeeForm'
 import BulkDocumentGeneratorModal from '../components/BulkDocumentGeneratorModal'
 import { formatCurrency, getEmployeeStatusInfo } from '../utils/helpers'
 import { employeeService } from '../services'
-import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar, FileText } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Building2, AlertCircle, Calendar, FileText, UserCheck } from 'lucide-react'
+import CreatePersonnelUserModal from '../components/personnel/CreatePersonnelUserModal'
 
 const statusOptions = [
     { value: 'active', label: 'Aktif' },
@@ -30,6 +31,7 @@ export default function Employees() {
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
     const [departments, setDepartments] = useState([])
+    const [createLoginEmp, setCreateLoginEmp] = useState(null)
     const departmentOptions = departments
         .filter(d => d.status !== 'passive')
         .map(d => ({ value: d.name, label: d.name }))
@@ -427,6 +429,14 @@ export default function Employees() {
                     if (clearBulkSelectionFn) clearBulkSelectionFn()
                 }}
             />
+            {createLoginEmp && (
+                <CreatePersonnelUserModal 
+                    isOpen={!!createLoginEmp}
+                    employee={createLoginEmp}
+                    onClose={() => setCreateLoginEmp(null)}
+                    onSuccess={loadEmployees}
+                />
+            )}
         </div>
     )
 }
