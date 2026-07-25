@@ -16,6 +16,40 @@ const { startAdminServer, stopAdminServer } = require('./adminServer')
 
 app.setName('Kontrol')
 
+function migrateLegacyAppData() {
+    try {
+        const userDataPath = app.getPath('userData');
+        const appDataPath = app.getPath('appData');
+        const homeDir = app.getPath('home');
+
+        const targetLocalStorage = path.join(userDataPath, 'Local Storage');
+        if (!fs.existsSync(targetLocalStorage)) {
+            const legacyStorageDirs = [
+                path.join(appDataPath, 'AracTakip', 'Local Storage'),
+                path.join(appDataPath, 'muayen', 'Local Storage'),
+                path.join(appDataPath, 'kontrol-app', 'Local Storage'),
+                path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'Local Storage'),
+                path.join(homeDir, 'Library', 'Application Support', 'muayen', 'Local Storage'),
+                path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'Local Storage'),
+            ];
+
+            for (const legacyDir of legacyStorageDirs) {
+                if (fs.existsSync(legacyDir)) {
+                    log.info(`Migrating Chromium Local Storage: ${legacyDir} -> ${targetLocalStorage}`);
+                    if (fs.cpSync) {
+                        fs.cpSync(legacyDir, targetLocalStorage, { recursive: true });
+                    }
+                    break;
+                }
+            }
+        }
+    } catch (err) {
+        log.error('Failed to migrate Chromium Local Storage:', err);
+    }
+}
+
+migrateLegacyAppData()
+
 const store = new Store()
 
 let mainWindow
