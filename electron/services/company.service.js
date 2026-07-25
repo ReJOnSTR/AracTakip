@@ -3,26 +3,21 @@ const prisma = getPrismaClient();
 
 async function getCompanies(userId) {
     try {
-        if (!userId) {
-            return { success: false, error: 'Kullanıcı ID zorunludur' };
-        }
-
-        const user = await prisma.users.findUnique({
-            where: { id: parseInt(userId, 10) },
-            include: {
-                employee: true
-            }
-        });
-
-        if (!user) {
-            return { success: false, error: 'Kullanıcı bulunamadı' };
-        }
-
         let whereClause = {};
-        if (user.role === 'personnel' && user.employee && user.employee.company_id) {
-            whereClause = { id: parseInt(user.employee.company_id, 10) };
-        } else {
-            whereClause = {}; // Admin, Manager, User see all companies
+
+        if (userId) {
+            try {
+                const user = await prisma.users.findUnique({
+                    where: { id: parseInt(userId, 10) },
+                    include: { employee: true }
+                });
+
+                if (user && user.role === 'personnel' && user.employee && user.employee.company_id) {
+                    whereClause = { id: parseInt(user.employee.company_id, 10) };
+                }
+            } catch (e) {
+                console.error('getCompanies user lookup error:', e.message);
+            }
         }
 
         let companies = await prisma.companies.findMany({
@@ -30,20 +25,25 @@ async function getCompanies(userId) {
         });
 
         // Fallback: If no company found for specific filter, load all companies
-        if (companies.length === 0) {
+        if (!companies || companies.length === 0) {
             companies = await prisma.companies.findMany();
         }
 
         const collator = new Intl.Collator('tr');
         companies.sort((a, b) => collator.compare(a.name, b.name));
 
-        // Deep clone sanitization for IPC
         const sanitizedData = JSON.parse(JSON.stringify(companies));
 
         return { success: true, data: sanitizedData };
     } catch (error) {
         console.error('getCompanies error:', error);
-        return { success: false, error: 'Şirketler yüklenirken bir hata oluştu: ' + error.message };
+        try {
+            const allCompanies = await prisma.companies.findMany();
+            const sanitized = JSON.parse(JSON.stringify(allCompanies));
+            return { success: true, data: sanitized };
+        } catch (fallbackErr) {
+            return { success: false, error: 'Şirketler yüklenirken bir hata oluştu: ' + error.message };
+        }
     }
 }
 

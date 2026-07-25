@@ -2420,3 +2420,19 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
             }
 });
 
+app.on('will-quit', () => {
+    try {
+        const { getDbPath } = require('./prismaClient');
+        const Database = require('better-sqlite3');
+        const dbPath = getDbPath();
+        if (fs.existsSync(dbPath)) {
+            const db = new Database(dbPath);
+            db.pragma('wal_checkpoint(TRUNCATE)');
+            db.close();
+            log.info('FLUSHED WAL to main DB on exit');
+        }
+    } catch (e) {
+        log.error('WAL checkpoint on quit error:', e.message);
+    }
+});
+
