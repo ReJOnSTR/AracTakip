@@ -13,60 +13,58 @@ function getDbPath() {
     const dataDir = path.join(userDataPath, 'data');
     const targetDbPath = path.join(dataDir, 'aractakip.db');
 
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+
     const homeDir = app.getPath('home');
     const appDataPath = app.getPath('appData');
 
-    const legacyCandidates = [
-        path.join(appDataPath, 'AracTakip', 'data', 'aractakip.db'),
-        path.join(appDataPath, 'muayen', 'data', 'aractakip.db'),
-        path.join(appDataPath, 'kontrol-app', 'data', 'aractakip.db'),
-        path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'data', 'aractakip.db'),
-        path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data', 'aractakip.db'),
-        path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'data', 'aractakip.db'),
+    const candidateDirs = [
+        path.join(appDataPath, 'kontrol-app', 'data'),
+        path.join(appDataPath, 'Kontrol', 'data'),
+        path.join(appDataPath, 'AracTakip', 'data'),
+        path.join(appDataPath, 'muayen', 'data'),
+        path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'data'),
+        path.join(homeDir, 'Library', 'Application Support', 'Kontrol', 'data'),
+        path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'data'),
+        path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data'),
+        dataDir
     ];
 
-    let targetSize = 0;
-    if (fs.existsSync(targetDbPath)) {
-        try {
-            targetSize = fs.statSync(targetDbPath).size;
-        } catch (e) {
-            targetSize = 0;
+    let largestDbPath = null;
+    let maxDbSize = -1;
+
+    for (const dir of candidateDirs) {
+        const dbFile = path.join(dir, 'aractakip.db');
+        if (fs.existsSync(dbFile)) {
+            try {
+                const stat = fs.statSync(dbFile);
+                if (stat.size > maxDbSize) {
+                    maxDbSize = stat.size;
+                    largestDbPath = dbFile;
+                }
+            } catch (e) {
+                // ignore stat error
+            }
         }
     }
 
-    // If target DB doesn't exist OR is smaller than 20KB (empty bootstrap DB),
-    // copy the largest legacy database found if it exists!
-    if (!fs.existsSync(targetDbPath) || targetSize < 20000) {
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
+    if (largestDbPath && largestDbPath !== targetDbPath) {
+        let currentTargetSize = 0;
+        if (fs.existsSync(targetDbPath)) {
+            try { currentTargetSize = fs.statSync(targetDbPath).size; } catch(e){}
         }
 
-        let bestLegacyPath = null;
-        let maxLegacySize = targetSize;
-
-        for (const legacyDbPath of legacyCandidates) {
-            if (fs.existsSync(legacyDbPath)) {
-                try {
-                    const lSize = fs.statSync(legacyDbPath).size;
-                    if (lSize > maxLegacySize) {
-                        maxLegacySize = lSize;
-                        bestLegacyPath = legacyDbPath;
-                    }
-                } catch (e) {
-                    // ignore read error
-                }
-            }
-        }
-
-        if (bestLegacyPath) {
-            log.info(`Migrating database from legacy path (${maxLegacySize} bytes): ${bestLegacyPath} -> ${targetDbPath}`);
+        if (maxDbSize > currentTargetSize) {
+            log.info(`Migrating database to active location (${maxDbSize} bytes): ${largestDbPath} -> ${targetDbPath}`);
             try {
-                fs.copyFileSync(bestLegacyPath, targetDbPath);
-                if (fs.existsSync(bestLegacyPath + '-wal')) fs.copyFileSync(bestLegacyPath + '-wal', targetDbPath + '-wal');
-                if (fs.existsSync(bestLegacyPath + '-shm')) fs.copyFileSync(bestLegacyPath + '-shm', targetDbPath + '-shm');
-                return targetDbPath;
+                fs.copyFileSync(largestDbPath, targetDbPath);
+                if (fs.existsSync(largestDbPath + '-wal')) fs.copyFileSync(largestDbPath + '-wal', targetDbPath + '-wal');
+                if (fs.existsSync(largestDbPath + '-shm')) fs.copyFileSync(largestDbPath + '-shm', targetDbPath + '-shm');
             } catch (err) {
-                log.error(`Failed to copy legacy database from ${bestLegacyPath}:`, err.message);
+                log.error(`Failed to copy legacy database from ${largestDbPath}:`, err.message);
+                return largestDbPath;
             }
         }
     }
