@@ -13,14 +13,6 @@ function getDbPath() {
     const dataDir = path.join(userDataPath, 'data');
     const targetDbPath = path.join(dataDir, 'aractakip.db');
 
-    if (fs.existsSync(targetDbPath)) {
-        return targetDbPath;
-    }
-
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
-
     const homeDir = app.getPath('home');
     const appDataPath = app.getPath('appData');
 
@@ -28,23 +20,53 @@ function getDbPath() {
         path.join(appDataPath, 'AracTakip', 'data', 'aractakip.db'),
         path.join(appDataPath, 'muayen', 'data', 'aractakip.db'),
         path.join(appDataPath, 'kontrol-app', 'data', 'aractakip.db'),
-        path.join(appDataPath, 'Kontrol', 'data', 'aractakip.db'),
         path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'data', 'aractakip.db'),
         path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data', 'aractakip.db'),
         path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'data', 'aractakip.db'),
-        path.join(homeDir, 'Library', 'Application Support', 'Kontrol', 'data', 'aractakip.db'),
     ];
 
-    for (const legacyDbPath of legacyCandidates) {
-        if (fs.existsSync(legacyDbPath)) {
-            log.info(`Migrating database from legacy path: ${legacyDbPath} -> ${targetDbPath}`);
+    let targetSize = 0;
+    if (fs.existsSync(targetDbPath)) {
+        try {
+            targetSize = fs.statSync(targetDbPath).size;
+        } catch (e) {
+            targetSize = 0;
+        }
+    }
+
+    // If target DB doesn't exist OR is smaller than 20KB (empty bootstrap DB),
+    // copy the largest legacy database found if it exists!
+    if (!fs.existsSync(targetDbPath) || targetSize < 20000) {
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+
+        let bestLegacyPath = null;
+        let maxLegacySize = targetSize;
+
+        for (const legacyDbPath of legacyCandidates) {
+            if (fs.existsSync(legacyDbPath)) {
+                try {
+                    const lSize = fs.statSync(legacyDbPath).size;
+                    if (lSize > maxLegacySize) {
+                        maxLegacySize = lSize;
+                        bestLegacyPath = legacyDbPath;
+                    }
+                } catch (e) {
+                    // ignore read error
+                }
+            }
+        }
+
+        if (bestLegacyPath) {
+            log.info(`Migrating database from legacy path (${maxLegacySize} bytes): ${bestLegacyPath} -> ${targetDbPath}`);
             try {
-                fs.copyFileSync(legacyDbPath, targetDbPath);
-                if (fs.existsSync(legacyDbPath + '-wal')) fs.copyFileSync(legacyDbPath + '-wal', targetDbPath + '-wal');
-                if (fs.existsSync(legacyDbPath + '-shm')) fs.copyFileSync(legacyDbPath + '-shm', targetDbPath + '-shm');
+                fs.copyFileSync(bestLegacyPath, targetDbPath);
+                if (fs.existsSync(bestLegacyPath + '-wal')) fs.copyFileSync(bestLegacyPath + '-wal', targetDbPath + '-wal');
+                if (fs.existsSync(bestLegacyPath + '-shm')) fs.copyFileSync(bestLegacyPath + '-shm', targetDbPath + '-shm');
                 return targetDbPath;
             } catch (err) {
-                log.error(`Failed to copy legacy database from ${legacyDbPath}:`, err.message);
+                log.error(`Failed to copy legacy database from ${bestLegacyPath}:`, err.message);
             }
         }
     }
