@@ -8,64 +8,97 @@ const Database = require('better-sqlite3');
 
 let prisma = null;
 
+const MIGRATION_FLAG_FILE = 'db_migrated.flag';
+
+function hasValidData(dbPath) {
+    // Check if this SQLite file has at least one row in users or companies table.
+    try {
+        const rawDb = new Database(dbPath, { readonly: true });
+        try {
+            const row = rawDb.prepare('SELECT COUNT(*) as cnt FROM users').get();
+            if (row && row.cnt > 0) return true;
+        } catch(e) { /* table may not exist yet */ }
+        try {
+            const row = rawDb.prepare('SELECT COUNT(*) as cnt FROM companies').get();
+            if (row && row.cnt > 0) return true;
+        } catch(e) { /* table may not exist yet */ }
+        return false;
+    } catch(e) {
+        return false;
+    } finally {
+        try {
+            // Database instances from better-sqlite3 close themselves on GC, but explicit close is safer
+        } catch(e) {}
+    }
+}
+
 function getDbPath() {
     const userDataPath = app.getPath('userData');
     const dataDir = path.join(userDataPath, 'data');
     const targetDbPath = path.join(dataDir, 'aractakip.db');
+    const migrationFlagPath = path.join(dataDir, MIGRATION_FLAG_FILE);
 
     if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
     }
 
+    // ── CRITICAL: Once the active DB has real data, NEVER overwrite it. ──
+    // Check migration flag first (fast path), then validate DB content.
+    const alreadyMigrated = fs.existsSync(migrationFlagPath);
+    if (alreadyMigrated && fs.existsSync(targetDbPath)) {
+        log.info(`DB migration already done. Using active DB: ${targetDbPath}`);
+        return targetDbPath;
+    }
+
+    // If DB exists and has real user/company data, set the flag and stop.
+    if (fs.existsSync(targetDbPath) && hasValidData(targetDbPath)) {
+        log.info(`Active DB has valid data. Setting migration flag and skipping legacy import.`);
+        try { fs.writeFileSync(migrationFlagPath, new Date().toISOString()); } catch(e) {}
+        return targetDbPath;
+    }
+
+    // ── Only reach here on fresh install or genuinely empty DB ──
     const homeDir = app.getPath('home');
     const appDataPath = app.getPath('appData');
 
-    const candidateDirs = [
+    const legacyCandidateDirs = [
         path.join(appDataPath, 'kontrol-app', 'data'),
-        path.join(appDataPath, 'Kontrol', 'data'),
         path.join(appDataPath, 'AracTakip', 'data'),
         path.join(appDataPath, 'muayen', 'data'),
         path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'data'),
-        path.join(homeDir, 'Library', 'Application Support', 'Kontrol', 'data'),
         path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'data'),
         path.join(homeDir, 'Library', 'Application Support', 'muayen', 'data'),
-        dataDir
     ];
 
-    let largestDbPath = null;
-    let maxDbSize = -1;
+    let bestLegacyPath = null;
+    let maxLegacySize = 0;
 
-    for (const dir of candidateDirs) {
+    for (const dir of legacyCandidateDirs) {
         const dbFile = path.join(dir, 'aractakip.db');
+        // Skip if it IS the target file (different name/path check)
+        if (path.resolve(dbFile) === path.resolve(targetDbPath)) continue;
         if (fs.existsSync(dbFile)) {
             try {
                 const stat = fs.statSync(dbFile);
-                if (stat.size > maxDbSize) {
-                    maxDbSize = stat.size;
-                    largestDbPath = dbFile;
+                if (stat.size > maxLegacySize) {
+                    maxLegacySize = stat.size;
+                    bestLegacyPath = dbFile;
                 }
-            } catch (e) {
-                // ignore stat error
-            }
+            } catch(e) { /* ignore */ }
         }
     }
 
-    if (largestDbPath && largestDbPath !== targetDbPath) {
-        let currentTargetSize = 0;
-        if (fs.existsSync(targetDbPath)) {
-            try { currentTargetSize = fs.statSync(targetDbPath).size; } catch(e){}
-        }
-
-        if (maxDbSize > currentTargetSize) {
-            log.info(`Migrating database to active location (${maxDbSize} bytes): ${largestDbPath} -> ${targetDbPath}`);
-            try {
-                fs.copyFileSync(largestDbPath, targetDbPath);
-                if (fs.existsSync(largestDbPath + '-wal')) fs.copyFileSync(largestDbPath + '-wal', targetDbPath + '-wal');
-                if (fs.existsSync(largestDbPath + '-shm')) fs.copyFileSync(largestDbPath + '-shm', targetDbPath + '-shm');
-            } catch (err) {
-                log.error(`Failed to copy legacy database from ${largestDbPath}:`, err.message);
-                return largestDbPath;
-            }
+    if (bestLegacyPath) {
+        log.info(`Migrating legacy DB (${maxLegacySize} bytes) from: ${bestLegacyPath} -> ${targetDbPath}`);
+        try {
+            fs.copyFileSync(bestLegacyPath, targetDbPath);
+            if (fs.existsSync(bestLegacyPath + '-wal')) fs.copyFileSync(bestLegacyPath + '-wal', targetDbPath + '-wal');
+            if (fs.existsSync(bestLegacyPath + '-shm')) fs.copyFileSync(bestLegacyPath + '-shm', targetDbPath + '-shm');
+            // Set migration flag so we never do this again
+            try { fs.writeFileSync(migrationFlagPath, new Date().toISOString()); } catch(e) {}
+        } catch (err) {
+            log.error(`Failed to copy legacy database from ${bestLegacyPath}:`, err.message);
+            return bestLegacyPath; // Fall back to reading legacy path directly
         }
     }
 
