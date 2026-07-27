@@ -22,18 +22,20 @@ function migrateLegacyAppData() {
         const appDataPath = app.getPath('appData');
         const homeDir = app.getPath('home');
 
+        const legacyAppDirs = [
+            path.join(appDataPath, 'kontrol-app'),
+            path.join(appDataPath, 'AracTakip'),
+            path.join(appDataPath, 'muayen'),
+            path.join(homeDir, 'Library', 'Application Support', 'kontrol-app'),
+            path.join(homeDir, 'Library', 'Application Support', 'AracTakip'),
+            path.join(homeDir, 'Library', 'Application Support', 'muayen'),
+        ];
+
+        // 1. Migrate Chromium Local Storage
         const targetLocalStorage = path.join(userDataPath, 'Local Storage');
         if (!fs.existsSync(targetLocalStorage)) {
-            const legacyStorageDirs = [
-                path.join(appDataPath, 'AracTakip', 'Local Storage'),
-                path.join(appDataPath, 'muayen', 'Local Storage'),
-                path.join(appDataPath, 'kontrol-app', 'Local Storage'),
-                path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'Local Storage'),
-                path.join(homeDir, 'Library', 'Application Support', 'muayen', 'Local Storage'),
-                path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'Local Storage'),
-            ];
-
-            for (const legacyDir of legacyStorageDirs) {
+            for (const legacyAppDir of legacyAppDirs) {
+                const legacyDir = path.join(legacyAppDir, 'Local Storage');
                 if (fs.existsSync(legacyDir)) {
                     log.info(`Migrating Chromium Local Storage: ${legacyDir} -> ${targetLocalStorage}`);
                     if (fs.cpSync) {
@@ -43,8 +45,38 @@ function migrateLegacyAppData() {
                 }
             }
         }
+
+        // 2. Migrate uploaded files (PDFs, images, documents)
+        const targetFilesDir = path.join(userDataPath, 'files');
+        if (!fs.existsSync(targetFilesDir) || fs.readdirSync(targetFilesDir).length === 0) {
+            for (const legacyAppDir of legacyAppDirs) {
+                const legacyFilesDir = path.join(legacyAppDir, 'files');
+                if (path.resolve(legacyFilesDir) === path.resolve(targetFilesDir)) continue;
+                if (fs.existsSync(legacyFilesDir)) {
+                    const files = fs.readdirSync(legacyFilesDir);
+                    if (files.length > 0) {
+                        log.info(`Migrating ${files.length} uploaded files: ${legacyFilesDir} -> ${targetFilesDir}`);
+                        if (!fs.existsSync(targetFilesDir)) {
+                            fs.mkdirSync(targetFilesDir, { recursive: true });
+                        }
+                        for (const file of files) {
+                            const src = path.join(legacyFilesDir, file);
+                            const dest = path.join(targetFilesDir, file);
+                            if (!fs.existsSync(dest)) {
+                                try {
+                                    fs.copyFileSync(src, dest);
+                                } catch (e) {
+                                    log.warn(`Failed to copy file ${file}: ${e.message}`);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     } catch (err) {
-        log.error('Failed to migrate Chromium Local Storage:', err);
+        log.error('Failed to migrate legacy app data:', err);
     }
 }
 
@@ -1833,9 +1865,26 @@ ipcMain.handle('files:save', async (event, sourcePath) => {
 ipcMain.handle('files:open', async (event, fileName) => {
     if (!fileName) return
     const userDataPath = app.getPath('userData')
-    const filePath = path.join(userDataPath, 'files', fileName)
-    if (fs.existsSync(filePath)) {
-        await shell.openPath(filePath)
+    const appDataPath = app.getPath('appData')
+    const homeDir = app.getPath('home')
+    const baseName = path.basename(fileName)
+
+    const searchDirs = [
+        path.join(userDataPath, 'files'),
+        path.join(appDataPath, 'kontrol-app', 'files'),
+        path.join(appDataPath, 'AracTakip', 'files'),
+        path.join(appDataPath, 'muayen', 'files'),
+        path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'files'),
+        path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'files'),
+        path.join(homeDir, 'Library', 'Application Support', 'muayen', 'files'),
+    ]
+
+    for (const dir of searchDirs) {
+        const candidate = path.join(dir, baseName)
+        if (fs.existsSync(candidate)) {
+            await shell.openPath(candidate)
+            return
+        }
     }
 })
 
@@ -1987,24 +2036,34 @@ ipcMain.handle('documents:delete', async (event, id) => {
 ipcMain.handle('documents:open', async (event, fileName) => {
     if (!fileName) return 'No filename provided'
     const userDataPath = app.getPath('userData')
-    let filePath = fileName
-    if (fs.existsSync(filePath)) {
-        const error = await shell.openPath(filePath)
-        return error
+    const appDataPath = app.getPath('appData')
+    const homeDir = app.getPath('home')
+    const baseName = path.basename(fileName)
+
+    // 1. Try absolute path as-is
+    if (path.isAbsolute(fileName) && fs.existsSync(fileName)) {
+        return await shell.openPath(fileName)
     }
-    if (!path.isAbsolute(fileName)) {
-        filePath = path.join(userDataPath, 'files', fileName)
+
+    // 2. Build candidate paths: current userData + all legacy app dirs
+    const searchDirs = [
+        path.join(userDataPath, 'files'),
+        path.join(appDataPath, 'kontrol-app', 'files'),
+        path.join(appDataPath, 'AracTakip', 'files'),
+        path.join(appDataPath, 'muayen', 'files'),
+        path.join(homeDir, 'Library', 'Application Support', 'kontrol-app', 'files'),
+        path.join(homeDir, 'Library', 'Application Support', 'AracTakip', 'files'),
+        path.join(homeDir, 'Library', 'Application Support', 'muayen', 'files'),
+    ]
+
+    for (const dir of searchDirs) {
+        const candidate = path.join(dir, baseName)
+        if (fs.existsSync(candidate)) {
+            return await shell.openPath(candidate)
+        }
     }
-    if (fs.existsSync(filePath)) {
-        const error = await shell.openPath(filePath)
-        return error
-    }
-    const fallbackPath = path.join(userDataPath, 'files', path.basename(fileName))
-    if (fs.existsSync(fallbackPath)) {
-        const error = await shell.openPath(fallbackPath)
-        return error
-    }
-    return 'File not found at: ' + filePath
+
+    return 'File not found: ' + baseName
 })
 
 ipcMain.handle('documents:openTempData', async (event, base64Data, fileName) => {
