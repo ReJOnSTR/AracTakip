@@ -242,7 +242,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             const baseMonthlyTotal = baseMonthlyDays * dailyRate;
 
             summaryLines.push({
-                typeLabel: customRateDaysCount > 0 ? 'AYLIK (Standart)' : 'AYLIK',
+                typeLabel: 'AYLIK',
                 countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : '1 AY (26 Gün)',
                 unitPrice: dailyRate,
                 totalPrice: baseMonthlyTotal
