@@ -170,139 +170,144 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         // Sort items by date ASC
         group.items.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Group summary lines by rate type + price
-        const summaryLinesMap = {};
-        const primaryGunPrice = group.items.find(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0)?.unitPriceVal || 0;
+        // Check if any item in group is Aylik
+        const isAylikGroup = group.items.some(i => i.isAylik);
 
-        const uniqueGunPrices = new Set(group.items.filter(i => !i.isPazar && !i.isSaatlik && !i.isAylik && i.unitPriceVal > 0).map(i => i.unitPriceVal));
-        const hasMultipleGunPrices = uniqueGunPrices.size > 1;
+        // Find primary positive price
+        const positivePriceItem = group.items.find(i => i.unitPriceVal > 0);
+        const rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0;
+
+        let dailyRate = rawPrimaryPrice;
+        let monthlyAmount = rawPrimaryPrice;
+
+        if (isAylikGroup && rawPrimaryPrice > 0) {
+            if (rawPrimaryPrice > 10000) {
+                dailyRate = rawPrimaryPrice / 26;
+                monthlyAmount = rawPrimaryPrice;
+            } else {
+                dailyRate = rawPrimaryPrice;
+                monthlyAmount = rawPrimaryPrice * 26;
+            }
+        }
+
+        // Calculate counts
+        let totalPazarCount = 0;
+        let totalSaatlikCount = 0;
+        let totalGunCount = 0;
+        let totalMesaiCount = 0;
+        const additionsMap = {};
 
         group.items.forEach(item => {
-            const gunSayisi = Number(item.hours) || 0;
-            const mesaiSayisi = Number(item.overtime_hours) || 0;
+            const hrs = Number(item.hours) || 0;
+            const mesaiHrs = Number(item.overtime_hours) || 0;
             const travelPrice = Number(item.travel_price) || 0;
-            const unitPrice = item.unitPriceVal || 0;
 
-            if (item.isAylik) {
-                const subKey = `aylik_${unitPrice}`;
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: 'AYLIK',
-                        countText: '1 AY',
-                        unitPrice: unitPrice > 0 ? unitPrice : primaryGunPrice * 26,
-                        totalPrice: unitPrice > 0 ? unitPrice : primaryGunPrice * 26
-                    };
-                }
-            } else if (item.isPazar) {
-                let pazarPrice = 0;
-                const hasExplicitKatsayi = (item.description || '').includes('[KATSAYI:');
-                if (hasExplicitKatsayi && unitPrice > 0) {
-                    pazarPrice = unitPrice;
-                } else {
-                    const effectiveBasePrice = unitPrice > 0 ? unitPrice : primaryGunPrice;
-                    const dailyRate = (item.isAylik && effectiveBasePrice > 10000) ? effectiveBasePrice / 26 : effectiveBasePrice;
-                    pazarPrice = dailyRate * pazarMultiplier;
-                }
-                const subKey = `pazar_${pazarPrice}`;
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: 'PAZAR',
-                        count: 0,
-                        unit: 'GÜN',
-                        unitPrice: pazarPrice,
-                        totalPrice: 0
-                    };
-                }
-                summaryLinesMap[subKey].count += gunSayisi;
-                summaryLinesMap[subKey].totalPrice += gunSayisi * pazarPrice;
+            if (item.isPazar) {
+                totalPazarCount += hrs;
             } else if (item.isSaatlik) {
-                const subKey = `saatlik_${unitPrice}`;
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: 'SAAT',
-                        count: 0,
-                        unit: 'SAAT',
-                        unitPrice: unitPrice,
-                        totalPrice: 0
-                    };
-                }
-                summaryLinesMap[subKey].count += gunSayisi;
-                summaryLinesMap[subKey].totalPrice += gunSayisi * unitPrice;
-            } else {
-                // Regular Gün
-                const subKey = `gun_${unitPrice}`;
-                const typeLabel = hasMultipleGunPrices && unitPrice > 0 ? `GÜN (${formatCurrency(unitPrice)})` : 'GÜN';
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: typeLabel,
-                        count: 0,
-                        unit: 'GÜN',
-                        unitPrice: unitPrice,
-                        totalPrice: 0
-                    };
-                }
-                summaryLinesMap[subKey].count += gunSayisi;
-                summaryLinesMap[subKey].totalPrice += gunSayisi * unitPrice;
+                totalSaatlikCount += hrs;
+            } else if (!isAylikGroup) {
+                totalGunCount += hrs;
             }
 
-            // Mesai
-            if (mesaiSayisi > 0) {
-                let mesaiPrice = unitPrice > 0 ? (item.isSaatlik ? unitPrice : unitPrice / 9) * mesaiMultiplier : 0;
-                if (!mesaiPrice && primaryGunPrice > 0) mesaiPrice = (primaryGunPrice / 9) * mesaiMultiplier;
-                mesaiPrice = parseFloat(mesaiPrice.toFixed(2));
-                const subKey = `mesai_${mesaiPrice}`;
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: 'MESAİ',
-                        count: 0,
-                        unit: 'SAAT',
-                        unitPrice: mesaiPrice,
-                        totalPrice: 0
-                    };
-                }
-                summaryLinesMap[subKey].count += mesaiSayisi;
-                summaryLinesMap[subKey].totalPrice += mesaiSayisi * mesaiPrice;
+            if (mesaiHrs > 0) {
+                totalMesaiCount += mesaiHrs;
             }
 
-            // Custom Additions
+            // Custom additions
             const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g);
             let hasAddition = false;
             for (const match of additionMatches) {
                 hasAddition = true;
                 const type = match[1];
                 const price = parseFloat(match[2]) || 0;
-                const subKey = `addition_${type}_${price}`;
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: type.toUpperCase(),
-                        count: 0,
-                        unit: 'ADET',
-                        unitPrice: price,
-                        totalPrice: 0
-                    };
-                }
-                summaryLinesMap[subKey].count += 1;
-                summaryLinesMap[subKey].totalPrice += price;
+                if (!additionsMap[type]) additionsMap[type] = { count: 0, price };
+                additionsMap[type].count += 1;
             }
-
             if (!hasAddition && travelPrice > 0) {
-                const subKey = `addition_Yol_${travelPrice}`;
-                if (!summaryLinesMap[subKey]) {
-                    summaryLinesMap[subKey] = {
-                        typeLabel: 'YOL',
-                        count: 0,
-                        unit: 'ADET',
-                        unitPrice: travelPrice,
-                        totalPrice: 0
-                    };
-                }
-                summaryLinesMap[subKey].count += 1;
-                summaryLinesMap[subKey].totalPrice += travelPrice;
+                if (!additionsMap['Yol']) additionsMap['Yol'] = { count: 0, price: travelPrice };
+                additionsMap['Yol'].count += 1;
             }
         });
 
-        const summaryLines = Object.values(summaryLinesMap);
-        const groupGrandTotal = summaryLines.reduce((sum, line) => sum + (line.totalPrice || 0), 0);
+        // Construct Summary Lines Array for PDF Table
+        const summaryLines = [];
+
+        // 1. AY or GÜN Line
+        if (isAylikGroup) {
+            summaryLines.push({
+                typeLabel: 'AYLIK',
+                countText: '1 AY (26 Gün)',
+                unitPrice: dailyRate,
+                totalPrice: monthlyAmount
+            });
+        } else if (totalGunCount > 0) {
+            const uniqueGunPrices = new Set(group.items.filter(i => !i.isPazar && !i.isSaatlik && !i.isAylik && i.unitPriceVal > 0).map(i => i.unitPriceVal));
+            if (uniqueGunPrices.size > 1) {
+                uniqueGunPrices.forEach(uPrice => {
+                    const c = group.items.filter(i => !i.isPazar && !i.isSaatlik && !i.isAylik && i.unitPriceVal === uPrice).reduce((s, i) => s + (Number(i.hours) || 0), 0);
+                    summaryLines.push({
+                        typeLabel: `GÜN (${formatCurrency(uPrice)})`,
+                        countText: `${c} GÜN`,
+                        unitPrice: uPrice,
+                        totalPrice: c * uPrice
+                    });
+                });
+            } else {
+                summaryLines.push({
+                    typeLabel: 'GÜN',
+                    countText: `${totalGunCount} GÜN`,
+                    unitPrice: dailyRate,
+                    totalPrice: totalGunCount * dailyRate
+                });
+            }
+        }
+
+        // 2. PAZAR Line
+        if (totalPazarCount > 0) {
+            const pazarPrice = dailyRate > 0 ? dailyRate * pazarMultiplier : 0;
+            summaryLines.push({
+                typeLabel: 'PAZAR',
+                countText: `${totalPazarCount} GÜN`,
+                unitPrice: pazarPrice,
+                totalPrice: totalPazarCount * pazarPrice
+            });
+        }
+
+        // 3. SAAT Line
+        if (totalSaatlikCount > 0) {
+            const saatlikPrice = group.items.find(i => i.isSaatlik && i.unitPriceVal > 0)?.unitPriceVal || 0;
+            summaryLines.push({
+                typeLabel: 'SAAT',
+                countText: `${totalSaatlikCount} SAAT`,
+                unitPrice: saatlikPrice,
+                totalPrice: totalSaatlikCount * saatlikPrice
+            });
+        }
+
+        // 4. MESAİ Line
+        if (totalMesaiCount > 0) {
+            const hourlyRate = dailyRate > 0 ? dailyRate / 9 : 0;
+            const mesaiPrice = parseFloat((hourlyRate * mesaiMultiplier).toFixed(2));
+            summaryLines.push({
+                typeLabel: 'MESAİ',
+                countText: `${totalMesaiCount} SAAT`,
+                unitPrice: mesaiPrice,
+                totalPrice: totalMesaiCount * mesaiPrice
+            });
+        }
+
+        // 5. EK ÖDEMELER Lines
+        Object.entries(additionsMap).forEach(([type, data]) => {
+            summaryLines.push({
+                typeLabel: type.toUpperCase(),
+                countText: `${data.count} ADET`,
+                unitPrice: data.price,
+                totalPrice: data.count * data.price
+            });
+        });
+
+        const groupGrandTotal = summaryLines.reduce((sum, l) => sum + (l.totalPrice || 0), 0);
         grandTotalPrice += groupGrandTotal;
 
         return {

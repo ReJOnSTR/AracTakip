@@ -204,19 +204,21 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
         )?.unit_price || 0
 
+        const dailyRate = (group.isAylik && sampleGunPrice > 10000) ? sampleGunPrice / 26 : sampleGunPrice;
+        const monthlyAmount = group.isAylik ? (sampleGunPrice > 10000 ? sampleGunPrice : sampleGunPrice * 26) : 0;
+
         let samplePazarPrice = 0
         const pazarItemWithExplicitKatsayi = group.items.find(i => i.isPazar && (i._normalizedDesc || '').includes('[KATSAYI:'))
         if (pazarItemWithExplicitKatsayi && Number(pazarItemWithExplicitKatsayi.unit_price) > 0) {
             samplePazarPrice = Number(pazarItemWithExplicitKatsayi.unit_price)
-        } else if (sampleGunPrice > 0) {
-            const dailyRate = group.isAylik && sampleGunPrice > 10000 ? sampleGunPrice / 26 : sampleGunPrice
+        } else if (dailyRate > 0) {
             samplePazarPrice = dailyRate * parsedPazarMultiplier
         } else {
             const fallbackPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
             samplePazarPrice = fallbackPrice > 0 ? fallbackPrice * parsedPazarMultiplier : 0
         }
 
-        const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
+        const cg = group.isAylik ? monthlyAmount : (group.totalGun * dailyRate)
         const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice
         const pazarTutar = group.totalPazar * samplePazarPrice
 
@@ -225,8 +227,8 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             let baseHourlyRateForMesai = 0
             if (group.isSaatlik && sampleSaatlikPrice > 0) {
                 baseHourlyRateForMesai = sampleSaatlikPrice
-            } else if (sampleGunPrice > 0) {
-                baseHourlyRateForMesai = sampleGunPrice / 9
+            } else if (dailyRate > 0) {
+                baseHourlyRateForMesai = dailyRate / 9
             }
             mesaiTutar = group.totalMesai * baseHourlyRateForMesai * parsedMesaiMultiplier
         }
