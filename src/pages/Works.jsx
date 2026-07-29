@@ -213,8 +213,28 @@ export default function Works() {
         },
         {
             key: 'total_days',
-            label: 'Toplam Gün',
-            render: (v) => v ? `${v} Gün` : '-'
+            label: 'Toplam Süre',
+            render: (v, row) => {
+                if (row.duration_text) return row.duration_text;
+                const items = row.work_items || [];
+                if (items.length > 0) {
+                    let gunCount = 0;
+                    let saatCount = 0;
+                    items.forEach(item => {
+                        const isH = (item.description || '').toUpperCase().includes('[SAATLİK]') || item.pricingType === 'hourly';
+                        const h = Number(item.hours) || 0;
+                        if (isH) saatCount += h;
+                        else gunCount += h;
+                    });
+                    if (gunCount > 0 && saatCount > 0) return `${gunCount} Gün + ${saatCount} Saat`;
+                    if (saatCount > 0) return `${saatCount} Saat`;
+                    if (gunCount > 0) return `${gunCount} Gün`;
+                }
+                const isHourly = row.is_hourly;
+                const displayVal = row.total_hours || v || 0;
+                if (!displayVal) return '-';
+                return `${displayVal} ${isHourly ? 'Saat' : 'Gün'}`;
+            }
         },
         {
             key: 'total_price',

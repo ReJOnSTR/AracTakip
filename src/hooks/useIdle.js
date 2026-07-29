@@ -1,29 +1,69 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 export function useIdle(timeout = 300000) { // Default 5 minutes
     const [isIdle, setIsIdle] = useState(false)
+    const lastActivityRef = useRef(Date.now())
+    const timerRef = useRef(null)
 
-    useEffect(() => {
-        let timer
-
-        const resetTimer = () => {
-            setIsIdle(false)
-            clearTimeout(timer)
-            timer = setTimeout(() => {
-                setIsIdle(true)
-            }, timeout)
+    const resetIdle = useCallback(() => {
+        lastActivityRef.current = Date.now()
+        setIsIdle(false)
+        if (timerRef.current) {
+            clearTimeout(timerRef.current)
         }
-
-        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
-        events.forEach(event => window.addEventListener(event, resetTimer))
-
-        resetTimer()
-
-        return () => {
-            clearTimeout(timer)
-            events.forEach(event => window.removeEventListener(event, resetTimer))
-        }
+        timerRef.current = setTimeout(() => {
+            setIsIdle(true)
+        }, timeout)
     }, [timeout])
 
-    return isIdle
+    useEffect(() => {
+        const checkActivity = () => {
+            const now = Date.now()
+            if (now - lastActivityRef.current >= timeout) {
+                setIsIdle(true)
+            } else {
+                resetIdle()
+            }
+        }
+
+        const handleUserActivity = () => {
+            resetIdle()
+        }
+
+        const handleVisibilityOrFocus = () => {
+            if (document.visibilityState === 'visible') {
+                checkActivity()
+            }
+        }
+
+        const events = [
+            'keydown',
+            'pointerdown',
+            'mousedown',
+            'mousemove',
+            'touchstart',
+            'touchmove',
+            'scroll',
+            'wheel',
+            'click'
+        ]
+
+        events.forEach(event => window.addEventListener(event, handleUserActivity, { passive: true }))
+        window.addEventListener('focus', handleVisibilityOrFocus)
+        document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+
+        resetIdle()
+
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current)
+            }
+            events.forEach(event => window.removeEventListener(event, handleUserActivity))
+            window.removeEventListener('focus', handleVisibilityOrFocus)
+            document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
+        }
+    }, [timeout, resetIdle])
+
+    return { isIdle, resetIdle }
 }
+

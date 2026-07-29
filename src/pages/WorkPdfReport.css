@@ -128,10 +128,27 @@
     color: #000;
 }
 
-.pdf-row-pazar td {
+.pdf-row-pazar td,
+.pdf-row-red td {
     background-color: #fcebeb !important; 
     color: #000;
     font-weight: 400;
+}
+.pdf-row-orange td {
+    background-color: #fef3c7 !important; 
+    color: #000;
+}
+.pdf-row-blue td {
+    background-color: #eff6ff !important; 
+    color: #000;
+}
+.pdf-row-green td {
+    background-color: #ecfdf5 !important; 
+    color: #000;
+}
+.pdf-row-purple td {
+    background-color: #f5f3ff !important; 
+    color: #000;
 }
 
 /* Summary Block */

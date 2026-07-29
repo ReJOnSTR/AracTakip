@@ -9,7 +9,13 @@ export default function LockScreen({ isLocked, onUnlock }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
-    const lockSettings = JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
+    const getLockSettings = () => {
+        try {
+            return JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
+        } catch {
+            return { enabled: false, timeout: 5, useCustomPassword: false, customPassword: "" }
+        }
+    }
 
     const inputRef = useRef(null)
 
@@ -56,8 +62,9 @@ export default function LockScreen({ isLocked, onUnlock }) {
         setError('')
         
         try {
-            if (lockSettings.useCustomPassword && lockSettings.customPassword) {
-                if (password === lockSettings.customPassword) {
+            const currentLockSettings = getLockSettings()
+            if (currentLockSettings.useCustomPassword && currentLockSettings.customPassword) {
+                if (password === currentLockSettings.customPassword) {
                     onUnlock()
                     setPassword('')
                 } else {
@@ -65,7 +72,12 @@ export default function LockScreen({ isLocked, onUnlock }) {
                 }
             } else {
                 // Use login password
-                const result = await authService.login({ email: user.email, password })
+                const identifier = user?.username || user?.email || ''
+                const result = await authService.login({
+                    username: identifier,
+                    email: user?.email || identifier,
+                    password
+                })
                 if (result.success) {
                     onUnlock()
                     setPassword('')

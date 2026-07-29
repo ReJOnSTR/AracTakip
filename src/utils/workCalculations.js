@@ -39,6 +39,8 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     let totalHours = 0
     let totalOvertime = 0
     let totalPazarDayCount = 0
+    let totalGunCount = 0
+    let totalSaatCount = 0
     let grandTotal = 0
 
     const uniqueVehicles = new Set()
@@ -115,8 +117,8 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
         const { unitPriceVal, cleanDesc } = resolveItemEffectiveInfo(item)
         const descUpper = (item._normalizedDesc || '').toUpperCase()
-        const isSaatlik = descUpper.includes('[SAATLİK]')
-        const isAylik = descUpper.includes('[AYLIK]')
+        const isSaatlik = descUpper.includes('[SAATLİK]') || item.pricingType === 'hourly'
+        const isAylik = descUpper.includes('[AYLIK]') || item.pricingType === 'monthly'
         const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun')
         const key = `${vehicleBaseKey}_${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`
 
@@ -143,6 +145,11 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         if (isAylik) groupedItems[key].isAylik = true
 
         totalHours += gunSayisi
+        if (isSaatlik) {
+            totalSaatCount += gunSayisi
+        } else {
+            totalGunCount += gunSayisi
+        }
 
         // Parse custom additions from description [EK:Type:Price]
         const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g)
@@ -198,19 +205,24 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         )?.unit_price || 0
 
         let samplePazarPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
-        if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
+        if (!samplePazarPrice && sampleGunPrice > 0) {
             samplePazarPrice = sampleGunPrice * parsedPazarMultiplier
         }
 
-        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0 && Number(i.unit_price) > 0)?.unit_price || 0
-        if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * parsedMesaiMultiplier).toFixed(2))
-        }
-
         const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)
-        const mesaiTutar = group.totalMesai * sampleMesaiPrice
-        const pazarTutar = group.totalPazar * samplePazarPrice
         const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice
+        const pazarTutar = group.totalPazar * samplePazarPrice
+
+        let mesaiTutar = 0
+        if (group.totalMesai > 0) {
+            let baseHourlyRateForMesai = 0
+            if (group.isSaatlik && sampleSaatlikPrice > 0) {
+                baseHourlyRateForMesai = sampleSaatlikPrice
+            } else if (sampleGunPrice > 0) {
+                baseHourlyRateForMesai = sampleGunPrice / 9
+            }
+            mesaiTutar = group.totalMesai * baseHourlyRateForMesai * parsedMesaiMultiplier
+        }
 
         // Ek ödemeler (additions: Yol, EK:xxx vb.)
         let additionsTutar = 0
@@ -229,8 +241,20 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         grandTotal += cg + pazarTutar + saatlikTutar + mesaiTutar + additionsTutar
     })
 
+    let durationText = '0 Gün'
+    if (totalGunCount > 0 && totalSaatCount > 0) {
+        durationText = `${totalGunCount} Gün + ${totalSaatCount} Saat`
+    } else if (totalSaatCount > 0) {
+        durationText = `${totalSaatCount} Saat`
+    } else {
+        durationText = `${totalGunCount} Gün`
+    }
+
     return {
         totalHours,
+        totalGunCount,
+        totalSaatCount,
+        durationText,
         totalOvertime,
         totalPazarDayCount,
         totalEkOdemeler,

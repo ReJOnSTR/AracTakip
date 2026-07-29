@@ -104,6 +104,7 @@ export default function Settings() {
         const newLockSettings = { ...lockSettings, [key]: value }
         setLockSettings(newLockSettings)
         localStorage.setItem('aractakip_lock_settings', JSON.stringify(newLockSettings))
+        window.dispatchEvent(new CustomEvent('aractakip_lock_settings_changed', { detail: newLockSettings }))
     }
 
     const toggleNotification = async (key) => {

@@ -375,11 +375,26 @@ export default function DataTable({
         })
     }, [data, activeFilters, dateRange, showDateFilter, dateFilterKey])
 
+    // Helper to normalize Turkish text for search comparison
+    const normalizeSearchString = (str) => {
+        if (!str) return ''
+        return String(str)
+            .toLocaleLowerCase('tr-TR')
+            .replace(/ı/g, 'i')
+            .replace(/ğ/g, 'g')
+            .replace(/ü/g, 'u')
+            .replace(/ş/g, 's')
+            .replace(/ö/g, 'o')
+            .replace(/ç/g, 'c')
+            .replace(/\s/g, '')
+    }
+
     // Filter by search
     const filteredData = useMemo(() => {
         if (!debouncedSearchQuery.trim()) return customFilteredData
 
-        const query = debouncedSearchQuery.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+        const queryRaw = debouncedSearchQuery.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+        const queryNorm = normalizeSearchString(debouncedSearchQuery)
         
         return customFilteredData.filter(row => {
             // Collect all searchable content for this row
@@ -404,9 +419,26 @@ export default function DataTable({
                 if (val !== null && val !== undefined) searchValues.push(String(val))
             })
 
-            // Join all and normalize for search
-            const rowContent = searchValues.join(' ').toLocaleLowerCase('tr-TR').replace(/\s/g, '')
-            return rowContent.includes(query)
+            // 3. Fallback: Include common descriptive fields (machine/personnel/customer)
+            const commonKeys = [
+                'plate', 'custom_vehicle', 'vehicle_name', 'brand', 'model',
+                'employee_name', 'employee_surname', 'employee_full_name', 'custom_employee',
+                'first_name', 'last_name', 'full_name',
+                'customer_name', 'customer', 'receipt_no', 'title', 'description'
+            ]
+            commonKeys.forEach(key => {
+                const val = row[key]
+                if (val !== null && val !== undefined) {
+                    searchValues.push(String(val))
+                }
+            })
+
+            // Join all and check both exact Turkish lowercase & character-normalized match
+            const joinedText = searchValues.join(' ')
+            const rowRaw = joinedText.toLocaleLowerCase('tr-TR').replace(/\s/g, '')
+            const rowNorm = normalizeSearchString(joinedText)
+
+            return rowRaw.includes(queryRaw) || rowNorm.includes(queryNorm)
         })
     }, [customFilteredData, debouncedSearchQuery, visibleColumnsList, searchKeys])
 

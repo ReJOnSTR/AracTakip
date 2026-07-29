@@ -32,14 +32,20 @@ async function getWorks(companyId, isArchived = 0) {
             // Use shared calculation (same as PDF report)
             const stats = calculateWorkStats(w.work_items, w.pazar_multiplier ?? 1.5, w.mesai_multiplier ?? 1.5);
 
+            const isHourly = w.work_items.some(i => (i.description || '').toUpperCase().includes('[SAATLİK]'));
+
             return {
                 ...w,
                 customer_name: w.customers?.name || w.customer,
                 start_date: dynamicStart,
                 end_date: dynamicEnd,
-                total_days: uniqueDays > 0 ? uniqueDays : 0,
+                total_days: stats.totalHours > 0 ? stats.totalHours : (uniqueDays > 0 ? uniqueDays : 0),
                 item_count: w.work_items.length,
                 total_hours: stats.totalHours,
+                total_gun_count: stats.totalGunCount,
+                total_saat_count: stats.totalSaatCount,
+                duration_text: stats.durationText,
+                is_hourly: isHourly,
                 total_price: stats.grandTotal
             };
         })

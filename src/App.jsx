@@ -209,25 +209,53 @@ function App() {
     const isPrintRoute = location.pathname === '/print' || location.pathname === '/print-document' || location.pathname.startsWith('/work-report')
 
     const [lockSettings, setLockSettings] = useState(() => {
-        return JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
+        try {
+            return JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false,"timeout":5,"useCustomPassword":false,"customPassword":""}')
+        } catch {
+            return { enabled: false, timeout: 5, useCustomPassword: false, customPassword: "" }
+        }
     })
 
     useEffect(() => {
         const handleStorage = (e) => {
             if (e.key === 'aractakip_lock_settings') {
-                setLockSettings(JSON.parse(e.newValue || '{}'))
+                try {
+                    setLockSettings(JSON.parse(e.newValue || '{}'))
+                } catch (err) {
+                    console.error('Lock settings storage parse error:', err)
+                }
             }
         }
+        const handleCustomEvent = (e) => {
+            if (e.detail) {
+                setLockSettings(e.detail)
+            } else {
+                try {
+                    setLockSettings(JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{}'))
+                } catch (err) {
+                    console.error('Lock settings custom event parse error:', err)
+                }
+            }
+        }
+
         window.addEventListener('storage', handleStorage)
-        return () => window.removeEventListener('storage', handleStorage)
+        window.addEventListener('aractakip_lock_settings_changed', handleCustomEvent)
+        return () => {
+            window.removeEventListener('storage', handleStorage)
+            window.removeEventListener('aractakip_lock_settings_changed', handleCustomEvent)
+        }
     }, [])
     
-    const isIdle = useIdle(lockSettings.enabled ? lockSettings.timeout * 60000 : 999999999) 
+    const { isIdle, resetIdle } = useIdle(lockSettings.enabled ? lockSettings.timeout * 60000 : 999999999) 
     
     const [isLocked, setIsLocked] = useState(() => {
-        const settings = JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false}')
-        if (!settings.enabled) return false
-        return localStorage.getItem('aractakip_locked') === 'true'
+        try {
+            const settings = JSON.parse(localStorage.getItem('aractakip_lock_settings') || '{"enabled":false}')
+            if (!settings.enabled) return false
+            return localStorage.getItem('aractakip_locked') === 'true'
+        } catch {
+            return false
+        }
     })
 
     useEffect(() => {
@@ -269,16 +297,17 @@ function App() {
         }
     }, [isIdle, user, lockSettings.enabled, isPrintRoute])
 
+    const handleUnlock = () => {
+        setIsLocked(false)
+        localStorage.removeItem('aractakip_locked')
+        resetIdle()
+    }
+
     useEffect(() => {
         if (!lockSettings.enabled && isLocked) {
             handleUnlock()
         }
     }, [lockSettings.enabled, isLocked])
-
-    const handleUnlock = () => {
-        setIsLocked(false)
-        localStorage.removeItem('aractakip_locked')
-    }
 
     return (
         <ErrorBoundary>

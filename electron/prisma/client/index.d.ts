@@ -35454,6 +35454,7 @@ export namespace Prisma {
     unit_price: number | null
     travel_price: number | null
     total_price: number | null
+    custom_multiplier: number | null
     is_archived: number | null
   }
 
@@ -35467,6 +35468,7 @@ export namespace Prisma {
     unit_price: number | null
     travel_price: number | null
     total_price: number | null
+    custom_multiplier: number | null
     is_archived: number | null
   }
 
@@ -35487,6 +35489,8 @@ export namespace Prisma {
     travel_price: number | null
     total_price: number | null
     description: string | null
+    custom_multiplier: number | null
+    color_code: string | null
     created_at: Date | null
     is_archived: number | null
   }
@@ -35508,6 +35512,8 @@ export namespace Prisma {
     travel_price: number | null
     total_price: number | null
     description: string | null
+    custom_multiplier: number | null
+    color_code: string | null
     created_at: Date | null
     is_archived: number | null
   }
@@ -35529,6 +35535,8 @@ export namespace Prisma {
     travel_price: number
     total_price: number
     description: number
+    custom_multiplier: number
+    color_code: number
     created_at: number
     is_archived: number
     _all: number
@@ -35545,6 +35553,7 @@ export namespace Prisma {
     unit_price?: true
     travel_price?: true
     total_price?: true
+    custom_multiplier?: true
     is_archived?: true
   }
 
@@ -35558,6 +35567,7 @@ export namespace Prisma {
     unit_price?: true
     travel_price?: true
     total_price?: true
+    custom_multiplier?: true
     is_archived?: true
   }
 
@@ -35578,6 +35588,8 @@ export namespace Prisma {
     travel_price?: true
     total_price?: true
     description?: true
+    custom_multiplier?: true
+    color_code?: true
     created_at?: true
     is_archived?: true
   }
@@ -35599,6 +35611,8 @@ export namespace Prisma {
     travel_price?: true
     total_price?: true
     description?: true
+    custom_multiplier?: true
+    color_code?: true
     created_at?: true
     is_archived?: true
   }
@@ -35620,6 +35634,8 @@ export namespace Prisma {
     travel_price?: true
     total_price?: true
     description?: true
+    custom_multiplier?: true
+    color_code?: true
     created_at?: true
     is_archived?: true
     _all?: true
@@ -35728,6 +35744,8 @@ export namespace Prisma {
     travel_price: number | null
     total_price: number | null
     description: string | null
+    custom_multiplier: number | null
+    color_code: string | null
     created_at: Date | null
     is_archived: number | null
     _count: Work_itemsCountAggregateOutputType | null
@@ -35768,6 +35786,8 @@ export namespace Prisma {
     travel_price?: boolean
     total_price?: boolean
     description?: boolean
+    custom_multiplier?: boolean
+    color_code?: boolean
     created_at?: boolean
     is_archived?: boolean
     employees?: boolean | work_items$employeesArgs<ExtArgs>
@@ -35792,6 +35812,8 @@ export namespace Prisma {
     travel_price?: boolean
     total_price?: boolean
     description?: boolean
+    custom_multiplier?: boolean
+    color_code?: boolean
     created_at?: boolean
     is_archived?: boolean
     employees?: boolean | work_items$employeesArgs<ExtArgs>
@@ -35816,6 +35838,8 @@ export namespace Prisma {
     travel_price?: boolean
     total_price?: boolean
     description?: boolean
+    custom_multiplier?: boolean
+    color_code?: boolean
     created_at?: boolean
     is_archived?: boolean
     employees?: boolean | work_items$employeesArgs<ExtArgs>
@@ -35840,11 +35864,13 @@ export namespace Prisma {
     travel_price?: boolean
     total_price?: boolean
     description?: boolean
+    custom_multiplier?: boolean
+    color_code?: boolean
     created_at?: boolean
     is_archived?: boolean
   }
 
-  export type work_itemsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "work_id" | "date" | "receipt_no" | "vehicle_id" | "employee_id" | "custom_vehicle" | "custom_employee" | "start_time" | "end_time" | "hours" | "overtime_hours" | "unit_price" | "travel_price" | "total_price" | "description" | "created_at" | "is_archived", ExtArgs["result"]["work_items"]>
+  export type work_itemsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "work_id" | "date" | "receipt_no" | "vehicle_id" | "employee_id" | "custom_vehicle" | "custom_employee" | "start_time" | "end_time" | "hours" | "overtime_hours" | "unit_price" | "travel_price" | "total_price" | "description" | "custom_multiplier" | "color_code" | "created_at" | "is_archived", ExtArgs["result"]["work_items"]>
   export type work_itemsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employees?: boolean | work_items$employeesArgs<ExtArgs>
     vehicles?: boolean | work_items$vehiclesArgs<ExtArgs>
@@ -35885,6 +35911,8 @@ export namespace Prisma {
       travel_price: number | null
       total_price: number | null
       description: string | null
+      custom_multiplier: number | null
+      color_code: string | null
       created_at: Date | null
       is_archived: number | null
     }, ExtArgs["result"]["work_items"]>
@@ -36329,6 +36357,8 @@ export namespace Prisma {
     readonly travel_price: FieldRef<"work_items", 'Float'>
     readonly total_price: FieldRef<"work_items", 'Float'>
     readonly description: FieldRef<"work_items", 'String'>
+    readonly custom_multiplier: FieldRef<"work_items", 'Float'>
+    readonly color_code: FieldRef<"work_items", 'String'>
     readonly created_at: FieldRef<"work_items", 'DateTime'>
     readonly is_archived: FieldRef<"work_items", 'Int'>
   }
@@ -51094,6 +51124,8 @@ export namespace Prisma {
     travel_price: 'travel_price',
     total_price: 'total_price',
     description: 'description',
+    custom_multiplier: 'custom_multiplier',
+    color_code: 'color_code',
     created_at: 'created_at',
     is_archived: 'is_archived'
   };
@@ -53628,6 +53660,8 @@ export namespace Prisma {
     travel_price?: FloatNullableFilter<"work_items"> | number | null
     total_price?: FloatNullableFilter<"work_items"> | number | null
     description?: StringNullableFilter<"work_items"> | string | null
+    custom_multiplier?: FloatNullableFilter<"work_items"> | number | null
+    color_code?: StringNullableFilter<"work_items"> | string | null
     created_at?: DateTimeNullableFilter<"work_items"> | Date | string | null
     is_archived?: IntNullableFilter<"work_items"> | number | null
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
@@ -53652,6 +53686,8 @@ export namespace Prisma {
     travel_price?: SortOrderInput | SortOrder
     total_price?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
+    custom_multiplier?: SortOrderInput | SortOrder
+    color_code?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
     employees?: employeesOrderByWithRelationInput
@@ -53679,6 +53715,8 @@ export namespace Prisma {
     travel_price?: FloatNullableFilter<"work_items"> | number | null
     total_price?: FloatNullableFilter<"work_items"> | number | null
     description?: StringNullableFilter<"work_items"> | string | null
+    custom_multiplier?: FloatNullableFilter<"work_items"> | number | null
+    color_code?: StringNullableFilter<"work_items"> | string | null
     created_at?: DateTimeNullableFilter<"work_items"> | Date | string | null
     is_archived?: IntNullableFilter<"work_items"> | number | null
     employees?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
@@ -53703,6 +53741,8 @@ export namespace Prisma {
     travel_price?: SortOrderInput | SortOrder
     total_price?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
+    custom_multiplier?: SortOrderInput | SortOrder
+    color_code?: SortOrderInput | SortOrder
     created_at?: SortOrderInput | SortOrder
     is_archived?: SortOrderInput | SortOrder
     _count?: work_itemsCountOrderByAggregateInput
@@ -53732,6 +53772,8 @@ export namespace Prisma {
     travel_price?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
     total_price?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
     description?: StringNullableWithAggregatesFilter<"work_items"> | string | null
+    custom_multiplier?: FloatNullableWithAggregatesFilter<"work_items"> | number | null
+    color_code?: StringNullableWithAggregatesFilter<"work_items"> | string | null
     created_at?: DateTimeNullableWithAggregatesFilter<"work_items"> | Date | string | null
     is_archived?: IntNullableWithAggregatesFilter<"work_items"> | number | null
   }
@@ -57131,6 +57173,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWork_itemsInput
@@ -57155,6 +57199,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -57172,6 +57218,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWork_itemsNestedInput
@@ -57196,6 +57244,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -57217,6 +57267,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -57234,6 +57286,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -57255,6 +57309,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -60178,6 +60234,8 @@ export namespace Prisma {
     travel_price?: SortOrder
     total_price?: SortOrder
     description?: SortOrder
+    custom_multiplier?: SortOrder
+    color_code?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
   }
@@ -60192,6 +60250,7 @@ export namespace Prisma {
     unit_price?: SortOrder
     travel_price?: SortOrder
     total_price?: SortOrder
+    custom_multiplier?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -60212,6 +60271,8 @@ export namespace Prisma {
     travel_price?: SortOrder
     total_price?: SortOrder
     description?: SortOrder
+    custom_multiplier?: SortOrder
+    color_code?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
   }
@@ -60233,6 +60294,8 @@ export namespace Prisma {
     travel_price?: SortOrder
     total_price?: SortOrder
     description?: SortOrder
+    custom_multiplier?: SortOrder
+    color_code?: SortOrder
     created_at?: SortOrder
     is_archived?: SortOrder
   }
@@ -60247,6 +60310,7 @@ export namespace Prisma {
     unit_price?: SortOrder
     travel_price?: SortOrder
     total_price?: SortOrder
+    custom_multiplier?: SortOrder
     is_archived?: SortOrder
   }
 
@@ -66540,6 +66604,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
     vehicles?: vehiclesCreateNestedOneWithoutWork_itemsInput
@@ -66562,6 +66628,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -67047,6 +67115,8 @@ export namespace Prisma {
     travel_price?: FloatNullableFilter<"work_items"> | number | null
     total_price?: FloatNullableFilter<"work_items"> | number | null
     description?: StringNullableFilter<"work_items"> | string | null
+    custom_multiplier?: FloatNullableFilter<"work_items"> | number | null
+    color_code?: StringNullableFilter<"work_items"> | string | null
     created_at?: DateTimeNullableFilter<"work_items"> | Date | string | null
     is_archived?: IntNullableFilter<"work_items"> | number | null
   }
@@ -69414,6 +69484,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWork_itemsInput
@@ -69436,6 +69508,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -70202,6 +70276,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
     employees?: employeesCreateNestedOneWithoutWork_itemsInput
@@ -70224,6 +70300,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -73462,6 +73540,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -73829,6 +73909,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     vehicles?: vehiclesUpdateOneWithoutWork_itemsNestedInput
@@ -73851,6 +73933,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -73871,6 +73955,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -74224,6 +74310,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -74508,6 +74596,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWork_itemsNestedInput
@@ -74530,6 +74620,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -74550,6 +74642,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -74634,6 +74728,8 @@ export namespace Prisma {
     travel_price?: number | null
     total_price?: number | null
     description?: string | null
+    custom_multiplier?: number | null
+    color_code?: string | null
     created_at?: Date | string | null
     is_archived?: number | null
   }
@@ -74651,6 +74747,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: employeesUpdateOneWithoutWork_itemsNestedInput
@@ -74673,6 +74771,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -74693,6 +74793,8 @@ export namespace Prisma {
     travel_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: NullableFloatFieldUpdateOperationsInput | number | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    custom_multiplier?: NullableFloatFieldUpdateOperationsInput | number | null
+    color_code?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     is_archived?: NullableIntFieldUpdateOperationsInput | number | null
   }

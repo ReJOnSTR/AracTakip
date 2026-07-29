@@ -121,97 +121,37 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const descUpper = (item.description || '').toUpperCase();
         const isSaatlik = descUpper.includes('[SAATLİK]');
         const isAylik = descUpper.includes('[AYLIK]');
-        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun');
-        
-        const key = `${vehicleBaseKey}_${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`;
+
+        const key = vehicleBaseKey;
 
         if (!groupedItems[key]) {
             const rawMachineName = item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : 'Belirtilmemiş';
             let displayTitle = rawMachineName;
-            if (cleanDesc) {
-                displayTitle = `${rawMachineName} (${cleanDesc})`;
-            }
 
             groupedItems[key] = {
                 machineName: displayTitle,
                 rawMachineName: rawMachineName,
-                unitPriceVal: unitPriceVal,
-                cleanDesc: cleanDesc,
-                items: [],
-                totalGun: 0,
-                totalYol: 0,
-                totalPazar: 0,
-                totalMesai: 0,
-                totalSaatlik: 0,
-                totalPrice: 0
+                items: []
             };
         }
 
-        groupedItems[key].items.push(item);
-
-        // Fiyat ve Tür Hesaplamaları
-        const gunSayisi = Number(item.hours) || 0;
-        const mesaiSayisi = Number(item.overtime_hours) || 0;
-        const travelPrice = Number(item.travel_price) || 0;
-
         const dateObj = new Date(item.date);
         const isSunday = dateObj.getDay() === 0;
-
-        // Pazar kontrolü
         const isPazar = isSunday || descUpper.includes('PAZAR');
 
-        // Enhance description for Sundays automatically
         item.isPazar = isPazar;
         if (isSunday && !descUpper.includes('PAZAR')) {
             item.description = item.description ? `[PAZAR] ${item.description}` : '[PAZAR]';
         }
 
-        if (isAylik) {
-            groupedItems[key].isAylik = true;
-        }
-
-        // Parse custom additions from description
-        const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g);
-        let hasAddition = false;
-        
-        for (const match of additionMatches) {
-            hasAddition = true;
-            const type = match[1];
-            const price = parseFloat(match[2]) || 0;
-            
-            if (!groupedItems[key].additions) {
-                groupedItems[key].additions = {};
-            }
-            if (!groupedItems[key].additions[type]) {
-                groupedItems[key].additions[type] = { count: 0, price: price };
-            }
-            groupedItems[key].additions[type].count += 1;
-        }
-        
-        // Fallback for legacy Yol data if no additions found
-        if (!hasAddition && travelPrice > 0) {
-            if (!groupedItems[key].additions) {
-                groupedItems[key].additions = {};
-            }
-            if (!groupedItems[key].additions['Yol']) {
-                groupedItems[key].additions['Yol'] = { count: 0, price: travelPrice };
-            }
-            groupedItems[key].additions['Yol'].count += 1;
-        }
-
-        if (isPazar) {
-            groupedItems[key].totalPazar += gunSayisi;
-        } else if (isSaatlik) {
-            groupedItems[key].totalSaatlik += gunSayisi;
-        } else {
-            groupedItems[key].totalGun += gunSayisi;
-        }
-
-        groupedItems[key].totalMesai += mesaiSayisi;
-        groupedItems[key].totalPrice += (item.total_price || 0);
-
-        // Sort by date ASC
-        groupedItems[key].items.sort((a, b) => new Date(a.date) - new Date(b.date));
+        groupedItems[key].items.push({
+            ...item,
+            unitPriceVal,
+            cleanDesc,
+            isSaatlik,
+            isAylik,
+            isPazar
+        });
     });
 
     let grandTotalPrice = 0;
@@ -227,58 +167,141 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
     const groups = Object.values(groupedItems).map(group => {
-        const sampleGunPrice = group.unitPriceVal || group.items.find(i => !(i.description || '').toUpperCase().includes('PAZAR') && !(i.description || '').toUpperCase().includes('[SAATLİK]') && (Number(i.hours) > 0))?.unit_price || 0;
-        const sampleYolPrice = group.items.find(i => (Number(i.travel_price) || 0) > 0)?.travel_price || 0;
-        const sampleSaatlikPrice = group.unitPriceVal || group.items.find(i => (i.description || '').toUpperCase().includes('[SAATLİK]'))?.unit_price || 0;
+        // Sort items by date ASC
+        group.items.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Pazar is calculated using the configured pazarMultiplier multiplier
-        let samplePazarPrice = group.items.find(i => (i.description || '').toUpperCase().includes('PAZAR') && Number(i.unit_price) > 0)?.unit_price || 0;
-        if (samplePazarPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            samplePazarPrice = sampleGunPrice * pazarMultiplier;
-        }
+        // Group summary lines by rate type + price
+        const summaryLinesMap = {};
+        const primaryGunPrice = group.items.find(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0)?.unitPriceVal || 0;
 
-        // Mesai is calculated using the configured mesaiMultiplier multiplier (hourly wage = daily / 8)
-        let sampleMesaiPrice = group.items.find(i => i.overtime_hours > 0 && Number(i.unit_price) > 0)?.unit_price || 0;
-        if (sampleMesaiPrice <= sampleGunPrice && sampleGunPrice > 0) {
-            sampleMesaiPrice = parseFloat(((sampleGunPrice / 8) * mesaiMultiplier).toFixed(2));
-        }
+        const uniqueGunPrices = new Set(group.items.filter(i => !i.isPazar && !i.isSaatlik && !i.isAylik && i.unitPriceVal > 0).map(i => i.unitPriceVal));
+        const hasMultipleGunPrices = uniqueGunPrices.size > 1;
 
-        let calculatedGun = 0;
-        let totalPricedGun = 0;
-        if (group.isAylik) {
-            calculatedGun = 26 * sampleGunPrice;
-            totalPricedGun = 1;
-        } else {
-            calculatedGun = group.totalGun * sampleGunPrice;
-            totalPricedGun = sampleGunPrice > 0 ? group.totalGun : 0;
-        }
+        group.items.forEach(item => {
+            const gunSayisi = Number(item.hours) || 0;
+            const mesaiSayisi = Number(item.overtime_hours) || 0;
+            const travelPrice = Number(item.travel_price) || 0;
+            const unitPrice = item.unitPriceVal || 0;
 
-        const calculatedMesai = group.totalMesai * sampleMesaiPrice;
-        const calculatedPazar = group.totalPazar * samplePazarPrice;
+            if (item.isAylik) {
+                const subKey = `aylik_${unitPrice}`;
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: 'AYLIK',
+                        countText: '1 AY',
+                        unitPrice: unitPrice > 0 ? unitPrice : primaryGunPrice * 26,
+                        totalPrice: unitPrice > 0 ? unitPrice : primaryGunPrice * 26
+                    };
+                }
+            } else if (item.isPazar) {
+                let pazarPrice = unitPrice;
+                if (!pazarPrice && primaryGunPrice > 0) pazarPrice = primaryGunPrice * pazarMultiplier;
+                const subKey = `pazar_${pazarPrice}`;
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: 'PAZAR',
+                        count: 0,
+                        unit: 'GÜN',
+                        unitPrice: pazarPrice,
+                        totalPrice: 0
+                    };
+                }
+                summaryLinesMap[subKey].count += gunSayisi;
+                summaryLinesMap[subKey].totalPrice += gunSayisi * pazarPrice;
+            } else if (item.isSaatlik) {
+                const subKey = `saatlik_${unitPrice}`;
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: 'SAAT',
+                        count: 0,
+                        unit: 'SAAT',
+                        unitPrice: unitPrice,
+                        totalPrice: 0
+                    };
+                }
+                summaryLinesMap[subKey].count += gunSayisi;
+                summaryLinesMap[subKey].totalPrice += gunSayisi * unitPrice;
+            } else {
+                // Regular Gün
+                const subKey = `gun_${unitPrice}`;
+                const typeLabel = hasMultipleGunPrices && unitPrice > 0 ? `GÜN (${formatCurrency(unitPrice)})` : 'GÜN';
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: typeLabel,
+                        count: 0,
+                        unit: 'GÜN',
+                        unitPrice: unitPrice,
+                        totalPrice: 0
+                    };
+                }
+                summaryLinesMap[subKey].count += gunSayisi;
+                summaryLinesMap[subKey].totalPrice += gunSayisi * unitPrice;
+            }
 
-        // Calculate additions total
-        let calculatedAdditions = 0;
-        if (group.additions) {
-            Object.values(group.additions).forEach(data => {
-                calculatedAdditions += data.count * data.price;
-            });
-        }
+            // Mesai
+            if (mesaiSayisi > 0) {
+                let mesaiPrice = unitPrice > 0 ? (item.isSaatlik ? unitPrice : unitPrice / 9) * mesaiMultiplier : 0;
+                if (!mesaiPrice && primaryGunPrice > 0) mesaiPrice = (primaryGunPrice / 9) * mesaiMultiplier;
+                mesaiPrice = parseFloat(mesaiPrice.toFixed(2));
+                const subKey = `mesai_${mesaiPrice}`;
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: 'MESAİ',
+                        count: 0,
+                        unit: 'SAAT',
+                        unitPrice: mesaiPrice,
+                        totalPrice: 0
+                    };
+                }
+                summaryLinesMap[subKey].count += mesaiSayisi;
+                summaryLinesMap[subKey].totalPrice += mesaiSayisi * mesaiPrice;
+            }
 
-        const calculatedSaatlik = group.totalSaatlik * sampleSaatlikPrice;
+            // Custom Additions
+            const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g);
+            let hasAddition = false;
+            for (const match of additionMatches) {
+                hasAddition = true;
+                const type = match[1];
+                const price = parseFloat(match[2]) || 0;
+                const subKey = `addition_${type}_${price}`;
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: type.toUpperCase(),
+                        count: 0,
+                        unit: 'ADET',
+                        unitPrice: price,
+                        totalPrice: 0
+                    };
+                }
+                summaryLinesMap[subKey].count += 1;
+                summaryLinesMap[subKey].totalPrice += price;
+            }
 
-        const groupGrandTotal = calculatedGun + calculatedPazar + calculatedAdditions + calculatedSaatlik + calculatedMesai;
-        group.calculatedGrandTotal = groupGrandTotal;
+            if (!hasAddition && travelPrice > 0) {
+                const subKey = `addition_Yol_${travelPrice}`;
+                if (!summaryLinesMap[subKey]) {
+                    summaryLinesMap[subKey] = {
+                        typeLabel: 'YOL',
+                        count: 0,
+                        unit: 'ADET',
+                        unitPrice: travelPrice,
+                        totalPrice: 0
+                    };
+                }
+                summaryLinesMap[subKey].count += 1;
+                summaryLinesMap[subKey].totalPrice += travelPrice;
+            }
+        });
+
+        const summaryLines = Object.values(summaryLinesMap);
+        const groupGrandTotal = summaryLines.reduce((sum, line) => sum + (line.totalPrice || 0), 0);
         grandTotalPrice += groupGrandTotal;
 
         return {
             ...group,
-            calculatedGun,
-            totalPricedGun,
-            sampleGunPrice,
-            sampleYolPrice,
-            sampleSaatlikPrice,
-            samplePazarPrice,
-            sampleMesaiPrice
+            summaryLines,
+            calculatedGrandTotal: groupGrandTotal
         };
     });
 
@@ -420,19 +443,34 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                 </thead>
                                 <tbody>
                                     {group.items.map((item, itemIdx) => {
+                                        const desc = item.description || '';
+                                        let pdfRowClass = '';
+                                        if (desc.includes('[RENK:red]') || item.isPazar) pdfRowClass = 'pdf-row-red';
+                                        else if (desc.includes('[RENK:orange]')) pdfRowClass = 'pdf-row-orange';
+                                        else if (desc.includes('[RENK:blue]')) pdfRowClass = 'pdf-row-blue';
+                                        else if (desc.includes('[RENK:green]')) pdfRowClass = 'pdf-row-green';
+                                        else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
+
+                                        const cleanDesc = desc
+                                            .replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '')
+                                            .replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '')
+                                            .replace(/\[KATSAYI:[^\]]+\]\s*/gi, '')
+                                            .replace(/\[RENK:[^\]]+\]\s*/gi, '')
+                                            .trim();
+
                                         return (
-                                            <tr key={itemIdx} className={item.isPazar ? "pdf-row-pazar" : ""}>
+                                            <tr key={itemIdx} className={pdfRowClass}>
                                                 <td className="center">{formatDate(item.date)}</td>
                                                 <td className="center">{item.receipt_no || '-'}</td>
                                                 <td className="center">{item.start_time || '-'}</td>
                                                 <td className="center">{item.end_time || '-'}</td>
                                                 <td className="center">
-                                                    {item.hours || 0} {((item.description || '').toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
+                                                    {item.hours || 0} {(desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
                                                 </td>
                                                 <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
                                                 <td className="center">{group.rawMachineName || group.machineName}</td>
-                                                <td>{(item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/g, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/g, '')}</td>
-                                                <td className="right">{showPrices ? (item.isPazar ? formatCurrency(samplePazarPrice) : (item.unit_price ? formatCurrency(item.unit_price) : '')) : ''}</td>
+                                                <td>{cleanDesc}</td>
+                                                <td className="right">{showPrices ? (item.unit_price ? formatCurrency(item.unit_price) : '') : ''}</td>
                                             </tr>
                                         );
                                     })}
@@ -454,49 +492,17 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                 {(group.rawMachineName || group.machineName).toUpperCase()}
                                             </td>
                                         </tr>
-                                        {(group.totalGun > 0 || group.isAylik) && (
-                                            <tr className="bg-light-gray">
-                                                <td className="bold center">{group.isAylik ? 'AY' : 'GÜN'}</td>
-                                                <td className="center">{group.isAylik ? '1 AY' : `${group.totalPricedGun > 0 ? group.totalPricedGun : group.totalGun} GÜN`}</td>
-                                                <td className="right">{group.isAylik ? formatCurrency(26 * sampleGunPrice) : (sampleGunPrice ? formatCurrency(sampleGunPrice) : '')}</td>
-                                                <td className="right bold total-text">{formatCurrency(group.isAylik ? (26 * sampleGunPrice) : group.calculatedGun)}</td>
-                                            </tr>
-                                        )}
-                                        {group.totalSaatlik > 0 && (
-                                            <tr className="bg-light-gray">
-                                                <td className="bold center">SAAT</td>
-                                                <td className="center">{group.totalSaatlik} SAAT</td>
-                                                <td className="right">{sampleSaatlikPrice ? formatCurrency(sampleSaatlikPrice) : ''}</td>
-                                                <td className="right bold total-text">{sampleSaatlikPrice ? formatCurrency(group.totalSaatlik * sampleSaatlikPrice) : ''}</td>
-                                            </tr>
-                                        )}
-                                        {group.totalPazar > 0 && (
-                                            <tr className="bg-light-gray">
-                                                <td className="bold center">PAZAR</td>
-                                                <td className="center">{group.totalPazar} GÜN</td>
-                                                <td className="right">{samplePazarPrice ? formatCurrency(samplePazarPrice) : ''}</td>
-                                                <td className="right bold total-text">{samplePazarPrice ? formatCurrency(group.totalPazar * samplePazarPrice) : ''}</td>
-                                            </tr>
-                                        )}
-                                        {group.totalMesai > 0 && (
-                                            <tr className="bg-light-gray">
-                                                <td className="bold center">MESAİ</td>
-                                                <td className="center">{group.totalMesai} SAAT</td>
-                                                <td className="right">{sampleMesaiPrice ? formatCurrency(sampleMesaiPrice) : ''}</td>
-                                                <td className="right bold total-text">{sampleMesaiPrice ? formatCurrency(group.totalMesai * sampleMesaiPrice) : ''}</td>
-                                            </tr>
-                                        )}
-                                        {group.additions && Object.entries(group.additions).map(([type, data]) => (
-                                            <tr key={type} className="bg-light-gray">
-                                                <td className="bold center">{type.toUpperCase()}</td>
-                                                <td className="center">{data.count} ADET</td>
-                                                <td className="right">{formatCurrency(data.price)}</td>
-                                                <td className="right bold total-text">{formatCurrency(data.count * data.price)}</td>
+                                        {group.summaryLines && group.summaryLines.map((line, lIdx) => (
+                                            <tr key={lIdx} className="bg-light-gray">
+                                                <td className="bold center">{line.typeLabel}</td>
+                                                <td className="center">{line.countText || `${line.count} ${line.unit}`}</td>
+                                                <td className="right">{showPrices && line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
+                                                <td className="right bold total-text">{showPrices ? formatCurrency(line.totalPrice) : ''}</td>
                                             </tr>
                                         ))}
                                         <tr style={{ borderTop: '1px solid #ddd' }}>
                                             <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
-                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
+                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{showPrices ? formatCurrency(group.calculatedGrandTotal) : ''}</td>
                                         </tr>
                                     </tbody>
                                 </table>

@@ -29,6 +29,9 @@ export default function WorkDetails(props) {
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
     const [modalError, setModalError] = useState('')
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
+    const [isColorModalOpen, setIsColorModalOpen] = useState(false)
+    const [isMultiplierModalOpen, setIsMultiplierModalOpen] = useState(false)
 
     // Bulk Form State
     const [bulkFormData, setBulkFormData] = useState({
@@ -319,10 +322,13 @@ export default function WorkDetails(props) {
             overtimeHours: 0,
             pricingType: 'daily',
             unitPrice: '',
+            multiplier: '1',
+            customColor: '',
             travelEnabled: false,
             travelPrice: '',
             description: ''
         })
+        setShowAdvancedOptions(false)
         setModalError('')
         setIsModalOpen(true)
     }
@@ -338,6 +344,22 @@ export default function WorkDetails(props) {
         } else if (desc.startsWith('[AYLIK] ')) {
             determinedPricingType = 'monthly';
             desc = desc.replace('[AYLIK] ', '');
+        }
+
+        // Parse multiplier tag
+        let multiplier = '1';
+        const multMatch = desc.match(/\[KATSAYI:([^\]]+)\]/);
+        if (multMatch) {
+            multiplier = multMatch[1];
+            desc = desc.replace(multMatch[0], '').trim();
+        }
+
+        // Parse custom color tag
+        let customColor = '';
+        const colorMatch = desc.match(/\[RENK:([^\]]+)\]/);
+        if (colorMatch) {
+            customColor = colorMatch[1];
+            desc = desc.replace(colorMatch[0], '').trim();
         }
 
         // Parse custom addition tags
@@ -362,6 +384,12 @@ export default function WorkDetails(props) {
             });
         }
 
+        if ((multiplier && multiplier !== '1') || customColor) {
+            setShowAdvancedOptions(true)
+        } else {
+            setShowAdvancedOptions(false)
+        }
+
         setFormData({
             date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             receiptNo: item.receipt_no || '',
@@ -373,6 +401,8 @@ export default function WorkDetails(props) {
             overtimeHours: item.overtime_hours || 0,
             pricingType: determinedPricingType,
             unitPrice: item.unit_price || 0,
+            multiplier: multiplier,
+            customColor: customColor,
             additions: additions,
             description: desc
         })
@@ -394,6 +424,14 @@ export default function WorkDetails(props) {
                 finalDesc = '[AYLIK] ' + finalDesc;
             }
 
+            if (formData.multiplier && parseFloat(formData.multiplier) !== 1) {
+                finalDesc = `[KATSAYI:${formData.multiplier}] ` + finalDesc;
+            }
+
+            if (formData.customColor) {
+                finalDesc = `[RENK:${formData.customColor}] ` + finalDesc;
+            }
+
             // Append custom addition tags
             if (formData.additions && formData.additions.length > 0) {
                 formData.additions.forEach(add => {
@@ -401,8 +439,12 @@ export default function WorkDetails(props) {
                 });
             }
 
+            const multVal = parseFloat(formData.multiplier) || 1;
+            const effectiveUnitPrice = multVal !== 1 ? (parsed.unitPrice * multVal) : parsed.unitPrice;
+
             const payload = {
                 ...parsed,
+                unitPrice: effectiveUnitPrice,
                 description: finalDesc,
                 // Still save to travelPrice if 'Yol' is in the list for backward compatibility
                 travelPrice: (formData.additions || []).find(add => add.type === 'Yol')?.price || 0,
@@ -740,6 +782,39 @@ export default function WorkDetails(props) {
         }, 3000);
     }
     const [filteredItems, setFilteredItems] = useState([])
+    const [selectedVehicleFilter, setSelectedVehicleFilter] = useState('ALL')
+
+    const availableVehiclesInWork = useMemo(() => {
+        if (!work?.items) return []
+        const map = new Map()
+        work.items.forEach(item => {
+            const vehicleKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+            if (!map.has(vehicleKey)) {
+                let label = 'Diğer / Ekipman'
+                if (item.plate) {
+                    label = `${item.plate}${item.model ? ` (${item.model})` : ''}`
+                } else if (item.custom_vehicle) {
+                    label = item.custom_vehicle
+                }
+                map.set(vehicleKey, {
+                    key: vehicleKey,
+                    label: label,
+                    count: 0
+                })
+            }
+            map.get(vehicleKey).count += 1
+        })
+        return Array.from(map.values())
+    }, [work?.items])
+
+    const vehicleFilteredItems = useMemo(() => {
+        const items = work?.items || []
+        if (selectedVehicleFilter === 'ALL') return items
+        return items.filter(item => {
+            const itemKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+            return itemKey === selectedVehicleFilter
+        })
+    }, [work?.items, selectedVehicleFilter])
 
     // Update filtered items when work.items changes
     useEffect(() => {
@@ -764,7 +839,9 @@ export default function WorkDetails(props) {
             }
         }
 
-        return { ...calc, dateRangeText }
+        const isHourly = items.length > 0 && items.some(item => (item.description || '').toUpperCase().includes('[SAATLİK]') || item.pricingType === 'hourly')
+
+        return { ...calc, dateRangeText, isHourly }
     }, [filteredItems, work])
 
     if (loading) return <div className="p-8 text-center">Yükleniyor...</div>
@@ -865,12 +942,12 @@ export default function WorkDetails(props) {
                         <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.uniqueEmployees.size} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Kişi</span></div>
                     </div>
 
-                    {/* Toplam Gün */}
+                    {/* Toplam Süre */}
                     <div className="stat-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '8px' }}>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
-                            <Calendar size={14} className="text-success" /> Toplam Gün
+                            <Calendar size={14} className="text-success" /> Toplam Süre
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.totalHours} <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>Gün</span></div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>{stats.durationText}</div>
                     </div>
 
                     {/* Normal Mesai */}
@@ -942,8 +1019,8 @@ export default function WorkDetails(props) {
                         }
                     },
                     { label: 'FİŞ NO', key: 'receipt_no' },
-                    { label: 'MAKİNA', key: 'vehicle_id', render: (val, row) => row.plate || '-' },
-                    { label: 'PERSONEL', key: 'employee_id', render: (val, row) => row.employee_name ? `${row.employee_name} ${row.employee_surname}` : '-' },
+                    { label: 'MAKİNA', key: 'vehicle_id', searchValue: (row) => `${row.plate || ''} ${row.custom_vehicle || ''} ${row.brand || ''} ${row.model || ''}`, render: (val, row) => row.plate || row.custom_vehicle || '-' },
+                    { label: 'PERSONEL', key: 'employee_id', searchValue: (row) => `${row.employee_name || ''} ${row.employee_surname || ''} ${row.custom_employee || ''}`, render: (val, row) => row.employee_name ? `${row.employee_name} ${row.employee_surname}` : (row.custom_employee || '-') },
                     {
                         label: 'ÇALIŞMA SÜRESİ', key: 'start_time', render: (val, row) => (
                             <div style={{ fontSize: '12px' }}>
@@ -952,11 +1029,16 @@ export default function WorkDetails(props) {
                         )
                     },
                     {
-                        label: 'GÜN SAYISI', key: 'hours', render: (val, row) => (
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span>{row.hours}</span>
-                            </div>
-                        )
+                        label: 'SÜRE', key: 'hours', render: (val, row) => {
+                            const descUpper = (row.description || '').toUpperCase();
+                            const isHourly = row.pricingType === 'hourly' || descUpper.includes('[SAATLİK]') || row.unit === 'saat';
+                            const unitLabel = isHourly ? 'Saat' : 'Gün';
+                            return (
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span>{row.hours ?? 0} {unitLabel}</span>
+                                </div>
+                            );
+                        }
                     },
                     {
                         label: 'FAZLA MESAİ', key: 'overtime_hours', render: (val, row) => (
@@ -969,6 +1051,20 @@ export default function WorkDetails(props) {
                     { label: 'AÇIKLAMA', key: 'description', render: (val) => <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', display: 'inline-block' }}>{val}</span> }
                 ]}
                 data={work.items || []}
+                filters={[
+                    {
+                        key: 'vehicle_filter',
+                        label: 'Tüm Araçlar',
+                        options: availableVehiclesInWork.map(v => ({
+                            value: v.key,
+                            label: `${v.label} (${v.count})`
+                        })),
+                        filterFn: (row, value) => {
+                            const itemKey = row.vehicle_id ? String(row.vehicle_id) : (row.custom_vehicle ? `custom_${row.custom_vehicle}` : 'diger');
+                            return itemKey === value;
+                        }
+                    }
+                ]}
                 showSearch={true}
                 showDateFilter={true}
                 dateFilterKey="date"
@@ -989,7 +1085,15 @@ export default function WorkDetails(props) {
                 )}
                 onBulkDelete={handleBulkDelete}
                 onFilteredDataChange={setFilteredItems}
-                rowClassName={(row) => row.date && new Date(row.date).getDay() === 0 ? 'pazar-row' : ''}
+                rowClassName={(row) => {
+                    const desc = row.description || '';
+                    if (desc.includes('[RENK:red]') || (row.date && new Date(row.date).getDay() === 0)) return 'pazar-row';
+                    if (desc.includes('[RENK:orange]')) return 'orange-row';
+                    if (desc.includes('[RENK:blue]')) return 'blue-row';
+                    if (desc.includes('[RENK:green]')) return 'green-row';
+                    if (desc.includes('[RENK:purple]')) return 'purple-row';
+                    return '';
+                }}
             />
 
             {/* Add/Edit Modal */}
@@ -1261,6 +1365,59 @@ export default function WorkDetails(props) {
                         </div>
                     </div>
 
+                    {/* Dedicated Sub-Option Buttons */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                        <button
+                            type="button"
+                            onClick={() => setIsColorModalOpen(true)}
+                            className="btn btn-secondary"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                padding: '8px 12px',
+                                border: '1px solid var(--border-color)',
+                                background: formData.customColor ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                color: formData.customColor ? 'var(--accent-primary)' : 'var(--text-primary)'
+                            }}
+                        >
+                            <span>🎨 Gün Rengi / Etiket</span>
+                            {formData.customColor && (
+                                <span style={{ fontSize: '10px', background: 'var(--accent-primary)', color: '#fff', padding: '1px 6px', borderRadius: '10px' }}>
+                                    {formData.customColor === 'red' ? 'Kırmızı' : formData.customColor === 'orange' ? 'Turuncu' : formData.customColor === 'blue' ? 'Mavi' : formData.customColor === 'green' ? 'Yeşil' : 'Mor'}
+                                </span>
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setIsMultiplierModalOpen(true)}
+                            className="btn btn-secondary"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                padding: '8px 12px',
+                                border: '1px solid var(--border-color)',
+                                background: (formData.multiplier && formData.multiplier !== '1') ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                color: (formData.multiplier && formData.multiplier !== '1') ? 'var(--accent-primary)' : 'var(--text-primary)'
+                            }}
+                        >
+                            <span>🔢 Manuel Katsayı</span>
+                            {(formData.multiplier && formData.multiplier !== '1') && (
+                                <span style={{ fontSize: '10px', background: 'var(--accent-primary)', color: '#fff', padding: '1px 6px', borderRadius: '10px' }}>
+                                    {formData.multiplier}x
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
                     <CustomInput
                         label="Açıklama"
                         type="text"
@@ -1273,6 +1430,123 @@ export default function WorkDetails(props) {
                         <button type="submit" className="btn btn-primary">{editingItem ? 'Güncelle' : 'Ekle'}</button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Sub Modal 1: Color Picker Modal */}
+            <Modal
+                isOpen={isColorModalOpen}
+                onClose={() => setIsColorModalOpen(false)}
+                title="🎨 Gün Rengi / Etiketi Seçin"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                        Bu çalışma kaydı için tabloda ve raporda görünecek özel satır rengini seçin:
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                        {[
+                            { id: '', label: '⚪ Standart Renk', desc: 'Varsayılan beyaz/şeffaf satır' },
+                            { id: 'red', label: '🔴 Kırmızı', desc: 'Resmi Tatil / Özel Vurgu' },
+                            { id: 'orange', label: '🟠 Turuncu', desc: 'Yarım Gün / Cumartesi' },
+                            { id: 'blue', label: '🔵 Mavi', desc: 'Gece Vardiyası' },
+                            { id: 'green', label: '🟢 Yeşil', desc: 'Özel Saha Görüşmesi' },
+                            { id: 'purple', label: '🟣 Mor', desc: 'Özel Durum' }
+                        ].map(col => (
+                            <button
+                                key={col.id}
+                                type="button"
+                                onClick={() => {
+                                    setFormData({ ...formData, customColor: col.id });
+                                    setIsColorModalOpen(false);
+                                }}
+                                style={{
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-md)',
+                                    border: '2px solid ' + (formData.customColor === col.id ? 'var(--accent-primary)' : 'var(--border-color)'),
+                                    background: formData.customColor === col.id ? 'var(--accent-subtle)' : 'var(--bg-secondary)',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                }}
+                            >
+                                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{col.label}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{col.desc}</div>
+                            </button>
+                        ))}
+                    </div>
+                    <div className="modal-footer" style={{ marginTop: '12px' }}>
+                        <button type="button" onClick={() => setIsColorModalOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>Tamam</button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Sub Modal 2: Multiplier Modal */}
+            <Modal
+                isOpen={isMultiplierModalOpen}
+                onClose={() => setIsMultiplierModalOpen(false)}
+                title="🔢 Manuel Fiyat Katsayısı (Çarpan)"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                        Normal birim fiyat üzerine uygulanacak çarpan oranını (katsayıyı) belirleyin:
+                    </p>
+
+                    <div>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                            Katsayı Oranı
+                        </label>
+                        <CustomInput
+                            type="number"
+                            step="0.05"
+                            min="0.1"
+                            max="10"
+                            value={formData.multiplier || '1'}
+                            onChange={(val) => setFormData({ ...formData, multiplier: val })}
+                        />
+                    </div>
+
+                    <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+                            Hızlı Oran Seçimi
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                            {[
+                                { label: '1.0x (Standart Fiyat)', val: '1' },
+                                { label: '1.25x (%25 Zammı)', val: '1.25' },
+                                { label: '1.5x (%50 Zammı)', val: '1.5' },
+                                { label: '2.0x (%100 Çift Ücret)', val: '2' }
+                            ].map(b => (
+                                <button
+                                    key={b.val}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, multiplier: b.val })}
+                                    style={{
+                                        padding: '8px 10px',
+                                        fontSize: '12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid ' + (String(formData.multiplier || '1') === b.val ? 'var(--accent-primary)' : 'var(--border-color)'),
+                                        background: String(formData.multiplier || '1') === b.val ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                        color: String(formData.multiplier || '1') === b.val ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        fontWeight: String(formData.multiplier || '1') === b.val ? '700' : '500'
+                                    }}
+                                >
+                                    {b.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {parseFloat(formData.multiplier) > 0 && parseFloat(formData.multiplier) !== 1 && (
+                        <div style={{ background: 'var(--accent-subtle)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--accent-primary)', fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                            💡 Birim fiyat {formData.multiplier} katı olarak uygulanacaktır.<br />
+                            Etkili Fiyat: {formatCurrency((parseFloat(formData.unitPrice) || 0) * parseFloat(formData.multiplier))}
+                        </div>
+                    )}
+
+                    <div className="modal-footer">
+                        <button type="button" onClick={() => setIsMultiplierModalOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>Tamam</button>
+                    </div>
+                </div>
             </Modal>
 
             {/* Bulk Add Modal */}
