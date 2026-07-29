@@ -233,32 +233,63 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         // Construct Summary Lines Array for PDF Table
         const summaryLines = [];
 
-        // 1. AY or GÜN Line
+        // Identify custom rate non-pazar daily items
+        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
+        const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
+
         if (isAylikGroup) {
+            const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount);
+            const baseMonthlyTotal = baseMonthlyDays * dailyRate;
+
             summaryLines.push({
-                typeLabel: 'AYLIK',
-                countText: '1 AY (26 Gün)',
+                typeLabel: customRateDaysCount > 0 ? 'AYLIK (Standart)' : 'AYLIK',
+                countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : '1 AY (26 Gün)',
                 unitPrice: dailyRate,
-                totalPrice: monthlyAmount
+                totalPrice: baseMonthlyTotal
             });
-        } else if (totalGunCount > 0) {
-            const uniqueGunPrices = new Set(group.items.filter(i => !i.isPazar && !i.isSaatlik && !i.isAylik && i.unitPriceVal > 0).map(i => i.unitPriceVal));
-            if (uniqueGunPrices.size > 1) {
-                uniqueGunPrices.forEach(uPrice => {
-                    const c = group.items.filter(i => !i.isPazar && !i.isSaatlik && !i.isAylik && i.unitPriceVal === uPrice).reduce((s, i) => s + (Number(i.hours) || 0), 0);
+
+            if (customRateDaysCount > 0) {
+                const customPricesMap = {};
+                customRateItems.forEach(i => {
+                    const price = i.unitPriceVal;
+                    const hrs = Number(i.hours) || 0;
+                    if (!customPricesMap[price]) customPricesMap[price] = 0;
+                    customPricesMap[price] += hrs;
+                });
+
+                Object.entries(customPricesMap).forEach(([priceStr, cnt]) => {
+                    const price = parseFloat(priceStr);
                     summaryLines.push({
-                        typeLabel: `GÜN (${formatCurrency(uPrice)})`,
-                        countText: `${c} GÜN`,
-                        unitPrice: uPrice,
-                        totalPrice: c * uPrice
+                        typeLabel: `GÜN (${formatCurrency(price)})`,
+                        countText: `${cnt} GÜN`,
+                        unitPrice: price,
+                        totalPrice: cnt * price
                     });
                 });
-            } else {
-                summaryLines.push({
-                    typeLabel: 'GÜN',
-                    countText: `${totalGunCount} GÜN`,
-                    unitPrice: dailyRate,
-                    totalPrice: totalGunCount * dailyRate
+            }
+        } else {
+            // Regular Daily Job
+            const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik);
+            if (allDailyItems.length > 0) {
+                const pricesMap = {};
+                allDailyItems.forEach(i => {
+                    const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate;
+                    const hrs = Number(i.hours) || 0;
+                    if (!pricesMap[price]) pricesMap[price] = 0;
+                    pricesMap[price] += hrs;
+                });
+
+                const priceEntries = Object.entries(pricesMap);
+                const hasMultiplePrices = priceEntries.length > 1;
+
+                priceEntries.forEach(([priceStr, cnt]) => {
+                    const price = parseFloat(priceStr);
+                    summaryLines.push({
+                        typeLabel: (hasMultiplePrices && Math.abs(price - dailyRate) > 1) ? `GÜN (${formatCurrency(price)})` : 'GÜN',
+                        countText: `${cnt} GÜN`,
+                        unitPrice: price,
+                        totalPrice: cnt * price
+                    });
                 });
             }
         }

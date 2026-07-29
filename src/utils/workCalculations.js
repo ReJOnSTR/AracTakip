@@ -205,7 +205,16 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         )?.unit_price || 0
 
         const dailyRate = (group.isAylik && sampleGunPrice > 10000) ? sampleGunPrice / 26 : sampleGunPrice;
-        const monthlyAmount = group.isAylik ? (sampleGunPrice > 10000 ? sampleGunPrice : sampleGunPrice * 26) : 0;
+
+        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
+        const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
+        let customRateTotal = 0;
+        customRateItems.forEach(i => {
+            customRateTotal += (Number(i.hours) || 0) * i.unitPriceVal;
+        });
+
+        const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount);
+        const monthlyAmount = group.isAylik ? (baseMonthlyDays * dailyRate + customRateTotal) : 0;
 
         let samplePazarPrice = 0
         const pazarItemWithExplicitKatsayi = group.items.find(i => i.isPazar && (i._normalizedDesc || '').includes('[KATSAYI:'))
