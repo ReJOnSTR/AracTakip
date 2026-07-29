@@ -204,9 +204,16 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
         )?.unit_price || 0
 
-        let samplePazarPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
-        if (!samplePazarPrice && sampleGunPrice > 0) {
-            samplePazarPrice = sampleGunPrice * parsedPazarMultiplier
+        let samplePazarPrice = 0
+        const pazarItemWithExplicitKatsayi = group.items.find(i => i.isPazar && (i._normalizedDesc || '').includes('[KATSAYI:'))
+        if (pazarItemWithExplicitKatsayi && Number(pazarItemWithExplicitKatsayi.unit_price) > 0) {
+            samplePazarPrice = Number(pazarItemWithExplicitKatsayi.unit_price)
+        } else if (sampleGunPrice > 0) {
+            const dailyRate = group.isAylik && sampleGunPrice > 10000 ? sampleGunPrice / 26 : sampleGunPrice
+            samplePazarPrice = dailyRate * parsedPazarMultiplier
+        } else {
+            const fallbackPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
+            samplePazarPrice = fallbackPrice > 0 ? fallbackPrice * parsedPazarMultiplier : 0
         }
 
         const cg = group.isAylik ? (26 * sampleGunPrice) : (group.totalGun * sampleGunPrice)

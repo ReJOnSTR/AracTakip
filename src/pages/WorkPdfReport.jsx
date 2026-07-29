@@ -194,8 +194,15 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                     };
                 }
             } else if (item.isPazar) {
-                let pazarPrice = unitPrice;
-                if (!pazarPrice && primaryGunPrice > 0) pazarPrice = primaryGunPrice * pazarMultiplier;
+                let pazarPrice = 0;
+                const hasExplicitKatsayi = (item.description || '').includes('[KATSAYI:');
+                if (hasExplicitKatsayi && unitPrice > 0) {
+                    pazarPrice = unitPrice;
+                } else {
+                    const effectiveBasePrice = unitPrice > 0 ? unitPrice : primaryGunPrice;
+                    const dailyRate = (item.isAylik && effectiveBasePrice > 10000) ? effectiveBasePrice / 26 : effectiveBasePrice;
+                    pazarPrice = dailyRate * pazarMultiplier;
+                }
                 const subKey = `pazar_${pazarPrice}`;
                 if (!summaryLinesMap[subKey]) {
                     summaryLinesMap[subKey] = {
@@ -470,7 +477,13 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                 <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
                                                 <td className="center">{group.rawMachineName || group.machineName}</td>
                                                 <td>{cleanDesc}</td>
-                                                <td className="right">{showPrices ? (item.unit_price ? formatCurrency(item.unit_price) : '') : ''}</td>
+                                                <td className="right">
+                                                    {showPrices ? (
+                                                        item.isPazar && !(desc.includes('[KATSAYI:'))
+                                                            ? formatCurrency(((item.unit_price || primaryGunPrice) > 10000 && item.isAylik ? (item.unit_price || primaryGunPrice) / 26 : (item.unit_price || primaryGunPrice)) * pazarMultiplier)
+                                                            : (item.unit_price ? formatCurrency(item.unit_price) : '')
+                                                    ) : ''}
+                                                </td>
                                             </tr>
                                         );
                                     })}
