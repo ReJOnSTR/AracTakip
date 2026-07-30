@@ -105,6 +105,15 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     let totalSaatlikTutar = 0
     let totalEkOdemeler = 0
 
+    const getItemEffectivePrice = (item, baseRate) => {
+        const kMatch = (item.description || '').match(/\[KATSAYI:([^\]]+)\]/);
+        if (kMatch) {
+            const multVal = parseFloat(kMatch[1]) || 1;
+            return (baseRate > 0 ? baseRate : (item.unitPriceVal || 0)) * multVal;
+        }
+        return item.unitPriceVal > 0 ? item.unitPriceVal : baseRate;
+    };
+
     // Compute stats per vehicle group (exact same logic as WorkPdfReport.jsx)
     Object.values(groupedByVehicle).forEach(group => {
         const isAylikGroup = group.items.some(i => i.isAylik)
@@ -170,7 +179,12 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         })
 
         // Custom rate items
-        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1)
+        const customRateItems = group.items.filter(i => {
+            if (i.isPazar || i.isSaatlik) return false;
+            const kMatch = (i.description || '').match(/\[KATSAYI:([^\]]+)\]/);
+            if (kMatch && parseFloat(kMatch[1]) !== 1) return true;
+            return i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1;
+        });
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
 
         let vehicleGunTutar = 0
@@ -178,13 +192,14 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount)
             let customTotal = 0
             customRateItems.forEach(i => {
-                customTotal += (Number(i.hours) || 0) * i.unitPriceVal
+                const price = getItemEffectivePrice(i, dailyRate);
+                customTotal += (Number(i.hours) || 0) * price
             })
             vehicleGunTutar = baseMonthlyDays * dailyRate + customTotal
         } else {
             const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik)
             allDailyItems.forEach(i => {
-                const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate
+                const price = getItemEffectivePrice(i, dailyRate)
                 vehicleGunTutar += (Number(i.hours) || 0) * price
             })
         }

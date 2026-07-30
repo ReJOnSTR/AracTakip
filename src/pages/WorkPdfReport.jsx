@@ -233,8 +233,22 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         // Construct Summary Lines Array for PDF Table
         const summaryLines = [];
 
+        const getItemEffectivePrice = (item, baseRate) => {
+            const kMatch = (item.description || '').match(/\[KATSAYI:([^\]]+)\]/);
+            if (kMatch) {
+                const multVal = parseFloat(kMatch[1]) || 1;
+                return (baseRate > 0 ? baseRate : (item.unitPriceVal || 0)) * multVal;
+            }
+            return item.unitPriceVal > 0 ? item.unitPriceVal : baseRate;
+        };
+
         // Identify custom rate non-pazar daily items
-        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
+        const customRateItems = group.items.filter(i => {
+            if (i.isPazar || i.isSaatlik) return false;
+            const kMatch = (i.description || '').match(/\[KATSAYI:([^\]]+)\]/);
+            if (kMatch && parseFloat(kMatch[1]) !== 1) return true;
+            return i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1;
+        });
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
 
         if (isAylikGroup) {
@@ -251,7 +265,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             if (customRateDaysCount > 0) {
                 const customMap = {};
                 customRateItems.forEach(i => {
-                    const price = i.unitPriceVal;
+                    const price = getItemEffectivePrice(i, dailyRate);
                     const hrs = Number(i.hours) || 0;
                     const label = i.cleanDesc ? i.cleanDesc.toUpperCase() : `GÜN (${formatCurrency(price)})`;
                     const key = `${label}_${price}`;
@@ -276,8 +290,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             if (allDailyItems.length > 0) {
                 const dailyPricesMap = {};
                 allDailyItems.forEach(i => {
-                    const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate;
-                    const isCustom = Math.abs(price - dailyRate) > 1;
+                    const price = getItemEffectivePrice(i, dailyRate);
+                    const isCustom = Math.abs(price - dailyRate) > 1 || (i.description || '').includes('[KATSAYI:');
                     const label = (isCustom && i.cleanDesc) ? i.cleanDesc.toUpperCase() : ((isCustom) ? `GÜN (${formatCurrency(price)})` : 'GÜN');
                     const key = `${label}_${price}`;
                     const hrs = Number(i.hours) || 0;

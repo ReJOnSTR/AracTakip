@@ -439,12 +439,9 @@ export default function WorkDetails(props) {
                 });
             }
 
-            const multVal = parseFloat(formData.multiplier) || 1;
-            const effectiveUnitPrice = multVal !== 1 ? (parsed.unitPrice * multVal) : parsed.unitPrice;
-
             const payload = {
                 ...parsed,
-                unitPrice: effectiveUnitPrice,
+                unitPrice: parsed.unitPrice,
                 description: finalDesc,
                 // Still save to travelPrice if 'Yol' is in the list for backward compatibility
                 travelPrice: (formData.additions || []).find(add => add.type === 'Yol')?.price || 0,
