@@ -128,13 +128,8 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         let monthlyAmount = rawPrimaryPrice
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
-            if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
-                monthlyAmount = rawPrimaryPrice
-            } else {
-                dailyRate = rawPrimaryPrice
-                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays
-            }
+            monthlyAmount = rawPrimaryPrice
+            dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
         }
 
         let groupPazarCount = 0

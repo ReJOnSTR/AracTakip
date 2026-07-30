@@ -194,13 +194,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         let monthlyAmount = rawPrimaryPrice;
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
-            if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
-                monthlyAmount = rawPrimaryPrice;
-            } else {
-                dailyRate = rawPrimaryPrice;
-                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays;
-            }
+            monthlyAmount = rawPrimaryPrice;
+            dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
         }
 
         // Calculate counts
