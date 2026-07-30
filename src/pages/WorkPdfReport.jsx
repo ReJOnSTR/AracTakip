@@ -537,9 +537,11 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                 <td>{cleanDesc}</td>
                                                 <td className="right">
                                                     {showPrices ? (
-                                                        item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? formatCurrency(((item.unit_price || group.dailyRate || 0) > 10000 && item.isAylik ? (item.unit_price || group.dailyRate || 0) / (group.baseMonthlyWorkDays || 26) : (item.unit_price || group.dailyRate || 0)) * pazarMultiplier)
-                                                            : (item.unit_price ? formatCurrency(item.unit_price) : '')
+                                                        item.isPazar
+                                                            ? formatCurrency(group.dailyRate * pazarMultiplier)
+                                                            : item.isAylik
+                                                                ? formatCurrency(group.dailyRate)
+                                                                : (item.unit_price ? formatCurrency(item.unit_price) : '')
                                                     ) : ''}
                                                 </td>
                                             </tr>
