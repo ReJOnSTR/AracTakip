@@ -125,8 +125,13 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         let monthlyAmount = rawPrimaryPrice
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
-            monthlyAmount = rawPrimaryPrice
-            dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
+            if (rawPrimaryPrice > 10000) {
+                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
+                monthlyAmount = rawPrimaryPrice
+            } else {
+                dailyRate = rawPrimaryPrice
+                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays
+            }
         }
 
         let groupPazarCount = 0
@@ -175,11 +180,14 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         })
 
         // Custom rate items
-        const customRateItems = group.items.filter(i => 
-            !i.isPazar && 
-            !i.isSaatlik && 
-            ((i.description || '').includes('[KATSAYI:') || (i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - rawPrimaryPrice) > 1 && Math.abs(i.unitPriceVal - dailyRate) > 1))
-        )
+        let customRateItems = [];
+        if (isAylikGroup) {
+            // In monthly jobs, ONLY explicit [KATSAYI:] tagged items are custom rate items
+            customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && (i.description || '').includes('[KATSAYI:'));
+        } else {
+            // In daily jobs, items with different unit prices are custom rate items
+            customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
+        }
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
 
         let vehicleGunTutar = 0
