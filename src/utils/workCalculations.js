@@ -30,6 +30,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             totalPazarPriceAmount: 0,
             totalGunTutar: 0,
             totalSaatlikTutar: 0,
+            durationText: '0 Gün',
             uniqueVehicles: new Set(),
             uniqueEmployees: new Set(),
             itemCount: 0
@@ -62,6 +63,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
     // Group items by vehicleBaseKey ONLY (matches WorkPdfReport.jsx)
     const groupedByVehicle = {}
+    let hasAylikWork = false
 
     items.forEach(item => {
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
@@ -77,6 +79,8 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         const isPazar = isSunday || descUpper.includes('PAZAR')
         const isSaatlik = descUpper.includes('[SAATLİK]') || item.pricingType === 'hourly'
         const isAylik = descUpper.includes('[AYLIK]') || item.pricingType === 'monthly'
+
+        if (isAylik) hasAylikWork = true
 
         if (!groupedByVehicle[vehicleBaseKey]) {
             groupedByVehicle[vehicleBaseKey] = { items: [] }
@@ -150,12 +154,13 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             if (item.isPazar) {
                 groupPazarCount += hrs
                 totalPazarDayCount += hrs
+                totalGunCount += hrs
             } else if (item.isSaatlik) {
                 groupSaatlikCount += hrs
                 totalSaatCount += hrs
             } else {
                 groupGunCount += hrs
-                if (!isAylikGroup) totalGunCount += hrs
+                totalGunCount += hrs
             }
 
             if (mesaiHrs > 0) {
@@ -234,12 +239,16 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     })
 
     let durationText = '0 Gün'
-    if (totalGunCount > 0 && totalSaatCount > 0) {
+    if (hasAylikWork) {
+        durationText = '1 Ay (26 Gün)'
+    } else if (totalGunCount > 0 && totalSaatCount > 0) {
         durationText = `${totalGunCount} Gün + ${totalSaatCount} Saat`
     } else if (totalSaatCount > 0) {
         durationText = `${totalSaatCount} Saat`
-    } else {
+    } else if (totalGunCount > 0) {
         durationText = `${totalGunCount} Gün`
+    } else if (items.length > 0) {
+        durationText = `${items.length} Gün`
     }
 
     return {
