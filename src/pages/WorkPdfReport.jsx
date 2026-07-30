@@ -166,12 +166,25 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         ? parsedMesaiProp 
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
+    const getBaseMonthlyWorkingDays = (dateInput) => {
+        if (!dateInput) return 26;
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return 26;
+        const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        if (daysInMonth === 31) return 27;
+        if (daysInMonth === 28) return 24;
+        if (daysInMonth === 29) return 25;
+        return 26;
+    };
+
     const groups = Object.values(groupedItems).map(group => {
         // Sort items by date ASC
         group.items.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         // Check if any item in group is Aylik
         const isAylikGroup = group.items.some(i => i.isAylik);
+        const firstItemDate = group.items.find(i => i.date)?.date || work?.start_date;
+        const baseMonthlyWorkDays = getBaseMonthlyWorkingDays(firstItemDate);
 
         // Find primary positive price
         const positivePriceItem = group.items.find(i => i.unitPriceVal > 0);
@@ -182,11 +195,11 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / 26;
+                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
                 monthlyAmount = rawPrimaryPrice;
             } else {
                 dailyRate = rawPrimaryPrice;
-                monthlyAmount = rawPrimaryPrice * 26;
+                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays;
             }
         }
 
@@ -238,12 +251,12 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
 
         if (isAylikGroup) {
-            const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount);
+            const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount);
             const baseMonthlyTotal = baseMonthlyDays * dailyRate;
 
             summaryLines.push({
                 typeLabel: 'AYLIK',
-                countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : '1 AY (26 Gün)',
+                countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : `1 AY (${baseMonthlyWorkDays} Gün)`,
                 unitPrice: dailyRate,
                 totalPrice: baseMonthlyTotal
             });

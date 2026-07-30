@@ -8,6 +8,18 @@
  * @param {Array} items - work_items array
  * @returns {Object} calculated stats
  */
+
+function getBaseMonthlyWorkingDays(dateInput) {
+    if (!dateInput) return 26;
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return 26;
+    const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    if (daysInMonth === 31) return 27;
+    if (daysInMonth === 28) return 24;
+    if (daysInMonth === 29) return 25;
+    return 26;
+}
+
 export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5) {
     const pazarMultVal = parseFloat(pazarMultiplier)
     const parsedPazarMultiplier = (pazarMultiplier === "" || pazarMultiplier === null || pazarMultiplier === undefined || isNaN(pazarMultVal)) 
@@ -106,6 +118,9 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     // Compute stats per vehicle group (exact same logic as WorkPdfReport.jsx)
     Object.values(groupedByVehicle).forEach(group => {
         const isAylikGroup = group.items.some(i => i.isAylik)
+        const firstItemDate = group.items.find(i => i.date)?.date
+        const baseMonthlyWorkDays = getBaseMonthlyWorkingDays(firstItemDate)
+
         const positivePriceItem = group.items.find(i => i.unitPriceVal > 0)
         const rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0
 
@@ -114,11 +129,11 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / 26
+                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
                 monthlyAmount = rawPrimaryPrice
             } else {
                 dailyRate = rawPrimaryPrice
-                monthlyAmount = rawPrimaryPrice * 26
+                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays
             }
         }
 
@@ -173,7 +188,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
         let vehicleGunTutar = 0
         if (isAylikGroup) {
-            const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount)
+            const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount)
             let customTotal = 0
             customRateItems.forEach(i => {
                 customTotal += (Number(i.hours) || 0) * i.unitPriceVal
