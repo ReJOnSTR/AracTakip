@@ -21,6 +21,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
     if (!items || items.length === 0) {
         return {
+            groups: [],
             totalHours: 0,
             totalOvertime: 0,
             totalPazarDayCount: 0,
@@ -98,7 +99,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
         const descUpper = (item.description || '').toUpperCase()
         const dateObj = new Date(item.date)
-        const isSunday = dateObj.getDay() === 0
+        const isSunday = !isNaN(dateObj.getTime()) && dateObj.getDay() === 0
         const isPazar = isSunday || descUpper.includes('PAZAR')
         const isSaatlik = descUpper.includes('[SAATLİK]') || item.pricingType === 'hourly'
         const isAylik = descUpper.includes('[AYLIK]') || item.pricingType === 'monthly'
@@ -106,7 +107,12 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         if (isAylik) hasAylikWork = true
 
         if (!groupedByVehicle[vehicleBaseKey]) {
-            groupedByVehicle[vehicleBaseKey] = { items: [] }
+            const rawMachineName = item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : (item.custom_vehicle || 'Belirtilmemiş');
+            groupedByVehicle[vehicleBaseKey] = {
+                machineName: rawMachineName,
+                rawMachineName: rawMachineName,
+                items: []
+            }
         }
 
         groupedByVehicle[vehicleBaseKey].items.push({
@@ -133,7 +139,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     let totalEkOdemeler = 0
 
     // Compute stats per vehicle group (exact same logic as WorkPdfReport.jsx)
-    Object.values(groupedByVehicle).forEach(group => {
+    const calculatedGroups = Object.values(groupedByVehicle).map(group => {
         group.items.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         const isAylikGroup = group.items.some(i => i.isAylik);
@@ -330,6 +336,12 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
         const groupGrandTotal = summaryLines.reduce((sum, l) => sum + (l.totalPrice || 0), 0);
         grandTotal += groupGrandTotal;
+
+        return {
+            ...group,
+            summaryLines,
+            calculatedGrandTotal: groupGrandTotal
+        };
     });
 
     let durationText = '0 Gün'
@@ -346,6 +358,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
     }
 
     return {
+        groups: calculatedGroups,
         totalHours,
         totalGunCount,
         totalSaatCount,
