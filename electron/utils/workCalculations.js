@@ -6,17 +6,6 @@
  * IMPORTANT: Must match WorkPdfReport.jsx and src/utils/workCalculations.js logic EXACTLY.
  */
 
-function getBaseMonthlyWorkingDays(dateInput) {
-    if (!dateInput) return 26;
-    const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return 26;
-    const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    if (daysInMonth === 31) return 27;
-    if (daysInMonth === 28) return 24;
-    if (daysInMonth === 29) return 25;
-    return 26;
-}
-
 function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5) {
     const pazarMultVal = parseFloat(pazarMultiplier)
     const parsedPazarMultiplier = (pazarMultiplier === "" || pazarMultiplier === null || pazarMultiplier === undefined || isNaN(pazarMultVal)) 
@@ -115,28 +104,19 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
     // Compute stats per vehicle group (exact same logic as WorkPdfReport.jsx)
     Object.values(groupedByVehicle).forEach(group => {
         const isAylikGroup = group.items.some(i => i.isAylik)
-        const firstItemDate = group.items.find(i => i.date)?.date
-        const baseMonthlyWorkDays = getBaseMonthlyWorkingDays(firstItemDate)
-
-        const aylikItem = group.items.find(i => i.isAylik && i.unitPriceVal > 0)
-        let rawPrimaryPrice = 0
-        if (aylikItem) {
-            rawPrimaryPrice = aylikItem.unitPriceVal
-        } else {
-            const positivePriceItem = group.items.find(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0)
-            rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0
-        }
+        const positivePriceItem = group.items.find(i => i.unitPriceVal > 0)
+        const rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0
 
         let dailyRate = rawPrimaryPrice
         let monthlyAmount = rawPrimaryPrice
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
+                dailyRate = rawPrimaryPrice / 26
                 monthlyAmount = rawPrimaryPrice
             } else {
                 dailyRate = rawPrimaryPrice
-                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays
+                monthlyAmount = rawPrimaryPrice * 26
             }
         }
 
@@ -186,30 +166,15 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         })
 
         // Custom rate items
-        const customRateItems = group.items.filter(i => {
-            if (i.isPazar || i.isSaatlik) return false
-            if (isAylikGroup) {
-                const descUpper = (i.description || '').toUpperCase()
-                const isMainAylikPlaceholder = i.isAylik && (descUpper.includes('[AYLIK]') || i.pricingType === 'monthly') && Number(i.unit_price) === rawPrimaryPrice && (!i.cleanDesc || i.cleanDesc.toUpperCase() === 'AYLIK')
-                if (isMainAylikPlaceholder) return false
-                return true
-            }
-            const rawUnit = Number(i.unit_price) || 0
-            const hasExplicitKatsayi = (i.description || '').includes('[KATSAYI:')
-            const hasCustomPrice = rawUnit > 0 && Math.abs(rawUnit - dailyRate) > 1
-            const hasDiffUnitPriceVal = i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1 && i.unitPriceVal !== rawPrimaryPrice
-            
-            return hasExplicitKatsayi || hasCustomPrice || hasDiffUnitPriceVal
-        })
+        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1)
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
 
         let vehicleGunTutar = 0
         if (isAylikGroup) {
-            const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount)
+            const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount)
             let customTotal = 0
             customRateItems.forEach(i => {
-                const price = (i.unit_price > 0 && Math.abs(i.unit_price - dailyRate) > 1) ? i.unit_price : i.unitPriceVal
-                customTotal += (Number(i.hours) || 0) * price
+                customTotal += (Number(i.hours) || 0) * i.unitPriceVal
             })
             vehicleGunTutar = baseMonthlyDays * dailyRate + customTotal
         } else {

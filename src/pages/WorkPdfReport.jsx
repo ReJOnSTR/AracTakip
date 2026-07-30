@@ -166,46 +166,27 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         ? parsedMesaiProp 
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
-    const getBaseMonthlyWorkingDays = (dateInput) => {
-        if (!dateInput) return 26;
-        const d = new Date(dateInput);
-        if (isNaN(d.getTime())) return 26;
-        const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-        if (daysInMonth === 31) return 27;
-        if (daysInMonth === 28) return 24;
-        if (daysInMonth === 29) return 25;
-        return 26;
-    };
-
     const groups = Object.values(groupedItems).map(group => {
         // Sort items by date ASC
         group.items.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         // Check if any item in group is Aylik
         const isAylikGroup = group.items.some(i => i.isAylik);
-        const firstItemDate = group.items.find(i => i.date)?.date || work?.start_date;
-        const baseMonthlyWorkDays = getBaseMonthlyWorkingDays(firstItemDate);
 
-        // Find monthly item unit price or primary positive daily price
-        const aylikItem = group.items.find(i => i.isAylik && i.unitPriceVal > 0);
-        let rawPrimaryPrice = 0;
-        if (aylikItem) {
-            rawPrimaryPrice = aylikItem.unitPriceVal;
-        } else {
-            const positivePriceItem = group.items.find(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0);
-            rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0;
-        }
+        // Find primary positive price
+        const positivePriceItem = group.items.find(i => i.unitPriceVal > 0);
+        const rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0;
 
         let dailyRate = rawPrimaryPrice;
         let monthlyAmount = rawPrimaryPrice;
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
+                dailyRate = rawPrimaryPrice / 26;
                 monthlyAmount = rawPrimaryPrice;
             } else {
                 dailyRate = rawPrimaryPrice;
-                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays;
+                monthlyAmount = rawPrimaryPrice * 26;
             }
         }
 
@@ -253,62 +234,39 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const summaryLines = [];
 
         // Identify custom rate non-pazar daily items
-        const customRateItems = group.items.filter(i => {
-            if (i.isPazar || i.isSaatlik) return false;
-            if (isAylikGroup) {
-                const descUpper = (i.description || '').toUpperCase();
-                const isMainAylikPlaceholder = i.isAylik && (descUpper.includes('[AYLIK]') || i.pricingType === 'monthly') && Number(i.unit_price) === rawPrimaryPrice && (!i.cleanDesc || i.cleanDesc.toUpperCase() === 'AYLIK');
-                if (isMainAylikPlaceholder) return false;
-                return true;
-            }
-            const rawUnit = Number(i.unit_price) || 0;
-            const hasExplicitKatsayi = (i.description || '').includes('[KATSAYI:');
-            const hasCustomPrice = rawUnit > 0 && Math.abs(rawUnit - dailyRate) > 1;
-            const hasDiffUnitPriceVal = i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1 && i.unitPriceVal !== rawPrimaryPrice;
-            
-            return hasExplicitKatsayi || hasCustomPrice || hasDiffUnitPriceVal;
-        });
+        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
 
         if (isAylikGroup) {
-            const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount);
+            const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount);
             const baseMonthlyTotal = baseMonthlyDays * dailyRate;
 
             summaryLines.push({
                 typeLabel: 'AYLIK',
-                countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : `1 AY (${baseMonthlyWorkDays} Gün)`,
+                countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : '1 AY (26 Gün)',
                 unitPrice: dailyRate,
                 totalPrice: baseMonthlyTotal
             });
 
             if (customRateDaysCount > 0) {
-                const customItemsMap = {};
+                const customMap = {};
                 customRateItems.forEach(i => {
-                    const price = (i.unit_price > 0 && Math.abs(i.unit_price - dailyRate) > 1) ? i.unit_price : i.unitPriceVal;
-                    const descLabel = (i.cleanDesc && i.cleanDesc.toUpperCase() !== 'AYLIK') 
-                        ? i.cleanDesc.toUpperCase() 
-                        : (price > 0 ? `GÜN (${formatCurrency(price)})` : 'EKSTRA ÇALIŞMA');
-                    
-                    const subKey = `${descLabel}_${price}`;
+                    const price = i.unitPriceVal;
                     const hrs = Number(i.hours) || 0;
-                    if (!customItemsMap[subKey]) {
-                        customItemsMap[subKey] = {
-                            typeLabel: descLabel,
-                            unitPrice: price,
-                            count: 0,
-                            totalPrice: 0
-                        };
+                    const label = i.cleanDesc ? i.cleanDesc.toUpperCase() : `GÜN (${formatCurrency(price)})`;
+                    const key = `${label}_${price}`;
+                    if (!customMap[key]) {
+                        customMap[key] = { label, price, count: 0, unit: i.isSaatlik ? 'SAAT' : 'GÜN' };
                     }
-                    customItemsMap[subKey].count += hrs;
-                    customItemsMap[subKey].totalPrice += hrs * price;
+                    customMap[key].count += hrs;
                 });
 
-                Object.values(customItemsMap).forEach(itemData => {
+                Object.values(customMap).forEach(itemData => {
                     summaryLines.push({
-                        typeLabel: itemData.typeLabel,
-                        countText: `${itemData.count} GÜN`,
-                        unitPrice: itemData.unitPrice,
-                        totalPrice: itemData.totalPrice
+                        typeLabel: itemData.label,
+                        countText: `${itemData.count} ${itemData.unit}`,
+                        unitPrice: itemData.price,
+                        totalPrice: itemData.count * itemData.price
                     });
                 });
             }
@@ -316,33 +274,25 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             // Regular Daily Job
             const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik);
             if (allDailyItems.length > 0) {
-                const customItemsMap = {};
+                const dailyPricesMap = {};
                 allDailyItems.forEach(i => {
                     const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate;
-                    const descLabel = (i.cleanDesc && i.cleanDesc.toUpperCase() !== 'GÜN' && i.cleanDesc.toUpperCase() !== 'PAZAR')
-                        ? i.cleanDesc.toUpperCase()
-                        : (Math.abs(price - dailyRate) > 1 ? `GÜN (${formatCurrency(price)})` : 'GÜN');
-
-                    const subKey = `${descLabel}_${price}`;
+                    const isCustom = Math.abs(price - dailyRate) > 1;
+                    const label = (isCustom && i.cleanDesc) ? i.cleanDesc.toUpperCase() : ((isCustom) ? `GÜN (${formatCurrency(price)})` : 'GÜN');
+                    const key = `${label}_${price}`;
                     const hrs = Number(i.hours) || 0;
-                    if (!customItemsMap[subKey]) {
-                        customItemsMap[subKey] = {
-                            typeLabel: descLabel,
-                            unitPrice: price,
-                            count: 0,
-                            totalPrice: 0
-                        };
+                    if (!dailyPricesMap[key]) {
+                        dailyPricesMap[key] = { label, price, count: 0 };
                     }
-                    customItemsMap[subKey].count += hrs;
-                    customItemsMap[subKey].totalPrice += hrs * price;
+                    dailyPricesMap[key].count += hrs;
                 });
 
-                Object.values(customItemsMap).forEach(itemData => {
+                Object.values(dailyPricesMap).forEach(itemData => {
                     summaryLines.push({
-                        typeLabel: itemData.typeLabel,
+                        typeLabel: itemData.label,
                         countText: `${itemData.count} GÜN`,
-                        unitPrice: itemData.unitPrice,
-                        totalPrice: itemData.totalPrice
+                        unitPrice: itemData.price,
+                        totalPrice: itemData.count * itemData.price
                     });
                 });
             }
