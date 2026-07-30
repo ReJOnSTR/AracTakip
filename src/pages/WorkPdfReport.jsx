@@ -364,7 +364,9 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         return {
             ...group,
             summaryLines,
-            calculatedGrandTotal: groupGrandTotal
+            calculatedGrandTotal: groupGrandTotal,
+            dailyRate,
+            baseMonthlyWorkDays
         };
     });
 
@@ -536,7 +538,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                 <td className="right">
                                                     {showPrices ? (
                                                         item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? formatCurrency(((item.unit_price || primaryGunPrice) > 10000 && item.isAylik ? (item.unit_price || primaryGunPrice) / 26 : (item.unit_price || primaryGunPrice)) * pazarMultiplier)
+                                                            ? formatCurrency(((item.unit_price || group.dailyRate || 0) > 10000 && item.isAylik ? (item.unit_price || group.dailyRate || 0) / (group.baseMonthlyWorkDays || 26) : (item.unit_price || group.dailyRate || 0)) * pazarMultiplier)
                                                             : (item.unit_price ? formatCurrency(item.unit_price) : '')
                                                     ) : ''}
                                                 </td>
