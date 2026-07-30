@@ -186,9 +186,15 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         const firstItemDate = group.items.find(i => i.date)?.date || work?.start_date;
         const baseMonthlyWorkDays = getBaseMonthlyWorkingDays(firstItemDate);
 
-        // Find primary positive price
-        const positivePriceItem = group.items.find(i => i.unitPriceVal > 0);
-        const rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0;
+        // Find monthly item unit price or primary positive daily price
+        const aylikItem = group.items.find(i => i.isAylik && i.unitPriceVal > 0);
+        let rawPrimaryPrice = 0;
+        if (aylikItem) {
+            rawPrimaryPrice = aylikItem.unitPriceVal;
+        } else {
+            const positivePriceItem = group.items.find(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0);
+            rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0;
+        }
 
         let dailyRate = rawPrimaryPrice;
         let monthlyAmount = rawPrimaryPrice;
@@ -243,30 +249,18 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             }
         });
 
-        // Resolve calculated effective price for each item (handling [KATSAYI:X])
-        group.items.forEach(item => {
-            let effectivePrice = item.unitPriceVal || 0;
-            const desc = item.description || '';
-            const katsayiMatch = desc.match(/\[KATSAYI:([^\]]+)\]/);
-            if (katsayiMatch) {
-                const mult = parseFloat(katsayiMatch[1]);
-                if (!isNaN(mult) && mult > 0 && dailyRate > 0) {
-                    effectivePrice = dailyRate * mult;
-                }
-            }
-            item.calculatedEffectivePrice = effectivePrice;
-        });
-
         // Construct Summary Lines Array for PDF Table
         const summaryLines = [];
 
-        // Identify custom rate non-pazar daily items (items with [KATSAYI:] or explicit custom price)
+        // Identify custom rate non-pazar daily items
         const customRateItems = group.items.filter(i => {
             if (i.isPazar || i.isSaatlik) return false;
-            const desc = i.description || '';
-            if (desc.includes('[KATSAYI:')) return true;
-            if (i.calculatedEffectivePrice > 0 && Math.abs(i.calculatedEffectivePrice - dailyRate) > 0.01) return true;
-            return false;
+            const rawUnit = Number(i.unit_price) || 0;
+            const hasExplicitKatsayi = (i.description || '').includes('[KATSAYI:');
+            const hasCustomPrice = rawUnit > 0 && Math.abs(rawUnit - dailyRate) > 1;
+            const hasDiffUnitPriceVal = i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1 && i.unitPriceVal !== rawPrimaryPrice;
+            
+            return hasExplicitKatsayi || hasCustomPrice || hasDiffUnitPriceVal;
         });
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
 
@@ -282,21 +276,33 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             });
 
             if (customRateDaysCount > 0) {
-                const customPricesMap = {};
+                const customItemsMap = {};
                 customRateItems.forEach(i => {
-                    const price = i.calculatedEffectivePrice > 0 ? i.calculatedEffectivePrice : dailyRate;
+                    const price = (i.unit_price > 0 && Math.abs(i.unit_price - dailyRate) > 1) ? i.unit_price : i.unitPriceVal;
+                    const descLabel = (i.cleanDesc && i.cleanDesc.toUpperCase() !== 'AYLIK') 
+                        ? i.cleanDesc.toUpperCase() 
+                        : (price > 0 ? `GÜN (${formatCurrency(price)})` : 'EKSTRA ÇALIŞMA');
+                    
+                    const subKey = `${descLabel}_${price}`;
                     const hrs = Number(i.hours) || 0;
-                    if (!customPricesMap[price]) customPricesMap[price] = 0;
-                    customPricesMap[price] += hrs;
+                    if (!customItemsMap[subKey]) {
+                        customItemsMap[subKey] = {
+                            typeLabel: descLabel,
+                            unitPrice: price,
+                            count: 0,
+                            totalPrice: 0
+                        };
+                    }
+                    customItemsMap[subKey].count += hrs;
+                    customItemsMap[subKey].totalPrice += hrs * price;
                 });
 
-                Object.entries(customPricesMap).forEach(([priceStr, cnt]) => {
-                    const price = parseFloat(priceStr);
+                Object.values(customItemsMap).forEach(itemData => {
                     summaryLines.push({
-                        typeLabel: `GÜN (${formatCurrency(price)})`,
-                        countText: `${cnt} GÜN`,
-                        unitPrice: price,
-                        totalPrice: cnt * price
+                        typeLabel: itemData.typeLabel,
+                        countText: `${itemData.count} GÜN`,
+                        unitPrice: itemData.unitPrice,
+                        totalPrice: itemData.totalPrice
                     });
                 });
             }
@@ -304,24 +310,33 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             // Regular Daily Job
             const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik);
             if (allDailyItems.length > 0) {
-                const pricesMap = {};
+                const customItemsMap = {};
                 allDailyItems.forEach(i => {
-                    const price = i.calculatedEffectivePrice > 0 ? i.calculatedEffectivePrice : dailyRate;
+                    const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate;
+                    const descLabel = (i.cleanDesc && i.cleanDesc.toUpperCase() !== 'GÜN' && i.cleanDesc.toUpperCase() !== 'PAZAR')
+                        ? i.cleanDesc.toUpperCase()
+                        : (Math.abs(price - dailyRate) > 1 ? `GÜN (${formatCurrency(price)})` : 'GÜN');
+
+                    const subKey = `${descLabel}_${price}`;
                     const hrs = Number(i.hours) || 0;
-                    if (!pricesMap[price]) pricesMap[price] = 0;
-                    pricesMap[price] += hrs;
+                    if (!customItemsMap[subKey]) {
+                        customItemsMap[subKey] = {
+                            typeLabel: descLabel,
+                            unitPrice: price,
+                            count: 0,
+                            totalPrice: 0
+                        };
+                    }
+                    customItemsMap[subKey].count += hrs;
+                    customItemsMap[subKey].totalPrice += hrs * price;
                 });
 
-                const priceEntries = Object.entries(pricesMap);
-                const hasMultiplePrices = priceEntries.length > 1;
-
-                priceEntries.forEach(([priceStr, cnt]) => {
-                    const price = parseFloat(priceStr);
+                Object.values(customItemsMap).forEach(itemData => {
                     summaryLines.push({
-                        typeLabel: (hasMultiplePrices && Math.abs(price - dailyRate) > 1) ? `GÜN (${formatCurrency(price)})` : 'GÜN',
-                        countText: `${cnt} GÜN`,
-                        unitPrice: price,
-                        totalPrice: cnt * price
+                        typeLabel: itemData.typeLabel,
+                        countText: `${itemData.count} GÜN`,
+                        unitPrice: itemData.unitPrice,
+                        totalPrice: itemData.totalPrice
                     });
                 });
             }
