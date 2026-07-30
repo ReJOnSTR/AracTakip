@@ -195,11 +195,11 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
                 monthlyAmount = rawPrimaryPrice;
+                dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
             } else {
-                dailyRate = rawPrimaryPrice;
-                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays;
+                monthlyAmount = Math.round(rawPrimaryPrice * 26);
+                dailyRate = monthlyAmount / baseMonthlyWorkDays;
             }
         }
 
