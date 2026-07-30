@@ -64,7 +64,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     work.items.forEach(item => {
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
         const unitPriceVal = Number(item.unit_price) || 0;
-        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
+        const cleanDesc = (item.description || '').replace(/\[[^\]]*\]\s*/g, '').trim();
 
         if (!vehicleRateInfo[vehicleBaseKey]) {
             vehicleRateInfo[vehicleBaseKey] = {
@@ -86,7 +86,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     const resolveItemEffectiveInfo = (item) => {
         const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger');
         let unitPriceVal = Number(item.unit_price) || 0;
-        let cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim();
+        let cleanDesc = (item.description || '').replace(/\[[^\]]*\]\s*/g, '').trim();
 
         const info = vehicleRateInfo[vehicleBaseKey];
         if (info) {
@@ -498,12 +498,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                         else if (desc.includes('[RENK:green]')) pdfRowClass = 'pdf-row-green';
                                         else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
 
-                                        const cleanDesc = desc
-                                            .replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '')
-                                            .replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '')
-                                            .replace(/\[KATSAYI:[^\]]+\]\s*/gi, '')
-                                            .replace(/\[RENK:[^\]]+\]\s*/gi, '')
-                                            .trim();
+                                        const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
 
                                         return (
                                             <tr key={itemIdx} className={pdfRowClass}>

@@ -70,6 +70,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             unitPriceVal = vehicleRateInfo[vehicleBaseKey].firstPositivePrice
         }
 
+        const cleanDesc = (item.description || '').replace(/\[[^\]]*\]\s*/g, '').trim()
         const descUpper = (item.description || '').toUpperCase()
         const dateObj = new Date(item.date)
         const isSunday = dateObj.getDay() === 0
@@ -84,6 +85,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         groupedByVehicle[vehicleBaseKey].items.push({
             ...item,
             unitPriceVal,
+            cleanDesc,
             isPazar,
             isSaatlik,
             isAylik
