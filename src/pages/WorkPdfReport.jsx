@@ -246,40 +246,13 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         // Construct Summary Lines Array for PDF Table
         const summaryLines = [];
 
-        // Identify custom rate non-pazar daily items
-        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
-        const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
-
         if (isAylikGroup) {
-            const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount);
-            const baseMonthlyTotal = baseMonthlyDays * dailyRate;
-
             summaryLines.push({
                 typeLabel: 'AYLIK',
-                countText: customRateDaysCount > 0 ? `1 AY (${baseMonthlyDays} Gün)` : `1 AY (${baseMonthlyWorkDays} Gün)`,
-                unitPrice: dailyRate,
-                totalPrice: baseMonthlyTotal
+                countText: '1 AY',
+                unitPrice: monthlyAmount,
+                totalPrice: monthlyAmount
             });
-
-            if (customRateDaysCount > 0) {
-                const customPricesMap = {};
-                customRateItems.forEach(i => {
-                    const price = i.unitPriceVal;
-                    const hrs = Number(i.hours) || 0;
-                    if (!customPricesMap[price]) customPricesMap[price] = 0;
-                    customPricesMap[price] += hrs;
-                });
-
-                Object.entries(customPricesMap).forEach(([priceStr, cnt]) => {
-                    const price = parseFloat(priceStr);
-                    summaryLines.push({
-                        typeLabel: `GÜN (${formatCurrency(price)})`,
-                        countText: `${cnt} GÜN`,
-                        unitPrice: price,
-                        totalPrice: cnt * price
-                    });
-                });
-            }
         } else {
             // Regular Daily Job
             const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik);
@@ -307,8 +280,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             }
         }
 
-        // 2. PAZAR Line
-        if (totalPazarCount > 0) {
+        // 2. PAZAR Line (Only for non-aylik jobs or explicit Katsayi items)
+        if (!isAylikGroup && totalPazarCount > 0) {
             const pazarPrice = dailyRate > 0 ? dailyRate * pazarMultiplier : 0;
             summaryLines.push({
                 typeLabel: 'PAZAR',

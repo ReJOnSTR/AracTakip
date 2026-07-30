@@ -538,45 +538,59 @@ export default function WorkDetails(props) {
                 tempDate.setDate(tempDate.getDate() + 1);
             }
 
-            let finalUnitPrice = bulkFormData.unitPrice ? parseFloat(bulkFormData.unitPrice) : 0;
-            if (bulkFormData.pricingType === 'monthly' && bulkFormData.monthlyPrice) {
-                // Aylar 26 gündür (Pazar hariç)
-                finalUnitPrice = parseFloat(bulkFormData.monthlyPrice) / 26;
-            }
-
-            while (currentDate <= end) {
+            if (bulkFormData.pricingType === 'monthly') {
                 let itemDesc = bulkFormData.description || '';
-                if (bulkFormData.pricingType === 'monthly') {
-                    if (!itemDesc.includes('[AYLIK]')) {
-                        itemDesc = itemDesc ? `[AYLIK] ${itemDesc}` : '[AYLIK]';
-                    }
+                if (!itemDesc.includes('[AYLIK]')) {
+                    itemDesc = itemDesc ? `[AYLIK] ${itemDesc}` : '[AYLIK]';
                 }
-
-                // Append custom addition tag if enabled
                 if (bulkFormData.additionEnabled && bulkFormData.additionType && bulkFormData.additionPrice) {
                     itemDesc = `[EK:${bulkFormData.additionType}:${bulkFormData.additionPrice}] ` + itemDesc;
                 }
 
+                const monthlyPriceVal = bulkFormData.monthlyPrice ? parseFloat(bulkFormData.monthlyPrice) : (parseFloat(bulkFormData.unitPrice) || 0);
+
                 payloadList.push({
                     workId: id,
-                    date: currentDate.toISOString().split('T')[0],
+                    date: bulkFormData.endDate || bulkFormData.startDate,
                     receiptNo: bulkFormData.receiptNo,
                     vehicleId: bulkFormData.vehicleId,
                     employeeId: bulkFormData.employeeId,
                     startTime: bulkFormData.startTime,
                     endTime: bulkFormData.endTime,
-                    hours: bulkFormData.hours ? parseFloat(bulkFormData.hours) : 0,
+                    hours: 1,
                     overtimeHours: bulkFormData.overtimeHours ? parseFloat(bulkFormData.overtimeHours) : 0,
-                    unitPrice: finalUnitPrice,
-                    // Still save to travelPrice if type is 'Yol' for backward compatibility
+                    unitPrice: monthlyPriceVal,
                     travelPrice: (bulkFormData.additionEnabled && bulkFormData.additionType === 'Yol') ? (parseFloat(bulkFormData.additionPrice) || 0) : 0,
                     description: itemDesc || null
-                })
+                });
+            } else {
+                while (currentDate <= end) {
+                    let itemDesc = bulkFormData.description || '';
 
-                currentDate.setDate(currentDate.getDate() + 1)
+                    if (bulkFormData.additionEnabled && bulkFormData.additionType && bulkFormData.additionPrice) {
+                        itemDesc = `[EK:${bulkFormData.additionType}:${bulkFormData.additionPrice}] ` + itemDesc;
+                    }
+
+                    payloadList.push({
+                        workId: id,
+                        date: currentDate.toISOString().split('T')[0],
+                        receiptNo: bulkFormData.receiptNo,
+                        vehicleId: bulkFormData.vehicleId,
+                        employeeId: bulkFormData.employeeId,
+                        startTime: bulkFormData.startTime,
+                        endTime: bulkFormData.endTime,
+                        hours: bulkFormData.hours ? parseFloat(bulkFormData.hours) : 0,
+                        overtimeHours: bulkFormData.overtimeHours ? parseFloat(bulkFormData.overtimeHours) : 0,
+                        unitPrice: bulkFormData.unitPrice ? parseFloat(bulkFormData.unitPrice) : 0,
+                        travelPrice: (bulkFormData.additionEnabled && bulkFormData.additionType === 'Yol') ? (parseFloat(bulkFormData.additionPrice) || 0) : 0,
+                        description: itemDesc || null
+                    });
+
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
             }
 
-            const result = await window.electronAPI.addBulkWorkItems(payloadList)
+            const result = await window.electronAPI.addBulkWorkItems(payloadList);
 
             if (result.success) {
                 setIsBulkModalOpen(false)
