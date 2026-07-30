@@ -456,15 +456,14 @@ export default function WorkDetails(props) {
                 // Single item update
                 result = await window.electronAPI.updateWorkItem({ ...payload, id: editingItem.id })
             } else if (formData.pricingType === 'monthly') {
-                // Auto-generate monthly work days
+                // Auto-generate 26 work days (skipping Sundays)
                 const payloadList = []
                 let currentDate = new Date(parsed.date)
                 const monthlyTotal = parsed.unitPrice || 0
-                const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
-                const baseDays = daysInMonth === 31 ? 27 : (daysInMonth === 28 ? 24 : (daysInMonth === 29 ? 25 : 26))
+                const dailyPrice = monthlyTotal / 26
                 let workDaysAdded = 0
 
-                while (workDaysAdded < baseDays) {
+                while (workDaysAdded < 26) {
                     const isSunday = currentDate.getDay() === 0
                     let itemDesc = parsed.description || ''
                     
@@ -482,7 +481,7 @@ export default function WorkDetails(props) {
                     payloadList.push({
                         ...parsed,
                         date: currentDate.toISOString().split('T')[0],
-                        unitPrice: isSunday ? 0 : monthlyTotal,
+                        unitPrice: isSunday ? 0 : dailyPrice,
                         description: itemDesc,
                         travelPrice: formData.travelEnabled ? (parseFloat(formData.travelPrice) || 0) : 0,
                         workId: id
@@ -541,7 +540,8 @@ export default function WorkDetails(props) {
 
             let finalUnitPrice = bulkFormData.unitPrice ? parseFloat(bulkFormData.unitPrice) : 0;
             if (bulkFormData.pricingType === 'monthly' && bulkFormData.monthlyPrice) {
-                finalUnitPrice = parseFloat(bulkFormData.monthlyPrice);
+                // Aylar 26 gündür (Pazar hariç)
+                finalUnitPrice = parseFloat(bulkFormData.monthlyPrice) / 26;
             }
 
             while (currentDate <= end) {

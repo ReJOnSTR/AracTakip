@@ -11,7 +11,7 @@
 
 function getBaseMonthlyWorkingDays(dateInput) {
     if (!dateInput) return 26;
-    let d = new Date(dateInput);
+    const d = new Date(dateInput);
     if (isNaN(d.getTime())) return 26;
     const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     if (daysInMonth === 31) return 27;
@@ -129,11 +129,11 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                monthlyAmount = rawPrimaryPrice
                 dailyRate = rawPrimaryPrice / baseMonthlyWorkDays
+                monthlyAmount = rawPrimaryPrice
             } else {
-                monthlyAmount = Math.round(rawPrimaryPrice * 26)
-                dailyRate = monthlyAmount / baseMonthlyWorkDays
+                dailyRate = rawPrimaryPrice
+                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays
             }
         }
 
@@ -182,13 +182,28 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             }
         })
 
-        // Custom rate items
-        let customRateItems = [];
-        if (isAylikGroup) {
-            customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && (i.description || '').includes('[KATSAYI:'));
-        } else {
-            customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
-        }
+        // Resolve calculated effective price for each item (handling [KATSAYI:X])
+        group.items.forEach(item => {
+            let effectivePrice = item.unitPriceVal || 0
+            const desc = item.description || ''
+            const katsayiMatch = desc.match(/\[KATSAYI:([^\]]+)\]/)
+            if (katsayiMatch) {
+                const mult = parseFloat(katsayiMatch[1])
+                if (!isNaN(mult) && mult > 0 && dailyRate > 0) {
+                    effectivePrice = dailyRate * mult
+                }
+            }
+            item.calculatedEffectivePrice = effectivePrice
+        })
+
+        // Identify custom rate non-pazar daily items (items with [KATSAYI:] or explicit custom price)
+        const customRateItems = group.items.filter(i => {
+            if (i.isPazar || i.isSaatlik) return false
+            const desc = i.description || ''
+            if (desc.includes('[KATSAYI:')) return true
+            if (i.calculatedEffectivePrice > 0 && Math.abs(i.calculatedEffectivePrice - dailyRate) > 0.01) return true
+            return false
+        })
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
 
         let vehicleGunTutar = 0
@@ -196,13 +211,14 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount)
             let customTotal = 0
             customRateItems.forEach(i => {
-                customTotal += (Number(i.hours) || 0) * i.unitPriceVal
+                const price = i.calculatedEffectivePrice > 0 ? i.calculatedEffectivePrice : dailyRate
+                customTotal += (Number(i.hours) || 0) * price
             })
-            vehicleGunTutar = customRateDaysCount > 0 ? (baseMonthlyDays * dailyRate + customTotal) : monthlyAmount
+            vehicleGunTutar = baseMonthlyDays * dailyRate + customTotal
         } else {
             const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik)
             allDailyItems.forEach(i => {
-                const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate
+                const price = i.calculatedEffectivePrice > 0 ? i.calculatedEffectivePrice : dailyRate
                 vehicleGunTutar += (Number(i.hours) || 0) * price
             })
         }

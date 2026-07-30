@@ -195,11 +195,11 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
         if (isAylikGroup && rawPrimaryPrice > 0) {
             if (rawPrimaryPrice > 10000) {
-                monthlyAmount = rawPrimaryPrice;
                 dailyRate = rawPrimaryPrice / baseMonthlyWorkDays;
+                monthlyAmount = rawPrimaryPrice;
             } else {
-                monthlyAmount = Math.round(rawPrimaryPrice * 26);
-                dailyRate = monthlyAmount / baseMonthlyWorkDays;
+                dailyRate = rawPrimaryPrice;
+                monthlyAmount = rawPrimaryPrice * baseMonthlyWorkDays;
             }
         }
 
@@ -243,23 +243,36 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             }
         });
 
+        // Resolve calculated effective price for each item (handling [KATSAYI:X])
+        group.items.forEach(item => {
+            let effectivePrice = item.unitPriceVal || 0;
+            const desc = item.description || '';
+            const katsayiMatch = desc.match(/\[KATSAYI:([^\]]+)\]/);
+            if (katsayiMatch) {
+                const mult = parseFloat(katsayiMatch[1]);
+                if (!isNaN(mult) && mult > 0 && dailyRate > 0) {
+                    effectivePrice = dailyRate * mult;
+                }
+            }
+            item.calculatedEffectivePrice = effectivePrice;
+        });
+
         // Construct Summary Lines Array for PDF Table
         const summaryLines = [];
 
-        // Identify custom rate non-pazar daily items
-        let customRateItems = [];
-        if (isAylikGroup) {
-            // In monthly jobs, ONLY explicit [KATSAYI:] tagged items are custom rate items
-            customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && (i.description || '').includes('[KATSAYI:'));
-        } else {
-            // In daily jobs, items with different unit prices are custom rate items
-            customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
-        }
+        // Identify custom rate non-pazar daily items (items with [KATSAYI:] or explicit custom price)
+        const customRateItems = group.items.filter(i => {
+            if (i.isPazar || i.isSaatlik) return false;
+            const desc = i.description || '';
+            if (desc.includes('[KATSAYI:')) return true;
+            if (i.calculatedEffectivePrice > 0 && Math.abs(i.calculatedEffectivePrice - dailyRate) > 0.01) return true;
+            return false;
+        });
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
 
         if (isAylikGroup) {
             const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount);
-            const baseMonthlyTotal = customRateDaysCount > 0 ? (baseMonthlyDays * dailyRate) : monthlyAmount;
+            const baseMonthlyTotal = baseMonthlyDays * dailyRate;
 
             summaryLines.push({
                 typeLabel: 'AYLIK',
@@ -271,7 +284,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             if (customRateDaysCount > 0) {
                 const customPricesMap = {};
                 customRateItems.forEach(i => {
-                    const price = i.unitPriceVal;
+                    const price = i.calculatedEffectivePrice > 0 ? i.calculatedEffectivePrice : dailyRate;
                     const hrs = Number(i.hours) || 0;
                     if (!customPricesMap[price]) customPricesMap[price] = 0;
                     customPricesMap[price] += hrs;
@@ -293,7 +306,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             if (allDailyItems.length > 0) {
                 const pricesMap = {};
                 allDailyItems.forEach(i => {
-                    const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate;
+                    const price = i.calculatedEffectivePrice > 0 ? i.calculatedEffectivePrice : dailyRate;
                     const hrs = Number(i.hours) || 0;
                     if (!pricesMap[price]) pricesMap[price] = 0;
                     pricesMap[price] += hrs;
@@ -364,9 +377,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         return {
             ...group,
             summaryLines,
-            calculatedGrandTotal: groupGrandTotal,
-            dailyRate,
-            baseMonthlyWorkDays
+            calculatedGrandTotal: groupGrandTotal
         };
     });
 
@@ -537,11 +548,9 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                 <td>{cleanDesc}</td>
                                                 <td className="right">
                                                     {showPrices ? (
-                                                        item.isPazar
-                                                            ? formatCurrency(group.dailyRate * pazarMultiplier)
-                                                            : item.isAylik
-                                                                ? formatCurrency(group.dailyRate)
-                                                                : (item.unit_price ? formatCurrency(item.unit_price) : '')
+                                                        item.isPazar && !(desc.includes('[KATSAYI:'))
+                                                            ? formatCurrency(((item.unit_price || primaryGunPrice) > 10000 && item.isAylik ? (item.unit_price || primaryGunPrice) / 26 : (item.unit_price || primaryGunPrice)) * pazarMultiplier)
+                                                            : (item.unit_price ? formatCurrency(item.unit_price) : '')
                                                     ) : ''}
                                                 </td>
                                             </tr>
