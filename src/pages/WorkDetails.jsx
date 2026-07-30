@@ -2098,7 +2098,14 @@ export default function WorkDetails(props) {
                                             min="0"
                                             className="form-input"
                                             value={pazarMultiplier}
-                                            onChange={e => setPazarMultiplier(e.target.value)}
+                                            onChange={async (e) => {
+                                                const val = e.target.value;
+                                                setPazarMultiplier(val);
+                                                const numVal = parseFloat(val);
+                                                if (!isNaN(numVal) && work?.id) {
+                                                    await window.electronAPI.updateWork({ id: work.id, pazar_multiplier: numVal });
+                                                }
+                                            }}
                                             style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
                                         />
                                     </div>
@@ -2110,7 +2117,14 @@ export default function WorkDetails(props) {
                                             min="0"
                                             className="form-input"
                                             value={mesaiMultiplier}
-                                            onChange={e => setMesaiMultiplier(e.target.value)}
+                                            onChange={async (e) => {
+                                                const val = e.target.value;
+                                                setMesaiMultiplier(val);
+                                                const numVal = parseFloat(val);
+                                                if (!isNaN(numVal) && work?.id) {
+                                                    await window.electronAPI.updateWork({ id: work.id, mesai_multiplier: numVal });
+                                                }
+                                            }}
                                             style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
                                         />
                                     </div>
