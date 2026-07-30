@@ -34,20 +34,12 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         }
     }
 
-    let totalHours = 0
-    let totalOvertime = 0
-    let totalPazarDayCount = 0
-    let totalGunCount = 0
-    let totalSaatCount = 0
-    let grandTotal = 0
-
     const uniqueVehicles = new Set()
     const uniqueEmployees = new Set()
-    const groupedItems = {}
 
-    // First pass: mark isPazar on each item (same as PDF report line 88-97)
-    // This ensures sampleGunPrice filter correctly excludes Sunday items
-    const processedItems = items.map(item => {
+    // 1. Process items: resolution & vehicle base key
+    const vehicleRateInfo = {}
+    items.forEach(item => {
         if (item.vehicle_id) {
             uniqueVehicles.add(String(item.vehicle_id))
         } else if (item.custom_vehicle) {
@@ -55,135 +47,53 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         }
         if (item.employee_id) uniqueEmployees.add(item.employee_id)
 
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+        const unitPriceVal = Number(item.unit_price) || 0
+
+        if (!vehicleRateInfo[vehicleBaseKey]) {
+            vehicleRateInfo[vehicleBaseKey] = { firstPositivePrice: 0 }
+        }
+        if (unitPriceVal > 0 && !vehicleRateInfo[vehicleBaseKey].firstPositivePrice) {
+            vehicleRateInfo[vehicleBaseKey].firstPositivePrice = unitPriceVal
+        }
+    })
+
+    // Group items by vehicleBaseKey ONLY (matches WorkPdfReport.jsx)
+    const groupedByVehicle = {}
+
+    items.forEach(item => {
+        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
+        let unitPriceVal = Number(item.unit_price) || 0
+        if (unitPriceVal === 0 && vehicleRateInfo[vehicleBaseKey]?.firstPositivePrice > 0) {
+            unitPriceVal = vehicleRateInfo[vehicleBaseKey].firstPositivePrice
+        }
+
         const descUpper = (item.description || '').toUpperCase()
         const dateObj = new Date(item.date)
         const isSunday = dateObj.getDay() === 0
         const isPazar = isSunday || descUpper.includes('PAZAR')
-
-        // Clone item and normalize description for Pazar detection
-        // (same as PDF: if it's Sunday but description doesn't say PAZAR, add [PAZAR])
-        let normalizedDesc = item.description || ''
-        if (isSunday && !descUpper.includes('PAZAR')) {
-            normalizedDesc = normalizedDesc ? `[PAZAR] ${normalizedDesc}` : '[PAZAR]'
-        }
-
-        return { ...item, isPazar, _normalizedDesc: normalizedDesc }
-    })
-
-    // Araç ve Tarife bazında kalıtım (Fiyatsız devam/mesai satırlarının kendi fiyat grubuna bağlanması)
-    const vehicleRateInfo = {}
-    processedItems.forEach(item => {
-        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
-        const unitPriceVal = Number(item.unit_price) || 0
-        const cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim()
-
-        if (!vehicleRateInfo[vehicleBaseKey]) {
-            vehicleRateInfo[vehicleBaseKey] = {
-                firstPositivePrice: 0,
-                descByPrice: {}
-            }
-        }
-
-        if (unitPriceVal > 0) {
-            if (!vehicleRateInfo[vehicleBaseKey].firstPositivePrice) {
-                vehicleRateInfo[vehicleBaseKey].firstPositivePrice = unitPriceVal
-            }
-            if (cleanDesc && !vehicleRateInfo[vehicleBaseKey].descByPrice[unitPriceVal]) {
-                vehicleRateInfo[vehicleBaseKey].descByPrice[unitPriceVal] = cleanDesc
-            }
-        }
-    })
-
-    const resolveItemEffectiveInfo = (item) => {
-        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
-        let unitPriceVal = Number(item.unit_price) || 0
-        let cleanDesc = (item.description || '').replace(/\[(YOL|SAATLİK|AYLIK|PAZAR)\]\s*/gi, '').replace(/\[EK:[^:]+:[^\]]+\]\s*/gi, '').trim()
-
-        const info = vehicleRateInfo[vehicleBaseKey]
-        if (info) {
-            if (unitPriceVal === 0 && info.firstPositivePrice > 0) {
-                unitPriceVal = info.firstPositivePrice
-            }
-            if (!cleanDesc && unitPriceVal > 0 && info.descByPrice[unitPriceVal]) {
-                cleanDesc = info.descByPrice[unitPriceVal]
-            }
-        }
-        return { unitPriceVal, cleanDesc }
-    }
-
-    processedItems.forEach(item => {
-        const vehicleBaseKey = item.vehicle_id ? String(item.vehicle_id) : (item.custom_vehicle ? `custom_${item.custom_vehicle}` : 'diger')
-        const { unitPriceVal, cleanDesc } = resolveItemEffectiveInfo(item)
-        const descUpper = (item._normalizedDesc || '').toUpperCase()
         const isSaatlik = descUpper.includes('[SAATLİK]') || item.pricingType === 'hourly'
         const isAylik = descUpper.includes('[AYLIK]') || item.pricingType === 'monthly'
-        const rateTypeKey = isAylik ? 'aylik' : (isSaatlik ? 'saatlik' : 'gun')
-        const key = `${vehicleBaseKey}_${rateTypeKey}_price_${unitPriceVal}_desc_${cleanDesc.toLowerCase()}`
 
-        if (!groupedItems[key]) {
-            groupedItems[key] = {
-                unitPriceVal: unitPriceVal,
-                cleanDesc: cleanDesc,
-                items: [],
-                totalGun: 0,
-                totalPazar: 0,
-                totalSaatlik: 0,
-                totalMesai: 0,
-                isAylik: false,
-                isSaatlik: isSaatlik,
-                additions: {}
-            }
-        }
-        groupedItems[key].items.push(item)
-
-        const gunSayisi = Number(item.hours) || 0
-        const mesaiSaatleri = Number(item.overtime_hours) || 0
-        const travelPrice = Number(item.travel_price) || 0
-
-        if (isAylik) groupedItems[key].isAylik = true
-
-        totalHours += gunSayisi
-        if (isSaatlik) {
-            totalSaatCount += gunSayisi
-        } else {
-            totalGunCount += gunSayisi
+        if (!groupedByVehicle[vehicleBaseKey]) {
+            groupedByVehicle[vehicleBaseKey] = { items: [] }
         }
 
-        // Parse custom additions from description [EK:Type:Price]
-        const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g)
-        let hasAddition = false
-
-        for (const match of additionMatches) {
-            hasAddition = true
-            const type = match[1]
-            const price = parseFloat(match[2]) || 0
-
-            if (!groupedItems[key].additions[type]) {
-                groupedItems[key].additions[type] = { count: 0, price: price }
-            }
-            groupedItems[key].additions[type].count += 1
-        }
-
-        // Fallback for legacy travel_price if no EK additions found
-        if (!hasAddition && travelPrice > 0) {
-            if (!groupedItems[key].additions['Yol']) {
-                groupedItems[key].additions['Yol'] = { count: 0, price: travelPrice }
-            }
-            groupedItems[key].additions['Yol'].count += 1
-        }
-
-        if (item.isPazar) {
-            groupedItems[key].totalPazar += gunSayisi
-            totalPazarDayCount += gunSayisi
-        } else if (isSaatlik) {
-            groupedItems[key].totalSaatlik += gunSayisi
-        } else {
-            groupedItems[key].totalGun += gunSayisi
-        }
-
-        groupedItems[key].totalMesai += mesaiSaatleri
-        totalOvertime += mesaiSaatleri
+        groupedByVehicle[vehicleBaseKey].items.push({
+            ...item,
+            unitPriceVal,
+            isPazar,
+            isSaatlik,
+            isAylik
+        })
     })
+
+    let grandTotal = 0
+    let totalHours = 0
+    let totalOvertime = 0
+    let totalPazarDayCount = 0
+    let totalGunCount = 0
+    let totalSaatCount = 0
 
     let totalMesaiPriceAmount = 0
     let totalPazarPriceAmount = 0
@@ -191,70 +101,117 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
     let totalSaatlikTutar = 0
     let totalEkOdemeler = 0
 
-    Object.values(groupedItems).forEach(group => {
-        const sampleGunPrice = group.unitPriceVal || group.items.find(i =>
-            !(i._normalizedDesc || '').toUpperCase().includes('PAZAR') &&
-            !(i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]') &&
-            (Number(i.hours) > 0)
-        )?.unit_price || 0
+    // Compute stats per vehicle group (exact same logic as WorkPdfReport.jsx)
+    Object.values(groupedByVehicle).forEach(group => {
+        const isAylikGroup = group.items.some(i => i.isAylik)
+        const positivePriceItem = group.items.find(i => i.unitPriceVal > 0)
+        const rawPrimaryPrice = positivePriceItem ? positivePriceItem.unitPriceVal : 0
 
-        const sampleSaatlikPrice = group.unitPriceVal || group.items.find(i =>
-            (i._normalizedDesc || '').toUpperCase().includes('[SAATLİK]')
-        )?.unit_price || 0
+        let dailyRate = rawPrimaryPrice
+        let monthlyAmount = rawPrimaryPrice
 
-        const dailyRate = (group.isAylik && sampleGunPrice > 10000) ? sampleGunPrice / 26 : sampleGunPrice;
-
-        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
-        const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0);
-        let customRateTotal = 0;
-        customRateItems.forEach(i => {
-            customRateTotal += (Number(i.hours) || 0) * i.unitPriceVal;
-        });
-
-        const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount);
-        const monthlyAmount = group.isAylik ? (baseMonthlyDays * dailyRate + customRateTotal) : 0;
-
-        let samplePazarPrice = 0
-        const pazarItemWithExplicitKatsayi = group.items.find(i => i.isPazar && (i._normalizedDesc || '').includes('[KATSAYI:'))
-        if (pazarItemWithExplicitKatsayi && Number(pazarItemWithExplicitKatsayi.unit_price) > 0) {
-            samplePazarPrice = Number(pazarItemWithExplicitKatsayi.unit_price)
-        } else if (dailyRate > 0) {
-            samplePazarPrice = dailyRate * parsedPazarMultiplier
-        } else {
-            const fallbackPrice = group.items.find(i => i.isPazar && Number(i.unit_price) > 0)?.unit_price || 0
-            samplePazarPrice = fallbackPrice > 0 ? fallbackPrice * parsedPazarMultiplier : 0
-        }
-
-        const cg = group.isAylik ? monthlyAmount : (group.totalGun * dailyRate)
-        const saatlikTutar = group.totalSaatlik * sampleSaatlikPrice
-        const pazarTutar = group.totalPazar * samplePazarPrice
-
-        let mesaiTutar = 0
-        if (group.totalMesai > 0) {
-            let baseHourlyRateForMesai = 0
-            if (group.isSaatlik && sampleSaatlikPrice > 0) {
-                baseHourlyRateForMesai = sampleSaatlikPrice
-            } else if (dailyRate > 0) {
-                baseHourlyRateForMesai = dailyRate / 9
+        if (isAylikGroup && rawPrimaryPrice > 0) {
+            if (rawPrimaryPrice > 10000) {
+                dailyRate = rawPrimaryPrice / 26
+                monthlyAmount = rawPrimaryPrice
+            } else {
+                dailyRate = rawPrimaryPrice
+                monthlyAmount = rawPrimaryPrice * 26
             }
-            mesaiTutar = group.totalMesai * baseHourlyRateForMesai * parsedMesaiMultiplier
         }
 
-        // Ek ödemeler (additions: Yol, EK:xxx vb.)
-        let additionsTutar = 0
-        if (group.additions) {
-            Object.values(group.additions).forEach(data => {
-                additionsTutar += data.count * data.price
+        let groupPazarCount = 0
+        let groupSaatlikCount = 0
+        let groupGunCount = 0
+        let groupMesaiCount = 0
+        const additionsMap = {}
+
+        group.items.forEach(item => {
+            const hrs = Number(item.hours) || 0
+            const mesaiHrs = Number(item.overtime_hours) || 0
+            const travelPrice = Number(item.travel_price) || 0
+
+            totalHours += hrs
+            totalOvertime += mesaiHrs
+
+            if (item.isPazar) {
+                groupPazarCount += hrs
+                totalPazarDayCount += hrs
+            } else if (item.isSaatlik) {
+                groupSaatlikCount += hrs
+                totalSaatCount += hrs
+            } else {
+                groupGunCount += hrs
+                if (!isAylikGroup) totalGunCount += hrs
+            }
+
+            if (mesaiHrs > 0) {
+                groupMesaiCount += mesaiHrs
+            }
+
+            // Additions
+            const additionMatches = (item.description || '').matchAll(/\[EK:([^:]+):([^\]]+)\]/g)
+            let hasAddition = false
+            for (const match of additionMatches) {
+                hasAddition = true
+                const type = match[1]
+                const price = parseFloat(match[2]) || 0
+                if (!additionsMap[type]) additionsMap[type] = { count: 0, price }
+                additionsMap[type].count += 1
+            }
+            if (!hasAddition && travelPrice > 0) {
+                if (!additionsMap['Yol']) additionsMap['Yol'] = { count: 0, price: travelPrice }
+                additionsMap['Yol'].count += 1
+            }
+        })
+
+        // Custom rate items
+        const customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1)
+        const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
+
+        let vehicleGunTutar = 0
+        if (isAylikGroup) {
+            const baseMonthlyDays = Math.max(0, 26 - customRateDaysCount)
+            let customTotal = 0
+            customRateItems.forEach(i => {
+                customTotal += (Number(i.hours) || 0) * i.unitPriceVal
+            })
+            vehicleGunTutar = baseMonthlyDays * dailyRate + customTotal
+        } else {
+            const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik)
+            allDailyItems.forEach(i => {
+                const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate
+                vehicleGunTutar += (Number(i.hours) || 0) * price
             })
         }
 
-        totalMesaiPriceAmount += mesaiTutar
-        totalPazarPriceAmount += pazarTutar
-        totalGunTutar += cg
-        totalSaatlikTutar += saatlikTutar
-        totalEkOdemeler += additionsTutar
+        // Pazar
+        const pazarPrice = dailyRate > 0 ? dailyRate * parsedPazarMultiplier : 0
+        const vehiclePazarTutar = groupPazarCount * pazarPrice
 
-        grandTotal += cg + pazarTutar + saatlikTutar + mesaiTutar + additionsTutar
+        // Saatlik
+        const saatlikPrice = group.items.find(i => i.isSaatlik && i.unitPriceVal > 0)?.unitPriceVal || 0
+        const vehicleSaatlikTutar = groupSaatlikCount * saatlikPrice
+
+        // Mesai
+        const hourlyRateForMesai = dailyRate > 0 ? dailyRate / 9 : 0
+        const mesaiPrice = parseFloat((hourlyRateForMesai * parsedMesaiMultiplier).toFixed(2))
+        const vehicleMesaiTutar = groupMesaiCount * mesaiPrice
+
+        // Ek Ödemeler
+        let vehicleAdditionsTutar = 0
+        Object.values(additionsMap).forEach(data => {
+            vehicleAdditionsTutar += data.count * data.price
+        })
+
+        totalGunTutar += vehicleGunTutar
+        totalPazarPriceAmount += vehiclePazarTutar
+        totalSaatlikTutar += vehicleSaatlikTutar
+        totalMesaiPriceAmount += vehicleMesaiTutar
+        totalEkOdemeler += vehicleAdditionsTutar
+
+        const groupGrandTotal = vehicleGunTutar + vehiclePazarTutar + vehicleSaatlikTutar + vehicleMesaiTutar + vehicleAdditionsTutar
+        grandTotal += groupGrandTotal
     })
 
     let durationText = '0 Gün'
