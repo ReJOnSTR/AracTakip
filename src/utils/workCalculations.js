@@ -191,6 +191,12 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         // Custom rate items
         const customRateItems = group.items.filter(i => {
             if (i.isPazar || i.isSaatlik) return false
+            if (isAylikGroup) {
+                const descUpper = (i.description || '').toUpperCase()
+                const isMainAylikPlaceholder = i.isAylik && (descUpper.includes('[AYLIK]') || i.pricingType === 'monthly') && Number(i.unit_price) === rawPrimaryPrice && (!i.cleanDesc || i.cleanDesc.toUpperCase() === 'AYLIK')
+                if (isMainAylikPlaceholder) return false
+                return true
+            }
             const rawUnit = Number(i.unit_price) || 0
             const hasExplicitKatsayi = (i.description || '').includes('[KATSAYI:')
             const hasCustomPrice = rawUnit > 0 && Math.abs(rawUnit - dailyRate) > 1
