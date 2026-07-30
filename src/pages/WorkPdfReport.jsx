@@ -259,7 +259,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
         if (isAylikGroup) {
             const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount);
-            const baseMonthlyTotal = baseMonthlyDays * dailyRate;
+            const baseMonthlyTotal = customRateDaysCount > 0 ? (baseMonthlyDays * dailyRate) : monthlyAmount;
 
             summaryLines.push({
                 typeLabel: 'AYLIK',

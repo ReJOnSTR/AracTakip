@@ -11,7 +11,7 @@
 
 function getBaseMonthlyWorkingDays(dateInput) {
     if (!dateInput) return 26;
-    const d = new Date(dateInput);
+    let d = new Date(dateInput);
     if (isNaN(d.getTime())) return 26;
     const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     if (daysInMonth === 31) return 27;
@@ -185,10 +185,8 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
         // Custom rate items
         let customRateItems = [];
         if (isAylikGroup) {
-            // In monthly jobs, ONLY explicit [KATSAYI:] tagged items are custom rate items
             customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && (i.description || '').includes('[KATSAYI:'));
         } else {
-            // In daily jobs, items with different unit prices are custom rate items
             customRateItems = group.items.filter(i => !i.isPazar && !i.isSaatlik && i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - dailyRate) > 1);
         }
         const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
@@ -200,7 +198,7 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             customRateItems.forEach(i => {
                 customTotal += (Number(i.hours) || 0) * i.unitPriceVal
             })
-            vehicleGunTutar = baseMonthlyDays * dailyRate + customTotal
+            vehicleGunTutar = customRateDaysCount > 0 ? (baseMonthlyDays * dailyRate + customTotal) : monthlyAmount
         } else {
             const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik)
             allDailyItems.forEach(i => {
