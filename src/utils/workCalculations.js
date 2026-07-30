@@ -182,31 +182,33 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             }
         })
 
+        // Custom rate items
+        const customRateItems = group.items.filter(i => 
+            !i.isPazar && 
+            !i.isSaatlik && 
+            ((i.description || '').includes('[KATSAYI:') || (i.unitPriceVal > 0 && Math.abs(i.unitPriceVal - rawPrimaryPrice) > 1 && Math.abs(i.unitPriceVal - dailyRate) > 1))
+        )
+        const customRateDaysCount = customRateItems.reduce((s, i) => s + (Number(i.hours) || 0), 0)
+
         let vehicleGunTutar = 0
-        let vehiclePazarTutar = 0
-
         if (isAylikGroup) {
-            // FIXED MONTHLY FEE: The monthly amount covers the whole month (including standard Pazar days!)
-            vehicleGunTutar = monthlyAmount;
-            vehiclePazarTutar = 0; // Pazar is included in monthly fee!
-
-            // Only add custom katsayi pazar items if explicitly tagged with [KATSAYI:X]
-            const explicitPazarItems = group.items.filter(i => i.isPazar && (i.description || '').includes('[KATSAYI:'));
-            explicitPazarItems.forEach(i => {
-                vehiclePazarTutar += (Number(i.hours) || 0) * i.unitPriceVal;
-            });
+            const baseMonthlyDays = Math.max(0, baseMonthlyWorkDays - customRateDaysCount)
+            let customTotal = 0
+            customRateItems.forEach(i => {
+                customTotal += (Number(i.hours) || 0) * i.unitPriceVal
+            })
+            vehicleGunTutar = baseMonthlyDays * dailyRate + customTotal
         } else {
-            // Daily Job
-            const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik);
+            const allDailyItems = group.items.filter(i => !i.isPazar && !i.isSaatlik)
             allDailyItems.forEach(i => {
-                const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate;
-                vehicleGunTutar += (Number(i.hours) || 0) * price;
-            });
-
-            // Pazar for Daily Job
-            const pazarPrice = dailyRate > 0 ? dailyRate * parsedPazarMultiplier : 0;
-            vehiclePazarTutar = groupPazarCount * pazarPrice;
+                const price = i.unitPriceVal > 0 ? i.unitPriceVal : dailyRate
+                vehicleGunTutar += (Number(i.hours) || 0) * price
+            })
         }
+
+        // Pazar
+        const pazarPrice = dailyRate > 0 ? dailyRate * parsedPazarMultiplier : 0
+        const vehiclePazarTutar = groupPazarCount * pazarPrice
 
         // Saatlik
         const saatlikPrice = group.items.find(i => i.isSaatlik && i.unitPriceVal > 0)?.unitPriceVal || 0
