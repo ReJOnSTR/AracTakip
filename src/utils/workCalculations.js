@@ -8,6 +8,48 @@
  * @param {Array} items - work_items array
  * @returns {Object} calculated stats
  */
+export function calculateAutoHours(startTime, endTime, pricingType, workStartStr = '08:00', workEndStr = '17:00') {
+    if (!startTime || !endTime) return { hours: 1, overtimeHours: 0 };
+
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+
+    let diffHours = endH - startH + (endM - startM) / 60;
+    if (diffHours < 0) diffHours += 24;
+
+    let calculatedHours = 1;
+    let calculatedOvertime = 0;
+
+    if (pricingType === 'hourly') {
+        calculatedHours = parseFloat(diffHours.toFixed(2));
+        calculatedOvertime = 0;
+    } else {
+        const [wSH, wSM] = (workStartStr || '08:00').split(':').map(Number);
+        const [wEH, wEM] = (workEndStr || '17:00').split(':').map(Number);
+
+        const workStart = wSH + (wSM / 60);
+        const workEnd = wEH + (wEM / 60);
+
+        const currentStart = startH + (startM / 60);
+        const currentEnd = endH + (endM / 60);
+
+        let standardOverlap = 0;
+        if (currentEnd >= currentStart) {
+            standardOverlap = Math.max(0, Math.min(currentEnd, workEnd) - Math.max(currentStart, workStart));
+        } else {
+            const day1Overlap = Math.max(0, Math.min(24, workEnd) - Math.max(currentStart, workStart));
+            const day2Overlap = Math.max(0, Math.min(currentEnd, workEnd) - Math.max(0, workStart));
+            standardOverlap = day1Overlap + day2Overlap;
+        }
+
+        const overtimeHours = Math.max(0, diffHours - standardOverlap);
+        calculatedHours = 1;
+        calculatedOvertime = parseFloat(Math.min(diffHours, overtimeHours).toFixed(2));
+    }
+
+    return { hours: calculatedHours, overtimeHours: calculatedOvertime };
+}
+
 export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5) {
     const pazarMultVal = parseFloat(pazarMultiplier)
     const parsedPazarMultiplier = (pazarMultiplier === "" || pazarMultiplier === null || pazarMultiplier === undefined || isNaN(pazarMultVal)) 

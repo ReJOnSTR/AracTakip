@@ -839,7 +839,7 @@ export default function WorkDetails(props) {
         const isHourly = items.length > 0 && items.some(item => (item.description || '').toUpperCase().includes('[SAATLİK]') || item.pricingType === 'hourly')
 
         return { ...calc, dateRangeText, isHourly }
-    }, [filteredItems, work])
+    }, [filteredItems, work, pazarMultiplier, mesaiMultiplier])
 
     if (loading) return <div className="p-8 text-center">Yükleniyor...</div>
     if (!work) return <div className="p-8 text-center">İş bulunamadı.</div>

@@ -1,5 +1,5 @@
 const { getPrismaClient } = require('../prismaClient')
-const { calculateWorkStats } = require('../utils/workCalculations')
+const { calculateWorkStats, calculateAutoHours } = require('../utils/workCalculations')
 
 async function getWorks(companyId, isArchived = 0) {
     try {
@@ -126,8 +126,18 @@ async function createWork(data) {
 async function updateWork(data) {
     try {
         const prisma = getPrismaClient()
+        const workId = parseInt(data.id);
+
+        const currentWork = await prisma.works.findUnique({
+            where: { id: workId },
+            include: { work_items: true }
+        });
+
+        const newStartTime = data.work_start_time !== undefined ? data.work_start_time : currentWork?.work_start_time;
+        const newEndTime = data.work_end_time !== undefined ? data.work_end_time : currentWork?.work_end_time;
+
         const updated = await prisma.works.update({
-            where: { id: parseInt(data.id) },
+            where: { id: workId },
             data: {
                 title: data.title !== undefined ? data.title : undefined,
                 customer_id: data.customerId !== undefined ? (data.customerId ? parseInt(data.customerId) : null) : undefined,
@@ -142,7 +152,32 @@ async function updateWork(data) {
                 pazar_multiplier: data.pazar_multiplier !== undefined ? parseFloat(data.pazar_multiplier) : undefined,
                 mesai_multiplier: data.mesai_multiplier !== undefined ? parseFloat(data.mesai_multiplier) : undefined
             }
-        })
+        });
+
+        if (currentWork && currentWork.work_items && currentWork.work_items.length > 0 &&
+            ((data.work_start_time !== undefined && data.work_start_time !== currentWork.work_start_time) ||
+             (data.work_end_time !== undefined && data.work_end_time !== currentWork.work_end_time))) {
+            
+            for (const item of currentWork.work_items) {
+                if (item.start_time && item.end_time) {
+                    const descUpper = (item.description || '').toUpperCase();
+                    const isHourly = descUpper.includes('[SAATLİK]') || item.pricingType === 'hourly';
+                    const { overtimeHours } = calculateAutoHours(
+                        item.start_time,
+                        item.end_time,
+                        isHourly ? 'hourly' : 'daily',
+                        newStartTime || '08:00',
+                        newEndTime || '17:00'
+                    );
+
+                    await prisma.work_items.update({
+                        where: { id: item.id },
+                        data: { overtime_hours: overtimeHours }
+                    });
+                }
+            }
+        }
+
         return { success: true, data: updated }
     } catch (error) {
         return { success: false, error: error.message }
