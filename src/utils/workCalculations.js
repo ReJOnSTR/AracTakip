@@ -328,16 +328,32 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             }
         }
 
-        // 2. PAZAR Line
+        // 2. PAZAR Line (calculated per-item rate)
         if (groupPazarCount > 0) {
-            const pazarPrice = dailyRate > 0 ? dailyRate * parsedPazarMultiplier : 0;
-            summaryLines.push({
-                typeLabel: 'PAZAR',
-                countText: `${groupPazarCount} GÜN`,
-                unitPrice: pazarPrice,
-                totalPrice: groupPazarCount * pazarPrice
+            const pazarPricesMap = {};
+            group.items.filter(i => i.isPazar).forEach(i => {
+                const hrs = Number(i.hours) || 0;
+                if (hrs > 0) {
+                    const itemDailyPrice = getItemEffectivePrice(i, dailyRate);
+                    const itemPazarPrice = itemDailyPrice > 0 ? itemDailyPrice * parsedPazarMultiplier : 0;
+                    const key = `${itemPazarPrice}`;
+                    if (!pazarPricesMap[key]) {
+                        pazarPricesMap[key] = { price: itemPazarPrice, count: 0 };
+                    }
+                    pazarPricesMap[key].count += hrs;
+                }
             });
-            totalPazarPriceAmount += groupPazarCount * pazarPrice;
+
+            Object.values(pazarPricesMap).forEach(itemData => {
+                const pazarTutar = itemData.count * itemData.price;
+                summaryLines.push({
+                    typeLabel: 'PAZAR',
+                    countText: `${itemData.count} GÜN`,
+                    unitPrice: itemData.price,
+                    totalPrice: pazarTutar
+                });
+                totalPazarPriceAmount += pazarTutar;
+            });
         }
 
         // 3. SAAT Line
@@ -352,17 +368,33 @@ export function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier
             totalSaatlikTutar += groupSaatlikCount * saatlikPrice;
         }
 
-        // 4. MESAİ Line
+        // 4. MESAİ Line (calculated per-item row unit price!)
         if (groupMesaiCount > 0) {
-            const hourlyRate = dailyRate > 0 ? dailyRate / 9 : 0;
-            const mesaiPrice = parseFloat((hourlyRate * parsedMesaiMultiplier).toFixed(2));
-            summaryLines.push({
-                typeLabel: 'MESAİ',
-                countText: `${groupMesaiCount} SAAT`,
-                unitPrice: mesaiPrice,
-                totalPrice: groupMesaiCount * mesaiPrice
+            const mesaiPricesMap = {};
+            group.items.forEach(i => {
+                const mesaiHrs = Number(i.overtime_hours) || 0;
+                if (mesaiHrs > 0) {
+                    const itemDailyPrice = getItemEffectivePrice(i, dailyRate);
+                    const itemHourlyRate = itemDailyPrice > 0 ? itemDailyPrice / 9 : 0;
+                    const itemMesaiPrice = parseFloat((itemHourlyRate * parsedMesaiMultiplier).toFixed(2));
+                    const key = `${itemMesaiPrice}`;
+                    if (!mesaiPricesMap[key]) {
+                        mesaiPricesMap[key] = { price: itemMesaiPrice, count: 0 };
+                    }
+                    mesaiPricesMap[key].count += mesaiHrs;
+                }
             });
-            totalMesaiPriceAmount += groupMesaiCount * mesaiPrice;
+
+            Object.values(mesaiPricesMap).forEach(itemData => {
+                const mesaiTutar = itemData.count * itemData.price;
+                summaryLines.push({
+                    typeLabel: 'MESAİ',
+                    countText: `${itemData.count} SAAT`,
+                    unitPrice: itemData.price,
+                    totalPrice: mesaiTutar
+                });
+                totalMesaiPriceAmount += mesaiTutar;
+            });
         }
 
         // 5. EK ÖDEMELER Lines
