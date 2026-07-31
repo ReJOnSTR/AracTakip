@@ -366,14 +366,14 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
             totalSaatlikTutar += groupSaatlikCount * saatlikPrice;
         }
 
-        // 4. MESAİ Line (calculated per-item row unit price!)
+        // 4. MESAİ Line (calculated per 8 net daily working hours)
         if (groupMesaiCount > 0) {
             const mesaiPricesMap = {};
             group.items.forEach(i => {
                 const mesaiHrs = Number(i.overtime_hours) || 0;
                 if (mesaiHrs > 0) {
                     const itemDailyPrice = getItemEffectivePrice(i, dailyRate);
-                    const itemHourlyRate = itemDailyPrice > 0 ? itemDailyPrice / 9 : 0;
+                    const itemHourlyRate = itemDailyPrice > 0 ? itemDailyPrice / 8 : 0;
                     const itemMesaiPrice = parseFloat((itemHourlyRate * parsedMesaiMultiplier).toFixed(2));
                     const key = `${itemMesaiPrice}`;
                     if (!mesaiPricesMap[key]) {
