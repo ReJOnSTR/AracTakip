@@ -266,13 +266,13 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                             <tr key={lIdx} className="bg-light-gray">
                                                 <td className="bold center">{line.typeLabel}</td>
                                                 <td className="center">{line.countText || `${line.count} ${line.unit}`}</td>
-                                                <td className="right">{showPrices && line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
-                                                <td className="right bold total-text">{showPrices ? formatCurrency(line.totalPrice) : ''}</td>
+                                                <td className="right">{line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
+                                                <td className="right bold total-text">{formatCurrency(line.totalPrice)}</td>
                                             </tr>
                                         ))}
                                         <tr style={{ borderTop: '1px solid #ddd' }}>
                                             <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
-                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{showPrices ? formatCurrency(group.calculatedGrandTotal) : ''}</td>
+                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
                                         </tr>
                                     </tbody>
                                 </table>
