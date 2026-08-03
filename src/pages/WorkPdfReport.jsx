@@ -196,97 +196,35 @@ export default function WorkPdfReport({
                 </div>
             )}
 
-            {/* Excel Page Setup & Fitting Toolbar */}
-            {!savingPdf && (
-                <div className={`pdf-page-setup-toolbar ${orientation === 'landscape' ? 'is-landscape' : ''}`}>
-                    {/* Görünüm Modu */}
-                    <div className="pdf-toolbar-group">
-                        <span className="pdf-toolbar-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                            Görünüm:
-                        </span>
-                        <button 
-                            className={`pdf-toolbar-btn ${previewMode === 'normal' ? 'active' : ''}`}
-                            onClick={() => setPreviewMode('normal')}
-                        >
-                            Normal
-                        </button>
-                        <button 
-                            className={`pdf-toolbar-btn ${previewMode === 'pageBreak' ? 'active' : ''}`}
-                            onClick={() => setPreviewMode('pageBreak')}
-                            title="Excel Sayfa Sonu Önizleme Çizgilerini Göster"
-                        >
-                            Sayfa Sonu Önizleme
-                        </button>
-                    </div>
-
-                    {/* Yönlendirme */}
-                    <div className="pdf-toolbar-group">
-                        <span className="pdf-toolbar-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="20" x="4" y="2" rx="2"/></svg>
-                            Yön:
-                        </span>
-                        <button 
-                            className={`pdf-toolbar-btn ${orientation === 'portrait' ? 'active' : ''}`}
-                            onClick={() => setOrientation('portrait')}
-                        >
-                            Dikey (A4)
-                        </button>
-                        <button 
-                            className={`pdf-toolbar-btn ${orientation === 'landscape' ? 'active' : ''}`}
-                            onClick={() => setOrientation('landscape')}
-                        >
-                            Yatay (A4)
-                        </button>
-                    </div>
-
-                    {/* Sığdırma & Ölçekleme */}
-                    <div className="pdf-toolbar-group">
-                        <span className="pdf-toolbar-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
-                            Sayfa Sığdırma:
-                        </span>
-                        <select 
-                            className="pdf-toolbar-select"
-                            value={fitMode}
-                            onChange={(e) => setFitMode(e.target.value)}
-                        >
-                            <option value="auto">Otomatik (%100)</option>
-                            <option value="fit1Page">Tek Sayfaya Sığdır (%{calculatedAutoFitScale})</option>
-                            <option value="custom">Özel Ölçek (Slider)</option>
-                        </select>
-
-                        {fitMode === 'custom' && (
-                            <div className="pdf-toolbar-slider-wrapper">
-                                <input 
-                                    type="range" 
-                                    min="50" 
-                                    max="150" 
-                                    step="5"
-                                    value={customScale}
-                                    onChange={(e) => setCustomScale(Number(e.target.value))}
-                                    className="pdf-toolbar-slider"
-                                />
-                                <span className="pdf-toolbar-badge">%{customScale}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Kenar Boşluğu */}
-                    <div className="pdf-toolbar-group">
-                        <span className="pdf-toolbar-label">Kenar:</span>
-                        <select 
-                            className="pdf-toolbar-select"
-                            value={marginSize}
-                            onChange={(e) => setMarginSize(e.target.value)}
-                        >
-                            <option value="narrow">Dar (8mm)</option>
-                            <option value="normal">Normal (15mm)</option>
-                            <option value="wide">Geniş (22mm)</option>
-                        </select>
-                    </div>
-                </div>
-            )}
+            {/* Dynamic Print & Page Setup Styles */}
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    @page {
+                        size: A4 ${orientation};
+                        margin: ${marginSize === 'narrow' ? '8mm 6mm' : (marginSize === 'wide' ? '22mm 18mm' : '15mm 12mm')} !important;
+                    }
+                    body, html {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #ffffff !important;
+                    }
+                    .pdf-actions-bar,
+                    .pdf-page-setup-toolbar,
+                    .pdf-page-break-line,
+                    .pdf-page-watermark {
+                        display: none !important;
+                    }
+                    .pdf-report-container {
+                        zoom: ${effectiveScaleNum} !important;
+                        transform: none !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        width: 100% !important;
+                        max-width: none !important;
+                        padding: 0 !important;
+                    }
+                }
+            `}} />
 
             <div 
                 ref={containerRef}

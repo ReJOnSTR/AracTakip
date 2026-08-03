@@ -723,7 +723,12 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
-            isPdfSave: true
+            isPdfSave: true,
+            previewMode: pageSetup.previewMode,
+            orientation: pageSetup.orientation,
+            fitMode: pageSetup.fitMode,
+            customScale: pageSetup.customScale,
+            marginSize: pageSetup.marginSize
         }))
 
         const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
@@ -750,7 +755,11 @@ export default function WorkDetails(props) {
         setTimeout(async () => {
             try {
                 setIsReportModalOpen(false)
-                const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName })
+                const res = await window.electronAPI.saveReportPdf('/print', { 
+                    defaultPath: defaultFileName,
+                    landscape: pageSetup.orientation === 'landscape',
+                    scale: pageSetup.fitMode === 'custom' ? (pageSetup.customScale / 100) : undefined
+                })
                 if (res && !res.success && !res.canceled) {
                     alert('PDF Kaydedilirken Hata: ' + res.error)
                 }
@@ -771,7 +780,12 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
-            isPdfSave: false
+            isPdfSave: false,
+            previewMode: pageSetup.previewMode,
+            orientation: pageSetup.orientation,
+            fitMode: pageSetup.fitMode,
+            customScale: pageSetup.customScale,
+            marginSize: pageSetup.marginSize
         }))
         
         const iframe = document.createElement('iframe');
