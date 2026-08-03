@@ -607,3 +607,47 @@ body:has(.is-generating-pdf),
     font-weight: 700;
     font-family: monospace;
 }
+
+/* Tek Sayfaya Sığdır (Fit-1-Page) Akıllı Sıkıştırma Stilleri */
+.pdf-report-container.fit-1-page {
+    padding: 8mm 10mm !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-header-standard {
+    padding-bottom: 8px !important;
+    margin-bottom: 10px !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-vehicle-group {
+    margin-bottom: 10px !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-group-title {
+    padding: 3px 6px !important;
+    margin-bottom: 4px !important;
+    font-size: 11px !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-table {
+    margin-bottom: 6px !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-table th,
+.pdf-report-container.fit-1-page .pdf-table td {
+    padding: 1.5px 4px !important;
+    line-height: 1.15 !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-summary-block {
+    margin-top: 6px !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-grand-total {
+    margin-top: 8px !important;
+    padding: 6px 12px !important;
+}
+
+.pdf-report-container.fit-1-page .pdf-footer-standard {
+    margin-top: 4px !important;
+    padding-top: 4px !important;
+}

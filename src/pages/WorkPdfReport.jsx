@@ -96,12 +96,13 @@ export default function WorkPdfReport({
         const totalHeightPx = element.scrollHeight;
 
         let basePageHeight = orientation === 'landscape' ? 794 : 1123;
-        let marginPx = marginSize === 'narrow' ? 60 : (marginSize === 'wide' ? 166 : 113);
+        let marginPx = marginSize === 'narrow' ? 45 : (marginSize === 'wide' ? 120 : 80);
         let printableHeightPx = basePageHeight - marginPx;
 
         if (totalHeightPx > 0) {
-            const fitScale = Math.min(100, Math.round((printableHeightPx / totalHeightPx) * 100));
-            setCalculatedAutoFitScale(fitScale > 35 ? fitScale : 35);
+            const rawFitScale = Math.round((printableHeightPx / totalHeightPx) * 100);
+            const fitScale = Math.min(100, Math.max(70, rawFitScale));
+            setCalculatedAutoFitScale(fitScale);
         }
 
         const currentScalePercent = fitMode === 'fit1Page' ? calculatedAutoFitScale : (fitMode === 'custom' ? customScale : 100);
@@ -228,7 +229,7 @@ export default function WorkPdfReport({
 
             <div 
                 ref={containerRef}
-                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${orientation === 'landscape' ? 'is-landscape' : ''} margin-${marginSize} ${previewMode === 'pageBreak' ? 'is-page-break-preview' : ''}`}
+                className={`pdf-report-container ${fitMode === 'fit1Page' ? 'fit-1-page' : ''} ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${orientation === 'landscape' ? 'is-landscape' : ''} margin-${marginSize} ${previewMode === 'pageBreak' ? 'is-page-break-preview' : ''}`}
                 style={{
                     transform: effectiveScalePercent !== 100 ? `scale(${effectiveScaleNum})` : 'none',
                     transformOrigin: 'top center'
