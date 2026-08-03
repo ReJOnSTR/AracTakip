@@ -4,7 +4,22 @@ import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
+export default function WorkPdfReport({ 
+    propId, 
+    propWork, 
+    noHeader = false, 
+    isPreview = false, 
+    showPricesProp = true, 
+    showKdvProp = false, 
+    kdvRateProp = 20, 
+    pazarMultiplierProp = null, 
+    mesaiMultiplierProp = null,
+    previewModeProp = 'normal',
+    orientationProp = 'portrait',
+    fitModeProp = 'auto',
+    customScaleProp = 100,
+    marginSizeProp = 'normal'
+}) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -14,15 +29,23 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     const showPrices = showPricesProp;
 
     // Excel-style Page Setup & Preview States
-    const [previewMode, setPreviewMode] = useState('normal'); // 'normal' | 'pageBreak'
-    const [orientation, setOrientation] = useState('portrait'); // 'portrait' | 'landscape'
-    const [fitMode, setFitMode] = useState('auto'); // 'auto' | 'fit1Page' | 'custom'
-    const [customScale, setCustomScale] = useState(100); // 50 to 150
-    const [marginSize, setMarginSize] = useState('normal'); // 'narrow' | 'normal' | 'wide'
+    const [previewMode, setPreviewMode] = useState(previewModeProp); 
+    const [orientation, setOrientation] = useState(orientationProp); 
+    const [fitMode, setFitMode] = useState(fitModeProp); 
+    const [customScale, setCustomScale] = useState(customScaleProp); 
+    const [marginSize, setMarginSize] = useState(marginSizeProp); 
 
     const containerRef = React.useRef(null);
     const [pageBreaks, setPageBreaks] = useState([]);
     const [calculatedAutoFitScale, setCalculatedAutoFitScale] = useState(100);
+
+    useEffect(() => {
+        setPreviewMode(previewModeProp);
+        setOrientation(orientationProp);
+        setFitMode(fitModeProp);
+        setCustomScale(customScaleProp);
+        setMarginSize(marginSizeProp);
+    }, [previewModeProp, orientationProp, fitModeProp, customScaleProp, marginSizeProp]);
 
     useEffect(() => {
         if (propWork) {

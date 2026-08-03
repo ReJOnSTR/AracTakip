@@ -76,9 +76,17 @@ export default function WorkDetails(props) {
     const [generatingPdf, setGeneratingPdf] = useState(false)
     const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
+    const [pageSetup, setPageSetup] = useState({
+        previewMode: 'normal',
+        orientation: 'portrait',
+        fitMode: 'auto',
+        customScale: 100,
+        marginSize: 'normal'
+    })
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
-        multipliers: false
+        multipliers: false,
+        pageSetup: false
     })
 
     // Form State
@@ -2131,6 +2139,121 @@ export default function WorkDetails(props) {
                                 </div>
                             )}
                         </div>
+
+                        {/* Sayfa Yapısı & Sığdırma (Excel) */}
+                        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <div 
+                                onClick={() => setSidebarCollapsed(prev => ({ ...prev, pageSetup: !prev.pageSetup }))}
+                                style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FileText size={14} style={{ color: 'var(--primary)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sayfa Yapısı (Excel)</h4>
+                                </div>
+                                <ChevronDown 
+                                    size={14} 
+                                    style={{ 
+                                        color: 'var(--text-muted)', 
+                                        transform: sidebarCollapsed.pageSetup ? 'rotate(-90deg)' : 'none', 
+                                        transition: 'transform 0.2s ease' 
+                                    }} 
+                                />
+                            </div>
+                            {!sidebarCollapsed.pageSetup && (
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {/* Görünüm Modu */}
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '6px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Görünüm Modu</label>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                                            <button
+                                                type="button"
+                                                className={`btn ${pageSetup.previewMode === 'normal' ? 'btn-primary' : 'btn-ghost'}`}
+                                                style={{ fontSize: '11px', padding: '6px', textAlign: 'center', justifyContent: 'center' }}
+                                                onClick={() => setPageSetup(p => ({ ...p, previewMode: 'normal' }))}
+                                            >
+                                                Normal
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`btn ${pageSetup.previewMode === 'pageBreak' ? 'btn-primary' : 'btn-ghost'}`}
+                                                style={{ fontSize: '11px', padding: '6px', textAlign: 'center', justifyContent: 'center' }}
+                                                onClick={() => setPageSetup(p => ({ ...p, previewMode: 'pageBreak' }))}
+                                                title="Sayfa Sonu Çizgilerini Göster"
+                                            >
+                                                Sayfa Sonu
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Sayfa Yönü */}
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '6px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Yönü</label>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                                            <button
+                                                type="button"
+                                                className={`btn ${pageSetup.orientation === 'portrait' ? 'btn-primary' : 'btn-ghost'}`}
+                                                style={{ fontSize: '11px', padding: '6px', textAlign: 'center', justifyContent: 'center' }}
+                                                onClick={() => setPageSetup(p => ({ ...p, orientation: 'portrait' }))}
+                                            >
+                                                Dikey (A4)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`btn ${pageSetup.orientation === 'landscape' ? 'btn-primary' : 'btn-ghost'}`}
+                                                style={{ fontSize: '11px', padding: '6px', textAlign: 'center', justifyContent: 'center' }}
+                                                onClick={() => setPageSetup(p => ({ ...p, orientation: 'landscape' }))}
+                                            >
+                                                Yatay (A4)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Sığdırma & Ölçekleme */}
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Sığdırma</label>
+                                        <select
+                                            className="form-input"
+                                            value={pageSetup.fitMode}
+                                            onChange={(e) => setPageSetup(p => ({ ...p, fitMode: e.target.value }))}
+                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                        >
+                                            <option value="auto">Otomatik (%100)</option>
+                                            <option value="fit1Page">Tek Sayfaya Sığdır</option>
+                                            <option value="custom">Özel Ölçek (Slider)</option>
+                                        </select>
+                                        {pageSetup.fitMode === 'custom' && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                                                <input
+                                                    type="range"
+                                                    min="50"
+                                                    max="150"
+                                                    step="5"
+                                                    value={pageSetup.customScale}
+                                                    onChange={(e) => setPageSetup(p => ({ ...p, customScale: Number(e.target.value) }))}
+                                                    style={{ flex: 1, accentColor: 'var(--primary)' }}
+                                                />
+                                                <span style={{ fontSize: '11px', fontWeight: 700, background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px' }}>%{pageSetup.customScale}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Kenar Boşluğu */}
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Kenar Boşlukları</label>
+                                        <select
+                                            className="form-input"
+                                            value={pageSetup.marginSize}
+                                            onChange={(e) => setPageSetup(p => ({ ...p, marginSize: e.target.value }))}
+                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                        >
+                                            <option value="narrow">Dar (8mm)</option>
+                                            <option value="normal">Normal (15mm)</option>
+                                            <option value="wide">Geniş (22mm)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right: Live Preview */}
@@ -2145,6 +2268,11 @@ export default function WorkDetails(props) {
                                 kdvRateProp={kdvRate}
                                 pazarMultiplierProp={pazarMultiplier}
                                 mesaiMultiplierProp={mesaiMultiplier}
+                                previewModeProp={pageSetup.previewMode}
+                                orientationProp={pageSetup.orientation}
+                                fitModeProp={pageSetup.fitMode}
+                                customScaleProp={pageSetup.customScale}
+                                marginSizeProp={pageSetup.marginSize}
                             />
                         </div>
                     </div>
