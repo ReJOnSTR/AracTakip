@@ -11,6 +11,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
+    const [showPageBreakPreview, setShowPageBreakPreview] = useState(false);
     const showPrices = showPricesProp;
 
     useEffect(() => {
@@ -116,6 +117,15 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                         Pencereyi Kapat
                     </button>
                     <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
+                            className={`pdf-btn preview-breaks ${showPageBreakPreview ? 'active' : ''}`}
+                            onClick={() => setShowPageBreakPreview(!showPageBreakPreview)}
+                            disabled={savingPdf}
+                            title="A4 sayfa sonlarını ve sayfa sınırlarını gösterir"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="3" y1="12" x2="21" y2="12" strokeDasharray="3 3"/></svg>
+                            {showPageBreakPreview ? 'Sayfa Sınırlarını Gizle' : 'Sayfa Sonu Ön İzleme'}
+                        </button>
                         <button className="pdf-btn print" onClick={() => window.print()} disabled={savingPdf}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
                             Yazıcıdan Çıktı Al
@@ -128,7 +138,13 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 </div>
             )}
 
-            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}>
+            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${showPageBreakPreview ? 'show-page-breaks' : ''}`}>
+                {showPageBreakPreview && (
+                    <div className="pdf-page-break-notice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <span><strong>SAYFA SONU ÖN İZLEME AKTİF:</strong> Mavi kesikli çizgiler A4 sayfa kesim noktalarını (297mm) ve yazıcı sayfa sınırlarını gösterir. Çıktı alındığında bu çizgiler basılmaz.</span>
+                    </div>
+                )}
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
@@ -175,6 +191,14 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                 return (
                     <div className="pdf-vehicle-group" key={idx}>
+                        {showPageBreakPreview && idx > 0 && (
+                            <div className="pdf-page-break-indicator">
+                                <span className="pdf-page-break-badge">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="3" y1="12" x2="21" y2="12" strokeDasharray="3 3"/></svg>
+                                    SAYFA {idx + 1} GEÇİŞİ / A4 SAYFA KESİMİ
+                                </span>
+                            </div>
+                        )}
                         <h3 
                             style={{ 
                                 fontSize: '13px', 
