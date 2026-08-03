@@ -320,8 +320,8 @@ export default function WorkPdfReport({
                                                 <td className="right">
                                                     {showPrices ? (
                                                         item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? formatCurrency(((item.unit_price || primaryGunPrice) > 10000 && item.isAylik ? (item.unit_price || primaryGunPrice) / 26 : (item.unit_price || primaryGunPrice)) * pazarMultiplier)
-                                                            : (item.unit_price ? formatCurrency(item.unit_price) : '')
+                                                            ? formatCurrency(((item.unitPriceVal || item.unit_price || 0) > 10000 && item.isAylik ? (item.unitPriceVal || item.unit_price || 0) / 26 : (item.unitPriceVal || item.unit_price || 0)) * pazarMultiplier)
+                                                            : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
                                                     ) : ''}
                                                 </td>
                                             </tr>
