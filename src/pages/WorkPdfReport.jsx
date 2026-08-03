@@ -234,8 +234,8 @@ export default function WorkPdfReport({
                     transformOrigin: 'top center'
                 }}
             >
-                {/* Excel Page Break Overlay Lines & Watermarks */}
-                {previewMode === 'pageBreak' && (
+                {/* Excel Page Break Overlay Lines & Watermarks (Preview Only) */}
+                {previewMode === 'pageBreak' && !savingPdf && (
                     <>
                         <div className="pdf-page-watermark" style={{ top: '250px' }}>
                             SAYFA 1

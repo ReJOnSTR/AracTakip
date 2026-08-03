@@ -14,18 +14,39 @@
 .pdf-report-container {
     width: 210mm;
     min-height: 297mm;
-    padding: 20mm;
+    padding: 15mm 12mm;
     margin: 0 auto;
-    background: white;
+    background: #ffffff;
     position: relative;
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
-    color: black;
+    color: #000000;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 .pdf-report-container.is-preview {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    border: 1px solid #e0e0e0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.is-generating-pdf .pdf-page-break-line,
+.is-generating-pdf .pdf-page-watermark {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+@media print {
+    .pdf-actions-bar,
+    .pdf-page-setup-toolbar,
+    .pdf-page-break-line,
+    .pdf-page-watermark {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
 }
 
 /* Standard Header Classes */
