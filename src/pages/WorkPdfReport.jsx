@@ -1,18 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
+export default function WorkPdfReport({ 
+    propId, 
+    propWork, 
+    noHeader = false, 
+    isPreview = false, 
+    showPricesProp = true, 
+    showKdvProp = false, 
+    kdvRateProp = 20, 
+    pazarMultiplierProp = null, 
+    mesaiMultiplierProp = null,
+    scaleProp = 100,
+    showPageBreaksProp = true
+}) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
-    const [showPageBreakPreview, setShowPageBreakPreview] = useState(false);
+    const [scale, setScale] = useState(scaleProp || 100);
+    const [showPageBreaks, setShowPageBreaks] = useState(showPageBreaksProp !== undefined ? showPageBreaksProp : true);
+    const containerRef = useRef(null);
+    const [pageBreaks, setPageBreaks] = useState([]);
     const showPrices = showPricesProp;
+
+    useEffect(() => {
+        if (scaleProp !== undefined) setScale(scaleProp);
+    }, [scaleProp]);
+
+    useEffect(() => {
+        if (showPageBreaksProp !== undefined) setShowPageBreaks(showPageBreaksProp);
+    }, [showPageBreaksProp]);
 
     useEffect(() => {
         if (propWork) {
@@ -25,7 +48,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
-                // Also verify it matches the ID just in case
                 if (parsed.id === Number(id)) {
                     setWork(parsed);
                     setLoading(false);
@@ -57,6 +79,31 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         loadData();
     }, [id, propWork]);
 
+    // Calculate A4 Page Break lines (Excel Style)
+    useEffect(() => {
+        if (!showPageBreaks || !containerRef.current) {
+            setPageBreaks([]);
+            return;
+        }
+
+        const calcBreaks = () => {
+            if (!containerRef.current) return;
+            const totalHeight = containerRef.current.offsetHeight;
+            // Standard A4 printable height at 96DPI (~1050px)
+            const a4Height = 1050; 
+            const count = Math.floor(totalHeight / a4Height);
+            const breaks = [];
+            for (let i = 1; i <= count; i++) {
+                breaks.push(i * a4Height);
+            }
+            setPageBreaks(breaks);
+        };
+
+        calcBreaks();
+        const timer = setTimeout(calcBreaks, 250);
+        return () => clearTimeout(timer);
+    }, [work, scale, showPageBreaks]);
+
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
@@ -82,13 +129,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         }
 
         setSavingPdf(true);
-        // Wait for state to apply hide-for-pdf classes
         setTimeout(async () => {
             const res = await window.electronAPI.saveAsPdf();
             setSavingPdf(false);
-            if (res && res.success) {
-                // We can add a notification here or let OS handle it
-            } else if (res && !res.canceled) {
+            if (res && !res.success && !res.canceled) {
                 alert('PDF Kaydedilirken Hata: ' + res.error);
             }
         }, 100);
@@ -116,16 +160,28 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         Pencereyi Kapat
                     </button>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button 
-                            className={`pdf-btn preview-breaks ${showPageBreakPreview ? 'active' : ''}`}
-                            onClick={() => setShowPageBreakPreview(!showPageBreakPreview)}
-                            disabled={savingPdf}
-                            title="A4 sayfa sonlarını ve sayfa sınırlarını gösterir"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="3" y1="12" x2="21" y2="12" strokeDasharray="3 3"/></svg>
-                            {showPageBreakPreview ? 'Sayfa Sınırlarını Gizle' : 'Sayfa Sonu Ön İzleme'}
-                        </button>
+                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontSize: '13px' }}>
+                            <span>Sıkıştırma Oranı:</span>
+                            <select 
+                                value={scale} 
+                                onChange={e => setScale(Number(e.target.value))}
+                                style={{ padding: '5px 10px', borderRadius: '4px', background: '#2c3e50', color: 'white', border: '1px solid #7f8c8d', fontSize: '13px' }}
+                            >
+                                <option value={100}>%100 (Standart)</option>
+                                <option value={90}>%90 (Sıkışık)</option>
+                                <option value={80}>%80 (Çok Sıkışık)</option>
+                                <option value={70}>%70 (Maksimum Sıkışık)</option>
+                            </select>
+                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontSize: '13px', cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={showPageBreaks} 
+                                onChange={e => setShowPageBreaks(e.target.checked)} 
+                            />
+                            Sayfa Sonu Çizgileri
+                        </label>
                         <button className="pdf-btn print" onClick={() => window.print()} disabled={savingPdf}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
                             Yazıcıdan Çıktı Al
@@ -138,13 +194,18 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 </div>
             )}
 
-            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${showPageBreakPreview ? 'show-page-breaks' : ''}`}>
-                {showPageBreakPreview && (
-                    <div className="pdf-page-break-notice">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        <span><strong>SAYFA SONU ÖN İZLEME AKTİF:</strong> Mavi kesikli çizgiler A4 sayfa kesim noktalarını (297mm) ve yazıcı sayfa sınırlarını gösterir. Çıktı alındığında bu çizgiler basılmaz.</span>
+            <div 
+                ref={containerRef}
+                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} scale-${scale}`}
+            >
+                {/* Excel-style Page Break Line Indicators */}
+                {showPageBreaks && pageBreaks.map((topPos, pIdx) => (
+                    <div key={pIdx} className="pdf-page-break-indicator" style={{ top: `${topPos}px` }}>
+                        <div className="pdf-page-break-badge">
+                            ✂ SAYFA {pIdx + 1} SONU (SAYFA {pIdx + 2} BAŞLANGICI)
+                        </div>
                     </div>
-                )}
+                ))}
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
@@ -191,14 +252,6 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                 return (
                     <div className="pdf-vehicle-group" key={idx}>
-                        {showPageBreakPreview && idx > 0 && (
-                            <div className="pdf-page-break-indicator">
-                                <span className="pdf-page-break-badge">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="3" y1="12" x2="21" y2="12" strokeDasharray="3 3"/></svg>
-                                    SAYFA {idx + 1} GEÇİŞİ / A4 SAYFA KESİMİ
-                                </span>
-                            </div>
-                        )}
                         <h3 
                             style={{ 
                                 fontSize: '13px', 

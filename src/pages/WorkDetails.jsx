@@ -76,6 +76,8 @@ export default function WorkDetails(props) {
     const [generatingPdf, setGeneratingPdf] = useState(false)
     const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
+    const [reportScale, setReportScale] = useState(100)
+    const [showPageBreaks, setShowPageBreaks] = useState(true)
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
         multipliers: false
@@ -2131,6 +2133,52 @@ export default function WorkDetails(props) {
                                 </div>
                             )}
                         </div>
+
+                        {/* Sayfa Düzeni & Sıkıştırma */}
+                        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <div 
+                                onClick={() => setSidebarCollapsed(prev => ({ ...prev, layout: !prev.layout }))}
+                                style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sayfa Sonu & Sıkıştırma</h4>
+                                </div>
+                                <ChevronDown 
+                                    size={14} 
+                                    style={{ 
+                                        color: 'var(--text-muted)', 
+                                        transform: sidebarCollapsed.layout ? 'rotate(-90deg)' : 'none', 
+                                        transition: 'transform 0.2s ease' 
+                                    }} 
+                                />
+                            </div>
+                            {!sidebarCollapsed.layout && (
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sıkıştırma Oranı (Ölçek)</label>
+                                        <select
+                                            className="form-select"
+                                            value={reportScale}
+                                            onChange={(e) => setReportScale(Number(e.target.value))}
+                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                        >
+                                            <option value={100}>%100 (Standart)</option>
+                                            <option value={90}>%90 (Sıkışık)</option>
+                                            <option value={80}>%80 (Çok Sıkışık)</option>
+                                            <option value={70}>%70 (Maksimum Sıkışık)</option>
+                                        </select>
+                                    </div>
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 0', marginTop: '2px' }} onClick={e => e.stopPropagation()}>
+                                        <span style={{ fontSize: '12px', color: showPageBreaks ? 'var(--text-primary)' : 'var(--text-muted)' }}>Sayfa Sonu Çizgileri</span>
+                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={showPageBreaks} onChange={e => setShowPageBreaks(e.target.checked)} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </label>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right: Live Preview */}
@@ -2145,6 +2193,8 @@ export default function WorkDetails(props) {
                                 kdvRateProp={kdvRate}
                                 pazarMultiplierProp={pazarMultiplier}
                                 mesaiMultiplierProp={mesaiMultiplier}
+                                scaleProp={reportScale}
+                                showPageBreaksProp={showPageBreaks}
                             />
                         </div>
                     </div>

@@ -28,6 +28,41 @@
     border: 1px solid #e0e0e0;
 }
 
+/* Scaling / Compression Modes */
+.pdf-report-container.scale-90 {
+    zoom: 0.90;
+}
+.pdf-report-container.scale-80 {
+    zoom: 0.80;
+}
+.pdf-report-container.scale-70 {
+    zoom: 0.70;
+}
+
+/* Page Break Indicator Lines (Excel-Style Page Break Preview) */
+.pdf-page-break-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 2px dashed #2563eb;
+    z-index: 100;
+    pointer-events: none;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.pdf-page-break-badge {
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 0 0 6px 6px;
+    font-family: system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
 /* Standard Header Classes */
 .pdf-header-standard {
     border-bottom: 2px solid #000;
@@ -291,8 +326,14 @@
         zoom: 1;
     }
 
-    .pdf-report-container.with-kdv {
-        zoom: 1;
+    .pdf-report-container.scale-90 {
+        zoom: 0.90 !important;
+    }
+    .pdf-report-container.scale-80 {
+        zoom: 0.80 !important;
+    }
+    .pdf-report-container.scale-70 {
+        zoom: 0.70 !important;
     }
 
     .pdf-header-standard {
@@ -421,71 +462,7 @@ body:has(.is-generating-pdf),
 }
 
 @media print {
-    .pdf-actions-bar,
-    .pdf-page-break-notice,
-    .pdf-page-break-indicator {
+    .pdf-actions-bar {
         display: none !important;
     }
-}
-
-/* Page Break Preview Styles (Excel-Style Sayfa Sonu Ön İzleme) */
-.pdf-btn.preview-breaks {
-    background-color: #8e44ad;
-}
-.pdf-btn.preview-breaks:hover {
-    background-color: #7d3c98;
-    transform: translateY(-2px);
-}
-.pdf-btn.preview-breaks.active {
-    background-color: #27ae60;
-    box-shadow: 0 0 12px rgba(39, 174, 96, 0.5);
-}
-
-.pdf-page-break-notice {
-    background: #eef2ff;
-    border: 1px dashed #6366f1;
-    color: #3730a3;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-size: 11.5px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    line-height: 1.4;
-}
-
-.pdf-page-break-indicator {
-    position: relative;
-    margin: 30px 0;
-    text-align: center;
-    border-top: 2px dashed #6366f1;
-}
-
-.pdf-page-break-badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #6366f1;
-    color: #ffffff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 12px;
-    border-radius: 12px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
-}
-
-.pdf-report-container.show-page-breaks {
-    position: relative;
-    outline: 2px dashed #6366f1;
-    outline-offset: 4px;
-    background-image: linear-gradient(to bottom, transparent 296mm, #6366f1 296mm, #6366f1 297mm, transparent 297mm);
-    background-size: 100% 297mm;
 }
