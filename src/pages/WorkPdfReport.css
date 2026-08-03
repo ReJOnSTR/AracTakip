@@ -340,13 +340,6 @@
         border-radius: 0;
     }
     
-    .pdf-report-container.fit-one-page {
-        page-break-after: avoid !important;
-        break-after: avoid !important;
-        max-height: 270mm !important;
-        overflow: hidden !important;
-    }
-
     @page {
         margin: 10mm 10mm; /* 10mm top/bottom page margin */
         size: A4 portrait;

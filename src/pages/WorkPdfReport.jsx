@@ -219,7 +219,7 @@ export default function WorkPdfReport({
 
             <div 
                 ref={containerRef}
-                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${isSinglePage ? 'fit-one-page' : ''}`}
+                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}
                 style={{
                     zoom: (scale || 100) / 100,
                     transformOrigin: 'top center'
