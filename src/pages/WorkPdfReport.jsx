@@ -85,6 +85,24 @@ export default function WorkPdfReport({
         loadData();
     }, [id, propWork]);
 
+    if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
+    if (error) return <div className="print-error">Hata: {error}</div>;
+    if (!work) return null;
+
+    const parsedPazarProp = pazarMultiplierProp !== null && pazarMultiplierProp !== undefined && pazarMultiplierProp !== "" ? parseFloat(pazarMultiplierProp) : NaN;
+    const pazarMultiplier = !isNaN(parsedPazarProp)
+        ? parsedPazarProp 
+        : (work?.pazar_multiplier !== undefined && work?.pazar_multiplier !== null ? work.pazar_multiplier : 1.5);
+
+    const parsedMesaiProp = mesaiMultiplierProp !== null && mesaiMultiplierProp !== undefined && mesaiMultiplierProp !== "" ? parseFloat(mesaiMultiplierProp) : NaN;
+    const mesaiMultiplier = !isNaN(parsedMesaiProp)
+        ? parsedMesaiProp 
+        : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
+
+    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier);
+    const groups = calcResult.groups;
+    const grandTotalPrice = calcResult.grandTotal;
+
     // Calculate A4 Page Break lines (Excel Style)
     useEffect(() => {
         if (!showPageBreaks || !containerRef.current) {
@@ -127,24 +145,6 @@ export default function WorkPdfReport({
             setScale(finalScale);
         }
     };
-
-    if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
-    if (error) return <div className="print-error">Hata: {error}</div>;
-    if (!work) return null;
-
-    const parsedPazarProp = pazarMultiplierProp !== null && pazarMultiplierProp !== undefined && pazarMultiplierProp !== "" ? parseFloat(pazarMultiplierProp) : NaN;
-    const pazarMultiplier = !isNaN(parsedPazarProp)
-        ? parsedPazarProp 
-        : (work?.pazar_multiplier !== undefined && work?.pazar_multiplier !== null ? work.pazar_multiplier : 1.5);
-
-    const parsedMesaiProp = mesaiMultiplierProp !== null && mesaiMultiplierProp !== undefined && mesaiMultiplierProp !== "" ? parseFloat(mesaiMultiplierProp) : NaN;
-    const mesaiMultiplier = !isNaN(parsedMesaiProp)
-        ? parsedMesaiProp 
-        : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
-
-    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier);
-    const groups = calcResult.groups;
-    const grandTotalPrice = calcResult.grandTotal;
 
     const handleSavePdf = async () => {
         if (!window.electronAPI?.saveAsPdf) {
