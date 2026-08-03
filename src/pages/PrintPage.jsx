@@ -119,6 +119,7 @@ export default function PrintPage() {
                     mesaiMultiplierProp={data.mesaiMultiplier}
                     scaleProp={data.scale || 100}
                     showPageBreaksProp={data.showPageBreaks !== undefined ? data.showPageBreaks : false}
+                    vehiclePageBreakProp={data.vehiclePageBreak || false}
                 />
             </div>
         )

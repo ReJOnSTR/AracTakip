@@ -78,6 +78,7 @@ export default function WorkDetails(props) {
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
     const [reportScale, setReportScale] = useState(100)
     const [showPageBreaks, setShowPageBreaks] = useState(true)
+    const [vehiclePageBreak, setVehiclePageBreak] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
         multipliers: false
@@ -2188,12 +2189,12 @@ export default function WorkDetails(props) {
                                             if (el) {
                                                 const currentScale = (reportScale || 100) / 100;
                                                 const unzoomedHeight = el.offsetHeight * currentScale;
-                                                const targetPrintHeight = 1100;
+                                                const targetPrintHeight = 980;
                                                 if (unzoomedHeight <= targetPrintHeight) {
                                                     setReportScale(100);
                                                 } else {
                                                     const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-                                                    const finalScale = Math.min(100, Math.max(45, calculatedScale));
+                                                    const finalScale = Math.min(100, Math.max(50, calculatedScale));
                                                     setReportScale(finalScale);
                                                 }
                                             }
@@ -2223,6 +2224,13 @@ export default function WorkDetails(props) {
                                             <span className="toggle-slider"></span>
                                         </label>
                                     </label>
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 0' }} onClick={e => e.stopPropagation()}>
+                                        <span style={{ fontSize: '12px', color: vehiclePageBreak ? 'var(--text-primary)' : 'var(--text-muted)' }}>Araçları Sayfalara Böl</span>
+                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={vehiclePageBreak} onChange={e => setVehiclePageBreak(e.target.checked)} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </label>
                                 </div>
                             )}
                         </div>
@@ -2242,6 +2250,7 @@ export default function WorkDetails(props) {
                                 mesaiMultiplierProp={mesaiMultiplier}
                                 scaleProp={reportScale}
                                 showPageBreaksProp={showPageBreaks}
+                                vehiclePageBreakProp={vehiclePageBreak}
                             />
                         </div>
                     </div>

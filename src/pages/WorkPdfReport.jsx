@@ -15,7 +15,8 @@ export default function WorkPdfReport({
     pazarMultiplierProp = null, 
     mesaiMultiplierProp = null,
     scaleProp = 100,
-    showPageBreaksProp = true
+    showPageBreaksProp = true,
+    vehiclePageBreakProp = false
 }) {
     const params = useParams();
     const id = propId || params.id;
@@ -25,6 +26,7 @@ export default function WorkPdfReport({
     const [savingPdf, setSavingPdf] = useState(false);
     const [scale, setScale] = useState(scaleProp || 100);
     const [showPageBreaks, setShowPageBreaks] = useState(showPageBreaksProp !== undefined ? showPageBreaksProp : true);
+    const [vehiclePageBreak, setVehiclePageBreak] = useState(vehiclePageBreakProp || false);
     const containerRef = useRef(null);
     const [pageBreaks, setPageBreaks] = useState([]);
     const showPrices = showPricesProp;
@@ -36,6 +38,10 @@ export default function WorkPdfReport({
     useEffect(() => {
         if (showPageBreaksProp !== undefined) setShowPageBreaks(showPageBreaksProp);
     }, [showPageBreaksProp]);
+
+    useEffect(() => {
+        if (vehiclePageBreakProp !== undefined) setVehiclePageBreak(vehiclePageBreakProp);
+    }, [vehiclePageBreakProp]);
 
     useEffect(() => {
         if (propWork) {
@@ -79,7 +85,7 @@ export default function WorkPdfReport({
         loadData();
     }, [id, propWork]);
 
-    // Calculate A4 Page Break lines (Excel Style - Exact 1-to-1 A4 1122.5px Sync)
+    // Calculate A4 Page Break lines (Excel Style)
     useEffect(() => {
         if (!showPageBreaks || !containerRef.current) {
             setPageBreaks([]);
@@ -89,8 +95,8 @@ export default function WorkPdfReport({
         const calcBreaks = () => {
             if (!containerRef.current) return;
             const totalHeight = containerRef.current.offsetHeight;
-            // Exact A4 sheet height at 96DPI (297mm = 1122.5px)
-            const baseA4Height = 1122.5; 
+            // Exact A4 printable height at 96DPI (277mm) = 1047px
+            const baseA4Height = 1047; 
             const currentScale = (scale || 100) / 100;
             const pageHeightInContainer = baseA4Height / (currentScale > 0 ? currentScale : 1);
             
@@ -105,19 +111,19 @@ export default function WorkPdfReport({
         calcBreaks();
         const timer = setTimeout(calcBreaks, 150);
         return () => clearTimeout(timer);
-    }, [work, scale, showPageBreaks]);
+    }, [work, scale, showPageBreaks, vehiclePageBreak, groups]);
 
     const handleAutoFitOnePage = () => {
         if (!containerRef.current) return;
         const currentScale = (scale || 100) / 100;
         const unzoomedHeight = containerRef.current.offsetHeight * currentScale;
-        const targetPrintHeight = 1100; // Target A4 height in px
+        const targetPrintHeight = 1020; // Safe printable height in px
 
         if (unzoomedHeight <= targetPrintHeight) {
             setScale(100);
         } else {
             const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-            const finalScale = Math.min(100, Math.max(45, calculatedScale));
+            const finalScale = Math.min(100, Math.max(50, calculatedScale));
             setScale(finalScale);
         }
     };
@@ -282,7 +288,7 @@ export default function WorkPdfReport({
                 const { sampleGunPrice, samplePazarPrice, sampleYolPrice, sampleSaatlikPrice, sampleMesaiPrice } = group;
 
                 return (
-                    <div className="pdf-vehicle-group" key={idx}>
+                    <div className={`pdf-vehicle-group ${vehiclePageBreak && idx > 0 ? 'page-break-vehicle' : ''}`} key={idx}>
                         <h3 
                             style={{ 
                                 fontSize: '13px', 
