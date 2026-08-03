@@ -13,8 +13,8 @@
 /* Standard A4 Report Container */
 .pdf-report-container {
     width: 210mm;
-    min-height: 297mm;
-    padding: 20mm;
+    min-height: auto;
+    padding: 12mm 15mm;
     margin: 0 auto;
     background: white;
     position: relative;

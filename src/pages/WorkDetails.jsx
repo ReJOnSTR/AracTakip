@@ -2188,10 +2188,14 @@ export default function WorkDetails(props) {
                                             if (el) {
                                                 const currentScale = (reportScale || 100) / 100;
                                                 const unzoomedHeight = el.offsetHeight * currentScale;
-                                                const targetPrintHeight = 990;
-                                                const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-                                                const finalScale = Math.min(100, Math.max(50, calculatedScale));
-                                                setReportScale(finalScale);
+                                                const targetPrintHeight = 980;
+                                                if (unzoomedHeight <= targetPrintHeight) {
+                                                    setReportScale(100);
+                                                } else {
+                                                    const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
+                                                    const finalScale = Math.min(100, Math.max(50, calculatedScale));
+                                                    setReportScale(finalScale);
+                                                }
                                             }
                                         }}
                                         style={{

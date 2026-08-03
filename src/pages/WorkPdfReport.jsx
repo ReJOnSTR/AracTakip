@@ -109,13 +109,17 @@ export default function WorkPdfReport({
 
     const handleAutoFitOnePage = () => {
         if (!containerRef.current) return;
-        // Temporarily calculate unzoomed height
         const currentScale = (scale || 100) / 100;
         const unzoomedHeight = containerRef.current.offsetHeight * currentScale;
-        const targetPrintHeight = 990; // Safe printable height in px
-        const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-        const finalScale = Math.min(100, Math.max(50, calculatedScale));
-        setScale(finalScale);
+        const targetPrintHeight = 980; // Safe printable height in px
+
+        if (unzoomedHeight <= targetPrintHeight) {
+            setScale(100);
+        } else {
+            const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
+            const finalScale = Math.min(100, Math.max(50, calculatedScale));
+            setScale(finalScale);
+        }
     };
 
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
