@@ -89,20 +89,22 @@ export default function WorkPdfReport({
         const calcBreaks = () => {
             if (!containerRef.current) return;
             const totalHeight = containerRef.current.offsetHeight;
-            // Standard A4 printable height at 96DPI (~1050px)
-            const a4Height = 1050; 
-            const count = Math.floor(totalHeight / a4Height);
+            const baseA4Height = 1050; 
+            const currentScale = (scale || 100) / 100;
+            const pageHeightInContainer = baseA4Height / (currentScale > 0 ? currentScale : 1);
+            
+            const count = Math.floor(totalHeight / pageHeightInContainer);
             const breaks = [];
             for (let i = 1; i <= count; i++) {
-                breaks.push(i * a4Height);
+                breaks.push(i * pageHeightInContainer);
             }
             setPageBreaks(breaks);
         };
 
         calcBreaks();
-        const timer = setTimeout(calcBreaks, 250);
+        const timer = setTimeout(calcBreaks, 150);
         return () => clearTimeout(timer);
-    }, [work, scale, showPageBreaks]);
+    }, [work, scale, showPageBreaks, groups]);
 
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
@@ -161,18 +163,18 @@ export default function WorkPdfReport({
                         Pencereyi Kapat
                     </button>
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontSize: '13px' }}>
-                            <span>Sıkıştırma Oranı:</span>
-                            <select 
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '13px' }}>
+                            <span>Ölçek: %{scale}</span>
+                            <input 
+                                type="range" 
+                                min="50" 
+                                max="130" 
+                                step="1" 
                                 value={scale} 
-                                onChange={e => setScale(Number(e.target.value))}
-                                style={{ padding: '5px 10px', borderRadius: '4px', background: '#2c3e50', color: 'white', border: '1px solid #7f8c8d', fontSize: '13px' }}
-                            >
-                                <option value={100}>%100 (Standart)</option>
-                                <option value={90}>%90 (Sıkışık)</option>
-                                <option value={80}>%80 (Çok Sıkışık)</option>
-                                <option value={70}>%70 (Maksimum Sıkışık)</option>
-                            </select>
+                                onChange={e => setScale(Number(e.target.value))} 
+                                style={{ width: '100px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                            />
+                            <button type="button" onClick={() => setScale(100)} style={{ background: '#34495e', border: '1px solid #7f8c8d', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>%100</button>
                         </div>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontSize: '13px', cursor: 'pointer' }}>
                             <input 
@@ -196,7 +198,11 @@ export default function WorkPdfReport({
 
             <div 
                 ref={containerRef}
-                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} scale-${scale}`}
+                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}
+                style={{
+                    zoom: (scale || 100) / 100,
+                    transformOrigin: 'top center'
+                }}
             >
                 {/* Excel-style Page Break Line Indicators */}
                 {showPageBreaks && pageBreaks.map((topPos, pIdx) => (

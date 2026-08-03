@@ -2156,18 +2156,24 @@ export default function WorkDetails(props) {
                             {!sidebarCollapsed.layout && (
                                 <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     <div>
-                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sıkıştırma Oranı (Ölçek)</label>
-                                        <select
-                                            className="form-select"
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>Sıkıştırma (Ölçek)</label>
+                                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', background: 'var(--bg-primary)', padding: '1px 7px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>%{reportScale}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="50"
+                                            max="130"
+                                            step="1"
                                             value={reportScale}
                                             onChange={(e) => setReportScale(Number(e.target.value))}
-                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                                        >
-                                            <option value={100}>%100 (Standart)</option>
-                                            <option value={90}>%90 (Sıkışık)</option>
-                                            <option value={80}>%80 (Çok Sıkışık)</option>
-                                            <option value={70}>%70 (Maksimum Sıkışık)</option>
-                                        </select>
+                                            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                                        />
+                                        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                                            <button type="button" onClick={() => setReportScale(s => Math.max(50, s - 5))} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>-%5</button>
+                                            <button type="button" onClick={() => setReportScale(100)} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>%100 Sıfırla</button>
+                                            <button type="button" onClick={() => setReportScale(s => Math.min(130, s + 5))} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>+%5</button>
+                                        </div>
                                     </div>
                                     <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 0', marginTop: '2px' }} onClick={e => e.stopPropagation()}>
                                         <span style={{ fontSize: '12px', color: showPageBreaks ? 'var(--text-primary)' : 'var(--text-muted)' }}>Sayfa Sonu Çizgileri</span>
