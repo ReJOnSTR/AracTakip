@@ -111,7 +111,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
         ? parsedMesaiProp 
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
-    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier);
+    const reportItems = (work?.items && work.items.length > 0) ? work.items : (work?.work_items || []);
+    const calcResult = calculateWorkStats(reportItems, pazarMultiplier, mesaiMultiplier);
     const groups = calcResult.groups;
     const grandTotalPrice = calcResult.grandTotal;
 
@@ -173,7 +174,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
             )}
 
             {/* Excel Page Setup & Fitting Toolbar */}
-            {!noHeader && (
+            {!savingPdf && (
                 <div className={`pdf-page-setup-toolbar ${orientation === 'landscape' ? 'is-landscape' : ''}`}>
                     {/* Görünüm Modu */}
                     <div className="pdf-toolbar-group">
