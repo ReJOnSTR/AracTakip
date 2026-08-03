@@ -104,7 +104,7 @@ export default function WorkPdfReport({
         calcBreaks();
         const timer = setTimeout(calcBreaks, 150);
         return () => clearTimeout(timer);
-    }, [work, scale, showPageBreaks, groups]);
+    }, [work, scale, showPageBreaks]);
 
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
