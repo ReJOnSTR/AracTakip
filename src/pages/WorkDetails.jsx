@@ -2193,7 +2193,7 @@ export default function WorkDetails(props) {
                                                     setReportScale(100);
                                                 } else {
                                                     const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-                                                    const finalScale = Math.min(100, Math.max(50, calculatedScale));
+                                                    const finalScale = Math.min(100, Math.max(45, calculatedScale));
                                                     setReportScale(finalScale);
                                                 }
                                             }

@@ -13,7 +13,7 @@
 /* Standard A4 Report Container */
 .pdf-report-container {
     width: 210mm;
-    min-height: 297mm;
+    min-height: auto;
     padding: 12mm 15mm;
     margin: 0 auto;
     background: white;
@@ -264,11 +264,18 @@
 }
 
 @media print {
+    @page {
+        margin: 0 !important;
+        size: A4 portrait;
+    }
+
     :root, html, body, #root, .app-container, .main-content, .page-content, .pdf-viewer-layout, .print-body {
         background: #ffffff !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         color-scheme: light !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* Hide non-report elements */
@@ -307,7 +314,7 @@
         width: 210mm !important;
         min-height: 297mm !important;
         margin: 0 auto !important;
-        padding: 12mm 15mm !important;
+        padding: 12mm 12mm !important;
         box-shadow: none !important;
         border: none !important;
         background: #ffffff !important;
@@ -321,7 +328,7 @@
     }
 
     .pdf-vehicle-group {
-        border: none;
+        border-bottom: 1px solid #ddd;
         margin-top: 0 !important;
         margin-bottom: 15px !important;
     }
@@ -339,9 +346,8 @@
         border-radius: 0;
     }
     
-    @page {
-        margin: 0;
-        size: A4 portrait;
+    .pdf-vehicle-group:last-of-type {
+        border-bottom: none;
     }
 }
 
@@ -428,9 +434,10 @@ body:has(.is-generating-pdf),
 
 .is-generating-pdf .pdf-report-container {
     width: 210mm !important;
+    max-width: 210mm !important;
     min-height: 297mm !important;
     margin: 0 auto !important;
-    padding: 12mm 15mm !important;
+    padding: 12mm 12mm !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;

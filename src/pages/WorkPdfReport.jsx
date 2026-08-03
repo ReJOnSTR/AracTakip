@@ -79,7 +79,7 @@ export default function WorkPdfReport({
         loadData();
     }, [id, propWork]);
 
-    // Calculate A4 Page Break lines (Excel Style)
+    // Calculate A4 Page Break lines (Excel Style - Exact 1-to-1 A4 1122.5px Sync)
     useEffect(() => {
         if (!showPageBreaks || !containerRef.current) {
             setPageBreaks([]);
@@ -89,8 +89,8 @@ export default function WorkPdfReport({
         const calcBreaks = () => {
             if (!containerRef.current) return;
             const totalHeight = containerRef.current.offsetHeight;
-            // Standard A4 height (297mm at 96DPI = 1122px)
-            const baseA4Height = 1122; 
+            // Exact A4 sheet height at 96DPI (297mm = 1122.5px)
+            const baseA4Height = 1122.5; 
             const currentScale = (scale || 100) / 100;
             const pageHeightInContainer = baseA4Height / (currentScale > 0 ? currentScale : 1);
             
@@ -111,13 +111,13 @@ export default function WorkPdfReport({
         if (!containerRef.current) return;
         const currentScale = (scale || 100) / 100;
         const unzoomedHeight = containerRef.current.offsetHeight * currentScale;
-        const targetPrintHeight = 1100; // Exact A4 height target in px
+        const targetPrintHeight = 1100; // Target A4 height in px
 
         if (unzoomedHeight <= targetPrintHeight) {
             setScale(100);
         } else {
             const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-            const finalScale = Math.min(100, Math.max(50, calculatedScale));
+            const finalScale = Math.min(100, Math.max(45, calculatedScale));
             setScale(finalScale);
         }
     };
