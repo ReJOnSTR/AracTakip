@@ -1,60 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ 
-    propId, 
-    propWork, 
-    noHeader = false, 
-    isPreview = false, 
-    showPricesProp = true, 
-    showKdvProp = false, 
-    kdvRateProp = 20, 
-    pazarMultiplierProp = null, 
-    mesaiMultiplierProp = null,
-    scaleProp = 100,
-    showPageBreaksProp = true,
-    vehiclePageBreakProp = false,
-    customPageBreaksProp = []
-}) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
-    const [scale, setScale] = useState(scaleProp || 100);
-    const [showPageBreaks, setShowPageBreaks] = useState(showPageBreaksProp !== undefined ? showPageBreaksProp : true);
-    const [vehiclePageBreak, setVehiclePageBreak] = useState(vehiclePageBreakProp || false);
-    const [customPageBreaks, setCustomPageBreaks] = useState(customPageBreaksProp || []);
-    const containerRef = useRef(null);
-    const [pageBreaks, setPageBreaks] = useState([]);
     const showPrices = showPricesProp;
 
-    useEffect(() => {
-        if (scaleProp !== undefined) setScale(scaleProp);
-    }, [scaleProp]);
+    // Excel-style Page Setup & Preview States
+    const [previewMode, setPreviewMode] = useState('normal'); // 'normal' | 'pageBreak'
+    const [orientation, setOrientation] = useState('portrait'); // 'portrait' | 'landscape'
+    const [fitMode, setFitMode] = useState('auto'); // 'auto' | 'fit1Page' | 'custom'
+    const [customScale, setCustomScale] = useState(100); // 50 to 150
+    const [marginSize, setMarginSize] = useState('normal'); // 'narrow' | 'normal' | 'wide'
 
-    useEffect(() => {
-        if (showPageBreaksProp !== undefined) setShowPageBreaks(showPageBreaksProp);
-    }, [showPageBreaksProp]);
-
-    useEffect(() => {
-        if (vehiclePageBreakProp !== undefined) setVehiclePageBreak(vehiclePageBreakProp);
-    }, [vehiclePageBreakProp]);
-
-    useEffect(() => {
-        if (customPageBreaksProp !== undefined) setCustomPageBreaks(customPageBreaksProp);
-    }, [customPageBreaksProp]);
-
-    const toggleCustomBreak = (idx) => {
-        setCustomPageBreaks(prev => {
-            const next = prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx];
-            return next;
-        });
-    };
+    const containerRef = React.useRef(null);
+    const [pageBreaks, setPageBreaks] = useState([]);
+    const [calculatedAutoFitScale, setCalculatedAutoFitScale] = useState(100);
 
     useEffect(() => {
         if (propWork) {
@@ -98,6 +66,37 @@ export default function WorkPdfReport({
         loadData();
     }, [id, propWork]);
 
+    // Page Break & Fit-to-Page Calculation Engine
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const element = containerRef.current;
+        const totalHeightPx = element.scrollHeight;
+
+        let basePageHeight = orientation === 'landscape' ? 794 : 1123;
+        let marginPx = marginSize === 'narrow' ? 60 : (marginSize === 'wide' ? 166 : 113);
+        let printableHeightPx = basePageHeight - marginPx;
+
+        if (totalHeightPx > 0) {
+            const fitScale = Math.min(100, Math.round((printableHeightPx / totalHeightPx) * 100));
+            setCalculatedAutoFitScale(fitScale > 35 ? fitScale : 35);
+        }
+
+        const currentScalePercent = fitMode === 'fit1Page' ? calculatedAutoFitScale : (fitMode === 'custom' ? customScale : 100);
+        const scaledPrintablePx = Math.round(printableHeightPx / (currentScalePercent / 100));
+
+        const breaks = [];
+        if (totalHeightPx > scaledPrintablePx) {
+            let currentTop = scaledPrintablePx;
+            let pageNum = 1;
+            while (currentTop < totalHeightPx) {
+                breaks.push({ topPx: currentTop, pageNum: pageNum });
+                pageNum++;
+                currentTop += scaledPrintablePx;
+            }
+        }
+        setPageBreaks(breaks);
+    }, [work, orientation, fitMode, customScale, marginSize, calculatedAutoFitScale]);
+
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
@@ -116,48 +115,8 @@ export default function WorkPdfReport({
     const groups = calcResult.groups;
     const grandTotalPrice = calcResult.grandTotal;
 
-    // Calculate A4 Page Break lines (Excel Style)
-    useEffect(() => {
-        if (!showPageBreaks || !containerRef.current) {
-            setPageBreaks([]);
-            return;
-        }
-
-        const calcBreaks = () => {
-            if (!containerRef.current) return;
-            const totalHeight = containerRef.current.offsetHeight;
-            // Exact A4 printable height at 96DPI (277mm) = 1047px
-            const baseA4Height = 1047; 
-            const currentScale = (scale || 100) / 100;
-            const pageHeightInContainer = baseA4Height / (currentScale > 0 ? currentScale : 1);
-            
-            const count = Math.floor(totalHeight / pageHeightInContainer);
-            const breaks = [];
-            for (let i = 1; i <= count; i++) {
-                breaks.push(i * pageHeightInContainer);
-            }
-            setPageBreaks(breaks);
-        };
-
-        calcBreaks();
-        const timer = setTimeout(calcBreaks, 150);
-        return () => clearTimeout(timer);
-    }, [work, scale, showPageBreaks, vehiclePageBreak, customPageBreaks, groups]);
-
-    const handleAutoFitOnePage = () => {
-        if (!containerRef.current) return;
-        const currentScale = (scale || 100) / 100;
-        const unzoomedHeight = containerRef.current.offsetHeight * currentScale;
-        const targetPrintHeight = 1020; // Safe printable height in px
-
-        if (unzoomedHeight <= targetPrintHeight) {
-            setScale(100);
-        } else {
-            const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-            const finalScale = Math.min(100, Math.max(50, calculatedScale));
-            setScale(finalScale);
-        }
-    };
+    const effectiveScalePercent = fitMode === 'fit1Page' ? calculatedAutoFitScale : (fitMode === 'custom' ? customScale : 100);
+    const effectiveScaleNum = effectiveScalePercent / 100;
 
     const handleSavePdf = async () => {
         if (!window.electronAPI?.saveAsPdf) {
@@ -167,7 +126,10 @@ export default function WorkPdfReport({
 
         setSavingPdf(true);
         setTimeout(async () => {
-            const res = await window.electronAPI.saveAsPdf();
+            const res = await window.electronAPI.saveAsPdf({
+                landscape: orientation === 'landscape',
+                scale: effectiveScaleNum
+            });
             setSavingPdf(false);
             if (res && !res.success && !res.canceled) {
                 alert('PDF Kaydedilirken Hata: ' + res.error);
@@ -188,46 +150,16 @@ export default function WorkPdfReport({
         return m.charAt(0).toUpperCase() + m.slice(1);
     };
 
-    const isSinglePage = pageBreaks.length === 0;
-
     return (
         <div className={`pdf-viewer-layout ${savingPdf ? 'is-generating-pdf' : ''}`}>
             {/* Viewer Action Bar */}
             {!noHeader && (
-                <div className="pdf-actions-bar">
+                <div className={`pdf-actions-bar ${orientation === 'landscape' ? 'is-landscape' : ''}`}>
                     <button className="pdf-btn close" onClick={() => window.close()} disabled={savingPdf}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         Pencereyi Kapat
                     </button>
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <button 
-                            type="button" 
-                            onClick={handleAutoFitOnePage}
-                            style={{ background: '#27ae60', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                        >
-                            ⚡ Tek Sayfaya Otomatik Sığdır
-                        </button>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '13px' }}>
-                            <span>Ölçek: %{scale}</span>
-                            <input 
-                                type="range" 
-                                min="50" 
-                                max="130" 
-                                step="1" 
-                                value={scale} 
-                                onChange={e => setScale(Number(e.target.value))} 
-                                style={{ width: '90px', cursor: 'pointer', accentColor: '#3b82f6' }}
-                            />
-                            <button type="button" onClick={() => setScale(100)} style={{ background: '#34495e', border: '1px solid #7f8c8d', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>%100</button>
-                        </div>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontSize: '13px', cursor: 'pointer' }}>
-                            <input 
-                                type="checkbox" 
-                                checked={showPageBreaks} 
-                                onChange={e => setShowPageBreaks(e.target.checked)} 
-                            />
-                            Sayfa Sonu Çizgileri
-                        </label>
+                    <div style={{ display: 'flex', gap: '10px' }}>
                         <button className="pdf-btn print" onClick={() => window.print()} disabled={savingPdf}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
                             Yazıcıdan Çıktı Al
@@ -240,22 +172,126 @@ export default function WorkPdfReport({
                 </div>
             )}
 
+            {/* Excel Page Setup & Fitting Toolbar */}
+            {!noHeader && (
+                <div className={`pdf-page-setup-toolbar ${orientation === 'landscape' ? 'is-landscape' : ''}`}>
+                    {/* Görünüm Modu */}
+                    <div className="pdf-toolbar-group">
+                        <span className="pdf-toolbar-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Görünüm:
+                        </span>
+                        <button 
+                            className={`pdf-toolbar-btn ${previewMode === 'normal' ? 'active' : ''}`}
+                            onClick={() => setPreviewMode('normal')}
+                        >
+                            Normal
+                        </button>
+                        <button 
+                            className={`pdf-toolbar-btn ${previewMode === 'pageBreak' ? 'active' : ''}`}
+                            onClick={() => setPreviewMode('pageBreak')}
+                            title="Excel Sayfa Sonu Önizleme Çizgilerini Göster"
+                        >
+                            Sayfa Sonu Önizleme
+                        </button>
+                    </div>
+
+                    {/* Yönlendirme */}
+                    <div className="pdf-toolbar-group">
+                        <span className="pdf-toolbar-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="20" x="4" y="2" rx="2"/></svg>
+                            Yön:
+                        </span>
+                        <button 
+                            className={`pdf-toolbar-btn ${orientation === 'portrait' ? 'active' : ''}`}
+                            onClick={() => setOrientation('portrait')}
+                        >
+                            Dikey (A4)
+                        </button>
+                        <button 
+                            className={`pdf-toolbar-btn ${orientation === 'landscape' ? 'active' : ''}`}
+                            onClick={() => setOrientation('landscape')}
+                        >
+                            Yatay (A4)
+                        </button>
+                    </div>
+
+                    {/* Sığdırma & Ölçekleme */}
+                    <div className="pdf-toolbar-group">
+                        <span className="pdf-toolbar-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+                            Sayfa Sığdırma:
+                        </span>
+                        <select 
+                            className="pdf-toolbar-select"
+                            value={fitMode}
+                            onChange={(e) => setFitMode(e.target.value)}
+                        >
+                            <option value="auto">Otomatik (%100)</option>
+                            <option value="fit1Page">Tek Sayfaya Sığdır (%{calculatedAutoFitScale})</option>
+                            <option value="custom">Özel Ölçek (Slider)</option>
+                        </select>
+
+                        {fitMode === 'custom' && (
+                            <div className="pdf-toolbar-slider-wrapper">
+                                <input 
+                                    type="range" 
+                                    min="50" 
+                                    max="150" 
+                                    step="5"
+                                    value={customScale}
+                                    onChange={(e) => setCustomScale(Number(e.target.value))}
+                                    className="pdf-toolbar-slider"
+                                />
+                                <span className="pdf-toolbar-badge">%{customScale}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Kenar Boşluğu */}
+                    <div className="pdf-toolbar-group">
+                        <span className="pdf-toolbar-label">Kenar:</span>
+                        <select 
+                            className="pdf-toolbar-select"
+                            value={marginSize}
+                            onChange={(e) => setMarginSize(e.target.value)}
+                        >
+                            <option value="narrow">Dar (8mm)</option>
+                            <option value="normal">Normal (15mm)</option>
+                            <option value="wide">Geniş (22mm)</option>
+                        </select>
+                    </div>
+                </div>
+            )}
+
             <div 
                 ref={containerRef}
-                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}
+                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${orientation === 'landscape' ? 'is-landscape' : ''} margin-${marginSize} ${previewMode === 'pageBreak' ? 'is-page-break-preview' : ''}`}
                 style={{
-                    zoom: (scale || 100) / 100,
+                    transform: effectiveScalePercent !== 100 ? `scale(${effectiveScaleNum})` : 'none',
                     transformOrigin: 'top center'
                 }}
             >
-                {/* Excel-style Page Break Line Indicators */}
-                {showPageBreaks && pageBreaks.map((topPos, pIdx) => (
-                    <div key={pIdx} className="pdf-page-break-indicator" style={{ top: `${topPos}px` }}>
-                        <div className="pdf-page-break-badge">
-                            ✂ SAYFA {pIdx + 1} SONU (SAYFA {pIdx + 2} BAŞLANGICI)
+                {/* Excel Page Break Overlay Lines & Watermarks */}
+                {previewMode === 'pageBreak' && (
+                    <>
+                        <div className="pdf-page-watermark" style={{ top: '250px' }}>
+                            SAYFA 1
                         </div>
-                    </div>
-                ))}
+                        {pageBreaks.map((b, bIdx) => (
+                            <React.Fragment key={bIdx}>
+                                <div 
+                                    className="pdf-page-break-line" 
+                                    style={{ top: `${b.topPx}px` }}
+                                    data-page={`SAYFA ${b.pageNum} SONU`}
+                                />
+                                <div className="pdf-page-watermark" style={{ top: `${b.topPx + 250}px` }}>
+                                    SAYFA {b.pageNum + 1}
+                                </div>
+                            </React.Fragment>
+                        ))}
+                    </>
+                )}
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
@@ -299,24 +335,9 @@ export default function WorkPdfReport({
             {/* Tables grouped by vehicle */}
             {groups.map((group, idx) => {
                 const { sampleGunPrice, samplePazarPrice, sampleYolPrice, sampleSaatlikPrice, sampleMesaiPrice } = group;
-                const hasBreak = vehiclePageBreak || customPageBreaks.includes(idx);
 
                 return (
-                    <React.Fragment key={idx}>
-                        {idx > 0 && isPreview && (
-                            <div 
-                                className={`pdf-section-break-control no-print ${hasBreak ? 'has-break' : ''}`}
-                                onClick={() => toggleCustomBreak(idx)}
-                                title="Bu aracın başından itibaren yeni sayfaya geçmek için tıklayın"
-                            >
-                                <span className="pdf-break-badge">
-                                    {hasBreak 
-                                        ? '✂ Bu Araç Yeni Sayfadan Başlıyor (Sayfa Sonu Kaldır)' 
-                                        : '➕ Buradan Yeni Sayfaya Böl (Sayfa Sonu Ekle)'}
-                                </span>
-                            </div>
-                        )}
-                        <div className={`pdf-vehicle-group ${hasBreak && idx > 0 ? 'page-break-vehicle' : ''}`}>
+                    <div className="pdf-vehicle-group" key={idx}>
                         <h3 
                             style={{ 
                                 fontSize: '13px', 
@@ -379,8 +400,8 @@ export default function WorkPdfReport({
                                                 <td className="right">
                                                     {showPrices ? (
                                                         item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? formatCurrency(((item.unitPriceVal || item.unit_price || 0) > 10000 && item.isAylik ? (item.unitPriceVal || item.unit_price || 0) / 26 : (item.unitPriceVal || item.unit_price || 0)) * pazarMultiplier)
-                                                            : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
+                                                            ? formatCurrency(((item.unit_price || primaryGunPrice) > 10000 && item.isAylik ? (item.unit_price || primaryGunPrice) / 26 : (item.unit_price || primaryGunPrice)) * pazarMultiplier)
+                                                            : (item.unit_price ? formatCurrency(item.unit_price) : '')
                                                     ) : ''}
                                                 </td>
                                             </tr>
@@ -421,9 +442,8 @@ export default function WorkPdfReport({
                             </div>
                         </div>
                     </div>
-                </React.Fragment>
-            );
-        })}
+                );
+            })}
 
             {/* General Grand Total Summary */}
             <div className="pdf-grand-total">

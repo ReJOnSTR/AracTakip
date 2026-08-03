@@ -76,10 +76,6 @@ export default function WorkDetails(props) {
     const [generatingPdf, setGeneratingPdf] = useState(false)
     const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
-    const [reportScale, setReportScale] = useState(100)
-    const [showPageBreaks, setShowPageBreaks] = useState(true)
-    const [vehiclePageBreak, setVehiclePageBreak] = useState(false)
-    const [customPageBreaks, setCustomPageBreaks] = useState([])
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
         multipliers: false
@@ -235,10 +231,6 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
-            scale: reportScale,
-            showPageBreaks: showPageBreaks,
-            vehiclePageBreak: vehiclePageBreak,
-            customPageBreaks: customPageBreaks,
             isPdfSave: true
         }))
 
@@ -723,10 +715,6 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
-            scale: reportScale,
-            showPageBreaks: showPageBreaks,
-            vehiclePageBreak: vehiclePageBreak,
-            customPageBreaks: customPageBreaks,
             isPdfSave: true
         }))
 
@@ -775,10 +763,6 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
-            scale: reportScale,
-            showPageBreaks: showPageBreaks,
-            vehiclePageBreak: vehiclePageBreak,
-            customPageBreaks: customPageBreaks,
             isPdfSave: false
         }))
         
@@ -2147,100 +2131,6 @@ export default function WorkDetails(props) {
                                 </div>
                             )}
                         </div>
-
-                        {/* Sayfa Düzeni & Sıkıştırma */}
-                        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
-                            <div 
-                                onClick={() => setSidebarCollapsed(prev => ({ ...prev, layout: !prev.layout }))}
-                                style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Settings size={14} style={{ color: 'var(--text-muted)' }} />
-                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sayfa Sonu & Sıkıştırma</h4>
-                                </div>
-                                <ChevronDown 
-                                    size={14} 
-                                    style={{ 
-                                        color: 'var(--text-muted)', 
-                                        transform: sidebarCollapsed.layout ? 'rotate(-90deg)' : 'none', 
-                                        transition: 'transform 0.2s ease' 
-                                    }} 
-                                />
-                            </div>
-                            {!sidebarCollapsed.layout && (
-                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>Sıkıştırma (Ölçek)</label>
-                                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', background: 'var(--bg-primary)', padding: '1px 7px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>%{reportScale}</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="50"
-                                            max="130"
-                                            step="1"
-                                            value={reportScale}
-                                            onChange={(e) => setReportScale(Number(e.target.value))}
-                                            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                                            <button type="button" onClick={() => setReportScale(s => Math.max(50, s - 5))} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>-%5</button>
-                                            <button type="button" onClick={() => setReportScale(100)} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>%100 Sıfırla</button>
-                                            <button type="button" onClick={() => setReportScale(s => Math.min(130, s + 5))} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>+%5</button>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const el = document.querySelector('.pdf-report-container');
-                                            if (el) {
-                                                const currentScale = (reportScale || 100) / 100;
-                                                const unzoomedHeight = el.offsetHeight * currentScale;
-                                                const targetPrintHeight = 980;
-                                                if (unzoomedHeight <= targetPrintHeight) {
-                                                    setReportScale(100);
-                                                } else {
-                                                    const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
-                                                    const finalScale = Math.min(100, Math.max(50, calculatedScale));
-                                                    setReportScale(finalScale);
-                                                }
-                                            }
-                                        }}
-                                        style={{
-                                            width: '100%',
-                                            padding: '6px 10px',
-                                            fontSize: '12px',
-                                            fontWeight: 600,
-                                            color: 'white',
-                                            background: '#27ae60',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '6px'
-                                        }}
-                                    >
-                                        ⚡ Tek Sayfaya Otomatik Sığdır
-                                    </button>
-                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 0', marginTop: '2px' }} onClick={e => e.stopPropagation()}>
-                                        <span style={{ fontSize: '12px', color: showPageBreaks ? 'var(--text-primary)' : 'var(--text-muted)' }}>Sayfa Sonu Çizgileri</span>
-                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" checked={showPageBreaks} onChange={e => setShowPageBreaks(e.target.checked)} />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </label>
-                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 0' }} onClick={e => e.stopPropagation()}>
-                                        <span style={{ fontSize: '12px', color: vehiclePageBreak ? 'var(--text-primary)' : 'var(--text-muted)' }}>Araçları Sayfalara Böl</span>
-                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" checked={vehiclePageBreak} onChange={e => setVehiclePageBreak(e.target.checked)} />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </label>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
                     {/* Right: Live Preview */}
@@ -2255,9 +2145,6 @@ export default function WorkDetails(props) {
                                 kdvRateProp={kdvRate}
                                 pazarMultiplierProp={pazarMultiplier}
                                 mesaiMultiplierProp={mesaiMultiplier}
-                                scaleProp={reportScale}
-                                showPageBreaksProp={showPageBreaks}
-                                vehiclePageBreakProp={vehiclePageBreak}
                             />
                         </div>
                     </div>

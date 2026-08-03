@@ -2182,13 +2182,13 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
 })
 
 // Add PDF Save Handler
-ipcMain.handle('save-pdf', async (event) => {
+ipcMain.handle('save-pdf', async (event, options = {}) => {
     try {
         const win = BrowserWindow.fromWebContents(event.sender)
         
         const { canceled, filePath } = await dialog.showSaveDialog(win, {
             title: 'PDF Olarak Kaydet',
-            defaultPath: `Rapor-${Date.now()}.pdf`,
+            defaultPath: options.defaultPath || `Rapor-${Date.now()}.pdf`,
             filters: [
                 { name: 'PDF Belgeleri', extensions: ['pdf'] }
             ]
@@ -2196,12 +2196,17 @@ ipcMain.handle('save-pdf', async (event) => {
 
         if (canceled || !filePath) return { success: false, canceled: true };
 
-        const pdfData = await win.webContents.printToPDF({
+        const pdfOptions = {
             printBackground: true,
             pageSize: 'A4',
             margins: { marginType: 'none' },
             preferCSSPageSize: true
-        });
+        };
+
+        if (options.landscape) pdfOptions.landscape = true;
+        if (options.scale && typeof options.scale === 'number') pdfOptions.scale = options.scale;
+
+        const pdfData = await win.webContents.printToPDF(pdfOptions);
 
         fs.writeFileSync(filePath, pdfData);
         return { success: true, filePath };

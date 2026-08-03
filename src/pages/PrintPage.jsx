@@ -117,10 +117,6 @@ export default function PrintPage() {
                     kdvRateProp={data.kdvRate} 
                     pazarMultiplierProp={data.pazarMultiplier}
                     mesaiMultiplierProp={data.mesaiMultiplier}
-                    scaleProp={data.scale || 100}
-                    showPageBreaksProp={data.showPageBreaks !== undefined ? data.showPageBreaks : false}
-                    vehiclePageBreakProp={data.vehiclePageBreak || false}
-                    customPageBreaksProp={data.customPageBreaks || []}
                 />
             </div>
         )
