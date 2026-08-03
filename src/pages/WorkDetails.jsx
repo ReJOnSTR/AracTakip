@@ -2188,7 +2188,7 @@ export default function WorkDetails(props) {
                                             if (el) {
                                                 const currentScale = (reportScale || 100) / 100;
                                                 const unzoomedHeight = el.offsetHeight * currentScale;
-                                                const targetPrintHeight = 980;
+                                                const targetPrintHeight = 1100;
                                                 if (unzoomedHeight <= targetPrintHeight) {
                                                     setReportScale(100);
                                                 } else {

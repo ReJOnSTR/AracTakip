@@ -89,8 +89,8 @@ export default function WorkPdfReport({
         const calcBreaks = () => {
             if (!containerRef.current) return;
             const totalHeight = containerRef.current.offsetHeight;
-            // Printable height at 96DPI with 12mm margins = ~1010px
-            const baseA4Height = 1010; 
+            // Standard A4 height (297mm at 96DPI = 1122px)
+            const baseA4Height = 1122; 
             const currentScale = (scale || 100) / 100;
             const pageHeightInContainer = baseA4Height / (currentScale > 0 ? currentScale : 1);
             
@@ -111,7 +111,7 @@ export default function WorkPdfReport({
         if (!containerRef.current) return;
         const currentScale = (scale || 100) / 100;
         const unzoomedHeight = containerRef.current.offsetHeight * currentScale;
-        const targetPrintHeight = 980; // Safe printable height in px
+        const targetPrintHeight = 1100; // Exact A4 height target in px
 
         if (unzoomedHeight <= targetPrintHeight) {
             setScale(100);
