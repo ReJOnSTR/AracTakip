@@ -384,6 +384,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                         else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
 
                                         const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
+                                        const itemRate = item.unitPriceVal || Number(item.unit_price) || 0;
 
                                         return (
                                             <tr key={itemIdx} className={pdfRowClass}>
@@ -400,8 +401,8 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                                                 <td className="right">
                                                     {showPrices ? (
                                                         item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? formatCurrency(((item.unit_price || primaryGunPrice) > 10000 && item.isAylik ? (item.unit_price || primaryGunPrice) / 26 : (item.unit_price || primaryGunPrice)) * pazarMultiplier)
-                                                            : (item.unit_price ? formatCurrency(item.unit_price) : '')
+                                                            ? formatCurrency((itemRate > 10000 && item.isAylik ? itemRate / 26 : itemRate) * pazarMultiplier)
+                                                            : (itemRate > 0 ? formatCurrency(itemRate) : '')
                                                     ) : ''}
                                                 </td>
                                             </tr>
