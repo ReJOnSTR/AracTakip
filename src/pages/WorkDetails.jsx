@@ -233,6 +233,8 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
+            scale: reportScale,
+            showPageBreaks: showPageBreaks,
             isPdfSave: true
         }))
 
@@ -717,6 +719,8 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
+            scale: reportScale,
+            showPageBreaks: showPageBreaks,
             isPdfSave: true
         }))
 
@@ -765,6 +769,8 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
+            scale: reportScale,
+            showPageBreaks: showPageBreaks,
             isPdfSave: false
         }))
         

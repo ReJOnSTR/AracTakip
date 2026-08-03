@@ -438,7 +438,7 @@ body:has(.is-generating-pdf),
     width: 100% !important;
     max-width: 210mm !important;
     margin: 0 auto !important;
-    padding: 12mm 10mm !important;
+    padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
