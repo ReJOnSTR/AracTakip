@@ -89,7 +89,8 @@ export default function WorkPdfReport({
         const calcBreaks = () => {
             if (!containerRef.current) return;
             const totalHeight = containerRef.current.offsetHeight;
-            const baseA4Height = 1050; 
+            // Printable height at 96DPI with 12mm margins = ~1010px
+            const baseA4Height = 1010; 
             const currentScale = (scale || 100) / 100;
             const pageHeightInContainer = baseA4Height / (currentScale > 0 ? currentScale : 1);
             
@@ -105,6 +106,17 @@ export default function WorkPdfReport({
         const timer = setTimeout(calcBreaks, 150);
         return () => clearTimeout(timer);
     }, [work, scale, showPageBreaks]);
+
+    const handleAutoFitOnePage = () => {
+        if (!containerRef.current) return;
+        // Temporarily calculate unzoomed height
+        const currentScale = (scale || 100) / 100;
+        const unzoomedHeight = containerRef.current.offsetHeight * currentScale;
+        const targetPrintHeight = 990; // Safe printable height in px
+        const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
+        const finalScale = Math.min(100, Math.max(50, calculatedScale));
+        setScale(finalScale);
+    };
 
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
@@ -153,6 +165,8 @@ export default function WorkPdfReport({
         return m.charAt(0).toUpperCase() + m.slice(1);
     };
 
+    const isSinglePage = pageBreaks.length === 0;
+
     return (
         <div className={`pdf-viewer-layout ${savingPdf ? 'is-generating-pdf' : ''}`}>
             {/* Viewer Action Bar */}
@@ -163,6 +177,13 @@ export default function WorkPdfReport({
                         Pencereyi Kapat
                     </button>
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <button 
+                            type="button" 
+                            onClick={handleAutoFitOnePage}
+                            style={{ background: '#27ae60', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            ⚡ Tek Sayfaya Otomatik Sığdır
+                        </button>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '13px' }}>
                             <span>Ölçek: %{scale}</span>
                             <input 
@@ -172,7 +193,7 @@ export default function WorkPdfReport({
                                 step="1" 
                                 value={scale} 
                                 onChange={e => setScale(Number(e.target.value))} 
-                                style={{ width: '100px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                                style={{ width: '90px', cursor: 'pointer', accentColor: '#3b82f6' }}
                             />
                             <button type="button" onClick={() => setScale(100)} style={{ background: '#34495e', border: '1px solid #7f8c8d', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>%100</button>
                         </div>
@@ -198,7 +219,7 @@ export default function WorkPdfReport({
 
             <div 
                 ref={containerRef}
-                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}
+                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${isSinglePage ? 'fit-one-page' : ''}`}
                 style={{
                     zoom: (scale || 100) / 100,
                     transformOrigin: 'top center'

@@ -2175,6 +2175,37 @@ export default function WorkDetails(props) {
                                             <button type="button" onClick={() => setReportScale(s => Math.min(130, s + 5))} className="btn-secondary" style={{ flex: 1, padding: '3px 6px', fontSize: '11px' }}>+%5</button>
                                         </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const el = document.querySelector('.pdf-report-container');
+                                            if (el) {
+                                                const currentScale = (reportScale || 100) / 100;
+                                                const unzoomedHeight = el.offsetHeight * currentScale;
+                                                const targetPrintHeight = 990;
+                                                const calculatedScale = Math.floor((targetPrintHeight / unzoomedHeight) * 100);
+                                                const finalScale = Math.min(100, Math.max(50, calculatedScale));
+                                                setReportScale(finalScale);
+                                            }
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '6px 10px',
+                                            fontSize: '12px',
+                                            fontWeight: 600,
+                                            color: 'white',
+                                            background: '#27ae60',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        ⚡ Tek Sayfaya Otomatik Sığdır
+                                    </button>
                                     <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '6px 0', marginTop: '2px' }} onClick={e => e.stopPropagation()}>
                                         <span style={{ fontSize: '12px', color: showPageBreaks ? 'var(--text-primary)' : 'var(--text-muted)' }}>Sayfa Sonu Çizgileri</span>
                                         <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
