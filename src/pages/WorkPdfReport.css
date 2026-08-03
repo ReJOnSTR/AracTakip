@@ -28,9 +28,59 @@
     border: 1px solid #d0d0d0;
 }
 
-.pdf-vehicle-group.page-break-vehicle {
-    page-break-before: always;
-    break-before: page;
+/* Section Page Break Divider Controls */
+.pdf-section-break-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0 10px 0;
+    padding: 6px 12px;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.pdf-section-break-control:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.pdf-section-break-control.has-break {
+    border-color: #2563eb;
+    background: #dbeafe;
+}
+
+.pdf-break-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pdf-vehicle-group,
+.pdf-summary-block,
+.pdf-grand-total {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pdf-table thead {
+    display: table-header-group;
+}
+
+.pdf-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 

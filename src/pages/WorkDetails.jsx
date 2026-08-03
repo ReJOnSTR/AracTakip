@@ -79,6 +79,7 @@ export default function WorkDetails(props) {
     const [reportScale, setReportScale] = useState(100)
     const [showPageBreaks, setShowPageBreaks] = useState(true)
     const [vehiclePageBreak, setVehiclePageBreak] = useState(false)
+    const [customPageBreaks, setCustomPageBreaks] = useState([])
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
         multipliers: false
@@ -236,6 +237,8 @@ export default function WorkDetails(props) {
             mesaiMultiplier: mesaiMultiplier,
             scale: reportScale,
             showPageBreaks: showPageBreaks,
+            vehiclePageBreak: vehiclePageBreak,
+            customPageBreaks: customPageBreaks,
             isPdfSave: true
         }))
 
@@ -722,6 +725,8 @@ export default function WorkDetails(props) {
             mesaiMultiplier: mesaiMultiplier,
             scale: reportScale,
             showPageBreaks: showPageBreaks,
+            vehiclePageBreak: vehiclePageBreak,
+            customPageBreaks: customPageBreaks,
             isPdfSave: true
         }))
 
@@ -772,6 +777,8 @@ export default function WorkDetails(props) {
             mesaiMultiplier: mesaiMultiplier,
             scale: reportScale,
             showPageBreaks: showPageBreaks,
+            vehiclePageBreak: vehiclePageBreak,
+            customPageBreaks: customPageBreaks,
             isPdfSave: false
         }))
         

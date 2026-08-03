@@ -120,6 +120,7 @@ export default function PrintPage() {
                     scaleProp={data.scale || 100}
                     showPageBreaksProp={data.showPageBreaks !== undefined ? data.showPageBreaks : false}
                     vehiclePageBreakProp={data.vehiclePageBreak || false}
+                    customPageBreaksProp={data.customPageBreaks || []}
                 />
             </div>
         )

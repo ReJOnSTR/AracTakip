@@ -16,7 +16,8 @@ export default function WorkPdfReport({
     mesaiMultiplierProp = null,
     scaleProp = 100,
     showPageBreaksProp = true,
-    vehiclePageBreakProp = false
+    vehiclePageBreakProp = false,
+    customPageBreaksProp = []
 }) {
     const params = useParams();
     const id = propId || params.id;
@@ -27,6 +28,7 @@ export default function WorkPdfReport({
     const [scale, setScale] = useState(scaleProp || 100);
     const [showPageBreaks, setShowPageBreaks] = useState(showPageBreaksProp !== undefined ? showPageBreaksProp : true);
     const [vehiclePageBreak, setVehiclePageBreak] = useState(vehiclePageBreakProp || false);
+    const [customPageBreaks, setCustomPageBreaks] = useState(customPageBreaksProp || []);
     const containerRef = useRef(null);
     const [pageBreaks, setPageBreaks] = useState([]);
     const showPrices = showPricesProp;
@@ -42,6 +44,17 @@ export default function WorkPdfReport({
     useEffect(() => {
         if (vehiclePageBreakProp !== undefined) setVehiclePageBreak(vehiclePageBreakProp);
     }, [vehiclePageBreakProp]);
+
+    useEffect(() => {
+        if (customPageBreaksProp !== undefined) setCustomPageBreaks(customPageBreaksProp);
+    }, [customPageBreaksProp]);
+
+    const toggleCustomBreak = (idx) => {
+        setCustomPageBreaks(prev => {
+            const next = prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx];
+            return next;
+        });
+    };
 
     useEffect(() => {
         if (propWork) {
@@ -129,7 +142,7 @@ export default function WorkPdfReport({
         calcBreaks();
         const timer = setTimeout(calcBreaks, 150);
         return () => clearTimeout(timer);
-    }, [work, scale, showPageBreaks, vehiclePageBreak, groups]);
+    }, [work, scale, showPageBreaks, vehiclePageBreak, customPageBreaks, groups]);
 
     const handleAutoFitOnePage = () => {
         if (!containerRef.current) return;
@@ -286,9 +299,24 @@ export default function WorkPdfReport({
             {/* Tables grouped by vehicle */}
             {groups.map((group, idx) => {
                 const { sampleGunPrice, samplePazarPrice, sampleYolPrice, sampleSaatlikPrice, sampleMesaiPrice } = group;
+                const hasBreak = vehiclePageBreak || customPageBreaks.includes(idx);
 
                 return (
-                    <div className={`pdf-vehicle-group ${vehiclePageBreak && idx > 0 ? 'page-break-vehicle' : ''}`} key={idx}>
+                    <React.Fragment key={idx}>
+                        {idx > 0 && isPreview && (
+                            <div 
+                                className={`pdf-section-break-control no-print ${hasBreak ? 'has-break' : ''}`}
+                                onClick={() => toggleCustomBreak(idx)}
+                                title="Bu aracın başından itibaren yeni sayfaya geçmek için tıklayın"
+                            >
+                                <span className="pdf-break-badge">
+                                    {hasBreak 
+                                        ? '✂ Bu Araç Yeni Sayfadan Başlıyor (Sayfa Sonu Kaldır)' 
+                                        : '➕ Buradan Yeni Sayfaya Böl (Sayfa Sonu Ekle)'}
+                                </span>
+                            </div>
+                        )}
+                        <div className={`pdf-vehicle-group ${hasBreak && idx > 0 ? 'page-break-vehicle' : ''}`}>
                         <h3 
                             style={{ 
                                 fontSize: '13px', 
@@ -393,8 +421,9 @@ export default function WorkPdfReport({
                             </div>
                         </div>
                     </div>
-                );
-            })}
+                </React.Fragment>
+            );
+        })}
 
             {/* General Grand Total Summary */}
             <div className="pdf-grand-total">
