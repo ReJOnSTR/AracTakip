@@ -208,14 +208,12 @@ export default function PayrollDashboard() {
 
                     const requiredPay = historicalBase + otAmount + incomingCarryover;
                     
+                    const allowedSalaryPeriods = ['salary', 'overtime_pay', 'advance', 'bonus', 'loan_payment'];
+
                     const paidAmount = (emp.salaries || [])
                         .filter(s => s.status === 'paid')
                         .filter(s => {
-                            // Borç alma (loan) maaş ödemesi değildir, yansıtma.
-                            if (s.period === 'loan') return false;
-                            // Carryover gelen devir - ödenmişten hariç tut (hedefte zaten var)
-                            if (s.period === 'carryover') return false;
-                            // Borç ödeme (loan_payment) sadece maaştan düşülüyorsa yansıt.
+                            if (!allowedSalaryPeriods.includes(s.period)) return false;
                             if (s.period === 'loan_payment') {
                                 return s.payment_method === 'salary_deduction';
                             }
