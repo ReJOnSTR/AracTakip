@@ -117,11 +117,6 @@ export default function PrintPage() {
                     kdvRateProp={data.kdvRate} 
                     pazarMultiplierProp={data.pazarMultiplier}
                     mesaiMultiplierProp={data.mesaiMultiplier}
-                    previewModeProp={data.previewMode || 'normal'}
-                    orientationProp={data.orientation || 'portrait'}
-                    fitModeProp={data.fitMode || 'auto'}
-                    customScaleProp={data.customScale || 100}
-                    marginSizeProp={data.marginSize || 'normal'}
                 />
             </div>
         )

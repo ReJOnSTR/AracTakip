@@ -14,39 +14,18 @@
 .pdf-report-container {
     width: 210mm;
     min-height: 297mm;
-    padding: 15mm 12mm;
+    padding: 20mm;
     margin: 0 auto;
-    background: #ffffff;
+    background: white;
     position: relative;
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
-    color: #000000;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    color: black;
 }
 
 .pdf-report-container.is-preview {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-}
-
-.is-generating-pdf .pdf-page-break-line,
-.is-generating-pdf .pdf-page-watermark {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-}
-
-@media print {
-    .pdf-actions-bar,
-    .pdf-page-setup-toolbar,
-    .pdf-page-break-line,
-    .pdf-page-watermark {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-    }
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border: 1px solid #e0e0e0;
 }
 
 /* Standard Header Classes */
@@ -442,212 +421,7 @@ body:has(.is-generating-pdf),
 }
 
 @media print {
-    .pdf-actions-bar,
-    .pdf-page-setup-toolbar,
-    .pdf-page-break-line,
-    .pdf-page-watermark {
+    .pdf-actions-bar {
         display: none !important;
     }
-}
-
-/* Excel Page Setup & Page Break Preview Extensions */
-
-/* Landscape Mode */
-.pdf-report-container.is-landscape {
-    width: 297mm;
-    min-height: 210mm;
-}
-
-.pdf-actions-bar.is-landscape {
-    width: 297mm;
-}
-
-/* Margin Variations */
-.pdf-report-container.margin-narrow {
-    padding: 8mm 6mm !important;
-}
-
-.pdf-report-container.margin-normal {
-    padding: 15mm 12mm !important;
-}
-
-.pdf-report-container.margin-wide {
-    padding: 22mm 18mm !important;
-}
-
-/* Excel Page Break Preview Overlay Lines */
-.pdf-report-container.is-page-break-preview {
-    position: relative;
-    box-shadow: 0 0 0 3px #2563eb, 0 10px 30px rgba(0,0,0,0.2) !important;
-}
-
-.pdf-page-break-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 0;
-    border-bottom: 2.5px dashed #2563eb;
-    z-index: 50;
-    pointer-events: none;
-}
-
-.pdf-page-break-line::after {
-    content: attr(data-page);
-    position: absolute;
-    right: 12px;
-    top: -11px;
-    background: #2563eb;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    letter-spacing: 0.5px;
-}
-
-.pdf-page-watermark {
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 52px;
-    font-weight: 900;
-    color: rgba(37, 99, 235, 0.08);
-    pointer-events: none;
-    user-select: none;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    z-index: 10;
-    white-space: nowrap;
-}
-
-/* Page Setup Control Toolbar Panel */
-.pdf-page-setup-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 10px 16px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    width: 100%;
-    max-width: 210mm;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    box-sizing: border-box;
-}
-
-.pdf-page-setup-toolbar.is-landscape {
-    max-width: 297mm;
-}
-
-.pdf-toolbar-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.pdf-toolbar-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-}
-
-.pdf-toolbar-select,
-.pdf-toolbar-btn {
-    background: #334155;
-    color: #ffffff;
-    border: 1px solid #475569;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.15s ease;
-}
-
-.pdf-toolbar-select:hover,
-.pdf-toolbar-btn:hover {
-    background: #475569;
-    border-color: #64748b;
-}
-
-.pdf-toolbar-btn.active {
-    background: #2563eb;
-    border-color: #3b82f6;
-    color: #ffffff;
-    font-weight: 600;
-}
-
-.pdf-toolbar-slider-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.pdf-toolbar-slider {
-    width: 90px;
-    accent-color: #3b82f6;
-    cursor: pointer;
-}
-
-.pdf-toolbar-badge {
-    background: #0f172a;
-    color: #38bdf8;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    font-family: monospace;
-}
-
-/* Tek Sayfaya Sığdır (Fit-1-Page) Akıllı Sıkıştırma Stilleri */
-.pdf-report-container.fit-1-page {
-    padding: 8mm 10mm !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-header-standard {
-    padding-bottom: 8px !important;
-    margin-bottom: 10px !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-vehicle-group {
-    margin-bottom: 10px !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-group-title {
-    padding: 3px 6px !important;
-    margin-bottom: 4px !important;
-    font-size: 11px !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-table {
-    margin-bottom: 6px !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-table th,
-.pdf-report-container.fit-1-page .pdf-table td {
-    padding: 1.5px 4px !important;
-    line-height: 1.15 !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-summary-block {
-    margin-top: 6px !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-grand-total {
-    margin-top: 8px !important;
-    padding: 6px 12px !important;
-}
-
-.pdf-report-container.fit-1-page .pdf-footer-standard {
-    margin-top: 4px !important;
-    padding-top: 4px !important;
 }

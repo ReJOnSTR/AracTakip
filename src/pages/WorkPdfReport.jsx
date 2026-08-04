@@ -4,22 +4,7 @@ import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ 
-    propId, 
-    propWork, 
-    noHeader = false, 
-    isPreview = false, 
-    showPricesProp = true, 
-    showKdvProp = false, 
-    kdvRateProp = 20, 
-    pazarMultiplierProp = null, 
-    mesaiMultiplierProp = null,
-    previewModeProp = 'normal',
-    orientationProp = 'portrait',
-    fitModeProp = 'auto',
-    customScaleProp = 100,
-    marginSizeProp = 'normal'
-}) {
+export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -27,25 +12,6 @@ export default function WorkPdfReport({
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
     const showPrices = showPricesProp;
-
-    // Excel-style Page Setup & Preview States
-    const [previewMode, setPreviewMode] = useState(previewModeProp); 
-    const [orientation, setOrientation] = useState(orientationProp); 
-    const [fitMode, setFitMode] = useState(fitModeProp); 
-    const [customScale, setCustomScale] = useState(customScaleProp); 
-    const [marginSize, setMarginSize] = useState(marginSizeProp); 
-
-    const containerRef = React.useRef(null);
-    const [pageBreaks, setPageBreaks] = useState([]);
-    const [calculatedAutoFitScale, setCalculatedAutoFitScale] = useState(100);
-
-    useEffect(() => {
-        setPreviewMode(previewModeProp);
-        setOrientation(orientationProp);
-        setFitMode(fitModeProp);
-        setCustomScale(customScaleProp);
-        setMarginSize(marginSizeProp);
-    }, [previewModeProp, orientationProp, fitModeProp, customScaleProp, marginSizeProp]);
 
     useEffect(() => {
         if (propWork) {
@@ -58,6 +24,7 @@ export default function WorkPdfReport({
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
+                // Also verify it matches the ID just in case
                 if (parsed.id === Number(id)) {
                     setWork(parsed);
                     setLoading(false);
@@ -89,38 +56,6 @@ export default function WorkPdfReport({
         loadData();
     }, [id, propWork]);
 
-    // Page Break & Fit-to-Page Calculation Engine
-    useEffect(() => {
-        if (!containerRef.current) return;
-        const element = containerRef.current;
-        const totalHeightPx = element.scrollHeight;
-
-        let basePageHeight = orientation === 'landscape' ? 794 : 1123;
-        let marginPx = marginSize === 'narrow' ? 45 : (marginSize === 'wide' ? 120 : 80);
-        let printableHeightPx = basePageHeight - marginPx;
-
-        if (totalHeightPx > 0) {
-            const rawFitScale = Math.round((printableHeightPx / totalHeightPx) * 100);
-            const fitScale = Math.min(100, Math.max(70, rawFitScale));
-            setCalculatedAutoFitScale(fitScale);
-        }
-
-        const currentScalePercent = fitMode === 'fit1Page' ? calculatedAutoFitScale : (fitMode === 'custom' ? customScale : 100);
-        const scaledPrintablePx = Math.round(printableHeightPx / (currentScalePercent / 100));
-
-        const breaks = [];
-        if (totalHeightPx > scaledPrintablePx) {
-            let currentTop = scaledPrintablePx;
-            let pageNum = 1;
-            while (currentTop < totalHeightPx) {
-                breaks.push({ topPx: currentTop, pageNum: pageNum });
-                pageNum++;
-                currentTop += scaledPrintablePx;
-            }
-        }
-        setPageBreaks(breaks);
-    }, [work, orientation, fitMode, customScale, marginSize, calculatedAutoFitScale]);
-
     if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
     if (error) return <div className="print-error">Hata: {error}</div>;
     if (!work) return null;
@@ -135,13 +70,9 @@ export default function WorkPdfReport({
         ? parsedMesaiProp 
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
-    const reportItems = (work?.items && work.items.length > 0) ? work.items : (work?.work_items || []);
-    const calcResult = calculateWorkStats(reportItems, pazarMultiplier, mesaiMultiplier);
+    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier);
     const groups = calcResult.groups;
     const grandTotalPrice = calcResult.grandTotal;
-
-    const effectiveScalePercent = fitMode === 'fit1Page' ? calculatedAutoFitScale : (fitMode === 'custom' ? customScale : 100);
-    const effectiveScaleNum = effectiveScalePercent / 100;
 
     const handleSavePdf = async () => {
         if (!window.electronAPI?.saveAsPdf) {
@@ -150,13 +81,13 @@ export default function WorkPdfReport({
         }
 
         setSavingPdf(true);
+        // Wait for state to apply hide-for-pdf classes
         setTimeout(async () => {
-            const res = await window.electronAPI.saveAsPdf({
-                landscape: orientation === 'landscape',
-                scale: effectiveScaleNum
-            });
+            const res = await window.electronAPI.saveAsPdf();
             setSavingPdf(false);
-            if (res && !res.success && !res.canceled) {
+            if (res && res.success) {
+                // We can add a notification here or let OS handle it
+            } else if (res && !res.canceled) {
                 alert('PDF Kaydedilirken Hata: ' + res.error);
             }
         }, 100);
@@ -179,7 +110,7 @@ export default function WorkPdfReport({
         <div className={`pdf-viewer-layout ${savingPdf ? 'is-generating-pdf' : ''}`}>
             {/* Viewer Action Bar */}
             {!noHeader && (
-                <div className={`pdf-actions-bar ${orientation === 'landscape' ? 'is-landscape' : ''}`}>
+                <div className="pdf-actions-bar">
                     <button className="pdf-btn close" onClick={() => window.close()} disabled={savingPdf}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         Pencereyi Kapat
@@ -197,64 +128,7 @@ export default function WorkPdfReport({
                 </div>
             )}
 
-            {/* Dynamic Print & Page Setup Styles */}
-            <style dangerouslySetInnerHTML={{ __html: `
-                @media print {
-                    @page {
-                        size: A4 ${orientation};
-                        margin: ${marginSize === 'narrow' ? '8mm 6mm' : (marginSize === 'wide' ? '22mm 18mm' : '15mm 12mm')} !important;
-                    }
-                    body, html {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        background: #ffffff !important;
-                    }
-                    .pdf-actions-bar,
-                    .pdf-page-setup-toolbar,
-                    .pdf-page-break-line,
-                    .pdf-page-watermark {
-                        display: none !important;
-                    }
-                    .pdf-report-container {
-                        zoom: ${effectiveScaleNum} !important;
-                        transform: none !important;
-                        box-shadow: none !important;
-                        border: none !important;
-                        width: 100% !important;
-                        max-width: none !important;
-                        padding: 0 !important;
-                    }
-                }
-            `}} />
-
-            <div 
-                ref={containerRef}
-                className={`pdf-report-container ${fitMode === 'fit1Page' ? 'fit-1-page' : ''} ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${orientation === 'landscape' ? 'is-landscape' : ''} margin-${marginSize} ${previewMode === 'pageBreak' ? 'is-page-break-preview' : ''}`}
-                style={{
-                    transform: effectiveScalePercent !== 100 ? `scale(${effectiveScaleNum})` : 'none',
-                    transformOrigin: 'top center'
-                }}
-            >
-                {/* Excel Page Break Overlay Lines & Watermarks (Preview Only) */}
-                {previewMode === 'pageBreak' && !savingPdf && (
-                    <>
-                        <div className="pdf-page-watermark" style={{ top: '250px' }}>
-                            SAYFA 1
-                        </div>
-                        {pageBreaks.map((b, bIdx) => (
-                            <React.Fragment key={bIdx}>
-                                <div 
-                                    className="pdf-page-break-line" 
-                                    style={{ top: `${b.topPx}px` }}
-                                    data-page={`SAYFA ${b.pageNum} SONU`}
-                                />
-                                <div className="pdf-page-watermark" style={{ top: `${b.topPx + 250}px` }}>
-                                    SAYFA {b.pageNum + 1}
-                                </div>
-                            </React.Fragment>
-                        ))}
-                    </>
-                )}
+            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}>
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
@@ -347,7 +221,6 @@ export default function WorkPdfReport({
                                         else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
 
                                         const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
-                                        const itemRate = item.unitPriceVal || Number(item.unit_price) || 0;
 
                                         return (
                                             <tr key={itemIdx} className={pdfRowClass}>
@@ -364,8 +237,12 @@ export default function WorkPdfReport({
                                                 <td className="right">
                                                     {showPrices ? (
                                                         item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? formatCurrency((itemRate > 10000 && item.isAylik ? itemRate / 26 : itemRate) * pazarMultiplier)
-                                                            : (itemRate > 0 ? formatCurrency(itemRate) : '')
+                                                            ? (() => {
+                                                                const baseP = item.unit_price || item.unitPriceVal || 0;
+                                                                const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
+                                                                return dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '';
+                                                            })()
+                                                            : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
                                                     ) : ''}
                                                 </td>
                                             </tr>

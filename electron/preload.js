@@ -263,7 +263,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     searchGlobal: (companyId, query) => ipcRenderer.invoke('global:search', companyId, query),
 
     // System actions
-    saveAsPdf: (options) => ipcRenderer.invoke('save-pdf', options),
+    saveAsPdf: () => ipcRenderer.invoke('save-pdf'),
     saveReportPdf: (route, options) => ipcRenderer.invoke('save-report-pdf', route, options),
     openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
     setFullScreen: (flag) => ipcRenderer.invoke('window:setFullScreen', flag),
