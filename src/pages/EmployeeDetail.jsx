@@ -1840,8 +1840,12 @@ export default function EmployeeDetail() {
             }))
     ];
 
+    const salaryAllowedPeriods = ['salary', 'overtime_pay', 'advance', 'bonus', 'carryover', 'loan_payment'];
+
     const monthlySalaries = combinedSalaries.filter(s => {
-        // Use salary_month if available, otherwise fall back to payment_date
+        if (s.period && !salaryAllowedPeriods.includes(s.period)) {
+            return false;
+        }
         if (s.salary_month) {
             return s.salary_month === selectedMonth
         }
@@ -2488,9 +2492,10 @@ export default function EmployeeDetail() {
                             const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidAdvance = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const paidBonus = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'bonus').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidLoanDeduction = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'loan_payment' && s.payment_method === 'salary_deduction').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             
-                            const totalPaid = paidSalary + paidOt + paidAdvance + paidLoanDeduction
+                            const totalPaid = paidSalary + paidOt + paidAdvance + paidBonus + paidLoanDeduction
 
                             const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanDeduction
                             const remainingOt = totalOtTarget - paidOt
