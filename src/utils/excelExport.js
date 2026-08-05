@@ -1,16 +1,16 @@
-import * as XLSX from 'xlsx';
-import { calculateWorkStats } from './workCalculations';
-import { formatDate } from './helpers';
+import { calculateWorkStats } from './workCalculations'
+import { formatDate, formatCurrency } from './helpers'
 
 /**
- * Export a Work Puantaj Report to an Excel file matching the PDF report structure.
+ * Export a Work Puantaj Report to a visually flawless Excel (.xls/.xlsx) file
+ * matching the exact styling, colors, borders, and layout of the PDF report preview.
  * 
  * @param {Object} work - The work object
  * @param {Array} vehicles - Company vehicles array for vehicle name resolution
  * @param {Object} options - Export options (showPrices, showKdv, kdvRate, pazarMultiplier, mesaiMultiplier)
  */
 export function exportWorkToExcel(work, vehicles = [], options = {}) {
-    if (!work) return;
+    if (!work) return
 
     const {
         showPrices = true,
@@ -18,148 +18,232 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
         kdvRate = 20,
         pazarMultiplier = 1.5,
         mesaiMultiplier = 1.5
-    } = options;
+    } = options
 
-    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier, vehicles);
-    const groups = calcResult.groups || [];
-    const grandTotal = calcResult.grandTotal || 0;
+    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier, vehicles)
+    const groups = calcResult.groups || []
+    const grandTotal = calcResult.grandTotal || 0
 
-    const rows = [];
+    const companyName = work.company_name || work.company?.name || work.customer_name || work.customer || ''
+    const workTitle = work.title || work.work_no || 'İş Raporu'
+    const reportDate = new Date().toLocaleDateString('tr-TR')
 
-    // 1. Header Info Section
-    const companyName = work.company_name || work.company?.name || work.customer_name || work.customer || '';
-    const workTitle = work.title || work.work_no || 'İş Raporu';
-    const workDate = formatDate(work.date);
+    let html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--[if gte mso 9]>
+<xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>Puantaj Raporu</x:Name>
+    <x:WorksheetOptions>
+     <x:DisplayGridlines/>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+ </x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #0f172a; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+  th, td { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 11px; vertical-align: middle; }
+  th { background-color: #f1f5f9; color: #0f172a; font-weight: bold; text-align: center; }
+  .vehicle-header-row { background-color: #1e293b !important; color: #ffffff !important; font-weight: bold; font-size: 12px; text-align: left; padding: 8px 12px; }
+  .row-red { background-color: #fff1f2 !important; color: #be123c !important; font-weight: bold; }
+  .row-orange { background-color: #ffedd5 !important; color: #c2410c !important; }
+  .row-blue { background-color: #dbeafe !important; color: #1d4ed8 !important; }
+  .row-green { background-color: #dcfce7 !important; color: #15803d !important; }
+  .row-purple { background-color: #f3e8ff !important; color: #6b21a8 !important; }
+  .summary-title { background-color: #cbd5e1 !important; color: #0f172a !important; font-weight: bold; text-align: center; }
+  .total-row { background-color: #0f172a !important; color: #ffffff !important; font-weight: bold; }
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+  .text-left { text-align: left; }
+  .bold { font-weight: bold; }
+</style>
+</head>
+<body>
 
-    rows.push(['FİRMA / MÜŞTERİ:', companyName]);
-    rows.push(['İŞ / PROJE TANIMI:', workTitle]);
-    rows.push(['TARİH:', workDate]);
-    rows.push(['RAPOR TÜRÜ:', 'PUANTAJ İŞ RAPORU']);
-    rows.push([]); // Blank line
+<!-- Meta Header Table -->
+<table style="border: none; margin-bottom: 15px; width: 100%;">
+  <tr>
+    <td colspan="6" style="border: none; font-size: 18px; font-weight: bold; color: #1e293b;">
+      ${work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
+    </td>
+    <td colspan="3" style="border: none; text-align: right; font-size: 11px; color: #475569;">
+      <b>Rapor Tarihi:</b> ${reportDate}
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" style="border: none; font-size: 12px;"><b>Firma / Müşteri:</b> ${companyName}</td>
+    <td colspan="3" style="border: none; font-size: 12px;"><b>İş Tanımı:</b> ${workTitle}</td>
+    <td colspan="3" style="border: none; font-size: 12px; text-align: right;"><b>Tarih:</b> ${formatDate(work.date)}</td>
+  </tr>
+</table>
+`
 
-    // 2. Per-Vehicle Sections
     groups.forEach((group) => {
-        const machineTitle = (group.rawMachineName || group.machineName || 'Belirtilmemiş').toUpperCase();
-        
-        // Vehicle Section Title
-        rows.push([`MAKİNE DETAYLARI: ${machineTitle}`]);
+        const machineTitle = (group.rawMachineName || group.machineName || 'Belirtilmemiş').toUpperCase()
+        const colSpanCount = showPrices ? 9 : 8
 
-        // Table Headers
-        const tableHeaders = [
-            'Tarih',
-            'Fiş No',
-            'Başlama Saat',
-            'Bitiş Saat',
-            'Süre / Adet',
-            'Fazla Mesai',
-            'Makina',
-            'Açıklama'
-        ];
-        if (showPrices) {
-            tableHeaders.push('Fiyat (TL)');
-        }
-        rows.push(tableHeaders);
+        html += `
+<table>
+  <thead>
+    <tr>
+      <th colspan="${colSpanCount}" class="vehicle-header-row">
+        🔧 ${machineTitle} DETAYLARI
+      </th>
+    </tr>
+    <tr>
+      <th style="width: 10%;">TARİH</th>
+      <th style="width: 10%;">FİŞ NO</th>
+      <th style="width: 10%;">BAŞLAMA</th>
+      <th style="width: 10%;">BİTİŞ</th>
+      <th style="width: 12%;">SÜRE / ADET</th>
+      <th style="width: 12%;">FAZLA MESAİ</th>
+      <th style="width: 16%;">MAKİNA</th>
+      <th style="width: ${showPrices ? '12%' : '20%'};">AÇIKLAMA</th>
+      ${showPrices ? '<th style="width: 10%;">FİYAT</th>' : ''}
+    </tr>
+  </thead>
+  <tbody>
+`
 
-        // Table Data Rows
-        const groupItems = group.items || [];
+        const groupItems = group.items || []
         groupItems.forEach((item) => {
-            const desc = item.description || '';
-            const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
-            const unitText = desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün';
+            const desc = item.description || ''
+            const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim()
+            const unitText = desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün'
 
-            let priceVal = '';
+            let rowClass = ''
+            if (desc.includes('[RENK:red]') || item.isPazar) rowClass = 'row-red'
+            else if (desc.includes('[RENK:orange]')) rowClass = 'row-orange'
+            else if (desc.includes('[RENK:blue]')) rowClass = 'row-blue'
+            else if (desc.includes('[RENK:green]')) rowClass = 'row-green'
+            else if (desc.includes('[RENK:purple]')) rowClass = 'row-purple'
+
+            let priceText = ''
             if (showPrices) {
                 if (item.isPazar && !desc.includes('[KATSAYI:')) {
-                    const baseP = item.unit_price || item.unitPriceVal || 0;
-                    const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
-                    priceVal = dailyP > 0 ? dailyP * pazarMultiplier : 0;
+                    const baseP = item.unit_price || item.unitPriceVal || 0
+                    const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP
+                    priceText = dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '-'
                 } else {
-                    priceVal = item.unit_price || item.unitPriceVal || 0;
+                    priceText = (item.unit_price || item.unitPriceVal) ? formatCurrency(item.unit_price || item.unitPriceVal) : '-'
                 }
             }
 
-            const rowData = [
-                formatDate(item.date),
-                item.receipt_no || '-',
-                item.start_time || '-',
-                item.end_time || '-',
-                `${item.hours || 0} ${unitText}`,
-                item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : '-',
-                group.rawMachineName || group.machineName,
-                cleanDesc
-            ];
-            if (showPrices) {
-                rowData.push(priceVal);
-            }
-            rows.push(rowData);
-        });
+            html += `
+    <tr class="${rowClass}">
+      <td class="text-center">${formatDate(item.date)}</td>
+      <td class="text-center">${item.receipt_no || '-'}</td>
+      <td class="text-center">${item.start_time || '-'}</td>
+      <td class="text-center">${item.end_time || '-'}</td>
+      <td class="text-center">${item.hours || 0} ${unitText}</td>
+      <td class="text-center">${item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : '-'}</td>
+      <td class="text-center">${group.rawMachineName || group.machineName}</td>
+      <td class="text-left">${cleanDesc}</td>
+      ${showPrices ? `<td class="text-right bold">${priceText}</td>` : ''}
+    </tr>
+`
+        })
 
-        // Group Summary Sub-table
-        rows.push([]);
-        rows.push([`${machineTitle} ÖZETİ`]);
-        const summaryHeaders = ['İşlem Türü', 'Miktar / Süre', 'Birim Fiyat (TL)'];
-        if (showPrices) summaryHeaders.push('Toplam Tutar (TL)');
-        rows.push(summaryHeaders);
+        html += `
+  </tbody>
+</table>
 
-        const summaryLines = group.summaryLines || [];
+<!-- Vehicle Summary Table -->
+<table style="width: 550px; margin-bottom: 25px;">
+  <thead>
+    <tr>
+      <th colspan="${showPrices ? 4 : 2}" class="summary-title">${machineTitle} ÖZETİ</th>
+    </tr>
+    <tr>
+      <th class="text-left">İşlem Türü</th>
+      <th class="text-center">Miktar / Süre</th>
+      ${showPrices ? '<th class="text-right">Birim Fiyat</th><th class="text-right">Toplam Tutar</th>' : ''}
+    </tr>
+  </thead>
+  <tbody>
+`
+
+        const summaryLines = group.summaryLines || []
         summaryLines.forEach((line) => {
-            const summaryRow = [
-                line.typeLabel,
-                line.countText || `${line.count} ${line.unit}`,
-                line.unitPrice || 0
-            ];
-            if (showPrices) summaryRow.push(line.totalPrice || 0);
-            rows.push(summaryRow);
-        });
+            html += `
+    <tr>
+      <td class="text-left bold">${line.typeLabel}</td>
+      <td class="text-center">${line.countText || `${line.count} ${line.unit}`}</td>
+      ${showPrices ? `<td class="text-right">${line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td><td class="text-right bold">${formatCurrency(line.totalPrice)}</td>` : ''}
+    </tr>
+`
+        })
 
         if (showPrices) {
-            rows.push([
-                `${machineTitle} TOPLAM:`,
-                '',
-                '',
-                group.calculatedGrandTotal || 0
-            ]);
+            html += `
+    <tr style="background-color: #f1f5f9; font-weight: bold;">
+      <td colspan="3" class="text-right">TOPLAM:</td>
+      <td class="text-right bold" style="color: #0f172a;">${formatCurrency(group.calculatedGrandTotal)}</td>
+    </tr>
+`
         }
-        rows.push([]); // Blank separator row
-    });
 
-    // 3. Grand Totals Summary Block
+        html += `
+  </tbody>
+</table>
+`
+    })
+
     if (showPrices) {
-        rows.push(['=== GENEL TOPLAM ÖZETİ ===']);
-        rows.push(['ARA TOPLAM (TL):', '', '', grandTotal]);
+        let grandTotalWithKdv = grandTotal
+        let kdvAmount = 0
         if (showKdv) {
-            const kdvAmount = (grandTotal * (Number(kdvRate) || 20)) / 100;
-            const totalWithKdv = grandTotal + kdvAmount;
-            rows.push([`KDV (%${kdvRate}) TUTARI (TL):`, '', '', kdvAmount]);
-            rows.push(['GENEL TOPLAM (KDV DAHİL TL):', '', '', totalWithKdv]);
-        } else {
-            rows.push(['GENEL TOPLAM (TL):', '', '', grandTotal]);
+            kdvAmount = (grandTotal * (Number(kdvRate) || 20)) / 100
+            grandTotalWithKdv = grandTotal + kdvAmount
         }
+
+        html += `
+<table style="width: 450px; margin-top: 15px; border: 2px solid #0f172a;">
+  <tr style="background-color: #f8fafc;">
+    <td class="text-right bold" style="font-size: 12px;">ARA TOPLAM:</td>
+    <td class="text-right bold" style="font-size: 13px;">${formatCurrency(grandTotal)}</td>
+  </tr>
+  ${showKdv ? `
+  <tr style="background-color: #f8fafc;">
+    <td class="text-right bold" style="font-size: 12px;">KDV (%${kdvRate}):</td>
+    <td class="text-right bold" style="font-size: 13px;">${formatCurrency(kdvAmount)}</td>
+  </tr>
+  <tr class="total-row">
+    <td class="text-right bold" style="font-size: 13px;">GENEL TOPLAM (KDV DAHİL):</td>
+    <td class="text-right bold" style="font-size: 14px;">${formatCurrency(grandTotalWithKdv)}</td>
+  </tr>
+  ` : `
+  <tr class="total-row">
+    <td class="text-right bold" style="font-size: 13px;">GENEL TOPLAM:</td>
+    <td class="text-right bold" style="font-size: 14px;">${formatCurrency(grandTotal)}</td>
+  </tr>
+  `}
+</table>
+`
     }
 
-    // Build worksheet
-    const ws = XLSX.utils.aoa_to_sheet(rows);
+    html += `
+</body>
+</html>
+`
 
-    // Set Column Widths
-    ws['!cols'] = [
-        { wch: 14 }, // Tarih
-        { wch: 12 }, // Fiş No
-        { wch: 14 }, // Başlama
-        { wch: 14 }, // Bitiş
-        { wch: 16 }, // Süre / Adet
-        { wch: 16 }, // Fazla Mesai
-        { wch: 26 }, // Makina
-        { wch: 38 }, // Açıklama
-        { wch: 20 }  // Fiyat
-    ];
+    const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_')
+    const compStr = companyName ? `${sanitizeFileName(companyName)}_` : ''
+    const titleStr = workTitle ? sanitizeFileName(workTitle) : 'Puantaj_Raporu'
+    const fileName = `Puantaj_${compStr}${titleStr}_${new Date().toISOString().split('T')[0]}.xls`
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Puantaj Raporu');
-
-    const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
-    const compStr = companyName ? `${sanitizeFileName(companyName)}_` : '';
-    const titleStr = workTitle ? sanitizeFileName(workTitle) : 'Puantaj_Raporu';
-    const fileName = `Puantaj_${compStr}${titleStr}_${new Date().toISOString().split('T')[0]}.xlsx`;
-
-    XLSX.writeFile(wb, fileName);
+    const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
 }
