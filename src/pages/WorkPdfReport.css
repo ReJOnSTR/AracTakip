@@ -502,6 +502,17 @@ body:has(.is-generating-pdf),
     font-size: 7px !important;
 }
 
+@media print {
+    .pdf-report-container.pdf-fit-page {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        max-height: 275mm !important;
+        overflow: hidden !important;
+    }
+}
+
 /* Page break rules */
 .pdf-break-per-vehicle {
     page-break-before: always;

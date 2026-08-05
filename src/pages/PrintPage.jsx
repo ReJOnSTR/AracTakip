@@ -117,6 +117,9 @@ export default function PrintPage() {
                     kdvRateProp={data.kdvRate} 
                     pazarMultiplierProp={data.pazarMultiplier}
                     mesaiMultiplierProp={data.mesaiMultiplier}
+                    pageBreakModeProp={data.pageBreakMode}
+                    rowsPerPageProp={data.rowsPerPage}
+                    manualBreakIdsProp={data.manualBreakIds}
                 />
             </div>
         )
