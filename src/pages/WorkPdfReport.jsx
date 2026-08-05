@@ -145,11 +145,14 @@ export default function WorkPdfReport({
     const pages = (() => {
         if (!groups || groups.length === 0) return [];
 
-        if (pageBreakMode === 'fit_page') {
+        const totalItems = groups.reduce((acc, g) => acc + (g.items ? g.items.length : 0), 0);
+
+        // If fit_page OR custom scale is specified OR total items <= 15: keep on 1 page!
+        if (pageBreakMode === 'fit_page' || customScaleProp !== null || totalItems <= 15) {
             return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
-        if (pageBreakMode === 'per_vehicle' || (pageBreakMode === 'auto' && groups.length > 1)) {
+        if (pageBreakMode === 'per_vehicle') {
             return groups.map((g, idx) => ({
                 groups: [g],
                 isFirst: idx === 0,
@@ -175,6 +178,15 @@ export default function WorkPdfReport({
             });
             if (pageList.length > 0) pageList[pageList.length - 1].isLast = true;
             return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
+        }
+
+        if (groups.length > 1 && totalItems > 15) {
+            return groups.map((g, idx) => ({
+                groups: [g],
+                isFirst: idx === 0,
+                isLast: idx === groups.length - 1,
+                pageIndex: idx
+            }));
         }
 
         return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
