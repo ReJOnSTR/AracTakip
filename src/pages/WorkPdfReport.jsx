@@ -27,46 +27,23 @@ export default function WorkPdfReport({
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
-    const reportRef = useRef(null);
-    const showPrices = showPricesProp;
-
-    // Load break settings from localStorage fallback
-    const savedBreakSettings = (() => {
-        try {
-            const s = localStorage.getItem(`pdfPageBreakSettings_${id}`);
-            return s ? JSON.parse(s) : {};
-        } catch (e) {
-            return {};
-        }
-    })();
-
-    const pageBreakMode = pageBreakModeProp || savedBreakSettings.pageBreakMode || 'auto';
-    const rowsPerPage = rowsPerPageProp || savedBreakSettings.rowsPerPage || 20;
-    const [manualBreakIds, setManualBreakIds] = useState(manualBreakIdsProp || savedBreakSettings.manualBreakIds || []);
-
-    const [autoScale, setAutoScale] = useState(1);
+    const contentRef = useRef(null);
 
     useLayoutEffect(() => {
-        if (pageBreakMode === 'fit_page' && reportRef.current) {
-            const el = reportRef.current;
-            const prevH = el.style.height;
-            const prevMaxH = el.style.maxHeight;
+        if (pageBreakMode === 'fit_page' && contentRef.current) {
+            const el = contentRef.current;
             const prevTransform = el.style.transform;
             const prevWidth = el.style.width;
 
-            el.style.height = 'auto';
-            el.style.maxHeight = 'none';
             el.style.transform = 'none';
-            el.style.width = '210mm';
+            el.style.width = '100%';
 
             const naturalH = el.offsetHeight || el.scrollHeight;
 
-            el.style.height = prevH;
-            el.style.maxHeight = prevMaxH;
             el.style.transform = prevTransform;
             el.style.width = prevWidth;
 
-            const targetH = 1010; // Printable A4 Portrait height limit in px
+            const targetH = 970; // Printable inner content height limit inside A4 page in px
             if (naturalH > targetH) {
                 const computed = targetH / naturalH;
                 setAutoScale(parseFloat(Math.max(0.40, Math.min(0.98, computed)).toFixed(3)));
@@ -219,16 +196,16 @@ export default function WorkPdfReport({
                 </div>
             )}
 
-            <div 
-                ref={reportRef}
-                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}
-                style={effectiveScale < 1 ? {
-                    transform: `scale(${effectiveScale})`,
-                    transformOrigin: 'top left',
-                    width: `${(100 / effectiveScale).toFixed(2)}%`,
-                    marginBottom: `-${((1 - effectiveScale) * 100).toFixed(2)}%`
-                } : {}}
-            >
+            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}>
+                <div 
+                    ref={contentRef}
+                    className="pdf-content-wrapper"
+                    style={effectiveScale < 1 ? {
+                        transform: `scale(${effectiveScale})`,
+                        transformOrigin: 'top left',
+                        width: `${(100 / effectiveScale).toFixed(2)}%`
+                    } : {}}
+                >
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
@@ -449,6 +426,7 @@ export default function WorkPdfReport({
             )}
 
             <div className="pdf-footer-standard">Puantaj Raporları</div>
+            </div>
         </div>
         </div>
     );
