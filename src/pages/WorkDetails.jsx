@@ -11,6 +11,7 @@ import { formatDate, formatCurrency, safeSetLocalStorage } from '../utils/helper
 import { calculateWorkStats } from '../utils/workCalculations'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
+import { exportWorkToExcel } from '../utils/excelExport'
 
 export default function WorkDetails(props) {
     const { id: urlId } = useParams()
@@ -861,6 +862,17 @@ export default function WorkDetails(props) {
             window.print();
         }
     }
+
+    const handleExportExcel = () => {
+        exportWorkToExcel(work, vehicles, {
+            showPrices,
+            showKdv,
+            kdvRate,
+            pazarMultiplier,
+            mesaiMultiplier
+        });
+    }
+
     const [filteredItems, setFilteredItems] = useState([])
     const [selectedVehicleFilter, setSelectedVehicleFilter] = useState('ALL')
 
@@ -956,6 +968,14 @@ export default function WorkDetails(props) {
                                         work.status === 'completed' ? 'Tamamlandı' : 'İptal'}
                             </span>
                         </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button className="btn" onClick={handleExportExcel} style={{ gap: '6px', backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>
+                            <Download size={16} /> Excel Olarak İndir
+                        </button>
+                        <button className="btn btn-primary" onClick={() => setIsReportModalOpen(true)} style={{ gap: '6px' }}>
+                            <FileText size={16} /> Rapor İncele / PDF
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2090,6 +2110,9 @@ export default function WorkDetails(props) {
                         <div style={{ marginRight: 'auto' }}></div>
                         <button className="btn btn-success" onClick={handleSaveToSystem} disabled={savingToSystem || generatingPdf} style={{ gap: '6px' }}>
                             <Save size={16} /> {savingToSystem ? 'Kaydediliyor...' : 'Sisteme Kaydet'}
+                        </button>
+                        <button className="btn" onClick={handleExportExcel} style={{ gap: '6px', backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>
+                            <Download size={16} /> Excel Olarak İndir
                         </button>
                         <button className="btn btn-primary" onClick={handleSavePdf} disabled={savingToSystem || generatingPdf} style={{ gap: '6px' }}>
                             <FileDown size={16} /> {generatingPdf ? 'Hazırlanıyor...' : 'PDF Olarak Kaydet'}
