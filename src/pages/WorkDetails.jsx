@@ -7,7 +7,7 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
 import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet, ChevronDown, Save } from 'lucide-react'
-import { formatDate, formatCurrency } from '../utils/helpers'
+import { formatDate, formatCurrency, safeSetLocalStorage } from '../utils/helpers'
 import { calculateWorkStats } from '../utils/workCalculations'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
@@ -249,16 +249,46 @@ export default function WorkDetails(props) {
         if (!isBackground) setLoading(false)
     }
 
+    const getCompactWorkData = (w) => {
+        if (!w) return null;
+        return {
+            id: w.id,
+            title: w.title,
+            work_no: w.work_no,
+            date: w.date,
+            company_name: w.company_name || w.company?.name || '',
+            company: w.company ? { name: w.company.name, phone: w.company.phone } : null,
+            pazar_multiplier: w.pazar_multiplier,
+            mesai_multiplier: w.mesai_multiplier,
+            items: (w.items || []).map(item => ({
+                id: item.id,
+                date: item.date,
+                receipt_no: item.receipt_no,
+                start_time: item.start_time,
+                end_time: item.end_time,
+                hours: item.hours,
+                overtime_hours: item.overtime_hours,
+                unit_price: item.unit_price,
+                unitPriceVal: item.unitPriceVal,
+                isPazar: item.isPazar,
+                isAylik: item.isAylik,
+                description: item.description,
+                vehicle_id: item.vehicle_id,
+                vehicle: item.vehicle ? { name: item.vehicle.name, plate: item.vehicle.plate } : null
+            }))
+        };
+    };
+
     const handleSaveToSystem = async () => {
         if (!window.electronAPI?.saveReportPdf) {
             alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.')
             return
         }
 
-        // Store the print configuration in localStorage
-        localStorage.setItem('printData', JSON.stringify({
+        // Store the print configuration safely in localStorage
+        safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,
-            work: work,
+            work: getCompactWorkData(work),
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,
@@ -760,9 +790,9 @@ export default function WorkDetails(props) {
 
         const defaultFileName = `Is_Raporu_${compStr}${workNoStr}_${monthStr}.pdf`;
 
-        localStorage.setItem('printData', JSON.stringify({
+        safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,
-            work: work,
+            work: getCompactWorkData(work),
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,
@@ -791,9 +821,9 @@ export default function WorkDetails(props) {
     }
 
     const handlePrintReport = () => {
-        localStorage.setItem('printData', JSON.stringify({
+        safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,
-            work: work,
+            work: getCompactWorkData(work),
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,

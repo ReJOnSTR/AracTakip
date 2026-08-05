@@ -35,6 +35,25 @@ export function today() {
     return new Date().toISOString().split('T')[0]
 }
 
+export function safeSetLocalStorage(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch (e) {
+        console.warn(`[localStorage] setItem('${key}') failed, clearing print caches...`, e);
+        try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith('print') || k.startsWith('workPdf') || k.includes('_cols') || k.includes('_sort') || k.includes('_filters'))) {
+                    localStorage.removeItem(k);
+                }
+            }
+            localStorage.setItem(key, value);
+        } catch (retryErr) {
+            console.error(`[localStorage] Retry failed for ${key}`, retryErr);
+        }
+    }
+}
+
 export function formatCurrency(amount) {
     if (amount === null || amount === undefined) return '-'
     return new Intl.NumberFormat('tr-TR', {
