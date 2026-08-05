@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
-import './WorkPdfReport.css'; // Özel CSS eklenecek
+import './WorkPdfReport.css';
 
 export default function WorkPdfReport({ 
     propId, 
@@ -107,87 +107,98 @@ export default function WorkPdfReport({
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
-                // Also verify it matches the ID just in case
-                if (parsed.id === Number(id)) {
-                    setWork(parsed);
-                    setLoading(false);
-                    return;
-                }
-            } catch (err) {
-                console.error("PDF data parse error", err);
-            }
-        }
-
-        const loadData = async () => {
-            if (!window.electronAPI) {
-                setError('Electron API bulunamadı ve yerel veri okunamadı.');
+                setWork(parsed);
                 setLoading(false);
                 return;
+            } catch (e) {
+                console.error("PDF data parse error", e);
             }
-            try {
-                const res = await window.electronAPI.getWorkDetails(id);
-                if (res.success) {
-                    setWork(res.data);
-                } else {
-                    setError(res.error);
-                }
-            } catch (err) {
-                setError(err.message);
-            }
-            setLoading(false);
-        };
-        loadData();
-    }, [id, propWork]);
-
-    if (loading) return <div className="print-loading">Veriler yükleniyor...</div>;
-    if (error) return <div className="print-error">Hata: {error}</div>;
-    if (!work) return null;
-
-    const parsedPazarProp = pazarMultiplierProp !== null && pazarMultiplierProp !== undefined && pazarMultiplierProp !== "" ? parseFloat(pazarMultiplierProp) : NaN;
-    const pazarMultiplier = !isNaN(parsedPazarProp)
-        ? parsedPazarProp 
-        : (work?.pazar_multiplier !== undefined && work?.pazar_multiplier !== null ? work.pazar_multiplier : 1.5);
-
-    const parsedMesaiProp = mesaiMultiplierProp !== null && mesaiMultiplierProp !== undefined && mesaiMultiplierProp !== "" ? parseFloat(mesaiMultiplierProp) : NaN;
-    const mesaiMultiplier = !isNaN(parsedMesaiProp)
-        ? parsedMesaiProp 
-        : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
-
-    const vehiclesList = work?.vehiclesList || work?.vehicles || [];
-    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier, vehiclesList);
-    const groups = calcResult.groups;
-    const grandTotalPrice = calcResult.grandTotal;
-
-    const handleSavePdf = async () => {
-        if (!window.electronAPI?.saveAsPdf) {
-            alert('PDF Kaydetme özelliği sadece masaüstü uygulamasında geçerlidir.');
-            return;
         }
 
+        if (id) {
+            setLoading(true);
+            window.electronAPI.getWorkDetails(id)
+                .then(res => {
+                    if (res && res.success) {
+                        setWork(res.data);
+                    } else {
+                        setError('İş detayı yüklenemedi');
+                    }
+                })
+                .catch(err => setError(err.message))
+                .finally(() => setLoading(false));
+        }
+    }, [id, propWork]);
+
+    if (loading) return <div className="pdf-loading">Rapor yükleniyor...</div>;
+    if (error) return <div className="pdf-error">{error}</div>;
+    if (!work) return <div className="pdf-error">İş bulunamadı</div>;
+
+    const pazarMultiplier = pazarMultiplierProp ? parseFloat(pazarMultiplierProp) : (work.pazar_multiplier || 1.5);
+    const mesaiMultiplier = mesaiMultiplierProp ? parseFloat(mesaiMultiplierProp) : (work.mesai_multiplier || 1.5);
+
+    const calcResult = calculateWorkStats(work.items || [], pazarMultiplier, mesaiMultiplier);
+    const groups = calcResult.groups || [];
+    const grandTotalPrice = calcResult.grandTotal || 0;
+
+    // Build Page-by-Page Cards Array
+    const pages = (() => {
+        if (!groups || groups.length === 0) return [];
+
+        if (pageBreakMode === 'fit_page') {
+            return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
+        }
+
+        if (pageBreakMode === 'per_vehicle' || (pageBreakMode === 'auto' && groups.length > 1)) {
+            return groups.map((g, idx) => ({
+                groups: [g],
+                isFirst: idx === 0,
+                isLast: idx === groups.length - 1,
+                pageIndex: idx
+            }));
+        }
+
+        if (pageBreakMode === 'max_rows') {
+            const pageList = [];
+            groups.forEach((g) => {
+                const items = g.items || [];
+                const limit = Number(rowsPerPage) || 20;
+                for (let i = 0; i < items.length; i += limit) {
+                    const chunk = items.slice(i, i + limit);
+                    pageList.push({
+                        groups: [{ ...g, items: chunk }],
+                        isFirst: pageList.length === 0,
+                        isLast: false,
+                        pageIndex: pageList.length
+                    });
+                }
+            });
+            if (pageList.length > 0) pageList[pageList.length - 1].isLast = true;
+            return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
+        }
+
+        return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
+    })();
+
+    const handleSavePdf = () => {
+        if (savingPdf) return;
         setSavingPdf(true);
-        // Wait for state to apply hide-for-pdf classes
+
+        const companyStr = work.company_name || work.company?.name || work.customer_name || work.customer || '';
+        const titleStr = work.title || work.work_no || 'Is_Raporu';
+        const dateStr = formatDate(work.date);
+        const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+        const defaultFileName = `Puantaj_${sanitize(companyStr)}_${sanitize(titleStr)}_${dateStr}.pdf`;
+
         setTimeout(async () => {
-            const res = await window.electronAPI.saveAsPdf();
+            const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName });
             setSavingPdf(false);
             if (res && res.success) {
-                // We can add a notification here or let OS handle it
+                // PDF successfully saved
             } else if (res && !res.canceled) {
                 alert('PDF Kaydedilirken Hata: ' + res.error);
             }
         }, 100);
-    };
-
-    const getWorkMonthLabel = (workObj) => {
-        if (workObj?.date) {
-            const d = new Date(workObj.date);
-            if (!isNaN(d.getTime())) {
-                const m = d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-                return m.charAt(0).toUpperCase() + m.slice(1);
-            }
-        }
-        const now = new Date();
-        const m = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-        return m.charAt(0).toUpperCase() + m.slice(1);
     };
 
     return (
@@ -212,238 +223,227 @@ export default function WorkPdfReport({
                 </div>
             )}
 
-            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}>
-                <div 
-                    ref={contentRef}
-                    className="pdf-content-wrapper"
-                    style={effectiveScale < 1 ? {
-                        transform: `scale(${effectiveScale})`,
-                        transformOrigin: 'top left',
-                        width: `${(100 / effectiveScale).toFixed(2)}%`
-                    } : {}}
-                >
-                {/* Header */}
-                <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
-                    <div>
-                        <h1 className="pdf-title-standard" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
-                            {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
-                        </h1>
-                    </div>
-                    <div className="pdf-date-standard" style={{ textAlign: 'right' }}>
-                        <div className="pdf-date-label" style={{ fontSize: '11px', color: '#666' }}>Rapor Tarihi</div>
-                        <div className="pdf-date-value" style={{ fontWeight: 'bold', fontSize: '13px' }}>{new Date().toLocaleDateString('tr-TR')}</div>
-                    </div>
-                </div>
-                <div style={{ marginBottom: '15px' }}>
-                </div>
-            <style dangerouslySetInnerHTML={{ __html: `
-              .report-section-header {
-                cursor: pointer;
-                user-select: none;
-                transition: opacity 0.2s;
-              }
-              .report-section-header:hover {
-                opacity: 0.8;
-              }
-              .report-collapse-icon {
-                font-size: 10px;
-                margin-right: 8px;
-              }
-              @media print {
-                .report-collapsible-body {
-                  display: block !important;
-                }
-                .report-collapse-icon {
-                  display: none !important;
-                }
-                .pdf-group-title {
-                  cursor: default !important;
-                }
-              }
-            `}} />
+            <div className="pdf-pages-container">
+                {pages.map((page, pIdx) => (
+                    <div 
+                        key={pIdx} 
+                        className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}
+                    >
+                        {isPreview && (
+                            <div className="pdf-page-header-badge">
+                                <span>📄 Dikey A4 (210mm × 297mm)</span>
+                                <span>Sayfa {pIdx + 1} / {pages.length}</span>
+                            </div>
+                        )}
 
-            {/* Tables grouped by vehicle */}
-            {groups.map((group, idx) => {
-                const shouldBreakVehicle = pageBreakMode === 'per_vehicle' && idx > 0;
-
-                return (
-                    <div className={`pdf-vehicle-group ${shouldBreakVehicle ? 'pdf-break-per-vehicle' : ''}`} key={idx}>
-                        <h3 
-                            style={{ 
-                                fontSize: '13px', 
-                                fontWeight: 'bold', 
-                                borderBottom: '1px solid #ccc', 
-                                paddingBottom: '5px', 
-                                marginBottom: '10px', 
-                                marginTop: '15px', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '8px',
-                                pageBreakAfter: 'avoid',
-                                breakAfter: 'avoid'
-                            }}
+                        <div 
+                            ref={pIdx === 0 ? contentRef : null}
+                            className="pdf-content-wrapper"
+                            style={effectiveScale < 1 ? {
+                                transform: `scale(${effectiveScale})`,
+                                transformOrigin: 'top left',
+                                width: `${(100 / effectiveScale).toFixed(2)}%`
+                            } : {}}
                         >
-                            <span>{group.machineName.toUpperCase()} DETAYLARI</span>
-                        </h3>
-                        <div>
-                            <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
-                                <thead>
-                                    <tr>
-                                        <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
-                                        <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
-                                        <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
-                                        <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
-                                    </tr>
-                                    <tr>
-                                        <th style={{ width: '11%' }}>Başlama</th>
-                                        <th style={{ width: '11%' }}>Bitiş</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {group.items.map((item, itemIdx) => {
-                                        const desc = item.description || '';
-                                        let pdfRowClass = '';
-                                        if (desc.includes('[RENK:red]') || item.isPazar) pdfRowClass = 'pdf-row-red';
-                                        else if (desc.includes('[RENK:orange]')) pdfRowClass = 'pdf-row-orange';
-                                        else if (desc.includes('[RENK:blue]')) pdfRowClass = 'pdf-row-blue';
-                                        else if (desc.includes('[RENK:green]')) pdfRowClass = 'pdf-row-green';
-                                        else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
+                            {/* Header on Page 1 */}
+                            {page.isFirst && (
+                                <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
+                                    <div>
+                                        <h1 className="pdf-title-standard" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                                            {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
+                                        </h1>
+                                    </div>
+                                    <div className="pdf-date-standard" style={{ textAlign: 'right' }}>
+                                        <div className="pdf-date-label" style={{ fontSize: '11px', color: '#666' }}>Rapor Tarihi</div>
+                                        <div className="pdf-date-value" style={{ fontWeight: 'bold', fontSize: '13px' }}>{new Date().toLocaleDateString('tr-TR')}</div>
+                                    </div>
+                                </div>
+                            )}
 
-                                        const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
+                            {/* Vehicle Groups on Page */}
+                            {page.groups.map((group, idx) => (
+                                <div className="pdf-vehicle-group" key={idx}>
+                                    <h3 
+                                        style={{ 
+                                            fontSize: '13px', 
+                                            fontWeight: 'bold', 
+                                            borderBottom: '1px solid #ccc', 
+                                            paddingBottom: '5px', 
+                                            marginBottom: '10px', 
+                                            marginTop: '10px', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '8px',
+                                            pageBreakAfter: 'avoid',
+                                            breakAfter: 'avoid'
+                                        }}
+                                    >
+                                        <span>{(group.rawMachineName || group.machineName).toUpperCase()} DETAYLARI</span>
+                                    </h3>
+                                    <div>
+                                        <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
+                                                    <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
+                                                    <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
+                                                    <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
+                                                    <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
+                                                    <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
+                                                    <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
+                                                    <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
+                                                </tr>
+                                                <tr>
+                                                    <th style={{ width: '11%' }}>Başlama</th>
+                                                    <th style={{ width: '11%' }}>Bitiş</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(group.items || []).map((item, itemIdx) => {
+                                                    const desc = item.description || '';
+                                                    let pdfRowClass = '';
+                                                    if (desc.includes('[RENK:red]') || item.isPazar) pdfRowClass = 'pdf-row-red';
+                                                    else if (desc.includes('[RENK:orange]')) pdfRowClass = 'pdf-row-orange';
+                                                    else if (desc.includes('[RENK:blue]')) pdfRowClass = 'pdf-row-blue';
+                                                    else if (desc.includes('[RENK:green]')) pdfRowClass = 'pdf-row-green';
+                                                    else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
 
-                                        const isManualBreak = manualBreakIds.includes(item.id);
-                                        const isMaxRowBreak = pageBreakMode === 'max_rows' && itemIdx > 0 && itemIdx % Number(rowsPerPage) === 0;
+                                                    const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
+                                                    const isManualBreak = manualBreakIds.includes(item.id);
 
-                                        return (
-                                            <React.Fragment key={item.id || itemIdx}>
-                                                {(isManualBreak || isMaxRowBreak) && (
-                                                    <tr className="pdf-page-break-row">
-                                                        <td colSpan="9">
-                                                            ✂ SAYFA SONU (BU NOKTADAN BÖLÜNÜR)
+                                                    return (
+                                                        <React.Fragment key={item.id || itemIdx}>
+                                                            {isManualBreak && (
+                                                                <tr className="pdf-page-break-row">
+                                                                    <td colSpan="9">
+                                                                        ✂ SAYFA SONU (BU NOKTADAN BÖLÜNÜR)
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                            <tr className={pdfRowClass}>
+                                                                <td className="center">
+                                                                    {(showBreakToolsProp || isPreview) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            className={`pdf-manual-break-btn ${isManualBreak ? 'active' : ''}`}
+                                                                            title={isManualBreak ? 'Sayfa sonunu kaldır' : 'Buradan sonra yeni sayfaya geç'}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleToggleBreak(item.id);
+                                                                            }}
+                                                                        >
+                                                                            ✂
+                                                                        </button>
+                                                                    )}
+                                                                    {formatDate(item.date)}
+                                                                </td>
+                                                                <td className="center">{item.receipt_no || '-'}</td>
+                                                                <td className="center">{item.start_time || '-'}</td>
+                                                                <td className="center">{item.end_time || '-'}</td>
+                                                                <td className="center">
+                                                                    {item.hours || 0} {(desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
+                                                                </td>
+                                                                <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
+                                                                <td className="center">{group.rawMachineName || group.machineName}</td>
+                                                                <td>{cleanDesc}</td>
+                                                                <td className="right">
+                                                                    {showPrices ? (
+                                                                        item.isPazar && !(desc.includes('[KATSAYI:'))
+                                                                            ? (() => {
+                                                                                const baseP = item.unit_price || item.unitPriceVal || 0;
+                                                                                const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
+                                                                                return dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '';
+                                                                            })()
+                                                                            : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
+                                                                    ) : ''}
+                                                                </td>
+                                                            </tr>
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+
+                                        {/* Vehicle Summary Block */}
+                                        <div className="pdf-summary-block">
+                                            <table className="pdf-summary-table" style={{ width: '550px' }}>
+                                                <colgroup>
+                                                    <col style={{ width: '125px' }} />
+                                                    <col style={{ width: '125px' }} />
+                                                    <col style={{ width: '150px' }} />
+                                                    <col style={{ width: '150px' }} />
+                                                </colgroup>
+                                                <tbody>
+                                                    <tr className="bg-light-gray">
+                                                        <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
+                                                            {(group.rawMachineName || group.machineName).toUpperCase()}
                                                         </td>
                                                     </tr>
-                                                )}
-                                                <tr className={pdfRowClass}>
-                                                    <td className="center">
-                                                        {(showBreakToolsProp || isPreview) && (
-                                                            <button
-                                                                type="button"
-                                                                className={`pdf-manual-break-btn ${isManualBreak ? 'active' : ''}`}
-                                                                title={isManualBreak ? 'Sayfa sonunu kaldır' : 'Buradan sonra yeni sayfaya geç (Sayfa Sonu)'}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleToggleBreak(item.id);
-                                                                }}
-                                                            >
-                                                                ✂
-                                                            </button>
-                                                        )}
-                                                        {formatDate(item.date)}
-                                                    </td>
-                                                    <td className="center">{item.receipt_no || '-'}</td>
-                                                    <td className="center">{item.start_time || '-'}</td>
-                                                    <td className="center">{item.end_time || '-'}</td>
-                                                    <td className="center">
-                                                        {item.hours || 0} {(desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
-                                                    </td>
-                                                    <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
-                                                    <td className="center">{group.rawMachineName || group.machineName}</td>
-                                                    <td>{cleanDesc}</td>
-                                                    <td className="right">
-                                                        {showPrices ? (
-                                                            item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                                ? (() => {
-                                                                    const baseP = item.unit_price || item.unitPriceVal || 0;
-                                                                    const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
-                                                                    return dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '';
-                                                                })()
-                                                                : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
-                                                        ) : ''}
-                                                    </td>
-                                                </tr>
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                                    {group.summaryLines && group.summaryLines.map((line, lIdx) => (
+                                                        <tr key={lIdx} className="bg-light-gray">
+                                                            <td className="bold center">{line.typeLabel}</td>
+                                                            <td className="center">{line.countText || `${line.count} ${line.unit}`}</td>
+                                                            <td className="right">{line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
+                                                            <td className="right bold total-text">{formatCurrency(line.totalPrice)}</td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr style={{ borderTop: '1px solid #ddd' }}>
+                                                        <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
+                                                        <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
 
-                            {/* Summary Block */}
-                            <div className="pdf-summary-block">
-                                <table className="pdf-summary-table" style={{ width: '550px' }}>
-                                    <colgroup>
-                                        <col style={{ width: '125px' }} />
-                                        <col style={{ width: '125px' }} />
-                                        <col style={{ width: '150px' }} />
-                                        <col style={{ width: '150px' }} />
-                                    </colgroup>
-                                    <tbody>
-                                        <tr className="bg-light-gray">
-                                            <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
-                                                {(group.rawMachineName || group.machineName).toUpperCase()}
-                                            </td>
-                                        </tr>
-                                        {group.summaryLines && group.summaryLines.map((line, lIdx) => (
-                                            <tr key={lIdx} className="bg-light-gray">
-                                                <td className="bold center">{line.typeLabel}</td>
-                                                <td className="center">{line.countText || `${line.count} ${line.unit}`}</td>
-                                                <td className="right">{line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
-                                                <td className="right bold total-text">{formatCurrency(line.totalPrice)}</td>
+                            {/* Grand Total on Last Page */}
+                            {page.isLast && showPrices && (
+                                <div className="pdf-grand-total">
+                                    <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: '15px' }}>
+                                        <colgroup>
+                                            <col style={{ width: '170px' }} />
+                                            <col style={{ width: '180px' }} />
+                                        </colgroup>
+                                        <tbody>
+                                            <tr style={{ borderTop: '1px solid #ddd' }}>
+                                                <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>GENEL TOPLAM</td>
+                                                <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}{showKdvProp ? '' : ' + KDV'}</td>
                                             </tr>
-                                        ))}
-                                        <tr style={{ borderTop: '1px solid #ddd' }}>
-                                            <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
-                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                            {showKdvProp && (
+                                                <>
+                                                    <tr>
+                                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>KDV (%{kdvRateProp})</td>
+                                                        <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice * (kdvRateProp / 100))}</td>
+                                                    </tr>
+                                                    <tr style={{ borderTop: '2px solid #333' }}>
+                                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#e2e8f0' }}>TOPLAM (KDV DAHİL)</td>
+                                                        <td className="right bold total-text" style={{ fontSize: '13px', padding: '8px 12px', backgroundColor: '#cbd5e1', color: '#000' }}>{formatCurrency(grandTotalPrice * (1 + kdvRateProp / 100))}</td>
+                                                    </tr>
+                                                </>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {page.isLast && work?.description && work.description.trim() !== '' && (
+                                <div className="pdf-footer-note" style={{ marginTop: '10px' }}>
+                                    <span className="bold" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>NOT:</span>
+                                    <div style={{ marginLeft: '10px', display: 'inline-block', whiteSpace: 'pre-wrap' }}>{work.description.trim()}</div>
+                                </div>
+                            )}
+
+                            {/* Page Footer */}
+                            <div className="pdf-footer-standard" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                                <span>Puantaj Raporları</span>
+                                <span style={{ fontWeight: 600 }}>Sayfa {pIdx + 1} / {pages.length}</span>
                             </div>
                         </div>
                     </div>
-                );
-            })}
-
-            {/* General Grand Total Summary */}
-            <div className="pdf-grand-total">
-                <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: (groups.length > 0 ? '20px' : '0') }}>
-                    <colgroup>
-                        <col style={{ width: '170px' }} />
-                        <col style={{ width: '180px' }} />
-                    </colgroup>
-                    <tbody>
-                            <tr style={{ borderTop: '1px solid #ddd' }}>
-                                <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>GENEL TOPLAM</td>
-                                <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}{showKdvProp ? '' : ' + KDV'}</td>
-                            </tr>
-                            {showKdvProp && (
-                                <>
-                                    <tr>
-                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>KDV (%{kdvRateProp})</td>
-                                        <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice * (kdvRateProp / 100))}</td>
-                                    </tr>
-                                    <tr style={{ borderTop: '2px solid #333' }}>
-                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#e2e8f0' }}>TOPLAM (KDV DAHİL)</td>
-                                        <td className="right bold total-text" style={{ fontSize: '13px', padding: '8px 12px', backgroundColor: '#cbd5e1', color: '#000' }}>{formatCurrency(grandTotalPrice * (1 + kdvRateProp / 100))}</td>
-                                    </tr>
-                                </>
-                            )}
-                    </tbody>
-                </table>
+                ))}
             </div>
-
-            {work?.description && work.description.trim() !== '' && (
-                <div className="pdf-footer-note">
-                    <span className="bold" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>NOT:</span>
-                    <div style={{ marginLeft: '10px', display: 'inline-block', whiteSpace: 'pre-wrap' }}>{work.description.trim()}</div>
-                </div>
-            )}
-
-            <div className="pdf-footer-standard">Puantaj Raporları</div>
-            </div>
-        </div>
         </div>
     );
 }
