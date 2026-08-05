@@ -48,7 +48,7 @@ function calculateAutoHours(startTime, endTime, pricingType, workStartStr = '08:
     return { hours: calculatedHours, overtimeHours: calculatedOvertime };
 }
 
-function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5) {
+function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5, vehiclesList = []) {
     const pazarMultVal = parseFloat(pazarMultiplier)
     const parsedPazarMultiplier = (pazarMultiplier === "" || pazarMultiplier === null || pazarMultiplier === undefined || isNaN(pazarMultVal)) 
         ? 1.5 
@@ -80,6 +80,26 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
 
     const uniqueVehicles = new Set()
     const uniqueEmployees = new Set()
+
+    const vehiclesMap = {};
+    (vehiclesList || []).forEach(v => {
+        if (v && v.id) vehiclesMap[String(v.id)] = v;
+    });
+
+    const getVehicleName = (i) => {
+        if (i.plate) {
+            return `${i.plate}${i.model ? ` - ${i.model}` : ''}`.trim();
+        }
+        const v = i.vehicle || i.vehicles || (i.vehicle_id ? vehiclesMap[String(i.vehicle_id)] : null);
+        if (v) {
+            const p = v.plate || v.name;
+            const m = v.model || v.brand || '';
+            if (p) return `${p}${m ? ` - ${m}` : ''}`.trim();
+        }
+        if (i.vehicle_name) return i.vehicle_name;
+        if (i.custom_vehicle) return i.custom_vehicle;
+        return 'Belirtilmemiş';
+    };
 
     // 1. Process items: resolution & vehicle base key
     const vehicleRateInfo = {}
@@ -145,21 +165,6 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
         const isAylik = descUpper.includes('[AYLIK]') || item.pricingType === 'monthly'
 
         if (isAylik) hasAylikWork = true
-
-        const getVehicleName = (i) => {
-            if (i.plate) {
-                return `${i.plate}${i.model ? ` - ${i.model}` : ''}`.trim();
-            }
-            const v = i.vehicle || i.vehicles;
-            if (v) {
-                const p = v.plate || v.name;
-                const m = v.model || v.brand || '';
-                if (p) return `${p}${m ? ` - ${m}` : ''}`.trim();
-            }
-            if (i.vehicle_name) return i.vehicle_name;
-            if (i.custom_vehicle) return i.custom_vehicle;
-            return 'Belirtilmemiş';
-        };
 
         if (!groupedByVehicle[vehicleBaseKey]) {
             const rawMachineName = getVehicleName(item);

@@ -122,7 +122,8 @@ export default function WorkPdfReport({
         ? parsedMesaiProp 
         : (work?.mesai_multiplier !== undefined && work?.mesai_multiplier !== null ? work.mesai_multiplier : 1.5);
 
-    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier);
+    const vehiclesList = work?.vehiclesList || work?.vehicles || [];
+    const calcResult = calculateWorkStats(work?.items || [], pazarMultiplier, mesaiMultiplier, vehiclesList);
     const groups = calcResult.groups;
     const grandTotalPrice = calcResult.grandTotal;
 
