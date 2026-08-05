@@ -26,8 +26,23 @@ export default function WorkPdfReport({
     const [work, setWork] = useState(propWork || null);
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
-    const [savingPdf, setSavingPdf] = useState(false);
+    const showPrices = showPricesProp;
     const contentRef = useRef(null);
+
+    // Load break settings from localStorage fallback
+    const savedBreakSettings = (() => {
+        try {
+            const s = localStorage.getItem(`pdfPageBreakSettings_${id}`);
+            return s ? JSON.parse(s) : {};
+        } catch (e) {
+            return {};
+        }
+    })();
+
+    const pageBreakMode = pageBreakModeProp || savedBreakSettings.pageBreakMode || 'auto';
+    const rowsPerPage = rowsPerPageProp || savedBreakSettings.rowsPerPage || 20;
+    const [manualBreakIds, setManualBreakIds] = useState(manualBreakIdsProp || savedBreakSettings.manualBreakIds || []);
+    const [autoScale, setAutoScale] = useState(1);
 
     useLayoutEffect(() => {
         if (pageBreakMode === 'fit_page' && contentRef.current) {
