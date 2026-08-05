@@ -152,11 +152,11 @@ export default function WorkPdfReport({
             return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
-        const MAX_P1 = 12;     // Page 1 holds max 12 items with report header
-        const MAX_OTHER = 15;  // Continuation pages hold max 15 items
+        const MAX_P1 = 18;     // Page 1 holds up to 18 items with report header
+        const MAX_OTHER = 24;  // Continuation pages hold up to 24 items
 
-        // If total items fits on 1 page naturally
-        if (totalItems <= MAX_P1 && groups.length === 1 && pageBreakMode !== 'per_vehicle') {
+        // If total items fits on 1 page naturally, keep everything on Page 1!
+        if (totalItems <= MAX_P1 && pageBreakMode !== 'per_vehicle') {
             return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
@@ -182,7 +182,7 @@ export default function WorkPdfReport({
         // Max Rows Page Mode
         if (pageBreakMode === 'max_rows') {
             const pageList = [];
-            const limit = Number(rowsPerPage) || 15;
+            const limit = Number(rowsPerPage) || 20;
             groups.forEach((g) => {
                 const items = g.items || [];
                 for (let i = 0; i < items.length; i += limit) {
