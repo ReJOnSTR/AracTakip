@@ -26,6 +26,7 @@ export default function WorkPdfReport({
     const [work, setWork] = useState(propWork || null);
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
+    const [savingPdf, setSavingPdf] = useState(false);
     const showPrices = showPricesProp;
     const contentRef = useRef(null);
 
