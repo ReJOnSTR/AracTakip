@@ -799,20 +799,16 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
+            pageBreakMode: pageBreakMode,
+            rowsPerPage: rowsPerPage,
+            manualBreakIds: manualBreakIds,
             isPdfSave: false
         }))
         
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'absolute';
-        iframe.style.width = '0px';
-        iframe.style.height = '0px';
-        iframe.style.left = '-9999px';
-        iframe.src = '#/print';
-        document.body.appendChild(iframe);
-        
-        setTimeout(() => {
-            document.body.removeChild(iframe);
-        }, 3000);
+        const printWin = window.open('#/print', '_blank', 'width=1050,height=800');
+        if (!printWin) {
+            window.print();
+        }
     }
     const [filteredItems, setFilteredItems] = useState([])
     const [selectedVehicleFilter, setSelectedVehicleFilter] = useState('ALL')

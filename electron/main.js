@@ -2285,17 +2285,23 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
         const printData = await parentWin.webContents.executeJavaScript(`localStorage.getItem('printData')`);
         
         if (storedData) {
+            const rawStr = typeof storedData === 'string' ? storedData : JSON.stringify(storedData);
             await hiddenWin.webContents.executeJavaScript(`
-                localStorage.setItem('printDocData', ${JSON.stringify(storedData)});
-                window.dispatchEvent(new Event('storage'));
-                if (window.refreshPrintData) window.refreshPrintData();
+                try {
+                    localStorage.setItem('printDocData', ${JSON.stringify(rawStr)});
+                    window.dispatchEvent(new Event('storage'));
+                    if (window.refreshPrintData) window.refreshPrintData();
+                } catch(e) { console.error(e); }
             `);
         }
         if (printData) {
+            const rawStr = typeof printData === 'string' ? printData : JSON.stringify(printData);
             await hiddenWin.webContents.executeJavaScript(`
-                localStorage.setItem('printData', ${JSON.stringify(printData)});
-                window.dispatchEvent(new Event('storage'));
-                if (window.refreshPrintData) window.refreshPrintData();
+                try {
+                    localStorage.setItem('printData', ${JSON.stringify(rawStr)});
+                    window.dispatchEvent(new Event('storage'));
+                    if (window.refreshPrintData) window.refreshPrintData();
+                } catch(e) { console.error(e); }
             `);
         }
 
