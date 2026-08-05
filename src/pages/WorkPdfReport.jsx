@@ -48,12 +48,28 @@ export default function WorkPdfReport({
 
     useLayoutEffect(() => {
         if (pageBreakMode === 'fit_page' && reportRef.current) {
-            const container = reportRef.current;
-            const scrollH = container.scrollHeight;
-            const targetH = 1010; // A4 printable height limit in px
-            if (scrollH > targetH) {
-                const computed = Math.max(0.40, Math.min(1.0, targetH / scrollH));
-                setAutoScale(parseFloat(computed.toFixed(3)));
+            const el = reportRef.current;
+            const prevH = el.style.height;
+            const prevMaxH = el.style.maxHeight;
+            const prevTransform = el.style.transform;
+            const prevWidth = el.style.width;
+
+            el.style.height = 'auto';
+            el.style.maxHeight = 'none';
+            el.style.transform = 'none';
+            el.style.width = '210mm';
+
+            const naturalH = el.offsetHeight || el.scrollHeight;
+
+            el.style.height = prevH;
+            el.style.maxHeight = prevMaxH;
+            el.style.transform = prevTransform;
+            el.style.width = prevWidth;
+
+            const targetH = 1010; // Printable A4 Portrait height limit in px
+            if (naturalH > targetH) {
+                const computed = targetH / naturalH;
+                setAutoScale(parseFloat(Math.max(0.40, Math.min(0.98, computed)).toFixed(3)));
             } else {
                 setAutoScale(1.0);
             }

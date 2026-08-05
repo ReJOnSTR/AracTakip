@@ -24,8 +24,25 @@
 }
 
 .pdf-report-container.is-preview {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    border: 1px solid #e0e0e0;
+    width: 210mm;
+    min-height: 297mm;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    border: 1px solid #cbd5e1;
+    position: relative;
+    background: #ffffff;
+}
+
+.pdf-report-container.is-preview::before {
+    content: "📄 Dikey A4 (210mm × 297mm)";
+    position: absolute;
+    top: -24px;
+    right: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
 /* Standard Header Classes */
