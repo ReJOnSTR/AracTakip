@@ -249,8 +249,13 @@ export default function WorkDetails(props) {
         if (!isBackground) setLoading(false)
     }
 
-    const getCompactWorkData = (w) => {
+    const getCompactWorkData = (w, vehiclesList = []) => {
         if (!w) return null;
+        const vMap = {};
+        (vehiclesList || []).forEach(v => {
+            if (v && v.id) vMap[String(v.id)] = v;
+        });
+
         return {
             id: w.id,
             title: w.title,
@@ -260,22 +265,38 @@ export default function WorkDetails(props) {
             company: w.company ? { name: w.company.name, phone: w.company.phone } : null,
             pazar_multiplier: w.pazar_multiplier,
             mesai_multiplier: w.mesai_multiplier,
-            items: (w.items || []).map(item => ({
-                id: item.id,
-                date: item.date,
-                receipt_no: item.receipt_no,
-                start_time: item.start_time,
-                end_time: item.end_time,
-                hours: item.hours,
-                overtime_hours: item.overtime_hours,
-                unit_price: item.unit_price,
-                unitPriceVal: item.unitPriceVal,
-                isPazar: item.isPazar,
-                isAylik: item.isAylik,
-                description: item.description,
-                vehicle_id: item.vehicle_id,
-                vehicle: item.vehicle ? { name: item.vehicle.name, plate: item.vehicle.plate } : null
-            }))
+            vehiclesList: (vehiclesList || []).map(v => ({ id: v.id, name: v.name, plate: v.plate, brand: v.brand, model: v.model })),
+            vehicles: (vehiclesList || []).map(v => ({ id: v.id, name: v.name, plate: v.plate, brand: v.brand, model: v.model })),
+            items: (w.items || []).map(item => {
+                const vObj = item.vehicle || item.vehicles || (item.vehicle_id ? vMap[String(item.vehicle_id)] : null);
+                const plateStr = item.plate || vObj?.plate || item.custom_vehicle || vObj?.name || '';
+                const modelStr = item.model || vObj?.model || vObj?.brand || '';
+                const brandStr = item.brand || vObj?.brand || '';
+                const nameStr = item.vehicle_name || vObj?.name || plateStr;
+
+                return {
+                    id: item.id,
+                    date: item.date,
+                    receipt_no: item.receipt_no,
+                    start_time: item.start_time,
+                    end_time: item.end_time,
+                    hours: item.hours,
+                    overtime_hours: item.overtime_hours,
+                    unit_price: item.unit_price,
+                    unitPriceVal: item.unitPriceVal,
+                    isPazar: item.isPazar,
+                    isAylik: item.isAylik,
+                    description: item.description,
+                    vehicle_id: item.vehicle_id,
+                    plate: plateStr,
+                    brand: brandStr,
+                    model: modelStr,
+                    custom_vehicle: item.custom_vehicle || '',
+                    vehicle_name: nameStr,
+                    vehicle: vObj ? { id: vObj.id, name: vObj.name, plate: vObj.plate, brand: vObj.brand, model: vObj.model } : null,
+                    vehicles: vObj ? { id: vObj.id, name: vObj.name, plate: vObj.plate, brand: vObj.brand, model: vObj.model } : null
+                };
+            })
         };
     };
 
@@ -288,7 +309,7 @@ export default function WorkDetails(props) {
         // Store the print configuration safely in localStorage
         safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,
-            work: getCompactWorkData(work),
+            work: getCompactWorkData(work, vehicles),
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,
@@ -792,7 +813,7 @@ export default function WorkDetails(props) {
 
         safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,
-            work: getCompactWorkData(work),
+            work: getCompactWorkData(work, vehicles),
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,
@@ -823,7 +844,7 @@ export default function WorkDetails(props) {
     const handlePrintReport = () => {
         safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,
-            work: getCompactWorkData(work),
+            work: getCompactWorkData(work, vehicles),
             showPrices: showPrices,
             showKdv: showKdv,
             kdvRate: kdvRate,
