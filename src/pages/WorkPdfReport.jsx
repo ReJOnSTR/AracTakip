@@ -152,8 +152,8 @@ export default function WorkPdfReport({
             return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
-        const MAX_P1 = 18;     // Page 1 holds up to 18 items with report header
-        const MAX_OTHER = 24;  // Continuation pages hold up to 24 items
+        const MAX_P1 = 22;     // Page 1 holds up to 22 items with report header
+        const MAX_OTHER = 30;  // Continuation pages hold up to 30 items
 
         // If total items fits on 1 page naturally, keep everything on Page 1!
         if (totalItems <= MAX_P1 && pageBreakMode !== 'per_vehicle') {
