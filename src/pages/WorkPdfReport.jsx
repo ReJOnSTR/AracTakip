@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
@@ -18,7 +18,8 @@ export default function WorkPdfReport({
     rowsPerPageProp = null,
     manualBreakIdsProp = null,
     onToggleManualBreakProp = null,
-    showBreakToolsProp = false
+    showBreakToolsProp = false,
+    customScaleProp = null
 }) {
     const params = useParams();
     const id = propId || params.id;
@@ -26,6 +27,7 @@ export default function WorkPdfReport({
     const [loading, setLoading] = useState(!propWork);
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
+    const reportRef = useRef(null);
     const showPrices = showPricesProp;
 
     // Load break settings from localStorage fallback
@@ -41,6 +43,26 @@ export default function WorkPdfReport({
     const pageBreakMode = pageBreakModeProp || savedBreakSettings.pageBreakMode || 'auto';
     const rowsPerPage = rowsPerPageProp || savedBreakSettings.rowsPerPage || 20;
     const [manualBreakIds, setManualBreakIds] = useState(manualBreakIdsProp || savedBreakSettings.manualBreakIds || []);
+
+    const [autoScale, setAutoScale] = useState(1);
+
+    useLayoutEffect(() => {
+        if (pageBreakMode === 'fit_page' && reportRef.current) {
+            const container = reportRef.current;
+            const scrollH = container.scrollHeight;
+            const targetH = 1010; // A4 printable height limit in px
+            if (scrollH > targetH) {
+                const computed = Math.max(0.40, Math.min(1.0, targetH / scrollH));
+                setAutoScale(parseFloat(computed.toFixed(3)));
+            } else {
+                setAutoScale(1.0);
+            }
+        } else {
+            setAutoScale(1.0);
+        }
+    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp]);
+
+    const effectiveScale = customScaleProp ? Number(customScaleProp) : (pageBreakMode === 'fit_page' ? autoScale : 1.0);
 
     useEffect(() => {
         if (manualBreakIdsProp) {
@@ -181,7 +203,16 @@ export default function WorkPdfReport({
                 </div>
             )}
 
-            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}>
+            <div 
+                ref={reportRef}
+                className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}
+                style={effectiveScale < 1 ? {
+                    transform: `scale(${effectiveScale})`,
+                    transformOrigin: 'top left',
+                    width: `${(100 / effectiveScale).toFixed(2)}%`,
+                    marginBottom: `-${((1 - effectiveScale) * 100).toFixed(2)}%`
+                } : {}}
+            >
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>

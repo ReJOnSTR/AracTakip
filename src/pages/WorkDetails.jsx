@@ -80,6 +80,7 @@ export default function WorkDetails(props) {
     const [pageBreakMode, setPageBreakMode] = useState('auto')
     const [rowsPerPage, setRowsPerPage] = useState(20)
     const [manualBreakIds, setManualBreakIds] = useState([])
+    const [customScale, setCustomScale] = useState(null)
     const [showBreakTools, setShowBreakTools] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
@@ -96,6 +97,7 @@ export default function WorkDetails(props) {
                     if (parsed.pageBreakMode) setPageBreakMode(parsed.pageBreakMode)
                     if (parsed.rowsPerPage) setRowsPerPage(parsed.rowsPerPage)
                     if (parsed.manualBreakIds) setManualBreakIds(parsed.manualBreakIds)
+                    if (parsed.customScale !== undefined) setCustomScale(parsed.customScale)
                 }
             } catch (e) {}
         }
@@ -109,6 +111,7 @@ export default function WorkDetails(props) {
                 pageBreakMode: newSettings.pageBreakMode !== undefined ? newSettings.pageBreakMode : pageBreakMode,
                 rowsPerPage: newSettings.rowsPerPage !== undefined ? newSettings.rowsPerPage : rowsPerPage,
                 manualBreakIds: newSettings.manualBreakIds !== undefined ? newSettings.manualBreakIds : manualBreakIds,
+                customScale: newSettings.customScale !== undefined ? newSettings.customScale : customScale,
                 ...newSettings
             }
             localStorage.setItem(`pdfPageBreakSettings_${work.id}`, JSON.stringify(updated))
@@ -823,6 +826,7 @@ export default function WorkDetails(props) {
             pageBreakMode: pageBreakMode,
             rowsPerPage: rowsPerPage,
             manualBreakIds: manualBreakIds,
+            customScale: customScale,
             isPdfSave: true
         }))
 
@@ -854,6 +858,7 @@ export default function WorkDetails(props) {
             pageBreakMode: pageBreakMode,
             rowsPerPage: rowsPerPage,
             manualBreakIds: manualBreakIds,
+            customScale: customScale,
             isPdfSave: false
         }))
         
@@ -2307,6 +2312,52 @@ export default function WorkDetails(props) {
                                             <span className="toggle-slider"></span>
                                         </label>
                                     </label>
+
+                                    {/* Sayfa Ölçeği / Yakınlaştırma Ayarı */}
+                                    <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Ölçeği / Yakınlaştırma</label>
+                                            <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600 }}>{customScale ? `%${Math.round(customScale * 100)}` : (pageBreakMode === 'fit_page' ? 'Otomatik Sığdır' : '%100')}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0.45"
+                                            max="1.1"
+                                            step="0.05"
+                                            value={customScale || (pageBreakMode === 'fit_page' ? 0.85 : 1.0)}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                setCustomScale(val);
+                                                savePdfBreakSettings({ customScale: val });
+                                            }}
+                                            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                                        />
+                                        <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-secondary"
+                                                onClick={() => {
+                                                    setCustomScale(null);
+                                                    setPageBreakMode('fit_page');
+                                                    savePdfBreakSettings({ customScale: null, pageBreakMode: 'fit_page' });
+                                                }}
+                                                style={{ fontSize: '10px', padding: '3px 8px', flex: 1 }}
+                                            >
+                                                ⚡ Otomatik Sığdır
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-secondary"
+                                                onClick={() => {
+                                                    setCustomScale(1.0);
+                                                    savePdfBreakSettings({ customScale: 1.0 });
+                                                }}
+                                                style={{ fontSize: '10px', padding: '3px 8px' }}
+                                            >
+                                                %100
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -2327,6 +2378,7 @@ export default function WorkDetails(props) {
                                 pageBreakModeProp={pageBreakMode}
                                 rowsPerPageProp={rowsPerPage}
                                 manualBreakIdsProp={manualBreakIds}
+                                customScaleProp={customScale}
                                 onToggleManualBreakProp={(itemId) => {
                                     const next = manualBreakIds.includes(itemId) 
                                         ? manualBreakIds.filter(i => i !== itemId) 

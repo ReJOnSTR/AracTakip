@@ -120,6 +120,7 @@ export default function PrintPage() {
                     pageBreakModeProp={data.pageBreakMode}
                     rowsPerPageProp={data.rowsPerPage}
                     manualBreakIdsProp={data.manualBreakIds}
+                    customScaleProp={data.customScale}
                 />
             </div>
         )
