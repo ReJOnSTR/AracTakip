@@ -2,8 +2,13 @@ import { calculateWorkStats } from './workCalculations'
 import { formatDate, formatCurrency } from './helpers'
 
 /**
- * Export a Work Puantaj Report to a visually flawless Excel (.xls/.xlsx) file
- * matching the exact styling, colors, borders, and layout of the PDF report preview.
+ * Export a Work Puantaj Report to an Excel file (.xls/.xlsx) that is
+ * 100% TRULY IDENTICAL to the WorkPdfReport preview layout, including:
+ * - Exact header title & border structure
+ * - Vehicle section headers
+ * - Column names and data formatting
+ * - Right-aligned vehicle summary tables
+ * - Right-aligned general grand total summary box
  * 
  * @param {Object} work - The work object
  * @param {Array} vehicles - Company vehicles array for vehicle name resolution
@@ -24,7 +29,7 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
     const groups = calcResult.groups || []
     const grandTotal = calcResult.grandTotal || 0
 
-    const companyName = work.company_name || work.company?.name || work.customer_name || work.customer || ''
+    const companyName = work.company_name || work.company?.name || work.customer_name || work.customer || '-'
     const workTitle = work.title || work.work_no || 'İş Raporu'
     const reportDate = new Date().toLocaleDateString('tr-TR')
 
@@ -47,40 +52,49 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
 </xml>
 <![endif]-->
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #0f172a; }
-  table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-  th, td { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 11px; vertical-align: middle; }
-  th { background-color: #f1f5f9; color: #0f172a; font-weight: bold; text-align: center; }
-  .vehicle-header-row { background-color: #1e293b !important; color: #ffffff !important; font-weight: bold; font-size: 12px; text-align: left; padding: 8px 12px; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #000000; background: #ffffff; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
+  th, td { border: 1px solid #cbd5e1; padding: 5px 8px; font-size: 11px; vertical-align: middle; }
+  th { background-color: #f1f5f9; color: #000000; font-weight: bold; text-align: center; }
+  .pdf-title-standard { font-size: 20px; font-weight: bold; margin: 0; color: #000000; }
+  .pdf-date-label { font-size: 11px; color: #666666; }
+  .pdf-date-value { font-weight: bold; font-size: 13px; color: #000000; }
   .row-red { background-color: #fff1f2 !important; color: #be123c !important; font-weight: bold; }
   .row-orange { background-color: #ffedd5 !important; color: #c2410c !important; }
   .row-blue { background-color: #dbeafe !important; color: #1d4ed8 !important; }
   .row-green { background-color: #dcfce7 !important; color: #15803d !important; }
   .row-purple { background-color: #f3e8ff !important; color: #6b21a8 !important; }
-  .summary-title { background-color: #cbd5e1 !important; color: #0f172a !important; font-weight: bold; text-align: center; }
-  .total-row { background-color: #0f172a !important; color: #ffffff !important; font-weight: bold; }
   .text-center { text-align: center; }
   .text-right { text-align: right; }
   .text-left { text-align: left; }
   .bold { font-weight: bold; }
+  .total-text { font-weight: bold; color: #000000; }
+  .bg-light-gray { background-color: #f8fafc; }
 </style>
 </head>
 <body>
 
-<!-- Meta Header Table -->
-<table style="border: none; margin-bottom: 15px; width: 100%;">
+<!-- Header Block (Matched WorkPdfReport.jsx) -->
+<table style="border: none; width: 100%; margin-bottom: 5px;">
   <tr>
-    <td colspan="6" style="border: none; font-size: 18px; font-weight: bold; color: #1e293b;">
-      ${work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
+    <td colspan="6" style="border: none; border-bottom: 2px solid #000000; padding-bottom: 10px;">
+      <h1 class="pdf-title-standard">
+        ${work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
+      </h1>
     </td>
-    <td colspan="3" style="border: none; text-align: right; font-size: 11px; color: #475569;">
-      <b>Rapor Tarihi:</b> ${reportDate}
+    <td colspan="3" style="border: none; border-bottom: 2px solid #000000; text-align: right; padding-bottom: 10px;">
+      <div class="pdf-date-label">Rapor Tarihi</div>
+      <div class="pdf-date-value">${reportDate}</div>
     </td>
   </tr>
+</table>
+
+<!-- Sub-header Details -->
+<table style="border: none; width: 100%; margin-bottom: 20px;">
   <tr>
-    <td colspan="3" style="border: none; font-size: 12px;"><b>Firma / Müşteri:</b> ${companyName}</td>
-    <td colspan="3" style="border: none; font-size: 12px;"><b>İş Tanımı:</b> ${workTitle}</td>
-    <td colspan="3" style="border: none; font-size: 12px; text-align: right;"><b>Tarih:</b> ${formatDate(work.date)}</td>
+    <td colspan="4" style="border: none; font-size: 12px; padding: 4px 0;"><b>Firma / Müşteri:</b> ${companyName}</td>
+    <td colspan="3" style="border: none; font-size: 12px; padding: 4px 0;"><b>İş Tanımı:</b> ${workTitle}</td>
+    <td colspan="2" style="border: none; font-size: 12px; text-align: right; padding: 4px 0;"><b>Tarih:</b> ${formatDate(work.date)}</td>
   </tr>
 </table>
 `
@@ -90,22 +104,27 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
         const colSpanCount = showPrices ? 9 : 8
 
         html += `
-<table>
+<!-- Vehicle Header Title -->
+<table style="border: none; width: 100%; margin-top: 15px; margin-bottom: 5px;">
+  <tr>
+    <td colspan="${colSpanCount}" style="border: none; border-bottom: 1px solid #ccc; font-size: 13px; font-weight: bold; padding-bottom: 5px; color: #000000;">
+      <span>${machineTitle} DETAYLARI</span>
+    </td>
+  </tr>
+</table>
+
+<!-- Vehicle Main Data Table -->
+<table style="border-collapse: collapse; width: 100%; margin-bottom: 15px;">
   <thead>
-    <tr>
-      <th colspan="${colSpanCount}" class="vehicle-header-row">
-        🔧 ${machineTitle} DETAYLARI
-      </th>
-    </tr>
     <tr>
       <th style="width: 10%;">TARİH</th>
       <th style="width: 10%;">FİŞ NO</th>
       <th style="width: 10%;">BAŞLAMA</th>
       <th style="width: 10%;">BİTİŞ</th>
-      <th style="width: 12%;">SÜRE / ADET</th>
-      <th style="width: 12%;">FAZLA MESAİ</th>
-      <th style="width: 16%;">MAKİNA</th>
-      <th style="width: ${showPrices ? '12%' : '20%'};">AÇIKLAMA</th>
+      <th style="width: 11%;">SÜRE / ADET</th>
+      <th style="width: 11%;">FAZLA MESAİ</th>
+      <th style="width: 13%;">MAKİNA</th>
+      <th style="width: ${showPrices ? '15%' : '25%'};">AÇIKLAMA</th>
       ${showPrices ? '<th style="width: 10%;">FİYAT</th>' : ''}
     </tr>
   </thead>
@@ -143,7 +162,7 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
       <td class="text-center">${item.start_time || '-'}</td>
       <td class="text-center">${item.end_time || '-'}</td>
       <td class="text-center">${item.hours || 0} ${unitText}</td>
-      <td class="text-center">${item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : '-'}</td>
+      <td class="text-center">${item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
       <td class="text-center">${group.rawMachineName || group.machineName}</td>
       <td class="text-left">${cleanDesc}</td>
       ${showPrices ? `<td class="text-right bold">${priceText}</td>` : ''}
@@ -155,43 +174,39 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
   </tbody>
 </table>
 
-<!-- Vehicle Summary Table -->
-<table style="width: 550px; margin-bottom: 25px;">
-  <thead>
-    <tr>
-      <th colspan="${showPrices ? 4 : 2}" class="summary-title">${machineTitle} ÖZETİ</th>
-    </tr>
-    <tr>
-      <th class="text-left">İşlem Türü</th>
-      <th class="text-center">Miktar / Süre</th>
-      ${showPrices ? '<th class="text-right">Birim Fiyat</th><th class="text-right">Toplam Tutar</th>' : ''}
-    </tr>
-  </thead>
-  <tbody>
+<!-- Vehicle Summary Block (RIGHT-ALIGNED EXACTLY MATCHING PREVIEW) -->
+<table style="border: none; width: 100%; margin-bottom: 25px;">
+  <tr>
+    <td colspan="${showPrices ? '5' : '4'}" style="border: none;"></td>
+    <td colspan="4" style="border: none; padding: 0;">
+      <table style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">
+        <tr class="bg-light-gray">
+          <td colspan="4" class="bold text-center" style="padding: 4px; font-size: 11px; border-bottom: 1px solid #ddd; background-color: #f8fafc; color: #000;">
+            ${machineTitle}
+          </td>
+        </tr>
 `
 
         const summaryLines = group.summaryLines || []
         summaryLines.forEach((line) => {
             html += `
-    <tr>
-      <td class="text-left bold">${line.typeLabel}</td>
-      <td class="text-center">${line.countText || `${line.count} ${line.unit}`}</td>
-      ${showPrices ? `<td class="text-right">${line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td><td class="text-right bold">${formatCurrency(line.totalPrice)}</td>` : ''}
-    </tr>
+        <tr class="bg-light-gray">
+          <td class="bold text-center" style="width: 25%; font-size: 10px;">${line.typeLabel}</td>
+          <td class="text-center" style="width: 25%; font-size: 10px;">${line.countText || `${line.count} ${line.unit}`}</td>
+          <td class="text-right" style="width: 25%; font-size: 10px;">${line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
+          <td class="text-right bold total-text" style="width: 25%; font-size: 10px;">${formatCurrency(line.totalPrice)}</td>
+        </tr>
 `
         })
 
-        if (showPrices) {
-            html += `
-    <tr style="background-color: #f1f5f9; font-weight: bold;">
-      <td colspan="3" class="text-right">TOPLAM:</td>
-      <td class="text-right bold" style="color: #0f172a;">${formatCurrency(group.calculatedGrandTotal)}</td>
-    </tr>
-`
-        }
-
         html += `
-  </tbody>
+        <tr style="border-top: 1px solid #ddd;">
+          <td colspan="3" class="bold text-right" style="padding: 6px 12px; font-size: 9.5px; background-color: #f9f9f9; color: #333;">TOPLAM</td>
+          <td class="text-right bold total-text" style="padding: 6px 12px; font-size: 10.5px; background-color: #f1f5f9; color: #000;">${formatCurrency(group.calculatedGrandTotal)}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
 </table>
 `
     })
@@ -205,26 +220,41 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
         }
 
         html += `
-<table style="width: 450px; margin-top: 15px; border: 2px solid #0f172a;">
-  <tr style="background-color: #f8fafc;">
-    <td class="text-right bold" style="font-size: 12px;">ARA TOPLAM:</td>
-    <td class="text-right bold" style="font-size: 13px;">${formatCurrency(grandTotal)}</td>
+<!-- General Grand Total Summary (RIGHT-ALIGNED EXACTLY MATCHING PREVIEW) -->
+<table style="border: none; width: 100%; margin-top: 20px;">
+  <tr>
+    <td colspan="6" style="border: none;"></td>
+    <td colspan="3" style="border: none; padding: 0;">
+      <table style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">
+        <tr style="border-top: 1px solid #ddd;">
+          <td class="bold" style="font-size: 10px; padding: 8px 12px; background-color: #f9f9f9; width: 50%;">GENEL TOPLAM</td>
+          <td class="text-right bold total-text" style="font-size: 12px; padding: 8px 12px; background-color: #f1f5f9; color: #000; width: 50%;">${formatCurrency(grandTotal)}${showKdv ? '' : ' + KDV'}</td>
+        </tr>
+        ${showKdv ? `
+        <tr>
+          <td class="bold" style="font-size: 10px; padding: 8px 12px; background-color: #f9f9f9;">KDV (%${kdvRate})</td>
+          <td class="text-right bold total-text" style="font-size: 12px; padding: 8px 12px; background-color: #f1f5f9; color: #000;">${formatCurrency(kdvAmount)}</td>
+        </tr>
+        <tr style="border-top: 2px solid #333;">
+          <td class="bold" style="font-size: 10px; padding: 8px 12px; background-color: #e2e8f0;">TOPLAM (KDV DAHİL)</td>
+          <td class="text-right bold total-text" style="font-size: 13px; padding: 8px 12px; background-color: #cbd5e1; color: #000;">${formatCurrency(grandTotalWithKdv)}</td>
+        </tr>
+        ` : ''}
+      </table>
+    </td>
   </tr>
-  ${showKdv ? `
-  <tr style="background-color: #f8fafc;">
-    <td class="text-right bold" style="font-size: 12px;">KDV (%${kdvRate}):</td>
-    <td class="text-right bold" style="font-size: 13px;">${formatCurrency(kdvAmount)}</td>
+</table>
+`
+    }
+
+    if (work?.description && work.description.trim() !== '') {
+        html += `
+<table style="border: none; width: 100%; margin-top: 15px;">
+  <tr>
+    <td colspan="9" style="border: none; font-size: 10px; color: #333;">
+      <b>NOT:</b> ${work.description.trim()}
+    </td>
   </tr>
-  <tr class="total-row">
-    <td class="text-right bold" style="font-size: 13px;">GENEL TOPLAM (KDV DAHİL):</td>
-    <td class="text-right bold" style="font-size: 14px;">${formatCurrency(grandTotalWithKdv)}</td>
-  </tr>
-  ` : `
-  <tr class="total-row">
-    <td class="text-right bold" style="font-size: 13px;">GENEL TOPLAM:</td>
-    <td class="text-right bold" style="font-size: 14px;">${formatCurrency(grandTotal)}</td>
-  </tr>
-  `}
 </table>
 `
     }
