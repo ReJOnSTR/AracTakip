@@ -147,8 +147,16 @@ export default function WorkPdfReport({
 
         const totalItems = groups.reduce((acc, g) => acc + (g.items ? g.items.length : 0), 0);
 
-        // Single Page Mode: fit_page or manual scale or small report <= 14 items
-        if (pageBreakMode === 'fit_page' || customScaleProp !== null || totalItems <= 14) {
+        // Explicit Fit-to-Page Mode
+        if (pageBreakMode === 'fit_page') {
+            return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
+        }
+
+        const MAX_P1 = 12;     // Page 1 holds max 12 items with report header
+        const MAX_OTHER = 15;  // Continuation pages hold max 15 items
+
+        // If total items fits on 1 page naturally
+        if (totalItems <= MAX_P1 && groups.length === 1 && pageBreakMode !== 'per_vehicle') {
             return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
@@ -157,11 +165,10 @@ export default function WorkPdfReport({
             const pageList = [];
             groups.forEach((g) => {
                 const items = g.items || [];
-                const limit = 18;
-                for (let i = 0; i < items.length; i += limit) {
-                    const chunk = items.slice(i, i + limit);
+                for (let i = 0; i < items.length; i += MAX_OTHER) {
+                    const chunk = items.slice(i, i + MAX_OTHER);
                     pageList.push({
-                        groups: [{ ...g, items: chunk, isContinuation: i > 0, isLastChunk: (i + limit >= items.length) }],
+                        groups: [{ ...g, items: chunk, isContinuation: i > 0, isLastChunk: (i + MAX_OTHER >= items.length) }],
                         isFirst: pageList.length === 0,
                         isLast: false,
                         pageIndex: pageList.length
@@ -175,7 +182,7 @@ export default function WorkPdfReport({
         // Max Rows Page Mode
         if (pageBreakMode === 'max_rows') {
             const pageList = [];
-            const limit = Number(rowsPerPage) || 20;
+            const limit = Number(rowsPerPage) || 15;
             groups.forEach((g) => {
                 const items = g.items || [];
                 for (let i = 0; i < items.length; i += limit) {
@@ -192,11 +199,8 @@ export default function WorkPdfReport({
             return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
-        // Auto Multi-page Flow (Chunking rows across A4 pages)
+        // Auto Multi-page Flow (Chunking rows across discrete A4 page cards)
         const pageList = [];
-        const MAX_P1 = 14;
-        const MAX_OTHER = 18;
-
         let currentGroups = [];
         let currentItemsOnPage = 0;
 
@@ -209,7 +213,7 @@ export default function WorkPdfReport({
                 const maxCap = isP1 ? MAX_P1 : MAX_OTHER;
                 const space = maxCap - currentItemsOnPage;
 
-                if (space <= 2 && currentItemsOnPage > 0) {
+                if (space <= 1 && currentItemsOnPage > 0) {
                     pageList.push({
                         groups: currentGroups,
                         isFirst: pageList.length === 0,
