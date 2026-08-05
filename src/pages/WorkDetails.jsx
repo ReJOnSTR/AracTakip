@@ -740,17 +740,6 @@ export default function WorkDetails(props) {
             return
         }
 
-        localStorage.setItem('printData', JSON.stringify({
-            isWorkReport: true,
-            work: work,
-            showPrices: showPrices,
-            showKdv: showKdv,
-            kdvRate: kdvRate,
-            pazarMultiplier: pazarMultiplier,
-            mesaiMultiplier: mesaiMultiplier,
-            isPdfSave: true
-        }))
-
         const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
         const getWorkMonthLabel = (workObj) => {
             if (workObj?.date) {
@@ -771,20 +760,34 @@ export default function WorkDetails(props) {
 
         const defaultFileName = `Is_Raporu_${compStr}${workNoStr}_${monthStr}.pdf`;
 
+        localStorage.setItem('printData', JSON.stringify({
+            isWorkReport: true,
+            work: work,
+            showPrices: showPrices,
+            showKdv: showKdv,
+            kdvRate: kdvRate,
+            pazarMultiplier: pazarMultiplier,
+            mesaiMultiplier: mesaiMultiplier,
+            pageBreakMode: pageBreakMode,
+            rowsPerPage: rowsPerPage,
+            manualBreakIds: manualBreakIds,
+            isPdfSave: true
+        }))
+
         setGeneratingPdf(true)
-        setTimeout(async () => {
-            try {
-                setIsReportModalOpen(false)
-                const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName })
-                if (res && !res.success && !res.canceled) {
-                    alert('PDF Kaydedilirken Hata: ' + res.error)
-                }
-            } catch (err) {
-                console.error('PDF error:', err)
-            } finally {
-                setGeneratingPdf(false)
+        try {
+            const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName })
+            if (res && res.success) {
+                alert('PDF başarıyla kaydedildi:\n' + res.filePath)
+            } else if (res && !res.canceled) {
+                alert('PDF Kaydedilirken Hata: ' + (res.error || 'Bilinmeyen hata'))
             }
-        }, 100)
+        } catch (err) {
+            console.error('PDF Save Error:', err)
+            alert('PDF Kaydetme Hatası: ' + err.message)
+        } finally {
+            setGeneratingPdf(false)
+        }
     }
 
     const handlePrintReport = () => {

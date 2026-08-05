@@ -2182,13 +2182,13 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
 })
 
 // Add PDF Save Handler
-ipcMain.handle('save-pdf', async (event) => {
+ipcMain.handle('save-pdf', async (event, options = {}) => {
     try {
-        const win = BrowserWindow.fromWebContents(event.sender)
+        const win = BrowserWindow.fromWebContents(event.sender) || mainWindow;
         
         const { canceled, filePath } = await dialog.showSaveDialog(win, {
             title: 'PDF Olarak Kaydet',
-            defaultPath: `Rapor-${Date.now()}.pdf`,
+            defaultPath: options?.defaultPath || `Is_Raporu_${Date.now()}.pdf`,
             filters: [
                 { name: 'PDF Belgeleri', extensions: ['pdf'] }
             ]
