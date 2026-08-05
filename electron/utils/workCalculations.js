@@ -146,12 +146,33 @@ function calculateWorkStats(items, pazarMultiplier = 1.5, mesaiMultiplier = 1.5)
 
         if (isAylik) hasAylikWork = true
 
+        const getVehicleName = (i) => {
+            if (i.plate) {
+                return `${i.plate}${i.model ? ` - ${i.model}` : ''}`.trim();
+            }
+            const v = i.vehicle || i.vehicles;
+            if (v) {
+                const p = v.plate || v.name;
+                const m = v.model || v.brand || '';
+                if (p) return `${p}${m ? ` - ${m}` : ''}`.trim();
+            }
+            if (i.vehicle_name) return i.vehicle_name;
+            if (i.custom_vehicle) return i.custom_vehicle;
+            return 'Belirtilmemiş';
+        };
+
         if (!groupedByVehicle[vehicleBaseKey]) {
-            const rawMachineName = item.plate ? `${item.plate}${item.model ? ` - ${item.model}` : ''}`.trim() : (item.custom_vehicle || 'Belirtilmemiş');
+            const rawMachineName = getVehicleName(item);
             groupedByVehicle[vehicleBaseKey] = {
                 machineName: rawMachineName,
                 rawMachineName: rawMachineName,
                 items: []
+            }
+        } else if (groupedByVehicle[vehicleBaseKey].machineName === 'Belirtilmemiş') {
+            const updatedName = getVehicleName(item);
+            if (updatedName !== 'Belirtilmemiş') {
+                groupedByVehicle[vehicleBaseKey].machineName = updatedName;
+                groupedByVehicle[vehicleBaseKey].rawMachineName = updatedName;
             }
         }
 
