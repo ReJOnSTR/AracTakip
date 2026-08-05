@@ -76,10 +76,43 @@ export default function WorkDetails(props) {
     const [generatingPdf, setGeneratingPdf] = useState(false)
     const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
+    const [pageBreakMode, setPageBreakMode] = useState('auto')
+    const [rowsPerPage, setRowsPerPage] = useState(20)
+    const [manualBreakIds, setManualBreakIds] = useState([])
+    const [showBreakTools, setShowBreakTools] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
-        multipliers: false
+        multipliers: false,
+        pageBreak: false
     })
+
+    useEffect(() => {
+        if (work?.id) {
+            try {
+                const s = localStorage.getItem(`pdfPageBreakSettings_${work.id}`)
+                if (s) {
+                    const parsed = JSON.parse(s)
+                    if (parsed.pageBreakMode) setPageBreakMode(parsed.pageBreakMode)
+                    if (parsed.rowsPerPage) setRowsPerPage(parsed.rowsPerPage)
+                    if (parsed.manualBreakIds) setManualBreakIds(parsed.manualBreakIds)
+                }
+            } catch (e) {}
+        }
+    }, [work?.id])
+
+    const savePdfBreakSettings = (newSettings) => {
+        if (!work?.id) return
+        try {
+            const cur = JSON.parse(localStorage.getItem(`pdfPageBreakSettings_${work.id}`) || '{}')
+            const updated = {
+                pageBreakMode: newSettings.pageBreakMode !== undefined ? newSettings.pageBreakMode : pageBreakMode,
+                rowsPerPage: newSettings.rowsPerPage !== undefined ? newSettings.rowsPerPage : rowsPerPage,
+                manualBreakIds: newSettings.manualBreakIds !== undefined ? newSettings.manualBreakIds : manualBreakIds,
+                ...newSettings
+            }
+            localStorage.setItem(`pdfPageBreakSettings_${work.id}`, JSON.stringify(updated))
+        } catch (e) {}
+    }
 
     // Form State
     const [formData, setFormData] = useState({
@@ -2131,6 +2164,79 @@ export default function WorkDetails(props) {
                                 </div>
                             )}
                         </div>
+
+                        {/* Sayfa Düzeni ve Bölme Ayarları */}
+                        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            <div 
+                                onClick={() => setSidebarCollapsed(prev => ({ ...prev, pageBreak: !prev.pageBreak }))}
+                                style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <FileText size={14} style={{ color: 'var(--text-muted)' }} />
+                                    <h4 style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sayfa Düzeni ve Bölme</h4>
+                                </div>
+                                <ChevronDown 
+                                    size={14} 
+                                    style={{ 
+                                        color: 'var(--text-muted)', 
+                                        transform: sidebarCollapsed.pageBreak ? 'rotate(-90deg)' : 'none', 
+                                        transition: 'transform 0.2s ease' 
+                                    }} 
+                                />
+                            </div>
+                            {!sidebarCollapsed.pageBreak && (
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div>
+                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Düzeni Modu</label>
+                                        <select
+                                            className="form-select"
+                                            value={pageBreakMode}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setPageBreakMode(val);
+                                                savePdfBreakSettings({ pageBreakMode: val });
+                                            }}
+                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                        >
+                                            <option value="auto">Otomatik Akış</option>
+                                            <option value="fit_page">Tek Sayfaya / Sayfaya Sığdır (Kompakt)</option>
+                                            <option value="per_vehicle">Her Makine Ayrı Sayfada</option>
+                                            <option value="max_rows">Satır Sayısına Göre Böl</option>
+                                        </select>
+                                    </div>
+
+                                    {pageBreakMode === 'max_rows' && (
+                                        <div>
+                                            <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Başına Maks Satır</label>
+                                            <input
+                                                type="number"
+                                                min="5"
+                                                max="100"
+                                                className="form-input"
+                                                value={rowsPerPage}
+                                                onChange={(e) => {
+                                                    const val = Number(e.target.value) || 20;
+                                                    setRowsPerPage(val);
+                                                    savePdfBreakSettings({ rowsPerPage: val });
+                                                }}
+                                                style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '2px' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <span style={{ fontSize: '12px', color: showBreakTools ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 500 }}>Manuel Bölme Butonları (✂)</span>
+                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={showBreakTools} onChange={e => setShowBreakTools(e.target.checked)} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </label>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right: Live Preview */}
@@ -2145,6 +2251,17 @@ export default function WorkDetails(props) {
                                 kdvRateProp={kdvRate}
                                 pazarMultiplierProp={pazarMultiplier}
                                 mesaiMultiplierProp={mesaiMultiplier}
+                                pageBreakModeProp={pageBreakMode}
+                                rowsPerPageProp={rowsPerPage}
+                                manualBreakIdsProp={manualBreakIds}
+                                onToggleManualBreakProp={(itemId) => {
+                                    const next = manualBreakIds.includes(itemId) 
+                                        ? manualBreakIds.filter(i => i !== itemId) 
+                                        : [...manualBreakIds, itemId];
+                                    setManualBreakIds(next);
+                                    savePdfBreakSettings({ manualBreakIds: next });
+                                }}
+                                showBreakToolsProp={showBreakTools}
                             />
                         </div>
                     </div>

@@ -4,7 +4,22 @@ import { formatDate, formatCurrency } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
 import './WorkPdfReport.css'; // Özel CSS eklenecek
 
-export default function WorkPdfReport({ propId, propWork, noHeader = false, isPreview = false, showPricesProp = true, showKdvProp = false, kdvRateProp = 20, pazarMultiplierProp = null, mesaiMultiplierProp = null }) {
+export default function WorkPdfReport({ 
+    propId, 
+    propWork, 
+    noHeader = false, 
+    isPreview = false, 
+    showPricesProp = true, 
+    showKdvProp = false, 
+    kdvRateProp = 20, 
+    pazarMultiplierProp = null, 
+    mesaiMultiplierProp = null,
+    pageBreakModeProp = null,
+    rowsPerPageProp = null,
+    manualBreakIdsProp = null,
+    onToggleManualBreakProp = null,
+    showBreakToolsProp = false
+}) {
     const params = useParams();
     const id = propId || params.id;
     const [work, setWork] = useState(propWork || null);
@@ -12,6 +27,43 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
     const [error, setError] = useState(null);
     const [savingPdf, setSavingPdf] = useState(false);
     const showPrices = showPricesProp;
+
+    // Load break settings from localStorage fallback
+    const savedBreakSettings = (() => {
+        try {
+            const s = localStorage.getItem(`pdfPageBreakSettings_${id}`);
+            return s ? JSON.parse(s) : {};
+        } catch (e) {
+            return {};
+        }
+    })();
+
+    const pageBreakMode = pageBreakModeProp || savedBreakSettings.pageBreakMode || 'auto';
+    const rowsPerPage = rowsPerPageProp || savedBreakSettings.rowsPerPage || 20;
+    const [manualBreakIds, setManualBreakIds] = useState(manualBreakIdsProp || savedBreakSettings.manualBreakIds || []);
+
+    useEffect(() => {
+        if (manualBreakIdsProp) {
+            setManualBreakIds(manualBreakIdsProp);
+        }
+    }, [manualBreakIdsProp]);
+
+    const handleToggleBreak = (itemId) => {
+        let next;
+        if (manualBreakIds.includes(itemId)) {
+            next = manualBreakIds.filter(i => i !== itemId);
+        } else {
+            next = [...manualBreakIds, itemId];
+        }
+        setManualBreakIds(next);
+        if (onToggleManualBreakProp) {
+            onToggleManualBreakProp(itemId);
+        }
+        try {
+            const cur = savedBreakSettings;
+            localStorage.setItem(`pdfPageBreakSettings_${id}`, JSON.stringify({ ...cur, manualBreakIds: next }));
+        } catch (e) {}
+    };
 
     useEffect(() => {
         if (propWork) {
@@ -128,7 +180,7 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
                 </div>
             )}
 
-            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''}`}>
+            <div className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}>
                 {/* Header */}
                 <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
                     <div>
@@ -171,10 +223,10 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
             {/* Tables grouped by vehicle */}
             {groups.map((group, idx) => {
-                const { sampleGunPrice, samplePazarPrice, sampleYolPrice, sampleSaatlikPrice, sampleMesaiPrice } = group;
+                const shouldBreakVehicle = pageBreakMode === 'per_vehicle' && idx > 0;
 
                 return (
-                    <div className="pdf-vehicle-group" key={idx}>
+                    <div className={`pdf-vehicle-group ${shouldBreakVehicle ? 'pdf-break-per-vehicle' : ''}`} key={idx}>
                         <h3 
                             style={{ 
                                 fontSize: '13px', 
@@ -222,30 +274,57 @@ export default function WorkPdfReport({ propId, propWork, noHeader = false, isPr
 
                                         const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
 
+                                        const isManualBreak = manualBreakIds.includes(item.id);
+                                        const isMaxRowBreak = pageBreakMode === 'max_rows' && itemIdx > 0 && itemIdx % Number(rowsPerPage) === 0;
+
                                         return (
-                                            <tr key={itemIdx} className={pdfRowClass}>
-                                                <td className="center">{formatDate(item.date)}</td>
-                                                <td className="center">{item.receipt_no || '-'}</td>
-                                                <td className="center">{item.start_time || '-'}</td>
-                                                <td className="center">{item.end_time || '-'}</td>
-                                                <td className="center">
-                                                    {item.hours || 0} {(desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
-                                                </td>
-                                                <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
-                                                <td className="center">{group.rawMachineName || group.machineName}</td>
-                                                <td>{cleanDesc}</td>
-                                                <td className="right">
-                                                    {showPrices ? (
-                                                        item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                            ? (() => {
-                                                                const baseP = item.unit_price || item.unitPriceVal || 0;
-                                                                const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
-                                                                return dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '';
-                                                            })()
-                                                            : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
-                                                    ) : ''}
-                                                </td>
-                                            </tr>
+                                            <React.Fragment key={item.id || itemIdx}>
+                                                {(isManualBreak || isMaxRowBreak) && (
+                                                    <tr className="pdf-page-break-row">
+                                                        <td colSpan="9">
+                                                            ✂ SAYFA SONU (BU NOKTADAN BÖLÜNÜR)
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                                <tr className={pdfRowClass}>
+                                                    <td className="center">
+                                                        {(showBreakToolsProp || isPreview) && (
+                                                            <button
+                                                                type="button"
+                                                                className={`pdf-manual-break-btn ${isManualBreak ? 'active' : ''}`}
+                                                                title={isManualBreak ? 'Sayfa sonunu kaldır' : 'Buradan sonra yeni sayfaya geç (Sayfa Sonu)'}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleToggleBreak(item.id);
+                                                                }}
+                                                            >
+                                                                ✂
+                                                            </button>
+                                                        )}
+                                                        {formatDate(item.date)}
+                                                    </td>
+                                                    <td className="center">{item.receipt_no || '-'}</td>
+                                                    <td className="center">{item.start_time || '-'}</td>
+                                                    <td className="center">{item.end_time || '-'}</td>
+                                                    <td className="center">
+                                                        {item.hours || 0} {(desc.toUpperCase().includes('[SAATLİK]') ? 'Saat' : 'Gün')}
+                                                    </td>
+                                                    <td className="center">{item.overtime_hours > 0 ? `${item.overtime_hours} Saat` : ''}</td>
+                                                    <td className="center">{group.rawMachineName || group.machineName}</td>
+                                                    <td>{cleanDesc}</td>
+                                                    <td className="right">
+                                                        {showPrices ? (
+                                                            item.isPazar && !(desc.includes('[KATSAYI:'))
+                                                                ? (() => {
+                                                                    const baseP = item.unit_price || item.unitPriceVal || 0;
+                                                                    const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
+                                                                    return dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '';
+                                                                })()
+                                                                : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
+                                                        ) : ''}
+                                                    </td>
+                                                </tr>
+                                            </React.Fragment>
                                         );
                                     })}
                                 </tbody>
