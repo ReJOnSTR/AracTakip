@@ -141,35 +141,27 @@ export default function WorkPdfReport({
     const groups = calcResult.groups || [];
     const grandTotalPrice = calcResult.grandTotal || 0;
 
-    // Build Page-by-Page Cards Array
+    // Advanced Dynamic A4 Page Splitting Engine
     const pages = (() => {
         if (!groups || groups.length === 0) return [];
 
         const totalItems = groups.reduce((acc, g) => acc + (g.items ? g.items.length : 0), 0);
 
-        // If fit_page OR custom scale is specified OR total items <= 15: keep on 1 page!
-        if (pageBreakMode === 'fit_page' || customScaleProp !== null || totalItems <= 15) {
+        // Single Page Mode: fit_page or manual scale or small report <= 14 items
+        if (pageBreakMode === 'fit_page' || customScaleProp !== null || totalItems <= 14) {
             return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
+        // Dedicated Vehicle Page Mode
         if (pageBreakMode === 'per_vehicle') {
-            return groups.map((g, idx) => ({
-                groups: [g],
-                isFirst: idx === 0,
-                isLast: idx === groups.length - 1,
-                pageIndex: idx
-            }));
-        }
-
-        if (pageBreakMode === 'max_rows') {
             const pageList = [];
             groups.forEach((g) => {
                 const items = g.items || [];
-                const limit = Number(rowsPerPage) || 20;
+                const limit = 18;
                 for (let i = 0; i < items.length; i += limit) {
                     const chunk = items.slice(i, i + limit);
                     pageList.push({
-                        groups: [{ ...g, items: chunk }],
+                        groups: [{ ...g, items: chunk, isContinuation: i > 0, isLastChunk: (i + limit >= items.length) }],
                         isFirst: pageList.length === 0,
                         isLast: false,
                         pageIndex: pageList.length
@@ -180,16 +172,96 @@ export default function WorkPdfReport({
             return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
-        if (groups.length > 1 && totalItems > 15) {
-            return groups.map((g, idx) => ({
-                groups: [g],
-                isFirst: idx === 0,
-                isLast: idx === groups.length - 1,
-                pageIndex: idx
-            }));
+        // Max Rows Page Mode
+        if (pageBreakMode === 'max_rows') {
+            const pageList = [];
+            const limit = Number(rowsPerPage) || 20;
+            groups.forEach((g) => {
+                const items = g.items || [];
+                for (let i = 0; i < items.length; i += limit) {
+                    const chunk = items.slice(i, i + limit);
+                    pageList.push({
+                        groups: [{ ...g, items: chunk, isContinuation: i > 0, isLastChunk: (i + limit >= items.length) }],
+                        isFirst: pageList.length === 0,
+                        isLast: false,
+                        pageIndex: pageList.length
+                    });
+                }
+            });
+            if (pageList.length > 0) pageList[pageList.length - 1].isLast = true;
+            return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
         }
 
-        return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
+        // Auto Multi-page Flow (Chunking rows across A4 pages)
+        const pageList = [];
+        const MAX_P1 = 14;
+        const MAX_OTHER = 18;
+
+        let currentGroups = [];
+        let currentItemsOnPage = 0;
+
+        groups.forEach((g) => {
+            const items = g.items || [];
+            let itemIdx = 0;
+
+            while (itemIdx < items.length) {
+                const isP1 = pageList.length === 0 && currentGroups.length === 0;
+                const maxCap = isP1 ? MAX_P1 : MAX_OTHER;
+                const space = maxCap - currentItemsOnPage;
+
+                if (space <= 2 && currentItemsOnPage > 0) {
+                    pageList.push({
+                        groups: currentGroups,
+                        isFirst: pageList.length === 0,
+                        isLast: false,
+                        pageIndex: pageList.length
+                    });
+                    currentGroups = [];
+                    currentItemsOnPage = 0;
+                    continue;
+                }
+
+                const chunkEnd = Math.min(items.length, itemIdx + space);
+                const chunk = items.slice(itemIdx, chunkEnd);
+                const isLastChunk = chunkEnd >= items.length;
+
+                currentGroups.push({
+                    ...g,
+                    items: chunk,
+                    isContinuation: itemIdx > 0,
+                    isLastChunk: isLastChunk
+                });
+
+                currentItemsOnPage += chunk.length;
+                itemIdx = chunkEnd;
+
+                if (currentItemsOnPage >= maxCap) {
+                    pageList.push({
+                        groups: currentGroups,
+                        isFirst: pageList.length === 0,
+                        isLast: false,
+                        pageIndex: pageList.length
+                    });
+                    currentGroups = [];
+                    currentItemsOnPage = 0;
+                }
+            }
+        });
+
+        if (currentGroups.length > 0) {
+            pageList.push({
+                groups: currentGroups,
+                isFirst: pageList.length === 0,
+                isLast: false,
+                pageIndex: pageList.length
+            });
+        }
+
+        if (pageList.length > 0) {
+            pageList[pageList.length - 1].isLast = true;
+        }
+
+        return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
     })();
 
     const handleSavePdf = () => {
@@ -290,7 +362,7 @@ export default function WorkPdfReport({
                                             breakAfter: 'avoid'
                                         }}
                                     >
-                                        <span>{(group.rawMachineName || group.machineName).toUpperCase()} DETAYLARI</span>
+                                        <span>{(group.rawMachineName || group.machineName).toUpperCase()}{group.isContinuation ? ' (DEVAMI)' : ' DETAYLARI'}</span>
                                     </h3>
                                     <div>
                                         <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
@@ -376,36 +448,38 @@ export default function WorkPdfReport({
                                             </tbody>
                                         </table>
 
-                                        {/* Vehicle Summary Block */}
-                                        <div className="pdf-summary-block">
-                                            <table className="pdf-summary-table" style={{ width: '550px' }}>
-                                                <colgroup>
-                                                    <col style={{ width: '125px' }} />
-                                                    <col style={{ width: '125px' }} />
-                                                    <col style={{ width: '150px' }} />
-                                                    <col style={{ width: '150px' }} />
-                                                </colgroup>
-                                                <tbody>
-                                                    <tr className="bg-light-gray">
-                                                        <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
-                                                            {(group.rawMachineName || group.machineName).toUpperCase()}
-                                                        </td>
-                                                    </tr>
-                                                    {group.summaryLines && group.summaryLines.map((line, lIdx) => (
-                                                        <tr key={lIdx} className="bg-light-gray">
-                                                            <td className="bold center">{line.typeLabel}</td>
-                                                            <td className="center">{line.countText || `${line.count} ${line.unit}`}</td>
-                                                            <td className="right">{line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
-                                                            <td className="right bold total-text">{formatCurrency(line.totalPrice)}</td>
+                                        {/* Vehicle Summary Block on Last Chunk of Group */}
+                                        {(group.isLastChunk !== false) && (
+                                            <div className="pdf-summary-block">
+                                                <table className="pdf-summary-table" style={{ width: '550px' }}>
+                                                    <colgroup>
+                                                        <col style={{ width: '125px' }} />
+                                                        <col style={{ width: '125px' }} />
+                                                        <col style={{ width: '150px' }} />
+                                                        <col style={{ width: '150px' }} />
+                                                    </colgroup>
+                                                    <tbody>
+                                                        <tr className="bg-light-gray">
+                                                            <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
+                                                                {(group.rawMachineName || group.machineName).toUpperCase()}
+                                                            </td>
                                                         </tr>
-                                                    ))}
-                                                    <tr style={{ borderTop: '1px solid #ddd' }}>
-                                                        <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
-                                                        <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                        {group.summaryLines && group.summaryLines.map((line, lIdx) => (
+                                                            <tr key={lIdx} className="bg-light-gray">
+                                                                <td className="bold center">{line.typeLabel}</td>
+                                                                <td className="center">{line.countText || `${line.count} ${line.unit}`}</td>
+                                                                <td className="right">{line.unitPrice ? formatCurrency(line.unitPrice) : '-'}</td>
+                                                                <td className="right bold total-text">{formatCurrency(line.totalPrice)}</td>
+                                                            </tr>
+                                                        ))}
+                                                        <tr style={{ borderTop: '1px solid #ddd' }}>
+                                                            <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
+                                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
