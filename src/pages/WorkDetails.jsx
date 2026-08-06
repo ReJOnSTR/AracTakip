@@ -60,6 +60,7 @@ export default function WorkDetails(props) {
     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
     const [savingToSystem, setSavingToSystem] = useState(false)
     const [showPrices, setShowPrices] = useState(true)
+    const [showGrandTotal, setShowGrandTotal] = useState(true)
     const [selectedIds, setSelectedIds] = useState([])
     const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false)
     const [bulkEditFormData, setBulkEditFormData] = useState({
@@ -81,6 +82,7 @@ export default function WorkDetails(props) {
     const [rowsPerPage, setRowsPerPage] = useState(20)
     const [manualBreakIds, setManualBreakIds] = useState([])
     const [customScale, setCustomScale] = useState(null)
+    const [orientation, setOrientation] = useState('portrait')
     const [showBreakTools, setShowBreakTools] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
@@ -98,6 +100,7 @@ export default function WorkDetails(props) {
                     if (parsed.rowsPerPage) setRowsPerPage(parsed.rowsPerPage)
                     if (parsed.manualBreakIds) setManualBreakIds(parsed.manualBreakIds)
                     if (parsed.customScale !== undefined) setCustomScale(parsed.customScale)
+                    if (parsed.orientation) setOrientation(parsed.orientation)
                 }
             } catch (e) {}
         }
@@ -319,6 +322,11 @@ export default function WorkDetails(props) {
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
             mesaiMultiplier: mesaiMultiplier,
+            pageBreakMode: pageBreakMode,
+            rowsPerPage: rowsPerPage,
+            manualBreakIds: manualBreakIds,
+            customScale: customScale,
+            orientation: orientation,
             isPdfSave: true
         }))
 
@@ -827,6 +835,7 @@ export default function WorkDetails(props) {
             rowsPerPage: rowsPerPage,
             manualBreakIds: manualBreakIds,
             customScale: customScale,
+            orientation: orientation,
             isPdfSave: true
         }))
 
@@ -973,14 +982,6 @@ export default function WorkDetails(props) {
                                         work.status === 'completed' ? 'Tamamlandı' : 'İptal'}
                             </span>
                         </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <button className="btn" onClick={handleExportExcel} style={{ gap: '6px', backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>
-                            <Download size={16} /> Excel Olarak İndir
-                        </button>
-                        <button className="btn btn-primary" onClick={() => setIsReportModalOpen(true)} style={{ gap: '6px' }}>
-                            <FileText size={16} /> Rapor İncele / PDF
-                        </button>
                     </div>
                 </div>
             </div>
@@ -1152,7 +1153,51 @@ export default function WorkDetails(props) {
                             </div>
                         )
                     },
-                    { label: 'FİYAT', key: 'unit_price', render: (val) => formatCurrency(val) },
+                    {
+                        label: 'FİYAT', key: 'unit_price', render: (val, row) => {
+                            const desc = row.description || '';
+                            const kMatch = desc.match(/\[KATSAYI:([^\]]+)\]/);
+                            const baseP = Number(row.unit_price) || Number(row.unitPriceVal) || 0;
+                            
+                            let finalPrice = baseP;
+                            let badgeText = null;
+
+                            if (kMatch) {
+                                const multVal = parseFloat(kMatch[1]) || 1;
+                                finalPrice = baseP * multVal;
+                                badgeText = `${multVal}x`;
+                            } else {
+                                const dateObj = new Date(row.date);
+                                const isSunday = !isNaN(dateObj.getTime()) && dateObj.getDay() === 0;
+                                const isPazar = isSunday || desc.toUpperCase().includes('PAZAR');
+                                if (isPazar) {
+                                    const pazarMult = pazarMultiplier ? parseFloat(pazarMultiplier) : 1.5;
+                                    finalPrice = baseP * pazarMult;
+                                    badgeText = `${pazarMult}x`;
+                                }
+                            }
+
+                            if (finalPrice <= 0) return '-';
+
+                            return (
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <span>{formatCurrency(finalPrice)}</span>
+                                    {badgeText && (
+                                        <span style={{
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            padding: '1px 5px',
+                                            borderRadius: '4px',
+                                            background: 'var(--accent-subtle)',
+                                            color: 'var(--accent-primary)'
+                                        }}>
+                                            {badgeText}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        }
+                    },
                     { label: 'AÇIKLAMA', key: 'description', render: (val) => <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', display: 'inline-block' }}>{val}</span> }
                 ]}
                 data={work.items || []}
@@ -2169,6 +2214,17 @@ export default function WorkDetails(props) {
                                             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                         >
+                                            <span style={{ fontSize: '13px', color: showGrandTotal ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showGrandTotal ? 500 : 400, transition: 'all 0.15s' }}>Genel Toplam Kutusunu Göster</span>
+                                            <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                                <input type="checkbox" checked={showGrandTotal} onChange={e => setShowGrandTotal(e.target.checked)} />
+                                                <span className="toggle-slider"></span>
+                                            </label>
+                                        </label>
+
+                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '4px' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        >
                                             <span style={{ fontSize: '13px', color: showKdv ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showKdv ? 500 : 400, transition: 'all 0.15s' }}>KDV Ekle (+%20)</span>
                                             <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
                                                 <input type="checkbox" checked={showKdv} onChange={e => setShowKdv(e.target.checked)} />
@@ -2263,58 +2319,38 @@ export default function WorkDetails(props) {
                                 />
                             </div>
                             {!sidebarCollapsed.pageBreak && (
-                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                    {/* Sayfa Yönlendirmesi */}
                                     <div>
-                                        <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Düzeni Modu</label>
-                                        <select
-                                            className="form-select"
-                                            value={pageBreakMode}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                setPageBreakMode(val);
-                                                savePdfBreakSettings({ pageBreakMode: val });
-                                            }}
-                                            style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                                        >
-                                            <option value="auto">Otomatik Akış</option>
-                                            <option value="fit_page">Tek Sayfaya / Sayfaya Sığdır (Kompakt)</option>
-                                            <option value="per_vehicle">Her Makine Ayrı Sayfada</option>
-                                            <option value="max_rows">Satır Sayısına Göre Böl</option>
-                                        </select>
+                                        <label style={{ fontSize: '11px', marginBottom: '6px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Yönlendirmesi</label>
+                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                            <button
+                                                type="button"
+                                                className={`btn btn-sm ${orientation === 'portrait' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => {
+                                                    setOrientation('portrait');
+                                                    savePdfBreakSettings({ orientation: 'portrait' });
+                                                }}
+                                                style={{ flex: 1, fontSize: '11px', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                            >
+                                                📱 Dikey A4
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`btn btn-sm ${orientation === 'landscape' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => {
+                                                    setOrientation('landscape');
+                                                    savePdfBreakSettings({ orientation: 'landscape' });
+                                                }}
+                                                style={{ flex: 1, fontSize: '11px', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                            >
+                                                🖥️ Yatay A4
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    {pageBreakMode === 'max_rows' && (
-                                        <div>
-                                            <label style={{ fontSize: '11px', marginBottom: '4px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Başına Maks Satır</label>
-                                            <input
-                                                type="number"
-                                                min="5"
-                                                max="100"
-                                                className="form-input"
-                                                value={rowsPerPage}
-                                                onChange={(e) => {
-                                                    const val = Number(e.target.value) || 20;
-                                                    setRowsPerPage(val);
-                                                    savePdfBreakSettings({ rowsPerPage: val });
-                                                }}
-                                                style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
-                                            />
-                                        </div>
-                                    )}
-
-                                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '2px' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                    >
-                                        <span style={{ fontSize: '12px', color: showBreakTools ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 500 }}>Manuel Bölme Butonları (✂)</span>
-                                        <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" checked={showBreakTools} onChange={e => setShowBreakTools(e.target.checked)} />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </label>
-
                                     {/* Sayfa Ölçeği / Yakınlaştırma Ayarı */}
-                                    <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Ölçeği / Yakınlaştırma</label>
                                             <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600 }}>{customScale ? `%${Math.round(customScale * 100)}` : (pageBreakMode === 'fit_page' ? 'Otomatik Sığdır' : '%100')}</span>
@@ -2328,11 +2364,12 @@ export default function WorkDetails(props) {
                                             onChange={(e) => {
                                                 const val = parseFloat(e.target.value);
                                                 setCustomScale(val);
-                                                savePdfBreakSettings({ customScale: val });
+                                                setPageBreakMode('auto');
+                                                savePdfBreakSettings({ customScale: val, pageBreakMode: 'auto' });
                                             }}
                                             style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
                                         />
-                                        <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                                        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                                             <button
                                                 type="button"
                                                 className="btn btn-sm btn-secondary"
@@ -2341,7 +2378,7 @@ export default function WorkDetails(props) {
                                                     setPageBreakMode('fit_page');
                                                     savePdfBreakSettings({ customScale: null, pageBreakMode: 'fit_page' });
                                                 }}
-                                                style={{ fontSize: '10px', padding: '3px 8px', flex: 1 }}
+                                                style={{ fontSize: '10px', padding: '4px 8px', flex: 1 }}
                                             >
                                                 ⚡ Otomatik Sığdır
                                             </button>
@@ -2350,11 +2387,12 @@ export default function WorkDetails(props) {
                                                 className="btn btn-sm btn-secondary"
                                                 onClick={() => {
                                                     setCustomScale(1.0);
-                                                    savePdfBreakSettings({ customScale: 1.0 });
+                                                    setPageBreakMode('auto');
+                                                    savePdfBreakSettings({ customScale: 1.0, pageBreakMode: 'auto' });
                                                 }}
-                                                style={{ fontSize: '10px', padding: '3px 8px' }}
+                                                style={{ fontSize: '10px', padding: '4px 8px' }}
                                             >
-                                                %100
+                                                Sıfırla (%100)
                                             </button>
                                         </div>
                                     </div>
@@ -2371,6 +2409,7 @@ export default function WorkDetails(props) {
                                 noHeader={true} 
                                 isPreview={true} 
                                 showPricesProp={showPrices} 
+                                showGrandTotalProp={showGrandTotal}
                                 showKdvProp={showKdv} 
                                 kdvRateProp={kdvRate}
                                 pazarMultiplierProp={pazarMultiplier}
@@ -2379,6 +2418,7 @@ export default function WorkDetails(props) {
                                 rowsPerPageProp={rowsPerPage}
                                 manualBreakIdsProp={manualBreakIds}
                                 customScaleProp={customScale}
+                                orientationProp={orientation}
                                 onToggleManualBreakProp={(itemId) => {
                                     const next = manualBreakIds.includes(itemId) 
                                         ? manualBreakIds.filter(i => i !== itemId) 

@@ -7,7 +7,7 @@ import CustomInput from '../components/CustomInput'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Wallet, 
-    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock
+    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock, CheckCircle
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 
@@ -49,7 +49,8 @@ export default function Settings() {
         inspection: localStorage.getItem('notify_inspection') !== 'false',
         insurance: localStorage.getItem('notify_insurance') !== 'false',
         employee_document: localStorage.getItem('notify_employee_document') !== 'false',
-        finance_check: localStorage.getItem('notify_finance_check') !== 'false'
+        finance_check: localStorage.getItem('notify_finance_check') !== 'false',
+        approval_center: localStorage.getItem('notify_approval_center') !== 'false'
     })
 
     const [testingConnection, setTestingConnection] = useState(false)
@@ -602,6 +603,18 @@ export default function Settings() {
                                         </div>
                                         <label className="toggle-switch">
                                             <input type="checkbox" checked={notifications.finance_check} onChange={() => toggleNotification('finance_check')} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div className="settings-item card-style">
+                                        <div className="settings-item-icon"><CheckCircle size={18} /></div>
+                                        <div className="settings-item-content">
+                                            <div className="settings-item-label">Personel Onay Merkezi</div>
+                                            <div className="settings-item-desc">İzin, mesai, avans ve onay talepleri</div>
+                                        </div>
+                                        <label className="toggle-switch">
+                                            <input type="checkbox" checked={notifications.approval_center} onChange={() => toggleNotification('approval_center')} />
                                             <span className="toggle-slider"></span>
                                         </label>
                                     </div>

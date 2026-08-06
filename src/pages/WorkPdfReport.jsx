@@ -10,6 +10,7 @@ export default function WorkPdfReport({
     noHeader = false, 
     isPreview = false, 
     showPricesProp = true, 
+    showGrandTotalProp = true,
     showKdvProp = false, 
     kdvRateProp = 20, 
     pazarMultiplierProp = null, 
@@ -19,7 +20,8 @@ export default function WorkPdfReport({
     manualBreakIdsProp = null,
     onToggleManualBreakProp = null,
     showBreakToolsProp = false,
-    customScaleProp = null
+    customScaleProp = null,
+    orientationProp = 'portrait'
 }) {
     const params = useParams();
     const id = propId || params.id;
@@ -47,29 +49,38 @@ export default function WorkPdfReport({
 
     useLayoutEffect(() => {
         if (pageBreakMode === 'fit_page' && contentRef.current) {
-            const el = contentRef.current;
-            const prevTransform = el.style.transform;
-            const prevWidth = el.style.width;
+            const wrapper = contentRef.current;
 
-            el.style.transform = 'none';
-            el.style.width = '100%';
+            // Measure the exact unscaled bottom position of the last element (immune to CSS scale transforms)
+            const grandTotalEl = wrapper.querySelector('.pdf-grand-total');
+            const summaryEls = wrapper.querySelectorAll('.pdf-summary-block');
+            const lastSummaryEl = summaryEls.length > 0 ? summaryEls[summaryEls.length - 1] : null;
+            const tableEls = wrapper.querySelectorAll('.pdf-table');
+            const lastTableEl = tableEls.length > 0 ? tableEls[tableEls.length - 1] : null;
 
-            const naturalH = el.offsetHeight || el.scrollHeight;
+            const targetChild = grandTotalEl || lastSummaryEl || lastTableEl || wrapper.lastElementChild;
 
-            el.style.transform = prevTransform;
-            el.style.width = prevWidth;
+            if (targetChild) {
+                // offsetTop + offsetHeight gives exact unscaled layout position
+                const naturalPx = targetChild.offsetTop + targetChild.offsetHeight;
 
-            const targetH = 970; // Printable inner content height limit inside A4 page in px
-            if (naturalH > targetH) {
-                const computed = targetH / naturalH;
-                setAutoScale(parseFloat(Math.max(0.40, Math.min(0.98, computed)).toFixed(3)));
+                const isLandscapeMode = orientationProp === 'landscape';
+                const targetH = isLandscapeMode ? 530 : 830; // Printable inner height limit right above pinned footer in px
+
+                if (naturalPx > targetH) {
+                    const exactScaleNeeded = targetH / naturalPx;
+                    // Apply exact scale so last element aligns safely above page bottom line
+                    setAutoScale(parseFloat(Math.max(0.70, Math.min(0.99, exactScaleNeeded)).toFixed(2)));
+                } else {
+                    setAutoScale(1.0);
+                }
             } else {
                 setAutoScale(1.0);
             }
         } else {
             setAutoScale(1.0);
         }
-    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp]);
+    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp, orientationProp]);
 
     const effectiveScale = customScaleProp ? Number(customScaleProp) : (pageBreakMode === 'fit_page' ? autoScale : 1.0);
 
@@ -141,79 +152,50 @@ export default function WorkPdfReport({
     const groups = calcResult.groups || [];
     const grandTotalPrice = calcResult.grandTotal || 0;
 
-    // Advanced Dynamic A4 Page Splitting Engine
+    // Exact Physical Pixel Height A4 Page Splitting Engine
     const pages = (() => {
         if (!groups || groups.length === 0) return [];
 
-        const totalItems = groups.reduce((acc, g) => acc + (g.items ? g.items.length : 0), 0);
+        const scaleVal = effectiveScale > 0 ? effectiveScale : 1.0;
+        const isLandscapeMode = orientationProp === 'landscape';
+        const BASE_TARGET_H = isLandscapeMode ? 530 : 830;
+        const TARGET_A4_HEIGHT = Math.floor(BASE_TARGET_H / scaleVal); // Printable height limit inside A4 page in px
 
-        // Explicit Fit-to-Page Mode
-        if (pageBreakMode === 'fit_page') {
-            return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
-        }
+        // Exact physical heights of components:
+        const HEADER_H = 100;
+        const FOOTER_H = 30;
+        const GRAND_TOTAL_H = showGrandTotalProp ? (showKdvProp ? 120 : 70) : 0;
+        const DESC_H = (work?.description && work.description.trim() !== '') ? 40 : 0;
+        const ROW_H = 27.0; // Safe physical rendered height of each table row with margins and scaling clearance
+        const SUMMARY_H = 90; // Rendered height of Machine Summary Table
 
-        const MAX_P1 = 22;     // Page 1 holds up to 22 items with report header
-        const MAX_OTHER = 30;  // Continuation pages hold up to 30 items
-
-        // If total items fits on 1 page naturally, keep everything on Page 1!
-        if (totalItems <= MAX_P1 && pageBreakMode !== 'per_vehicle') {
-            return [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
-        }
-
-        // Dedicated Vehicle Page Mode
-        if (pageBreakMode === 'per_vehicle') {
-            const pageList = [];
-            groups.forEach((g) => {
-                const items = g.items || [];
-                for (let i = 0; i < items.length; i += MAX_OTHER) {
-                    const chunk = items.slice(i, i + MAX_OTHER);
-                    pageList.push({
-                        groups: [{ ...g, items: chunk, isContinuation: i > 0, isLastChunk: (i + MAX_OTHER >= items.length) }],
-                        isFirst: pageList.length === 0,
-                        isLast: false,
-                        pageIndex: pageList.length
-                    });
-                }
-            });
-            if (pageList.length > 0) pageList[pageList.length - 1].isLast = true;
-            return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
-        }
-
-        // Max Rows Page Mode
-        if (pageBreakMode === 'max_rows') {
-            const pageList = [];
-            const limit = Number(rowsPerPage) || 20;
-            groups.forEach((g) => {
-                const items = g.items || [];
-                for (let i = 0; i < items.length; i += limit) {
-                    const chunk = items.slice(i, i + limit);
-                    pageList.push({
-                        groups: [{ ...g, items: chunk, isContinuation: i > 0, isLastChunk: (i + limit >= items.length) }],
-                        isFirst: pageList.length === 0,
-                        isLast: false,
-                        pageIndex: pageList.length
-                    });
-                }
-            });
-            if (pageList.length > 0) pageList[pageList.length - 1].isLast = true;
-            return pageList.length > 0 ? pageList : [{ groups: groups, isFirst: true, isLast: true, pageIndex: 0 }];
-        }
-
-        // Auto Multi-page Flow (Chunking rows across discrete A4 page cards)
+        // Split rows and blocks across pages based on exact height capacity:
         const pageList = [];
         let currentGroups = [];
-        let currentItemsOnPage = 0;
+        let currentHeight = 0;
 
-        groups.forEach((g) => {
+        groups.forEach((g, gIdx) => {
             const items = g.items || [];
             let itemIdx = 0;
+            let needSummary = true;
+            const isLastGroup = gIdx === groups.length - 1;
 
-            while (itemIdx < items.length) {
+            while (itemIdx < items.length || needSummary) {
                 const isP1 = pageList.length === 0 && currentGroups.length === 0;
-                const maxCap = isP1 ? MAX_P1 : MAX_OTHER;
-                const space = maxCap - currentItemsOnPage;
+                const maxPageH = TARGET_A4_HEIGHT;
+                
+                let baseOverhead = FOOTER_H;
+                if (isP1) baseOverhead += HEADER_H;
 
-                if (space <= 1 && currentItemsOnPage > 0) {
+                const currentUsedH = (currentHeight === 0 ? baseOverhead : currentHeight);
+                const availableH = maxPageH - currentUsedH;
+                const vehicleHeaderOverhead = (itemIdx === 0 ? 30 + 25 : 25);
+                const rowH = ROW_H;
+
+                // Orphan Row Guard: when starting a new vehicle table, require room for at least 3 rows (3 * rowH)
+                const minRowsRequired = itemIdx === 0 ? 3 : 1;
+                let spaceForRows = availableH - vehicleHeaderOverhead;
+                if (spaceForRows < (minRowsRequired * rowH) && currentGroups.length > 0) {
                     pageList.push({
                         groups: currentGroups,
                         isFirst: pageList.length === 0,
@@ -221,25 +203,14 @@ export default function WorkPdfReport({
                         pageIndex: pageList.length
                     });
                     currentGroups = [];
-                    currentItemsOnPage = 0;
+                    currentHeight = 0;
                     continue;
                 }
 
-                const chunkEnd = Math.min(items.length, itemIdx + space);
-                const chunk = items.slice(itemIdx, chunkEnd);
-                const isLastChunk = chunkEnd >= items.length;
+                // Greedily take every single row that can physically fit
+                const maxRowsCanFit = Math.max(0, Math.floor(Math.max(0, spaceForRows) / rowH));
 
-                currentGroups.push({
-                    ...g,
-                    items: chunk,
-                    isContinuation: itemIdx > 0,
-                    isLastChunk: isLastChunk
-                });
-
-                currentItemsOnPage += chunk.length;
-                itemIdx = chunkEnd;
-
-                if (currentItemsOnPage >= maxCap) {
+                if (maxRowsCanFit === 0 && currentGroups.length > 0) {
                     pageList.push({
                         groups: currentGroups,
                         isFirst: pageList.length === 0,
@@ -247,7 +218,52 @@ export default function WorkPdfReport({
                         pageIndex: pageList.length
                     });
                     currentGroups = [];
-                    currentItemsOnPage = 0;
+                    currentHeight = 0;
+                    continue;
+                }
+
+                const countToTake = Math.max(1, maxRowsCanFit);
+                const chunkEnd = Math.min(items.length, itemIdx + countToTake);
+                const chunk = items.slice(itemIdx, chunkEnd);
+                const isLastChunk = chunkEnd >= items.length;
+
+                // Check if summary table AND Grand Total Box fit in remaining space after rows without cutoff
+                const remainingSpaceAfterChunk = spaceForRows - (chunk.length * rowH);
+                const requiredEndSpace = SUMMARY_H + (isLastChunk && isLastGroup && showGrandTotalProp ? GRAND_TOTAL_H : 0);
+                const summaryFitsOnThisPage = isLastChunk && needSummary && (remainingSpaceAfterChunk >= requiredEndSpace);
+
+                if (chunk.length > 0 || summaryFitsOnThisPage) {
+                    currentGroups.push({
+                        ...g,
+                        items: chunk,
+                        isContinuation: itemIdx > 0 || (chunk.length === 0),
+                        isLastChunk: summaryFitsOnThisPage
+                    });
+
+                    if (summaryFitsOnThisPage) {
+                        needSummary = false;
+                    }
+
+                    const chunkH = (chunk.length > 0 ? vehicleHeaderOverhead : 0) + (chunk.length * rowH) + (summaryFitsOnThisPage ? SUMMARY_H : 0);
+                    currentHeight = currentUsedH + chunkH;
+                }
+
+                itemIdx = chunkEnd;
+
+                if (itemIdx >= items.length && !needSummary) {
+                    break;
+                }
+
+                // If current page is full or summary table overflows to next page, flush current page
+                if (currentHeight >= maxPageH - 20 || !summaryFitsOnThisPage) {
+                    pageList.push({
+                        groups: currentGroups,
+                        isFirst: pageList.length === 0,
+                        isLast: false,
+                        pageIndex: pageList.length
+                    });
+                    currentGroups = [];
+                    currentHeight = 0;
                 }
             }
         });
@@ -315,12 +331,12 @@ export default function WorkPdfReport({
                 {pages.map((page, pIdx) => (
                     <div 
                         key={pIdx} 
-                        className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''}`}
+                        className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''} ${orientationProp === 'landscape' ? 'is-landscape' : ''}`}
                     >
                         {isPreview && (
                             <div className="pdf-page-header-badge">
-                                <span>📄 Dikey A4 (210mm × 297mm)</span>
-                                <span>Sayfa {pIdx + 1} / {pages.length}</span>
+                                <span>{orientationProp === 'landscape' ? '🖥️ Yatay A4' : '📄 Dikey A4'} • Ölçek: %{Math.round(effectiveScale * 100)}</span>
+                                <span>Sayfa {pIdx + 1} / {pages.length} {pages.length === 1 ? ' (Tam Sığıyor ✅)' : ` (${pages.length} Sayfaya Dağıldı 📄)`}</span>
                             </div>
                         )}
 
@@ -329,8 +345,9 @@ export default function WorkPdfReport({
                             className="pdf-content-wrapper"
                             style={effectiveScale < 1 ? {
                                 transform: `scale(${effectiveScale})`,
-                                transformOrigin: 'top left',
-                                width: `${(100 / effectiveScale).toFixed(2)}%`
+                                transformOrigin: 'top center',
+                                width: `${(100 / effectiveScale).toFixed(2)}%`,
+                                marginLeft: `calc(-${((100 / effectiveScale) - 100) / 2}%)`
                             } : {}}
                         >
                             {/* Header on Page 1 */}
@@ -435,15 +452,21 @@ export default function WorkPdfReport({
                                                                 <td className="center">{group.rawMachineName || group.machineName}</td>
                                                                 <td>{cleanDesc}</td>
                                                                 <td className="right">
-                                                                    {showPrices ? (
-                                                                        item.isPazar && !(desc.includes('[KATSAYI:'))
-                                                                            ? (() => {
-                                                                                const baseP = item.unit_price || item.unitPriceVal || 0;
-                                                                                const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
-                                                                                return dailyP > 0 ? formatCurrency(dailyP * pazarMultiplier) : '';
-                                                                            })()
-                                                                            : (item.unit_price || item.unitPriceVal ? formatCurrency(item.unit_price || item.unitPriceVal) : '')
-                                                                    ) : ''}
+                                                                    {showPrices ? (() => {
+                                                                        const kMatch = (desc || '').match(/\[KATSAYI:([^\]]+)\]/);
+                                                                        const baseP = item.unit_price || item.unitPriceVal || 0;
+                                                                        const dailyP = (baseP > 10000 && item.isAylik) ? baseP / 26 : baseP;
+                                                                        
+                                                                        let finalPrice = dailyP;
+                                                                        if (kMatch) {
+                                                                            const multVal = parseFloat(kMatch[1]) || 1;
+                                                                            finalPrice = dailyP * multVal;
+                                                                        } else if (item.isPazar) {
+                                                                            finalPrice = dailyP * pazarMultiplier;
+                                                                        }
+
+                                                                        return finalPrice > 0 ? formatCurrency(finalPrice) : '';
+                                                                    })() : ''}
                                                                 </td>
                                                             </tr>
                                                         </React.Fragment>
@@ -489,7 +512,7 @@ export default function WorkPdfReport({
                             ))}
 
                             {/* Grand Total on Last Page */}
-                            {page.isLast && showPrices && (
+                            {page.isLast && showGrandTotalProp && (
                                 <div className="pdf-grand-total">
                                     <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: '15px' }}>
                                         <colgroup>
@@ -525,11 +548,12 @@ export default function WorkPdfReport({
                                 </div>
                             )}
 
-                            {/* Page Footer */}
-                            <div className="pdf-footer-standard" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid #eee' }}>
-                                <span>Puantaj Raporları</span>
-                                <span style={{ fontWeight: 600 }}>Sayfa {pIdx + 1} / {pages.length}</span>
-                            </div>
+                        </div>
+
+                        {/* Pinned Page Footer - OUTSIDE SCALED WRAPPER (ALWAYS UNTOUCHED AT ABSOLUTE BOTTOM) */}
+                        <div className="pdf-footer-pinned">
+                            <span>PUANTAJ RAPORLARI</span>
+                            <span style={{ fontWeight: 700, color: '#0f172a' }}>SAYFA {pIdx + 1} / {pages.length}</span>
                         </div>
                     </div>
                 ))}

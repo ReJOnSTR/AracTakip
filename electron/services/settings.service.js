@@ -216,6 +216,30 @@ async function getUpcomingEvents(companyId) {
             });
         } catch (e) { console.error('getUpcomingEvents checks error:', e.message); }
 
+        // 6. Pending Approval Center Requests
+        try {
+            const pendingRequests = await prisma.requests.findMany({
+                where: {
+                    company_id: cid,
+                    status: 'PENDING'
+                },
+                include: {
+                    employees: { select: { first_name: true, last_name: true } }
+                }
+            });
+            pendingRequests.forEach(r => {
+                const empName = r.employees ? `${r.employees.first_name || ''} ${r.employees.last_name || ''}`.trim() : 'Personel';
+                events.push({
+                    id: r.id,
+                    eventType: 'approval_center',
+                    type: `Onay Bekliyor: ${r.type || 'Talep'}`,
+                    date: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
+                    employeeName: empName,
+                    description: `${empName} - ${r.type || 'Talep'} onayınızı bekliyor.`
+                });
+            });
+        } catch (e) { console.error('getUpcomingEvents approval requests error:', e.message); }
+
         // Sort by date ascending (closest first)
         events.sort((a, b) => new Date(a.date) - new Date(b.date));
 

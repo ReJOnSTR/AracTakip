@@ -88,13 +88,14 @@ export default function PrintPage() {
     if (!data) return <div style={{ padding: '20px' }}>Yükleniyor veya veri bulunamadı...</div>
 
     if (data.isWorkReport) {
+        const isLandscape = data.orientation === 'landscape';
         return (
             <div className="print-body" style={{ background: 'white', minHeight: '100vh' }}>
                 <style type="text/css" media="print">
                     {`
                     @page {
-                        size: A4;
-                        margin: 12mm 10mm;
+                        size: A4 ${isLandscape ? 'landscape' : 'portrait'};
+                        margin: 0mm;
                     }
                     :root, html, body {
                         background: #ffffff !important;
@@ -121,6 +122,7 @@ export default function PrintPage() {
                     rowsPerPageProp={data.rowsPerPage}
                     manualBreakIdsProp={data.manualBreakIds}
                     customScaleProp={data.customScale}
+                    orientationProp={data.orientation}
                 />
             </div>
         )

@@ -52,13 +52,16 @@ export default function NotificationCenter() {
             case 'maintenance': return <Wrench size={16} className="text-warning" />
             case 'employee_document': return <User size={16} className="text-info" />
             case 'finance_check': return <Wallet size={16} className="text-danger" />
+            case 'approval_center': return <CheckCircle2 size={16} className="text-primary" />
             default: return <Bell size={16} />
         }
     }
 
     const handleItemClick = (event) => {
         setIsOpen(false)
-        if (event.vehicleId) {
+        if (event.eventType === 'approval_center') {
+            navigate('/personnel/approvals')
+        } else if (event.vehicleId) {
             navigate(`/vehicles/${event.vehicleId}`)
         } else if (event.employeeId) {
             navigate(`/employees/${event.employeeId}`)

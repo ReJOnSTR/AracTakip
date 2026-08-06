@@ -96,6 +96,15 @@ export default function ApprovalCenter() {
                     ? 'Talep onaylandı ve ilgili veriler otomasyon ile işlendi.' 
                     : 'Talep reddedildi.';
                 if (toast?.success) toast.success(msg);
+
+                // Desktop notification if approval_center notifications are enabled
+                const isNotifyEnabled = localStorage.getItem('notify_approval_center') !== 'false';
+                if (isNotifyEnabled && window.electronAPI?.showNotification) {
+                    const title = actionType === 'APPROVED' ? 'Talep Onaylandı' : 'Talep Reddedildi';
+                    const body = `${selectedRequest.employee_name || selectedRequest.employee || 'Personel'} - ${selectedRequest.type_label || selectedRequest.type || 'Talep'} ${actionType === 'APPROVED' ? 'onaylandı.' : 'reddedildi.'}`;
+                    window.electronAPI.showNotification(title, body);
+                }
+
                 setApprovalModalOpen(false);
                 loadRequests();
             } else {
