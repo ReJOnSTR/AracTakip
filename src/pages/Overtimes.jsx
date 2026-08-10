@@ -27,6 +27,25 @@ const overtimeTypes = [
     { value: 'gurbet', label: 'Gurbet Mesaisi' }
 ]
 
+const checkIsSundayRecord = (row) => {
+    if (!row) return false;
+    const typeStr = (row.type || row.overtime_type || '').toLowerCase();
+    const notes = (row.notes || row.description || '').toUpperCase();
+    if (typeStr === 'sunday' || typeStr === 'weekend' || notes.includes('[PAZAR]') || notes.includes('[HAFTA SONU]')) {
+        return true;
+    }
+    if (typeStr === 'weekday' || typeStr === 'holiday' || typeStr === 'gurbet' || notes.includes('[BAYRAM]') || notes.includes('[GURBET]')) {
+        return false;
+    }
+    if (row.date) {
+        const d = new Date(row.date);
+        if (!isNaN(d.getTime())) {
+            return d.getDay() === 0;
+        }
+    }
+    return false;
+};
+
 export default function Overtimes() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
@@ -233,14 +252,15 @@ export default function Overtimes() {
                     const weekdayRate = calcOvertimeRate('weekday', emp);
 
                     otEntries.forEach(o => {
-                        const isHoliday = o.notes && o.notes.includes('[BAYRAM]');
-                        const isGurbet = o.notes && o.notes.includes('[GURBET]');
+                        const typeStr = (o.type || o.overtime_type || '').toLowerCase();
+                        const isHoliday = (o.notes && o.notes.includes('[BAYRAM]')) || typeStr === 'holiday' || typeStr === 'bayram';
+                        const isGurbet = (o.notes && o.notes.includes('[GURBET]')) || typeStr === 'gurbet';
                         if (isHoliday) {
                             otHolidays += (o.hours || 0);
                         } else if (isGurbet) {
                             otGurbet += (o.hours || 0);
                         } else {
-                            const isSunday = Math.abs(o.rate - weekdayRate) > (weekdayRate * 0.5);
+                            const isSunday = checkIsSundayRecord(o);
                             if (isSunday) {
                                 otDays += (o.hours || 0);
                             } else {
@@ -363,18 +383,16 @@ export default function Overtimes() {
         
         // Determine type for editing
         let overtimeType = 'weekday'
-        if (row && row.notes) {
-            const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
-            const isGurbet = row.notes && row.notes.includes('[GURBET]')
+        if (row) {
+            const typeStr = (row.type || row.overtime_type || '').toLowerCase();
+            const isHoliday = (row.notes && row.notes.includes('[BAYRAM]')) || typeStr === 'holiday' || typeStr === 'bayram';
+            const isGurbet = (row.notes && row.notes.includes('[GURBET]')) || typeStr === 'gurbet';
             if (isHoliday) {
                 overtimeType = 'holiday'
             } else if (isGurbet) {
                 overtimeType = 'gurbet'
-            } else {
-                const weekdayRate = calcOvertimeRate('weekday', emp)
-                if (Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)) {
-                    overtimeType = 'sunday'
-                }
+            } else if (checkIsSundayRecord(row)) {
+                overtimeType = 'sunday'
             }
         }
 
@@ -705,10 +723,7 @@ export default function Overtimes() {
                         </span>
                     )
                 }
-                const emp = allEmployees.find(e => e.id === row.employeeId) || row
-                const weekdayRate = calcOvertimeRate('weekday', emp)
-                // If rate is much higher than weekday rate, it's likely Sunday
-                const isSunday = Math.abs(v - weekdayRate) > (weekdayRate * 0.5)
+                const isSunday = checkIsSundayRecord(row)
                 return (
                     <span style={{ 
                         fontSize: '11px', 
@@ -746,14 +761,10 @@ export default function Overtimes() {
             label: 'Süre',
             width: '120px',
             render: (value, row) => {
-                const isHoliday = row.notes && row.notes.includes('[BAYRAM]')
-                const isGurbet = row.notes && row.notes.includes('[GURBET]')
-                let isSunday = false
-                if (!isHoliday && !isGurbet) {
-                    const emp = allEmployees.find(e => e.id === row.employeeId) || row
-                    const weekdayRate = calcOvertimeRate('weekday', emp)
-                    isSunday = Math.abs(row.rate - weekdayRate) > (weekdayRate * 0.5)
-                }
+                const typeStr = (row.type || row.overtime_type || '').toLowerCase();
+                const isHoliday = (row.notes && row.notes.includes('[BAYRAM]')) || typeStr === 'holiday' || typeStr === 'bayram';
+                const isGurbet = (row.notes && row.notes.includes('[GURBET]')) || typeStr === 'gurbet';
+                const isSunday = !isHoliday && !isGurbet && checkIsSundayRecord(row);
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Clock size={14} style={{ color: 'var(--text-muted)' }} />

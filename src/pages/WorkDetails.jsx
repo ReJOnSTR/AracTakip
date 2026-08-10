@@ -1367,7 +1367,16 @@ export default function WorkDetails(props) {
                                     <button
                                         key={type}
                                         type="button"
-                                        onClick={() => setCurAdditionType(type)}
+                                        onClick={() => {
+                                            setCurAdditionType(type);
+                                            if (curAdditionPrice && parseFloat(curAdditionPrice) > 0) {
+                                                setFormData({
+                                                    ...formData,
+                                                    additions: [...(formData.additions || []), { type, price: parseFloat(curAdditionPrice) || 0 }]
+                                                });
+                                                setCurAdditionPrice('');
+                                            }
+                                        }}
                                         style={{
                                             padding: '4px 10px',
                                             fontSize: '11px',
@@ -1490,10 +1499,11 @@ export default function WorkDetails(props) {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (!curAdditionType || !curAdditionPrice) return;
+                                    if (!curAdditionType) return;
+                                    const addPrice = parseFloat(curAdditionPrice) || 0;
                                     setFormData({
                                         ...formData,
-                                        additions: [...(formData.additions || []), { type: curAdditionType, price: parseFloat(curAdditionPrice) || 0 }]
+                                        additions: [...(formData.additions || []), { type: curAdditionType, price: addPrice }]
                                     });
                                     setCurAdditionType('Yol');
                                     setCurAdditionPrice('');
@@ -1856,7 +1866,16 @@ export default function WorkDetails(props) {
                                     <button
                                         key={type}
                                         type="button"
-                                        onClick={() => setCurBulkAdditionType(type)}
+                                        onClick={() => {
+                                            setCurBulkAdditionType(type);
+                                            if (curBulkAdditionPrice && parseFloat(curBulkAdditionPrice) > 0) {
+                                                setBulkFormData({
+                                                    ...bulkFormData,
+                                                    additions: [...(bulkFormData.additions || []), { type, price: parseFloat(curBulkAdditionPrice) || 0 }]
+                                                });
+                                                setCurBulkAdditionPrice('');
+                                            }
+                                        }}
                                         style={{
                                             padding: '4px 10px',
                                             fontSize: '11px',
@@ -1979,10 +1998,11 @@ export default function WorkDetails(props) {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (!curBulkAdditionType || !curBulkAdditionPrice) return;
+                                    if (!curBulkAdditionType) return;
+                                    const addPrice = parseFloat(curBulkAdditionPrice) || 0;
                                     setBulkFormData({
                                         ...bulkFormData,
-                                        additions: [...(bulkFormData.additions || []), { type: curBulkAdditionType, price: parseFloat(curBulkAdditionPrice) || 0 }]
+                                        additions: [...(bulkFormData.additions || []), { type: curBulkAdditionType, price: addPrice }]
                                     });
                                     setCurBulkAdditionType('Yol');
                                     setCurBulkAdditionPrice('');
