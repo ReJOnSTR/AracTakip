@@ -19,6 +19,9 @@ const paymentTypes = [
     { value: 'loan_payment', label: 'Borç Ödeme' },
     { value: 'overtime_pay', label: 'Mesai Ücreti' },
     { value: 'expense', label: 'Harcırah' },
+    { value: 'travel', label: 'Yol Ücreti' },
+    { value: 'food', label: 'Yemek Ücreti' },
+    { value: 'carryover', label: 'Devir Bakiyesi' },
     { value: 'other', label: 'Diğer' }
 ]
 

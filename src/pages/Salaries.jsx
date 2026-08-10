@@ -1088,6 +1088,12 @@ export default function Salaries() {
                                         { value: 'Maaş Ödemesi', label: 'Maaş Ödemesi' },
                                         { value: 'Mesai Ödemesi', label: 'Mesai Ödemesi' },
                                         { value: 'Prim Ödemesi', label: 'Prim Ödemesi' },
+                                        { value: 'Harcırah Ödemesi', label: 'Harcırah Ödemesi' },
+                                        { value: 'Yol Ücreti', label: 'Yol Ücreti' },
+                                        { value: 'Yemek Ücreti', label: 'Yemek Ücreti' },
+                                        { value: 'Avans Ödemesi', label: 'Avans Ödemesi' },
+                                        { value: 'Borç Ödemesi', label: 'Borç Ödemesi' },
+                                        { value: 'Devir Bakiyesi', label: 'Devir Bakiyesi' },
                                         { value: 'Diğer Ödeme', label: 'Diğer Ödeme' }
                                     ]}
                                 />
