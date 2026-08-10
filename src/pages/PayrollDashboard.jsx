@@ -211,17 +211,9 @@ export default function PayrollDashboard() {
 
                     const requiredPay = historicalBase + otAmount + incomingCarryover;
                     
-                    const allowedSalaryPeriods = ['salary', 'overtime_pay', 'advance', 'bonus', 'loan_payment'];
-
                     const paidAmount = (emp.salaries || [])
                         .filter(s => s.status === 'paid')
-                        .filter(s => {
-                            if (!allowedSalaryPeriods.includes(s.period)) return false;
-                            if (s.period === 'loan_payment') {
-                                return s.payment_method === 'salary_deduction';
-                            }
-                            return true;
-                        })
+                        .filter(s => s.period !== 'loan' && s.period !== 'salary_accrual')
                         .reduce((sum, s) => sum + (s.net_salary || 0), 0);
                     
                     // Outbound carryover (devir to next month)

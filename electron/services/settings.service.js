@@ -224,11 +224,11 @@ async function getUpcomingEvents(companyId) {
                     status: 'PENDING'
                 },
                 include: {
-                    employees: { select: { first_name: true, last_name: true } }
+                    employee: { select: { first_name: true, last_name: true } }
                 }
             });
             pendingRequests.forEach(r => {
-                const empName = r.employees ? `${r.employees.first_name || ''} ${r.employees.last_name || ''}`.trim() : 'Personel';
+                const empName = r.employee ? `${r.employee.first_name || ''} ${r.employee.last_name || ''}`.trim() : 'Personel';
                 events.push({
                     id: r.id,
                     eventType: 'approval_center',
