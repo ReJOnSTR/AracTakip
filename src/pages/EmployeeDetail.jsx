@@ -1442,6 +1442,7 @@ export default function EmployeeDetail() {
         try {
             const today = new Date().toISOString().split('T')[0]
             
+            const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
             const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
             const earnedOts = [...overtimes]
                 .filter(o => o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]'))
@@ -1478,7 +1479,7 @@ export default function EmployeeDetail() {
              const durationText = amount % 1 === 0 ? `${amount} gün` : `${amount * whpl} saat`
              
              // Create a single "offset" record
-             await window.electronAPI.createLeave({
+             const result = await window.electronAPI.createLeave({
                  employeeId: parseInt(id),
                  type: 'Mahsup',
                  startDate: today,
@@ -1489,7 +1490,12 @@ export default function EmployeeDetail() {
                  notes: `[MAHSUP] Yıllık izin borcu kapatıldı. (${durationText})${consumptionNote}`
              })
             
-            loadEmployeeData()
+            if (result && result.success) {
+                if (window.showToast) window.showToast('Mahsup işlemi başarıyla gerçekleştirildi.', 'success');
+                await loadEmployeeData();
+            } else {
+                setError('Mahsup işlemi sırasında bir hata oluştu: ' + (result?.error || 'Bilinmeyen hata'));
+            }
         } catch (err) {
             setError('Mahsup işlemi sırasında bir hata oluştu: ' + err.message)
         }
