@@ -509,14 +509,16 @@ export default function Salaries() {
                 }
             })
 
-            // Sum Overtimes
-            monthlyOvertimes.filter(o => o.employee_id === emp.id).forEach(o => {
-                overtimeAmount += o.amount
-                overtimeHours += o.hours
-                items.push({ ...o, type: 'overtime' })
-            })
+            // Sum Overtimes (excluding overtimes used as leave)
+            monthlyOvertimes
+                .filter(o => o.employee_id === emp.id && (!o.notes || !o.notes.includes('[İZİN OLARAK KULLANILDI]')))
+                .forEach(o => {
+                    overtimeAmount += (o.amount || 0)
+                    overtimeHours += (o.hours || 0)
+                    items.push({ ...o, type: 'overtime' })
+                })
 
-            // Sum Expenses
+            // Sum Expenses (Accruals from movements)
             monthlyMovements.filter(m => m.employee_id === emp.id && m.type === 'expense').forEach(m => {
                 expenses += m.amount
                 items.push(m)
@@ -535,17 +537,28 @@ export default function Salaries() {
 
             // --- 2. Calculate PAID (Alacak/Ödenen) ---
 
-            // A. 'payment' and 'salary' records
-            monthlyMovements.filter(m => m.employee_id === emp.id && (m.type === 'payment' || m.type === 'salary')).forEach(m => {
-                payments += m.amount
-                addToPaidBucket(m.amount, m.payment_method)
-                items.push(m)
-            })
+            // A. Payments from 'salaries' table (status === 'paid', period !== 'carryover' & 'loan' & 'salary_accrual')
+            empSalaries
+                .filter(s => s.status === 'paid' && s.period !== 'carryover' && s.period !== 'loan' && s.period !== 'salary_accrual')
+                .forEach(s => {
+                    const val = s.net_salary || 0
+                    if (s.period === 'advance') advances += val
+                    else if (s.period === 'bonus') bonuses += val
+                    else if (s.period === 'expense') expenses += val
+                    else payments += val
 
-            // B. 'advance' records (Avans)
-            monthlyMovements.filter(m => m.employee_id === emp.id && m.type === 'advance').forEach(m => {
-                advances += m.amount
-                addToPaidBucket(m.amount, m.payment_method)
+                    addToPaidBucket(val, s.payment_method || 'nakit')
+                    items.push({ ...s, type: s.period, amount: val, date: s.payment_date || s.created_at, is_paid: 1, description: s.notes || s.period })
+                })
+
+            // B. Payments from 'employee_movements' table
+            monthlyMovements.filter(m => m.employee_id === emp.id && (m.type === 'payment' || m.type === 'advance')).forEach(m => {
+                const val = m.amount || 0
+                if (m.type === 'advance') advances += val
+                else if (m.type === 'expense') expenses += val
+                else payments += val
+
+                addToPaidBucket(val, m.payment_method || 'nakit')
                 items.push(m)
             })
 
