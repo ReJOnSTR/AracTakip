@@ -169,11 +169,14 @@ export default function CustomInput({
         displayValue = parts.join(',');
     }
 
-    // Check if value exists (using displayValue logic)
-    const hasValue = (displayValue !== undefined && displayValue !== null && displayValue !== '') || isDateType
+    // Ensure safe string value for React controlled inputs to avoid typing blocks / desync
+    const safeValue = (displayValue !== undefined && displayValue !== null) ? String(displayValue) : ''
 
-    // Wrapper classes
-    const wrapperClass = `form-group ${isFloating ? 'floating-label-group' : ''} ${hasValue ? 'has-value' : ''} ${className || ''}`
+    // Check if value exists (using safeValue logic)
+    const hasValue = (safeValue !== '') || isDateType
+
+    // Wrapper classes - ensure label floats when focused even before typing
+    const wrapperClass = `form-group ${isFloating ? 'floating-label-group' : ''} ${(hasValue || isFocused) ? 'has-value' : ''} ${className || ''}`
 
     return (
         <div className={wrapperClass}>
@@ -181,7 +184,7 @@ export default function CustomInput({
             {type === 'textarea' || multiline ? (
                 <textarea
                     className={`form-textarea ${isInvalid ? 'input-error' : ''}`}
-                    value={displayValue}
+                    value={safeValue}
                     onChange={handleChange}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
@@ -196,7 +199,7 @@ export default function CustomInput({
                     <input
                         type={isCurrency ? 'text' : (type === 'password' && showPassword ? 'text' : type)}
                         className={`form-input ${isInvalid ? 'input-error' : ''} ${isCurrency ? 'has-currency' : ''}`}
-                        value={displayValue}
+                        value={safeValue}
                         onChange={handleChange}
                         onFocus={handleFocus}
                         onBlur={handleBlur}

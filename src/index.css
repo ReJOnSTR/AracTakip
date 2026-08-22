@@ -167,11 +167,36 @@ body {
   -webkit-app-region: drag;
 }
 
+/* Ensure all interactive inputs, textareas, selects, and modals are NEVER blocked by Electron drag */
+input,
+textarea,
+select,
+button,
+a,
+[contenteditable="true"],
 .sidebar-toggle,
 .company-selector-btn,
 .user-menu-btn,
-.header-right button {
-  -webkit-app-region: no-drag;
+.header-right button,
+.custom-select,
+.custom-select-dropdown,
+.form-input,
+.form-textarea,
+.form-select,
+.modal,
+.modal-overlay,
+.modal-body {
+  -webkit-app-region: no-drag !important;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+.form-input,
+.form-textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  pointer-events: auto !important;
 }
 
 
@@ -1388,6 +1413,7 @@ body {
 }
 
 .floating-label-group.has-value .form-label,
+.floating-label-group:focus-within .form-label,
 .floating-label-group .form-input:focus~.form-label,
 .floating-label-group .form-textarea:focus~.form-label,
 .floating-label-group .form-select:focus~.form-label {

@@ -175,6 +175,22 @@ function createWindow() {
     // Custom Menu
     createMenu()
 
+    // Right Click Context Menu for text inputs & selection
+    mainWindow.webContents.on('context-menu', (event, params) => {
+        if (params.isEditable) {
+            const menu = Menu.buildFromTemplate([
+                { role: 'undo', label: 'Geri Al' },
+                { role: 'redo', label: 'Yinele' },
+                { type: 'separator' },
+                { role: 'cut', label: 'Kes' },
+                { role: 'copy', label: 'Kopyala' },
+                { role: 'paste', label: 'Yapıştır' },
+                { role: 'selectAll', label: 'Tümünü Seç' }
+            ]);
+            menu.popup({ window: mainWindow });
+        }
+    })
+
     // Tray Icon
     // Custom Context Menu
     ipcMain.on('show-context-menu', (event, items) => {
@@ -188,7 +204,6 @@ function createWindow() {
         const menu = Menu.buildFromTemplate(template)
         menu.popup({ window: BrowserWindow.fromWebContents(event.sender) })
     })
-
 
 }
 
