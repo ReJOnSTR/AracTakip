@@ -61,6 +61,7 @@ export default function WorkDetails(props) {
     const [savingToSystem, setSavingToSystem] = useState(false)
     const [showPrices, setShowPrices] = useState(true)
     const [showGrandTotal, setShowGrandTotal] = useState(true)
+    const [showWorkTitle, setShowWorkTitle] = useState(true)
     const [selectedIds, setSelectedIds] = useState([])
     const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false)
     const [bulkEditFormData, setBulkEditFormData] = useState({
@@ -104,6 +105,7 @@ export default function WorkDetails(props) {
                     if (parsed.customScale !== undefined) setCustomScale(parsed.customScale)
                     if (parsed.orientation) setOrientation(parsed.orientation)
                     if (parsed.tableDensity) setTableDensity(parsed.tableDensity)
+                    if (parsed.showWorkTitle !== undefined) setShowWorkTitle(parsed.showWorkTitle)
                 }
             } catch (e) {}
         }
@@ -119,6 +121,7 @@ export default function WorkDetails(props) {
                 manualBreakIds: newSettings.manualBreakIds !== undefined ? newSettings.manualBreakIds : manualBreakIds,
                 customScale: newSettings.customScale !== undefined ? newSettings.customScale : customScale,
                 tableDensity: newSettings.tableDensity !== undefined ? newSettings.tableDensity : tableDensity,
+                showWorkTitle: newSettings.showWorkTitle !== undefined ? newSettings.showWorkTitle : showWorkTitle,
                 ...newSettings
             }
             localStorage.setItem(`pdfPageBreakSettings_${work.id}`, JSON.stringify(updated))
@@ -322,6 +325,7 @@ export default function WorkDetails(props) {
             isWorkReport: true,
             work: getCompactWorkData(work, vehicles),
             showPrices: showPrices,
+            showWorkTitle: showWorkTitle,
             showKdv: showKdv,
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
@@ -832,6 +836,7 @@ export default function WorkDetails(props) {
             isWorkReport: true,
             work: getCompactWorkData(work, vehicles),
             showPrices: showPrices,
+            showWorkTitle: showWorkTitle,
             showKdv: showKdv,
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
@@ -866,6 +871,7 @@ export default function WorkDetails(props) {
             isWorkReport: true,
             work: getCompactWorkData(work, vehicles),
             showPrices: showPrices,
+            showWorkTitle: showWorkTitle,
             showKdv: showKdv,
             kdvRate: kdvRate,
             pazarMultiplier: pazarMultiplier,
@@ -888,6 +894,7 @@ export default function WorkDetails(props) {
     const handleExportExcel = () => {
         exportWorkToExcel(work, vehicles, {
             showPrices,
+            showWorkTitle,
             showKdv,
             kdvRate,
             pazarMultiplier,
@@ -2259,6 +2266,20 @@ export default function WorkDetails(props) {
                                                 <span className="toggle-slider"></span>
                                             </label>
                                         </label>
+
+                                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '7px 10px', borderRadius: '8px', transition: 'background 0.15s', marginTop: '4px' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        >
+                                            <span style={{ fontSize: '13px', color: showWorkTitle ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: showWorkTitle ? 500 : 400, transition: 'all 0.15s' }}>İş Tanımını Göster</span>
+                                            <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.8)' }} onClick={e => e.stopPropagation()}>
+                                                <input type="checkbox" checked={showWorkTitle} onChange={e => {
+                                                    setShowWorkTitle(e.target.checked);
+                                                    savePdfBreakSettings({ showWorkTitle: e.target.checked });
+                                                }} />
+                                                <span className="toggle-slider"></span>
+                                            </label>
+                                        </label>
                                     </div>
                                 </div>
                             )}
@@ -2510,6 +2531,7 @@ export default function WorkDetails(props) {
                                 customScaleProp={customScale}
                                 orientationProp={orientation}
                                 tableDensityProp={tableDensity}
+                                showWorkTitleProp={showWorkTitle}
                                 onToggleManualBreakProp={(itemId) => {
                                     const next = manualBreakIds.includes(itemId) 
                                         ? manualBreakIds.filter(i => i !== itemId) 

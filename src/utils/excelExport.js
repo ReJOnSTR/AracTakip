@@ -19,6 +19,7 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
 
     const {
         showPrices = true,
+        showWorkTitle = true,
         showKdv = false,
         kdvRate = 20,
         pazarMultiplier = 1.5,
@@ -96,8 +97,8 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
 
   <!-- Sub-header Details -->
   <tr>
-    <td colspan="5" class="no-border" style="font-size: 11pt; padding: 4px 0;"><b>Firma / Müşteri:</b> ${companyName}</td>
-    <td colspan="${showPrices ? 4 : 3}" class="no-border text-right" style="font-size: 11pt; padding: 4px 0;"><b>İş Tanımı:</b> ${workTitle}</td>
+    <td colspan="${showWorkTitle && workTitle ? (showPrices ? 5 : 4) : colSpanCount}" class="no-border" style="font-size: 11pt; padding: 4px 0;"><b>Firma / Müşteri:</b> ${companyName}</td>
+    ${showWorkTitle && workTitle ? `<td colspan="${showPrices ? 4 : 3}" class="no-border text-right" style="font-size: 11pt; padding: 4px 0;"><b>İş Tanımı:</b> ${workTitle}</td>` : ''}
   </tr>
 
   <!-- Spacer Row before vehicle tables -->
@@ -238,19 +239,19 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
 
   <tr>
     <td colspan="${showPrices ? 5 : 4}" class="no-border">&nbsp;</td>
-    <td colspan="2" class="bold" style="border: 0.5pt solid #64748b; background-color: #f8fafc; font-size: 10.5pt; padding: 8px 12px;">GENEL TOPLAM</td>
-    <td colspan="2" class="text-right bold total-text" style="border: 0.5pt solid #64748b; background-color: #f1f5f9; font-size: 11.5pt; padding: 8px 12px; color: #000000;">${formatCurrency(grandTotal)}${showKdv ? '' : ' + KDV'}</td>
+    <td colspan="3" class="bold text-right" style="border: 0.5pt solid #64748b; background-color: #f8fafc; font-size: 10.5pt; padding: 8px 12px;">GENEL TOPLAM</td>
+    <td class="text-right bold total-text" style="border: 0.5pt solid #64748b; background-color: #f1f5f9; font-size: 11.5pt; padding: 8px 12px; color: #000000;">${formatCurrency(grandTotal)}${showKdv ? '' : ' + KDV'}</td>
   </tr>
   ${showKdv ? `
   <tr>
     <td colspan="${showPrices ? 5 : 4}" class="no-border">&nbsp;</td>
-    <td colspan="2" class="bold" style="border: 0.5pt solid #64748b; background-color: #f8fafc; font-size: 10pt; padding: 7px 12px;">KDV (%${kdvRate})</td>
-    <td colspan="2" class="text-right bold total-text" style="border: 0.5pt solid #64748b; background-color: #f1f5f9; font-size: 11pt; padding: 7px 12px; color: #000000;">${formatCurrency(kdvAmount)}</td>
+    <td colspan="3" class="bold text-right" style="border: 0.5pt solid #64748b; background-color: #f8fafc; font-size: 10pt; padding: 7px 12px;">KDV (%${kdvRate})</td>
+    <td class="text-right bold total-text" style="border: 0.5pt solid #64748b; background-color: #f1f5f9; font-size: 11pt; padding: 7px 12px; color: #000000;">${formatCurrency(kdvAmount)}</td>
   </tr>
   <tr>
     <td colspan="${showPrices ? 5 : 4}" class="no-border">&nbsp;</td>
-    <td colspan="2" class="bold" style="border: 1pt solid #0f172a; background-color: #e2e8f0; font-size: 11pt; padding: 8px 12px;">TOPLAM (KDV DAHİL)</td>
-    <td colspan="2" class="text-right bold total-text" style="border: 1pt solid #0f172a; background-color: #cbd5e1; font-size: 12pt; padding: 8px 12px; color: #000000;">${formatCurrency(grandTotalWithKdv)}</td>
+    <td colspan="3" class="bold text-right" style="border: 1pt solid #0f172a; background-color: #e2e8f0; font-size: 11pt; padding: 8px 12px;">TOPLAM (KDV DAHİL)</td>
+    <td class="text-right bold total-text" style="border: 1pt solid #0f172a; background-color: #cbd5e1; font-size: 12pt; padding: 8px 12px; color: #000000;">${formatCurrency(grandTotalWithKdv)}</td>
   </tr>
   ` : ''}
 </table>

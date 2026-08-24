@@ -225,24 +225,49 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 10px;
+    width: 100%;
+    padding: 0 !important;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Grand Total Summary */
+.pdf-grand-total {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding: 0 !important;
+    box-sizing: border-box;
     page-break-inside: avoid;
     break-inside: avoid;
 }
 
 .pdf-summary-table {
     border-collapse: collapse;
-    width: 320px;
+    width: 520px;
+    max-width: 520px;
     background: #ffffff;
-    border: 1px solid #ddd; 
+    border: 1px solid #cbd5e1; 
+    table-layout: fixed;
+    box-sizing: border-box;
+    margin: 0 !important;
     page-break-inside: avoid;
     break-inside: avoid;
 }
 
+.pdf-report-container.is-landscape .pdf-summary-table {
+    width: 620px;
+    max-width: 620px;
+}
+
 .pdf-summary-table th,
 .pdf-summary-table td {
-    padding: 2.5px 5px;
+    padding: 3px 6px;
     line-height: 1.2;
-    border: 1px solid #ddd;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
 }
 
 .pdf-summary-table td {
@@ -250,50 +275,16 @@
     color: #000;
 }
 
-.bg-light-gray td {
-    background-color: #f9f9f9;
-}
-
-.bg-light-blue {
-    background-color: #f4f8fb;
-}
-
-.total-text {
-    color: #000;
-    font-weight: 500;
-}
-
-.bold {
-    font-weight: 500;
-    color: #1a1a1a;
-}
-
-.center {
-    text-align: center;
-}
-
-.right {
-    text-align: right;
-}
-
-.left {
-    text-align: left;
-}
-
-/* Grand Total Summary */
-.pdf-grand-total {
-    margin-top: 10px;
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
 .pdf-grand-total .pdf-summary-table {
-    border: 1px solid #ddd;
+    border: 1px solid #cbd5e1;
+    margin: 0;
 }
 
 .pdf-grand-total td {
-    padding: 4px 8px;
-    font-size: 10px;
+    padding: 3px 6px;
+    font-size: 8.5px;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
 }
 
 .pdf-footer-note {
@@ -558,12 +549,12 @@ body:has(.is-generating-pdf),
 
 .pdf-fit-page .pdf-grand-total {
     margin-top: 6px !important;
-    padding: 4px 8px !important;
+    padding: 0 !important;
 }
 
 .pdf-fit-page .pdf-grand-total table td {
-    padding: 2px 6px !important;
-    font-size: 8.5px !important;
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
 }
 
 .pdf-fit-page .pdf-footer-standard {
@@ -677,12 +668,12 @@ body:has(.is-generating-pdf),
 
 .pdf-report-container.is-compact .pdf-grand-total {
     margin-top: 5px !important;
-    padding: 3px 6px !important;
+    padding: 0 !important;
 }
 
 .pdf-report-container.is-compact .pdf-grand-total table td {
-    padding: 2px 5px !important;
-    font-size: 8px !important;
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
 }
 
 /* Smart Overflow Badge on Preview */

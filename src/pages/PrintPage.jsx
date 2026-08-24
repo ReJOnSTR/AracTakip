@@ -124,6 +124,7 @@ export default function PrintPage() {
                     customScaleProp={data.customScale}
                     orientationProp={data.orientation}
                     tableDensityProp={data.tableDensity}
+                    showWorkTitleProp={data.showWorkTitle !== undefined ? data.showWorkTitle : true}
                 />
             </div>
         )

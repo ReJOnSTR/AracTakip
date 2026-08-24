@@ -22,7 +22,8 @@ export default function WorkPdfReport({
     showBreakToolsProp = false,
     customScaleProp = null,
     orientationProp = 'portrait',
-    tableDensityProp = 'normal'
+    tableDensityProp = 'normal',
+    showWorkTitleProp = true
 }) {
     const params = useParams();
     const id = propId || params.id;
@@ -82,7 +83,7 @@ export default function WorkPdfReport({
         } else {
             setAutoScale(1.0);
         }
-    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp, orientationProp, tableDensity]);
+    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp, orientationProp, tableDensity, showWorkTitleProp]);
 
     const effectiveScale = customScaleProp ? Number(customScaleProp) : (pageBreakMode === 'fit_page' ? autoScale : 1.0);
 
@@ -425,7 +426,7 @@ export default function WorkPdfReport({
                                             </h1>
                                             <div className="pdf-company-standard">
                                                 <strong>Firma / Müşteri:</strong> {work.company_name || work.company?.name || work.customer_name || work.customer || '-'}
-                                                {work.title && <span> &nbsp;|&nbsp; <strong>İş Tanımı:</strong> {work.title}</span>}
+                                                {showWorkTitleProp && work.title && <span> &nbsp;|&nbsp; <strong>İş Tanımı:</strong> {work.title}</span>}
                                             </div>
                                         </div>
                                         <div className="pdf-date-standard">
@@ -519,16 +520,16 @@ export default function WorkPdfReport({
                                         {/* Vehicle Summary Block on Last Chunk of Group */}
                                         {(group.isLastChunk !== false) && (
                                             <div className="pdf-summary-block">
-                                                <table className="pdf-summary-table" style={{ width: orientationProp === 'landscape' ? '100%' : '550px', maxWidth: orientationProp === 'landscape' ? '650px' : '550px' }}>
+                                                <table className="pdf-summary-table">
                                                     <colgroup>
-                                                        <col style={{ width: orientationProp === 'landscape' ? '22%' : '125px' }} />
-                                                        <col style={{ width: orientationProp === 'landscape' ? '22%' : '125px' }} />
-                                                        <col style={{ width: orientationProp === 'landscape' ? '28%' : '150px' }} />
-                                                        <col style={{ width: orientationProp === 'landscape' ? '28%' : '150px' }} />
+                                                        <col style={{ width: '24%' }} />
+                                                        <col style={{ width: '22%' }} />
+                                                        <col style={{ width: '27%' }} />
+                                                        <col style={{ width: '27%' }} />
                                                     </colgroup>
                                                     <tbody>
                                                         <tr className="bg-light-gray">
-                                                            <td colSpan="4" className="bold center" style={{ padding: '4px', fontSize: '11px', borderBottom: '1px solid #ddd' }}>
+                                                            <td colSpan="4" className="bold center" style={{ padding: '3px 6px', fontSize: '9.5px', borderBottom: '1px solid #cbd5e1' }}>
                                                                 {(group.rawMachineName || group.machineName).toUpperCase()}
                                                             </td>
                                                         </tr>
@@ -540,9 +541,9 @@ export default function WorkPdfReport({
                                                                 <td className="right bold total-text">{formatCurrency(line.totalPrice)}</td>
                                                             </tr>
                                                         ))}
-                                                        <tr style={{ borderTop: '1px solid #ddd' }}>
-                                                            <td colSpan="3" className="bold right" style={{ padding: '6px 12px', fontSize: '9.5px', backgroundColor: '#f9f9f9', color: '#333' }}>TOPLAM</td>
-                                                            <td className="right bold total-text" style={{ padding: '6px 12px', fontSize: '10.5px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
+                                                        <tr style={{ borderTop: '1px solid #cbd5e1' }}>
+                                                            <td colSpan="3" className="bold right" style={{ padding: '4px 8px', fontSize: '9px', backgroundColor: '#f8fafc', color: '#333' }}>TOPLAM</td>
+                                                            <td className="right bold total-text" style={{ padding: '4px 8px', fontSize: '10px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(group.calculatedGrandTotal)}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -555,25 +556,25 @@ export default function WorkPdfReport({
                             {/* Grand Total on Last Page */}
                             {page.isLast && showGrandTotalProp && (
                                 <div className="pdf-grand-total">
-                                    <table className="pdf-summary-table" style={{ width: orientationProp === 'landscape' ? '100%' : '350px', maxWidth: orientationProp === 'landscape' ? '400px' : '350px', marginLeft: 'auto', marginTop: '15px' }}>
+                                    <table className="pdf-summary-table">
                                         <colgroup>
-                                            <col style={{ width: orientationProp === 'landscape' ? '50%' : '170px' }} />
-                                            <col style={{ width: orientationProp === 'landscape' ? '50%' : '180px' }} />
+                                            <col style={{ width: '73%' }} />
+                                            <col style={{ width: '27%' }} />
                                         </colgroup>
                                         <tbody>
-                                            <tr style={{ borderTop: '1px solid #ddd' }}>
-                                                <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>GENEL TOPLAM</td>
-                                                <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}{showKdvProp ? '' : ' + KDV'}</td>
+                                            <tr style={{ borderTop: '1px solid #cbd5e1' }}>
+                                                <td className="bold right" style={{ padding: '4px 8px', fontSize: '9px', backgroundColor: '#f8fafc', color: '#333' }}>GENEL TOPLAM</td>
+                                                <td className="right bold total-text" style={{ padding: '4px 8px', fontSize: '10px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice)}{showKdvProp ? '' : ' + KDV'}</td>
                                             </tr>
                                             {showKdvProp && (
                                                 <>
                                                     <tr>
-                                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#f9f9f9' }}>KDV (%{kdvRateProp})</td>
-                                                        <td className="right bold total-text" style={{ fontSize: '12px', padding: '8px 12px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice * (kdvRateProp / 100))}</td>
+                                                        <td className="bold right" style={{ padding: '4px 8px', fontSize: '9px', backgroundColor: '#f8fafc', color: '#333' }}>KDV (%{kdvRateProp})</td>
+                                                        <td className="right bold total-text" style={{ padding: '4px 8px', fontSize: '10px', backgroundColor: '#f1f5f9', color: '#000' }}>{formatCurrency(grandTotalPrice * (kdvRateProp / 100))}</td>
                                                     </tr>
-                                                    <tr style={{ borderTop: '2px solid #333' }}>
-                                                        <td className="bold" style={{ fontSize: '10px', padding: '8px 12px', backgroundColor: '#e2e8f0' }}>TOPLAM (KDV DAHİL)</td>
-                                                        <td className="right bold total-text" style={{ fontSize: '13px', padding: '8px 12px', backgroundColor: '#cbd5e1', color: '#000' }}>{formatCurrency(grandTotalPrice * (1 + kdvRateProp / 100))}</td>
+                                                    <tr style={{ borderTop: '2px solid #0f172a' }}>
+                                                        <td className="bold right" style={{ padding: '4px 8px', fontSize: '9.5px', backgroundColor: '#e2e8f0', color: '#000' }}>TOPLAM (KDV DAHİL)</td>
+                                                        <td className="right bold total-text" style={{ padding: '4px 8px', fontSize: '10.5px', backgroundColor: '#cbd5e1', color: '#000' }}>{formatCurrency(grandTotalPrice * (1 + kdvRateProp / 100))}</td>
                                                     </tr>
                                                 </>
                                             )}
