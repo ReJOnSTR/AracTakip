@@ -4,7 +4,7 @@ import CustomInput from './CustomInput'
 import StampSignaturePreview, { STAMP_DEFAULTS } from './StampSignaturePreview'
 import { FileText, Download, Check, ArrowLeft, Stamp } from 'lucide-react'
 import { documentTemplates } from '../utils/documentTemplates'
-import { formatDate, formatDateForInput } from '../utils/helpers'
+import { formatDate, formatDateForInput, generateUniqueFileName } from '../utils/helpers'
 
 export default function DocumentGeneratorModal({ isOpen, onClose, employee, company, onSuccess }) {
     const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0])
@@ -117,11 +117,9 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
             localStorage.setItem('printDocData', JSON.stringify(printData))
             
             // Only close modal immediately if NOT silent (because save file dialog will open)
-            const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
-            const dateStr = new Date().toISOString().split('T')[0];
-            const empStr = employee ? sanitizeFileName(`${employee.first_name}_${employee.last_name}`) : 'Personel';
-            const docTitleStr = title ? sanitizeFileName(title) : (selectedTemplate?.name ? sanitizeFileName(selectedTemplate.name) : 'Resmi_Belge');
-            const defaultFileName = `${empStr}_${docTitleStr}_${dateStr}.pdf`;
+            const empStr = employee ? `${employee.first_name}_${employee.last_name}` : 'Personel';
+            const docTitleStr = title || selectedTemplate?.name || 'Resmi_Belge';
+            const defaultFileName = generateUniqueFileName('Belge', [empStr, docTitleStr], 'pdf');
 
             const result = await window.electronAPI.saveReportPdf('/print-document', { silent: isSilent, defaultPath: defaultFileName })
             if (result && result.success && result.filePath) {

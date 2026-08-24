@@ -2,7 +2,8 @@ import {
     formatDate,
     formatCurrency,
     calculateRemainingLeaves,
-    formatDayBalance
+    formatDayBalance,
+    generateReportNo
 } from '../utils/helpers'
 
 // Shared A4 page styles
@@ -44,14 +45,14 @@ const totalRowStyle = { background: '#f5f5f5', fontWeight: 'bold' }
 const emptyStyle = { fontSize: '12px', fontStyle: 'italic', color: '#666' }
 const footerStyle = {
     position: 'absolute',
-    bottom: '20mm',
+    bottom: '15mm',
     left: '20mm',
     right: '20mm',
-    borderTop: '1px solid #ddd',
-    paddingTop: '10px',
-    fontSize: '10px',
-    color: '#999',
-    textAlign: 'center'
+    borderTop: '1px solid #cbd5e1',
+    paddingTop: '8px',
+    fontSize: '9.5px',
+    color: '#64748b',
+    textAlign: 'right'
 }
 
 export default function EmployeeReportRenderer({ reports, config, listConfig, dateRange, companyName, reportType, isPreview = false }) {
@@ -104,7 +105,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                     Toplam Personel Sayısı: <strong>{reports.length}</strong>
                 </div>
 
-                <div style={footerStyle}>Personel Raporu</div>
+                <div style={footerStyle}>Sayfa 1 / 1</div>
             </div>
         )
     }
@@ -318,7 +319,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                     </div>
                 </div>
             )}
-            <div style={footerStyle}>Personel Raporu</div>
+            <div style={footerStyle}>Sayfa {index + 1} / {reports.length}</div>
         </div>
     ))
 }

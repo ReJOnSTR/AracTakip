@@ -5,7 +5,7 @@ import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import EmployeeReportRenderer from '../components/EmployeeReportRenderer'
 import { FileText, Printer, Building2, Download, Eye, Calendar, Layers, Settings, List, Filter, FileDown, User, ChevronDown } from 'lucide-react'
-import { formatDate, formatCurrency, calculateRemainingLeaves, formatDayBalance } from '../utils/helpers'
+import { formatDate, formatCurrency, calculateRemainingLeaves, formatDayBalance, generateUniqueFileName } from '../utils/helpers'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import * as XLSX from 'xlsx'
 
@@ -97,10 +97,8 @@ export default function EmployeeReports() {
         }
         localStorage.setItem('printData', JSON.stringify(printData))
         
-        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
-        const dateStr = new Date().toISOString().split('T')[0];
-        const companyStr = currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '';
-        const defaultFileName = `Personel_Raporu_${companyStr}${dateStr}.pdf`;
+        const companyStr = currentCompany?.name || '';
+        const defaultFileName = generateUniqueFileName('Personel_Raporu', [companyStr], 'pdf');
 
         if (window.electronAPI && window.electronAPI.saveReportPdf) {
             try {
@@ -166,7 +164,10 @@ export default function EmployeeReports() {
             }
         }
 
-        XLSX.writeFile(wb, `Personel_Raporu_${formatDate(new Date())}.xlsx`)
+        const companyStr = currentCompany?.name || '';
+        const excelFileName = generateUniqueFileName('Personel_Raporu', [companyStr], 'xlsx');
+
+        XLSX.writeFile(wb, excelFileName)
     }
 
     useEffect(() => {

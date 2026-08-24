@@ -7,7 +7,7 @@ import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import ConfirmModal from '../components/ConfirmModal'
 import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Clock, Truck, User, DollarSign, FileText, Printer, Download, FileDown, Settings, Wallet, ChevronDown, Save } from 'lucide-react'
-import { formatDate, formatCurrency, safeSetLocalStorage } from '../utils/helpers'
+import { formatDate, formatCurrency, safeSetLocalStorage, generateUniqueFileName } from '../utils/helpers'
 import { calculateWorkStats } from '../utils/workCalculations'
 import { workItemSchema } from '../schemas/workSchema'
 import WorkPdfReport from './WorkPdfReport'
@@ -346,7 +346,7 @@ export default function WorkDetails(props) {
                     relatedType: 'work',
                     relatedId: work.id,
                     filePath: res.filePath,
-                    fileName: `${work.title}_Raporu_${new Date().toISOString().split('T')[0]}.pdf`
+                    fileName: generateUniqueFileName('Is_Raporu', [work.title || work.work_no], 'pdf')
                 })
 
                 if (docRes.success) {
@@ -822,11 +822,11 @@ export default function WorkDetails(props) {
             return m.charAt(0).toUpperCase() + m.slice(1);
         };
 
-        const monthStr = sanitizeFileName(getWorkMonthLabel(work));
-        const compStr = work?.company_name ? `${sanitizeFileName(work.company_name)}_` : (work?.company?.name ? `${sanitizeFileName(work.company.name)}_` : '');
-        const workNoStr = work?.work_no ? sanitizeFileName(work.work_no) : 'Is_Raporu';
+        const monthStr = getWorkMonthLabel(work);
+        const compStr = work?.company_name || work?.company?.name || '';
+        const workNoStr = work?.work_no || work?.title || 'Is_Raporu';
 
-        const defaultFileName = `Is_Raporu_${compStr}${workNoStr}_${monthStr}.pdf`;
+        const defaultFileName = generateUniqueFileName('Is_Raporu', [compStr, workNoStr, monthStr], 'pdf');
 
         safeSetLocalStorage('printData', JSON.stringify({
             isWorkReport: true,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { formatDate, formatCurrency } from '../utils/helpers';
+import { formatDate, formatCurrency, generateReportNo, generateUniqueFileName } from '../utils/helpers';
 import { calculateWorkStats } from '../utils/workCalculations';
 import './WorkPdfReport.css';
 
@@ -336,9 +336,7 @@ export default function WorkPdfReport({
 
         const companyStr = work.company_name || work.company?.name || work.customer_name || work.customer || '';
         const titleStr = work.title || work.work_no || 'Is_Raporu';
-        const dateStr = formatDate(work.date);
-        const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
-        const defaultFileName = `Puantaj_${sanitize(companyStr)}_${sanitize(titleStr)}_${dateStr}.pdf`;
+        const defaultFileName = generateUniqueFileName('Puantaj', [companyStr, titleStr], 'pdf');
 
         setTimeout(async () => {
             const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName });
@@ -350,6 +348,8 @@ export default function WorkPdfReport({
             }
         }, 100);
     };
+
+    const reportNumber = generateReportNo('PUAN', work.work_no || work.id);
 
     return (
         <div className={`pdf-viewer-layout ${savingPdf ? 'is-generating-pdf' : ''}`}>
@@ -417,35 +417,20 @@ export default function WorkPdfReport({
                                 }}
                             >
                                 {/* Header on First Page */}
-                                {page.isFirst && !noHeader && (
+                                {page.isFirst && (
                                     <div className="pdf-header-standard">
-                                        <div className="company-info">
-                                            <h1>{work.company_name || work.company?.name || work.customer_name || work.customer || 'ŞİRKET ADI'}</h1>
-                                            {work.company_phone && <p>Tel: {work.company_phone}</p>}
-                                            {work.company_address && <p>{work.company_address}</p>}
+                                        <div>
+                                            <h1 className="pdf-title-standard">
+                                                {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
+                                            </h1>
+                                            <div className="pdf-company-standard">
+                                                <strong>Firma / Müşteri:</strong> {work.company_name || work.company?.name || work.customer_name || work.customer || '-'}
+                                                {work.title && <span> &nbsp;|&nbsp; <strong>İş Tanımı:</strong> {work.title}</span>}
+                                            </div>
                                         </div>
-                                        <div className="report-info">
-                                            <h2>İŞ RAPORU</h2>
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="bold">Rapor No:</td>
-                                                        <td>{work.work_no || '-'}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="bold">Tarih:</td>
-                                                        <td>{formatDate(work.date)}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="bold">Müşteri:</td>
-                                                        <td>{work.customer_name || work.customer || '-'}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="bold">İş Başlığı:</td>
-                                                        <td>{work.title || '-'}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <div className="pdf-date-standard">
+                                            <div className="pdf-date-label">Rapor Tarihi</div>
+                                            <div className="pdf-date-value">{new Date().toLocaleDateString('tr-TR')}</div>
                                         </div>
                                     </div>
                                 )}
@@ -607,9 +592,8 @@ export default function WorkPdfReport({
                         </div>
 
                         {/* Pinned Page Footer - OUTSIDE SCALED WRAPPER (ALWAYS UNTOUCHED AT ABSOLUTE BOTTOM) */}
-                        <div className="pdf-footer-pinned">
-                            <span>PUANTAJ RAPORLARI</span>
-                            <span style={{ fontWeight: 700, color: '#0f172a' }}>SAYFA {pIdx + 1} / {pages.length}</span>
+                        <div className="pdf-footer-pinned" style={{ justifyContent: 'flex-end' }}>
+                            <span style={{ fontWeight: 600, color: '#475569', fontSize: '9px' }}>Sayfa {pIdx + 1} / {pages.length}</span>
                         </div>
                     </div>
                 );

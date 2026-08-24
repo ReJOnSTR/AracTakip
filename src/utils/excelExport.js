@@ -1,5 +1,5 @@
 import { calculateWorkStats } from './workCalculations'
-import { formatDate, formatCurrency } from './helpers'
+import { formatDate, formatCurrency, generateReportNo, generateUniqueFileName } from './helpers'
 
 /**
  * Export a Work Puantaj Report to an Excel file (.xls/.xlsx) that is
@@ -32,6 +32,7 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
     const companyName = work.company_name || work.company?.name || work.customer_name || work.customer || '-'
     const workTitle = work.title || work.work_no || 'İş Raporu'
     const reportDate = new Date().toLocaleDateString('tr-TR')
+    const reportNumber = generateReportNo('PUAN', work.work_no || work.id)
     const colSpanCount = showPrices ? 9 : 8
 
     let html = `
@@ -95,9 +96,8 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
 
   <!-- Sub-header Details -->
   <tr>
-    <td colspan="4" class="no-border" style="font-size: 11pt; padding: 4px 0;"><b>Firma / Müşteri:</b> ${companyName}</td>
-    <td colspan="3" class="no-border" style="font-size: 11pt; padding: 4px 0;"><b>İş Tanımı:</b> ${workTitle}</td>
-    <td colspan="${showPrices ? 2 : 1}" class="no-border text-right" style="font-size: 11pt; padding: 4px 0;"><b>Tarih:</b> ${formatDate(work.date)}</td>
+    <td colspan="5" class="no-border" style="font-size: 11pt; padding: 4px 0;"><b>Firma / Müşteri:</b> ${companyName}</td>
+    <td colspan="${showPrices ? 4 : 3}" class="no-border text-right" style="font-size: 11pt; padding: 4px 0;"><b>İş Tanımı:</b> ${workTitle}</td>
   </tr>
 
   <!-- Spacer Row before vehicle tables -->
@@ -276,10 +276,7 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
 </html>
 `
 
-    const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_')
-    const compStr = companyName ? `${sanitizeFileName(companyName)}_` : ''
-    const titleStr = workTitle ? sanitizeFileName(workTitle) : 'Puantaj_Raporu'
-    const fileName = `Puantaj_${compStr}${titleStr}_${new Date().toISOString().split('T')[0]}.xls`
+    const fileName = generateUniqueFileName('Puantaj', [companyName, workTitle], 'xls')
 
     const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8' })
     const link = document.createElement('a')

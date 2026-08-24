@@ -746,3 +746,49 @@ export function calculateRemainingLeaves(employee, leaves) {
     const balance = totalAccrued - pastUsed - systemUsedAnnual + totalOffsets
     return balance
 }
+
+/**
+ * Generates a unique document / report serial number if not already present
+ * Format: RPR-YYMMDD-HHMMSS (or existing code)
+ * @param {string} prefix - e.g. 'RPR', 'PUAN', 'MFR'
+ * @param {string} existingNo - Existing document/work number
+ * @returns {string}
+ */
+export function generateReportNo(prefix = 'RPR', existingNo = null) {
+    if (existingNo && String(existingNo).trim() !== '') {
+        return String(existingNo).trim();
+    }
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    return `${prefix}-${yy}${mm}${dd}-${hh}${min}${ss}`;
+}
+
+/**
+ * Generates a unique sanitized filename for PDF / Excel downloads
+ * Appends a timestamp and unique suffix so every download has a distinct identifier
+ * e.g. Puantaj_SamsunVinc_Temmuz2026_20260824_112543.pdf
+ * @param {string} prefix - e.g. 'Puantaj', 'Is_Raporu', 'Musteri_Raporu'
+ * @param {Array<string>} middleParts - e.g. [companyName, workTitle]
+ * @param {string} ext - 'pdf' or 'xlsx' or 'xls'
+ * @returns {string}
+ */
+export function generateUniqueFileName(prefix, middleParts = [], ext = 'pdf') {
+    const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
+    const parts = [sanitize(prefix), ...middleParts.map(sanitize)].filter(Boolean);
+    
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const timeStamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
+    
+    return `${parts.join('_')}_${timeStamp}.${ext}`;
+}

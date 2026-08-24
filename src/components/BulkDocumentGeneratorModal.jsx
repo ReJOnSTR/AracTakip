@@ -4,7 +4,7 @@ import CustomInput from './CustomInput'
 import StampSignaturePreview, { STAMP_DEFAULTS } from './StampSignaturePreview'
 import { FileText, Download, Check, ArrowLeft, Stamp, Users, FolderDown, Archive, Loader2 } from 'lucide-react'
 import { documentTemplates } from '../utils/documentTemplates'
-import { formatDate, formatDateForInput } from '../utils/helpers'
+import { formatDate, formatDateForInput, generateUniqueFileName } from '../utils/helpers'
 
 export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEmployees = [], company, onSuccess }) {
     const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0])
@@ -118,7 +118,7 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
 
                 localStorage.setItem('printDocData', JSON.stringify({ isBulk: true, documents: multiDocs }))
 
-                const defaultFileName = `Toplu_${docTitleStr}_${selectedEmployees.length}_Personel_${dateStr}.pdf`
+                const defaultFileName = generateUniqueFileName('Toplu_Belge', [docTitleStr, `${selectedEmployees.length}_Personel`], 'pdf')
                 const result = await window.electronAPI.saveReportPdf('/print-document', { silent: false, defaultPath: defaultFileName })
                 
                 if (result && result.success) {
@@ -144,8 +144,8 @@ export default function BulkDocumentGeneratorModal({ isOpen, onClose, selectedEm
                     const emp = selectedEmployees[i]
                     setProgress({ current: i + 1, total: selectedEmployees.length })
 
-                    const empStr = sanitizeFileName(`${emp.first_name}_${emp.last_name}`)
-                    const fileName = `${empStr}_${docTitleStr}_${dateStr}.pdf`
+                    const empStr = `${emp.first_name}_${emp.last_name}`
+                    const fileName = generateUniqueFileName('Belge', [empStr, docTitleStr], 'pdf')
                     
                     const printData = {
                         templateId: selectedTemplate.id,

@@ -84,37 +84,40 @@
 /* Standard Header Classes */
 .pdf-header-standard {
     border-bottom: 2px solid #000;
-    padding-bottom: 20px;
+    padding-bottom: 8px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+    align-items: flex-start;
+    margin-bottom: 12px;
 }
 
 .pdf-title-standard {
-    font-size: 24px; /* Matched ReportRenderer */
+    font-size: 18px;
     font-weight: bold;
-    margin: 0 0 5px 0;
+    margin: 0;
     color: #000;
+    letter-spacing: 0.3px;
 }
 
 .pdf-company-standard {
-    font-size: 14px; /* Matched ReportRenderer */
-    color: #666;
+    font-size: 12px;
+    color: #1e293b;
+    margin-top: 4px;
 }
 
 .pdf-date-standard {
     text-align: right;
+    white-space: nowrap;
 }
 
 .pdf-date-label {
-    font-size: 12px;
-    color: #666;
+    font-size: 10.5px;
+    color: #64748b;
 }
 
 .pdf-date-value {
     font-weight: bold;
-    font-size: 12px;
+    font-size: 12.5px;
     color: #000;
 }
 
@@ -570,20 +573,73 @@ body:has(.is-generating-pdf),
 }
 
 @media print {
-    body {
+    html, body {
         margin: 0 !important;
         padding: 0 !important;
+        background: #ffffff !important;
+        height: 100% !important;
+    }
+    .pdf-viewer-layout {
+        padding: 0 !important;
+        background: #ffffff !important;
+        min-height: 100% !important;
+    }
+    .pdf-pages-container {
+        gap: 0 !important;
+        width: 100% !important;
+    }
+    .pdf-report-container {
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        position: relative !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: #ffffff !important;
+    }
+    .pdf-report-container.is-landscape {
+        width: 297mm !important;
+        height: 210mm !important;
+        min-height: 210mm !important;
+        max-height: 210mm !important;
+    }
+    .pdf-report-container:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
     }
     .pdf-report-container.pdf-fit-page {
         page-break-after: avoid !important;
         break-after: avoid !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        max-height: 275mm !important;
-        overflow: hidden !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
     }
     .pdf-report-container.is-landscape.pdf-fit-page {
-        max-height: 195mm !important;
+        height: 210mm !important;
+        min-height: 210mm !important;
+        max-height: 210mm !important;
+    }
+    .pdf-footer-pinned {
+        position: absolute !important;
+        bottom: 5mm !important;
+        left: 8mm !important;
+        right: 8mm !important;
+        height: 20px !important;
+        border-top: 1px solid #cbd5e1 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        background: #ffffff !important;
+        z-index: 100 !important;
     }
 }
 

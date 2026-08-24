@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Phone, Mail, Building2, MapPin, Briefcase, Info, Calendar, Pencil, Banknote, Eye, CheckCircle2, Search, Filter, Archive, ArchiveRestore, FileText, Plus, Trash2, Folder, AlertCircle, ChevronRight, Printer, FileDown, Settings, ChevronDown, Save } from 'lucide-react'
 import DataTable from '../components/DataTable'
 import TopProgressBar from '../components/TopProgressBar'
-import { formatDate, formatCurrency } from '../utils/helpers'
+import { formatDate, formatCurrency, generateUniqueFileName } from '../utils/helpers'
 
 import Modal from '../components/Modal'
 import CustomerForm from '../components/forms/CustomerForm'
@@ -777,9 +777,7 @@ export default function CustomerDetail() {
         };
         localStorage.setItem('printData', JSON.stringify(printData));
         
-        const sanitizeFileName = (str) => (str || '').replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_');
-        const customerNameStr = sanitizeFileName(customer.name);
-        const defaultFileName = `Cari_Ekstre_${customerNameStr}_${new Date().toISOString().split('T')[0]}.pdf`;
+        const defaultFileName = generateUniqueFileName('Cari_Ekstre', [customer.name], 'pdf');
         
         setGeneratingPdf(true);
         setTimeout(async () => {

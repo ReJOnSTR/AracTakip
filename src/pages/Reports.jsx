@@ -5,7 +5,7 @@ import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ReportRenderer from '../components/ReportRenderer'
 import { FileText, Printer, Building2, Download, Eye, Calendar, Layers, Settings, List, Filter, FileDown, ChevronDown } from 'lucide-react'
-import { formatDate, formatCurrency, getVehicleTypeLabel, getMaintenanceTypeLabel, getInsuranceTypeLabel, vehicleTypes } from '../utils/helpers'
+import { formatDate, formatCurrency, getVehicleTypeLabel, getMaintenanceTypeLabel, getInsuranceTypeLabel, vehicleTypes, generateUniqueFileName } from '../utils/helpers'
 import { useReactToPrint } from 'react-to-print'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import * as XLSX from 'xlsx'
@@ -112,9 +112,9 @@ export default function Reports() {
             return m.charAt(0).toUpperCase() + m.slice(1);
         };
 
-        const monthStr = sanitizeFileName(getReportPeriodText(dateRange));
-        const companyStr = currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '';
-        const defaultFileName = `Is_Raporu_${companyStr}${monthStr}.pdf`;
+        const monthStr = getReportPeriodText(dateRange);
+        const companyStr = currentCompany?.name || '';
+        const defaultFileName = generateUniqueFileName('Is_Raporu', [companyStr, monthStr], 'pdf');
 
         if (window.electronAPI && window.electronAPI.saveReportPdf) {
             try {
@@ -228,10 +228,11 @@ export default function Reports() {
             const m = now.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
             return m.charAt(0).toUpperCase() + m.slice(1);
         };
-        const monthStr = sanitizeFileName(getReportPeriodText(dateRange));
-        const companyStr = currentCompany?.name ? `${sanitizeFileName(currentCompany.name)}_` : '';
+        const monthStr = getReportPeriodText(dateRange);
+        const companyStr = currentCompany?.name || '';
+        const excelFileName = generateUniqueFileName('Is_Raporu', [companyStr, monthStr], 'xlsx');
 
-        XLSX.writeFile(wb, `Is_Raporu_${companyStr}${monthStr}.xlsx`)
+        XLSX.writeFile(wb, excelFileName)
     }
 
     useEffect(() => {
