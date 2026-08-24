@@ -78,12 +78,14 @@ export default function WorkDetails(props) {
     const [generatingPdf, setGeneratingPdf] = useState(false)
     const [pazarMultiplier, setPazarMultiplier] = useState("1.5")
     const [mesaiMultiplier, setMesaiMultiplier] = useState("1.5")
-    const [pageBreakMode, setPageBreakMode] = useState('auto')
+    const [pageBreakMode, setPageBreakMode] = useState('fit_page')
     const [rowsPerPage, setRowsPerPage] = useState(20)
     const [manualBreakIds, setManualBreakIds] = useState([])
     const [customScale, setCustomScale] = useState(null)
     const [orientation, setOrientation] = useState('portrait')
+    const [tableDensity, setTableDensity] = useState('normal')
     const [showBreakTools, setShowBreakTools] = useState(false)
+    const [showCustomScaleSlider, setShowCustomScaleSlider] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState({
         options: false,
         multipliers: false,
@@ -101,6 +103,7 @@ export default function WorkDetails(props) {
                     if (parsed.manualBreakIds) setManualBreakIds(parsed.manualBreakIds)
                     if (parsed.customScale !== undefined) setCustomScale(parsed.customScale)
                     if (parsed.orientation) setOrientation(parsed.orientation)
+                    if (parsed.tableDensity) setTableDensity(parsed.tableDensity)
                 }
             } catch (e) {}
         }
@@ -115,6 +118,7 @@ export default function WorkDetails(props) {
                 rowsPerPage: newSettings.rowsPerPage !== undefined ? newSettings.rowsPerPage : rowsPerPage,
                 manualBreakIds: newSettings.manualBreakIds !== undefined ? newSettings.manualBreakIds : manualBreakIds,
                 customScale: newSettings.customScale !== undefined ? newSettings.customScale : customScale,
+                tableDensity: newSettings.tableDensity !== undefined ? newSettings.tableDensity : tableDensity,
                 ...newSettings
             }
             localStorage.setItem(`pdfPageBreakSettings_${work.id}`, JSON.stringify(updated))
@@ -327,6 +331,7 @@ export default function WorkDetails(props) {
             manualBreakIds: manualBreakIds,
             customScale: customScale,
             orientation: orientation,
+            tableDensity: tableDensity,
             isPdfSave: true
         }))
 
@@ -836,6 +841,7 @@ export default function WorkDetails(props) {
             manualBreakIds: manualBreakIds,
             customScale: customScale,
             orientation: orientation,
+            tableDensity: tableDensity,
             isPdfSave: true
         }))
 
@@ -868,6 +874,8 @@ export default function WorkDetails(props) {
             rowsPerPage: rowsPerPage,
             manualBreakIds: manualBreakIds,
             customScale: customScale,
+            orientation: orientation,
+            tableDensity: tableDensity,
             isPdfSave: false
         }))
         
@@ -2340,80 +2348,142 @@ export default function WorkDetails(props) {
                             </div>
                             {!sidebarCollapsed.pageBreak && (
                                 <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                                    {/* Sayfa Yönlendirmesi */}
-                                    <div>
-                                        <label style={{ fontSize: '11px', marginBottom: '6px', display: 'block', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Yönlendirmesi</label>
-                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                    {/* Sayfa Düzeni ve Sığdırma */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            Sayfa Düzeni ve Sığdırma
+                                        </label>
+                                        
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                             <button
                                                 type="button"
-                                                className={`btn btn-sm ${orientation === 'portrait' ? 'btn-primary' : 'btn-secondary'}`}
+                                                className={`btn ${pageBreakMode === 'fit_page' ? 'btn-primary' : 'btn-secondary'}`}
                                                 onClick={() => {
-                                                    setOrientation('portrait');
-                                                    savePdfBreakSettings({ orientation: 'portrait' });
+                                                    setPageBreakMode('fit_page');
+                                                    setCustomScale(null);
+                                                    savePdfBreakSettings({ pageBreakMode: 'fit_page', customScale: null });
                                                 }}
-                                                style={{ flex: 1, fontSize: '11px', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                                style={{ 
+                                                    fontSize: '11.5px', 
+                                                    padding: '9px 12px', 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between', 
+                                                    alignItems: 'center',
+                                                    borderRadius: '6px'
+                                                }}
+                                                title="Tüm raporu otomatik ölçekleyerek tam 1 A4 sayfasına sığdırır"
                                             >
-                                                📱 Dikey A4
+                                                <span style={{ fontWeight: 600 }}>1 Sayfaya Sığdır</span>
+                                                <span style={{ fontSize: '10px', opacity: 0.75 }}>Otomatik Ölçek</span>
                                             </button>
+
                                             <button
                                                 type="button"
-                                                className={`btn btn-sm ${orientation === 'landscape' ? 'btn-primary' : 'btn-secondary'}`}
+                                                className={`btn ${(pageBreakMode === 'auto' && !customScale) ? 'btn-primary' : 'btn-secondary'}`}
                                                 onClick={() => {
-                                                    setOrientation('landscape');
-                                                    savePdfBreakSettings({ orientation: 'landscape' });
+                                                    setPageBreakMode('auto');
+                                                    setCustomScale(null);
+                                                    savePdfBreakSettings({ pageBreakMode: 'auto', customScale: null });
                                                 }}
-                                                style={{ flex: 1, fontSize: '11px', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                                style={{ 
+                                                    fontSize: '11.5px', 
+                                                    padding: '9px 12px', 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between', 
+                                                    alignItems: 'center',
+                                                    borderRadius: '6px'
+                                                }}
+                                                title="Doğal %100 ölçekle standart akış"
                                             >
-                                                🖥️ Yatay A4
+                                                <span style={{ fontWeight: 600 }}>Standart (%100)</span>
+                                                <span style={{ fontSize: '10px', opacity: 0.75 }}>Doğal Akış</span>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className={`btn ${pageBreakMode === 'vehicle' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => {
+                                                    setPageBreakMode('vehicle');
+                                                    setCustomScale(null);
+                                                    savePdfBreakSettings({ pageBreakMode: 'vehicle', customScale: null });
+                                                }}
+                                                style={{ 
+                                                    fontSize: '11.5px', 
+                                                    padding: '9px 12px', 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between', 
+                                                    alignItems: 'center',
+                                                    borderRadius: '6px'
+                                                }}
+                                                title="Her iş makinesini/aracı ayrı bir sayfadan başlatır"
+                                            >
+                                                <span style={{ fontWeight: 600 }}>Araç Başına Sayfa</span>
+                                                <span style={{ fontSize: '10px', opacity: 0.75 }}>Araçları Böl</span>
                                             </button>
                                         </div>
                                     </div>
 
-                                    {/* Sayfa Ölçeği / Yakınlaştırma Ayarı */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>Sayfa Ölçeği / Yakınlaştırma</label>
-                                            <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600 }}>{customScale ? `%${Math.round(customScale * 100)}` : (pageBreakMode === 'fit_page' ? 'Otomatik Sığdır' : '%100')}</span>
+                                    {/* Tablo Yoğunluğu ve Sayfa Yönü Grid */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        <div>
+                                            <label style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: 500 }}>
+                                                Tablo Yoğunluğu
+                                            </label>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                <button
+                                                    type="button"
+                                                    className={`btn btn-sm ${tableDensity !== 'compact' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => {
+                                                        setTableDensity('normal');
+                                                        savePdfBreakSettings({ tableDensity: 'normal' });
+                                                    }}
+                                                    style={{ flex: 1, fontSize: '10.5px', padding: '6px 4px' }}
+                                                >
+                                                    Normal
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`btn btn-sm ${tableDensity === 'compact' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => {
+                                                        setTableDensity('compact');
+                                                        savePdfBreakSettings({ tableDensity: 'compact' });
+                                                    }}
+                                                    style={{ flex: 1, fontSize: '10.5px', padding: '6px 4px' }}
+                                                    title="Satır boşluklarını daraltarak daha çok satır sığdırır"
+                                                >
+                                                    Kompakt
+                                                </button>
+                                            </div>
                                         </div>
-                                        <input
-                                            type="range"
-                                            min="0.45"
-                                            max="1.1"
-                                            step="0.05"
-                                            value={customScale || (pageBreakMode === 'fit_page' ? 0.85 : 1.0)}
-                                            onChange={(e) => {
-                                                const val = parseFloat(e.target.value);
-                                                setCustomScale(val);
-                                                setPageBreakMode('auto');
-                                                savePdfBreakSettings({ customScale: val, pageBreakMode: 'auto' });
-                                            }}
-                                            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-secondary"
-                                                onClick={() => {
-                                                    setCustomScale(null);
-                                                    setPageBreakMode('fit_page');
-                                                    savePdfBreakSettings({ customScale: null, pageBreakMode: 'fit_page' });
-                                                }}
-                                                style={{ fontSize: '10px', padding: '4px 8px', flex: 1 }}
-                                            >
-                                                ⚡ Otomatik Sığdır
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-secondary"
-                                                onClick={() => {
-                                                    setCustomScale(1.0);
-                                                    setPageBreakMode('auto');
-                                                    savePdfBreakSettings({ customScale: 1.0, pageBreakMode: 'auto' });
-                                                }}
-                                                style={{ fontSize: '10px', padding: '4px 8px' }}
-                                            >
-                                                Sıfırla (%100)
-                                            </button>
+
+                                        <div>
+                                            <label style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: 500 }}>
+                                                Sayfa Yönü
+                                            </label>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                <button
+                                                    type="button"
+                                                    className={`btn btn-sm ${orientation === 'portrait' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => {
+                                                        setOrientation('portrait');
+                                                        savePdfBreakSettings({ orientation: 'portrait' });
+                                                    }}
+                                                    style={{ flex: 1, fontSize: '10.5px', padding: '6px 4px' }}
+                                                >
+                                                    Dikey
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`btn btn-sm ${orientation === 'landscape' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => {
+                                                        setOrientation('landscape');
+                                                        savePdfBreakSettings({ orientation: 'landscape' });
+                                                    }}
+                                                    style={{ flex: 1, fontSize: '10.5px', padding: '6px 4px' }}
+                                                >
+                                                    Yatay
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2439,6 +2509,7 @@ export default function WorkDetails(props) {
                                 manualBreakIdsProp={manualBreakIds}
                                 customScaleProp={customScale}
                                 orientationProp={orientation}
+                                tableDensityProp={tableDensity}
                                 onToggleManualBreakProp={(itemId) => {
                                     const next = manualBreakIds.includes(itemId) 
                                         ? manualBreakIds.filter(i => i !== itemId) 

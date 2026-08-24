@@ -21,7 +21,8 @@ export default function WorkPdfReport({
     onToggleManualBreakProp = null,
     showBreakToolsProp = false,
     customScaleProp = null,
-    orientationProp = 'portrait'
+    orientationProp = 'portrait',
+    tableDensityProp = 'normal'
 }) {
     const params = useParams();
     const id = propId || params.id;
@@ -42,8 +43,9 @@ export default function WorkPdfReport({
         }
     })();
 
-    const pageBreakMode = pageBreakModeProp || savedBreakSettings.pageBreakMode || 'auto';
+    const pageBreakMode = pageBreakModeProp || savedBreakSettings.pageBreakMode || 'fit_page';
     const rowsPerPage = rowsPerPageProp || savedBreakSettings.rowsPerPage || 20;
+    const tableDensity = tableDensityProp || savedBreakSettings.tableDensity || 'normal';
     const [manualBreakIds, setManualBreakIds] = useState(manualBreakIdsProp || savedBreakSettings.manualBreakIds || []);
     const [autoScale, setAutoScale] = useState(1);
 
@@ -65,12 +67,12 @@ export default function WorkPdfReport({
                 const naturalPx = targetChild.offsetTop + targetChild.offsetHeight;
 
                 const isLandscapeMode = orientationProp === 'landscape';
-                const targetH = isLandscapeMode ? 530 : 830; // Printable inner height limit right above pinned footer in px
+                const targetH = isLandscapeMode ? 625 : 830; // Printable inner height limit right above pinned footer in px
 
                 if (naturalPx > targetH) {
                     const exactScaleNeeded = targetH / naturalPx;
                     // Apply exact scale so last element aligns safely above page bottom line
-                    setAutoScale(parseFloat(Math.max(0.70, Math.min(0.99, exactScaleNeeded)).toFixed(2)));
+                    setAutoScale(parseFloat(Math.max(0.60, Math.min(0.99, exactScaleNeeded)).toFixed(2)));
                 } else {
                     setAutoScale(1.0);
                 }
@@ -80,7 +82,7 @@ export default function WorkPdfReport({
         } else {
             setAutoScale(1.0);
         }
-    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp, orientationProp]);
+    }, [pageBreakMode, work, showPricesProp, showKdvProp, kdvRateProp, pazarMultiplierProp, mesaiMultiplierProp, customScaleProp, orientationProp, tableDensity]);
 
     const effectiveScale = customScaleProp ? Number(customScaleProp) : (pageBreakMode === 'fit_page' ? autoScale : 1.0);
 
@@ -156,18 +158,29 @@ export default function WorkPdfReport({
     const pages = (() => {
         if (!groups || groups.length === 0) return [];
 
+        // 1. If fit_page mode is selected, enforce single page presentation with auto-scaling
+        if (pageBreakMode === 'fit_page') {
+            return [{
+                groups: groups.map(g => ({ ...g, isContinuation: false, isLastChunk: true })),
+                isFirst: true,
+                isLast: true,
+                pageIndex: 0
+            }];
+        }
+
+        const isCompact = tableDensity === 'compact';
         const scaleVal = effectiveScale > 0 ? effectiveScale : 1.0;
         const isLandscapeMode = orientationProp === 'landscape';
-        const BASE_TARGET_H = isLandscapeMode ? 530 : 830;
+        const BASE_TARGET_H = isLandscapeMode ? 625 : 830;
         const TARGET_A4_HEIGHT = Math.floor(BASE_TARGET_H / scaleVal); // Printable height limit inside A4 page in px
 
         // Exact physical heights of components:
-        const HEADER_H = 100;
-        const FOOTER_H = 30;
-        const GRAND_TOTAL_H = showGrandTotalProp ? (showKdvProp ? 120 : 70) : 0;
-        const DESC_H = (work?.description && work.description.trim() !== '') ? 40 : 0;
-        const ROW_H = 27.0; // Safe physical rendered height of each table row with margins and scaling clearance
-        const SUMMARY_H = 90; // Rendered height of Machine Summary Table
+        const HEADER_H = isCompact ? 85 : 100;
+        const FOOTER_H = 28;
+        const GRAND_TOTAL_H = showGrandTotalProp ? (showKdvProp ? (isCompact ? 95 : 120) : (isCompact ? 55 : 70)) : 0;
+        const DESC_H = (work?.description && work.description.trim() !== '') ? 35 : 0;
+        const ROW_H = isCompact ? 20.5 : 27.0; // Safe physical rendered height of each table row with margins and scaling clearance
+        const SUMMARY_H = isCompact ? 72 : 90; // Rendered height of Machine Summary Table
 
         // Split rows and blocks across pages based on exact height capacity:
         const pageList = [];
@@ -179,6 +192,18 @@ export default function WorkPdfReport({
             let itemIdx = 0;
             let needSummary = true;
             const isLastGroup = gIdx === groups.length - 1;
+
+            // In vehicle mode, force each vehicle onto a new page if current page already has content
+            if (pageBreakMode === 'vehicle' && currentGroups.length > 0) {
+                pageList.push({
+                    groups: currentGroups,
+                    isFirst: pageList.length === 0,
+                    isLast: false,
+                    pageIndex: pageList.length
+                });
+                currentGroups = [];
+                currentHeight = 0;
+            }
 
             while (itemIdx < items.length || needSummary) {
                 const isP1 = pageList.length === 0 && currentGroups.length === 0;
@@ -223,14 +248,25 @@ export default function WorkPdfReport({
                 }
 
                 const countToTake = Math.max(1, maxRowsCanFit);
-                const chunkEnd = Math.min(items.length, itemIdx + countToTake);
-                const chunk = items.slice(itemIdx, chunkEnd);
+                let chunkEnd = Math.min(items.length, itemIdx + countToTake);
+                let candidateChunk = items.slice(itemIdx, chunkEnd);
+
+                // Manual Page Break Check: If any item in candidateChunk has manualBreak, slice right after it
+                let manualBreakTriggered = false;
+                const manualBreakIdxInChunk = candidateChunk.findIndex(it => manualBreakIds.includes(it.id));
+                if (manualBreakIdxInChunk !== -1) {
+                    chunkEnd = itemIdx + manualBreakIdxInChunk + 1;
+                    candidateChunk = items.slice(itemIdx, chunkEnd);
+                    manualBreakTriggered = true;
+                }
+
+                const chunk = candidateChunk;
                 const isLastChunk = chunkEnd >= items.length;
 
                 // Check if summary table AND Grand Total Box fit in remaining space after rows without cutoff
                 const remainingSpaceAfterChunk = spaceForRows - (chunk.length * rowH);
                 const requiredEndSpace = SUMMARY_H + (isLastChunk && isLastGroup && showGrandTotalProp ? GRAND_TOTAL_H : 0);
-                const summaryFitsOnThisPage = isLastChunk && needSummary && (remainingSpaceAfterChunk >= requiredEndSpace);
+                const summaryFitsOnThisPage = isLastChunk && needSummary && (remainingSpaceAfterChunk >= requiredEndSpace) && !manualBreakTriggered;
 
                 if (chunk.length > 0 || summaryFitsOnThisPage) {
                     currentGroups.push({
@@ -251,11 +287,21 @@ export default function WorkPdfReport({
                 itemIdx = chunkEnd;
 
                 if (itemIdx >= items.length && !needSummary) {
+                    if (manualBreakTriggered && currentGroups.length > 0) {
+                        pageList.push({
+                            groups: currentGroups,
+                            isFirst: pageList.length === 0,
+                            isLast: false,
+                            pageIndex: pageList.length
+                        });
+                        currentGroups = [];
+                        currentHeight = 0;
+                    }
                     break;
                 }
 
-                // If current page is full or summary table overflows to next page, flush current page
-                if (currentHeight >= maxPageH - 20 || !summaryFitsOnThisPage) {
+                // If manual break or current page is full or summary table overflows to next page, flush current page
+                if (manualBreakTriggered || currentHeight >= maxPageH - 20 || !summaryFitsOnThisPage) {
                     pageList.push({
                         groups: currentGroups,
                         isFirst: pageList.length === 0,
@@ -328,120 +374,131 @@ export default function WorkPdfReport({
             )}
 
             <div className="pdf-pages-container">
-                {pages.map((page, pIdx) => (
-                    <div 
-                        key={pIdx} 
-                        className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''} ${orientationProp === 'landscape' ? 'is-landscape' : ''}`}
-                    >
-                        {isPreview && (
-                            <div className="pdf-page-header-badge">
-                                <span>{orientationProp === 'landscape' ? '🖥️ Yatay A4' : '📄 Dikey A4'} • Ölçek: %{Math.round(effectiveScale * 100)}</span>
-                                <span>Sayfa {pIdx + 1} / {pages.length} {pages.length === 1 ? ' (Tam Sığıyor ✅)' : ` (${pages.length} Sayfaya Dağıldı 📄)`}</span>
-                            </div>
-                        )}
+                {pages.map((page, pIdx) => {
+                    const pageRowCount = page.groups.reduce((acc, g) => acc + (g.items?.length || 0), 0);
+                    const isOverflowRisk = pages.length > 1 && pIdx === pages.length - 1 && pageRowCount <= 3 && pageBreakMode !== 'fit_page';
 
+                    return (
                         <div 
-                            ref={pIdx === 0 ? contentRef : null}
-                            className="pdf-content-wrapper"
-                            style={effectiveScale < 1 ? {
-                                transform: `scale(${effectiveScale})`,
-                                transformOrigin: 'top center',
-                                width: `${(100 / effectiveScale).toFixed(2)}%`,
-                                marginLeft: `calc(-${((100 / effectiveScale) - 100) / 2}%)`
-                            } : {}}
+                            key={pIdx} 
+                            className={`pdf-report-container ${isPreview ? 'is-preview' : ''} ${showKdvProp ? 'with-kdv' : ''} ${pageBreakMode === 'fit_page' ? 'pdf-fit-page' : ''} ${tableDensity === 'compact' ? 'is-compact' : ''} ${orientationProp === 'landscape' ? 'is-landscape' : ''}`}
                         >
-                            {/* Header on Page 1 */}
-                            {page.isFirst && (
-                                <div className="pdf-header-standard" style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '15px' }}>
-                                    <div>
-                                        <h1 className="pdf-title-standard" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
-                                            {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
-                                        </h1>
+                            {isPreview && (
+                                <div className="pdf-page-header-badge">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span>{orientationProp === 'landscape' ? 'Yatay A4' : 'Dikey A4'}</span>
+                                        <span>•</span>
+                                        <span>Ölçek: %{Math.round(effectiveScale * 100)}</span>
+                                        <span>•</span>
+                                        <span style={{ color: tableDensity === 'compact' ? '#2563eb' : '#64748b' }}>
+                                            {tableDensity === 'compact' ? 'Kompakt Düzen' : 'Standart Düzen'}
+                                        </span>
                                     </div>
-                                    <div className="pdf-date-standard" style={{ textAlign: 'right' }}>
-                                        <div className="pdf-date-label" style={{ fontSize: '11px', color: '#666' }}>Rapor Tarihi</div>
-                                        <div className="pdf-date-value" style={{ fontWeight: 'bold', fontSize: '13px' }}>{new Date().toLocaleDateString('tr-TR')}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span style={{ fontWeight: 700, color: pages.length === 1 ? '#16a34a' : '#2563eb' }}>
+                                            Sayfa {pIdx + 1} / {pages.length}
+                                        </span>
+                                        <span>({pageRowCount} Satır)</span>
+                                        {pages.length === 1 && <span style={{ color: '#16a34a', fontWeight: 600 }}>• Tam Sığıyor</span>}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Vehicle Groups on Page */}
-                            {page.groups.map((group, idx) => (
-                                <div className="pdf-vehicle-group" key={idx}>
-                                    <h3 
-                                        style={{ 
-                                            fontSize: '13px', 
-                                            fontWeight: 'bold', 
-                                            borderBottom: '1px solid #ccc', 
-                                            paddingBottom: '5px', 
-                                            marginBottom: '10px', 
-                                            marginTop: '10px', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: '8px',
-                                            pageBreakAfter: 'avoid',
-                                            breakAfter: 'avoid'
-                                        }}
-                                    >
-                                        <span>{(group.rawMachineName || group.machineName).toUpperCase()}{group.isContinuation ? ' (DEVAMI)' : ' DETAYLARI'}</span>
-                                    </h3>
-                                    <div>
-                                        <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th rowSpan="2" style={{ width: '11%' }}>TARİH</th>
-                                                    <th rowSpan="2" style={{ width: '11%' }}>FİŞ NO</th>
-                                                    <th colSpan="2" style={{ width: '22%' }}>Çalışma Süresi</th>
-                                                    <th rowSpan="2" style={{ width: '11%' }}>Süre/Adet</th>
-                                                    <th rowSpan="2" style={{ width: '11%' }}>Fazla Mesai</th>
-                                                    <th rowSpan="2" style={{ width: '11%' }}>MAKİNA</th>
-                                                    <th rowSpan="2" style={{ width: '12%' }}>AÇIKLAMA</th>
-                                                    <th rowSpan="2" style={{ width: '11%' }}>FİYAT</th>
-                                                </tr>
-                                                <tr>
-                                                    <th style={{ width: '11%' }}>Başlama</th>
-                                                    <th style={{ width: '11%' }}>Bitiş</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {(group.items || []).map((item, itemIdx) => {
-                                                    const desc = item.description || '';
-                                                    let pdfRowClass = '';
-                                                    if (desc.includes('[RENK:red]') || item.isPazar) pdfRowClass = 'pdf-row-red';
-                                                    else if (desc.includes('[RENK:orange]')) pdfRowClass = 'pdf-row-orange';
-                                                    else if (desc.includes('[RENK:blue]')) pdfRowClass = 'pdf-row-blue';
-                                                    else if (desc.includes('[RENK:green]')) pdfRowClass = 'pdf-row-green';
-                                                    else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
+                            <div 
+                                ref={pIdx === 0 ? contentRef : null}
+                                className="pdf-content-wrapper"
+                                style={{
+                                    transform: `scale(${effectiveScale})`,
+                                    transformOrigin: 'top left',
+                                    width: `${100 / effectiveScale}%`,
+                                    height: `${100 / effectiveScale}%`,
+                                    maxHeight: `${100 / effectiveScale}%`,
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                {/* Header on First Page */}
+                                {page.isFirst && !noHeader && (
+                                    <div className="pdf-header-standard">
+                                        <div className="company-info">
+                                            <h1>{work.company_name || work.company?.name || work.customer_name || work.customer || 'ŞİRKET ADI'}</h1>
+                                            {work.company_phone && <p>Tel: {work.company_phone}</p>}
+                                            {work.company_address && <p>{work.company_address}</p>}
+                                        </div>
+                                        <div className="report-info">
+                                            <h2>İŞ RAPORU</h2>
+                                            <table>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="bold">Rapor No:</td>
+                                                        <td>{work.work_no || '-'}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="bold">Tarih:</td>
+                                                        <td>{formatDate(work.date)}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="bold">Müşteri:</td>
+                                                        <td>{work.customer_name || work.customer || '-'}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="bold">İş Başlığı:</td>
+                                                        <td>{work.title || '-'}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
 
-                                                    const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
-                                                    const isManualBreak = manualBreakIds.includes(item.id);
+                                {/* Machine Groups */}
+                                {page.groups.map((group, idx) => (
+                                    <div key={idx} className="pdf-machine-group">
+                                        <h3 
+                                            className="pdf-machine-title"
+                                            style={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center', 
+                                                gap: '8px',
+                                                pageBreakAfter: 'avoid',
+                                                breakAfter: 'avoid'
+                                            }}
+                                        >
+                                            <span>{(group.rawMachineName || group.machineName).toUpperCase()}{group.isContinuation ? ' (DEVAMI)' : ' DETAYLARI'}</span>
+                                        </h3>
+                                        <div>
+                                            <table className="pdf-table" style={{ tableLayout: 'fixed' }}>
+                                                <thead>
+                                                    <tr>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '9%' : '11%' }}>TARİH</th>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '8%' : '11%' }}>FİŞ NO</th>
+                                                        <th colSpan="2" style={{ width: orientationProp === 'landscape' ? '16%' : '22%' }}>Çalışma Süresi</th>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '8%' : '11%' }}>Süre/Adet</th>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '8%' : '11%' }}>Fazla Mesai</th>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '14%' : '11%' }}>MAKİNA</th>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '27%' : '12%' }}>AÇIKLAMA</th>
+                                                        <th rowSpan="2" style={{ width: orientationProp === 'landscape' ? '10%' : '11%' }}>FİYAT</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style={{ width: orientationProp === 'landscape' ? '8%' : '11%' }}>Başlama</th>
+                                                        <th style={{ width: orientationProp === 'landscape' ? '8%' : '11%' }}>Bitiş</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {(group.items || []).map((item, itemIdx) => {
+                                                        const desc = item.description || '';
+                                                        let pdfRowClass = '';
+                                                        if (desc.includes('[RENK:red]') || item.isPazar) pdfRowClass = 'pdf-row-red';
+                                                        else if (desc.includes('[RENK:orange]')) pdfRowClass = 'pdf-row-orange';
+                                                        else if (desc.includes('[RENK:blue]')) pdfRowClass = 'pdf-row-blue';
+                                                        else if (desc.includes('[RENK:green]')) pdfRowClass = 'pdf-row-green';
+                                                        else if (desc.includes('[RENK:purple]')) pdfRowClass = 'pdf-row-purple';
 
-                                                    return (
-                                                        <React.Fragment key={item.id || itemIdx}>
-                                                            {isManualBreak && (
-                                                                <tr className="pdf-page-break-row">
-                                                                    <td colSpan="9">
-                                                                        ✂ SAYFA SONU (BU NOKTADAN BÖLÜNÜR)
-                                                                    </td>
-                                                                </tr>
-                                                            )}
-                                                            <tr className={pdfRowClass}>
-                                                                <td className="center">
-                                                                    {(showBreakToolsProp || isPreview) && (
-                                                                        <button
-                                                                            type="button"
-                                                                            className={`pdf-manual-break-btn ${isManualBreak ? 'active' : ''}`}
-                                                                            title={isManualBreak ? 'Sayfa sonunu kaldır' : 'Buradan sonra yeni sayfaya geç'}
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleToggleBreak(item.id);
-                                                                            }}
-                                                                        >
-                                                                            ✂
-                                                                        </button>
-                                                                    )}
-                                                                    {formatDate(item.date)}
-                                                                </td>
+                                                        const cleanDesc = desc.replace(/\[[^\]]*\]\s*/g, '').trim();
+
+                                                        return (
+                                                            <tr key={item.id || itemIdx} className={pdfRowClass}>
+                                                                <td className="center">{formatDate(item.date)}</td>
                                                                 <td className="center">{item.receipt_no || '-'}</td>
                                                                 <td className="center">{item.start_time || '-'}</td>
                                                                 <td className="center">{item.end_time || '-'}</td>
@@ -469,21 +526,20 @@ export default function WorkPdfReport({
                                                                     })() : ''}
                                                                 </td>
                                                             </tr>
-                                                        </React.Fragment>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
 
                                         {/* Vehicle Summary Block on Last Chunk of Group */}
                                         {(group.isLastChunk !== false) && (
                                             <div className="pdf-summary-block">
-                                                <table className="pdf-summary-table" style={{ width: '550px' }}>
+                                                <table className="pdf-summary-table" style={{ width: orientationProp === 'landscape' ? '100%' : '550px', maxWidth: orientationProp === 'landscape' ? '650px' : '550px' }}>
                                                     <colgroup>
-                                                        <col style={{ width: '125px' }} />
-                                                        <col style={{ width: '125px' }} />
-                                                        <col style={{ width: '150px' }} />
-                                                        <col style={{ width: '150px' }} />
+                                                        <col style={{ width: orientationProp === 'landscape' ? '22%' : '125px' }} />
+                                                        <col style={{ width: orientationProp === 'landscape' ? '22%' : '125px' }} />
+                                                        <col style={{ width: orientationProp === 'landscape' ? '28%' : '150px' }} />
+                                                        <col style={{ width: orientationProp === 'landscape' ? '28%' : '150px' }} />
                                                     </colgroup>
                                                     <tbody>
                                                         <tr className="bg-light-gray">
@@ -514,10 +570,10 @@ export default function WorkPdfReport({
                             {/* Grand Total on Last Page */}
                             {page.isLast && showGrandTotalProp && (
                                 <div className="pdf-grand-total">
-                                    <table className="pdf-summary-table" style={{ width: '350px', marginLeft: 'auto', marginTop: '15px' }}>
+                                    <table className="pdf-summary-table" style={{ width: orientationProp === 'landscape' ? '100%' : '350px', maxWidth: orientationProp === 'landscape' ? '400px' : '350px', marginLeft: 'auto', marginTop: '15px' }}>
                                         <colgroup>
-                                            <col style={{ width: '170px' }} />
-                                            <col style={{ width: '180px' }} />
+                                            <col style={{ width: orientationProp === 'landscape' ? '50%' : '170px' }} />
+                                            <col style={{ width: orientationProp === 'landscape' ? '50%' : '180px' }} />
                                         </colgroup>
                                         <tbody>
                                             <tr style={{ borderTop: '1px solid #ddd' }}>
@@ -556,7 +612,8 @@ export default function WorkPdfReport({
                             <span style={{ fontWeight: 700, color: '#0f172a' }}>SAYFA {pIdx + 1} / {pages.length}</span>
                         </div>
                     </div>
-                ))}
+                );
+            })}
             </div>
         </div>
     );

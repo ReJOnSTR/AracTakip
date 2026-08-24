@@ -81,19 +81,6 @@
     padding: 0 4px;
 }
 
-.pdf-report-container.is-preview::before {
-    content: "📄 Dikey A4 (210mm × 297mm)";
-    position: absolute;
-    top: -24px;
-    right: 0;
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    background: rgba(0,0,0,0.05);
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-
 /* Standard Header Classes */
 .pdf-header-standard {
     border-bottom: 2px solid #000;
@@ -583,10 +570,6 @@ body:has(.is-generating-pdf),
 }
 
 @media print {
-    @page {
-        size: A4 portrait;
-        margin: 0;
-    }
     body {
         margin: 0 !important;
         padding: 0 !important;
@@ -599,6 +582,69 @@ body:has(.is-generating-pdf),
         max-height: 275mm !important;
         overflow: hidden !important;
     }
+    .pdf-report-container.is-landscape.pdf-fit-page {
+        max-height: 195mm !important;
+    }
+}
+
+/* Compact Density Styling */
+.pdf-report-container.is-compact .pdf-content-wrapper {
+    padding: 4mm 6mm 2mm 6mm;
+}
+
+.pdf-report-container.is-compact .pdf-table th {
+    padding: 2.5px 3px !important;
+    font-size: 8px !important;
+    height: 18px !important;
+}
+
+.pdf-report-container.is-compact .pdf-table td {
+    padding: 1.5px 3px !important;
+    font-size: 7.5px !important;
+    line-height: 1.1 !important;
+}
+
+.pdf-report-container.is-compact .pdf-summary-block {
+    margin-top: 4px !important;
+}
+
+.pdf-report-container.is-compact .pdf-summary-table {
+    width: 100% !important;
+    max-width: 480px !important;
+}
+
+.pdf-report-container.is-compact .pdf-summary-table td {
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
+    line-height: 1.1 !important;
+}
+
+.pdf-report-container.is-compact .pdf-grand-total {
+    margin-top: 5px !important;
+    padding: 3px 6px !important;
+}
+
+.pdf-report-container.is-compact .pdf-grand-total table td {
+    padding: 2px 5px !important;
+    font-size: 8px !important;
+}
+
+/* Smart Overflow Badge on Preview */
+.pdf-overflow-smart-pill {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 12px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+    white-space: nowrap;
+    z-index: 20;
 }
 
 /* Page break rules */
@@ -613,24 +659,35 @@ tr.pdf-page-break-row {
 }
 
 tr.pdf-page-break-row td {
-    background: #fff1f2 !important;
-    color: #e11d48 !important;
-    font-weight: 600;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    font-weight: 700;
     text-align: center;
-    padding: 3px 6px !important;
-    font-size: 9.5px !important;
-    border-top: 2px dashed #f43f5e !important;
-    border-bottom: 2px dashed #f43f5e !important;
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    border-top: 2px dashed #3b82f6 !important;
+    border-bottom: 2px dashed #3b82f6 !important;
+    transition: all 0.2s ease;
+}
+
+tr.pdf-page-break-row:hover td {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+}
+
+.pdf-has-manual-break {
+    border-bottom: 2px solid #3b82f6 !important;
 }
 
 .pdf-manual-break-btn {
-    background: none;
-    border: 1px dashed #cbd5e1;
-    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    color: #475569;
     cursor: pointer;
-    padding: 0 4px;
-    border-radius: 3px;
-    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    font-weight: 600;
     line-height: 1.2;
     margin-right: 4px;
     vertical-align: middle;
@@ -638,19 +695,22 @@ tr.pdf-page-break-row td {
 }
 
 .pdf-manual-break-btn:hover {
-    border-color: #3b82f6;
-    color: #2563eb;
+    border-color: #2563eb;
+    color: #1d4ed8;
     background: #eff6ff;
+    transform: scale(1.05);
 }
 
 .pdf-manual-break-btn.active {
-    background: #fef2f2;
-    border-color: #ef4444;
-    color: #dc2626;
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+    box-shadow: 0 0 0 1px #2563eb;
 }
 
 /* Hide indicators during print and PDF download */
 .is-generating-pdf tr.pdf-page-break-row td,
+.is-generating-pdf .pdf-overflow-smart-pill,
 @media print {
     tr.pdf-page-break-row td {
         border: none !important;
@@ -661,7 +721,8 @@ tr.pdf-page-break-row td {
         height: 0 !important;
         line-height: 0 !important;
     }
-    .pdf-manual-break-btn {
+    .pdf-manual-break-btn,
+    .pdf-overflow-smart-pill {
         display: none !important;
     }
 }

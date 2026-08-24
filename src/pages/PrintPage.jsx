@@ -123,6 +123,7 @@ export default function PrintPage() {
                     manualBreakIdsProp={data.manualBreakIds}
                     customScaleProp={data.customScale}
                     orientationProp={data.orientation}
+                    tableDensityProp={data.tableDensity}
                 />
             </div>
         )
