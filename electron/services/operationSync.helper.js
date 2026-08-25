@@ -1,7 +1,23 @@
-const { app } = require('electron');
+let app = null;
+try {
+    const electron = require('electron');
+    if (electron && electron.app) app = electron.app;
+} catch(e) {}
+
 const path = require('path');
 const fs = require('fs');
 const { getPrismaClient } = require('../prismaClient');
+
+function getFilesDir() {
+    const basePath = (app && typeof app.getPath === 'function')
+        ? app.getPath('userData')
+        : (process.env.DATA_DIR || path.join(__dirname, '../../data'));
+    const filesDir = path.join(basePath, 'files');
+    if (!fs.existsSync(filesDir)) {
+        fs.mkdirSync(filesDir, { recursive: true });
+    }
+    return filesDir;
+}
 
 // Timeout helper for cloud paths
 const withTimeout = (promise, ms) => {
@@ -57,12 +73,7 @@ async function copyOrCloneFile(sourcePath, destPath) {
 // Helper to save base64 files
 async function saveBase64File(fileName, fileData) {
     if (!fileData) return null;
-    const userDataPath = app.getPath('userData');
-    const filesDir = path.join(userDataPath, 'files');
-    
-    if (!fs.existsSync(filesDir)) {
-        fs.mkdirSync(filesDir, { recursive: true });
-    }
+    const filesDir = getFilesDir();
 
     const ext = path.extname(fileName || '');
     const newFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext || '.bin'}`;
@@ -178,14 +189,10 @@ async function syncOperationDocument(relatedType, relatedId, data) {
     } else if (filePath) {
         // Local absolute file path from PC Web
         const isAbsolutePath = path.isAbsolute(filePath) || filePath.includes('/') || filePath.includes('\\');
-        const userDataPath = app.getPath('userData');
-        const filesDir = path.join(userDataPath, 'files');
+        const filesDir = getFilesDir();
         const isAlreadySaved = !isAbsolutePath || filePath.startsWith(filesDir);
 
         if (!isAlreadySaved) {
-            if (!fs.existsSync(filesDir)) {
-                fs.mkdirSync(filesDir, { recursive: true });
-            }
             const ext = path.extname(filePath);
             const base = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
             const destPath = path.join(filesDir, base);

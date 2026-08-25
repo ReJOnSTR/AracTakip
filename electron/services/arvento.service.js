@@ -1,10 +1,17 @@
 const path = require('path')
 const fs = require('fs')
-const { app } = require('electron')
+let app = null;
+try {
+    const electron = require('electron');
+    if (electron && electron.app) app = electron.app;
+} catch(e) {}
+
 const { getPrismaClient } = require('../prismaClient')
 const log = require('../logger')
 
-const settingsPath = path.join(app.getPath('userData'), 'settings.json')
+const settingsPath = (app && typeof app.getPath === 'function')
+    ? path.join(app.getPath('userData'), 'settings.json')
+    : path.join(process.env.DATA_DIR || path.join(__dirname, '../../data'), 'settings.json')
 
 function getArventoCredentials() {
     try {

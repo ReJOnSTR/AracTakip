@@ -61,6 +61,10 @@ function getDbPath() {
         fs.mkdirSync(dataDir, { recursive: true });
     }
 
+    if (!app || typeof app.getPath !== 'function') {
+        return targetDbPath;
+    }
+
     // ── CRITICAL: Once the active DB has real data, NEVER overwrite it. ──
     // Check migration flag first (fast path), then validate DB content.
     const alreadyMigrated = fs.existsSync(migrationFlagPath);
