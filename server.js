@@ -111,7 +111,7 @@ app.get('/api/data/:table', async (req, res) => {
 });
 
 // Single Page Application (SPA) Fallback
-app.get('*', (req, res) => {
+app.use((req, res) => {
     const indexPath = path.join(distDir, 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
