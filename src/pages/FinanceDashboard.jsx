@@ -282,7 +282,7 @@ export default function FinanceDashboard() {
         <div className="page-container fade-in" style={{ paddingBottom: '40px' }}>
             <TopProgressBar loading={loading} />
 
-            <div className="page-header mobile-hidden-header">
+            <div className="page-header">
                 <div>
                     <h1 className="page-title">Finans Dashboard</h1>
                     <p className="page-subtitle">Şirket genel finansal durumunu, gelir/gider akışını ve kasa bakiyelerini görüntüleyin.</p>

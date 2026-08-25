@@ -54,7 +54,7 @@ async function copyOrCloneFile(sourcePath, destPath) {
     }
 }
 
-// Helper to save base64 files (for mobile API)
+// Helper to save base64 files
 async function saveBase64File(fileName, fileData) {
     if (!fileData) return null;
     const userDataPath = app.getPath('userData');
@@ -151,7 +151,7 @@ async function syncOperationDocument(relatedType, relatedId, data) {
         }
     }
 
-    const fileData = data.fileData; // base64 payload from mobile
+    const fileData = data.fileData; // base64 payload
 
     // Handle deletion
     if (!filePath && !fileData) {
@@ -173,7 +173,7 @@ async function syncOperationDocument(relatedType, relatedId, data) {
     let savedFileName = filePath;
 
     if (fileData) {
-        // Base64 file from mobile
+        // Base64 file payload
         savedFileName = await saveBase64File(fileName || `${fileNamePrefix}_upload`, fileData);
     } else if (filePath) {
         // Local absolute file path from PC Web

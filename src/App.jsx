@@ -12,8 +12,6 @@ import Header from './components/Header'
 import TabBar from './components/TabBar' // Import TabBar
 import PersonnelHeader from './components/PersonnelHeader'
 import TopProgressBar from './components/TopProgressBar'
-import BottomNav from './components/BottomNav'
-import MobileHeader from './components/MobileHeader'
 import CommandPalette from './components/CommandPalette'
 import LockScreen from './components/LockScreen'
 import { useIdle } from './hooks/useIdle'
@@ -104,7 +102,6 @@ function MainLayout() {
     return (
         <>
             <CommandPalette />
-            <MobileHeader />
             <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
                 <div className="main-content">
@@ -116,7 +113,6 @@ function MainLayout() {
                             </Suspense>
                         </ErrorBoundary>
                     </div>
-                    <BottomNav />
                 </div>
             </div>
         </>
