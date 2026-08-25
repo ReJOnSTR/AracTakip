@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-electron
+.git
+.github
+.env*
+*.log
+ci_logs.txt
+test-out.txt

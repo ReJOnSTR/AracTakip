@@ -5,13 +5,18 @@
   "author": "Halil Sak",
   "main": "electron/main.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "node scripts/clear-port.js && concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
     "dev:electron": "wait-on http://127.0.0.1:5173 && electron .",
     "build": "npx prisma generate && vite build && electron-builder",
+    "build:web": "npx prisma generate && vite build",
     "publish": "npx prisma generate && vite build && electron-builder --publish always",
     "preview": "vite preview",
     "rebuild": "npx electron-rebuild -f -w better-sqlite3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

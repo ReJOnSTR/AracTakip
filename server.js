@@ -1,0 +1,140 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+const jwt = require('jsonwebtoken');
+
+// Load environment variables if available
+try {
+    require('dotenv').config();
+} catch (e) {}
+
+const { getPrismaClient } = require('./electron/prismaClient');
+const db = require('./electron/prismaService');
+const authService = require('./electron/services/auth.service');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const SECRET_KEY = process.env.JWT_SECRET || 'kontrol-app-production-secret-key-98765';
+
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Uploads directory configuration
+const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
+const filesDir = path.join(dataDir, 'files');
+if (!fs.existsSync(filesDir)) {
+    fs.mkdirSync(filesDir, { recursive: true });
+}
+app.use('/uploads', express.static(filesDir));
+
+// Serve compiled React frontend
+const distDir = path.join(__dirname, 'dist');
+if (fs.existsSync(distDir)) {
+    app.use(express.static(distDir));
+}
+
+// Public Auth Endpoints
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        const result = await authService.loginUser({ username, email, password });
+        if (result.success) {
+            const token = jwt.sign(
+                { id: result.user.id, username: result.user.username, role: result.user.role },
+                SECRET_KEY,
+                { expiresIn: '30d' }
+            );
+            res.json({ success: true, token, user: result.user });
+        } else {
+            res.status(401).json({ success: false, error: result.error });
+        }
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/register', async (req, res) => {
+    try {
+        const result = await authService.registerUser(req.body);
+        res.json(result);
+    } catch (err) {
+        console.error('Register error:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Generic RPC Router for all domain services (bridged from window.electronAPI)
+app.post('/api/rpc/:method', async (req, res) => {
+    const { method } = req.params;
+    const { args = [] } = req.body;
+
+    const fn = db[method] || authService[method];
+    if (typeof fn !== 'function') {
+        return res.status(404).json({ success: false, error: `Method "${method}" not found` });
+    }
+
+    try {
+        const result = await fn(...args);
+        res.json(result !== undefined ? result : { success: true });
+    } catch (err) {
+        console.error(`RPC Error [${method}]:`, err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Developer / Generic Table Endpoints
+const TABLES = [
+    'assignments', 'companies', 'customers', 'documents', 'employees', 'employee_documents',
+    'employee_assignments', 'employee_attendance', 'employee_movements', 'employee_salary_history',
+    'inspections', 'insurances', 'leaves', 'maintenances', 'meal_settings', 'meal_tickets', 'overtimes',
+    'recurring_transactions', 'salaries', 'services', 'transactions', 'users', 'vehicles', 'works', 'work_items'
+];
+
+app.get('/api/tables', (req, res) => {
+    res.json({ success: true, tables: TABLES });
+});
+
+app.get('/api/data/:table', async (req, res) => {
+    const { table } = req.params;
+    if (!TABLES.includes(table)) return res.status(400).json({ error: 'Invalid table' });
+
+    try {
+        const prisma = getPrismaClient();
+        const data = await prisma[table].findMany({ take: 500 });
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Single Page Application (SPA) Fallback
+app.get('*', (req, res) => {
+    const indexPath = path.join(distDir, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.send('Kontrol Web Server is running. (dist/index.html not found, please build the frontend)');
+    }
+});
+
+// Initialize database and start listening
+async function start() {
+    try {
+        const prisma = getPrismaClient();
+        // Test database connection
+        await prisma.$connect();
+        console.log('✅ Database connected successfully.');
+
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🚀 Kontrol Web Application running on http://0.0.0.0:${PORT}`);
+        });
+    } catch (err) {
+        console.error('❌ Failed to start server:', err);
+        process.exit(1);
+    }
+}
+
+start();

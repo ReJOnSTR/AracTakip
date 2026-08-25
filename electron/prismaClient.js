@@ -1,10 +1,24 @@
 const { PrismaClient } = require('./prisma/client');
-const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-const { app } = require('electron');
+let PrismaBetterSqlite3;
+try {
+    PrismaBetterSqlite3 = require('@prisma/adapter-better-sqlite3').PrismaBetterSqlite3;
+} catch(e) {}
+
+let app = null;
+try {
+    const electron = require('electron');
+    if (electron && electron.app) {
+        app = electron.app;
+    }
+} catch (e) {}
+
 const path = require('path');
 const fs = require('fs');
 const log = require('./logger');
-const Database = require('better-sqlite3');
+let Database;
+try {
+    Database = require('better-sqlite3');
+} catch(e) {}
 
 let prisma = null;
 
@@ -33,8 +47,13 @@ function hasValidData(dbPath) {
 }
 
 function getDbPath() {
-    const userDataPath = app.getPath('userData');
-    const dataDir = path.join(userDataPath, 'data');
+    let dataDir;
+    if (app && typeof app.getPath === 'function') {
+        const userDataPath = app.getPath('userData');
+        dataDir = path.join(userDataPath, 'data');
+    } else {
+        dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
+    }
     const targetDbPath = path.join(dataDir, 'aractakip.db');
     const migrationFlagPath = path.join(dataDir, MIGRATION_FLAG_FILE);
 
@@ -112,17 +131,27 @@ function getDbPath() {
 function getPrismaClient() {
     if (!prisma) {
         try {
-            const dbPath = getDbPath();
-            log.info(`Initializing Prisma Client on DB: ${dbPath}`);
-            process.env.DATABASE_URL = `file:${dbPath}?connection_limit=1`;
+            const dbUrl = process.env.DATABASE_URL;
+            if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
+                log.info('Initializing Prisma Client with PostgreSQL');
+                prisma = new PrismaClient({
+                    datasources: {
+                        db: { url: dbUrl }
+                    }
+                });
+            } else {
+                const dbPath = getDbPath();
+                log.info(`Initializing Prisma Client on SQLite DB: ${dbPath}`);
+                process.env.DATABASE_URL = `file:${dbPath}?connection_limit=1`;
+                if (PrismaBetterSqlite3) {
+                    const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
+                    prisma = new PrismaClient({ adapter });
+                } else {
+                    prisma = new PrismaClient();
+                }
+            }
 
-            // Edge client initialization with driver adapter for Vite/Electron bundler compatibility.
-            // IMPORTANT: Do NOT pass ?connection_limit to the adapter URL, as better-sqlite3 creates a literal file!
-            const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
-            prisma = new PrismaClient({ adapter });
-
-            // IMPORTANT: Prisma returns BigInt for SQLite's Int/BigInt.
-            // Electron's IPC drops BigInt entirely. We must override BigInt serialization.
+            // Override BigInt serialization
             BigInt.prototype.toJSON = function () {
                 return Number(this);
             };
