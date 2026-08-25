@@ -3,7 +3,7 @@ FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies needed for compilation & Prisma
+# Install system dependencies needed for native compilation & Prisma
 RUN apt-get update && apt-get install -y openssl ca-certificates python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
@@ -30,13 +30,15 @@ RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/
 ENV NODE_ENV=production
 ENV PORT=3000
 
-COPY package*.json ./
-RUN npm install --omit=dev --ignore-scripts
-
+# Copy pre-compiled node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/electron ./electron
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.js ./server.js
+COPY --from=builder /app/package.json ./package.json
+
+RUN mkdir -p /app/data/files
 
 EXPOSE 3000
 
