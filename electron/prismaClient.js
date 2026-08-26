@@ -138,11 +138,7 @@ function getPrismaClient() {
             const dbUrl = process.env.DATABASE_URL;
             if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
                 log.info('Initializing Prisma Client with PostgreSQL');
-                prisma = new PrismaClient({
-                    datasources: {
-                        db: { url: dbUrl }
-                    }
-                });
+                prisma = new PrismaClient();
             } else {
                 const dbPath = getDbPath();
                 log.info(`Initializing Prisma Client on SQLite DB: ${dbPath}`);
