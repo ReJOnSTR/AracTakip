@@ -548,19 +548,6 @@ exports.Prisma.Vehicle_typesScalarFieldEnum = {
   created_at: 'created_at'
 };
 
-exports.Prisma.Arvento_historyScalarFieldEnum = {
-  id: 'id',
-  plate: 'plate',
-  device_no: 'device_no',
-  lat: 'lat',
-  lng: 'lng',
-  speed: 'speed',
-  ignition: 'ignition',
-  heading: 'heading',
-  gps_date: 'gps_date',
-  created_at: 'created_at'
-};
-
 exports.Prisma.Public_holidaysScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
@@ -661,7 +648,6 @@ exports.Prisma.ModelName = {
   document_categories: 'document_categories',
   document_folders: 'document_folders',
   vehicle_types: 'vehicle_types',
-  arvento_history: 'arvento_history',
   public_holidays: 'public_holidays',
   roles: 'roles',
   permissions: 'permissions',

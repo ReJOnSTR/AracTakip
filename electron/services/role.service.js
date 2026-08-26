@@ -169,9 +169,9 @@ async function deleteUserAccount(userId) {
             where: { action_by: id }
         }).catch(() => {});
 
-        // 4. Delete user record from database
-        await prisma.users.delete({
-            where: { id: id }
+        // 4. Delete user record from database (using raw delete to prevent any schema cascade triggers)
+        await prisma.$executeRawUnsafe(`DELETE FROM users WHERE id = ${id}`).catch(async () => {
+            await prisma.users.delete({ where: { id: id } });
         });
 
         // 5. If user had an email, delete from Supabase Auth cloud as well
