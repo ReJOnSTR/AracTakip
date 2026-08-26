@@ -187,6 +187,39 @@ async function runAutoMigrations() {
         const dbPath = getDbPath();
         const sqliteDb = new Database(dbPath);
         
+        // 0. Auto-repair any tables corrupted with "_old" or "companies_old" references from previous SQLite alter table operations
+        try {
+            sqliteDb.prepare('PRAGMA foreign_keys = OFF').run();
+            sqliteDb.prepare('PRAGMA legacy_alter_table = ON').run();
+
+            const brokenTables = sqliteDb.prepare("SELECT name, sql FROM sqlite_master WHERE type = 'table' AND (sql LIKE '%_old%' OR sql LIKE '%companies_old%') AND name NOT LIKE '%_fix_temp%'").all();
+            for (const item of brokenTables) {
+                if (!item.sql) continue;
+                const tblName = item.name;
+                const fixedSql = item.sql
+                    .replace(/"companies_old"/g, '"companies"')
+                    .replace(/companies_old/g, 'companies')
+                    .replace(/"documents_old"/g, '"documents"')
+                    .replace(/documents_old/g, 'documents');
+                
+                if (fixedSql !== item.sql) {
+                    log.info(`Auto-repairing broken foreign keys in table: ${tblName}...`);
+                    const tempName = `${tblName}_fix_temp`;
+                    sqliteDb.prepare(`DROP TABLE IF EXISTS "${tempName}"`).run();
+                    sqliteDb.prepare(`CREATE TABLE "${tempName}" AS SELECT * FROM "${tblName}"`).run();
+                    sqliteDb.prepare(`DROP TABLE "${tblName}"`).run();
+                    sqliteDb.prepare(fixedSql).run();
+
+                    const cols = sqliteDb.pragma(`table_info("${tblName}")`).map(c => `"${c.name}"`).join(', ');
+                    sqliteDb.prepare(`INSERT INTO "${tblName}" (${cols}) SELECT ${cols} FROM "${tempName}"`).run();
+                    sqliteDb.prepare(`DROP TABLE "${tempName}"`).run();
+                    log.info(`Successfully repaired table ${tblName}!`);
+                }
+            }
+        } catch (repairErr) {
+            log.error('Auto-repair broken foreign keys notice:', repairErr.message);
+        }
+
         const pragma = sqliteDb.pragma("table_info('documents')");
         const columnNames = pragma.map(col => col.name.toLowerCase());
         
@@ -196,6 +229,7 @@ async function runAutoMigrations() {
             log.info('Native Migration: vehicle_id in documents is NOT NULL. Re-creating table to make it nullable...');
             
             sqliteDb.prepare('PRAGMA foreign_keys = OFF').run();
+            sqliteDb.prepare('PRAGMA legacy_alter_table = ON').run();
             sqliteDb.prepare('DROP TABLE IF EXISTS documents_old').run();
             sqliteDb.prepare('ALTER TABLE documents RENAME TO documents_old').run();
             
@@ -248,6 +282,7 @@ async function runAutoMigrations() {
             if (hasCascade || (userIdCol && userIdCol.notnull === 1)) {
                 log.info('Native Migration: companies table in SQLite has user_id CASCADE / NOT NULL. Re-creating table without cascade...');
                 sqliteDb.prepare('PRAGMA foreign_keys = OFF').run();
+                sqliteDb.prepare('PRAGMA legacy_alter_table = ON').run();
                 sqliteDb.prepare('DROP TABLE IF EXISTS companies_old').run();
                 sqliteDb.prepare('ALTER TABLE companies RENAME TO companies_old').run();
                 
