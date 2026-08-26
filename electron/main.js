@@ -166,6 +166,15 @@ function createWindow() {
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.show()
+        mainWindow.focus()
+        if (mainWindow.webContents) mainWindow.webContents.focus()
+    })
+
+    // Ensure webContents maintains first-responder keyboard focus
+    mainWindow.on('focus', () => {
+        if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
+            mainWindow.webContents.focus()
+        }
     })
 
     mainWindow.on('closed', () => {
@@ -340,6 +349,23 @@ app.whenReady().then(async () => {
             createWindow()
         }
     })
+})
+
+app.on('browser-window-focus', (event, win) => {
+    if (win && !win.isDestroyed() && win.webContents) {
+        win.webContents.focus()
+    }
+})
+
+app.on('activate', () => {
+    if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore()
+        mainWindow.show()
+        mainWindow.focus()
+        if (mainWindow.webContents) mainWindow.webContents.focus()
+    } else {
+        createWindow()
+    }
 })
 
 app.on('window-all-closed', () => {
@@ -2274,11 +2300,13 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
             fs.mkdirSync(dir, { recursive: true });
         }
 
-        // Create hidden window with ample dimensions for landscape A4 (297mm = 1123px)
+        // Create hidden window with non-focusable flags so it never hijacks keyboard responder
         hiddenWin = new BrowserWindow({
             width: 1400,
             height: 1000,
             show: false,
+            focusable: false,
+            skipTaskbar: true,
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
                 contextIsolation: true,
@@ -2353,17 +2381,43 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
 
         fs.writeFileSync(filePath, pdfData);
 
-        hiddenWin.close();
-        hiddenWin = null;
+        if (hiddenWin && !hiddenWin.isDestroyed()) {
+            hiddenWin.close();
+            hiddenWin = null;
+        }
+
+        // Restore focus to parent window
+        if (parentWin && !parentWin.isDestroyed()) {
+            parentWin.focus();
+            if (parentWin.webContents) parentWin.webContents.focus();
+        }
 
         return { success: true, filePath };
     } catch (err) {
         console.error('Report PDF Error:', err);
         if (hiddenWin && !hiddenWin.isDestroyed()) {
             hiddenWin.close();
+            hiddenWin = null;
+        }
+        if (parentWin && !parentWin.isDestroyed()) {
+            parentWin.focus();
+            if (parentWin.webContents) parentWin.webContents.focus();
         }
         return { success: false, error: err.message };
     }
+});
+
+// Recover and force window / webContents focus
+ipcMain.handle('window:focus', (event) => {
+    try {
+        const win = (event && event.sender) ? BrowserWindow.fromWebContents(event.sender) : mainWindow;
+        if (win && !win.isDestroyed()) {
+            win.focus();
+            if (win.webContents) win.webContents.focus();
+            return { success: true };
+        }
+    } catch (e) {}
+    return { success: false };
 });
 
 ipcMain.handle('window:setFullScreen', (event, flag) => {

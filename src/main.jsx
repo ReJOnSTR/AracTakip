@@ -19,6 +19,26 @@ const queryClient = new QueryClient({
     },
 })
 
+// Ensure inputs never lose active typing / first-responder ability in Electron / Web
+if (typeof window !== 'undefined') {
+    const ensureInputActive = (target) => {
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+            if (window.electronAPI && typeof window.electronAPI.focusWindow === 'function') {
+                window.electronAPI.focusWindow();
+            }
+        }
+    };
+
+    document.addEventListener('pointerdown', (e) => ensureInputActive(e.target), { capture: true, passive: true });
+    document.addEventListener('focusin', (e) => ensureInputActive(e.target), { capture: true, passive: true });
+    
+    window.addEventListener('focus', () => {
+        if (window.electronAPI && typeof window.electronAPI.focusWindow === 'function') {
+            window.electronAPI.focusWindow();
+        }
+    });
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <QueryClientProvider client={queryClient}>
