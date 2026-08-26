@@ -12,6 +12,8 @@ COPY prisma ./prisma/
 
 RUN npm install
 
+COPY . .
+
 ENV DATABASE_URL="postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres"
 ENV USE_POSTGRES="true"
 
