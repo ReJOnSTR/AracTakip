@@ -237,6 +237,46 @@ async function runAutoMigrations() {
                 log.info('Native Migration: Added end_date to documents');
             }
         }
+
+        // 3. Check if companies has user_id NOT NULL or ON DELETE CASCADE in SQLite, recreate without cascade if so
+        try {
+            const compPragma = sqliteDb.pragma("table_info('companies')");
+            const compFkList = sqliteDb.pragma("foreign_key_list('companies')");
+            const hasCascade = compFkList.some(fk => fk.on_delete && fk.on_delete.toUpperCase() === 'CASCADE' && fk.table && fk.table.toLowerCase() === 'users');
+            const userIdCol = compPragma.find(col => col.name.toLowerCase() === 'user_id');
+
+            if (hasCascade || (userIdCol && userIdCol.notnull === 1)) {
+                log.info('Native Migration: companies table in SQLite has user_id CASCADE / NOT NULL. Re-creating table without cascade...');
+                sqliteDb.prepare('PRAGMA foreign_keys = OFF').run();
+                sqliteDb.prepare('DROP TABLE IF EXISTS companies_old').run();
+                sqliteDb.prepare('ALTER TABLE companies RENAME TO companies_old').run();
+                
+                sqliteDb.prepare(`
+                    CREATE TABLE "companies" (
+                        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "user_id" INTEGER,
+                        "name" TEXT NOT NULL,
+                        "tax_number" TEXT,
+                        "tax_office" TEXT,
+                        "sgk_no" TEXT,
+                        "address" TEXT,
+                        "phone" TEXT,
+                        "signature_path" TEXT,
+                        "stamp_path" TEXT,
+                        "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        CONSTRAINT "companies_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION
+                    )
+                `).run();
+
+                const oldCompCols = compPragma.map(c => `"${c.name}"`).join(', ');
+                sqliteDb.prepare(`INSERT INTO companies (${oldCompCols}) SELECT ${oldCompCols} FROM companies_old`).run();
+                sqliteDb.prepare('DROP TABLE IF EXISTS companies_old').run();
+                sqliteDb.prepare('PRAGMA foreign_keys = ON').run();
+                log.info('Native Migration: Successfully removed ON DELETE CASCADE from companies table in SQLite!');
+            }
+        } catch (compErr) {
+            log.error('Native Migration for companies table notice:', compErr.message);
+        }
         
         sqliteDb.close();
     } catch (err) {
