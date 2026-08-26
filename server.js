@@ -9,7 +9,7 @@ try {
     require('dotenv').config();
 } catch (e) {}
 
-const { getPrismaClient } = require('./electron/prismaClient');
+const { getPrismaClient, runAutoMigrations } = require('./electron/prismaClient');
 const db = require('./electron/prismaService');
 const authService = require('./electron/services/auth.service');
 
@@ -142,6 +142,25 @@ async function initializePostgres(dbUrl) {
         const pgClient = new Client({ connectionString: dbUrl });
         await pgClient.connect();
         await pgClient.query(postgresDdlSql);
+
+        // Verify users exist, seed default admin if empty
+        const uRes = await pgClient.query('SELECT count(*) as count FROM users');
+        if (parseInt(uRes.rows[0].count, 10) === 0) {
+            console.log('• Seeding default admin user in PostgreSQL...');
+            const bcrypt = require('bcryptjs');
+            const defaultPasswordHash = bcrypt.hashSync('admin', 10);
+            
+            // Create default company
+            const cRes = await pgClient.query("INSERT INTO companies (name, created_at) VALUES ('Varsayılan Şirket', CURRENT_TIMESTAMP) RETURNING id");
+            const companyId = cRes.rows[0].id;
+
+            await pgClient.query(`
+                INSERT INTO users (username, email, password_hash, role, company_id, is_active, created_at)
+                VALUES ('admin', 'admin@muayen.com', $1, 'admin', $2, 1, CURRENT_TIMESTAMP)
+            `, [defaultPasswordHash, companyId]);
+            console.log('✅ Default admin user created in PostgreSQL.');
+        }
+
         await pgClient.end();
         console.log('✅ PostgreSQL Schema & Tables verified.');
     } catch (err) {
@@ -161,6 +180,12 @@ async function start() {
         // Test database connection
         await prisma.$connect();
         console.log('✅ Database connected successfully.');
+
+        // Run auto migrations for SQLite tables and columns
+        if (typeof runAutoMigrations === 'function') {
+            await runAutoMigrations();
+            console.log('✅ Database schema and migrations verified.');
+        }
 
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 Kontrol Web Application running on http://0.0.0.0:${PORT}`);
