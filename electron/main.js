@@ -2470,7 +2470,23 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                     webContents.send('migration-log', `[Tablo] ${tableName} aktarılıyor...`);
 
                     const pragma = sqliteDb.pragma(`table_info("${tableName}")`);
-                    const columns = pragma.map(col => col.name);
+                    const sqliteColumns = pragma.map(col => col.name);
+
+                    // Fetch actual columns in PostgreSQL table to prevent missing column errors
+                    const pgColsRes = await pgClient.query(`
+                        SELECT column_name 
+                        FROM information_schema.columns 
+                        WHERE table_name = $1
+                    `, [tableName]);
+                    const pgColumns = new Set(pgColsRes.rows.map(r => r.column_name));
+
+                    // Use only columns that exist in BOTH SQLite and PostgreSQL
+                    const columns = sqliteColumns.filter(c => pgColumns.has(c));
+
+                    if (columns.length === 0) {
+                        webContents.send('migration-log', `  - Tablo Postgres'te bulunamadı veya sütun yok.`);
+                        continue;
+                    }
 
                     const rows = sqliteDb.prepare(`SELECT * FROM "${tableName}"`).all();
                     

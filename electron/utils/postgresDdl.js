@@ -7,7 +7,11 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     role VARCHAR(50) DEFAULT 'user',
-    must_change_password INT DEFAULT 0
+    must_change_password INT DEFAULT 0,
+    employee_id INT,
+    status VARCHAR(50) DEFAULT 'active',
+    role_id INT,
+    is_active INT DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS companies (
@@ -449,6 +453,25 @@ CREATE TABLE IF NOT EXISTS public_holidays (
     status VARCHAR(50) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Self-healing Column Upgrades for Existing PostgreSQL Tables
+ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id INT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id INT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active INT DEFAULT 1;
+
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS allow_login INT DEFAULT 0;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS signature_path TEXT;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS iban VARCHAR(100);
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS off_days VARCHAR(50) DEFAULT '0';
+
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS start_date TIMESTAMP;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS end_date TIMESTAMP;
+
+ALTER TABLE document_folders ADD COLUMN IF NOT EXISTS related_type VARCHAR(100);
+ALTER TABLE document_folders ADD COLUMN IF NOT EXISTS related_id INT;
+
+ALTER TABLE public_holidays ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
 `;
 
 module.exports = { postgresDdlSql };

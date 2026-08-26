@@ -127,11 +127,20 @@ async function runMigration() {
                 continue;
             }
 
-            console.log(`⏳ [${tableName}] Migrating ${rows.length} rows...`);
+            // Fetch actual Postgres columns for table
+            const pgColsRes = await pg.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = $1
+            `, [tableName]);
+            const pgColumns = new Set(pgColsRes.rows.map(r => r.column_name));
 
             for (const row of rows) {
-                const cols = Object.keys(row);
-                const values = Object.values(row).map(val => {
+                const cols = Object.keys(row).filter(c => pgColumns.has(c));
+                if (cols.length === 0) continue;
+
+                const values = cols.map(c => {
+                    const val = row[c];
                     if (val === undefined || val === null) return null;
                     if (typeof val === 'string' && (val.includes('T') && val.endsWith('Z') || /^\d{4}-\d{2}-\d{2}/.test(val))) {
                         const d = new Date(val);
