@@ -30,7 +30,7 @@ export function exportWorkToExcel(work, vehicles = [], options = {}) {
     const groups = calcResult.groups || []
     const grandTotal = calcResult.grandTotal || 0
 
-    const companyName = work.company_name || work.company?.name || work.customer_name || work.customer || '-'
+    const companyName = work.customer_name || (typeof work.customer === 'object' ? work.customer?.name : work.customer) || work.customers?.name || work.company_name || work.company?.name || '-'
     const workTitle = work.title || work.work_no || 'İş Raporu'
     const reportDate = new Date().toLocaleDateString('tr-TR')
     const reportNumber = generateReportNo('PUAN', work.work_no || work.id)

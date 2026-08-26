@@ -335,7 +335,7 @@ export default function WorkPdfReport({
         if (savingPdf) return;
         setSavingPdf(true);
 
-        const companyStr = work.company_name || work.company?.name || work.customer_name || work.customer || '';
+        const companyStr = work.customer_name || (typeof work.customer === 'object' ? work.customer?.name : work.customer) || work.customers?.name || work.company_name || work.company?.name || '';
         const titleStr = work.title || work.work_no || 'Is_Raporu';
         const defaultFileName = generateUniqueFileName('Puantaj', [companyStr, titleStr], 'pdf');
 
@@ -425,7 +425,7 @@ export default function WorkPdfReport({
                                                 {work.work_no ? `İŞ RAPORU - ${work.work_no}` : 'İŞ RAPORU / PUANTAJ CETVELİ'}
                                             </h1>
                                             <div className="pdf-company-standard">
-                                                <strong>Firma / Müşteri:</strong> {work.company_name || work.company?.name || work.customer_name || work.customer || '-'}
+                                                <strong>Firma / Müşteri:</strong> {work.customer_name || (typeof work.customer === 'object' ? work.customer?.name : work.customer) || work.customers?.name || work.company_name || work.company?.name || '-'}
                                                 {showWorkTitleProp && work.title && <span> &nbsp;|&nbsp; <strong>İş Tanımı:</strong> {work.title}</span>}
                                             </div>
                                         </div>

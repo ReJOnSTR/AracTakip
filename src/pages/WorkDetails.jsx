@@ -270,11 +270,19 @@ export default function WorkDetails(props) {
             if (v && v.id) vMap[String(v.id)] = v;
         });
 
+        const customerName = w.customer_name || w.customers?.name || (typeof w.customer === 'object' ? w.customer?.name : w.customer) || '';
+
         return {
             id: w.id,
             title: w.title,
             work_no: w.work_no,
             date: w.date,
+            description: w.description,
+            customer_id: w.customer_id,
+            customer_name: customerName,
+            customer: w.customer,
+            customers: w.customers ? { id: w.customers.id, name: w.customers.name, phone: w.customers.phone } : (customerName ? { name: customerName } : null),
+            company_id: w.company_id,
             company_name: w.company_name || w.company?.name || '',
             company: w.company ? { name: w.company.name, phone: w.company.phone } : null,
             pazar_multiplier: w.pazar_multiplier,
