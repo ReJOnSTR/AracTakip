@@ -354,7 +354,7 @@ CREATE TABLE IF NOT EXISTS works (
     employee_id INT REFERENCES employees(id) ON DELETE SET NULL,
     customer_id INT REFERENCES customers(id) ON DELETE SET NULL,
     customer VARCHAR(255),
-    title VARCHAR(255) NOT NULL,
+    title VARCHAR(255),
     description TEXT,
     status VARCHAR(50) DEFAULT 'pending',
     price DOUBLE PRECISION DEFAULT 0,
@@ -429,19 +429,6 @@ CREATE TABLE IF NOT EXISTS vehicle_types (
     id SERIAL PRIMARY KEY,
     company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS arvento_history (
-    id SERIAL PRIMARY KEY,
-    plate VARCHAR(100) NOT NULL,
-    device_no VARCHAR(100) NOT NULL,
-    lat DOUBLE PRECISION NOT NULL,
-    lng DOUBLE PRECISION NOT NULL,
-    speed INT NOT NULL,
-    ignition INT NOT NULL,
-    heading INT NOT NULL,
-    gps_date TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -537,6 +524,8 @@ ALTER TABLE document_folders ADD COLUMN IF NOT EXISTS related_type VARCHAR(100);
 ALTER TABLE document_folders ADD COLUMN IF NOT EXISTS related_id INT;
 
 ALTER TABLE public_holidays ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+ALTER TABLE works ALTER COLUMN title DROP NOT NULL;
+DROP TABLE IF EXISTS arvento_history CASCADE;
 `;
 
 module.exports = { postgresDdlSql };

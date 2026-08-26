@@ -245,11 +245,6 @@ async function testArventoConnection(credentials) {
 
 async function getArventoVehicleStatus(credentialsOverride = null) {
     const result = await getArventoData('GetVehicleStatusJSON', {}, true, credentialsOverride)
-    if (result.success && Array.isArray(result.data)) {
-        savePositionsToHistory(result.data, credentialsOverride).catch(err => {
-            console.error('Error saving positions to history:', err)
-        })
-    }
     return result
 }
 
@@ -330,57 +325,6 @@ function formatDateForArvento(val) {
     const min = String(d.getMinutes()).padStart(2, '0')
     const ss = String(d.getSeconds()).padStart(2, '0')
     return `${yyyy}${mm}${dd}${hh}${min}${ss}`
-}
-
-async function savePositionsToHistory(items) {
-    const prisma = getPrismaClient()
-    
-    // 1. Fetch plate mappings to resolve plate names
-    const mappingsRes = await getArventoLicensePlateNodeMappings()
-    const mappings = mappingsRes.success && Array.isArray(mappingsRes.data) ? mappingsRes.data : []
-    
-    // 2. Loop through each item and insert to db if doesn't exist
-    for (const item of items) {
-        if (!item.Node || !item.LatitudeY || !item.LongitudeX) continue
-        
-        const mapping = mappings.find(m => m['Device No'] === item.Node)
-        const plateFull = mapping ? mapping['License Plate'] : item.Node
-        const plateClean = plateFull ? plateFull.split(/\s+-/)[0].trim() : item.Node
-        
-        const lat = parseFloat(item.LatitudeY || 0)
-        const lng = parseFloat(item.LongitudeX || 0)
-        const speed = parseInt(item.Speed || 0)
-        const heading = parseInt(item.Course || 0)
-        
-        // Ignition state
-        const ignition = (item.Ignition === true || item.Ignition === '1' || item.Ignition === 1 || speed > 0) ? 1 : 0
-        
-        // Parse date
-        const gpsDate = parseLocalDateTime(item.LocalDateTime)
-        
-        // Check if this record already exists to avoid duplicates
-        const existing = await prisma.arvento_history.findFirst({
-            where: {
-                plate: plateClean,
-                gps_date: gpsDate
-            }
-        })
-        
-        if (!existing) {
-            await prisma.arvento_history.create({
-                data: {
-                    plate: plateClean,
-                    device_no: item.Node,
-                    lat,
-                    lng,
-                    speed,
-                    ignition,
-                    heading,
-                    gps_date: gpsDate
-                }
-            })
-        }
-    }
 }
 
 async function getArventoHistory(filters) {

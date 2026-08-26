@@ -804,13 +804,14 @@ async function runAutoMigrations() {
 
     // 18. Fix plate numbers in arvento_history for devices with hyphenated plates
     try {
-        log.info('Fixing plate numbers in arvento_history for devices with hyphenated plates...');
-        await p.$executeRawUnsafe("UPDATE arvento_history SET plate = '55-09-13' WHERE device_no = 'K1200246883' AND plate = '55'");
-        await p.$executeRawUnsafe("UPDATE arvento_history SET plate = '55-09-27' WHERE device_no = 'K1200246889' AND plate = '55'");
-        log.info('Plate number fix completed.');
-    } catch (error) {
-        log.error('Migration step 18 (arvento_history plate fix) error:', error.message);
-    }
+        if (!isPostgres) {
+            const tbl = await p.$queryRawUnsafe("SELECT name FROM sqlite_master WHERE type='table' AND name='arvento_history'");
+            if (tbl && tbl.length > 0) {
+                await p.$executeRawUnsafe("UPDATE arvento_history SET plate = '55-09-13' WHERE device_no = 'K1200246883' AND plate = '55'");
+                await p.$executeRawUnsafe("UPDATE arvento_history SET plate = '55-09-27' WHERE device_no = 'K1200246889' AND plate = '55'");
+            }
+        }
+    } catch (error) {}
 
     // 19. Add price_per_person to meal_tickets and backfill from meal_settings
     try {
