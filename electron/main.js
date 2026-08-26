@@ -2529,8 +2529,8 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                 const rows = sqliteDb.prepare(`SELECT * FROM "${tableName}"`).all();
                 
                 if (rows.length > 0) {
-                    // Clear old data
-                    await pgClient.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
+                    // Clear old data safely without cascading to already migrated tables
+                    await pgClient.query(`DELETE FROM "${tableName}"`);
 
                     const colEscaped = columns.map(c => `"${c}"`).join(', ');
                     const chunkSize = Math.max(1, Math.floor(60000 / columns.length));
