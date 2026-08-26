@@ -283,6 +283,22 @@ const rpcMap = {
     deleteRole: db.deleteRole,
     assignUserRole: db.assignUserRoleAndEmployee,
     deleteUserAccount: db.deleteUserAccount,
+
+    // Arvento Vehicle Tracking API
+    arventoTestConnection: (credentials) => db.testArventoConnection(credentials),
+    arventoGetStatus: (credentials) => db.getArventoVehicleStatus(credentials),
+    arventoGetMappings: (credentials) => db.getArventoLicensePlateNodeMappings(credentials),
+    arventoGetInfo: (credentials) => db.getArventoVehicleInfo(credentials),
+    arventoGetDailyReport: (date, credentials) => db.getArventoVehicleDailyStatus(date, credentials),
+    arventoGetAlarms: (credentials) => db.getArventoAlarms(credentials),
+    arventoGetHistory: (filters, credentials) => db.getArventoHistory(filters, credentials),
+    testArventoConnection: (credentials) => db.testArventoConnection(credentials),
+    getArventoVehicleStatus: (credentials) => db.getArventoVehicleStatus(credentials),
+    getArventoLicensePlateNodeMappings: (credentials) => db.getArventoLicensePlateNodeMappings(credentials),
+    getArventoVehicleInfo: (credentials) => db.getArventoVehicleInfo(credentials),
+    getArventoVehicleDailyStatus: (date, credentials) => db.getArventoVehicleDailyStatus(date, credentials),
+    getArventoAlarms: (credentials) => db.getArventoAlarms(credentials),
+    getArventoHistory: (filters, credentials) => db.getArventoHistory(filters, credentials),
 };
 
 // Generic RPC Router
