@@ -1896,6 +1896,21 @@ ipcMain.handle('files:save', async (event, sourcePath) => {
         const destPath = path.join(filesDir, fileName)
 
         await copyOrCloneFile(sourcePath, destPath)
+
+        // Asynchronously upload to Supabase Storage in background for cross-PC availability
+        try {
+            const { uploadToStorage } = require('./services/supabase.service');
+            const fileBuf = fs.readFileSync(destPath);
+            let mimeType = 'application/octet-stream';
+            const extLower = ext.toLowerCase();
+            if (extLower === '.pdf') mimeType = 'application/pdf';
+            else if (extLower === '.jpg' || extLower === '.jpeg') mimeType = 'image/jpeg';
+            else if (extLower === '.png') mimeType = 'image/png';
+            uploadToStorage(fileBuf, fileName, mimeType, 'documents').catch(err => {
+                console.warn('[Supabase Sync Notice]: File saved locally, background cloud upload:', err.message);
+            });
+        } catch (e) {}
+
         return fileName
     } catch (error) {
         console.error('File save error:', error)
@@ -2169,7 +2184,27 @@ ipcMain.handle('documents:readData', async (event, fileName) => {
             if (fs.existsSync(fallbackPath)) {
                 filePath = fallbackPath
             } else {
-                return { success: false, error: 'File not found at: ' + filePath }
+                // Fetch from Supabase Storage for cross-PC synchronization
+                let fetchedFromCloud = false;
+                try {
+                    const { downloadFromStorage } = require('./services/supabase.service');
+                    const cleanName = path.basename(fileName);
+                    const storageRes = await downloadFromStorage(cleanName, 'documents');
+                    if (storageRes && storageRes.success && storageRes.buffer) {
+                        const filesDir = path.join(userDataPath, 'files');
+                        if (!fs.existsSync(filesDir)) fs.mkdirSync(filesDir, { recursive: true });
+                        const cachedPath = path.join(filesDir, cleanName);
+                        fs.writeFileSync(cachedPath, storageRes.buffer);
+                        filePath = cachedPath;
+                        fetchedFromCloud = true;
+                    }
+                } catch (cloudErr) {
+                    console.warn('[Cloud Storage Fetch Notice]:', cloudErr.message);
+                }
+
+                if (!fetchedFromCloud && !fs.existsSync(filePath)) {
+                    return { success: false, error: 'File not found locally or on Supabase Storage: ' + filePath };
+                }
             }
         }
 
