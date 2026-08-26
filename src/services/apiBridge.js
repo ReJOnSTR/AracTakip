@@ -134,10 +134,35 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 };
             }
 
-            // Web saveAsPdf / print
-            if (prop === 'saveAsPdf' || prop === 'saveReportPdf') {
+            // Web saveAsPdf / saveReportPdf (opens report preview & print in new tab)
+            if (prop === 'saveReportPdf') {
+                return async (route, options) => {
+                    const url = route || '/print';
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                    return { success: true, filePath: 'report.pdf' };
+                };
+            }
+
+            if (prop === 'saveAsPdf') {
                 return async () => {
                     window.print();
+                    return { success: true };
+                };
+            }
+
+            // Web file download polyfill
+            if (prop === 'downloadFile') {
+                return async (params) => {
+                    const fileName = typeof params === 'string' ? params : (params?.fileName || params?.path);
+                    if (!fileName) return { success: false, error: 'No file specified' };
+                    const cleanName = String(fileName).split(/[\\/]/).pop();
+                    const a = document.createElement('a');
+                    a.href = `/uploads/${cleanName}`;
+                    a.download = cleanName;
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                     return { success: true };
                 };
             }
