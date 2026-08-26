@@ -90,7 +90,7 @@ export default function PrintPage() {
     if (data.isWorkReport) {
         const isLandscape = data.orientation === 'landscape';
         return (
-            <div className="print-body" style={{ background: 'white', minHeight: '100vh', width: isLandscape ? '297mm' : '210mm', margin: '0' }}>
+            <div className="print-body" style={{ background: 'white', minHeight: '100vh', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <style type="text/css" media="print">
                     {`
                     @page {
@@ -104,7 +104,7 @@ export default function PrintPage() {
                         color-scheme: light !important;
                         margin: 0px !important;
                         padding: 0px !important;
-                        width: ${isLandscape ? '297mm' : '210mm'} !important;
+                        width: 100% !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }
@@ -115,6 +115,7 @@ export default function PrintPage() {
                     noHeader={true} 
                     isPreview={false} 
                     showPricesProp={data.showPrices} 
+                    showGrandTotalProp={data.showGrandTotal !== undefined ? data.showGrandTotal : true}
                     showKdvProp={data.showKdv} 
                     kdvRateProp={data.kdvRate} 
                     pazarMultiplierProp={data.pazarMultiplier}

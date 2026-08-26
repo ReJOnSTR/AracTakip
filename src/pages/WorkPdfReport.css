@@ -258,8 +258,8 @@
 }
 
 .pdf-report-container.is-landscape .pdf-summary-table {
-    width: 620px;
-    max-width: 620px;
+    width: 720px;
+    max-width: 720px;
 }
 
 .pdf-summary-table th,
@@ -568,20 +568,22 @@ body:has(.is-generating-pdf),
         margin: 0 !important;
         padding: 0 !important;
         background: #ffffff !important;
+        width: 100% !important;
         height: 100% !important;
     }
     .pdf-viewer-layout {
         padding: 0 !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         background: #ffffff !important;
         min-height: 100% !important;
-        align-items: flex-start !important;
+        width: 100% !important;
+        align-items: center !important;
     }
     .pdf-pages-container {
         gap: 0 !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         width: 100% !important;
-        align-items: flex-start !important;
+        align-items: center !important;
     }
     .pdf-report-container {
         width: 210mm !important;
@@ -593,7 +595,7 @@ body:has(.is-generating-pdf),
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         position: relative !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
@@ -606,6 +608,7 @@ body:has(.is-generating-pdf),
         height: 210mm !important;
         min-height: 210mm !important;
         max-height: 210mm !important;
+        margin: 0 auto !important;
     }
     .pdf-report-container:last-child {
         page-break-after: avoid !important;

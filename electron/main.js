@@ -2274,10 +2274,10 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
             fs.mkdirSync(dir, { recursive: true });
         }
 
-        // Create hidden window
+        // Create hidden window with ample dimensions for landscape A4 (297mm = 1123px)
         hiddenWin = new BrowserWindow({
-            width: 1200,
-            height: 900,
+            width: 1400,
+            height: 1000,
             show: false,
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
