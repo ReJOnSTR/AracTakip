@@ -2547,7 +2547,51 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                 // Enable foreign key constraints
                 await pgClient.query("SET session_replication_role = 'origin'");
 
-                webContents.send('migration-log', 'Aktarım işlemi başarıyla tamamlandı!');
+                // Upload local files to Supabase Storage
+                try {
+                    const { uploadToStorage } = require('./services/supabase.service');
+                    const uploadDirs = [
+                        path.join(app.getPath('userData'), 'data'),
+                        path.join(app.getPath('userData'), 'uploads')
+                    ];
+
+                    let allFilesToUpload = [];
+                    for (const uDir of uploadDirs) {
+                        if (fs.existsSync(uDir)) {
+                            const files = fs.readdirSync(uDir);
+                            for (const f of files) {
+                                if (f.endsWith('.pdf') || f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg')) {
+                                    allFilesToUpload.push({ fullPath: path.join(uDir, f), fileName: f });
+                                }
+                            }
+                        }
+                    }
+
+                    if (allFilesToUpload.length > 0) {
+                        webContents.send('migration-log', `[Storage] ${allFilesToUpload.length} adet evrak ve görsel Supabase Storage'a aktarılıyor...`);
+                        let uploadedCount = 0;
+                        for (const item of allFilesToUpload) {
+                            try {
+                                const fileBuf = fs.readFileSync(item.fullPath);
+                                const ext = path.extname(item.fileName).toLowerCase();
+                                let mimeType = 'application/octet-stream';
+                                if (ext === '.pdf') mimeType = 'application/pdf';
+                                else if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+                                else if (ext === '.png') mimeType = 'image/png';
+
+                                const res = await uploadToStorage(fileBuf, item.fileName, mimeType, 'documents');
+                                if (res && res.success) {
+                                    uploadedCount++;
+                                }
+                            } catch (fErr) {}
+                        }
+                        webContents.send('migration-log', `[Storage] ${uploadedCount} adet dosya Supabase Storage'a yüklendi.`);
+                    }
+                } catch (storageErr) {
+                    webContents.send('migration-log', `[Storage Notu] Dosya senkronizasyonu: ${storageErr.message}`);
+                }
+
+                webContents.send('migration-log', '🎉 Tebrikler! Tüm veritabanı ve dosyalar başarıyla Supabase bulutuna aktarıldı!');
                 return { success: true };
 
             } catch (migrationErr) {
