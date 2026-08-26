@@ -282,6 +282,26 @@ const rpcMap = {
     searchGlobal: db.searchGlobal,
     archiveItem: db.archiveItem,
 
+    // Backup & Data Export / Import
+    exportCompanyData: async (payload) => {
+        const { getCompanyCompleteData } = require('./electron/services/backup.service');
+        const companyId = payload?.companyId || payload;
+        const res = await getCompanyCompleteData(companyId);
+        if (res.success && res.data) {
+            res.data.localStorageData = payload?.localStorageData || null;
+            return {
+                success: true,
+                backupData: res.data,
+                companyName: res.data.company?.name || 'sirket'
+            };
+        }
+        return res;
+    },
+    importCompanyData: async (userId, backupData) => {
+        const { importCompanyData } = require('./electron/services/backup.service');
+        return await importCompanyData(userId, backupData);
+    },
+
     // Settings
     getSettings: () => {
         try {

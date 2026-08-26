@@ -51,6 +51,11 @@ async function getCompanyCompleteData(companyId) {
 
         const transactions = await prisma.transactions.findMany({ where: { company_id: id } });
         const mealTickets = await prisma.meal_tickets.findMany({ where: { company_id: id } });
+        const customers = await prisma.customers.findMany({ where: { company_id: id } });
+        const works = await prisma.works.findMany({
+            where: { company_id: id },
+            include: { work_items: true }
+        });
 
         const employees = await prisma.employees.findMany({
             where: { company_id: id },
@@ -71,8 +76,10 @@ async function getCompanyCompleteData(companyId) {
                 transactions,
                 mealTickets,
                 employees,
+                customers,
+                works,
                 exportedAt: new Date().toISOString(),
-                version: '1.4-prisma'
+                version: '2.0-cloud'
             }))
         };
     } catch (error) {
@@ -82,42 +89,82 @@ async function getCompanyCompleteData(companyId) {
 
 async function importCompanyData(userId, backupData) {
     try {
-        if (!backupData.company || !backupData.vehicles) {
-            return { success: false, error: 'Invalid backup format' };
+        if (!backupData || !backupData.company) {
+            return { success: false, error: 'Geçersiz yedek dosyası formatı' };
         }
 
-        // Run transaction
+        const compData = backupData.company;
         const result = await prisma.$transaction(async (tx) => {
             const comp = await tx.companies.create({
                 data: {
                     user_id: parseInt(userId),
-                    name: `${backupData.company.name} (Imported)`,
-                    tax_number: backupData.company.tax_number,
-                    address: backupData.company.address,
-                    phone: backupData.company.phone,
-                    meal_price_per_person: backupData.company.meal_price_per_person || 0
+                    name: `${compData.name} (Geri Yüklendi)`,
+                    tax_number: compData.tax_number || null,
+                    tax_office: compData.tax_office || null,
+                    sgk_no: compData.sgk_no || null,
+                    address: compData.address || null,
+                    phone: compData.phone || null
                 }
             });
 
-            for (const v of backupData.vehicles) {
-                const vehicle = await tx.vehicles.create({
-                    data: {
-                        company_id: comp.id,
-                        type: v.type, plate: v.plate, brand: v.brand, model: v.model,
-                        year: v.year, color: v.color, status: v.status, notes: v.notes,
-                        km: v.km, image: v.image
-                    }
-                });
+            // Restore vehicles
+            if (Array.isArray(backupData.vehicles)) {
+                for (const v of backupData.vehicles) {
+                    await tx.vehicles.create({
+                        data: {
+                            company_id: comp.id,
+                            plate: v.plate,
+                            brand: v.brand || null,
+                            model: v.model || null,
+                            year: v.year ? parseInt(v.year) : null,
+                            color: v.color || null,
+                            status: v.status || 'active',
+                            notes: v.notes || null,
+                            km: v.km ? parseInt(v.km) : null
+                        }
+                    });
+                }
+            }
 
-                // Since we rely strictly on ORM inserts, this avoids massive manual SQL writes.
-                // For brevity, this is a simplified stub returning success based on DB capability. 
-                // Full nested creation can be utilized via `create` args, but this is sufficient for proof of Prisma transition.
+            // Restore customers
+            if (Array.isArray(backupData.customers)) {
+                for (const c of backupData.customers) {
+                    await tx.customers.create({
+                        data: {
+                            company_id: comp.id,
+                            name: c.name,
+                            phone: c.phone || null,
+                            email: c.email || null,
+                            address: c.address || null,
+                            tax_number: c.tax_number || null,
+                            tax_office: c.tax_office || null
+                        }
+                    });
+                }
+            }
+
+            // Restore employees
+            if (Array.isArray(backupData.employees)) {
+                for (const emp of backupData.employees) {
+                    await tx.employees.create({
+                        data: {
+                            company_id: comp.id,
+                            first_name: emp.first_name,
+                            last_name: emp.last_name,
+                            tc_no: emp.tc_no || null,
+                            phone: emp.phone || null,
+                            position: emp.position || null,
+                            salary: emp.salary ? parseFloat(emp.salary) : null,
+                            status: emp.status || 'active'
+                        }
+                    });
+                }
             }
 
             return comp;
         });
 
-        return { success: true, companyId: result.id };
+        return { success: true, companyId: result.id, localStorage: backupData.localStorageData || null };
     } catch (error) {
         return { success: false, error: error.message };
     }

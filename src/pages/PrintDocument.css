@@ -17,6 +17,9 @@
         size: A4 portrait;
         margin: 0mm;
     }
+    .web-print-toolbar {
+        display: none !important;
+    }
     body {
         background: none;
         margin: 0;

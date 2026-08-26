@@ -322,17 +322,67 @@ export default function PrintDocument() {
         };
     }, []);
 
+    useEffect(() => {
+        if (data) {
+            setTimeout(() => {
+                window.print();
+            }, 700);
+        }
+    }, [data]);
+
     if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
 
-    if (data.isBulk && Array.isArray(data.documents)) {
-        return (
-            <div>
-                {data.documents.map((docItem, index) => (
-                    <SingleDoc key={index} docItem={docItem} />
-                ))}
-            </div>
-        );
-    }
+    const renderToolbar = () => (
+        <div className="web-print-toolbar" style={{
+            position: 'fixed',
+            top: 12,
+            right: 16,
+            zIndex: 999999,
+            display: 'flex',
+            gap: '8px',
+            background: 'rgba(15, 23, 42, 0.9)',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+            backdropFilter: 'blur(8px)'
+        }}>
+            <button onClick={() => window.print()} style={{
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '13px'
+            }}>
+                🖨️ Yazdır / PDF İndir
+            </button>
+            <button onClick={() => window.close()} style={{
+                background: '#dc2626',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '13px'
+            }}>
+                ✕ Kapat
+            </button>
+        </div>
+    );
 
-    return <SingleDoc docItem={data} />;
+    return (
+        <div>
+            {renderToolbar()}
+            {data.isBulk && Array.isArray(data.documents) ? (
+                data.documents.map((docItem, index) => (
+                    <SingleDoc key={index} docItem={docItem} />
+                ))
+            ) : (
+                <SingleDoc docItem={data} />
+            )}
+        </div>
+    );
 }

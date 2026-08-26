@@ -167,6 +167,87 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 };
             }
 
+            // Web exportCompanyData polyfill (triggers JSON backup file download)
+            if (prop === 'exportCompanyData') {
+                return async (payload) => {
+                    try {
+                        const token = localStorage.getItem('token') || localStorage.getItem('aractakip_token') || sessionStorage.getItem('token');
+                        const res = await fetch('/api/rpc/exportCompanyData', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                            },
+                            body: JSON.stringify({ args: [payload] })
+                        });
+                        const data = await res.json();
+                        if (data && data.success && data.backupData) {
+                            const jsonStr = JSON.stringify(data.backupData, null, 2);
+                            const blob = new Blob([jsonStr], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            const compName = (data.companyName || 'kontrol').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                            const fileName = `kontrol-yedek-${compName}-${new Date().toISOString().split('T')[0]}.json`;
+                            a.href = url;
+                            a.download = fileName;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            return { success: true, filePath: fileName };
+                        }
+                        return data || { success: false, error: 'Dışa aktarma başarısız oldu' };
+                    } catch (err) {
+                        return { success: false, error: err.message };
+                    }
+                };
+            }
+
+            // Web importCompanyData polyfill (file picker + restore JSON backup)
+            if (prop === 'importCompanyData') {
+                return (userId) => new Promise((resolve) => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.style.display = 'none';
+                    document.body.appendChild(input);
+
+                    input.onchange = async () => {
+                        const file = input.files?.[0];
+                        document.body.removeChild(input);
+                        if (!file) {
+                            resolve({ success: false, error: 'Dosya seçilmedi' });
+                            return;
+                        }
+
+                        try {
+                            const text = await file.text();
+                            const backupData = JSON.parse(text);
+                            const token = localStorage.getItem('token') || localStorage.getItem('aractakip_token') || sessionStorage.getItem('token');
+                            const res = await fetch('/api/rpc/importCompanyData', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                },
+                                body: JSON.stringify({ args: [userId, backupData] })
+                            });
+                            const result = await res.json();
+                            resolve(result);
+                        } catch (err) {
+                            resolve({ success: false, error: 'Yedek dosyası okunamadı: ' + err.message });
+                        }
+                    };
+
+                    input.oncancel = () => {
+                        document.body.removeChild(input);
+                        resolve({ success: false, error: 'İşlem iptal edildi' });
+                    };
+
+                    input.click();
+                });
+            }
+
             if (prop === 'showNotification') {
                 return async (title, body) => {
                     if ('Notification' in window && Notification.permission === 'granted') {

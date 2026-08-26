@@ -26,12 +26,10 @@ export default function PrintPage() {
                     });
                     document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
 
-                    // Trigger print after render if not saving PDF
-                    if (!parsed.isPdfSave) {
-                        setTimeout(() => {
-                            window.print()
-                        }, 500)
-                    }
+                    // Trigger print after render in web/browser mode
+                    setTimeout(() => {
+                        window.print()
+                    }, 700)
                 } catch (e) {
                     console.error('Failed to parse print data', e)
                 }
@@ -61,12 +59,10 @@ export default function PrintPage() {
                         }
                         document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
                         
-                        // Trigger print after render if not saving PDF
-                        if (!parsed.isPdfSave) {
-                            setTimeout(() => {
-                                window.print()
-                            }, 500)
-                        }
+                        // Trigger print after render in web/browser mode
+                        setTimeout(() => {
+                            window.print()
+                        }, 700)
                         return parsed
                     } catch (e) {
                         return prev
@@ -87,15 +83,60 @@ export default function PrintPage() {
 
     if (!data) return <div style={{ padding: '20px' }}>Yükleniyor veya veri bulunamadı...</div>
 
+    const renderToolbar = () => (
+        <div className="web-print-toolbar" style={{
+            position: 'fixed',
+            top: 12,
+            right: 16,
+            zIndex: 999999,
+            display: 'flex',
+            gap: '8px',
+            background: 'rgba(15, 23, 42, 0.9)',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+            backdropFilter: 'blur(8px)'
+        }}>
+            <button onClick={() => window.print()} style={{
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '13px'
+            }}>
+                🖨️ Yazdır / PDF İndir
+            </button>
+            <button onClick={() => window.close()} style={{
+                background: '#dc2626',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '13px'
+            }}>
+                ✕ Kapat
+            </button>
+        </div>
+    )
+
     if (data.isWorkReport) {
         const isLandscape = data.orientation === 'landscape';
         return (
             <div className="print-body" style={{ background: 'white', minHeight: '100vh', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {renderToolbar()}
                 <style type="text/css" media="print">
                     {`
                     @page {
                         size: A4 ${isLandscape ? 'landscape' : 'portrait'};
                         margin: 0mm;
+                    }
+                    .web-print-toolbar {
+                        display: none !important;
                     }
                     :root, html, body {
                         background: #ffffff !important;
@@ -140,11 +181,15 @@ export default function PrintPage() {
 
         return (
             <div className="print-body" style={{ background: 'white', minHeight: '100vh', padding: '20px' }}>
+                {renderToolbar()}
                 <style type="text/css" media="print">
                     {`
                     @page {
                         size: A4;
                         margin: 15mm 10mm 15mm 10mm;
+                    }
+                    .web-print-toolbar {
+                        display: none !important;
                     }
                     body, html {
                         margin: 0px !important;
@@ -269,11 +314,15 @@ export default function PrintPage() {
 
     return (
         <div className="print-body" style={{ background: 'white', minHeight: '100vh' }}>
+            {renderToolbar()}
             <style type="text/css" media="print">
                 {`
                 @page {
                     size: A4;
                     margin: 0mm;
+                }
+                .web-print-toolbar {
+                    display: none !important;
                 }
                 body, html {
                     margin: 0px !important;
