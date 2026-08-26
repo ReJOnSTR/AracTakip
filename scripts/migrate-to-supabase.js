@@ -181,6 +181,7 @@ async function runMigration() {
 
     // 6. Upload Local Files to Supabase Storage
     const uploadsDirCandidates = [
+        path.join(process.env.HOME || '', 'Library', 'Application Support', 'kontrol-app', 'files'),
         path.join(process.env.HOME || '', 'Library', 'Application Support', 'kontrol-app', 'data'),
         path.join(process.env.HOME || '', 'Library', 'Application Support', 'kontrol-app', 'uploads'),
         path.join(process.env.HOME || '', 'Library', 'Application Support', 'Kontrol', 'uploads'),

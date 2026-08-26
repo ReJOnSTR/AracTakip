@@ -2567,6 +2567,7 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
                 try {
                     const { uploadToStorage } = require('./services/supabase.service');
                     const uploadDirs = [
+                        path.join(app.getPath('userData'), 'files'),
                         path.join(app.getPath('userData'), 'data'),
                         path.join(app.getPath('userData'), 'uploads')
                     ];

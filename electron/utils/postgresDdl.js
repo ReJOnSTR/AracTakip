@@ -454,6 +454,71 @@ CREATE TABLE IF NOT EXISTS public_holidays (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS roles (
+    id SERIAL PRIMARY KEY,
+    company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+    id SERIAL PRIMARY KEY,
+    role_id INT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    module VARCHAR(100) NOT NULL,
+    can_read INT DEFAULT 0,
+    can_create INT DEFAULT 0,
+    can_update INT DEFAULT 0,
+    can_delete INT DEFAULT 0,
+    can_approve INT DEFAULT 0,
+    scope VARCHAR(50) DEFAULT 'OWN'
+);
+
+CREATE TABLE IF NOT EXISTS user_company_access (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_permissions (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vehicles VARCHAR(50) DEFAULT 'crud',
+    employees VARCHAR(50) DEFAULT 'crud',
+    finance VARCHAR(50) DEFAULT 'crud',
+    works VARCHAR(50) DEFAULT 'crud',
+    settings VARCHAR(50) DEFAULT 'none',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS requests (
+    id SERIAL PRIMARY KEY,
+    company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    created_by_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    employee_id INT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    type VARCHAR(100) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    request_data TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    current_step INT DEFAULT 1,
+    total_steps INT DEFAULT 1,
+    document_path TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS request_approvals (
+    id SERIAL PRIMARY KEY,
+    request_id INT NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+    approver_id INT REFERENCES users(id) ON DELETE SET NULL,
+    step INT DEFAULT 1,
+    status VARCHAR(50) NOT NULL,
+    comment TEXT,
+    action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Self-healing Column Upgrades for Existing PostgreSQL Tables
 ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id INT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
