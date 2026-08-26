@@ -36,6 +36,17 @@ async function registerUser(userData) {
             }
         });
 
+        // Sync user to Supabase Auth (auth.users) in background
+        try {
+            const { supabaseAdmin } = require('./supabase.service');
+            supabaseAdmin.auth.admin.createUser({
+                email: email.toLowerCase(),
+                password: password,
+                email_confirm: true,
+                user_metadata: { username, role: 'user' }
+            }).catch(e => console.warn('[Supabase Auth Sync Notice]:', e.message));
+        } catch (e) {}
+
         // Strip hash before returning
         const safeUser = { 
             id: result.id, 
@@ -343,6 +354,21 @@ async function createEmployeeUser(data) {
                 }
             }
         });
+
+        // Sync user to Supabase Auth (auth.users) in background
+        try {
+            const { supabaseAdmin } = require('./supabase.service');
+            supabaseAdmin.auth.admin.createUser({
+                email: email.toLowerCase(),
+                password: password,
+                email_confirm: true,
+                user_metadata: {
+                    username,
+                    full_name: `${employee.first_name} ${employee.last_name}`,
+                    role: role || 'personnel'
+                }
+            }).catch(e => console.warn('[Supabase Auth Sync Notice]:', e.message));
+        } catch (e) {}
 
         return { success: true, user: { id: newUser.id, username: newUser.username, email: newUser.email } };
     } catch (error) {
