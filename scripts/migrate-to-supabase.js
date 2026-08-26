@@ -30,10 +30,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || 'sb_publisha
 
 function findSqliteDbPath() {
     const candidates = [
-        path.join(process.cwd(), 'data', 'aractakip.db'),
-        path.join(process.cwd(), 'aractakip.db'),
+        path.join(process.env.HOME || '', 'Library', 'Application Support', 'kontrol-app', 'data', 'aractakip.db'),
         path.join(process.env.HOME || '', 'Library', 'Application Support', 'Kontrol', 'data', 'aractakip.db'),
-        path.join(process.env.HOME || '', 'Library', 'Application Support', 'aractakip', 'data', 'aractakip.db')
+        path.join(process.env.HOME || '', 'Library', 'Application Support', 'aractakip', 'data', 'aractakip.db'),
+        path.join(process.cwd(), 'data', 'aractakip.db'),
+        path.join(process.cwd(), 'aractakip.db')
     ];
 
     for (const p of candidates) {
@@ -171,9 +172,11 @@ async function runMigration() {
 
     // 6. Upload Local Files to Supabase Storage
     const uploadsDirCandidates = [
-        path.join(process.cwd(), 'uploads'),
+        path.join(process.env.HOME || '', 'Library', 'Application Support', 'kontrol-app', 'data'),
+        path.join(process.env.HOME || '', 'Library', 'Application Support', 'kontrol-app', 'uploads'),
         path.join(process.env.HOME || '', 'Library', 'Application Support', 'Kontrol', 'uploads'),
-        path.join(process.env.HOME || '', 'Library', 'Application Support', 'aractakip', 'uploads')
+        path.join(process.env.HOME || '', 'Library', 'Application Support', 'aractakip', 'uploads'),
+        path.join(process.cwd(), 'uploads')
     ];
 
     let uploadsDir = null;
