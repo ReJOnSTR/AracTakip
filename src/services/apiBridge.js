@@ -41,6 +41,107 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 return async () => ({ success: true });
             }
 
+            if (prop === 'openFolder') {
+                return async () => ({ success: true });
+            }
+
+            // Web file picker & auto-upload
+            if (prop === 'selectFile') {
+                return () => new Promise((resolve) => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.multiple = true;
+                    input.accept = '*/*';
+                    input.style.display = 'none';
+                    document.body.appendChild(input);
+
+                    input.onchange = async () => {
+                        const files = Array.from(input.files || []);
+                        document.body.removeChild(input);
+                        if (files.length === 0) {
+                            resolve({ canceled: true, filePaths: [] });
+                            return;
+                        }
+
+                        const filePaths = [];
+                        for (const file of files) {
+                            try {
+                                const base64 = await new Promise((res, rej) => {
+                                    const reader = new FileReader();
+                                    reader.onload = () => res(reader.result);
+                                    reader.onerror = rej;
+                                    reader.readAsDataURL(file);
+                                });
+
+                                const token = localStorage.getItem('token') || localStorage.getItem('aractakip_token') || sessionStorage.getItem('token');
+                                const uploadRes = await fetch('/api/upload', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                    },
+                                    body: JSON.stringify({
+                                        fileName: file.name,
+                                        fileData: base64,
+                                        mimeType: file.type
+                                    })
+                                });
+
+                                const data = await uploadRes.json();
+                                if (data.success && data.fileName) {
+                                    filePaths.push(data.fileName);
+                                }
+                            } catch (e) {
+                                console.error('[Web File Upload Error]:', e);
+                            }
+                        }
+
+                        if (filePaths.length > 0) {
+                            resolve({ canceled: false, filePaths });
+                        } else {
+                            resolve({ canceled: true, filePaths: [] });
+                        }
+                    };
+
+                    input.oncancel = () => {
+                        document.body.removeChild(input);
+                        resolve({ canceled: true, filePaths: [] });
+                    };
+
+                    input.click();
+                });
+            }
+
+            // Web saveFile polyfill (returns the filename)
+            if (prop === 'saveFile') {
+                return async (filePathOrName) => {
+                    if (!filePathOrName) return null;
+                    if (typeof filePathOrName === 'string') return filePathOrName;
+                    if (typeof filePathOrName === 'object' && (filePathOrName.path || filePathOrName.name)) {
+                        return filePathOrName.path || filePathOrName.name;
+                    }
+                    return null;
+                };
+            }
+
+            // Web openFile & openDocument polyfill (opens in new tab)
+            if (prop === 'openFile' || prop === 'openDocument') {
+                return async (fileNameOrPath) => {
+                    if (!fileNameOrPath) return { success: false, error: 'No file specified' };
+                    const cleanName = String(fileNameOrPath).split(/[\\/]/).pop();
+                    window.open(`/uploads/${cleanName}`, '_blank', 'noopener,noreferrer');
+                    return { success: true };
+                };
+            }
+
+            // Web saveAsPdf / print
+            if (prop === 'saveAsPdf' || prop === 'saveReportPdf') {
+                return async () => {
+                    window.print();
+                    return { success: true };
+                };
+            }
+
             if (prop === 'showNotification') {
                 return async (title, body) => {
                     if ('Notification' in window && Notification.permission === 'granted') {

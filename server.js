@@ -29,6 +29,44 @@ if (!fs.existsSync(filesDir)) {
 }
 app.use('/uploads', express.static(filesDir));
 
+// Direct File Upload API for Web Client
+app.post('/api/upload', async (req, res) => {
+    try {
+        const { fileName, fileData, mimeType } = req.body;
+        if (!fileData) {
+            return res.status(400).json({ success: false, error: 'No file data provided' });
+        }
+
+        const ext = path.extname(fileName || '') || '.png';
+        const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+        const targetPath = path.join(filesDir, uniqueName);
+
+        // Convert base64 data to buffer
+        const base64Clean = fileData.replace(/^data:.*?;base64,/, '');
+        const buffer = Buffer.from(base64Clean, 'base64');
+        fs.writeFileSync(targetPath, buffer);
+
+        // Also upload to Supabase Storage in background for persistence
+        try {
+            const { uploadToStorage } = require('./electron/services/supabase.service');
+            await uploadToStorage(buffer, uniqueName, mimeType || 'application/octet-stream', 'documents');
+        } catch (e) {
+            console.warn('[Storage upload notice]:', e.message);
+        }
+
+        return res.json({
+            success: true,
+            fileName: uniqueName,
+            originalName: fileName,
+            path: uniqueName,
+            url: `/uploads/${uniqueName}`
+        });
+    } catch (err) {
+        console.error('API upload error:', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Serve compiled React frontend
 const distDir = path.join(__dirname, 'dist');
 if (fs.existsSync(distDir)) {
@@ -206,19 +244,35 @@ const rpcMap = {
     updateDocument: db.updateDocument,
     deleteDocument: db.deleteDocument,
     readDocumentData: async (fileName) => {
-        const filePath = path.join(filesDir, fileName);
+        if (!fileName) return { success: false, error: 'No fileName provided' };
+        const cleanName = path.basename(String(fileName));
+        const filePath = path.join(filesDir, cleanName);
+        const ext = path.extname(cleanName).toLowerCase();
+
         if (fs.existsSync(filePath)) {
-            return fs.readFileSync(filePath).toString('base64');
+            return {
+                success: true,
+                data: fs.readFileSync(filePath).toString('base64'),
+                fileName: cleanName,
+                path: filePath,
+                ext: ext
+            };
         }
         try {
             const { downloadFromStorage } = require('./electron/services/supabase.service');
-            const res = await downloadFromStorage(fileName);
+            const res = await downloadFromStorage(cleanName);
             if (res.success && res.data) {
                 fs.writeFileSync(filePath, res.data);
-                return res.data.toString('base64');
+                return {
+                    success: true,
+                    data: res.data.toString('base64'),
+                    fileName: cleanName,
+                    path: filePath,
+                    ext: ext
+                };
             }
         } catch (e) {}
-        return null;
+        return { success: false, error: 'Belge bulunamadı' };
     },
 
     // Dashboard & Common
