@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     changePassword: (data) => ipcRenderer.invoke('auth:changePassword', data),
     updateProfile: (data) => ipcRenderer.invoke('auth:updateProfile', data),
     createEmployeeUser: (data) => ipcRenderer.invoke('auth:createEmployeeUser', data),
+    syncEmployeesToSupabaseAuth: (companyId) => ipcRenderer.invoke('auth:syncEmployeesToSupabaseAuth', companyId),
 
     // Requests & Approvals
     createRequest: (data) => ipcRenderer.invoke('requests:create', data),

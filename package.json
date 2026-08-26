@@ -1,6 +1,6 @@
 {
   "name": "kontrol-app",
-  "version": "1.13.17",
+  "version": "1.13.18",
   "description": "Kontrol - Filo Yönetim Sistemi",
   "author": "Halil Sak",
   "main": "electron/main.js",
@@ -10,7 +10,7 @@
     "dev:vite": "vite",
     "dev:electron": "wait-on http://127.0.0.1:5173 && electron .",
     "build": "npx prisma generate && vite build && electron-builder",
-    "build:web": "npx prisma generate && vite build",
+    "build:web": "npx prisma generate --schema=./prisma/schema.pg.prisma && vite build",
     "publish": "npx prisma generate && vite build && electron-builder --publish always",
     "preview": "vite preview",
     "rebuild": "npx electron-rebuild -f -w better-sqlite3"

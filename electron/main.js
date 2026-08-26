@@ -471,6 +471,11 @@ ipcMain.handle('auth:createEmployeeUser', async (event, data) => {
     return result
 })
 
+ipcMain.handle('auth:syncEmployeesToSupabaseAuth', async (event, companyId) => {
+    const { syncAllEmployeesToSupabaseAuth } = require('./services/supabase.service')
+    return await syncAllEmployeesToSupabaseAuth(companyId)
+})
+
 // Request & Approval handlers
 ipcMain.handle('requests:create', async (event, data) => {
     const result = await db.createRequest(data)

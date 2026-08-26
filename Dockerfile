@@ -17,8 +17,8 @@ COPY . .
 ENV DATABASE_URL="postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres"
 ENV USE_POSTGRES="true"
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Generate Prisma Client for PostgreSQL
+RUN npx prisma generate --schema=./prisma/schema.pg.prisma
 
 # Build Frontend Vite assets
 RUN npx vite build

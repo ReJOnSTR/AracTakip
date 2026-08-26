@@ -81,79 +81,143 @@ async function createOrUpdateSupabaseAuthUser(userData) {
  */
 async function syncAllEmployeesToSupabaseAuth(companyId) {
     try {
-        const { getPrismaClient } = require('../prismaClient')
-        const bcrypt = require('bcryptjs')
-        const prisma = getPrismaClient()
+        const { getPrismaClient } = require('../prismaClient');
+        const bcrypt = require('bcryptjs');
+        const prisma = getPrismaClient();
 
-        const where = { status: 'active' }
-        if (companyId) where.company_id = parseInt(companyId)
+        const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@45.147.47.56:5432/postgres';
+        let isPostgres = dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://');
 
-        const employees = await prisma.employees.findMany({ where })
-        console.log(`[Supabase Auth Sync]: Found ${employees.length} employees to sync to Supabase Auth...`)
+        if (isPostgres) {
+            const { Client } = require('pg');
+            const pgClient = new Client({ connectionString: dbUrl });
+            await pgClient.connect();
 
-        const results = []
-        for (const emp of employees) {
-            const firstNameSlug = slugify(emp.first_name)
-            const lastNameSlug = slugify(emp.last_name)
-            const fallbackEmail = `${firstNameSlug}.${lastNameSlug}.${emp.id}@kontrol-app.com`
-            const email = (emp.email && emp.email.includes('@')) ? emp.email.toLowerCase().trim() : fallbackEmail
-            const username = `${firstNameSlug}.${lastNameSlug}` || `emp_${emp.id}`
-            const defaultPassword = emp.tc_no ? String(emp.tc_no).trim() : '123456'
-            const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
+            let query = 'SELECT * FROM employees WHERE status = $1 OR status IS NULL';
+            let params = ['active'];
+            if (companyId) {
+                query += ' AND company_id = $2';
+                params.push(parseInt(companyId));
+            }
 
-            // 1. Create/Update in Supabase Auth
-            const supaRes = await createOrUpdateSupabaseAuthUser({
-                email,
-                password: defaultPassword,
-                username,
-                full_name: fullName,
-                role: 'employee',
-                employee_id: emp.id,
-                company_id: emp.company_id
-            })
+            const empRes = await pgClient.query(query, params);
+            const results = [];
 
-            // 2. Ensure record exists in PostgreSQL `users` table linked to employee_id
-            const passwordHash = bcrypt.hashSync(defaultPassword, 10)
-            await prisma.users.upsert({
-                where: { username },
-                update: {
-                    email,
-                    full_name: fullName,
-                    employee_id: emp.id,
-                    company_id: emp.company_id,
-                    role: 'employee',
-                    is_active: 1
-                },
-                create: {
+            for (const emp of empRes.rows) {
+                const firstNameSlug = slugify(emp.first_name);
+                const lastNameSlug = slugify(emp.last_name);
+                const fallbackEmail = `${firstNameSlug}.${lastNameSlug}.${emp.id}@kontrol-app.com`;
+                const email = (emp.email && emp.email.includes('@')) ? emp.email.toLowerCase().trim() : fallbackEmail;
+                const username = `${firstNameSlug}.${lastNameSlug}` || `emp_${emp.id}`;
+                const defaultPassword = emp.tc_no ? String(emp.tc_no).trim() : '123456';
+                const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
+                const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+                const metaJson = JSON.stringify({
                     username,
-                    email,
-                    password_hash: passwordHash,
                     full_name: fullName,
-                    role: 'employee',
                     employee_id: emp.id,
                     company_id: emp.company_id,
-                    is_active: 1,
-                    must_change_password: 0
+                    role: 'employee'
+                });
+
+                // 1. Check existing user in auth.users
+                const existAuth = await pgClient.query('SELECT id FROM auth.users WHERE email = $1', [email]);
+                let authUserId;
+                if (existAuth.rows.length > 0) {
+                    authUserId = existAuth.rows[0].id;
+                    await pgClient.query(`
+                        UPDATE auth.users 
+                        SET encrypted_password = $1, raw_user_meta_data = $2::jsonb, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = $3::uuid
+                    `, [passwordHash, metaJson, authUserId]);
+                } else {
+                    const newAuth = await pgClient.query(`
+                        INSERT INTO auth.users (
+                            instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+                            raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
+                        ) VALUES (
+                            '00000000-0000-0000-0000-000000000000',
+                            gen_random_uuid(),
+                            'authenticated',
+                            'authenticated',
+                            $1,
+                            $2,
+                            CURRENT_TIMESTAMP,
+                            '{"provider":"email","providers":["email"]}'::jsonb,
+                            $3::jsonb,
+                            CURRENT_TIMESTAMP,
+                            CURRENT_TIMESTAMP,
+                            '', '', '', ''
+                        ) RETURNING id;
+                    `, [email, passwordHash, metaJson]);
+                    authUserId = newAuth.rows[0].id;
                 }
-            }).catch(e => console.warn(`Postgres users upsert notice for ${username}:`, e.message))
 
-            results.push({
-                employeeId: emp.id,
-                name: fullName,
-                email,
-                username,
-                success: supaRes.success
-            })
+                // 2. Insert/Update auth.identities
+                const existId = await pgClient.query('SELECT id FROM auth.identities WHERE provider = $1 AND provider_id = $2', ['email', email]);
+                const subData = JSON.stringify({ sub: String(authUserId), email });
+                if (existId.rows.length > 0) {
+                    await pgClient.query(`
+                        UPDATE auth.identities 
+                        SET identity_data = $1::jsonb, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = $2
+                    `, [subData, existId.rows[0].id]);
+                } else {
+                    await pgClient.query(`
+                        INSERT INTO auth.identities (
+                            id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at
+                        ) VALUES (
+                            gen_random_uuid(),
+                            $1::uuid,
+                            $2::jsonb,
+                            'email',
+                            $3,
+                            CURRENT_TIMESTAMP,
+                            CURRENT_TIMESTAMP,
+                            CURRENT_TIMESTAMP
+                        )
+                    `, [authUserId, subData, email]);
+                }
+
+                // 3. Upsert into public.users
+                const existPublicUser = await pgClient.query('SELECT id FROM public.users WHERE username = $1 OR employee_id = $2', [username, emp.id]);
+                if (existPublicUser.rows.length > 0) {
+                    await pgClient.query(`
+                        UPDATE public.users 
+                        SET email = $1, password_hash = $2, full_name = $3, employee_id = $4, is_active = 1
+                        WHERE id = $5
+                    `, [email, passwordHash, fullName, emp.id, existPublicUser.rows[0].id]);
+                } else {
+                    await pgClient.query(`
+                        INSERT INTO public.users (
+                            username, email, password_hash, full_name, role, employee_id, is_active, must_change_password, created_at
+                        ) VALUES (
+                            $1, $2, $3, $4, 'employee', $5, 1, 0, CURRENT_TIMESTAMP
+                        )
+                    `, [username, email, passwordHash, fullName, emp.id]);
+                }
+
+                results.push({
+                    employeeId: emp.id,
+                    name: fullName,
+                    email,
+                    username,
+                    success: true
+                });
+            }
+
+            await pgClient.end();
+            return { success: true, totalSynced: results.length, results };
         }
 
-        return {
-            success: true,
-            totalSynced: results.length,
-            results
-        }
+        // Fallback for local SQLite
+        const where = { status: 'active' };
+        if (companyId) where.company_id = parseInt(companyId);
+        const employees = await prisma.employees.findMany({ where });
+        return { success: true, totalSynced: employees.length, results: [] };
     } catch (err) {
-        console.error('[Supabase Auth Sync Error]:', err.message)
-        return { success: false, error: err.message }
+        console.error('[Supabase Auth Sync Error]:', err.message);
+        return { success: false, error: err.message };
     }
 }
 
