@@ -10,7 +10,12 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
     window.electronAPI = new Proxy({}, {
         get(target, prop) {
             // Event listener mocks
-            if (prop === 'on' || prop === 'onDbUpdate' || prop === 'onContextAction' || prop === 'onUpdateDownloaded' || prop === 'onUpdateAvailable') {
+            if (
+                prop === 'on' || prop === 'onDbUpdate' || prop === 'onContextAction' || 
+                prop === 'onUpdateDownloaded' || prop === 'onUpdateAvailable' || 
+                prop === 'onUpdateStatus' || prop === 'onUpdateProgress' ||
+                prop === 'onTriggerAction' || prop === 'onNavigate' || prop === 'onMigrationLog'
+            ) {
                 return (callback) => {
                     const handler = (e) => callback(e.detail);
                     window.addEventListener(`electron:${String(prop)}`, handler);
@@ -18,7 +23,7 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 };
             }
 
-            if (prop === 'removeListener' || prop === 'removePCListeners') {
+            if (prop === 'removeListener' || prop === 'removePCListeners' || prop === 'removeUpdateListeners') {
                 return () => {};
             }
 
