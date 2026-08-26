@@ -38,6 +38,7 @@
     "electron-updater": "^6.6.2",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
+    "html2pdf.js": "^0.14.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.294.0",
     "pdfjs-dist": "^5.4.530",

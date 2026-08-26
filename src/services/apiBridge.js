@@ -139,7 +139,7 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 return async (route, options) => {
                     const url = route || '/print';
                     window.open(url, '_blank', 'noopener,noreferrer');
-                    return { success: true, filePath: 'report.pdf' };
+                    return { success: true, isWeb: true, filePath: 'Rapor ekranı açıldı' };
                 };
             }
 

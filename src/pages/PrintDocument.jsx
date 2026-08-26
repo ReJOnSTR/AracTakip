@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../utils/helpers';
 import './PrintDocument.css';
+import html2pdf from 'html2pdf.js';
 
 const DEFAULT_STAMP_SETTINGS = {
     placementMode: 'footer',
@@ -322,13 +323,21 @@ export default function PrintDocument() {
         };
     }, []);
 
-    useEffect(() => {
-        if (data) {
-            setTimeout(() => {
-                window.print();
-            }, 700);
-        }
-    }, [data]);
+    const downloadPdfDirectly = () => {
+        const el = document.querySelector('.a4-page') || document.body;
+        const filename = `Belge_${new Date().toISOString().split('T')[0]}.pdf`;
+
+        const opt = {
+            margin: [0, 0, 0, 0],
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(el).save();
+    };
 
     if (!data) return <div className="print-loading">Veriler yükleniyor...</div>;
 
@@ -340,29 +349,48 @@ export default function PrintDocument() {
             zIndex: 999999,
             display: 'flex',
             gap: '8px',
-            background: 'rgba(15, 23, 42, 0.9)',
-            padding: '8px 12px',
-            borderRadius: '8px',
+            background: 'rgba(15, 23, 42, 0.92)',
+            padding: '8px 14px',
+            borderRadius: '10px',
             boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)'
         }}>
+            <button onClick={downloadPdfDirectly} style={{
+                background: '#10b981',
+                color: '#fff',
+                border: 'none',
+                padding: '7px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+            }}>
+                📥 PDF Olarak İndir (.pdf)
+            </button>
             <button onClick={() => window.print()} style={{
                 background: '#2563eb',
                 color: '#fff',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '7px 16px',
                 borderRadius: '6px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                fontSize: '13px'
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
             }}>
-                🖨️ Yazdır / PDF İndir
+                🖨️ Yazdır
             </button>
             <button onClick={() => window.close()} style={{
-                background: '#dc2626',
+                background: '#475569',
                 color: '#fff',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '7px 12px',
                 borderRadius: '6px',
                 fontWeight: 600,
                 cursor: 'pointer',

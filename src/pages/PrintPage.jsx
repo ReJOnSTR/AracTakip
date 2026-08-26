@@ -3,6 +3,7 @@ import ReportRenderer from '../components/ReportRenderer'
 import EmployeeReportRenderer from '../components/EmployeeReportRenderer'
 import WorkPdfReport from './WorkPdfReport'
 import { formatCurrency } from '../utils/helpers'
+import html2pdf from 'html2pdf.js'
 
 export default function PrintPage() {
     const [data, setData] = useState(null)
@@ -25,11 +26,6 @@ export default function PrintPage() {
                         return parsed;
                     });
                     document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
-
-                    // Trigger print after render in web/browser mode
-                    setTimeout(() => {
-                        window.print()
-                    }, 700)
                 } catch (e) {
                     console.error('Failed to parse print data', e)
                 }
@@ -58,11 +54,6 @@ export default function PrintPage() {
                             } catch (e) {}
                         }
                         document.title = parsed.isEmployeeReport ? 'Personel Raporları' : (parsed.isWorkReport ? 'Puantaj Raporu' : 'Araç Raporları')
-                        
-                        // Trigger print after render in web/browser mode
-                        setTimeout(() => {
-                            window.print()
-                        }, 700)
                         return parsed
                     } catch (e) {
                         return prev
@@ -81,6 +72,24 @@ export default function PrintPage() {
         }
     }, [])
 
+    const downloadPdfDirectly = () => {
+        const el = document.querySelector('.print-body') || document.body;
+        const isLandscape = data?.orientation === 'landscape';
+        const docTitle = document.title || 'Rapor';
+        const filename = `${docTitle.replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_\-\s]/g, '').trim().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+        const opt = {
+            margin: isLandscape ? [5, 5, 5, 5] : [8, 8, 8, 8],
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: isLandscape ? 'landscape' : 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(el).save();
+    };
+
     if (!data) return <div style={{ padding: '20px' }}>Yükleniyor veya veri bulunamadı...</div>
 
     const renderToolbar = () => (
@@ -91,29 +100,48 @@ export default function PrintPage() {
             zIndex: 999999,
             display: 'flex',
             gap: '8px',
-            background: 'rgba(15, 23, 42, 0.9)',
-            padding: '8px 12px',
-            borderRadius: '8px',
+            background: 'rgba(15, 23, 42, 0.92)',
+            padding: '8px 14px',
+            borderRadius: '10px',
             boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)'
         }}>
+            <button onClick={downloadPdfDirectly} style={{
+                background: '#10b981',
+                color: '#fff',
+                border: 'none',
+                padding: '7px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+            }}>
+                📥 PDF Olarak İndir (.pdf)
+            </button>
             <button onClick={() => window.print()} style={{
                 background: '#2563eb',
                 color: '#fff',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '7px 16px',
                 borderRadius: '6px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                fontSize: '13px'
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
             }}>
-                🖨️ Yazdır / PDF İndir
+                🖨️ Yazdır
             </button>
             <button onClick={() => window.close()} style={{
-                background: '#dc2626',
+                background: '#475569',
                 color: '#fff',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '7px 12px',
                 borderRadius: '6px',
                 fontWeight: 600,
                 cursor: 'pointer',

@@ -861,9 +861,9 @@ export default function WorkDetails(props) {
         setGeneratingPdf(true)
         try {
             const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName, landscape: orientation === 'landscape' })
-            if (res && res.success) {
+            if (res && res.success && !res.isWeb) {
                 alert('PDF başarıyla kaydedildi:\n' + res.filePath)
-            } else if (res && !res.canceled) {
+            } else if (res && !res.success && !res.canceled) {
                 alert('PDF Kaydedilirken Hata: ' + (res.error || 'Bilinmeyen hata'))
             }
         } catch (err) {
