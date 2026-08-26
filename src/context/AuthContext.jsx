@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { authService } from '../services'
+import { supabase } from '../services/supabase'
 
 const AuthContext = createContext(null)
 
@@ -27,6 +28,11 @@ export function AuthProvider({ children }) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
                 sessionStorage.setItem('aractakip_session_active', 'true')
+                
+                // Keep Supabase Auth session synced on client
+                if (result.user?.email) {
+                    supabase.auth.signInWithPassword({ email: result.user.email, password }).catch(() => {});
+                }
                 return { success: true }
             }
             return { success: false, error: result.error }
@@ -43,6 +49,14 @@ export function AuthProvider({ children }) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
                 sessionStorage.setItem('aractakip_session_active', 'true')
+
+                // Register in Supabase Auth on client
+                supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { username } }
+                }).catch(() => {});
+
                 return { success: true }
             }
             return { success: false, error: result.error }
@@ -58,6 +72,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('aractakip_company')
         localStorage.removeItem('aractakip_locked')
         sessionStorage.removeItem('aractakip_session_active')
+        supabase.auth.signOut().catch(() => {});
     }
 
     const updateProfile = async (data) => {
