@@ -2477,22 +2477,24 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
     const path = require('path');
     const { postgresDdlSql } = require('./utils/postgresDdl');
 
-    const sqlitePath = path.join(app.getPath('userData'), 'data', 'aractakip.db');
+    const { getDbPath } = require('./prismaClient');
+    const sqlitePath = getDbPath();
 
     let sqliteDb = null;
     let pgClient = null;
 
     try {
-        webContents.send('migration-log', 'PostgreSQL bağlantısı kuruldu...');
+        webContents.send('migration-log', 'PostgreSQL bağlantısı kuruluyor...');
         pgClient = new Client({ connectionString: postgresUrl });
         await pgClient.connect();
         webContents.send('migration-log', 'PostgreSQL bağlantısı sağlandı.');
 
-        webContents.send('migration-log', 'PostgreSQL şema ve tabloları oluşturuluyor...');
+        webContents.send('migration-log', 'PostgreSQL şema ve tabloları güncelleniyor...');
         await pgClient.query(postgresDdlSql);
-        webContents.send('migration-log', 'Şema başarıyla oluşturuldu. Veri aktarımı başlatılıyor...');
+        webContents.send('migration-log', 'Şema hazır.');
+        webContents.send('migration-log', `Aktarılacak SQLite veritabanı: ${sqlitePath}`);
 
-        sqliteDb = new Database(sqlitePath);
+        sqliteDb = new Database(sqlitePath, { readonly: true });
         const tablesQuery = sqliteDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '_prisma_migrations' AND name != 'arvento_history'");
         const tables = tablesQuery.all().map(row => row.name);
 
@@ -2502,101 +2504,105 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
         await pgClient.query("SET session_replication_role = 'replica'");
 
         for (const tableName of tables) {
-            webContents.send('migration-log', `[Tablo] ${tableName} aktarılıyor...`);
+            try {
+                webContents.send('migration-log', `[Tablo] ${tableName} aktarılıyor...`);
 
-            const pragma = sqliteDb.pragma(`table_info("${tableName}")`);
-            const sqliteColumns = pragma.map(col => col.name);
+                const pragma = sqliteDb.pragma(`table_info("${tableName}")`);
+                const sqliteColumns = pragma.map(col => col.name);
 
-            // Fetch actual columns in PostgreSQL table to prevent missing column errors
-            const pgColsRes = await pgClient.query(`
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = $1
-            `, [tableName]);
-            const pgColumns = new Set(pgColsRes.rows.map(r => r.column_name));
+                // Fetch actual columns in PostgreSQL table to prevent missing column errors
+                const pgColsRes = await pgClient.query(`
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = $1
+                `, [tableName]);
+                const pgColumns = new Set(pgColsRes.rows.map(r => r.column_name));
 
-            // Use only columns that exist in BOTH SQLite and PostgreSQL
-            const columns = sqliteColumns.filter(c => pgColumns.has(c));
+                // Use only columns that exist in BOTH SQLite and PostgreSQL
+                const columns = sqliteColumns.filter(c => pgColumns.has(c));
 
-            if (columns.length === 0) {
-                webContents.send('migration-log', `  - Tablo Postgres'te bulunamadı veya sütun yok.`);
-                continue;
-            }
+                if (columns.length === 0) {
+                    webContents.send('migration-log', `  - Tablo Postgres'te bulunamadı veya sütun yok.`);
+                    continue;
+                }
 
-            const rows = sqliteDb.prepare(`SELECT * FROM "${tableName}"`).all();
-            
-            if (rows.length > 0) {
-                // Clear old data
-                await pgClient.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
+                const rows = sqliteDb.prepare(`SELECT * FROM "${tableName}"`).all();
+                
+                if (rows.length > 0) {
+                    // Clear old data
+                    await pgClient.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
 
-                const colEscaped = columns.map(c => `"${c}"`).join(', ');
-                const chunkSize = Math.max(1, Math.floor(60000 / columns.length));
+                    const colEscaped = columns.map(c => `"${c}"`).join(', ');
+                    const chunkSize = Math.max(1, Math.floor(60000 / columns.length));
 
-                for (let i = 0; i < rows.length; i += chunkSize) {
-                    const chunk = rows.slice(i, i + chunkSize);
-                    const valuePlaceholders = [];
-                    const valueParams = [];
+                    for (let i = 0; i < rows.length; i += chunkSize) {
+                        const chunk = rows.slice(i, i + chunkSize);
+                        const valuePlaceholders = [];
+                        const valueParams = [];
 
-                    chunk.forEach((row) => {
-                        const rowPlaceholders = [];
-                        columns.forEach((col) => {
-                            rowPlaceholders.push(`$${valueParams.length + 1}`);
-                            let val = row[col];
+                        chunk.forEach((row) => {
+                            const rowPlaceholders = [];
+                            columns.forEach((col) => {
+                                rowPlaceholders.push(`$${valueParams.length + 1}`);
+                                let val = row[col];
 
-                            // Safe fallbacks for works
-                            if (tableName === 'works' && col === 'title' && (!val || typeof val === 'string' && val.trim() === '')) {
-                                val = row.customer || 'İş / Operasyon';
-                            }
+                                // Safe fallbacks for works
+                                if (tableName === 'works' && col === 'title' && (!val || typeof val === 'string' && val.trim() === '')) {
+                                    val = row.customer || 'İş / Operasyon';
+                                }
 
-                            // Parse dates
-                            if (
-                                col.endsWith('_date') || col === 'date' || 
-                                col.endsWith('_at') || col === 'created_at' || 
-                                col === 'applied_at' || col === 'gps_date' || 
-                                col === 'expiry_date' || col === 'issue_date' || 
-                                col.endsWith('_due_date') || col === 'start_date' || 
-                                col === 'end_date' || col === 'devir_tarihi' || 
-                                col === 'birth_date' || col === 'change_date'
-                            ) {
-                                if (val === null || val === undefined || (typeof val === 'string' && val.trim() === '')) {
-                                    val = null;
-                                } else {
-                                    const parsedDate = new Date(val);
-                                    if (!isNaN(parsedDate.getTime())) {
-                                        val = parsedDate;
-                                    } else {
+                                // Parse dates
+                                if (
+                                    col.endsWith('_date') || col === 'date' || 
+                                    col.endsWith('_at') || col === 'created_at' || 
+                                    col === 'applied_at' || col === 'gps_date' || 
+                                    col === 'expiry_date' || col === 'issue_date' || 
+                                    col.endsWith('_due_date') || col === 'start_date' || 
+                                    col === 'end_date' || col === 'devir_tarihi' || 
+                                    col === 'birth_date' || col === 'change_date'
+                                ) {
+                                    if (val === null || val === undefined || (typeof val === 'string' && val.trim() === '')) {
                                         val = null;
+                                    } else {
+                                        const parsedDate = new Date(val);
+                                        if (!isNaN(parsedDate.getTime())) {
+                                            val = parsedDate;
+                                        } else {
+                                            val = null;
+                                        }
                                     }
                                 }
-                            }
-                            valueParams.push(val === undefined ? null : val);
+                                valueParams.push(val === undefined ? null : val);
+                            });
+                            valuePlaceholders.push(`(${rowPlaceholders.join(', ')})`);
                         });
-                        valuePlaceholders.push(`(${rowPlaceholders.join(', ')})`);
-                    });
 
-                    const insertQuery = `INSERT INTO "${tableName}" (${colEscaped}) VALUES ${valuePlaceholders.join(', ')}`;
-                    await pgClient.query(insertQuery, valueParams);
+                        const insertQuery = `INSERT INTO "${tableName}" (${colEscaped}) VALUES ${valuePlaceholders.join(', ')}`;
+                        await pgClient.query(insertQuery, valueParams);
+                    }
+                    webContents.send('migration-log', `  - ${rows.length} satır başarıyla aktarıldı.`);
+                } else {
+                    webContents.send('migration-log', `  - Tablo boş.`);
                 }
-                webContents.send('migration-log', `  - ${rows.length} satır başarıyla aktarıldı.`);
-            } else {
-                webContents.send('migration-log', `  - Tablo boş.`);
-            }
 
-            // Reset sequence counters
-            const seqQuery = `
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = $1 AND column_default LIKE 'nextval%';
-            `;
-            const seqRes = await pgClient.query(seqQuery, [tableName]);
-            for (const seqRow of seqRes.rows) {
-                const colName = seqRow.column_name;
-                const resetQuery = `
-                    SELECT setval(pg_get_serial_sequence('"${tableName}"', '${colName}'), coalesce(max("${colName}"), 1)) 
-                    FROM "${tableName}";
+                // Reset sequence counters
+                const seqQuery = `
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = $1 AND column_default LIKE 'nextval%';
                 `;
-                await pgClient.query(resetQuery);
-                webContents.send('migration-log', `  - Sayaç güncellendi: ${colName}`);
+                const seqRes = await pgClient.query(seqQuery, [tableName]);
+                for (const seqRow of seqRes.rows) {
+                    const colName = seqRow.column_name;
+                    const resetQuery = `
+                        SELECT setval(pg_get_serial_sequence('"${tableName}"', '${colName}'), coalesce(max("${colName}"), 1)) 
+                        FROM "${tableName}";
+                    `;
+                    await pgClient.query(resetQuery);
+                    webContents.send('migration-log', `  - Sayaç güncellendi: ${colName}`);
+                }
+            } catch (tableErr) {
+                webContents.send('migration-log', `  - [UYARI] ${tableName} aktarılamadı: ${tableErr.message}`);
             }
         }
 

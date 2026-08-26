@@ -1324,4 +1324,4 @@ async function seedDefaultPublicHolidays(prisma) {
     }
 }
 
-module.exports = { getPrismaClient, runAutoMigrations };
+module.exports = { getPrismaClient, runAutoMigrations, getDbPath, hasValidData };
