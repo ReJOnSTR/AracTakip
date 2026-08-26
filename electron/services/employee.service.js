@@ -82,38 +82,57 @@ async function getEmployeeById(id) {
 
 async function addEmployee(data) {
     try {
+        let compId = data.companyId || data.company_id;
+        if (!compId) {
+            const firstComp = await prisma.companies.findFirst();
+            compId = firstComp?.id || 1;
+        }
+
+        const parseDate = (val) => {
+            if (!val) return null;
+            const d = new Date(val);
+            return isNaN(d.getTime()) ? null : d;
+        };
+
+        const salaryNum = data.salary ? parseFloat(data.salary) : 0;
+        const startDateObj = parseDate(data.startDate);
+        const effectiveDateObj = parseDate(data.effectiveDate) || startDateObj || new Date();
+
         const emp = await prisma.employees.create({
             data: {
-                company_id: parseInt(data.companyId),
-                first_name: data.firstName,
-                last_name: data.lastName,
-                tc_no: data.tcNo || null,
+                company_id: parseInt(compId),
+                first_name: data.firstName || data.first_name || '',
+                last_name: data.lastName || data.last_name || '',
+                tc_no: data.tcNo || data.tc_no || null,
                 phone: data.phone || null,
                 email: data.email || null,
                 position: data.position || null,
                 department: data.department || null,
-                start_date: data.startDate ? new Date(data.startDate) : null,
-                end_date: data.endDate ? new Date(data.endDate) : null,
-                salary: data.salary ? parseFloat(data.salary) : 0,
+                start_date: startDateObj,
+                end_date: parseDate(data.endDate),
+                salary: salaryNum,
                 status: data.status || 'active',
                 notes: data.notes || null,
                 image: data.image || null,
                 signature_path: data.signaturePath || data.signature_path || null,
                 past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : 0,
-                birth_date: data.birthDate ? new Date(data.birthDate) : null,
+                birth_date: parseDate(data.birthDate),
                 iban: data.iban || null,
                 off_days: data.offDays || '0',
                 employee_salary_history: {
                     create: {
-                        amount: data.salary ? parseFloat(data.salary) : 0,
-                        start_date: data.effectiveDate ? new Date(data.effectiveDate) : new Date(data.startDate || new Date()),
+                        amount: salaryNum,
+                        start_date: effectiveDateObj,
                         type: 'initial'
                     }
                 }
             }
         });
         return { success: true, data: emp };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) { 
+        console.error('addEmployee error:', error);
+        return { success: false, error: error.message }; 
+    }
 }
 
 async function updateEmployee(data) {
@@ -124,19 +143,25 @@ async function updateEmployee(data) {
             include: { employee_salary_history: { orderBy: { start_date: 'desc' }, take: 1 } }
         });
 
-        const newSalary = data.salary ? parseFloat(data.salary) : 0;
-        const oldSalary = currentEmp.salary || 0;
-        const effectiveDate = data.effectiveDate ? new Date(data.effectiveDate) : new Date();
+        const parseDate = (val) => {
+            if (!val) return null;
+            const d = new Date(val);
+            return isNaN(d.getTime()) ? null : d;
+        };
+
+        const newSalary = data.salary !== undefined ? parseFloat(data.salary) : (currentEmp?.salary || 0);
+        const oldSalary = currentEmp?.salary || 0;
+        const effectiveDate = parseDate(data.effectiveDate) || new Date();
 
         let salaryHistoryOp = undefined;
         if (newSalary !== oldSalary) {
             // End the existing latest history
-            if (currentEmp.employee_salary_history.length > 0) {
+            if (currentEmp?.employee_salary_history && currentEmp.employee_salary_history.length > 0) {
                 const latestHistory = currentEmp.employee_salary_history[0];
                 await prisma.employee_salary_history.update({
                     where: { id: latestHistory.id },
                     data: { end_date: effectiveDate }
-                });
+                }).catch(() => {});
             }
 
             // Create new period
@@ -149,39 +174,75 @@ async function updateEmployee(data) {
             };
         }
 
+        const updateData = {
+            salary: newSalary,
+            status: data.status || 'active',
+            notes: data.notes !== undefined ? data.notes : undefined,
+            image: data.image !== undefined ? data.image : undefined,
+            past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : undefined,
+            iban: data.iban !== undefined ? data.iban : undefined,
+            off_days: data.offDays !== undefined ? data.offDays : undefined
+        };
+
+        if (data.firstName || data.first_name) updateData.first_name = data.firstName || data.first_name;
+        if (data.lastName || data.last_name) updateData.last_name = data.lastName || data.last_name;
+        if (data.tcNo !== undefined || data.tc_no !== undefined) updateData.tc_no = data.tcNo || data.tc_no || null;
+        if (data.phone !== undefined) updateData.phone = data.phone || null;
+        if (data.email !== undefined) updateData.email = data.email || null;
+        if (data.position !== undefined) updateData.position = data.position || null;
+        if (data.department !== undefined) updateData.department = data.department || null;
+        if (data.startDate !== undefined) updateData.start_date = parseDate(data.startDate);
+        if (data.endDate !== undefined) updateData.end_date = parseDate(data.endDate);
+        if (data.birthDate !== undefined) updateData.birth_date = parseDate(data.birthDate);
+        if (data.signaturePath !== undefined || data.signature_path !== undefined) {
+            updateData.signature_path = data.signaturePath || data.signature_path || null;
+        }
+        if (salaryHistoryOp) {
+            updateData.employee_salary_history = salaryHistoryOp;
+        }
+
         const emp = await prisma.employees.update({
             where: { id: empId },
-            data: {
-                first_name: data.firstName,
-                last_name: data.lastName,
-                tc_no: data.tcNo || null,
-                phone: data.phone || null,
-                email: data.email || null,
-                position: data.position || null,
-                department: data.department || null,
-                start_date: data.startDate ? new Date(data.startDate) : null,
-                end_date: data.endDate ? new Date(data.endDate) : null,
-                salary: newSalary,
-                status: data.status || 'active',
-                notes: data.notes || null,
-                image: data.image || null,
-                signature_path: data.signaturePath !== undefined ? data.signaturePath : (data.signature_path !== undefined ? data.signature_path : undefined),
-                past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : 0,
-                birth_date: data.birthDate ? new Date(data.birthDate) : null,
-                iban: data.iban || null,
-                off_days: data.offDays !== undefined ? data.offDays : undefined,
-                employee_salary_history: salaryHistoryOp ? salaryHistoryOp : undefined
-            }
+            data: updateData
         });
         return { success: true, data: emp };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) { 
+        console.error('updateEmployee error:', error);
+        return { success: false, error: error.message }; 
+    }
 }
 
 async function deleteEmployee(id) {
     try {
-        await prisma.employees.delete({ where: { id: parseInt(id) } });
+        const empId = parseInt(id);
+        await prisma.$transaction(async (tx) => {
+            // Disassociate or remove users linked to this employee
+            await tx.users.updateMany({
+                where: { employee_id: empId },
+                data: { employee_id: null }
+            }).catch(() => {});
+
+            // Delete child relational data
+            await tx.salaries.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.leaves.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.overtimes.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.employee_assignments.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.employee_documents.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.employee_salary_history.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.employee_movements.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.employee_attendance.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.assignments.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+            await tx.requests.deleteMany({ where: { employee_id: empId } }).catch(() => {});
+
+            // Finally delete the employee
+            await tx.employees.delete({ where: { id: empId } });
+        });
+
         return { success: true };
-    } catch (error) { return { success: false, error: error.message }; }
+    } catch (error) {
+        console.error('Delete employee error:', error);
+        return { success: false, error: error.message };
+    }
 }
 
 async function getPayrollSummary(companyId, month) {

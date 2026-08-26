@@ -233,9 +233,16 @@ async function updateCustomer(data) {
 
 async function deleteCustomer(id) {
     try {
+        const cId = parseInt(id)
         const prisma = getPrismaClient()
-        await prisma.customers.delete({
-            where: { id: parseInt(id) }
+        await prisma.$transaction(async (tx) => {
+            const customerWorks = await tx.works.findMany({ where: { customer_id: cId }, select: { id: true } })
+            const workIds = customerWorks.map(w => w.id)
+            if (workIds.length > 0) {
+                await tx.work_items.deleteMany({ where: { work_id: { in: workIds } } })
+                await tx.works.deleteMany({ where: { customer_id: cId } })
+            }
+            await tx.customers.delete({ where: { id: cId } })
         })
         return { success: true }
     } catch (error) {

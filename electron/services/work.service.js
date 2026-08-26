@@ -186,9 +186,11 @@ async function updateWork(data) {
 
 async function deleteWork(id) {
     try {
+        const wId = parseInt(id)
         const prisma = getPrismaClient()
-        await prisma.works.delete({
-            where: { id: parseInt(id) }
+        await prisma.$transaction(async (tx) => {
+            await tx.work_items.deleteMany({ where: { work_id: wId } })
+            await tx.works.delete({ where: { id: wId } })
         })
         return { success: true }
     } catch (error) {

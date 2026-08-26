@@ -114,7 +114,17 @@ async function updateVehicle(data) {
 
 async function deleteVehicle(id) {
     try {
-        await prisma.vehicles.delete({ where: { id: parseInt(id) } });
+        const vId = parseInt(id);
+        await prisma.$transaction(async (tx) => {
+            await tx.maintenances.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.inspections.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.insurances.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.assignments.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.services.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.documents.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.works.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
+            await tx.vehicles.delete({ where: { id: vId } });
+        });
         return { success: true };
     } catch (error) {
         return { success: false, error: error.message };
