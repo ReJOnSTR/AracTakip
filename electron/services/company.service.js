@@ -3,35 +3,41 @@ const prisma = getPrismaClient();
 
 async function getCompanies(userId) {
     try {
-        if (!userId) {
-            return { success: false, error: 'Kullanıcı ID zorunludur' };
-        }
-
-        const user = await prisma.users.findUnique({
-            where: { id: parseInt(userId, 10) },
-            include: {
-                employee: true
-            }
-        });
-
-        if (!user) {
-            return { success: false, error: 'Kullanıcı bulunamadı' };
-        }
-
         let whereClause = {};
-        if (user.role === 'personnel' && user.employee && user.employee.company_id) {
-            whereClause = { id: parseInt(user.employee.company_id, 10) };
-        } else {
-            whereClause = {}; // Admin, Manager, User see all companies
+        if (userId) {
+            const user = await prisma.users.findUnique({
+                where: { id: parseInt(userId, 10) }
+            }).catch(() => null);
+
+            if (user && user.role === 'personnel' && user.employee_id) {
+                const emp = await prisma.employees.findUnique({
+                    where: { id: user.employee_id }
+                }).catch(() => null);
+                if (emp && emp.company_id) {
+                    whereClause = { id: parseInt(emp.company_id, 10) };
+                }
+            }
         }
 
         let companies = await prisma.companies.findMany({
             where: whereClause
         });
 
-        // Fallback: If no company found for specific filter, load all companies
+        // If no company exists in database at all, auto-create default company
         if (companies.length === 0) {
-            companies = await prisma.companies.findMany();
+            const allComps = await prisma.companies.findMany();
+            if (allComps.length === 0) {
+                const firstUser = await prisma.users.findFirst();
+                const newComp = await prisma.companies.create({
+                    data: {
+                        name: 'Varsayılan Şirket',
+                        user_id: firstUser ? firstUser.id : null
+                    }
+                });
+                companies = [newComp];
+            } else {
+                companies = allComps;
+            }
         }
 
         const collator = new Intl.Collator('tr');
