@@ -120,9 +120,30 @@ app.use((req, res) => {
     }
 });
 
+const { Client } = require('pg');
+const { postgresDdlSql } = require('./electron/utils/postgresDdl');
+
+async function initializePostgres(dbUrl) {
+    try {
+        console.log('• Checking & initializing PostgreSQL schema...');
+        const pgClient = new Client({ connectionString: dbUrl });
+        await pgClient.connect();
+        await pgClient.query(postgresDdlSql);
+        await pgClient.end();
+        console.log('✅ PostgreSQL Schema & Tables verified.');
+    } catch (err) {
+        console.warn('⚠️ PostgreSQL DDL initialization notice:', err.message);
+    }
+}
+
 // Initialize database and start listening
 async function start() {
     try {
+        const dbUrl = process.env.DATABASE_URL;
+        if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
+            await initializePostgres(dbUrl);
+        }
+
         const prisma = getPrismaClient();
         // Test database connection
         await prisma.$connect();
