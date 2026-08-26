@@ -350,7 +350,7 @@ export default function WorkDetails(props) {
         setSavingToSystem(true)
         try {
             // Generate PDF silently in temp folder
-            const res = await window.electronAPI.saveReportPdf('/print', { silent: true })
+            const res = await window.electronAPI.saveReportPdf('/print', { silent: true, landscape: orientation === 'landscape' })
             if (res && res.success && res.filePath) {
                 // Save the PDF as a document linked to this work
                 const docRes = await window.electronAPI.addDocument({
@@ -860,7 +860,7 @@ export default function WorkDetails(props) {
 
         setGeneratingPdf(true)
         try {
-            const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName })
+            const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName, landscape: orientation === 'landscape' })
             if (res && res.success) {
                 alert('PDF başarıyla kaydedildi:\n' + res.filePath)
             } else if (res && !res.canceled) {

@@ -340,7 +340,10 @@ export default function WorkPdfReport({
         const defaultFileName = generateUniqueFileName('Puantaj', [companyStr, titleStr], 'pdf');
 
         setTimeout(async () => {
-            const res = await window.electronAPI.saveReportPdf('/print', { defaultPath: defaultFileName });
+            const res = await window.electronAPI.saveReportPdf('/print', { 
+                defaultPath: defaultFileName, 
+                landscape: orientationProp === 'landscape' 
+            });
             setSavingPdf(false);
             if (res && res.success) {
                 // PDF successfully saved

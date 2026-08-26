@@ -90,7 +90,7 @@ export default function PrintPage() {
     if (data.isWorkReport) {
         const isLandscape = data.orientation === 'landscape';
         return (
-            <div className="print-body" style={{ background: 'white', minHeight: '100vh' }}>
+            <div className="print-body" style={{ background: 'white', minHeight: '100vh', width: isLandscape ? '297mm' : '210mm', margin: '0' }}>
                 <style type="text/css" media="print">
                     {`
                     @page {
@@ -104,6 +104,7 @@ export default function PrintPage() {
                         color-scheme: light !important;
                         margin: 0px !important;
                         padding: 0px !important;
+                        width: ${isLandscape ? '297mm' : '210mm'} !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }

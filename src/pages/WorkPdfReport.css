@@ -572,12 +572,16 @@ body:has(.is-generating-pdf),
     }
     .pdf-viewer-layout {
         padding: 0 !important;
+        margin: 0 !important;
         background: #ffffff !important;
         min-height: 100% !important;
+        align-items: flex-start !important;
     }
     .pdf-pages-container {
         gap: 0 !important;
+        margin: 0 !important;
         width: 100% !important;
+        align-items: flex-start !important;
     }
     .pdf-report-container {
         width: 210mm !important;

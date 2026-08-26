@@ -2320,13 +2320,33 @@ ipcMain.handle('save-report-pdf', async (event, route = '/print', options = {}) 
             `);
         }
 
+        // Detect landscape orientation from options or payload
+        let isLandscape = !!options.landscape;
+        if (!isLandscape && printData) {
+            try {
+                const parsed = typeof printData === 'string' ? JSON.parse(printData) : printData;
+                if (parsed && (parsed.orientation === 'landscape' || parsed.isLandscape)) {
+                    isLandscape = true;
+                }
+            } catch (e) {}
+        }
+        if (!isLandscape && storedData) {
+            try {
+                const parsed = typeof storedData === 'string' ? JSON.parse(storedData) : storedData;
+                if (parsed && (parsed.orientation === 'landscape' || parsed.isLandscape)) {
+                    isLandscape = true;
+                }
+            } catch (e) {}
+        }
+
         // Wait for content to fully render
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Generate PDF
+        // Generate PDF with true landscape dimensions when requested
         const pdfData = await hiddenWin.webContents.printToPDF({
             printBackground: true,
             pageSize: 'A4',
+            landscape: isLandscape,
             margins: { marginType: 'none' },
             preferCSSPageSize: true
         });
