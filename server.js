@@ -10,8 +10,7 @@ try {
 } catch (e) {}
 
 const { getPrismaClient, runAutoMigrations } = require('./electron/prismaClient');
-const prismaClient = require('./electron/prismaClient');
-const prismaService = require('./electron/prismaService');
+const db = require('./electron/prismaService');
 const authService = require('./electron/services/auth.service');
 
 const app = express();
@@ -59,153 +58,153 @@ const rpcMap = {
     getAppVersion: async () => '1.13.11-web',
 
     // Companies
-    getCompanies: (userId) => prismaClient.getCompanies(userId),
-    createCompany: (data) => prismaClient.createCompany(data),
-    updateCompany: (data) => prismaClient.updateCompany(data),
-    deleteCompany: (id) => prismaClient.deleteCompany(id),
+    getCompanies: db.getCompanies,
+    createCompany: db.createCompany,
+    updateCompany: db.updateCompany,
+    deleteCompany: db.deleteCompany,
 
     // Vehicles
-    getVehicles: (companyId, isArchived) => prismaClient.getAllVehicles(companyId, isArchived),
-    getVehicleById: (id) => prismaClient.getVehicleById(id),
-    createVehicle: (data) => prismaClient.createVehicle(data),
-    updateVehicle: (data) => prismaClient.updateVehicle(data),
-    deleteVehicle: (id) => prismaClient.deleteVehicle(id),
+    getVehicles: db.getVehicles,
+    getVehicleById: db.getVehicleById,
+    createVehicle: db.createVehicle,
+    updateVehicle: db.updateVehicle,
+    deleteVehicle: db.deleteVehicle,
 
     // Maintenances
-    getMaintenancesByVehicle: (vId) => prismaClient.getMaintenances(vId),
-    getAllMaintenances: (cId, isArchived) => prismaClient.getAllMaintenances(cId, isArchived),
-    createMaintenance: (data) => prismaClient.createMaintenance(data),
-    updateMaintenance: (data) => prismaClient.updateMaintenance(data),
-    deleteMaintenance: (id) => prismaClient.deleteMaintenance(id),
+    getMaintenancesByVehicle: db.getMaintenances,
+    getAllMaintenances: db.getAllMaintenances,
+    createMaintenance: db.createMaintenance,
+    updateMaintenance: db.updateMaintenance,
+    deleteMaintenance: db.deleteMaintenance,
 
     // Inspections
-    getInspectionsByVehicle: (vId) => prismaClient.getInspections(vId),
-    getAllInspections: (cId, type, isArchived) => prismaClient.getAllInspections(cId, type, isArchived),
-    createInspection: (data) => prismaClient.createInspection(data),
-    updateInspection: (data) => prismaClient.updateInspection(data),
-    deleteInspection: (id) => prismaClient.deleteInspection(id),
+    getInspectionsByVehicle: db.getInspections,
+    getAllInspections: db.getAllInspections,
+    createInspection: db.createInspection,
+    updateInspection: db.updateInspection,
+    deleteInspection: db.deleteInspection,
 
     // Insurances
-    getInsurancesByVehicle: (vId) => prismaClient.getInsurances(vId),
-    getAllInsurances: (cId, isArchived) => prismaClient.getAllInsurances(cId, isArchived),
-    createInsurance: (data) => prismaClient.createInsurance(data),
-    updateInsurance: (data) => prismaClient.updateInsurance(data),
-    deleteInsurance: (id) => prismaClient.deleteInsurance(id),
+    getInsurancesByVehicle: db.getInsurances,
+    getAllInsurances: db.getAllInsurances,
+    createInsurance: db.createInsurance,
+    updateInsurance: db.updateInsurance,
+    deleteInsurance: db.deleteInsurance,
 
     // Assignments
-    getAssignmentsByVehicle: (vId) => prismaClient.getAssignments(vId),
-    getAllAssignments: (cId, isArchived) => prismaClient.getAllAssignments(cId, isArchived),
-    createAssignment: (data) => prismaClient.createAssignment(data),
-    updateAssignment: (data) => prismaClient.updateAssignment(data),
-    deleteAssignment: (id) => prismaClient.deleteAssignment(id),
+    getAssignmentsByVehicle: db.getAssignments,
+    getAllAssignments: db.getAllAssignments,
+    createAssignment: db.createAssignment,
+    updateAssignment: db.updateAssignment,
+    deleteAssignment: db.deleteAssignment,
 
     // Services
-    getServicesByVehicle: (vId) => prismaClient.getServices(vId),
-    getAllServices: (cId, isArchived) => prismaClient.getAllServices(cId, isArchived),
-    createService: (data) => prismaClient.createService(data),
-    updateService: (data) => prismaClient.updateService(data),
-    deleteService: (id) => prismaClient.deleteService(id),
+    getServicesByVehicle: db.getServices,
+    getAllServices: db.getAllServices,
+    createService: db.createService,
+    updateService: db.updateService,
+    deleteService: db.deleteService,
 
     // Employees
-    getEmployees: (cId, isArchived) => prismaClient.getEmployees(cId, isArchived),
-    getPayrollSummary: (cId, month) => prismaClient.getPayrollSummary(cId, month),
-    getEmployeeById: (id) => prismaClient.getEmployeeById(id),
-    createEmployee: (data) => prismaClient.addEmployee(data),
-    updateEmployee: (data) => prismaClient.updateEmployee(data),
-    deleteEmployee: (id) => prismaClient.deleteEmployee(id),
+    getEmployees: db.getEmployees,
+    getPayrollSummary: db.getPayrollSummary,
+    getEmployeeById: db.getEmployeeById,
+    createEmployee: db.addEmployee,
+    updateEmployee: db.updateEmployee,
+    deleteEmployee: db.deleteEmployee,
 
     // Salaries
-    getSalaries: (empId) => prismaClient.getSalariesByEmployee(empId),
-    getSalariesByCompany: (cId) => prismaClient.getAllSalariesForCompany(cId),
-    createSalary: (data) => prismaClient.createSalary(data),
-    updateSalary: (data) => prismaClient.updateSalary(data),
-    deleteSalary: (id) => prismaClient.deleteSalary(id),
-    createSalaryHistory: (data) => prismaClient.createSalaryHistory(data),
-    updateSalaryHistory: (data) => prismaClient.updateSalaryHistory(data),
-    deleteSalaryHistory: (id) => prismaClient.deleteSalaryHistory(id),
+    getSalaries: db.getSalariesByEmployee,
+    getSalariesByCompany: db.getAllSalariesForCompany,
+    createSalary: db.createSalary,
+    updateSalary: db.updateSalary,
+    deleteSalary: db.deleteSalary,
+    createSalaryHistory: db.createSalaryHistory,
+    updateSalaryHistory: db.updateSalaryHistory,
+    deleteSalaryHistory: db.deleteSalaryHistory,
 
     // Leaves
-    getLeaves: (empId) => prismaClient.getLeaves(empId),
-    getLeavesByCompany: (cId) => prismaClient.getAllLeavesByCompany(cId),
-    createLeave: (data) => prismaClient.createLeave(data),
-    updateLeave: (data) => prismaClient.updateLeave(data),
-    deleteLeave: (id) => prismaClient.deleteLeave(id),
+    getLeaves: db.getLeavesByEmployee,
+    getLeavesByCompany: db.getAllLeaves,
+    createLeave: db.createLeave,
+    updateLeave: db.updateLeave,
+    deleteLeave: db.deleteLeave,
 
     // Overtimes
-    getOvertimes: (empId) => prismaClient.getOvertimes(empId),
-    getAllOvertimes: (cId) => prismaClient.getAllOvertimesByCompany(cId),
-    createOvertime: (data) => prismaClient.createOvertime(data),
-    updateOvertime: (data) => prismaClient.updateOvertime(data),
-    deleteOvertime: (id) => prismaClient.deleteOvertime(id),
+    getOvertimes: db.getOvertimes,
+    getAllOvertimes: db.getAllOvertimes,
+    createOvertime: db.addOvertime,
+    updateOvertime: db.updateOvertime,
+    deleteOvertime: db.deleteOvertime,
 
     // Employee Assignments
-    getEmployeeAssignments: (empId) => prismaClient.getEmployeeAssignments(empId),
-    createEmployeeAssignment: (data) => prismaClient.createEmployeeAssignment(data),
-    updateEmployeeAssignment: (data) => prismaClient.updateEmployeeAssignment(data),
-    deleteEmployeeAssignment: (id) => prismaClient.deleteEmployeeAssignment(id),
+    getEmployeeAssignments: db.getEmployeeAssignments,
+    createEmployeeAssignment: db.addEmployeeAssignment,
+    updateEmployeeAssignment: db.updateEmployeeAssignment,
+    deleteEmployeeAssignment: db.deleteEmployeeAssignment,
 
     // Employee Documents
-    getEmployeeDocuments: (empId, isArchived) => prismaClient.getEmployeeDocuments(empId, isArchived),
-    getUpcomingPersonnelDocuments: (cId) => prismaClient.getUpcomingPersonnelDocuments(cId),
-    createEmployeeDocument: (data) => prismaClient.createEmployeeDocument(data),
-    updateEmployeeDocument: (data) => prismaClient.updateEmployeeDocument(data),
-    deleteEmployeeDocument: (id) => prismaClient.deleteEmployeeDocument(id),
+    getEmployeeDocuments: db.getEmployeeDocuments,
+    getUpcomingPersonnelDocuments: db.getUpcomingPersonnelDocuments || db.getUpcomingDocuments,
+    createEmployeeDocument: db.addEmployeeDocument,
+    updateEmployeeDocument: db.updateEmployeeDocument,
+    deleteEmployeeDocument: db.deleteEmployeeDocument,
 
     // Employee Movements
-    getAllEmployeeMovements: (cId) => prismaClient.getAllEmployeeMovements(cId),
-    addEmployeeMovement: (data) => prismaClient.createEmployeeMovement(data),
-    updateEmployeeMovement: (data) => prismaClient.updateEmployeeMovement(data),
-    deleteEmployeeMovement: (id) => prismaClient.deleteEmployeeMovement(id),
+    getAllEmployeeMovements: db.getAllEmployeeMovements,
+    addEmployeeMovement: db.addEmployeeMovement,
+    updateEmployeeMovement: db.updateEmployeeMovement,
+    deleteEmployeeMovement: db.deleteEmployeeMovement,
 
     // Finance / Transactions
-    getAllFinance: (cId, isArchived) => prismaClient.getTransactions(cId, isArchived),
-    getTransactions: (cId, isArchived) => prismaClient.getTransactions(cId, isArchived),
-    getFinanceById: (id) => prismaClient.getTransactionById(id),
-    createFinance: (data) => prismaClient.createTransaction(data),
-    updateFinance: (data) => prismaClient.updateTransaction(data),
-    deleteFinance: (id) => prismaClient.deleteTransaction(id),
-    getFinanceStats: (cId) => prismaClient.getFinanceStats(cId),
-    getChecks: (cId, isArchived) => prismaClient.getChecksAndNotes(cId, isArchived),
-    updateCheckStatus: (payload) => prismaClient.updateCheckStatus(payload?.id, payload?.status),
+    getAllFinance: db.getTransactions,
+    getTransactions: db.getTransactions,
+    getFinanceById: db.getTransactionById,
+    createFinance: db.createTransaction,
+    updateFinance: db.updateTransaction,
+    deleteFinance: db.deleteTransaction,
+    getFinanceStats: db.getFinanceStats,
+    getChecks: db.getChecksAndNotes,
+    updateCheckStatus: (payload) => db.updateCheckStatus(payload?.id, payload?.status),
 
     // Meal Tickets
-    getMealTickets: (cId, isArchived) => prismaClient.getMealTickets(cId, isArchived),
-    createMealTicket: (data) => prismaClient.addMealTicket(data),
-    updateMealTicket: (data) => prismaClient.updateMealTicket(data),
-    deleteMealTicket: (id) => prismaClient.deleteMealTicket(id),
-    getMealTicketStats: (cId) => prismaClient.getMealTicketStats(cId),
-    getMealPrice: (cId) => prismaClient.getMealPrice(cId),
-    setMealPrice: (data) => prismaClient.setMealPrice(data),
-    getMealPriceHistory: (cId) => prismaClient.getMealPriceHistory(cId),
-    deleteMealPriceHistory: (id) => prismaClient.deleteMealPriceHistory(id),
-    updateMealPriceHistory: (data) => prismaClient.updateMealPriceHistory(data),
-    getMealTicketReport: (data) => prismaClient.getMealTicketReport(data?.companyId, data?.month, data?.year),
+    getMealTickets: db.getMealTickets,
+    createMealTicket: db.addMealTicket,
+    updateMealTicket: db.updateMealTicket,
+    deleteMealTicket: db.deleteMealTicket,
+    getMealTicketStats: db.getMealTicketStats,
+    getMealPrice: db.getMealPrice,
+    setMealPrice: db.setMealPrice,
+    getMealPriceHistory: db.getMealPriceHistory,
+    deleteMealPriceHistory: db.deleteMealPriceHistory,
+    updateMealPriceHistory: db.updateMealPriceHistory,
+    getMealTicketReport: (data) => db.getMealTicketReport(data?.companyId, data?.month, data?.year),
 
     // Works & Operations
-    getWorks: (cId, isArchived) => prismaClient.getWorks(cId, isArchived),
-    getWorkDetails: (id) => prismaClient.getWorkDetails(id),
-    createWork: (data) => prismaClient.createWork(data),
-    updateWork: (data) => prismaClient.updateWork(data),
-    deleteWork: (id) => prismaClient.deleteWork(id),
-    addWorkItem: (data) => prismaClient.addWorkItem(data),
-    addBulkWorkItems: (data) => prismaClient.bulkAddWorkItems(data),
-    updateWorkItem: (data) => prismaClient.updateWorkItem(data),
-    deleteWorkItem: (id) => prismaClient.deleteWorkItem(id),
-    deleteBulkWorkItems: (ids) => prismaClient.bulkDeleteWorkItems(ids),
+    getWorks: db.getWorks,
+    getWorkDetails: db.getWorkDetails,
+    createWork: db.createWork,
+    updateWork: db.updateWork,
+    deleteWork: db.deleteWork,
+    addWorkItem: db.addWorkItem,
+    addBulkWorkItems: db.addBulkWorkItems,
+    updateWorkItem: db.updateWorkItem,
+    deleteWorkItem: db.deleteWorkItem,
+    deleteBulkWorkItems: db.deleteBulkWorkItems,
 
     // Customers (Cari)
-    getCustomers: (cId, isArchived) => prismaClient.getCustomers(cId, isArchived),
-    getCustomerDetails: (id) => prismaClient.getCustomerDetails(id),
-    createCustomer: (data) => prismaClient.createCustomer(data),
-    updateCustomer: (data) => prismaClient.updateCustomer(data),
-    deleteCustomer: (id) => prismaClient.deleteCustomer(id),
+    getCustomers: db.getCustomers,
+    getCustomerDetails: db.getCustomerDetails,
+    createCustomer: db.createCustomer,
+    updateCustomer: db.updateCustomer,
+    deleteCustomer: db.deleteCustomer,
 
     // Documents
-    getAllDocuments: (cId, isArchived) => prismaClient.getDocumentsByCompany(cId, isArchived),
-    getDocumentsByVehicle: (vId, isArchived) => prismaClient.getDocuments(vId, isArchived),
-    addDocument: (data) => prismaClient.addDocument(data),
-    updateDocument: (data) => prismaClient.updateDocument(data),
-    deleteDocument: (id) => prismaClient.deleteDocument(id),
+    getAllDocuments: db.getDocumentsByCompany,
+    getDocumentsByVehicle: db.getDocumentsByVehicle,
+    addDocument: db.addDocument,
+    updateDocument: db.updateDocument,
+    deleteDocument: db.deleteDocument,
     readDocumentData: async (fileName) => {
         const filePath = path.join(filesDir, fileName);
         if (fs.existsSync(filePath)) {
@@ -223,53 +222,67 @@ const rpcMap = {
     },
 
     // Dashboard & Common
-    getDashboardStats: (cId) => prismaClient.getDashboardStats(cId),
-    getUpcomingEvents: (cId) => prismaClient.getUpcomingEvents(cId),
-    getRecentActivity: (cId) => prismaClient.getRecentActivity(cId),
-    searchGlobal: (cId, query) => prismaClient.searchGlobal(cId, query),
-    archiveItem: (table, id, isArchived) => prismaClient.archiveItem(table, id, isArchived),
+    getDashboardStats: db.getDashboardStats,
+    getUpcomingEvents: db.getUpcomingEvents,
+    getRecentActivity: db.getRecentActivity,
+    searchGlobal: db.searchGlobal,
+    archiveItem: db.archiveItem,
 
     // Settings
-    getSettings: () => prismaClient.getSettings(),
-    saveSettings: (settings) => prismaClient.saveSettings(settings),
-    getPublicHolidays: (cId) => prismaClient.getPublicHolidays(cId),
-    createPublicHoliday: (data) => prismaClient.createPublicHoliday(data),
-    updatePublicHoliday: (data) => prismaClient.updatePublicHoliday(data),
-    deletePublicHoliday: (id) => prismaClient.deletePublicHoliday(id),
+    getSettings: () => {
+        try {
+            const sPath = path.join(dataDir, 'settings.json');
+            if (fs.existsSync(sPath)) return JSON.parse(fs.readFileSync(sPath, 'utf8'));
+        } catch (e) {}
+        return { success: true, settings: {} };
+    },
+    saveSettings: (settings) => {
+        try {
+            const sPath = path.join(dataDir, 'settings.json');
+            fs.writeFileSync(sPath, JSON.stringify(settings, null, 2));
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    },
+    getPublicHolidays: db.getPublicHolidays,
+    createPublicHoliday: db.createPublicHoliday,
+    updatePublicHoliday: db.updatePublicHoliday,
+    deletePublicHoliday: db.deletePublicHoliday,
 
     // Personnel Settings
-    getDepartments: (cId) => prismaClient.getDepartments(cId),
-    createDepartment: (data) => prismaClient.createDepartment(data),
-    updateDepartment: (data) => prismaClient.updateDepartment(data),
-    deleteDepartment: (id) => prismaClient.deleteDepartment(id),
-    getLeaveTypes: (cId) => prismaClient.getLeaveTypes(cId),
-    createLeaveType: (data) => prismaClient.createLeaveType(data),
-    updateLeaveType: (data) => prismaClient.updateLeaveType(data),
-    deleteLeaveType: (id) => prismaClient.deleteLeaveType(id),
-    getDocumentCategories: (cId, targetType) => prismaClient.getDocumentCategories(cId, targetType),
-    createDocumentCategory: (data) => prismaClient.createDocumentCategory(data),
-    updateDocumentCategory: (data) => prismaClient.updateDocumentCategory(data),
-    deleteDocumentCategory: (id) => prismaClient.deleteDocumentCategory(id),
-    getDocumentFolders: (cId, relatedType, relatedId) => prismaClient.getDocumentFolders(cId, relatedType, relatedId),
-    createDocumentFolder: (data) => prismaClient.createDocumentFolder(data),
-    updateDocumentFolder: (data) => prismaClient.updateDocumentFolder(data),
-    deleteDocumentFolder: (id) => prismaClient.deleteDocumentFolder(id),
-    getVehicleTypes: (cId) => prismaClient.getVehicleTypes(cId),
-    createVehicleType: (data) => prismaClient.createVehicleType(data),
-    updateVehicleType: (data) => prismaClient.updateVehicleType(data),
-    deleteVehicleType: (id) => prismaClient.deleteVehicleType(id),
+    getDepartments: db.getDepartments,
+    createDepartment: db.createDepartment,
+    updateDepartment: db.updateDepartment,
+    deleteDepartment: db.deleteDepartment,
+    getLeaveTypes: db.getLeaveTypes,
+    createLeaveType: db.createLeaveType,
+    updateLeaveType: db.updateLeaveType,
+    deleteLeaveType: db.deleteLeaveType,
+    getDocumentCategories: db.getDocumentCategories,
+    createDocumentCategory: db.createDocumentCategory,
+    updateDocumentCategory: db.updateDocumentCategory,
+    deleteDocumentCategory: db.deleteDocumentCategory,
+    getDocumentFolders: db.getDocumentFolders,
+    createDocumentFolder: db.createDocumentFolder,
+    updateDocumentFolder: db.updateDocumentFolder,
+    deleteDocumentFolder: db.deleteDocumentFolder,
+    getVehicleTypes: db.getVehicleTypes,
+    createVehicleType: db.createVehicleType,
+    updateVehicleType: db.updateVehicleType,
+    deleteVehicleType: db.deleteVehicleType,
 
     // Requests & Approvals
-    createRequest: (data) => (prismaService.createRequest || prismaClient.createRequest)(data),
-    getRequests: (filters) => (prismaService.getRequests || prismaClient.getRequests)(filters),
-    processApproval: (data) => (prismaService.processApproval || prismaClient.processApproval)(data),
+    createRequest: db.createRequest,
+    getRequests: db.getRequests,
+    processApproval: db.processApproval,
 
     // Roles & Granular Permissions
-    getRoles: (cId) => (prismaService.getRoles || prismaClient.getRoles)(cId),
-    saveRole: (data) => (prismaService.saveRole || prismaClient.saveRole)(data),
-    deleteRole: (roleId) => (prismaService.deleteRole || prismaClient.deleteRole)(roleId),
-    assignUserRole: (data) => (prismaService.assignUserRole || prismaClient.assignUserRole)(data),
-    deleteUserAccount: (userId) => (prismaService.deleteUserAccount || prismaClient.deleteUserAccount)(userId),
+    getRoles: db.getRoles,
+    saveRole: db.saveRole,
+    deleteRole: db.deleteRole,
+    assignUserRole: db.assignUserRoleAndEmployee,
+    deleteUserAccount: db.deleteUserAccount,
 };
 
 // Generic RPC Router
@@ -277,7 +290,7 @@ app.post('/api/rpc/:method', async (req, res) => {
     const { method } = req.params;
     const { args = [] } = req.body;
 
-    const fn = rpcMap[method] || prismaClient[method] || prismaService[method] || authService[method];
+    const fn = rpcMap[method] || db[method] || authService[method];
     if (typeof fn !== 'function') {
         console.warn(`[RPC 404] Method "${method}" not found in rpcMap`);
         return res.status(404).json({ success: false, error: `Method "${method}" not found` });
