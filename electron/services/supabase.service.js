@@ -4,7 +4,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://supabase.kontrol-app.c
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 const SUPABASE_ANON_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_36cfd54f23bbf88d313317_24673797'
 
-// Initialize Supabase Admin client with service role key (or anon key fallback)
+// Initialize Supabase Admin client with service role key
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY, {
     auth: {
         autoRefreshToken: false,
@@ -13,12 +13,152 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || SUPABAS
 })
 
 /**
+ * Helper to slugify Turkish text for emails & usernames
+ */
+function slugify(text) {
+    if (!text) return ''
+    const trMap = { 'ç':'c', 'Ç':'c', 'ğ':'g', 'Ğ':'g', 'ı':'i', 'İ':'i', 'ö':'o', 'Ö':'o', 'ş':'s', 'Ş':'s', 'ü':'u', 'Ü':'u' }
+    return String(text)
+        .replace(/[çÇğĞıİöÖşŞüÜ]/g, m => trMap[m] || m)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .trim()
+}
+
+/**
+ * Create or update a user in Supabase Auth (auth.users)
+ */
+async function createOrUpdateSupabaseAuthUser(userData) {
+    try {
+        const { email, password, username, full_name, role = 'employee', employee_id, company_id } = userData
+        if (!email) return { success: false, error: 'Email is required' }
+
+        const cleanEmail = email.toLowerCase().trim()
+        const userMetadata = {
+            username: username || cleanEmail.split('@')[0],
+            full_name: full_name || username || cleanEmail.split('@')[0],
+            role: role || 'employee',
+            employee_id: employee_id ? parseInt(employee_id) : null,
+            company_id: company_id ? parseInt(company_id) : null
+        }
+
+        // Try creating the user
+        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+            email: cleanEmail,
+            password: password || '123456',
+            email_confirm: true,
+            user_metadata: userMetadata
+        })
+
+        if (!error && data?.user) {
+            return { success: true, user: data.user }
+        }
+
+        // If user already exists, update their metadata & password
+        if (error && (error.message?.includes('already registered') || error.message?.includes('already exists') || error.status === 422)) {
+            // Find user by email
+            const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
+            const existing = listData?.users?.find(u => u.email?.toLowerCase() === cleanEmail)
+            if (existing) {
+                const updatePayload = { user_metadata: userMetadata }
+                if (password) updatePayload.password = password
+                const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existing.id, updatePayload)
+                if (!updateError) {
+                    return { success: true, user: updateData.user, updated: true }
+                }
+            }
+        }
+
+        return { success: false, error: error ? error.message : 'Unknown error' }
+    } catch (err) {
+        console.error('[Supabase Auth User Create/Update Error]:', err.message)
+        return { success: false, error: err.message }
+    }
+}
+
+/**
+ * Synchronize all employees from PostgreSQL to Supabase Auth
+ */
+async function syncAllEmployeesToSupabaseAuth(companyId) {
+    try {
+        const { getPrismaClient } = require('../prismaClient')
+        const bcrypt = require('bcryptjs')
+        const prisma = getPrismaClient()
+
+        const where = { status: 'active' }
+        if (companyId) where.company_id = parseInt(companyId)
+
+        const employees = await prisma.employees.findMany({ where })
+        console.log(`[Supabase Auth Sync]: Found ${employees.length} employees to sync to Supabase Auth...`)
+
+        const results = []
+        for (const emp of employees) {
+            const firstNameSlug = slugify(emp.first_name)
+            const lastNameSlug = slugify(emp.last_name)
+            const fallbackEmail = `${firstNameSlug}.${lastNameSlug}.${emp.id}@kontrol-app.com`
+            const email = (emp.email && emp.email.includes('@')) ? emp.email.toLowerCase().trim() : fallbackEmail
+            const username = `${firstNameSlug}.${lastNameSlug}` || `emp_${emp.id}`
+            const defaultPassword = emp.tc_no ? String(emp.tc_no).trim() : '123456'
+            const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
+
+            // 1. Create/Update in Supabase Auth
+            const supaRes = await createOrUpdateSupabaseAuthUser({
+                email,
+                password: defaultPassword,
+                username,
+                full_name: fullName,
+                role: 'employee',
+                employee_id: emp.id,
+                company_id: emp.company_id
+            })
+
+            // 2. Ensure record exists in PostgreSQL `users` table linked to employee_id
+            const passwordHash = bcrypt.hashSync(defaultPassword, 10)
+            await prisma.users.upsert({
+                where: { username },
+                update: {
+                    email,
+                    full_name: fullName,
+                    employee_id: emp.id,
+                    company_id: emp.company_id,
+                    role: 'employee',
+                    is_active: 1
+                },
+                create: {
+                    username,
+                    email,
+                    password_hash: passwordHash,
+                    full_name: fullName,
+                    role: 'employee',
+                    employee_id: emp.id,
+                    company_id: emp.company_id,
+                    is_active: 1,
+                    must_change_password: 0
+                }
+            }).catch(e => console.warn(`Postgres users upsert notice for ${username}:`, e.message))
+
+            results.push({
+                employeeId: emp.id,
+                name: fullName,
+                email,
+                username,
+                success: supaRes.success
+            })
+        }
+
+        return {
+            success: true,
+            totalSynced: results.length,
+            results
+        }
+    } catch (err) {
+        console.error('[Supabase Auth Sync Error]:', err.message)
+        return { success: false, error: err.message }
+    }
+}
+
+/**
  * Upload a Buffer to a Supabase Storage Bucket
- * @param {Buffer} buffer - File buffer
- * @param {string} storagePath - Destination path inside bucket (e.g. 'company_1/doc_123.pdf')
- * @param {string} mimeType - e.g. 'application/pdf', 'image/jpeg'
- * @param {string} bucket - default: 'documents'
- * @returns {Promise<{success: boolean, path?: string, publicUrl?: string, error?: string}>}
  */
 async function uploadToStorage(buffer, storagePath, mimeType = 'application/octet-stream', bucket = 'documents') {
     try {
@@ -99,6 +239,8 @@ function getStoragePublicUrl(storagePath, bucket = 'documents') {
 module.exports = {
     supabaseAdmin,
     SUPABASE_URL,
+    createOrUpdateSupabaseAuthUser,
+    syncAllEmployeesToSupabaseAuth,
     uploadToStorage,
     downloadFromStorage,
     deleteFromStorage,

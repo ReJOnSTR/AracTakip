@@ -83,6 +83,10 @@ const rpcMap = {
     changePassword: authService.changePassword,
     updateProfile: authService.updateProfile,
     createEmployeeUser: authService.createEmployeeUser,
+    syncEmployeesToSupabaseAuth: async (companyId) => {
+        const { syncAllEmployeesToSupabaseAuth } = require('./electron/services/supabase.service');
+        return await syncAllEmployeesToSupabaseAuth(companyId);
+    },
 
     // Window / System Mocks
     focusWindow: async () => ({ success: true }),
