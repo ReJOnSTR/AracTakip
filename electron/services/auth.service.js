@@ -88,7 +88,7 @@ async function loginUser(credentials) {
         });
 
         // 2. Fallback: If no user found and attempting 'admin' or if users table is empty
-        if (!user && (lowerLookup === 'admin' || lowerLookup === 'admin@kontrol.app')) {
+        if (!user && (lowerLookup === 'admin' || lowerLookup === 'admin@kontrol.app' || lowerLookup === 'admin@muayen.com')) {
             log.info('Admin user not found during login. Auto-creating/resetting default admin account...');
             let company = await prisma.companies.findFirst();
             if (!company) {
@@ -106,7 +106,7 @@ async function loginUser(credentials) {
                 },
                 create: {
                     username: 'admin',
-                    email: 'admin@kontrol.app',
+                    email: 'admin@muayen.com',
                     password_hash: defaultPasswordHash,
                     full_name: 'Yönetici',
                     role: 'admin',
@@ -115,6 +115,45 @@ async function loginUser(credentials) {
                     must_change_password: 0
                 }
             });
+        }
+
+        // 3. Fallback: If still no local user, check Supabase Auth Cloud and auto-provision
+        if (!user && (rawLookup.includes('@') || lowerLookup.includes('@'))) {
+            try {
+                const { createClient } = require('@supabase/supabase-js');
+                const SUPABASE_URL = process.env.SUPABASE_URL || 'https://supabase.kontrol-app.com';
+                const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_36cfd54f23bbf88d313317_24673797';
+                const supaClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
+
+                const { data: supaAuthData, error: supaAuthErr } = await supaClient.auth.signInWithPassword({
+                    email: rawLookup.toLowerCase(),
+                    password: password
+                });
+
+                if (!supaAuthErr && supaAuthData?.user) {
+                    log.info(`[Supabase Auth Login]: User "${rawLookup}" authenticated on Supabase Cloud. Provisioning local user record.`);
+                    let company = await prisma.companies.findFirst();
+                    if (!company) {
+                        company = await prisma.companies.create({ data: { name: 'Varsayılan Şirket' } });
+                    }
+                    const newHash = bcrypt.hashSync(password, 10);
+                    const meta = supaAuthData.user.user_metadata || {};
+                    user = await prisma.users.create({
+                        data: {
+                            username: meta.username || rawLookup.split('@')[0],
+                            email: rawLookup.toLowerCase(),
+                            full_name: meta.full_name || meta.username || 'Kullanıcı',
+                            password_hash: newHash,
+                            role: meta.role || 'user',
+                            company_id: company.id,
+                            is_active: 1,
+                            must_change_password: 0
+                        }
+                    });
+                }
+            } catch (supaCloudErr) {
+                log.warn('Supabase cloud user provisioning notice:', supaCloudErr.message);
+            }
         }
 
         if (!user) {
