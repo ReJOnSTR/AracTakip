@@ -414,9 +414,12 @@ export default function WorkPdfReport({
                                 style={{
                                     transform: `scale(${effectiveScale})`,
                                     transformOrigin: 'top left',
-                                    width: `${100 / effectiveScale}%`,
-                                    height: `${100 / effectiveScale}%`,
-                                    maxHeight: `${100 / effectiveScale}%`,
+                                    width: `calc(100% / ${effectiveScale})`,
+                                    minWidth: `calc(100% / ${effectiveScale})`,
+                                    maxWidth: 'none',
+                                    height: `calc(100% / ${effectiveScale})`,
+                                    minHeight: `calc(100% / ${effectiveScale})`,
+                                    maxHeight: 'none',
                                     boxSizing: 'border-box'
                                 }}
                             >

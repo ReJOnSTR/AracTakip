@@ -37,8 +37,11 @@
 
 .pdf-report-container.is-landscape {
     width: 297mm;
+    min-width: 297mm;
+    max-width: 297mm;
     min-height: 210mm;
     height: 210mm;
+    max-height: 210mm;
 }
 
 .pdf-content-wrapper {
@@ -605,6 +608,8 @@ body:has(.is-generating-pdf),
     }
     .pdf-report-container.is-landscape {
         width: 297mm !important;
+        min-width: 297mm !important;
+        max-width: 297mm !important;
         height: 210mm !important;
         min-height: 210mm !important;
         max-height: 210mm !important;
@@ -622,9 +627,13 @@ body:has(.is-generating-pdf),
         max-height: 297mm !important;
     }
     .pdf-report-container.is-landscape.pdf-fit-page {
+        width: 297mm !important;
+        min-width: 297mm !important;
+        max-width: 297mm !important;
         height: 210mm !important;
         min-height: 210mm !important;
         max-height: 210mm !important;
+        margin: 0 auto !important;
     }
     .pdf-footer-pinned {
         position: absolute !important;
