@@ -37,6 +37,10 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 };
             }
 
+            if (prop === 'focusWindow' || prop === 'setFullScreen') {
+                return async () => ({ success: true });
+            }
+
             if (prop === 'showNotification') {
                 return async (title, body) => {
                     if ('Notification' in window && Notification.permission === 'granted') {

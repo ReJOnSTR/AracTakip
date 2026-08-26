@@ -71,7 +71,20 @@ app.post('/api/rpc/:method', async (req, res) => {
     const { method } = req.params;
     const { args = [] } = req.body;
 
-    const fn = db[method] || authService[method];
+    const authMap = {
+        login: authService.loginUser,
+        loginUser: authService.loginUser,
+        register: authService.registerUser,
+        registerUser: authService.registerUser,
+        changePassword: authService.changePassword,
+        updateProfile: authService.updateProfile,
+        createEmployeeUser: authService.createEmployeeUser,
+        focusWindow: async () => ({ success: true }),
+        setFullScreen: async () => ({ success: true }),
+        openFolder: async () => ({ success: true })
+    };
+
+    const fn = authMap[method] || db[method] || authService[method];
     if (typeof fn !== 'function') {
         return res.status(404).json({ success: false, error: `Method "${method}" not found` });
     }
