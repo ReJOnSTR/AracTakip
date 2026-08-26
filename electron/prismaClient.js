@@ -4,6 +4,13 @@ try {
     PrismaBetterSqlite3 = require('@prisma/adapter-better-sqlite3').PrismaBetterSqlite3;
 } catch(e) {}
 
+let PrismaPg;
+let pg;
+try {
+    PrismaPg = require('@prisma/adapter-pg').PrismaPg;
+    pg = require('pg');
+} catch(e) {}
+
 let app = null;
 try {
     const electron = require('electron');
@@ -138,7 +145,13 @@ function getPrismaClient() {
             const dbUrl = process.env.DATABASE_URL;
             if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
                 log.info('Initializing Prisma Client with PostgreSQL');
-                prisma = new PrismaClient();
+                if (PrismaPg && pg) {
+                    const pool = new pg.Pool({ connectionString: dbUrl });
+                    const adapter = new PrismaPg(pool);
+                    prisma = new PrismaClient({ adapter });
+                } else {
+                    prisma = new PrismaClient({ datasourceUrl: dbUrl });
+                }
             } else {
                 const dbPath = getDbPath();
                 log.info(`Initializing Prisma Client on SQLite DB: ${dbPath}`);
