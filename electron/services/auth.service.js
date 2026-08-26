@@ -6,17 +6,18 @@ const prisma = getPrismaClient();
 
 async function registerUser(userData) {
     try {
-        const { username, password, email } = userData;
+        const { username, password, email, companyName, fullName } = userData;
 
         if (!username || !password || !email) {
             return { success: false, error: 'Kullanıcı adı, e-posta ve şifre zorunludur' };
         }
 
+        const cleanEmail = email.toLowerCase().trim();
         const existingUser = await prisma.users.findFirst({
             where: {
                 OR: [
                     { username },
-                    { email }
+                    { email: cleanEmail }
                 ]
             }
         });
@@ -30,29 +31,89 @@ async function registerUser(userData) {
         const result = await prisma.users.create({
             data: {
                 username,
-                email,
+                email: cleanEmail,
+                full_name: fullName || username,
                 password_hash,
-                must_change_password: 0
+                role: 'admin',
+                must_change_password: 0,
+                is_active: 1
             }
         });
 
-        // Sync user to Supabase Auth (auth.users) in background
-        try {
-            const { supabaseAdmin } = require('./supabase.service');
-            supabaseAdmin.auth.admin.createUser({
-                email: email.toLowerCase(),
-                password: password,
-                email_confirm: true,
-                user_metadata: { username, role: 'user' }
-            }).catch(e => console.warn('[Supabase Auth Sync Notice]:', e.message));
-        } catch (e) {}
+        // Create a new fresh company for this new admin user
+        const finalCompName = (companyName || '').trim() || (username + ' Filo');
+        await prisma.companies.create({
+            data: {
+                name: finalCompName,
+                user_id: result.id
+            }
+        }).catch(e => console.warn('Company auto-create notice:', e.message));
+
+        // Sync user to Supabase Auth (auth.users & auth.identities) if running PostgreSQL
+        const dbUrl = process.env.DATABASE_URL || '';
+        if (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://')) {
+            try {
+                const { Client } = require('pg');
+                const pgClient = new Client({ connectionString: dbUrl });
+                await pgClient.connect();
+
+                const metaJson = JSON.stringify({
+                    username,
+                    full_name: fullName || username,
+                    role: 'admin'
+                });
+
+                const newAuth = await pgClient.query(`
+                    INSERT INTO auth.users (
+                        instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+                        raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
+                    ) VALUES (
+                        '00000000-0000-0000-0000-000000000000',
+                        gen_random_uuid(),
+                        'authenticated',
+                        'authenticated',
+                        $1,
+                        $2,
+                        CURRENT_TIMESTAMP,
+                        '{"provider":"email","providers":["email"]}'::jsonb,
+                        $3::jsonb,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP,
+                        '', '', '', ''
+                    ) RETURNING id;
+                `, [cleanEmail, password_hash, metaJson]);
+
+                const authUserId = newAuth.rows[0].id;
+                const subData = JSON.stringify({ sub: String(authUserId), email: cleanEmail });
+
+                await pgClient.query(`
+                    INSERT INTO auth.identities (
+                        id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at
+                    ) VALUES (
+                        gen_random_uuid(),
+                        $1::uuid,
+                        $2::jsonb,
+                        'email',
+                        $3,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    )
+                `, [authUserId, subData, cleanEmail]);
+
+                await pgClient.end();
+            } catch (supaPgErr) {
+                console.warn('Direct Supabase Auth create notice for admin:', supaPgErr.message);
+            }
+        }
 
         // Strip hash before returning
         const safeUser = { 
             id: result.id, 
             username: result.username, 
             email: result.email,
-            full_name: result.full_name
+            full_name: result.full_name,
+            role: result.role
         };
         return { success: true, user: safeUser };
 

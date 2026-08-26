@@ -3,41 +3,56 @@ const prisma = getPrismaClient();
 
 async function getCompanies(userId) {
     try {
-        let whereClause = {};
+        let companies = [];
         if (userId) {
+            const uid = parseInt(userId, 10);
             const user = await prisma.users.findUnique({
-                where: { id: parseInt(userId, 10) }
+                where: { id: uid }
             }).catch(() => null);
 
-            if (user && user.role === 'personnel' && user.employee_id) {
-                const emp = await prisma.employees.findUnique({
-                    where: { id: user.employee_id }
-                }).catch(() => null);
-                if (emp && emp.company_id) {
-                    whereClause = { id: parseInt(emp.company_id, 10) };
+            if (user) {
+                if (user.role === 'personnel' && user.employee_id) {
+                    const emp = await prisma.employees.findUnique({
+                        where: { id: user.employee_id }
+                    }).catch(() => null);
+                    if (emp && emp.company_id) {
+                        companies = await prisma.companies.findMany({
+                            where: { id: parseInt(emp.company_id, 10) }
+                        });
+                    }
+                } else {
+                    // For admin / manager: return companies owned by this user
+                    companies = await prisma.companies.findMany({
+                        where: { user_id: uid }
+                    });
+
+                    // If user has no company created yet, check if there are legacy unassigned companies or create one
+                    if (companies.length === 0) {
+                        const unassigned = await prisma.companies.findMany({
+                            where: { user_id: null }
+                        });
+                        if (unassigned.length > 0 && uid === 1) {
+                            await prisma.companies.update({
+                                where: { id: unassigned[0].id },
+                                data: { user_id: uid }
+                            }).catch(() => {});
+                            companies = await prisma.companies.findMany({ where: { user_id: uid } });
+                        } else if (unassigned.length === 0) {
+                            const newComp = await prisma.companies.create({
+                                data: {
+                                    name: (user.username || 'Şirketim') + ' Filo',
+                                    user_id: uid
+                                }
+                            });
+                            companies = [newComp];
+                        }
+                    }
                 }
             }
         }
 
-        let companies = await prisma.companies.findMany({
-            where: whereClause
-        });
-
-        // If no company exists in database at all, auto-create default company
         if (companies.length === 0) {
-            const allComps = await prisma.companies.findMany();
-            if (allComps.length === 0) {
-                const firstUser = await prisma.users.findFirst();
-                const newComp = await prisma.companies.create({
-                    data: {
-                        name: 'Varsayılan Şirket',
-                        user_id: firstUser ? firstUser.id : null
-                    }
-                });
-                companies = [newComp];
-            } else {
-                companies = allComps;
-            }
+            companies = await prisma.companies.findMany();
         }
 
         const collator = new Intl.Collator('tr');

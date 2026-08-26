@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Truck, User, Mail, Lock } from 'lucide-react'
+import { Truck, User, Mail, Lock, Building2 } from 'lucide-react'
 import logo from '../assets/logos/Group5.svg'
 
 export default function Register() {
     const { register } = useAuth()
+    const [companyName, setCompanyName] = useState('')
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -17,8 +18,8 @@ export default function Register() {
         e.preventDefault()
         setError('')
 
-        if (!username || !email || !password || !confirmPassword) {
-            setError('Lütfen tüm alanları doldurun')
+        if (!companyName || !username || !email || !password || !confirmPassword) {
+            setError('Lütfen şirket adı dahil tüm alanları doldurun')
             return
         }
 
@@ -33,7 +34,7 @@ export default function Register() {
         }
 
         setLoading(true)
-        const result = await register(username, email, password)
+        const result = await register(username, email, password, companyName)
 
         if (!result.success) {
             setError(result.error)
@@ -53,6 +54,30 @@ export default function Register() {
                     <p className="auth-subtitle">Araçlarınızı takip etmeye başlayın</p>
 
                     <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label className="form-label">Şirket / Firma Adı</label>
+                            <div style={{ position: 'relative' }}>
+                                <Building2
+                                    size={18}
+                                    style={{
+                                        position: 'absolute',
+                                        left: '14px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: 'var(--text-muted)'
+                                    }}
+                                />
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    style={{ paddingLeft: '44px' }}
+                                    placeholder="Örn: SAK VİNÇ, Özdemir Lojistik"
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         <div className="form-group">
                             <label className="form-label">Kullanıcı Adı</label>
                             <div style={{ position: 'relative' }}>

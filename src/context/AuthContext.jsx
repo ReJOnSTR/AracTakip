@@ -42,9 +42,10 @@ export function AuthProvider({ children }) {
         }
     }
 
-    const register = async (username, email, password) => {
+    const register = async (username, email, password, companyName) => {
         try {
-            const result = await authService.register({ username, email, password })
+            localStorage.removeItem('aractakip_company')
+            const result = await authService.register({ username, email, password, companyName })
             if (result.success) {
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
@@ -54,7 +55,7 @@ export function AuthProvider({ children }) {
                 supabase.auth.signUp({
                     email,
                     password,
-                    options: { data: { username } }
+                    options: { data: { username, company_name: companyName } }
                 }).catch(() => {});
 
                 return { success: true }
