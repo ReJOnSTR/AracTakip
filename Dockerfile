@@ -29,6 +29,12 @@ RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV DATABASE_URL="postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres"
+ENV SUPABASE_URL="https://supabase.kontrol-app.com"
+ENV SUPABASE_PUBLISHABLE_KEY="sb_publishable_36cfd54f23bbf88d313317_24673797"
+ENV VITE_SUPABASE_URL="https://supabase.kontrol-app.com"
+ENV VITE_SUPABASE_ANON_KEY="sb_publishable_36cfd54f23bbf88d313317_24673797"
+ENV JWT_SECRET="kontrol-app-production-secret-key-98765"
 
 # Copy pre-compiled node_modules from builder
 COPY --from=builder /app/node_modules ./node_modules

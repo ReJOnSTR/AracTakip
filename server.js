@@ -171,7 +171,12 @@ async function initializePostgres(dbUrl) {
 // Initialize database and start listening
 async function start() {
     try {
+        const defaultDbUrl = 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres';
+        if (!process.env.DATABASE_URL) {
+            process.env.DATABASE_URL = defaultDbUrl;
+        }
         const dbUrl = process.env.DATABASE_URL;
+
         if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
             await initializePostgres(dbUrl);
         }
