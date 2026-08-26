@@ -40,7 +40,11 @@ jobs:
       - name: Build & Publish Application
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx prisma generate && npx vite build && npx electron-builder --publish always
+          ELECTRON_BUILDER_MAX_DOWNLOAD_ATTEMPTS: 10
+        run: |
+          npx prisma generate
+          npx vite build
+          npx electron-builder --publish always
 
       - name: Release to GitHub (macOS)
         if: startsWith(github.ref, 'refs/tags/') && runner.os == 'macOS'
