@@ -95,6 +95,8 @@ function SuperAdminRoute({ children }) {
     return children
 }
 
+import BroadcastBanner from './components/BroadcastBanner'
+
 function MainLayout() {
     const { user } = useAuth()
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -117,6 +119,7 @@ function MainLayout() {
                 <div className="main-content">
                     <TabBar />
                     <div className="page-content">
+                        <BroadcastBanner />
                         <ErrorBoundary>
                             <Suspense fallback={<PageLoader />}>
                                 <Outlet />

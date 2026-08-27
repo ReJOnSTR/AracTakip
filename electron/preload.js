@@ -301,4 +301,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getPlatformSystemHealth: () => ipcRenderer.invoke('platform:getSystemHealth'),
     getPlatformLogs: (limit) => ipcRenderer.invoke('platform:getLogs', limit),
     clearPlatformLogs: () => ipcRenderer.invoke('platform:clearLogs'),
+    getPlatformAnnouncements: () => ipcRenderer.invoke('platform:getAnnouncements'),
+    getActiveAnnouncements: (companyId) => ipcRenderer.invoke('platform:getActiveAnnouncements', companyId),
+    createPlatformAnnouncement: (payload) => ipcRenderer.invoke('platform:createAnnouncement', payload),
+    toggleAnnouncementStatus: (id, isActive) => ipcRenderer.invoke('platform:toggleAnnouncementStatus', id, isActive),
+    deletePlatformAnnouncement: (id) => ipcRenderer.invoke('platform:deleteAnnouncement', id),
 })

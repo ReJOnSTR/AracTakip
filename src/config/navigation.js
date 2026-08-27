@@ -26,7 +26,8 @@ import {
     Crown,
     Activity,
     Database,
-    ScrollText
+    ScrollText,
+    Megaphone
 } from 'lucide-react'
 
 // Define menus per module
@@ -173,6 +174,7 @@ export const moduleMenus = {
             items: [
                 { path: '/platform-admin?tab=users', label: 'Kullanıcılar & Şirketler', icon: Users },
                 { path: '/platform-admin?tab=tenants', label: 'Şirketler & Portföy', icon: Building2 },
+                { path: '/platform-admin?tab=announcements', label: 'Canlı Duyuru Yayını', icon: Megaphone },
                 { path: '/platform-admin?tab=health', label: 'Sistem Sağlığı & İzleme', icon: Activity },
                 { path: '/platform-admin?tab=logs', label: 'Sistem & Güvenlik Logları', icon: ScrollText },
                 { path: '/platform-admin?tab=backups', label: 'Veritabanı Yedekleri', icon: Database }

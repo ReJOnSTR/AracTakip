@@ -2724,4 +2724,19 @@ ipcMain.handle('platform:getLogs', async (event, limit) => {
 ipcMain.handle('platform:clearLogs', async () => {
     return await db.clearPlatformLogs();
 });
+ipcMain.handle('platform:getAnnouncements', async () => {
+    return await db.getPlatformAnnouncements();
+});
+ipcMain.handle('platform:getActiveAnnouncements', async (event, companyId) => {
+    return await db.getActiveAnnouncements(companyId);
+});
+ipcMain.handle('platform:createAnnouncement', async (event, payload) => {
+    return await db.createPlatformAnnouncement(payload);
+});
+ipcMain.handle('platform:toggleAnnouncementStatus', async (event, id, isActive) => {
+    return await db.toggleAnnouncementStatus(id, isActive);
+});
+ipcMain.handle('platform:deleteAnnouncement', async (event, id) => {
+    return await db.deletePlatformAnnouncement(id);
+});
 

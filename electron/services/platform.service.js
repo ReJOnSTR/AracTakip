@@ -558,6 +558,135 @@ async function clearPlatformLogs() {
     }
 }
 
+/**
+ * Get all platform announcements (SuperAdmin Hub)
+ */
+async function getPlatformAnnouncements() {
+    try {
+        const rows = await prisma.system_announcements.findMany({
+            orderBy: { id: 'desc' }
+        });
+
+        const companies = await prisma.companies.findMany({
+            select: { id: true, name: true }
+        });
+        const companyMap = new Map(companies.map(c => [c.id, c.name]));
+
+        const enriched = rows.map(r => ({
+            ...r,
+            companyName: r.company_id ? (companyMap.get(r.company_id) || `Şirket #${r.company_id}`) : 'Tüm Şirketler (Genel Yayın)',
+            isActive: r.is_active === 1,
+            isExpired: r.expires_at ? new Date(r.expires_at) < new Date() : false
+        }));
+
+        return { success: true, data: enriched };
+    } catch (error) {
+        console.error('getPlatformAnnouncements error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Get active announcements for client app / company banner
+ */
+async function getActiveAnnouncements(companyId) {
+    try {
+        const cId = companyId ? parseInt(companyId, 10) : null;
+        const now = new Date();
+
+        const rows = await prisma.system_announcements.findMany({
+            where: {
+                is_active: 1,
+                OR: [
+                    { company_id: null },
+                    ...(cId ? [{ company_id: cId }] : [])
+                ]
+            },
+            orderBy: { id: 'desc' }
+        });
+
+        const activeOnly = rows.filter(r => !r.expires_at || new Date(r.expires_at) >= now);
+
+        return { success: true, data: activeOnly };
+    } catch (error) {
+        console.error('getActiveAnnouncements error:', error);
+        return { success: false, error: error.message, data: [] };
+    }
+}
+
+/**
+ * Create a new platform broadcast announcement
+ */
+async function createPlatformAnnouncement(payload) {
+    try {
+        const {
+            title,
+            message,
+            type = 'info',
+            companyId = null,
+            expiresAt = null,
+            isDismissible = 1,
+            showPopup = 0,
+            createdBy = null
+        } = payload;
+
+        if (!title || !message) {
+            return { success: false, error: 'Başlık ve duyuru mesajı zorunludur' };
+        }
+
+        const created = await prisma.system_announcements.create({
+            data: {
+                title: title.trim(),
+                message: message.trim(),
+                type: type || 'info',
+                company_id: companyId && companyId !== 'ALL' && companyId !== '' ? parseInt(companyId, 10) : null,
+                expires_at: expiresAt ? new Date(expiresAt) : null,
+                is_dismissible: isDismissible ? 1 : 0,
+                show_popup: showPopup ? 1 : 0,
+                created_by: createdBy ? parseInt(createdBy, 10) : null,
+                is_active: 1
+            }
+        });
+
+        return { success: true, data: created };
+    } catch (error) {
+        console.error('createPlatformAnnouncement error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Toggle active state of an announcement
+ */
+async function toggleAnnouncementStatus(id, isActive) {
+    try {
+        const aid = parseInt(id, 10);
+        const statusVal = (isActive === 1 || isActive === true || isActive === '1') ? 1 : 0;
+        const updated = await prisma.system_announcements.update({
+            where: { id: aid },
+            data: { is_active: statusVal }
+        });
+        return { success: true, data: updated };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Delete a platform announcement
+ */
+async function deletePlatformAnnouncement(id) {
+    try {
+        const aid = parseInt(id, 10);
+        await prisma.system_announcements.delete({
+            where: { id: aid }
+        });
+        return { success: true, message: 'Duyuru silindi' };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
     getPlatformOverview,
     getPlatformUsers,
@@ -571,5 +700,10 @@ module.exports = {
     triggerPlatformBackup,
     getPlatformSystemHealth,
     getPlatformLogs,
-    clearPlatformLogs
+    clearPlatformLogs,
+    getPlatformAnnouncements,
+    getActiveAnnouncements,
+    createPlatformAnnouncement,
+    toggleAnnouncementStatus,
+    deletePlatformAnnouncement
 };

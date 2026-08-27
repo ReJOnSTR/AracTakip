@@ -34,7 +34,13 @@ import {
     BadgeCheck,
     ScrollText,
     Terminal,
-    Radio
+    Radio,
+    Megaphone,
+    AlertTriangle,
+    Wrench,
+    Scale,
+    AlertOctagon,
+    Clock
 } from 'lucide-react'
 import './PlatformAdmin.css'
 
@@ -45,10 +51,10 @@ export default function PlatformAdmin() {
     const [searchParams, setSearchParams] = useSearchParams()
 
     const tabFromUrl = searchParams.get('tab')
-    const [activeTab, setActiveTab] = useState(tabFromUrl || 'users') // 'users' | 'tenants' | 'health' | 'logs' | 'backups'
+    const [activeTab, setActiveTab] = useState(tabFromUrl || 'users') // 'users' | 'tenants' | 'announcements' | 'health' | 'logs' | 'backups'
 
     useEffect(() => {
-        if (tabFromUrl && ['users', 'tenants', 'health', 'logs', 'backups'].includes(tabFromUrl)) {
+        if (tabFromUrl && ['users', 'tenants', 'announcements', 'health', 'logs', 'backups'].includes(tabFromUrl)) {
             setActiveTab(tabFromUrl)
         } else if (!tabFromUrl) {
             setActiveTab('users')
@@ -63,6 +69,7 @@ export default function PlatformAdmin() {
             setSearchParams({ tab: tabId })
         }
     }
+
     const [loading, setLoading] = useState(true)
     const [overviewData, setOverviewData] = useState(null)
     const [platformUsers, setPlatformUsers] = useState([])
@@ -71,6 +78,21 @@ export default function PlatformAdmin() {
     const [healthLoading, setHealthLoading] = useState(false)
     const [backupLoading, setBackupLoading] = useState(false)
     const [actionMsg, setActionMsg] = useState('')
+
+    // Announcements state
+    const [announcements, setAnnouncements] = useState([])
+    const [announcementsLoading, setAnnouncementsLoading] = useState(false)
+    const [createAnnouncementModal, setCreateAnnouncementModal] = useState(false)
+    const [newAnnouncement, setNewAnnouncement] = useState({
+        title: '',
+        message: '',
+        type: 'info',
+        companyId: '',
+        expiresAt: '',
+        isDismissible: 1,
+        showPopup: 0
+    })
+    const [creatingAnnouncement, setCreatingAnnouncement] = useState(false)
 
     // System Logs
     const [logs, setLogs] = useState([])
@@ -119,6 +141,7 @@ export default function PlatformAdmin() {
             await Promise.all([
                 loadOverview(),
                 loadUsers(),
+                loadAnnouncements(),
                 loadBackups(),
                 loadHealth(),
                 loadLogs()
@@ -131,21 +154,33 @@ export default function PlatformAdmin() {
     }
 
     const loadOverview = async () => {
-        const res = await window.electronAPI.getPlatformOverview()
+        const res = await window.electronAPI?.getPlatformOverview()
         if (res?.success) {
             setOverviewData(res.data)
         }
     }
 
     const loadUsers = async () => {
-        const res = await window.electronAPI.getPlatformUsers()
+        const res = await window.electronAPI?.getPlatformUsers()
         if (res?.success) {
             setPlatformUsers(res.data)
         }
     }
 
+    const loadAnnouncements = async () => {
+        setAnnouncementsLoading(true)
+        try {
+            const res = await window.electronAPI?.getPlatformAnnouncements()
+            if (res?.success) {
+                setAnnouncements(res.data || [])
+            }
+        } finally {
+            setAnnouncementsLoading(false)
+        }
+    }
+
     const loadBackups = async () => {
-        const res = await window.electronAPI.getPlatformBackups()
+        const res = await window.electronAPI?.getPlatformBackups()
         if (res?.success) {
             setBackups(res.data)
         }
@@ -154,7 +189,7 @@ export default function PlatformAdmin() {
     const loadHealth = async () => {
         setHealthLoading(true)
         try {
-            const res = await window.electronAPI.getPlatformSystemHealth()
+            const res = await window.electronAPI?.getPlatformSystemHealth()
             if (res?.success) {
                 setHealthData(res.data)
             }
@@ -166,7 +201,7 @@ export default function PlatformAdmin() {
     const loadLogs = async (showLoading = true) => {
         if (showLoading) setLogsLoading(true)
         try {
-            const res = await window.electronAPI.getPlatformLogs(300)
+            const res = await window.electronAPI?.getPlatformLogs(300)
             if (res?.success) {
                 setLogs(res.data || [])
             }
@@ -179,7 +214,7 @@ export default function PlatformAdmin() {
         if (!window.confirm('Tüm sistem loglarını sıfırlamak istediğinize emin misiniz?')) {
             return
         }
-        const res = await window.electronAPI.clearPlatformLogs()
+        const res = await window.electronAPI?.clearPlatformLogs()
         if (res?.success) {
             setActionMsg('Sistem logları sıfırlandı.')
             await loadLogs()
@@ -197,7 +232,7 @@ export default function PlatformAdmin() {
 
     // Impersonate User directly
     const handleImpersonateUser = async (targetUser) => {
-        const res = await window.electronAPI.impersonatePlatformUser(targetUser.id)
+        const res = await window.electronAPI?.impersonatePlatformUser(targetUser.id)
         if (res && res.success && res.user) {
             if (setUser) setUser(res.user)
             localStorage.setItem('aractakip_user', JSON.stringify(res.user))
@@ -227,9 +262,8 @@ export default function PlatformAdmin() {
         const nextState = currentActive ? 0 : 1
 
         try {
-            const res = await window.electronAPI.toggleUserStatus(u.id, nextState)
+            const res = await window.electronAPI?.toggleUserStatus(u.id, nextState)
             if (res && (res.success || res.data)) {
-                // Optimistic local update for instant UI feedback
                 setPlatformUsers(prev => prev.map(item => 
                     item.id === u.id 
                         ? { ...item, isActive: nextState === 1, is_active: nextState } 
@@ -254,7 +288,7 @@ export default function PlatformAdmin() {
         }
         setPasswordLoading(true)
         try {
-            const res = await window.electronAPI.resetPlatformUserPassword(passwordModalUser.id, newPassword)
+            const res = await window.electronAPI?.resetPlatformUserPassword(passwordModalUser.id, newPassword)
             if (res?.success) {
                 setActionMsg(`${passwordModalUser.username} şifresi başarıyla değiştirildi.`)
                 setPasswordModalUser(null)
@@ -273,7 +307,7 @@ export default function PlatformAdmin() {
         e.preventDefault()
         setCreateUserLoading(true)
         try {
-            const res = await window.electronAPI.createPlatformUser(newUserForm)
+            const res = await window.electronAPI?.createPlatformUser(newUserForm)
             if (res?.success) {
                 setActionMsg(`Yeni kullanıcı ${newUserForm.username} başarıyla oluşturuldu.`)
                 setCreateUserModal(false)
@@ -288,11 +322,63 @@ export default function PlatformAdmin() {
         }
     }
 
+    // Create Announcement Submit
+    const handleCreateAnnouncementSubmit = async (e) => {
+        e.preventDefault()
+        setCreatingAnnouncement(true)
+        try {
+            const res = await window.electronAPI?.createPlatformAnnouncement({
+                ...newAnnouncement,
+                createdBy: user?.id
+            })
+            if (res?.success) {
+                setActionMsg('Canlı duyuru başarıyla yayınlandı!')
+                setCreateAnnouncementModal(false)
+                setNewAnnouncement({
+                    title: '',
+                    message: '',
+                    type: 'info',
+                    companyId: '',
+                    expiresAt: '',
+                    isDismissible: 1,
+                    showPopup: 0
+                })
+                await loadAnnouncements()
+            } else {
+                alert('Duyuru oluşturma hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } finally {
+            setCreatingAnnouncement(false)
+        }
+    }
+
+    // Toggle Announcement Status
+    const handleToggleAnnouncement = async (ann) => {
+        const nextState = ann.isActive ? 0 : 1
+        const res = await window.electronAPI?.toggleAnnouncementStatus(ann.id, nextState)
+        if (res?.success) {
+            setActionMsg(`Duyuru "${ann.title}" ${nextState === 1 ? 'yayına alındı' : 'durduruldu'}.`)
+            await loadAnnouncements()
+        }
+    }
+
+    // Delete Announcement
+    const handleDeleteAnnouncement = async (ann) => {
+        if (!window.confirm(`"${ann.title}" duyurusunu silmek istediğinize emin misiniz?`)) {
+            return
+        }
+        const res = await window.electronAPI?.deletePlatformAnnouncement(ann.id)
+        if (res?.success) {
+            setActionMsg('Duyuru silindi.')
+            await loadAnnouncements()
+        }
+    }
+
     // Trigger Manual Backup
     const handleManualBackup = async () => {
         setBackupLoading(true)
         try {
-            const res = await window.electronAPI.triggerPlatformBackup()
+            const res = await window.electronAPI?.triggerPlatformBackup()
             if (res?.success) {
                 setActionMsg('Yeni veritabanı yedeği başarıyla oluşturuldu!')
                 await loadBackups()
@@ -309,7 +395,7 @@ export default function PlatformAdmin() {
         if (!window.confirm(`"${u.username}" kullanıcısını silmek istediğinize emin misiniz?`)) {
             return
         }
-        const res = await window.electronAPI.deletePlatformUser(u.id)
+        const res = await window.electronAPI?.deletePlatformUser(u.id)
         if (res?.success) {
             setActionMsg(`${u.username} kullanıcısı silindi.`)
             await loadUsers()
@@ -499,6 +585,72 @@ export default function PlatformAdmin() {
         )}
     ]
 
+    // ── ANNOUNCEMENTS TABLE COLUMNS ──
+    const announcementColumns = [
+        { key: 'title', label: 'Duyuru Başlığı & İçerik', render: (val, r) => (
+            <div>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {r.type === 'maintenance' && <Wrench size={13} style={{ color: '#8b5cf6' }} />}
+                    {r.type === 'warning' && <AlertTriangle size={13} style={{ color: '#f59e0b' }} />}
+                    {r.type === 'critical' && <AlertOctagon size={13} style={{ color: '#ef4444' }} />}
+                    {r.type === 'legal' && <Scale size={13} style={{ color: '#f59e0b' }} />}
+                    {r.type === 'success' && <Sparkles size={13} style={{ color: '#10b981' }} />}
+                    {(!r.type || r.type === 'info') && <Megaphone size={13} style={{ color: '#3b82f6' }} />}
+                    {val}
+                </strong>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', lineHeight: 1.4 }}>
+                    {r.message}
+                </div>
+            </div>
+        )},
+        { key: 'companyName', label: 'Hedef Kitle / Şirket', render: (val, r) => (
+            <span className={`badge ${!r.company_id ? 'badge-primary' : 'badge-warning'}`}>
+                {val}
+            </span>
+        )},
+        { key: 'type', label: 'Duyuru Türü', render: (val) => {
+            const typeLabels = {
+                info: '🔵 Bilgilendirme',
+                maintenance: '🟣 Sistem Bakımı',
+                warning: '🟡 Uyarı',
+                legal: '⚖️ Mevzuat & Sigorta',
+                critical: '🔴 Kritik / Acil',
+                success: '🟢 Başarılı'
+            }
+            return <span style={{ fontSize: '12px', fontWeight: 500 }}>{typeLabels[val] || val}</span>
+        }},
+        { key: 'status', label: 'Yayın Durumu', render: (_, r) => {
+            if (r.isExpired) {
+                return <span className="status-badge-suspended"><Clock size={11} /> Süresi Doldu</span>
+            }
+            return r.isActive ? (
+                <span className="status-badge-active"><CheckCircle2 size={11} /> Yayında</span>
+            ) : (
+                <span className="status-badge-suspended"><XCircle size={11} /> Durduruldu</span>
+            )
+        }},
+        { key: 'expires_at', label: 'Bitiş Tarihi', render: (val) => val ? formatDate(val) : <span style={{ color: 'var(--text-muted)' }}>Süresiz</span> },
+        { key: 'actions', label: 'İşlemler', render: (_, r) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                    className="action-icon-btn"
+                    onClick={() => handleToggleAnnouncement(r)}
+                    title={r.isActive ? 'Yayından Kaldır (Durdur)' : 'Yayına Al'}
+                    style={!r.isActive ? { color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)' } : {}}
+                >
+                    {r.isActive ? <CheckCircle2 size={13} style={{ color: '#10b981' }} /> : <XCircle size={13} />}
+                </button>
+                <button
+                    className="action-icon-btn danger"
+                    onClick={() => handleDeleteAnnouncement(r)}
+                    title="Duyuruyu Sil"
+                >
+                    <Trash2 size={13} />
+                </button>
+            </div>
+        )}
+    ]
+
     // ── SYSTEM LOGS COLUMNS ──
     const logColumns = [
         { key: 'timestamp', label: 'Zaman Damgası', width: '180px', render: (val) => (
@@ -527,14 +679,14 @@ export default function PlatformAdmin() {
 
     return (
         <div>
-            <TopProgressBar loading={loading || backupLoading || logsLoading} />
+            <TopProgressBar loading={loading || backupLoading || logsLoading || announcementsLoading} />
 
             {/* ── STANDARD APP PAGE HEADER ── */}
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Platform Yönetimi</h1>
                     <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                        SaaS şirket-hesap eşleştirmeleri, canlı sistem metrikleri, operasyonlar ve sistem logları.
+                        SaaS şirket-hesap eşleştirmeleri, canlı sistem metrikleri, anlık duyuru yayını ve loglar.
                     </p>
                 </div>
                 <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
@@ -542,10 +694,17 @@ export default function PlatformAdmin() {
                         <RefreshCw size={16} className={loading ? 'spin' : ''} />
                         Yenile
                     </button>
-                    <button className="btn btn-primary" onClick={() => setCreateUserModal(true)}>
-                        <Plus size={18} />
-                        Yeni Kullanıcı
-                    </button>
+                    {activeTab === 'announcements' ? (
+                        <button className="btn btn-primary" onClick={() => setCreateAnnouncementModal(true)}>
+                            <Megaphone size={18} />
+                            Yeni Duyuru Yayınla
+                        </button>
+                    ) : (
+                        <button className="btn btn-primary" onClick={() => setCreateUserModal(true)}>
+                            <Plus size={18} />
+                            Yeni Kullanıcı
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -577,6 +736,15 @@ export default function PlatformAdmin() {
                     <Building2 size={16} />
                     <span>Şirketler & Portföy</span>
                     <span className="platform-tab-badge">{overviewData?.companies?.length || 0}</span>
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeTab === 'announcements' ? 'active' : ''}`}
+                    onClick={() => { handleTabChange('announcements'); loadAnnouncements(); }}
+                >
+                    <Megaphone size={16} />
+                    <span>Canlı Duyuru Yayını</span>
+                    <span className="platform-tab-badge">{announcements.length}</span>
                 </button>
 
                 <button
@@ -637,7 +805,50 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 3: SYSTEM HEALTH OBSERVABILITY ── */}
+            {/* ── TAB 3: BROADCAST ANNOUNCEMENTS HUB ── */}
+            {activeTab === 'announcements' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                            Tüm şirketlere veya seçtiğiniz şirketin ekranının en üstüne anlık duyuru bandı yayınlayın.
+                        </p>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setCreateAnnouncementModal(true)}
+                            style={{ padding: '8px 14px', fontSize: '13px' }}
+                        >
+                            <Megaphone size={15} />
+                            <span>+ Yeni Duyuru Yayınla</span>
+                        </button>
+                    </div>
+
+                    <DataTable
+                        persistenceKey="PlatformAdmin_announcements_table"
+                        columns={announcementColumns}
+                        data={announcements}
+                        showSearch={true}
+                        showCheckboxes={false}
+                        searchPlaceholder="Duyuru başlığı, mesajı veya şirket ile ara..."
+                        searchKeys={['title', 'message', 'companyName', 'type']}
+                        filters={[
+                            {
+                                key: 'type',
+                                label: 'Duyuru Türü',
+                                options: [
+                                    { value: 'info', label: '🔵 Bilgilendirme' },
+                                    { value: 'maintenance', label: '🟣 Sistem Bakımı' },
+                                    { value: 'warning', label: '🟡 Uyarı' },
+                                    { value: 'legal', label: '⚖️ Mevzuat & Sigorta' },
+                                    { value: 'critical', label: '🔴 Kritik Uyarı' },
+                                    { value: 'success', label: '🟢 Başarılı' }
+                                ]
+                            }
+                        ]}
+                    />
+                </div>
+            )}
+
+            {/* ── TAB 4: SYSTEM HEALTH OBSERVABILITY ── */}
             {activeTab === 'health' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -735,7 +946,7 @@ export default function PlatformAdmin() {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.49'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.53'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
@@ -779,6 +990,11 @@ export default function PlatformAdmin() {
                                     <td>Şirketler arası veri güvenliği ve IDOR koruması devrede</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>Canlı Duyuru Yayını Servisi</strong></td>
+                                    <td><span className="status-badge-active"><CheckCircle2 size={12} /> Aktif</span></td>
+                                    <td>Tüm aktif şirket ekranlarına anlık duyuru bandı dağıtımı</td>
+                                </tr>
+                                <tr>
                                     <td><strong>Otomatik Yedekleme Servisi</strong></td>
                                     <td><span className="status-badge-active"><CheckCircle2 size={12} /> Zamanlandı</span></td>
                                     <td>Her gece 03:00'te tam Gzip SQL veritabanı yedeği</td>
@@ -789,7 +1005,7 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 4: SYSTEM & SECURITY LOGS ── */}
+            {/* ── TAB 5: SYSTEM & SECURITY LOGS ── */}
             {activeTab === 'logs' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
@@ -852,7 +1068,7 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 5: BACKUPS HUB ── */}
+            {/* ── TAB 6: BACKUPS HUB ── */}
             {activeTab === 'backups' && (
                 <div>
                     <div className="backup-card-header">
@@ -893,6 +1109,107 @@ export default function PlatformAdmin() {
                         searchKeys={['fileName']}
                     />
                 </div>
+            )}
+
+            {/* ── MODAL: CREATE BROADCAST ANNOUNCEMENT ── */}
+            {createAnnouncementModal && (
+                <Modal
+                    isOpen={createAnnouncementModal}
+                    onClose={() => setCreateAnnouncementModal(false)}
+                    title="Yeni Canlı Duyuru & Bildirim Yayınla"
+                >
+                    <form onSubmit={handleCreateAnnouncementSubmit} className="modal-form-grid">
+                        <CustomInput
+                            label="Duyuru Başlığı"
+                            value={newAnnouncement.title}
+                            onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                            placeholder="Örn: 28 Ağustos Planlı Sunucu Bakımı"
+                            required
+                        />
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                                Duyuru Mesajı / İçerik:
+                            </label>
+                            <textarea
+                                className="form-control"
+                                rows={3}
+                                value={newAnnouncement.message}
+                                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, message: e.target.value })}
+                                placeholder="Duyuru metnini buraya yazın..."
+                                required
+                                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'vertical' }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                                    Duyuru Türü:
+                                </label>
+                                <select
+                                    className="form-control"
+                                    value={newAnnouncement.type}
+                                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, type: e.target.value })}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                                >
+                                    <option value="info">🔵 Bilgilendirme (Mavi)</option>
+                                    <option value="maintenance">🟣 Sistem Bakımı (Mor)</option>
+                                    <option value="warning">🟡 Uyarı (Sarı)</option>
+                                    <option value="legal">⚖️ Mevzuat & Sigorta (Sarı)</option>
+                                    <option value="critical">🔴 Kritik Uyarı (Kırmızı)</option>
+                                    <option value="success">🟢 Başarılı (Yeşil)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                                    Hedef Şirket / Kitle:
+                                </label>
+                                <select
+                                    className="form-control"
+                                    value={newAnnouncement.companyId}
+                                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, companyId: e.target.value })}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                                >
+                                    <option value="">Tüm Şirketler (Genel Yayın)</option>
+                                    {overviewData?.companies?.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'center' }}>
+                            <CustomInput
+                                label="Son Geçerlilik Tarihi (Opsiyonel)"
+                                type="date"
+                                value={newAnnouncement.expiresAt}
+                                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, expiresAt: e.target.value })}
+                            />
+
+                            <div style={{ paddingTop: '18px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={newAnnouncement.isDismissible === 1}
+                                        onChange={(e) => setNewAnnouncement({ ...newAnnouncement, isDismissible: e.target.checked ? 1 : 0 })}
+                                    />
+                                    <span>Kullanıcılar Kapatabilsin (X)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setCreateAnnouncementModal(false)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={creatingAnnouncement}>
+                                {creatingAnnouncement ? 'Yayınlanıyor...' : 'Duyuruyu Canlıya Al'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
             )}
 
             {/* ── MODAL: RESET PASSWORD ── */}

@@ -198,6 +198,11 @@ export type requests = $Result.DefaultSelection<Prisma.$requestsPayload>
  * 
  */
 export type request_approvals = $Result.DefaultSelection<Prisma.$request_approvalsPayload>
+/**
+ * Model system_announcements
+ * 
+ */
+export type system_announcements = $Result.DefaultSelection<Prisma.$system_announcementsPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -689,6 +694,16 @@ export class PrismaClient<
     * ```
     */
   get request_approvals(): Prisma.request_approvalsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.system_announcements`: Exposes CRUD operations for the **system_announcements** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more System_announcements
+    * const system_announcements = await prisma.system_announcements.findMany()
+    * ```
+    */
+  get system_announcements(): Prisma.system_announcementsDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1172,7 +1187,8 @@ export namespace Prisma {
     roles: 'roles',
     permissions: 'permissions',
     requests: 'requests',
-    request_approvals: 'request_approvals'
+    request_approvals: 'request_approvals',
+    system_announcements: 'system_announcements'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1188,7 +1204,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "public_holidays" | "roles" | "permissions" | "requests" | "request_approvals"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "public_holidays" | "roles" | "permissions" | "requests" | "request_approvals" | "system_announcements"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3930,6 +3946,80 @@ export namespace Prisma {
           }
         }
       }
+      system_announcements: {
+        payload: Prisma.$system_announcementsPayload<ExtArgs>
+        fields: Prisma.system_announcementsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.system_announcementsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.system_announcementsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>
+          }
+          findFirst: {
+            args: Prisma.system_announcementsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.system_announcementsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>
+          }
+          findMany: {
+            args: Prisma.system_announcementsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>[]
+          }
+          create: {
+            args: Prisma.system_announcementsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>
+          }
+          createMany: {
+            args: Prisma.system_announcementsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.system_announcementsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>[]
+          }
+          delete: {
+            args: Prisma.system_announcementsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>
+          }
+          update: {
+            args: Prisma.system_announcementsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>
+          }
+          deleteMany: {
+            args: Prisma.system_announcementsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.system_announcementsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.system_announcementsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>[]
+          }
+          upsert: {
+            args: Prisma.system_announcementsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$system_announcementsPayload>
+          }
+          aggregate: {
+            args: Prisma.System_announcementsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSystem_announcements>
+          }
+          groupBy: {
+            args: Prisma.system_announcementsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<System_announcementsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.system_announcementsCountArgs<ExtArgs>
+            result: $Utils.Optional<System_announcementsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4090,6 +4180,7 @@ export namespace Prisma {
     permissions?: permissionsOmit
     requests?: requestsOmit
     request_approvals?: request_approvalsOmit
+    system_announcements?: system_announcementsOmit
   }
 
   /* Types for Logging */
@@ -49749,6 +49840,1151 @@ export namespace Prisma {
 
 
   /**
+   * Model system_announcements
+   */
+
+  export type AggregateSystem_announcements = {
+    _count: System_announcementsCountAggregateOutputType | null
+    _avg: System_announcementsAvgAggregateOutputType | null
+    _sum: System_announcementsSumAggregateOutputType | null
+    _min: System_announcementsMinAggregateOutputType | null
+    _max: System_announcementsMaxAggregateOutputType | null
+  }
+
+  export type System_announcementsAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    created_by: number | null
+    is_active: number | null
+    is_dismissible: number | null
+    show_popup: number | null
+  }
+
+  export type System_announcementsSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    created_by: number | null
+    is_active: number | null
+    is_dismissible: number | null
+    show_popup: number | null
+  }
+
+  export type System_announcementsMinAggregateOutputType = {
+    id: number | null
+    title: string | null
+    message: string | null
+    type: string | null
+    company_id: number | null
+    created_by: number | null
+    is_active: number | null
+    is_dismissible: number | null
+    show_popup: number | null
+    expires_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type System_announcementsMaxAggregateOutputType = {
+    id: number | null
+    title: string | null
+    message: string | null
+    type: string | null
+    company_id: number | null
+    created_by: number | null
+    is_active: number | null
+    is_dismissible: number | null
+    show_popup: number | null
+    expires_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type System_announcementsCountAggregateOutputType = {
+    id: number
+    title: number
+    message: number
+    type: number
+    company_id: number
+    created_by: number
+    is_active: number
+    is_dismissible: number
+    show_popup: number
+    expires_at: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type System_announcementsAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+    created_by?: true
+    is_active?: true
+    is_dismissible?: true
+    show_popup?: true
+  }
+
+  export type System_announcementsSumAggregateInputType = {
+    id?: true
+    company_id?: true
+    created_by?: true
+    is_active?: true
+    is_dismissible?: true
+    show_popup?: true
+  }
+
+  export type System_announcementsMinAggregateInputType = {
+    id?: true
+    title?: true
+    message?: true
+    type?: true
+    company_id?: true
+    created_by?: true
+    is_active?: true
+    is_dismissible?: true
+    show_popup?: true
+    expires_at?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type System_announcementsMaxAggregateInputType = {
+    id?: true
+    title?: true
+    message?: true
+    type?: true
+    company_id?: true
+    created_by?: true
+    is_active?: true
+    is_dismissible?: true
+    show_popup?: true
+    expires_at?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type System_announcementsCountAggregateInputType = {
+    id?: true
+    title?: true
+    message?: true
+    type?: true
+    company_id?: true
+    created_by?: true
+    is_active?: true
+    is_dismissible?: true
+    show_popup?: true
+    expires_at?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type System_announcementsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which system_announcements to aggregate.
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of system_announcements to fetch.
+     */
+    orderBy?: system_announcementsOrderByWithRelationInput | system_announcementsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: system_announcementsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` system_announcements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` system_announcements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned system_announcements
+    **/
+    _count?: true | System_announcementsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: System_announcementsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: System_announcementsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: System_announcementsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: System_announcementsMaxAggregateInputType
+  }
+
+  export type GetSystem_announcementsAggregateType<T extends System_announcementsAggregateArgs> = {
+        [P in keyof T & keyof AggregateSystem_announcements]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSystem_announcements[P]>
+      : GetScalarType<T[P], AggregateSystem_announcements[P]>
+  }
+
+
+
+
+  export type system_announcementsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: system_announcementsWhereInput
+    orderBy?: system_announcementsOrderByWithAggregationInput | system_announcementsOrderByWithAggregationInput[]
+    by: System_announcementsScalarFieldEnum[] | System_announcementsScalarFieldEnum
+    having?: system_announcementsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: System_announcementsCountAggregateInputType | true
+    _avg?: System_announcementsAvgAggregateInputType
+    _sum?: System_announcementsSumAggregateInputType
+    _min?: System_announcementsMinAggregateInputType
+    _max?: System_announcementsMaxAggregateInputType
+  }
+
+  export type System_announcementsGroupByOutputType = {
+    id: number
+    title: string
+    message: string
+    type: string | null
+    company_id: number | null
+    created_by: number | null
+    is_active: number | null
+    is_dismissible: number | null
+    show_popup: number | null
+    expires_at: Date | null
+    created_at: Date | null
+    updated_at: Date | null
+    _count: System_announcementsCountAggregateOutputType | null
+    _avg: System_announcementsAvgAggregateOutputType | null
+    _sum: System_announcementsSumAggregateOutputType | null
+    _min: System_announcementsMinAggregateOutputType | null
+    _max: System_announcementsMaxAggregateOutputType | null
+  }
+
+  type GetSystem_announcementsGroupByPayload<T extends system_announcementsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<System_announcementsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof System_announcementsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], System_announcementsGroupByOutputType[P]>
+            : GetScalarType<T[P], System_announcementsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type system_announcementsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    company_id?: boolean
+    created_by?: boolean
+    is_active?: boolean
+    is_dismissible?: boolean
+    show_popup?: boolean
+    expires_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["system_announcements"]>
+
+  export type system_announcementsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    company_id?: boolean
+    created_by?: boolean
+    is_active?: boolean
+    is_dismissible?: boolean
+    show_popup?: boolean
+    expires_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["system_announcements"]>
+
+  export type system_announcementsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    company_id?: boolean
+    created_by?: boolean
+    is_active?: boolean
+    is_dismissible?: boolean
+    show_popup?: boolean
+    expires_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["system_announcements"]>
+
+  export type system_announcementsSelectScalar = {
+    id?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    company_id?: boolean
+    created_by?: boolean
+    is_active?: boolean
+    is_dismissible?: boolean
+    show_popup?: boolean
+    expires_at?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type system_announcementsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "message" | "type" | "company_id" | "created_by" | "is_active" | "is_dismissible" | "show_popup" | "expires_at" | "created_at" | "updated_at", ExtArgs["result"]["system_announcements"]>
+
+  export type $system_announcementsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "system_announcements"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      title: string
+      message: string
+      type: string | null
+      company_id: number | null
+      created_by: number | null
+      is_active: number | null
+      is_dismissible: number | null
+      show_popup: number | null
+      expires_at: Date | null
+      created_at: Date | null
+      updated_at: Date | null
+    }, ExtArgs["result"]["system_announcements"]>
+    composites: {}
+  }
+
+  type system_announcementsGetPayload<S extends boolean | null | undefined | system_announcementsDefaultArgs> = $Result.GetResult<Prisma.$system_announcementsPayload, S>
+
+  type system_announcementsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<system_announcementsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: System_announcementsCountAggregateInputType | true
+    }
+
+  export interface system_announcementsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['system_announcements'], meta: { name: 'system_announcements' } }
+    /**
+     * Find zero or one System_announcements that matches the filter.
+     * @param {system_announcementsFindUniqueArgs} args - Arguments to find a System_announcements
+     * @example
+     * // Get one System_announcements
+     * const system_announcements = await prisma.system_announcements.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends system_announcementsFindUniqueArgs>(args: SelectSubset<T, system_announcementsFindUniqueArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one System_announcements that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {system_announcementsFindUniqueOrThrowArgs} args - Arguments to find a System_announcements
+     * @example
+     * // Get one System_announcements
+     * const system_announcements = await prisma.system_announcements.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends system_announcementsFindUniqueOrThrowArgs>(args: SelectSubset<T, system_announcementsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first System_announcements that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {system_announcementsFindFirstArgs} args - Arguments to find a System_announcements
+     * @example
+     * // Get one System_announcements
+     * const system_announcements = await prisma.system_announcements.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends system_announcementsFindFirstArgs>(args?: SelectSubset<T, system_announcementsFindFirstArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first System_announcements that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {system_announcementsFindFirstOrThrowArgs} args - Arguments to find a System_announcements
+     * @example
+     * // Get one System_announcements
+     * const system_announcements = await prisma.system_announcements.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends system_announcementsFindFirstOrThrowArgs>(args?: SelectSubset<T, system_announcementsFindFirstOrThrowArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more System_announcements that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {system_announcementsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all System_announcements
+     * const system_announcements = await prisma.system_announcements.findMany()
+     * 
+     * // Get first 10 System_announcements
+     * const system_announcements = await prisma.system_announcements.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const system_announcementsWithIdOnly = await prisma.system_announcements.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends system_announcementsFindManyArgs>(args?: SelectSubset<T, system_announcementsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a System_announcements.
+     * @param {system_announcementsCreateArgs} args - Arguments to create a System_announcements.
+     * @example
+     * // Create one System_announcements
+     * const System_announcements = await prisma.system_announcements.create({
+     *   data: {
+     *     // ... data to create a System_announcements
+     *   }
+     * })
+     * 
+     */
+    create<T extends system_announcementsCreateArgs>(args: SelectSubset<T, system_announcementsCreateArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many System_announcements.
+     * @param {system_announcementsCreateManyArgs} args - Arguments to create many System_announcements.
+     * @example
+     * // Create many System_announcements
+     * const system_announcements = await prisma.system_announcements.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends system_announcementsCreateManyArgs>(args?: SelectSubset<T, system_announcementsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many System_announcements and returns the data saved in the database.
+     * @param {system_announcementsCreateManyAndReturnArgs} args - Arguments to create many System_announcements.
+     * @example
+     * // Create many System_announcements
+     * const system_announcements = await prisma.system_announcements.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many System_announcements and only return the `id`
+     * const system_announcementsWithIdOnly = await prisma.system_announcements.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends system_announcementsCreateManyAndReturnArgs>(args?: SelectSubset<T, system_announcementsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a System_announcements.
+     * @param {system_announcementsDeleteArgs} args - Arguments to delete one System_announcements.
+     * @example
+     * // Delete one System_announcements
+     * const System_announcements = await prisma.system_announcements.delete({
+     *   where: {
+     *     // ... filter to delete one System_announcements
+     *   }
+     * })
+     * 
+     */
+    delete<T extends system_announcementsDeleteArgs>(args: SelectSubset<T, system_announcementsDeleteArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one System_announcements.
+     * @param {system_announcementsUpdateArgs} args - Arguments to update one System_announcements.
+     * @example
+     * // Update one System_announcements
+     * const system_announcements = await prisma.system_announcements.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends system_announcementsUpdateArgs>(args: SelectSubset<T, system_announcementsUpdateArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more System_announcements.
+     * @param {system_announcementsDeleteManyArgs} args - Arguments to filter System_announcements to delete.
+     * @example
+     * // Delete a few System_announcements
+     * const { count } = await prisma.system_announcements.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends system_announcementsDeleteManyArgs>(args?: SelectSubset<T, system_announcementsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more System_announcements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {system_announcementsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many System_announcements
+     * const system_announcements = await prisma.system_announcements.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends system_announcementsUpdateManyArgs>(args: SelectSubset<T, system_announcementsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more System_announcements and returns the data updated in the database.
+     * @param {system_announcementsUpdateManyAndReturnArgs} args - Arguments to update many System_announcements.
+     * @example
+     * // Update many System_announcements
+     * const system_announcements = await prisma.system_announcements.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more System_announcements and only return the `id`
+     * const system_announcementsWithIdOnly = await prisma.system_announcements.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends system_announcementsUpdateManyAndReturnArgs>(args: SelectSubset<T, system_announcementsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one System_announcements.
+     * @param {system_announcementsUpsertArgs} args - Arguments to update or create a System_announcements.
+     * @example
+     * // Update or create a System_announcements
+     * const system_announcements = await prisma.system_announcements.upsert({
+     *   create: {
+     *     // ... data to create a System_announcements
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the System_announcements we want to update
+     *   }
+     * })
+     */
+    upsert<T extends system_announcementsUpsertArgs>(args: SelectSubset<T, system_announcementsUpsertArgs<ExtArgs>>): Prisma__system_announcementsClient<$Result.GetResult<Prisma.$system_announcementsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of System_announcements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {system_announcementsCountArgs} args - Arguments to filter System_announcements to count.
+     * @example
+     * // Count the number of System_announcements
+     * const count = await prisma.system_announcements.count({
+     *   where: {
+     *     // ... the filter for the System_announcements we want to count
+     *   }
+     * })
+    **/
+    count<T extends system_announcementsCountArgs>(
+      args?: Subset<T, system_announcementsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], System_announcementsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a System_announcements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {System_announcementsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends System_announcementsAggregateArgs>(args: Subset<T, System_announcementsAggregateArgs>): Prisma.PrismaPromise<GetSystem_announcementsAggregateType<T>>
+
+    /**
+     * Group by System_announcements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {system_announcementsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends system_announcementsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: system_announcementsGroupByArgs['orderBy'] }
+        : { orderBy?: system_announcementsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, system_announcementsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSystem_announcementsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the system_announcements model
+   */
+  readonly fields: system_announcementsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for system_announcements.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__system_announcementsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the system_announcements model
+   */
+  interface system_announcementsFieldRefs {
+    readonly id: FieldRef<"system_announcements", 'Int'>
+    readonly title: FieldRef<"system_announcements", 'String'>
+    readonly message: FieldRef<"system_announcements", 'String'>
+    readonly type: FieldRef<"system_announcements", 'String'>
+    readonly company_id: FieldRef<"system_announcements", 'Int'>
+    readonly created_by: FieldRef<"system_announcements", 'Int'>
+    readonly is_active: FieldRef<"system_announcements", 'Int'>
+    readonly is_dismissible: FieldRef<"system_announcements", 'Int'>
+    readonly show_popup: FieldRef<"system_announcements", 'Int'>
+    readonly expires_at: FieldRef<"system_announcements", 'DateTime'>
+    readonly created_at: FieldRef<"system_announcements", 'DateTime'>
+    readonly updated_at: FieldRef<"system_announcements", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * system_announcements findUnique
+   */
+  export type system_announcementsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * Filter, which system_announcements to fetch.
+     */
+    where: system_announcementsWhereUniqueInput
+  }
+
+  /**
+   * system_announcements findUniqueOrThrow
+   */
+  export type system_announcementsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * Filter, which system_announcements to fetch.
+     */
+    where: system_announcementsWhereUniqueInput
+  }
+
+  /**
+   * system_announcements findFirst
+   */
+  export type system_announcementsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * Filter, which system_announcements to fetch.
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of system_announcements to fetch.
+     */
+    orderBy?: system_announcementsOrderByWithRelationInput | system_announcementsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for system_announcements.
+     */
+    cursor?: system_announcementsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` system_announcements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` system_announcements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of system_announcements.
+     */
+    distinct?: System_announcementsScalarFieldEnum | System_announcementsScalarFieldEnum[]
+  }
+
+  /**
+   * system_announcements findFirstOrThrow
+   */
+  export type system_announcementsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * Filter, which system_announcements to fetch.
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of system_announcements to fetch.
+     */
+    orderBy?: system_announcementsOrderByWithRelationInput | system_announcementsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for system_announcements.
+     */
+    cursor?: system_announcementsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` system_announcements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` system_announcements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of system_announcements.
+     */
+    distinct?: System_announcementsScalarFieldEnum | System_announcementsScalarFieldEnum[]
+  }
+
+  /**
+   * system_announcements findMany
+   */
+  export type system_announcementsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * Filter, which system_announcements to fetch.
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of system_announcements to fetch.
+     */
+    orderBy?: system_announcementsOrderByWithRelationInput | system_announcementsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing system_announcements.
+     */
+    cursor?: system_announcementsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` system_announcements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` system_announcements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of system_announcements.
+     */
+    distinct?: System_announcementsScalarFieldEnum | System_announcementsScalarFieldEnum[]
+  }
+
+  /**
+   * system_announcements create
+   */
+  export type system_announcementsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a system_announcements.
+     */
+    data: XOR<system_announcementsCreateInput, system_announcementsUncheckedCreateInput>
+  }
+
+  /**
+   * system_announcements createMany
+   */
+  export type system_announcementsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many system_announcements.
+     */
+    data: system_announcementsCreateManyInput | system_announcementsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * system_announcements createManyAndReturn
+   */
+  export type system_announcementsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * The data used to create many system_announcements.
+     */
+    data: system_announcementsCreateManyInput | system_announcementsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * system_announcements update
+   */
+  export type system_announcementsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a system_announcements.
+     */
+    data: XOR<system_announcementsUpdateInput, system_announcementsUncheckedUpdateInput>
+    /**
+     * Choose, which system_announcements to update.
+     */
+    where: system_announcementsWhereUniqueInput
+  }
+
+  /**
+   * system_announcements updateMany
+   */
+  export type system_announcementsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update system_announcements.
+     */
+    data: XOR<system_announcementsUpdateManyMutationInput, system_announcementsUncheckedUpdateManyInput>
+    /**
+     * Filter which system_announcements to update
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * Limit how many system_announcements to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * system_announcements updateManyAndReturn
+   */
+  export type system_announcementsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * The data used to update system_announcements.
+     */
+    data: XOR<system_announcementsUpdateManyMutationInput, system_announcementsUncheckedUpdateManyInput>
+    /**
+     * Filter which system_announcements to update
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * Limit how many system_announcements to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * system_announcements upsert
+   */
+  export type system_announcementsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the system_announcements to update in case it exists.
+     */
+    where: system_announcementsWhereUniqueInput
+    /**
+     * In case the system_announcements found by the `where` argument doesn't exist, create a new system_announcements with this data.
+     */
+    create: XOR<system_announcementsCreateInput, system_announcementsUncheckedCreateInput>
+    /**
+     * In case the system_announcements was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<system_announcementsUpdateInput, system_announcementsUncheckedUpdateInput>
+  }
+
+  /**
+   * system_announcements delete
+   */
+  export type system_announcementsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+    /**
+     * Filter which system_announcements to delete.
+     */
+    where: system_announcementsWhereUniqueInput
+  }
+
+  /**
+   * system_announcements deleteMany
+   */
+  export type system_announcementsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which system_announcements to delete
+     */
+    where?: system_announcementsWhereInput
+    /**
+     * Limit how many system_announcements to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * system_announcements without action
+   */
+  export type system_announcementsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the system_announcements
+     */
+    select?: system_announcementsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the system_announcements
+     */
+    omit?: system_announcementsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -50358,6 +51594,24 @@ export namespace Prisma {
   };
 
   export type Request_approvalsScalarFieldEnum = (typeof Request_approvalsScalarFieldEnum)[keyof typeof Request_approvalsScalarFieldEnum]
+
+
+  export const System_announcementsScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    message: 'message',
+    type: 'type',
+    company_id: 'company_id',
+    created_by: 'created_by',
+    is_active: 'is_active',
+    is_dismissible: 'is_dismissible',
+    show_popup: 'show_popup',
+    expires_at: 'expires_at',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type System_announcementsScalarFieldEnum = (typeof System_announcementsScalarFieldEnum)[keyof typeof System_announcementsScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -53677,6 +54931,95 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"request_approvals"> | string
     comment?: StringNullableWithAggregatesFilter<"request_approvals"> | string | null
     action_date?: DateTimeNullableWithAggregatesFilter<"request_approvals"> | Date | string | null
+  }
+
+  export type system_announcementsWhereInput = {
+    AND?: system_announcementsWhereInput | system_announcementsWhereInput[]
+    OR?: system_announcementsWhereInput[]
+    NOT?: system_announcementsWhereInput | system_announcementsWhereInput[]
+    id?: IntFilter<"system_announcements"> | number
+    title?: StringFilter<"system_announcements"> | string
+    message?: StringFilter<"system_announcements"> | string
+    type?: StringNullableFilter<"system_announcements"> | string | null
+    company_id?: IntNullableFilter<"system_announcements"> | number | null
+    created_by?: IntNullableFilter<"system_announcements"> | number | null
+    is_active?: IntNullableFilter<"system_announcements"> | number | null
+    is_dismissible?: IntNullableFilter<"system_announcements"> | number | null
+    show_popup?: IntNullableFilter<"system_announcements"> | number | null
+    expires_at?: DateTimeNullableFilter<"system_announcements"> | Date | string | null
+    created_at?: DateTimeNullableFilter<"system_announcements"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"system_announcements"> | Date | string | null
+  }
+
+  export type system_announcementsOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrderInput | SortOrder
+    company_id?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    is_active?: SortOrderInput | SortOrder
+    is_dismissible?: SortOrderInput | SortOrder
+    show_popup?: SortOrderInput | SortOrder
+    expires_at?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+  }
+
+  export type system_announcementsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: system_announcementsWhereInput | system_announcementsWhereInput[]
+    OR?: system_announcementsWhereInput[]
+    NOT?: system_announcementsWhereInput | system_announcementsWhereInput[]
+    title?: StringFilter<"system_announcements"> | string
+    message?: StringFilter<"system_announcements"> | string
+    type?: StringNullableFilter<"system_announcements"> | string | null
+    company_id?: IntNullableFilter<"system_announcements"> | number | null
+    created_by?: IntNullableFilter<"system_announcements"> | number | null
+    is_active?: IntNullableFilter<"system_announcements"> | number | null
+    is_dismissible?: IntNullableFilter<"system_announcements"> | number | null
+    show_popup?: IntNullableFilter<"system_announcements"> | number | null
+    expires_at?: DateTimeNullableFilter<"system_announcements"> | Date | string | null
+    created_at?: DateTimeNullableFilter<"system_announcements"> | Date | string | null
+    updated_at?: DateTimeNullableFilter<"system_announcements"> | Date | string | null
+  }, "id">
+
+  export type system_announcementsOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrderInput | SortOrder
+    company_id?: SortOrderInput | SortOrder
+    created_by?: SortOrderInput | SortOrder
+    is_active?: SortOrderInput | SortOrder
+    is_dismissible?: SortOrderInput | SortOrder
+    show_popup?: SortOrderInput | SortOrder
+    expires_at?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    _count?: system_announcementsCountOrderByAggregateInput
+    _avg?: system_announcementsAvgOrderByAggregateInput
+    _max?: system_announcementsMaxOrderByAggregateInput
+    _min?: system_announcementsMinOrderByAggregateInput
+    _sum?: system_announcementsSumOrderByAggregateInput
+  }
+
+  export type system_announcementsScalarWhereWithAggregatesInput = {
+    AND?: system_announcementsScalarWhereWithAggregatesInput | system_announcementsScalarWhereWithAggregatesInput[]
+    OR?: system_announcementsScalarWhereWithAggregatesInput[]
+    NOT?: system_announcementsScalarWhereWithAggregatesInput | system_announcementsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"system_announcements"> | number
+    title?: StringWithAggregatesFilter<"system_announcements"> | string
+    message?: StringWithAggregatesFilter<"system_announcements"> | string
+    type?: StringNullableWithAggregatesFilter<"system_announcements"> | string | null
+    company_id?: IntNullableWithAggregatesFilter<"system_announcements"> | number | null
+    created_by?: IntNullableWithAggregatesFilter<"system_announcements"> | number | null
+    is_active?: IntNullableWithAggregatesFilter<"system_announcements"> | number | null
+    is_dismissible?: IntNullableWithAggregatesFilter<"system_announcements"> | number | null
+    show_popup?: IntNullableWithAggregatesFilter<"system_announcements"> | number | null
+    expires_at?: DateTimeNullableWithAggregatesFilter<"system_announcements"> | Date | string | null
+    created_at?: DateTimeNullableWithAggregatesFilter<"system_announcements"> | Date | string | null
+    updated_at?: DateTimeNullableWithAggregatesFilter<"system_announcements"> | Date | string | null
   }
 
   export type assignmentsCreateInput = {
@@ -57112,6 +58455,108 @@ export namespace Prisma {
     action_date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type system_announcementsCreateInput = {
+    title: string
+    message: string
+    type?: string | null
+    company_id?: number | null
+    created_by?: number | null
+    is_active?: number | null
+    is_dismissible?: number | null
+    show_popup?: number | null
+    expires_at?: Date | string | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type system_announcementsUncheckedCreateInput = {
+    id?: number
+    title: string
+    message: string
+    type?: string | null
+    company_id?: number | null
+    created_by?: number | null
+    is_active?: number | null
+    is_dismissible?: number | null
+    show_popup?: number | null
+    expires_at?: Date | string | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type system_announcementsUpdateInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    company_id?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    is_dismissible?: NullableIntFieldUpdateOperationsInput | number | null
+    show_popup?: NullableIntFieldUpdateOperationsInput | number | null
+    expires_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type system_announcementsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    company_id?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    is_dismissible?: NullableIntFieldUpdateOperationsInput | number | null
+    show_popup?: NullableIntFieldUpdateOperationsInput | number | null
+    expires_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type system_announcementsCreateManyInput = {
+    id?: number
+    title: string
+    message: string
+    type?: string | null
+    company_id?: number | null
+    created_by?: number | null
+    is_active?: number | null
+    is_dismissible?: number | null
+    show_popup?: number | null
+    expires_at?: Date | string | null
+    created_at?: Date | string | null
+    updated_at?: Date | string | null
+  }
+
+  export type system_announcementsUpdateManyMutationInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    company_id?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    is_dismissible?: NullableIntFieldUpdateOperationsInput | number | null
+    show_popup?: NullableIntFieldUpdateOperationsInput | number | null
+    expires_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type system_announcementsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    company_id?: NullableIntFieldUpdateOperationsInput | number | null
+    created_by?: NullableIntFieldUpdateOperationsInput | number | null
+    is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    is_dismissible?: NullableIntFieldUpdateOperationsInput | number | null
+    show_popup?: NullableIntFieldUpdateOperationsInput | number | null
+    expires_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -59759,6 +61204,69 @@ export namespace Prisma {
     request_id?: SortOrder
     approver_id?: SortOrder
     step?: SortOrder
+  }
+
+  export type system_announcementsCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    company_id?: SortOrder
+    created_by?: SortOrder
+    is_active?: SortOrder
+    is_dismissible?: SortOrder
+    show_popup?: SortOrder
+    expires_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type system_announcementsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    created_by?: SortOrder
+    is_active?: SortOrder
+    is_dismissible?: SortOrder
+    show_popup?: SortOrder
+  }
+
+  export type system_announcementsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    company_id?: SortOrder
+    created_by?: SortOrder
+    is_active?: SortOrder
+    is_dismissible?: SortOrder
+    show_popup?: SortOrder
+    expires_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type system_announcementsMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    company_id?: SortOrder
+    created_by?: SortOrder
+    is_active?: SortOrder
+    is_dismissible?: SortOrder
+    show_popup?: SortOrder
+    expires_at?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type system_announcementsSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    created_by?: SortOrder
+    is_active?: SortOrder
+    is_dismissible?: SortOrder
+    show_popup?: SortOrder
   }
 
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {

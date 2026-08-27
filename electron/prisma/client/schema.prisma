@@ -649,3 +649,21 @@ model request_approvals {
 
   @@index([request_id], map: "idx_request_approvals_request")
 }
+
+model system_announcements {
+  id             Int       @id @default(autoincrement())
+  title          String
+  message        String
+  type           String?   @default("info")
+  company_id     Int?
+  created_by     Int?
+  is_active      Int?      @default(1)
+  is_dismissible Int?      @default(1)
+  show_popup     Int?      @default(0)
+  expires_at     DateTime?
+  created_at     DateTime? @default(now())
+  updated_at     DateTime? @default(now())
+
+  @@index([company_id], map: "idx_announcements_company")
+  @@index([is_active], map: "idx_announcements_active")
+}

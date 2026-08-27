@@ -607,6 +607,21 @@ exports.Prisma.Request_approvalsScalarFieldEnum = {
   action_date: 'action_date'
 };
 
+exports.Prisma.System_announcementsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  message: 'message',
+  type: 'type',
+  company_id: 'company_id',
+  created_by: 'created_by',
+  is_active: 'is_active',
+  is_dismissible: 'is_dismissible',
+  show_popup: 'show_popup',
+  expires_at: 'expires_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -660,7 +675,8 @@ exports.Prisma.ModelName = {
   roles: 'roles',
   permissions: 'permissions',
   requests: 'requests',
-  request_approvals: 'request_approvals'
+  request_approvals: 'request_approvals',
+  system_announcements: 'system_announcements'
 };
 
 /**
