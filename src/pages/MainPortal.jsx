@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { LayoutDashboard, Users, Wallet, Briefcase, ChevronRight, UtensilsCrossed, Car, Banknote, Clock, ArrowUpRight, Sparkles, Building2 } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, Briefcase, ChevronRight, UtensilsCrossed, Car, Banknote, Clock, ArrowUpRight, Sparkles, Building2, Crown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useAuth } from '../context/AuthContext'
@@ -212,7 +212,20 @@ export default function MainPortal() {
             path: '/customers',
             active: true,
             features: ['Müşteri profili', 'Açık bakiyeler', 'İletişim bilgileri', 'Geçmiş işler']
-        }
+        },
+        ...((user?.role === 'superadmin' || user?.role === 'admin' || user?.username === 'admin') ? [{
+            id: 'platform',
+            title: 'Platform Yönetimi',
+            description: 'SaaS Master: Tüm şirketler, kullanıcılar, canlı sunucu sağlığı ve yedekleme.',
+            icon: Crown,
+            gradient: 'linear-gradient(145deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.06) 100%)',
+            hoverGradient: 'linear-gradient(145deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.12) 100%)',
+            color: '#f59e0b',
+            glowColor: '#f59e0b',
+            path: '/platform-admin',
+            active: true,
+            features: ['Tüm şirketler & Ghost modu', 'Global kullanıcılar', 'Sunucu sağlığı & Uptime', 'Veritabanı yedekleri']
+        }] : [])
     ]
 
     const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
