@@ -311,12 +311,15 @@ async function deletePlatformUser(userId) {
  */
 async function toggleUserStatus(userId, isActive) {
     try {
+        const uid = parseInt(userId, 10);
+        const statusVal = (isActive === 1 || isActive === true || isActive === '1') ? 1 : 0;
         const updated = await prisma.users.update({
-            where: { id: parseInt(userId, 10) },
-            data: { is_active: isActive ? 1 : 0 }
+            where: { id: uid },
+            data: { is_active: statusVal }
         });
         return { success: true, data: updated };
     } catch (error) {
+        console.error('toggleUserStatus error:', error);
         return { success: false, error: error.message };
     }
 }

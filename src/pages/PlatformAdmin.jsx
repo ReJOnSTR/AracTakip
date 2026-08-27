@@ -27,6 +27,7 @@ import {
     Plus,
     Trash2,
     Lock,
+    Unlock,
     ExternalLink,
     Server,
     Cloud,
@@ -156,13 +157,31 @@ export default function PlatformAdmin() {
         }
     }
 
-    // Toggle User Status
+    // Toggle User Status (Lock / Unlock)
     const handleToggleUser = async (u) => {
-        const nextState = u.isActive ? 0 : 1
-        const res = await window.electronAPI.toggleUserStatus(u.id, nextState)
-        if (res.success) {
-            await loadUsers()
-            setActionMsg(`${u.username} durumu güncellendi.`)
+        if (u.username === 'admin' || u.id === 1) {
+            alert('Ana Süper Yönetici hesabı kilitlenemez.')
+            return
+        }
+        const currentActive = u.isActive !== undefined ? u.isActive : (u.is_active !== 0)
+        const nextState = currentActive ? 0 : 1
+
+        try {
+            const res = await window.electronAPI.toggleUserStatus(u.id, nextState)
+            if (res && (res.success || res.data)) {
+                // Optimistic local update for instant UI feedback
+                setPlatformUsers(prev => prev.map(item => 
+                    item.id === u.id 
+                        ? { ...item, isActive: nextState === 1, is_active: nextState } 
+                        : item
+                ))
+                setActionMsg(`"${u.username}" hesabı ${nextState === 1 ? 'aktif edildi' : 'kilitlendi (pasife alındı)'}.`)
+                await loadUsers()
+            } else {
+                alert('Hata: ' + (res?.error || 'Durum değiştirilemedi'))
+            }
+        } catch (err) {
+            alert('İşlem hatası: ' + err.message)
         }
     }
 
@@ -243,12 +262,13 @@ export default function PlatformAdmin() {
     const tableUsers = useMemo(() => {
         return platformUsers.map(u => ({
             ...u,
+            isActive: u.isActive !== undefined ? u.isActive : (u.is_active !== 0),
             company_id: u.company?.id ? String(u.company.id) : 'NONE',
             company_name: u.company?.name || 'Sistem / Genel',
             employee_name: u.employee?.fullName || '',
             employee_pos: u.employee?.position || '',
             employee_tc: u.employee?.tcNo || '',
-            status_filter: u.isActive ? 'ACTIVE' : 'LOCKED'
+            status_filter: (u.isActive !== undefined ? u.isActive : (u.is_active !== 0)) ? 'ACTIVE' : 'LOCKED'
         }))
     }, [platformUsers])
 
@@ -344,7 +364,7 @@ export default function PlatformAdmin() {
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
         { key: 'actions', label: 'İşlemler', render: (_, r) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateUser(r)}
@@ -363,9 +383,10 @@ export default function PlatformAdmin() {
                 <button
                     className="action-icon-btn"
                     onClick={() => handleToggleUser(r)}
-                    title={r.isActive ? 'Hesabı Kilitle' : 'Kilidi Aç'}
+                    title={r.isActive ? 'Hesabı Kilitle (Pasife Al)' : 'Hesabın Kilidini Aç (Aktif Et)'}
+                    style={!r.isActive ? { color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)' } : {}}
                 >
-                    {r.isActive ? <Lock size={13} /> : <CheckCircle2 size={13} style={{ color: '#10b981' }} />}
+                    {r.isActive ? <Lock size={13} /> : <Unlock size={13} style={{ color: '#10b981' }} />}
                 </button>
                 {r.username !== 'admin' && r.id !== 1 && (
                     <button
@@ -463,29 +484,31 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── NAVIGATION TABS ── */}
+            {/* ── STANDARD SEGMENTED/UNDERLINE TABS MATCHING VEHICLEDETAIL ── */}
             <div className="platform-tabs">
                 <button
                     className={`platform-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
                     onClick={() => setActiveTab('users')}
                 >
-                    <Users size={15} />
-                    <span>Kullanıcılar & Şirket Bağlantıları ({platformUsers.length})</span>
+                    <Users size={16} />
+                    <span>Kullanıcılar & Şirket Bağlantıları</span>
+                    <span className="platform-tab-badge">{platformUsers.length}</span>
                 </button>
 
                 <button
                     className={`platform-tab-btn ${activeTab === 'tenants' ? 'active' : ''}`}
                     onClick={() => setActiveTab('tenants')}
                 >
-                    <Building2 size={15} />
-                    <span>Şirketler & Portföy ({overviewData?.companies?.length || 0})</span>
+                    <Building2 size={16} />
+                    <span>Şirketler & Portföy</span>
+                    <span className="platform-tab-badge">{overviewData?.companies?.length || 0}</span>
                 </button>
 
                 <button
                     className={`platform-tab-btn ${activeTab === 'health' ? 'active' : ''}`}
                     onClick={() => { setActiveTab('health'); loadHealth(); }}
                 >
-                    <Activity size={15} />
+                    <Activity size={16} />
                     <span>Sistem Sağlığı & Canlı İzleme</span>
                 </button>
 
@@ -493,8 +516,9 @@ export default function PlatformAdmin() {
                     className={`platform-tab-btn ${activeTab === 'backups' ? 'active' : ''}`}
                     onClick={() => setActiveTab('backups')}
                 >
-                    <Database size={15} />
-                    <span>Veritabanı Yedekleri ({backups.length})</span>
+                    <Database size={16} />
+                    <span>Veritabanı Yedekleri</span>
+                    <span className="platform-tab-badge">{backups.length}</span>
                 </button>
             </div>
 
@@ -627,7 +651,7 @@ export default function PlatformAdmin() {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.46'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.47'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
