@@ -12,7 +12,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     const { user } = useAuth()
     const location = useLocation()
 
-    const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin' || user?.username === 'admin'
+    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
 
     // Determine the active module
     const activeModule = getActiveModule(location.pathname, location.search)

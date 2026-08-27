@@ -86,6 +86,15 @@ function AdminRoute({ children }) {
     return children
 }
 
+function SuperAdminRoute({ children }) {
+    const { user, loading } = useAuth()
+    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
+
+    if (loading) return null
+    if (!isSuperAdmin) return <Navigate to="/dashboard" replace />
+    return children
+}
+
 function MainLayout() {
     const { user } = useAuth()
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -183,7 +192,7 @@ function AppRoutes() {
                         <Route path="/customers/:id" element={<CustomerDetail />} />
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/module-settings/:module" element={<AdminRoute><ModuleSettings /></AdminRoute>} />
-                        <Route path="/platform-admin" element={<AdminRoute><PlatformAdmin /></AdminRoute>} />
+                        <Route path="/platform-admin" element={<SuperAdminRoute><PlatformAdmin /></SuperAdminRoute>} />
                         <Route path="/approvals" element={<ApprovalCenter />} />
                         <Route path="/personnel-portal" element={<Navigate to="/personnel-profile" replace />} />
                         <Route path="/reports" element={<Reports />} />

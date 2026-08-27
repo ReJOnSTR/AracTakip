@@ -34,7 +34,7 @@ async function registerUser(userData) {
                 email: cleanEmail,
                 full_name: fullName || username,
                 password_hash,
-                role: 'admin',
+                role: 'company_admin',
                 must_change_password: 0,
                 is_active: 1
             }
