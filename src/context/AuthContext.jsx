@@ -130,9 +130,9 @@ export function AuthProvider({ children }) {
         }
     }
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'user' || !user?.role
+    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'company_admin' || user?.role === 'company_owner' || user?.role === 'user' || user?.username === 'admin' || !user?.role
     const isManager = user?.role === 'manager' || isAdmin
-    const isPersonnel = user?.role === 'personnel'
+    const isPersonnel = user?.role === 'personnel' || user?.role === 'employee'
 
     const hasPermission = (moduleName, action = 'can_read') => {
         if (isAdmin) return true;

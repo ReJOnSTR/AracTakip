@@ -69,38 +69,33 @@
 }
 
 /* Light Theme */
-/* Light Theme - High Contrast & Clear */
+/* Light Theme - High Contrast, Crisp SaaS Slate Palette */
 [data-theme="light"] {
-  /* 
-     MODERN TEAL CONTRAST (Region-Focused Design)
-     Specifically designed to match the brand color #14b8a6.
-  */
-
-  --bg-primary: #f8fafc;   /* Slate 50 - Clean canvas */
-  --bg-secondary: #f0fdfa; /* Teal 50 - Sidebar & Header (Clearly different from white) */
-  --bg-tertiary: #ccfbf1;  /* Teal 100 - For inputs and hovers */
-  --bg-card: #ffffff;      
-  --bg-card-hover: #f9fafb;
+  --bg-primary: #edf2f7;   /* Cool refined gray canvas (gives sharp separation to white cards) */
+  --bg-secondary: #f8fafc; /* Crisp Slate 50 for Sidebar & TabBar */
+  --bg-tertiary: #e2e8f0;  /* Slate 200 for inputs, hovers, table headers */
+  --bg-card: #ffffff;      /* Pure white cards on gray canvas */
+  --bg-card-hover: #f8fafc;
   --bg-elevated: #ffffff;
 
-  --text-primary: #134e4a;   /* Teal 950 - Deep Navy-Teal for maximum readability */
-  --text-secondary: #0f766e; /* Teal 700 - Strong secondary text */
-  --text-muted: #14b8a6;     /* Teal 500 - Muted text with brand color */
+  --text-primary: #0f172a;   /* Slate 900 - Deep, sharp readability */
+  --text-secondary: #334155; /* Slate 700 - High contrast secondary text */
+  --text-muted: #64748b;     /* Slate 500 - Clear readable muted text */
 
-  --border-color: #ccfbf1;   /* Teal 100 - Very clear boundaries */
-  --border-light: #f0fdfa;   
+  --border-color: #cbd5e1;   /* Slate 300 - Clearly defined card/table borders */
+  --border-light: #e2e8f0;   /* Slate 200 - Soft internal dividers */
 
-  --shadow-sm: 0 1px 2px rgba(20, 184, 166, 0.05);
-  --shadow-md: 0 4px 12px rgba(20, 184, 166, 0.1);
-  --shadow-lg: 0 12px 30px rgba(20, 184, 166, 0.15);
-  --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.2);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.1);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
 
-  /* Accents - Original Teal */
-  --accent-primary: #14b8a6;   
-  --accent-secondary: #0d9488; 
-  --accent-primary-glass: rgba(20, 184, 166, 0.05);
-  --accent-glow: rgba(20, 184, 166, 0.25);
-  --accent-subtle: rgba(20, 184, 166, 0.1);
+  /* Accents */
+  --accent-primary: #2563eb;   
+  --accent-secondary: #1d4ed8; 
+  --accent-primary-glass: rgba(37, 99, 235, 0.08);
+  --accent-glow: rgba(37, 99, 235, 0.2);
+  --accent-subtle: rgba(37, 99, 235, 0.1);
   --primary: var(--accent-primary);
   --primary-bg: var(--accent-subtle);
 }
@@ -3745,37 +3740,7 @@ textarea,
   animation: spin 1s linear infinite;
 }
 
-/* 
-   MODERN TECH THEME (Slate / Cool Gray) - OVERRIDE
-   Crisp, clean, and professional. Standard modern SaaS aesthetic.
-*/
-[data-theme="light"] {
-  /* Backgrounds - Cool & Fresh */
-  --bg-primary: #f8fafc;
-  /* Slate 50 */
-  --bg-secondary: #ffffff;
-  /* Pure White */
-  --bg-tertiary: #f1f5f9;
-  /* Slate 100 */
 
-  /* Surfaces */
-  --bg-card: #ffffff;
-  --bg-card-hover: #f8fafc;
-  --bg-elevated: #ffffff;
-
-  /* Text - Sharp & Defined */
-  --text-primary: #0f172a;
-  /* Slate 900 */
-  --text-secondary: #475569;
-  /* Slate 600 */
-  --text-muted: #94a3b8;
-  /* Slate 400 */
-
-  /* Borders - Clean & Minimal */
-  --border-color: #e2e8f0;
-  /* Slate 200 */
-  /* Slate 100 */
-}
 
 /* ============================================
    TAB BAR
