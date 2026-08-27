@@ -29,13 +29,8 @@ import {
     Trash2,
     Lock,
     ExternalLink,
-    Search,
-    Filter,
-    RotateCcw,
-    X,
     Server,
     Cloud,
-    SlidersHorizontal,
     BadgeCheck
 } from 'lucide-react'
 import './PlatformAdmin.css'
@@ -54,13 +49,6 @@ export default function PlatformAdmin() {
     const [healthLoading, setHealthLoading] = useState(false)
     const [backupLoading, setBackupLoading] = useState(false)
     const [actionMsg, setActionMsg] = useState('')
-
-    // Advanced Filters for Users Tab
-    const [companyFilter, setCompanyFilter] = useState('ALL')
-    const [roleFilter, setRoleFilter] = useState('ALL')
-    const [statusFilter, setStatusFilter] = useState('ALL')
-    const [sortBy, setSortBy] = useState('newest')
-    const [searchTerm, setSearchTerm] = useState('')
 
     // Modals
     const [passwordModalUser, setPasswordModalUser] = useState(null)
@@ -136,15 +124,6 @@ export default function PlatformAdmin() {
         } finally {
             setHealthLoading(false)
         }
-    }
-
-    // Reset filters
-    const handleResetFilters = () => {
-        setCompanyFilter('ALL')
-        setRoleFilter('ALL')
-        setStatusFilter('ALL')
-        setSortBy('newest')
-        setSearchTerm('')
     }
 
     // Impersonate Company (Ghost Mode)
@@ -261,52 +240,56 @@ export default function PlatformAdmin() {
         }
     }
 
-    // Filtered & Sorted Users List
-    const filteredUsers = useMemo(() => {
-        let list = platformUsers.filter(u => {
-            // Company Filter
-            if (companyFilter !== 'ALL') {
-                if (companyFilter === 'NONE') {
-                    if (u.company?.id) return false
-                } else if (String(u.company?.id) !== String(companyFilter)) {
-                    return false
-                }
-            }
-            // Role / Type Filter
-            if (roleFilter !== 'ALL') {
-                if (u.accountType !== roleFilter) return false
-            }
-            // Status Filter
-            if (statusFilter === 'ACTIVE' && !u.isActive) return false
-            if (statusFilter === 'LOCKED' && u.isActive) return false
+    // Table Data formatted for DataTable search & filters
+    const tableUsers = useMemo(() => {
+        return platformUsers.map(u => ({
+            ...u,
+            company_id: u.company?.id ? String(u.company.id) : 'NONE',
+            company_name: u.company?.name || 'Sistem / Genel',
+            employee_name: u.employee?.fullName || '',
+            employee_pos: u.employee?.position || '',
+            employee_tc: u.employee?.tcNo || '',
+            status_filter: u.isActive ? 'ACTIVE' : 'LOCKED'
+        }))
+    }, [platformUsers])
 
-            // Search filter
-            if (searchTerm.trim()) {
-                const term = searchTerm.toLowerCase()
-                const uName = (u.username || '').toLowerCase()
-                const uEmail = (u.email || '').toLowerCase()
-                const uFull = (u.fullName || '').toLowerCase()
-                const cName = (u.company?.name || '').toLowerCase()
-                const empName = (u.employee?.fullName || '').toLowerCase()
-                const tcNo = (u.employee?.tcNo || '').toLowerCase()
-                if (!uName.includes(term) && !uEmail.includes(term) && !uFull.includes(term) && !cName.includes(term) && !empName.includes(term) && !tcNo.includes(term)) {
-                    return false
-                }
-            }
-            return true
-        })
+    const tableCompanies = useMemo(() => {
+        return (overviewData?.companies || []).map(c => ({
+            ...c,
+            owner_username: c.owner?.username || '',
+            owner_email: c.owner?.email || ''
+        }))
+    }, [overviewData])
 
-        // Sorting
-        list.sort((a, b) => {
-            if (sortBy === 'newest') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-            if (sortBy === 'oldest') return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-            if (sortBy === 'name_asc') return (a.username || '').localeCompare(b.username || '')
-            if (sortBy === 'company') return (a.company?.name || '').localeCompare(b.company?.name || '')
-            return 0
-        })
-
-        return list
-    }, [platformUsers, companyFilter, roleFilter, statusFilter, sortBy, searchTerm])
+    // Filters for DataTable (matching standard design across app)
+    const userFilters = useMemo(() => [
+        {
+            key: 'company_id',
+            label: 'Şirket',
+            options: [
+                ...overviewData?.companies?.map(c => ({ value: String(c.id), label: c.name })) || [],
+                { value: 'NONE', label: 'Şirketsiz / Sistem' }
+            ]
+        },
+        {
+            key: 'accountType',
+            label: 'Hesap Türü',
+            options: [
+                { value: 'superadmin', label: '👑 Süper Yönetici' },
+                { value: 'company_owner', label: '🏢 Şirket Sahibi' },
+                { value: 'employee', label: '👤 Personel / Şoför' },
+                { value: 'admin', label: '🛡️ Yönetici' }
+            ]
+        },
+        {
+            key: 'status_filter',
+            label: 'Durum',
+            options: [
+                { value: 'ACTIVE', label: '🟢 Aktif Hesaplar' },
+                { value: 'LOCKED', label: '🔴 Kilitli Hesaplar' }
+            ]
+        }
+    ], [overviewData])
 
     if (!isSuperAdmin) {
         return null
@@ -462,8 +445,6 @@ export default function PlatformAdmin() {
         { key: 'createdAt', label: 'Yedek Tarihi', render: (val) => new Date(val).toLocaleString('tr-TR') }
     ]
 
-    const isFiltered = companyFilter !== 'ALL' || roleFilter !== 'ALL' || statusFilter !== 'ALL' || searchTerm.trim() !== ''
-
     return (
         <div className="platform-admin-page">
             <TopProgressBar loading={loading || backupLoading} />
@@ -583,97 +564,18 @@ export default function PlatformAdmin() {
                 </button>
             </div>
 
-            {/* ── TAB 1: ADVANCED USERS & COMPANY MAPPINGS ── */}
+            {/* ── TAB 1: USERS & COMPANY MAPPINGS (NATIVE DATATABLE FILTERS) ── */}
             {activeTab === 'users' && (
                 <div>
-                    {/* Advanced Filter Toolbar */}
-                    <div className="platform-advanced-filter-bar">
-                        <div className="filter-row-top">
-                            <div className="filter-search-box">
-                                <Search size={15} className="search-icon-left" />
-                                <input
-                                    type="text"
-                                    placeholder="Kullanıcı adı, e-posta, şirket veya personel ara..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                {searchTerm && (
-                                    <button className="search-clear-btn" onClick={() => setSearchTerm('')}>
-                                        <X size={14} />
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="filter-info-badge">
-                                <Filter size={13} />
-                                <span>Toplam <strong>{platformUsers.length}</strong> kullanıcıdan <strong>{filteredUsers.length}</strong> tanesi listeleniyor</span>
-                            </div>
-
-                            {isFiltered && (
-                                <button className="filter-reset-btn" onClick={handleResetFilters}>
-                                    <RotateCcw size={12} />
-                                    <span>Filtreleri Temizle</span>
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="filter-row-controls">
-                            {/* Company Filter Dropdown */}
-                            <div className="filter-select-wrapper">
-                                <label>🏢 Şirket:</label>
-                                <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)}>
-                                    <option value="ALL">Tüm Şirketler ({platformUsers.length})</option>
-                                    {overviewData?.companies?.map(c => {
-                                        const count = platformUsers.filter(u => String(u.company?.id) === String(c.id)).length
-                                        return (
-                                            <option key={c.id} value={c.id}>{c.name} ({count})</option>
-                                        )
-                                    })}
-                                    <option value="NONE">Şirketsiz / Sistem</option>
-                                </select>
-                            </div>
-
-                            {/* Role / Account Type Filter */}
-                            <div className="filter-select-wrapper">
-                                <label>🛡️ Hesap Türü:</label>
-                                <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-                                    <option value="ALL">Tüm Roller</option>
-                                    <option value="superadmin">👑 Süper Yönetici</option>
-                                    <option value="company_owner">🏢 Şirket Sahibi</option>
-                                    <option value="employee">👤 Personel / Şoför</option>
-                                    <option value="admin">🛡️ Yönetici</option>
-                                </select>
-                            </div>
-
-                            {/* Status Filter */}
-                            <div className="filter-select-wrapper">
-                                <label>🟢 Durum:</label>
-                                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                                    <option value="ALL">Tümü</option>
-                                    <option value="ACTIVE">🟢 Sadece Aktif</option>
-                                    <option value="LOCKED">🔴 Sadece Kilitli</option>
-                                </select>
-                            </div>
-
-                            {/* Sorting */}
-                            <div className="filter-select-wrapper">
-                                <label>↕️ Sıralama:</label>
-                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                                    <option value="newest">📅 En Yeni Kayıt</option>
-                                    <option value="oldest">📅 En Eski Kayıt</option>
-                                    <option value="name_asc">🔤 Kullanıcı Adı (A-Z)</option>
-                                    <option value="company">🏢 Şirkete Göre</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
                     <DataTable
+                        persistenceKey="PlatformAdmin_users_table"
                         columns={userColumns}
-                        data={filteredUsers}
-                        showSearch={false}
-                        showPagination={true}
-                        defaultPageSize={10}
+                        data={tableUsers}
+                        showSearch={true}
+                        showCheckboxes={false}
+                        searchPlaceholder="Kullanıcı adı, e-posta, şirket veya personel ile ara..."
+                        searchKeys={['username', 'email', 'fullName', 'company_name', 'employee_name', 'employee_pos', 'employee_tc']}
+                        filters={userFilters}
                     />
                 </div>
             )}
@@ -682,11 +584,13 @@ export default function PlatformAdmin() {
             {activeTab === 'tenants' && (
                 <div>
                     <DataTable
+                        persistenceKey="PlatformAdmin_tenants_table"
                         columns={tenantColumns}
-                        data={overviewData?.companies || []}
+                        data={tableCompanies}
                         showSearch={true}
-                        showPagination={true}
-                        defaultPageSize={10}
+                        showCheckboxes={false}
+                        searchPlaceholder="Şirket adı, vergi no veya yetkili ile ara..."
+                        searchKeys={['name', 'tax_number', 'phone', 'owner_username', 'owner_email']}
                     />
                 </div>
             )}
@@ -789,7 +693,7 @@ export default function PlatformAdmin() {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.44'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.45'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
@@ -875,11 +779,13 @@ export default function PlatformAdmin() {
                     </div>
 
                     <DataTable
+                        persistenceKey="PlatformAdmin_backups_table"
                         columns={backupColumns}
                         data={backups}
                         showSearch={true}
-                        showPagination={true}
-                        defaultPageSize={10}
+                        showCheckboxes={false}
+                        searchPlaceholder="Yedek dosyası adı ile ara..."
+                        searchKeys={['fileName']}
                     />
                 </div>
             )}

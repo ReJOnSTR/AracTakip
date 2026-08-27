@@ -213,34 +213,6 @@ export default function TabBar() {
             {/* Right: Header Actions */}
             <div className="tab-bar-right">
                 <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Platform Super Admin Master Button */}
-                    {isSuperAdmin && (
-                        <button
-                            onClick={() => openNewTab('/platform-admin', false, 'Platform Yönetimi')}
-                            style={{
-                                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(217, 119, 6, 0.28) 100%)',
-                                border: '1px solid rgba(245, 158, 11, 0.45)',
-                                color: '#f59e0b',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '4px 10px',
-                                borderRadius: '8px',
-                                fontSize: '11.5px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                height: '28px',
-                                transition: 'all 0.2s ease',
-                                whiteSpace: 'nowrap',
-                                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)'
-                            }}
-                            title="Süper Yönetici / Platform Yönetim Paneli"
-                        >
-                            <Crown size={14} />
-                            <span>Platform</span>
-                        </button>
-                    )}
-
                     {/* Company Selector */}
                     <div className="company-selector">
                         {user?.role === 'personnel' ? (
