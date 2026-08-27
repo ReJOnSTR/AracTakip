@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MODERN AUTH / LOGIN & REGISTER PAGE STYLES
+   MODERN AUTH / LOGIN & REGISTER PAGE STYLES (SEAMLESS FIXED CARD)
    ========================================================================== */
 
 .modern-auth-page {
@@ -13,12 +13,13 @@
                 var(--bg-primary, #0f1117);
     padding: 24px 16px;
     box-sizing: border-box;
-    overflow-y: auto;
 }
 
+/* Outer Container - Fixed Dimensions & Steady Frame */
 .modern-auth-container {
     width: 100%;
-    max-width: 980px;
+    max-width: 960px;
+    min-height: 540px;
     background: var(--bg-secondary, #161922);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
@@ -27,28 +28,13 @@
     display: grid;
     grid-template-columns: 1fr 1.15fr;
     overflow: hidden;
-    animation: authFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modern-auth-container.register-layout {
-    max-width: 1020px;
-}
-
-@keyframes authFadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(12px) scale(0.99);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    /* Card remains completely stable - no scale/jump */
 }
 
 /* ── LEFT BRAND PANEL ── */
 .auth-brand-panel {
     background: linear-gradient(145deg, #181d2a 0%, #11141e 100%);
-    padding: 44px 36px;
+    padding: 40px 36px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -73,30 +59,30 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .brand-logo-img {
-    height: 38px;
+    height: 36px;
     width: auto;
     object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .brand-hero-title {
-    font-size: 23px;
+    font-size: 22px;
     font-weight: 700;
     color: #f8fafc;
     line-height: 1.35;
-    margin: 0 0 12px 0;
+    margin: 0 0 10px 0;
     letter-spacing: -0.02em;
 }
 
 .brand-hero-desc {
     font-size: 13px;
     color: #94a3b8;
-    line-height: 1.6;
-    margin: 0 0 24px 0;
+    line-height: 1.55;
+    margin: 0 0 20px 0;
 }
 
 .brand-feature-list {
@@ -131,7 +117,7 @@
 }
 
 .brand-footer-trust {
-    margin-top: 28px;
+    margin-top: 24px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -141,15 +127,28 @@
 
 /* ── RIGHT FORM PANEL ── */
 .auth-form-panel {
-    padding: 38px 36px;
+    padding: 36px 36px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     background: var(--bg-secondary, #161922);
+    animation: formFadeIn 0.22s ease-out;
+}
+
+/* Only inner form smoothly fades in without moving the card */
+@keyframes formFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .form-header-block {
-    margin-bottom: 22px;
+    margin-bottom: 20px;
 }
 
 .form-header-title {
@@ -246,7 +245,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 14px 0 20px 0;
+    margin: 14px 0 18px 0;
     font-size: 12.5px;
 }
 
@@ -287,12 +286,7 @@
 
 .modern-submit-btn:hover:not(:disabled) {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-}
-
-.modern-submit-btn:active:not(:disabled) {
-    transform: translateY(0);
 }
 
 .modern-submit-btn:disabled {
@@ -322,7 +316,7 @@
 
 .auth-bottom-footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 18px;
     font-size: 12.5px;
     color: var(--text-muted, #64748b);
 }
@@ -343,6 +337,7 @@
     .modern-auth-container {
         grid-template-columns: 1fr;
         max-width: 460px;
+        min-height: auto;
     }
     .auth-brand-panel {
         display: none;
