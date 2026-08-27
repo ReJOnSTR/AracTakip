@@ -1333,14 +1333,6 @@ export default function PlatformAdmin({ section }) {
                             placeholder="Açık adres..."
                         />
 
-                        <CustomSelect
-                            label="Şirket Kurucusu / Yöneticisi Ata"
-                            value={newCompanyForm.ownerUserId}
-                            onChange={(val) => setNewCompanyForm(prev => ({ ...prev, ownerUserId: val }))}
-                            options={companyOwnerOptions}
-                            placeholder="Kullanıcı Seçin veya Boş Bırakın"
-                        />
-
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setCreateCompanyModal(false)}>
                                 İptal
