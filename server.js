@@ -64,7 +64,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Health Check Endpoints for Dokploy & Uptime Monitoring
-app.get(['/api/health', '/health'], async (req, res) => {
+const handleHealthCheck = async (req, res) => {
     try {
         const prisma = getPrismaClient();
         const startTime = Date.now();
@@ -76,7 +76,7 @@ app.get(['/api/health', '/health'], async (req, res) => {
             status: 'ok',
             uptimeSeconds: Math.floor(process.uptime()),
             timestamp: new Date().toISOString(),
-            version: require('./package.json').version || '1.13.27',
+            version: require('./package.json').version || '1.13.29',
             database: {
                 status: 'connected',
                 latencyMs
@@ -93,7 +93,10 @@ app.get(['/api/health', '/health'], async (req, res) => {
             error: 'Database ping failed: ' + err.message
         });
     }
-});
+};
+
+app.get('/api/health', handleHealthCheck);
+app.get('/health', handleHealthCheck);
 
 // Automated Database Backup Trigger Endpoint
 app.post('/api/admin/backup', async (req, res) => {
@@ -113,14 +116,14 @@ if (!fs.existsSync(filesDir)) {
     fs.mkdirSync(filesDir, { recursive: true });
 }
 
-// Serve /uploads with automatic fallback to Supabase Storage (supports nested hierarchical paths)
-app.get('/uploads/*', async (req, res, next) => {
+// Serve /uploads with automatic fallback to Supabase Storage (Express 5 compatible)
+app.use('/uploads', async (req, res, next) => {
     try {
-        const relativePath = (req.params[0] || '').replace(/^\/+/, '');
+        const relativePath = decodeURIComponent(req.path || '').replace(/^\/+/, '');
         if (!relativePath) return res.status(404).send('File not found');
 
         const localFile = path.join(filesDir, relativePath);
-        if (fs.existsSync(localFile)) {
+        if (fs.existsSync(localFile) && fs.statSync(localFile).isFile()) {
             return res.sendFile(localFile);
         }
         const { downloadFromStorage } = require('./electron/services/supabase.service');
@@ -142,8 +145,6 @@ app.get('/uploads/*', async (req, res, next) => {
     }
     return res.status(404).send('File not found');
 });
-
-app.use('/uploads', express.static(filesDir));
 
 // Direct File Upload API for Web Client with Enterprise Hierarchical Paths
 app.post('/api/upload', async (req, res) => {
