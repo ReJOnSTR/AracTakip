@@ -27,6 +27,31 @@ const filesDir = path.join(dataDir, 'files');
 if (!fs.existsSync(filesDir)) {
     fs.mkdirSync(filesDir, { recursive: true });
 }
+
+// Serve /uploads with automatic fallback to Supabase Storage
+app.get('/uploads/:filename', async (req, res, next) => {
+    try {
+        const cleanName = path.basename(req.params.filename);
+        const localFile = path.join(filesDir, cleanName);
+        if (fs.existsSync(localFile)) {
+            return res.sendFile(localFile);
+        }
+        const { downloadFromStorage } = require('./electron/services/supabase.service');
+        const sRes = await downloadFromStorage(cleanName);
+        const buf = sRes.buffer || sRes.data;
+        if (sRes.success && buf) {
+            fs.writeFileSync(localFile, buf);
+            const ext = path.extname(cleanName).toLowerCase();
+            const mime = ext === '.pdf' ? 'application/pdf' : (ext === '.png' ? 'image/png' : (ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'application/octet-stream'));
+            res.setHeader('Content-Type', mime);
+            return res.send(buf);
+        }
+    } catch (e) {
+        console.error('[Uploads fallback error]:', e.message);
+    }
+    return res.status(404).send('File not found');
+});
+
 app.use('/uploads', express.static(filesDir));
 
 // Direct File Upload API for Web Client
@@ -265,17 +290,20 @@ const rpcMap = {
         try {
             const { downloadFromStorage } = require('./electron/services/supabase.service');
             const res = await downloadFromStorage(cleanName);
-            if (res.success && res.data) {
-                fs.writeFileSync(filePath, res.data);
+            const buf = res.buffer || res.data;
+            if (res.success && buf) {
+                fs.writeFileSync(filePath, buf);
                 return {
                     success: true,
-                    data: res.data.toString('base64'),
+                    data: buf.toString('base64'),
                     fileName: cleanName,
                     path: filePath,
                     ext: ext
                 };
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error('[readDocumentData Storage Error]:', e.message);
+        }
         return { success: false, error: 'Belge bulunamadı' };
     },
 
