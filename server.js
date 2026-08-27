@@ -28,20 +28,26 @@ if (!fs.existsSync(filesDir)) {
     fs.mkdirSync(filesDir, { recursive: true });
 }
 
-// Serve /uploads with automatic fallback to Supabase Storage
-app.get('/uploads/:filename', async (req, res, next) => {
+// Serve /uploads with automatic fallback to Supabase Storage (supports nested hierarchical paths)
+app.get('/uploads/*', async (req, res, next) => {
     try {
-        const cleanName = path.basename(req.params.filename);
-        const localFile = path.join(filesDir, cleanName);
+        const relativePath = (req.params[0] || '').replace(/^\/+/, '');
+        if (!relativePath) return res.status(404).send('File not found');
+
+        const localFile = path.join(filesDir, relativePath);
         if (fs.existsSync(localFile)) {
             return res.sendFile(localFile);
         }
         const { downloadFromStorage } = require('./electron/services/supabase.service');
-        const sRes = await downloadFromStorage(cleanName);
+        const sRes = await downloadFromStorage(relativePath);
         const buf = sRes.buffer || sRes.data;
         if (sRes.success && buf) {
+            const localDir = path.dirname(localFile);
+            if (!fs.existsSync(localDir)) {
+                fs.mkdirSync(localDir, { recursive: true });
+            }
             fs.writeFileSync(localFile, buf);
-            const ext = path.extname(cleanName).toLowerCase();
+            const ext = path.extname(relativePath).toLowerCase();
             const mime = ext === '.pdf' ? 'application/pdf' : (ext === '.png' ? 'image/png' : (ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'application/octet-stream'));
             res.setHeader('Content-Type', mime);
             return res.send(buf);
@@ -54,37 +60,60 @@ app.get('/uploads/:filename', async (req, res, next) => {
 
 app.use('/uploads', express.static(filesDir));
 
-// Direct File Upload API for Web Client
+// Direct File Upload API for Web Client with Enterprise Hierarchical Paths
 app.post('/api/upload', async (req, res) => {
     try {
-        const { fileName, fileData, mimeType } = req.body;
+        const { fileName, fileData, mimeType, companyId, module, entityId, category } = req.body;
         if (!fileData) {
             return res.status(400).json({ success: false, error: 'No file data provided' });
         }
 
         const ext = path.extname(fileName || '') || '.png';
-        const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
-        const targetPath = path.join(filesDir, uniqueName);
+        const uniqueFile = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+
+        // Build enterprise hierarchy: company_X/module/entity_Y/category/file.ext
+        let storageFolder = '';
+        if (companyId) {
+            storageFolder += `company_${companyId}/`;
+        }
+        if (module) {
+            storageFolder += `${module}/`;
+            if (entityId) {
+                const singularModule = module.endsWith('s') ? module.slice(0, -1) : module;
+                storageFolder += `${singularModule}_${entityId}/`;
+            }
+        }
+        if (category) {
+            storageFolder += `${category}/`;
+        }
+
+        const relativeStoragePath = (storageFolder + uniqueFile).replace(/^\/+/, '');
+        const targetPath = path.join(filesDir, relativeStoragePath);
+
+        const targetDir = path.dirname(targetPath);
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+        }
 
         // Convert base64 data to buffer
         const base64Clean = fileData.replace(/^data:.*?;base64,/, '');
         const buffer = Buffer.from(base64Clean, 'base64');
         fs.writeFileSync(targetPath, buffer);
 
-        // Also upload to Supabase Storage in background for persistence
+        // Upload to Supabase Storage in background with clean hierarchical path
         try {
             const { uploadToStorage } = require('./electron/services/supabase.service');
-            await uploadToStorage(buffer, uniqueName, mimeType || 'application/octet-stream', 'documents');
+            await uploadToStorage(buffer, relativeStoragePath, mimeType || 'application/octet-stream', 'documents');
         } catch (e) {
             console.warn('[Storage upload notice]:', e.message);
         }
 
         return res.json({
             success: true,
-            fileName: uniqueName,
+            fileName: relativeStoragePath,
             originalName: fileName,
-            path: uniqueName,
-            url: `/uploads/${uniqueName}`
+            path: relativeStoragePath,
+            url: `/uploads/${relativeStoragePath}`
         });
     } catch (err) {
         console.error('API upload error:', err);
@@ -274,8 +303,10 @@ const rpcMap = {
     deleteDocument: db.deleteDocument,
     readDocumentData: async (fileName) => {
         if (!fileName) return { success: false, error: 'No fileName provided' };
-        const cleanName = path.basename(String(fileName));
-        const filePath = path.join(filesDir, cleanName);
+        const relativePath = String(fileName).replace(/^\/+/, '');
+        const cleanName = path.basename(relativePath);
+        const filePath = path.join(filesDir, relativePath);
+        const flatFilePath = path.join(filesDir, cleanName);
         const ext = path.extname(cleanName).toLowerCase();
 
         if (fs.existsSync(filePath)) {
@@ -283,21 +314,40 @@ const rpcMap = {
                 success: true,
                 data: fs.readFileSync(filePath).toString('base64'),
                 fileName: cleanName,
-                path: filePath,
+                path: relativePath,
                 ext: ext
             };
         }
+
+        if (fs.existsSync(flatFilePath)) {
+            return {
+                success: true,
+                data: fs.readFileSync(flatFilePath).toString('base64'),
+                fileName: cleanName,
+                path: cleanName,
+                ext: ext
+            };
+        }
+
         try {
             const { downloadFromStorage } = require('./electron/services/supabase.service');
-            const res = await downloadFromStorage(cleanName);
+            let res = await downloadFromStorage(relativePath);
+            if (!res.success && relativePath !== cleanName) {
+                res = await downloadFromStorage(cleanName);
+            }
+
             const buf = res.buffer || res.data;
             if (res.success && buf) {
+                const targetDir = path.dirname(filePath);
+                if (!fs.existsSync(targetDir)) {
+                    fs.mkdirSync(targetDir, { recursive: true });
+                }
                 fs.writeFileSync(filePath, buf);
                 return {
                     success: true,
                     data: buf.toString('base64'),
                     fileName: cleanName,
-                    path: filePath,
+                    path: relativePath,
                     ext: ext
                 };
             }

@@ -50,15 +50,23 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 return async () => ({ success: true });
             }
 
-            // Web file picker & auto-upload
+            // Web file picker & auto-upload with hierarchical folder routing
             if (prop === 'selectFile') {
-                return () => new Promise((resolve) => {
+                return (options = {}) => new Promise((resolve) => {
                     const input = document.createElement('input');
                     input.type = 'file';
-                    input.multiple = true;
-                    input.accept = '*/*';
+                    input.multiple = options?.multiple || false;
+                    input.accept = options?.accept || '*/*';
                     input.style.display = 'none';
                     document.body.appendChild(input);
+
+                    let currentCompanyId = options?.companyId;
+                    if (!currentCompanyId) {
+                        try {
+                            const comp = JSON.parse(localStorage.getItem('aractakip_company') || '{}');
+                            currentCompanyId = comp?.id || null;
+                        } catch (e) {}
+                    }
 
                     input.onchange = async () => {
                         const files = Array.from(input.files || []);
@@ -88,7 +96,11 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                                     body: JSON.stringify({
                                         fileName: file.name,
                                         fileData: base64,
-                                        mimeType: file.type
+                                        mimeType: file.type,
+                                        companyId: currentCompanyId,
+                                        module: options?.module || null,
+                                        entityId: options?.entityId || options?.vehicleId || options?.employeeId || null,
+                                        category: options?.category || null
                                     })
                                 });
 
