@@ -8,7 +8,6 @@ import {
     Wrench, 
     Scale, 
     Sparkles, 
-    Info, 
     X,
     Clock
 } from 'lucide-react'
@@ -40,8 +39,8 @@ export default function BroadcastBanner() {
 
     useEffect(() => {
         fetchAnnouncements()
-        // Poll every 45 seconds for new broadcast alerts
-        const interval = setInterval(fetchAnnouncements, 45000)
+        // Poll every 30 seconds for live updates
+        const interval = setInterval(fetchAnnouncements, 30000)
         return () => clearInterval(interval)
     }, [currentCompany?.id])
 
@@ -60,17 +59,17 @@ export default function BroadcastBanner() {
     const getIcon = (type) => {
         switch (type) {
             case 'maintenance':
-                return <Wrench size={16} className="broadcast-icon pulse" />
+                return <Wrench size={15} className="broadcast-icon pulse" />
             case 'warning':
-                return <AlertTriangle size={16} className="broadcast-icon" />
+                return <AlertTriangle size={15} className="broadcast-icon" />
             case 'critical':
-                return <AlertOctagon size={16} className="broadcast-icon pulse" />
+                return <AlertOctagon size={15} className="broadcast-icon pulse" />
             case 'legal':
-                return <Scale size={16} className="broadcast-icon" />
+                return <Scale size={15} className="broadcast-icon" />
             case 'success':
-                return <Sparkles size={16} className="broadcast-icon" />
+                return <Sparkles size={15} className="broadcast-icon" />
             default:
-                return <Megaphone size={16} className="broadcast-icon" />
+                return <Megaphone size={15} className="broadcast-icon" />
         }
     }
 
@@ -82,29 +81,37 @@ export default function BroadcastBanner() {
 
                 return (
                     <div key={a.id} className={`broadcast-banner ${typeClass}`}>
-                        <div className="broadcast-content">
-                            <div className="broadcast-header">
-                                {getIcon(a.type)}
-                                <span className="broadcast-title">{a.title}</span>
+                        <div className="broadcast-content-wrapper">
+                            <div className="broadcast-left">
+                                <div className="broadcast-icon-wrap">
+                                    {getIcon(a.type)}
+                                </div>
+                                <div className="broadcast-text-group">
+                                    <span className="broadcast-title">{a.title}</span>
+                                    <span className="broadcast-separator">•</span>
+                                    <span className="broadcast-message">{a.message}</span>
+                                </div>
                             </div>
-                            <span className="broadcast-message">{a.message}</span>
-                            {a.expires_at && (
-                                <span className="broadcast-expiry">
-                                    <Clock size={11} />
-                                    {new Date(a.expires_at).toLocaleDateString('tr-TR')}
-                                </span>
-                            )}
-                        </div>
 
-                        {isDismissible && (
-                            <button
-                                className="broadcast-dismiss-btn"
-                                onClick={() => handleDismiss(a.id)}
-                                title="Bildirimi Kapat"
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
+                            <div className="broadcast-right">
+                                {a.expires_at && (
+                                    <span className="broadcast-expiry">
+                                        <Clock size={12} />
+                                        <span>Son Gün: {new Date(a.expires_at).toLocaleDateString('tr-TR')}</span>
+                                    </span>
+                                )}
+
+                                {isDismissible && (
+                                    <button
+                                        className="broadcast-dismiss-btn"
+                                        onClick={() => handleDismiss(a.id)}
+                                        title="Bildirimi Kapat"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )
             })}
