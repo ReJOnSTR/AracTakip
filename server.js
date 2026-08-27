@@ -554,6 +554,15 @@ const rpcMap = {
     getArventoVehicleDailyStatus: (date, credentials) => db.getArventoVehicleDailyStatus(date, credentials),
     getArventoAlarms: (credentials) => db.getArventoAlarms(credentials),
     getArventoHistory: (filters, credentials) => db.getArventoHistory(filters, credentials),
+
+    // Platform Super Admin API
+    getPlatformOverview: db.getPlatformOverview,
+    getPlatformUsers: db.getPlatformUsers,
+    toggleCompanyStatus: db.toggleCompanyStatus,
+    toggleUserStatus: db.toggleUserStatus,
+    getPlatformBackups: db.getPlatformBackups,
+    triggerPlatformBackup: db.triggerPlatformBackup,
+    getPlatformSystemHealth: db.getPlatformSystemHealth,
 };
 
 // Generic RPC Router

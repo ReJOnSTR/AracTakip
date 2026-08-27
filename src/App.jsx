@@ -58,6 +58,7 @@ const Profile = lazy(() => import('./pages/Profile'))
 const PrintDocument = lazy(() => import('./pages/PrintDocument'))
 const PersonnelDashboardPortal = lazy(() => import('./components/personnel/PersonnelDashboard'))
 const ApprovalCenter = lazy(() => import('./components/personnel/ApprovalCenter'))
+const PlatformAdmin = lazy(() => import('./pages/PlatformAdmin'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
@@ -182,6 +183,7 @@ function AppRoutes() {
                         <Route path="/customers/:id" element={<CustomerDetail />} />
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/module-settings/:module" element={<AdminRoute><ModuleSettings /></AdminRoute>} />
+                        <Route path="/platform-admin" element={<AdminRoute><PlatformAdmin /></AdminRoute>} />
                         <Route path="/approvals" element={<ApprovalCenter />} />
                         <Route path="/personnel-portal" element={<Navigate to="/personnel-profile" replace />} />
                         <Route path="/reports" element={<Reports />} />

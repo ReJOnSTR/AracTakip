@@ -8,7 +8,8 @@ import {
     User,
     LogOut,
     Settings,
-    ArrowLeft
+    ArrowLeft,
+    Crown
 } from 'lucide-react'
 import NotificationCenter from './NotificationCenter'
 
@@ -21,7 +22,8 @@ const pageTitles = {
     '/insurance': 'Sigorta Yönetimi',
     '/assignments': 'Zimmet Takibi',
     '/services': 'Servis İşlemleri',
-    '/reports': 'Raporlar'
+    '/reports': 'Raporlar',
+    '/platform-admin': 'Platform Yönetimi'
 }
 
 export default function Header() {
@@ -38,6 +40,8 @@ export default function Header() {
         selectCompany(company)
         setShowCompanyDropdown(false)
     }
+
+    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
 
     return (
         <header className="header">
@@ -62,6 +66,31 @@ export default function Header() {
             </div>
 
             <div className="header-right">
+                {/* Platform Super Admin Master Button */}
+                {isSuperAdmin && (
+                    <button
+                        onClick={() => navigate('/platform-admin')}
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(217, 119, 6, 0.25) 100%)',
+                            border: '1px solid rgba(245, 158, 11, 0.4)',
+                            color: '#f59e0b',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '7px',
+                            padding: '6px 12px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                        }}
+                        title="Süper Yönetici / Platform Yönetim Paneli"
+                    >
+                        <Crown size={15} />
+                        <span>Platform Yönetimi</span>
+                    </button>
+                )}
+
                 {/* Notification Center */}
                 <NotificationCenter />
 
@@ -153,6 +182,16 @@ export default function Header() {
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
                                         </div>
                                     </div>
+                                    {isSuperAdmin && (
+                                        <div 
+                                            className="user-dropdown-item" 
+                                            style={{ color: '#f59e0b', fontWeight: 600 }}
+                                            onClick={() => { navigate('/platform-admin'); setShowUserDropdown(false) }}
+                                        >
+                                            <Crown size={16} />
+                                            <span>Platform Yönetimi</span>
+                                        </div>
+                                    )}
                                     <div className="user-dropdown-item" onClick={() => { navigate('/profile'); setShowUserDropdown(false) }}>
                                         <Settings size={16} />
                                         <span>Profil Ayarları</span>

@@ -52,6 +52,9 @@ module.exports = {
     // Roles & Granular Permissions
     ...require('./services/role.service'),
 
+    // Platform Super Admin
+    ...require('./services/platform.service'),
+
     // Arvento Tracking API
     ...arventoService
 };

@@ -285,5 +285,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         const subscription = (event, data) => callback(data)
         ipcRenderer.on('migration-log', subscription)
         return () => ipcRenderer.removeListener('migration-log', subscription)
-    }
+    },
+
+    // Platform Super Admin API
+    getPlatformOverview: () => ipcRenderer.invoke('platform:getOverview'),
+    getPlatformUsers: () => ipcRenderer.invoke('platform:getUsers'),
+    toggleCompanyStatus: (companyId, isActive) => ipcRenderer.invoke('platform:toggleCompanyStatus', companyId, isActive),
+    toggleUserStatus: (userId, isActive) => ipcRenderer.invoke('platform:toggleUserStatus', userId, isActive),
+    getPlatformBackups: () => ipcRenderer.invoke('platform:getBackups'),
+    triggerPlatformBackup: () => ipcRenderer.invoke('platform:triggerBackup'),
+    getPlatformSystemHealth: () => ipcRenderer.invoke('platform:getSystemHealth'),
 })

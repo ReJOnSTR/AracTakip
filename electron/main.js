@@ -2684,3 +2684,26 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
     }
 });
 
+// Platform Super Admin IPC Handlers
+ipcMain.handle('platform:getOverview', async () => {
+    return await db.getPlatformOverview();
+});
+ipcMain.handle('platform:getUsers', async () => {
+    return await db.getPlatformUsers();
+});
+ipcMain.handle('platform:toggleCompanyStatus', async (event, companyId, isActive) => {
+    return await db.toggleCompanyStatus(companyId, isActive);
+});
+ipcMain.handle('platform:toggleUserStatus', async (event, userId, isActive) => {
+    return await db.toggleUserStatus(userId, isActive);
+});
+ipcMain.handle('platform:getBackups', async () => {
+    return await db.getPlatformBackups();
+});
+ipcMain.handle('platform:triggerBackup', async () => {
+    return await db.triggerPlatformBackup();
+});
+ipcMain.handle('platform:getSystemHealth', async () => {
+    return await db.getPlatformSystemHealth();
+});
+
