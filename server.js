@@ -13,13 +13,92 @@ const { getPrismaClient, runAutoMigrations } = require('./electron/prismaClient'
 const db = require('./electron/prismaService');
 const authService = require('./electron/services/auth.service');
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || 'kontrol-app-production-secret-key-98765';
 
-app.use(cors());
+// Security Headers (configured to allow PDF previews & embedded assets)
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
+// CORS Configuration
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
+
+// General API Rate Limiter
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 2000, // Max 2000 requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Çok fazla istek yapıldı, lütfen biraz bekleyin.' }
+});
+
+// Stricter Auth Rate Limiter for Login/Register
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 40, // Max 40 attempts per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Çok fazla giriş denemesi yapıldı, lütfen 15 dakika bekleyin.' }
+});
+
+app.use('/api/', apiLimiter);
+app.use(['/api/rpc/login', '/api/rpc/loginUser', '/api/rpc/register', '/api/rpc/registerUser'], authLimiter);
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Health Check Endpoints for Dokploy & Uptime Monitoring
+app.get(['/api/health', '/health'], async (req, res) => {
+    try {
+        const prisma = getPrismaClient();
+        const startTime = Date.now();
+        await prisma.$queryRawUnsafe('SELECT 1');
+        const latencyMs = Date.now() - startTime;
+
+        const memory = process.memoryUsage();
+        res.json({
+            status: 'ok',
+            uptimeSeconds: Math.floor(process.uptime()),
+            timestamp: new Date().toISOString(),
+            version: require('./package.json').version || '1.13.27',
+            database: {
+                status: 'connected',
+                latencyMs
+            },
+            memory: {
+                rssMb: (memory.rss / (1024 * 1024)).toFixed(1),
+                heapUsedMb: (memory.heapUsed / (1024 * 1024)).toFixed(1)
+            }
+        });
+    } catch (err) {
+        res.status(503).json({
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            error: 'Database ping failed: ' + err.message
+        });
+    }
+});
+
+// Automated Database Backup Trigger Endpoint
+app.post('/api/admin/backup', async (req, res) => {
+    const { performBackup } = require('./scripts/backup-service');
+    const authHeader = req.headers.authorization;
+    if (!authHeader && req.query.key !== SECRET_KEY) {
+        return res.status(401).json({ success: false, error: 'Yetkisiz erişim' });
+    }
+    const result = await performBackup();
+    res.json(result);
+});
 
 // Uploads directory configuration
 const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -570,6 +649,16 @@ async function start() {
             await runAutoMigrations();
             console.log('✅ Database schema and migrations verified.');
         }
+
+        // Start automated daily backup scheduler (Runs at 03:00 AM)
+        const { performBackup } = require('./scripts/backup-service');
+        setInterval(async () => {
+            const now = new Date();
+            if (now.getHours() === 3 && now.getMinutes() <= 4) {
+                console.log('[Daily Cron] Triggering scheduled database backup...');
+                await performBackup();
+            }
+        }, 5 * 60 * 1000);
 
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 Kontrol Web Application running on http://0.0.0.0:${PORT}`);
