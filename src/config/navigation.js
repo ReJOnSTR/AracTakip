@@ -177,13 +177,6 @@ export const moduleMenus = {
                 { path: '/platform-admin?tab=logs', label: 'Sistem & Güvenlik Logları', icon: ScrollText },
                 { path: '/platform-admin?tab=backups', label: 'Veritabanı Yedekleri', icon: Database }
             ]
-        },
-        {
-            title: 'Genel',
-            items: [
-                { path: '/portal', label: 'Ana Portal / Modüller', icon: Layers },
-                { path: '/settings', label: 'Sistem Ayarları', icon: Settings }
-            ]
         }
     ],
     system: [],
@@ -267,22 +260,32 @@ export const getActiveModule = (pathname, search = '') => {
         console.error(e)
     }
 
-    // 1. Platform Admin detection
+    // 1. Portal check (Always empty sidebar on /portal)
+    if (pathname === '/portal' || pathname === '/') {
+        return 'portal'
+    }
+
+    // 2. Global system pages (Always empty sidebar on settings/profile)
+    if (pathname === '/settings' || pathname === '/profile' || pathname === '/companies') {
+        return 'system'
+    }
+
+    // 3. Platform Admin detection
     if (pathname === '/platform-admin' || pathname.startsWith('/platform-admin')) {
         return 'platform'
     }
 
-    // 2. Prioritize module parameter from search string
+    // 4. Prioritize module parameter from search string
     if (search) {
         const params = new URLSearchParams(search)
         const moduleParam = params.get('module')
         if (moduleParam && moduleMenus[moduleParam]) return moduleParam
     }
 
-    // 3. Exact match from data-driven path→module map
+    // 5. Exact match from data-driven path→module map
     if (pathToModuleMap[pathname]) return pathToModuleMap[pathname]
 
-    // 4. Detail page prefix matching (for /vehicles/:id, /employees/:id, etc.)
+    // 6. Detail page prefix matching (for /vehicles/:id, /employees/:id, etc.)
     // These are child pages that belong to specific modules
     const detailPrefixMap = {
         '/vehicles/': 'fleet',
@@ -301,27 +304,14 @@ export const getActiveModule = (pathname, search = '') => {
         if (pathname.startsWith(prefix)) return moduleKey
     }
 
-    // 5. Portal
-    if (pathname === '/portal' || pathname === '/') return 'portal'
-
-    // 6. Global system pages
-    if (pathname === '/settings' || pathname === '/profile' || pathname === '/companies') {
-        return 'system'
-    }
-
-    // 6. Global settings page fallback (legacy check)
-    if (pathname === '/settings') {
-        return 'system'
-    }
-
-    // 6. Ultimate fallback - try to match any path prefix from the map
+    // 7. Ultimate fallback - try to match any path prefix from the map
     for (const [path, moduleKey] of Object.entries(pathToModuleMap)) {
         if (pathname.startsWith(path)) return moduleKey
     }
 
-    // 7. If nothing matched, preserve last known module
+    // 8. If nothing matched, preserve last known module
     const lastModule = sessionStorage.getItem('lastActiveModule')
-    if (lastModule && moduleMenus[lastModule]) return lastModule
+    if (lastModule && moduleMenus[lastModule] && lastModule !== 'portal' && lastModule !== 'system') return lastModule
 
     return 'fleet'
 }
