@@ -118,8 +118,8 @@ function MainLayout() {
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
                 <div className="main-content">
                     <TabBar />
+                    <BroadcastBanner />
                     <div className="page-content">
-                        <BroadcastBanner />
                         <ErrorBoundary>
                             <Suspense fallback={<PageLoader />}>
                                 <Outlet />
