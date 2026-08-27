@@ -245,7 +245,7 @@ async function impersonatePlatformUser(userId) {
  */
 async function createPlatformUser(userData) {
     try {
-        const { username, email, password, role, fullName, companyId } = userData;
+        const { username, email, password, role, fullName, companyId, position, phone } = userData;
         if (!username || !email || !password) {
             return { success: false, error: 'Kullanıcı adı, e-posta ve şifre zorunludur' };
         }
@@ -262,19 +262,42 @@ async function createPlatformUser(userData) {
         }
 
         const password_hash = bcrypt.hashSync(password, 10);
+        let userRole = role || 'admin';
+        let employeeId = null;
+
+        // If creating as personnel / employee with a company
+        if ((userRole === 'personnel' || userRole === 'employee') && companyId) {
+            const compId = parseInt(companyId, 10);
+            const employee = await prisma.employees.create({
+                data: {
+                    company_id: compId,
+                    first_name: fullName?.split(' ')?.[0] || username,
+                    last_name: fullName?.split(' ')?.slice(1)?.join(' ') || '',
+                    position: position || 'Şoför / Saha Personeli',
+                    phone: phone || null,
+                    email: cleanEmail,
+                    start_date: new Date(),
+                    status: 'active'
+                }
+            });
+            employeeId = employee.id;
+            userRole = 'personnel';
+        }
+
         const newUser = await prisma.users.create({
             data: {
                 username,
                 email: cleanEmail,
                 full_name: fullName || username,
                 password_hash,
-                role: role || 'user',
+                role: userRole,
+                employee_id: employeeId,
                 must_change_password: 0,
                 is_active: 1
             }
         });
 
-        if (companyId) {
+        if (companyId && userRole !== 'personnel') {
             await prisma.companies.update({
                 where: { id: parseInt(companyId, 10) },
                 data: { user_id: newUser.id }
@@ -283,6 +306,7 @@ async function createPlatformUser(userData) {
 
         return { success: true, user: newUser };
     } catch (error) {
+        console.error('createPlatformUser error:', error);
         return { success: false, error: error.message };
     }
 }
@@ -687,6 +711,49 @@ async function deletePlatformAnnouncement(id) {
     }
 }
 
+/**
+ * Create a new Company from Platform Admin
+ */
+async function createPlatformCompany(data) {
+    try {
+        const { name, taxNumber, taxOffice, sgkNo, address, phone, ownerUserId } = data;
+        if (!name) return { success: false, error: 'Şirket unvanı zorunludur' };
+
+        const newComp = await prisma.companies.create({
+            data: {
+                name: name.trim(),
+                tax_number: taxNumber || null,
+                tax_office: taxOffice || null,
+                sgk_no: sgkNo || null,
+                address: address || null,
+                phone: phone || null,
+                user_id: ownerUserId && ownerUserId !== '' ? parseInt(ownerUserId, 10) : null
+            }
+        });
+        return { success: true, data: newComp };
+    } catch (error) {
+        console.error('createPlatformCompany error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Delete a Company and clean resources
+ */
+async function deletePlatformCompany(companyId) {
+    try {
+        const cid = parseInt(companyId, 10);
+        const company = await prisma.companies.findUnique({ where: { id: cid } });
+        if (!company) return { success: false, error: 'Şirket bulunamadı' };
+
+        await prisma.companies.delete({ where: { id: cid } });
+        return { success: true, message: 'Şirket başarıyla silindi' };
+    } catch (error) {
+        console.error('deletePlatformCompany error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
     getPlatformOverview,
     getPlatformUsers,
@@ -705,5 +772,7 @@ module.exports = {
     getActiveAnnouncements,
     createPlatformAnnouncement,
     toggleAnnouncementStatus,
-    deletePlatformAnnouncement
+    deletePlatformAnnouncement,
+    createPlatformCompany,
+    deletePlatformCompany
 };

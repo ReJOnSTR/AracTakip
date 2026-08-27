@@ -69,7 +69,6 @@ export default function PlatformAdmin({ section }) {
     const [healthData, setHealthData] = useState(null)
     const [healthLoading, setHealthLoading] = useState(false)
     const [backupLoading, setBackupLoading] = useState(false)
-    const [actionMsg, setActionMsg] = useState('')
 
     // Announcements state
     const [announcements, setAnnouncements] = useState([])
@@ -85,6 +84,19 @@ export default function PlatformAdmin({ section }) {
         showPopup: 0
     })
     const [creatingAnnouncement, setCreatingAnnouncement] = useState(false)
+
+    // Company Modal state
+    const [createCompanyModal, setCreateCompanyModal] = useState(false)
+    const [newCompanyForm, setNewCompanyForm] = useState({
+        name: '',
+        taxNumber: '',
+        taxOffice: '',
+        sgkNo: '',
+        address: '',
+        phone: '',
+        ownerUserId: ''
+    })
+    const [createCompanyLoading, setCreateCompanyLoading] = useState(false)
 
     // System Logs
     const [logs, setLogs] = useState([])
@@ -103,6 +115,8 @@ export default function PlatformAdmin({ section }) {
         password: '',
         fullName: '',
         role: 'company_admin',
+        position: 'Şirket Yöneticisi',
+        phone: '',
         companyId: ''
     })
     const [createUserLoading, setCreateUserLoading] = useState(false)
@@ -141,7 +155,7 @@ export default function PlatformAdmin({ section }) {
             if (activeSection === 'users') {
                 await Promise.all([loadUsers(), loadOverview()])
             } else if (activeSection === 'companies') {
-                await loadOverview()
+                await Promise.all([loadOverview(), loadUsers()])
             } else if (activeSection === 'announcements') {
                 await Promise.all([loadAnnouncements(), loadOverview()])
             } else if (activeSection === 'health') {
@@ -221,7 +235,6 @@ export default function PlatformAdmin({ section }) {
         }
         const res = await window.electronAPI?.clearPlatformLogs()
         if (res?.success) {
-            setActionMsg('Sistem logları sıfırlandı.')
             await loadLogs()
         }
     }
@@ -229,10 +242,9 @@ export default function PlatformAdmin({ section }) {
     // Impersonate Company (Ghost Mode)
     const handleImpersonateCompany = (company) => {
         selectCompany(company)
-        setActionMsg(`"${company.name}" şirket paneline geçiş yapıldı.`)
         setTimeout(() => {
             navigate('/dashboard')
-        }, 500)
+        }, 300)
     }
 
     // Impersonate User directly
@@ -244,16 +256,15 @@ export default function PlatformAdmin({ section }) {
             if (res.company) {
                 selectCompany(res.company)
             }
-            setActionMsg(`"${targetUser.username}" kullanıcısı olarak oturum açıldı.`)
             setTimeout(() => {
                 if (res.user.role === 'personnel') {
                     navigate('/personnel-profile')
                 } else {
                     navigate('/dashboard')
                 }
-            }, 600)
+            }, 300)
         } else {
-            setActionMsg('Oturum açma hatası: ' + (res?.error || 'Bilinmiyor'))
+            alert('Oturum açma hatası: ' + (res?.error || 'Bilinmiyor'))
         }
     }
 
@@ -274,7 +285,6 @@ export default function PlatformAdmin({ section }) {
                         ? { ...item, isActive: nextState === 1, is_active: nextState } 
                         : item
                 ))
-                setActionMsg(`"${u.username}" hesabı ${nextState === 1 ? 'aktif edildi' : 'kilitlendi (pasife alındı)'}.`)
                 await loadUsers()
             } else {
                 alert('Hata: ' + (res?.error || 'Durum değiştirilemedi'))
@@ -295,7 +305,6 @@ export default function PlatformAdmin({ section }) {
         try {
             const res = await window.electronAPI?.resetPlatformUserPassword(passwordModalUser.id, newPassword)
             if (res?.success) {
-                setActionMsg(`${passwordModalUser.username} şifresi başarıyla değiştirildi.`)
                 setPasswordModalUser(null)
                 setNewPassword('')
                 await loadUsers()
@@ -314,9 +323,17 @@ export default function PlatformAdmin({ section }) {
         try {
             const res = await window.electronAPI?.createPlatformUser(newUserForm)
             if (res?.success) {
-                setActionMsg(`Yeni kullanıcı ${newUserForm.username} başarıyla oluşturuldu.`)
                 setCreateUserModal(false)
-                setNewUserForm({ username: '', email: '', password: '', fullName: '', role: 'company_admin', companyId: '' })
+                setNewUserForm({
+                    username: '',
+                    email: '',
+                    password: '',
+                    fullName: '',
+                    role: 'company_admin',
+                    position: 'Şirket Yöneticisi',
+                    phone: '',
+                    companyId: ''
+                })
                 await loadUsers()
                 await loadOverview()
             } else {
@@ -324,6 +341,55 @@ export default function PlatformAdmin({ section }) {
             }
         } finally {
             setCreateUserLoading(false)
+        }
+    }
+
+    // Create Company Submit
+    const handleCreateCompanySubmit = async (e) => {
+        e.preventDefault()
+        if (!newCompanyForm.name) {
+            alert('Şirket unvanı zorunludur')
+            return
+        }
+        setCreateCompanyLoading(true)
+        try {
+            const res = await window.electronAPI?.createPlatformCompany(newCompanyForm)
+            if (res?.success) {
+                setCreateCompanyModal(false)
+                setNewCompanyForm({
+                    name: '',
+                    taxNumber: '',
+                    taxOffice: '',
+                    sgkNo: '',
+                    address: '',
+                    phone: '',
+                    ownerUserId: ''
+                })
+                await loadOverview()
+                await loadUsers()
+            } else {
+                alert('Şirket oluşturma hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } finally {
+            setCreateCompanyLoading(false)
+        }
+    }
+
+    // Delete Company
+    const handleDeleteCompany = async (company) => {
+        if (!window.confirm(`"${company.name}" şirketini ve bu şirkete bağlı tüm araç, personel ve finans kayıtlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`)) {
+            return
+        }
+        try {
+            const res = await window.electronAPI?.deletePlatformCompany(company.id)
+            if (res?.success) {
+                await loadOverview()
+                await loadUsers()
+            } else {
+                alert('Şirket silme hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
         }
     }
 
@@ -341,7 +407,6 @@ export default function PlatformAdmin({ section }) {
                 createdBy: user?.id
             })
             if (res?.success) {
-                setActionMsg('Canlı duyuru başarıyla yayınlandı!')
                 setCreateAnnouncementModal(false)
                 setNewAnnouncement({
                     title: '',
@@ -366,7 +431,6 @@ export default function PlatformAdmin({ section }) {
         const nextState = ann.isActive ? 0 : 1
         const res = await window.electronAPI?.toggleAnnouncementStatus(ann.id, nextState)
         if (res?.success) {
-            setActionMsg(`Duyuru "${ann.title}" ${nextState === 1 ? 'yayına alındı' : 'durduruldu'}.`)
             await loadAnnouncements()
         }
     }
@@ -378,7 +442,6 @@ export default function PlatformAdmin({ section }) {
         }
         const res = await window.electronAPI?.deletePlatformAnnouncement(ann.id)
         if (res?.success) {
-            setActionMsg('Duyuru silindi.')
             await loadAnnouncements()
         }
     }
@@ -389,10 +452,9 @@ export default function PlatformAdmin({ section }) {
         try {
             const res = await window.electronAPI?.triggerPlatformBackup()
             if (res?.success) {
-                setActionMsg('Yeni veritabanı yedeği başarıyla oluşturuldu!')
                 await loadBackups()
             } else {
-                setActionMsg('Yedekleme hatası: ' + (res?.error || 'Bilinmiyor'))
+                alert('Yedekleme hatası: ' + (res?.error || 'Bilinmiyor'))
             }
         } finally {
             setBackupLoading(false)
@@ -406,7 +468,6 @@ export default function PlatformAdmin({ section }) {
         }
         const res = await window.electronAPI?.deletePlatformUser(u.id)
         if (res?.success) {
-            setActionMsg(`${u.username} kullanıcısı silindi.`)
             await loadUsers()
         } else {
             alert('Hata: ' + (res?.error || 'Bilinmiyor'))
@@ -492,6 +553,19 @@ export default function PlatformAdmin({ section }) {
     const userCompanyOptions = [
         { value: '', label: 'Şirketsiz / Sistem Kullanıcısı' },
         ...(overviewData?.companies?.map(c => ({ value: String(c.id), label: c.name })) || [])
+    ]
+
+    // User Role Options for Modal
+    const userRoleOptions = [
+        { value: 'company_admin', label: '🏢 Şirket Sahibi / Yöneticisi (Tüm Modüllere Erişim)' },
+        { value: 'personnel', label: '👤 Şoför / Saha Personeli (Sadece Kendi Bilgilerini Görür)' },
+        { value: 'admin', label: '🛡️ Birim / Modül Sorumlusu' },
+        { value: 'superadmin', label: '👑 Süper Yönetici (Tüm Platform Yetkisi)' }
+    ]
+
+    const companyOwnerOptions = [
+        { value: '', label: 'Atanmamış / Şirket Sahipsiz' },
+        ...(platformUsers?.map(u => ({ value: String(u.id), label: `${u.username} (${u.fullName || u.email})` })) || [])
     ]
 
     if (!isSuperAdmin) {
@@ -590,7 +664,7 @@ export default function PlatformAdmin({ section }) {
         { key: 'name', label: 'Şirket Adı & İletişim', render: (val, r) => (
             <div>
                 <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{val}</strong>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>VN: {r.tax_number} | Tel: {r.phone}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>VN: {r.tax_number || '-'} | Tel: {r.phone || '-'}</div>
             </div>
         )},
         { key: 'owner', label: 'Yönetici / Kurucu', render: (_, r) => (
@@ -609,15 +683,22 @@ export default function PlatformAdmin({ section }) {
             </div>
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'Yönetim', render: (_, r) => (
+        { key: 'actions', label: 'Yönetim & İşlemler', render: (_, r) => (
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateCompany(r)}
-                    title="Bu şirketin paneline geçiş yap"
+                    title="Bu şirketin paneline geçiş yap (Ghost Mode)"
                 >
                     <Eye size={12} />
                     <span>Şirkete Geç</span>
+                </button>
+                <button
+                    className="action-icon-btn danger"
+                    onClick={() => handleDeleteCompany(r)}
+                    title="Şirketi ve Tüm Verilerini Sil"
+                >
+                    <Trash2 size={13} />
                 </button>
             </div>
         )}
@@ -722,7 +803,7 @@ export default function PlatformAdmin({ section }) {
 
     return (
         <div>
-            <TopProgressBar loading={loading || backupLoading || logsLoading || announcementsLoading} />
+            <TopProgressBar loading={loading || backupLoading || logsLoading || announcementsLoading || createCompanyLoading} />
 
             {/* ══════════════════════════════════════════════════════
                 PAGE 1: USERS & COMPANY ACCOUNTS (/platform/users)
@@ -733,7 +814,7 @@ export default function PlatformAdmin({ section }) {
                         <div>
                             <h1 className="page-title">Kullanıcı Hesapları & Şirket Bağlantıları</h1>
                             <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                                KONTROL SaaS platformundaki tüm kullanıcı hesapları, yetkiler ve şirket eşleştirmeleri.
+                                KONTROL SaaS platformundaki tüm kullanıcı hesapları, roller, pozisyonlar ve şirket eşleştirmeleri.
                             </p>
                         </div>
                         <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
@@ -770,13 +851,17 @@ export default function PlatformAdmin({ section }) {
                         <div>
                             <h1 className="page-title">Şirketler & Portföy</h1>
                             <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                                Sisteme kayıtlı tüm kiracı şirketler, iletişim bilgileri ve kullanım özetleri.
+                                Sisteme kayıtlı tüm kiracı şirketler, kurucuları, kullanım özetleri ve şirket yönetimi.
                             </p>
                         </div>
                         <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
                             <button className="btn btn-secondary" onClick={loadSectionData} disabled={loading}>
                                 <RefreshCw size={16} className={loading ? 'spin' : ''} />
                                 Yenile
+                            </button>
+                            <button className="btn btn-primary" onClick={() => setCreateCompanyModal(true)}>
+                                <Building2 size={16} />
+                                Yeni Şirket Ekle
                             </button>
                         </div>
                     </div>
@@ -802,7 +887,7 @@ export default function PlatformAdmin({ section }) {
                         <div>
                             <h1 className="page-title">Canlı Duyuru & Bildirim Yayını</h1>
                             <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                                Tüm SaaS şirketlerine veya seçtiğiniz şirketin ekranının en üstüne anlık duyuru bandı yayınlayın.
+                                Tüm SaaS şirketlerine veya seçtiğiniz şirketin Ana Portalı'na anlık duyuru şeridi yayınlayın.
                             </p>
                         </div>
                         <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
@@ -948,7 +1033,7 @@ export default function PlatformAdmin({ section }) {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.55'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.61'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
@@ -994,7 +1079,7 @@ export default function PlatformAdmin({ section }) {
                                 <tr>
                                     <td><strong>Canlı Duyuru Yayını Servisi</strong></td>
                                     <td><span className="status-badge-active"><CheckCircle2 size={12} /> Aktif</span></td>
-                                    <td>Tüm aktif şirket ekranlarına anlık duyuru bandı dağıtımı</td>
+                                    <td>Ana Portal ekranına anlık duyuru bandı dağıtımı</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Otomatik Yedekleme Servisi</strong></td>
@@ -1192,7 +1277,83 @@ export default function PlatformAdmin({ section }) {
                 </Modal>
             )}
 
-            {/* ── MODAL: CREATE USER ── */}
+            {/* ── MODAL: CREATE COMPANY ── */}
+            {createCompanyModal && (
+                <Modal
+                    isOpen={createCompanyModal}
+                    onClose={() => setCreateCompanyModal(false)}
+                    title="Platforma Yeni Şirket Ekle"
+                >
+                    <form onSubmit={handleCreateCompanySubmit} className="modal-form-grid">
+                        <CustomInput
+                            label="Şirket Unvanı / Ticari Adı"
+                            value={newCompanyForm.name}
+                            onChange={(val) => setNewCompanyForm(prev => ({ ...prev, name: getVal(val) }))}
+                            placeholder="Örn: Sak Lojistik A.Ş."
+                            required
+                        />
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <CustomInput
+                                label="Vergi Numarası"
+                                value={newCompanyForm.taxNumber}
+                                onChange={(val) => setNewCompanyForm(prev => ({ ...prev, taxNumber: getVal(val) }))}
+                                placeholder="Vergi No (10 haneli)"
+                            />
+
+                            <CustomInput
+                                label="Vergi Dairesi"
+                                value={newCompanyForm.taxOffice}
+                                onChange={(val) => setNewCompanyForm(prev => ({ ...prev, taxOffice: getVal(val) }))}
+                                placeholder="Vergi Dairesi Adı"
+                            />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <CustomInput
+                                label="SGK İşyeri Sicil No"
+                                value={newCompanyForm.sgkNo}
+                                onChange={(val) => setNewCompanyForm(prev => ({ ...prev, sgkNo: getVal(val) }))}
+                                placeholder="SGK Sicil Numarası"
+                            />
+
+                            <CustomInput
+                                label="Telefon Numarası"
+                                value={newCompanyForm.phone}
+                                onChange={(val) => setNewCompanyForm(prev => ({ ...prev, phone: getVal(val) }))}
+                                placeholder="05XX XXX XX XX"
+                                format="phone"
+                            />
+                        </div>
+
+                        <CustomInput
+                            label="Şirket Adresi"
+                            value={newCompanyForm.address}
+                            onChange={(val) => setNewCompanyForm(prev => ({ ...prev, address: getVal(val) }))}
+                            placeholder="Açık adres..."
+                        />
+
+                        <CustomSelect
+                            label="Şirket Kurucusu / Yöneticisi Ata"
+                            value={newCompanyForm.ownerUserId}
+                            onChange={(val) => setNewCompanyForm(prev => ({ ...prev, ownerUserId: val }))}
+                            options={companyOwnerOptions}
+                            placeholder="Kullanıcı Seçin veya Boş Bırakın"
+                        />
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setCreateCompanyModal(false)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={createCompanyLoading}>
+                                {createCompanyLoading ? 'Ekleniyor...' : 'Şirketi Oluştur'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* ── MODAL: CREATE USER WITH ROLE & POSITION ── */}
             {createUserModal && (
                 <Modal
                     isOpen={createUserModal}
@@ -1200,43 +1361,83 @@ export default function PlatformAdmin({ section }) {
                     title="Platforma Yeni Kullanıcı Ekle"
                 >
                     <form onSubmit={handleCreateUserSubmit} className="modal-form-grid">
-                        <CustomInput
-                            label="Kullanıcı Adı"
-                            value={newUserForm.username}
-                            onChange={(val) => setNewUserForm(prev => ({ ...prev, username: getVal(val) }))}
-                            placeholder="ornek_kullanici"
-                            required
-                        />
-                        <CustomInput
-                            label="E-Posta"
-                            type="email"
-                            value={newUserForm.email}
-                            onChange={(val) => setNewUserForm(prev => ({ ...prev, email: getVal(val) }))}
-                            placeholder="kullanici@sirket.com"
-                            required
-                        />
-                        <CustomInput
-                            label="Ad Soyad"
-                            value={newUserForm.fullName}
-                            onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: getVal(val) }))}
-                            placeholder="Ad Soyad"
-                        />
-                        <CustomInput
-                            label="Başlangıç Şifresi"
-                            type="password"
-                            value={newUserForm.password}
-                            onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
-                            placeholder="Şifre belirleyin"
-                            required
-                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <CustomInput
+                                label="Kullanıcı Adı"
+                                value={newUserForm.username}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, username: getVal(val) }))}
+                                placeholder="ornek_kullanici"
+                                required
+                            />
+                            <CustomInput
+                                label="E-Posta"
+                                type="email"
+                                value={newUserForm.email}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, email: getVal(val) }))}
+                                placeholder="kullanici@sirket.com"
+                                required
+                            />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <CustomInput
+                                label="Ad Soyad"
+                                value={newUserForm.fullName}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: getVal(val) }))}
+                                placeholder="Ad Soyad"
+                                required
+                            />
+                            <CustomInput
+                                label="Başlangıç Şifresi"
+                                type="password"
+                                value={newUserForm.password}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
+                                placeholder="Şifre belirleyin"
+                                required
+                            />
+                        </div>
+
                         <CustomSelect
-                            label="Bağlanacak Şirket"
-                            value={newUserForm.companyId}
-                            onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: val }))}
-                            options={userCompanyOptions}
-                            placeholder="Şirketsiz / Sistem Kullanıcısı"
+                            label="Kullanıcı Rolü & Yetki Seviyesi"
+                            value={newUserForm.role}
+                            onChange={(val) => {
+                                let defaultPos = 'Şirket Yöneticisi'
+                                if (val === 'personnel') defaultPos = 'Şoför / Saha Personeli'
+                                else if (val === 'superadmin') defaultPos = 'Sistem Yöneticisi'
+                                else if (val === 'admin') defaultPos = 'Birim Yöneticisi'
+                                setNewUserForm(prev => ({ ...prev, role: val, position: defaultPos }))
+                            }}
+                            options={userRoleOptions}
+                            placeholder="Rol seçin"
+                            required
                         />
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <CustomSelect
+                                label="Bağlanacak Şirket"
+                                value={newUserForm.companyId}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: val }))}
+                                options={userCompanyOptions}
+                                placeholder="Şirketsiz / Sistem Kullanıcısı"
+                            />
+
+                            <CustomInput
+                                label="Pozisyon / Görev Ünvanı"
+                                value={newUserForm.position}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, position: getVal(val) }))}
+                                placeholder="Örn: Ağır Vasıta Şoförü"
+                            />
+                        </div>
+
+                        <CustomInput
+                            label="İletişim Telefonu (Opsiyonel)"
+                            value={newUserForm.phone}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: getVal(val) }))}
+                            placeholder="05XX XXX XX XX"
+                            format="phone"
+                        />
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setCreateUserModal(false)}>
                                 İptal
                             </button>

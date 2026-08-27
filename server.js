@@ -574,6 +574,8 @@ const rpcMap = {
     createPlatformAnnouncement: db.createPlatformAnnouncement,
     toggleAnnouncementStatus: db.toggleAnnouncementStatus,
     deletePlatformAnnouncement: db.deletePlatformAnnouncement,
+    createPlatformCompany: db.createPlatformCompany,
+    deletePlatformCompany: db.deletePlatformCompany,
 };
 
 // Generic RPC Router

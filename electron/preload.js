@@ -306,4 +306,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createPlatformAnnouncement: (payload) => ipcRenderer.invoke('platform:createAnnouncement', payload),
     toggleAnnouncementStatus: (id, isActive) => ipcRenderer.invoke('platform:toggleAnnouncementStatus', id, isActive),
     deletePlatformAnnouncement: (id) => ipcRenderer.invoke('platform:deleteAnnouncement', id),
+    createPlatformCompany: (data) => ipcRenderer.invoke('platform:createCompany', data),
+    deletePlatformCompany: (companyId) => ipcRenderer.invoke('platform:deleteCompany', companyId),
 })
