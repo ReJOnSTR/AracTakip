@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus, ArrowLeft, ArrowRight } from 'lucide-react'
+import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus, ArrowLeft, ArrowRight, Crown } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
@@ -50,6 +50,8 @@ export default function TabBar() {
     const location = useLocation()
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
+
+    const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin' || user?.username === 'admin'
 
     // Force re-render when location changes so canGoBack/canGoForward update
     const [, forceUpdate] = useState(0)
@@ -210,7 +212,35 @@ export default function TabBar() {
 
             {/* Right: Header Actions */}
             <div className="tab-bar-right">
-                <div className="header-right">
+                <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Platform Super Admin Master Button */}
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => openNewTab('/platform-admin', false, 'Platform Yönetimi')}
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(217, 119, 6, 0.28) 100%)',
+                                border: '1px solid rgba(245, 158, 11, 0.45)',
+                                color: '#f59e0b',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '4px 10px',
+                                borderRadius: '8px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                height: '28px',
+                                transition: 'all 0.2s ease',
+                                whiteSpace: 'nowrap',
+                                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)'
+                            }}
+                            title="Süper Yönetici / Platform Yönetim Paneli"
+                        >
+                            <Crown size={14} />
+                            <span>Platform</span>
+                        </button>
+                    )}
+
                     {/* Company Selector */}
                     <div className="company-selector">
                         {user?.role === 'personnel' ? (
@@ -306,6 +336,16 @@ export default function TabBar() {
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email}</div>
                                         </div>
                                     </div>
+                                    {isSuperAdmin && (
+                                        <div 
+                                            className="user-dropdown-item" 
+                                            style={{ color: '#f59e0b', fontWeight: 600 }}
+                                            onClick={() => { openNewTab('/platform-admin', false, 'Platform Yönetimi'); setShowUserDropdown(false) }}
+                                        >
+                                            <Crown size={15} />
+                                            <span>Platform Yönetimi</span>
+                                        </div>
+                                    )}
                                     {user?.role !== 'personnel' ? (
                                         <div className="user-dropdown-item" onClick={() => { openNewTab('/settings?module=portal', false, 'Ayarlar'); setShowUserDropdown(false) }}>
                                             <Settings size={16} />

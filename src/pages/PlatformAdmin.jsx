@@ -43,7 +43,7 @@ export default function PlatformAdmin() {
     const [actionMsg, setActionMsg] = useState('')
 
     // Verify SuperAdmin access
-    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
+    const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin' || user?.username === 'admin'
 
     useEffect(() => {
         if (!isSuperAdmin) {
