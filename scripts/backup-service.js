@@ -3,6 +3,10 @@ const path = require('path');
 const zlib = require('zlib');
 const { Client } = require('pg');
 
+try {
+    require('dotenv').config();
+} catch (e) {}
+
 const BACKUP_DIR = process.env.BACKUP_DIR || path.join(__dirname, '../backups');
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS || '14', 10);
 
@@ -15,7 +19,11 @@ if (!fs.existsSync(BACKUP_DIR)) {
  */
 async function performBackup() {
     console.log(`[Backup ${new Date().toISOString()}] Starting automated database backup...`);
-    const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres';
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+        console.error('❌ [Backup Error]: DATABASE_URL is not set in environment.');
+        return { success: false, error: 'DATABASE_URL is not set in environment.' };
+    }
     const client = new Client({ connectionString: dbUrl });
     
     try {

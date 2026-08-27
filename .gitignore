@@ -5,7 +5,11 @@ release
 *.local
 .DS_Store
 *.db
+*.sqlite
+*.sqlite3
 .env
+.env.*
+!.env.example
 .idea
 .vscode
 Thumbs.db
@@ -15,4 +19,11 @@ database.sqlite
 
 /src/generated/prisma
 scratch/
+backups/
+data/
+files/
+*.sql
+*.gz
+*.key
+*.pem
 *.timestamp-*.mjs

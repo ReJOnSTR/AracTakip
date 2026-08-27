@@ -158,19 +158,14 @@ function getGeneratedProvider() {
 function getPrismaClient() {
     if (!prisma) {
         try {
+            // Ensure local .env is loaded if available
+            try { require('dotenv').config(); } catch (e) {}
+
             const generatedProvider = getGeneratedProvider();
             let dbUrl = process.env.DATABASE_URL;
-            const isPostgres = generatedProvider === 'postgresql' || process.env.USE_POSTGRES === 'true' || (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) || (!app && !process.env.USE_SQLITE);
+            const isPostgres = (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) || (process.env.USE_POSTGRES === 'true' && dbUrl) || (generatedProvider === 'postgresql' && dbUrl);
 
             if (isPostgres) {
-                if (!dbUrl || !dbUrl.startsWith('postgres')) {
-                    // In Docker, 172.17.0.1 is host; on local desktop, use direct VPS IP
-                    const isDocker = fs.existsSync('/.dockerenv');
-                    dbUrl = isDocker 
-                        ? 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres'
-                        : 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@45.147.47.56:5432/postgres';
-                    process.env.DATABASE_URL = dbUrl;
-                }
                 log.info(`Initializing Prisma Client with PostgreSQL (${dbUrl.split('@')[1] || 'remote'})`);
                 if (PrismaPg && pg) {
                     const pool = new pg.Pool({ connectionString: dbUrl });
@@ -183,7 +178,7 @@ function getPrismaClient() {
                 const dbPath = getDbPath();
                 log.info(`Initializing Prisma Client on SQLite DB: ${dbPath}`);
                 process.env.DATABASE_URL = `file:${dbPath}?connection_limit=1`;
-                if (PrismaBetterSqlite3) {
+                if (PrismaBetterSqlite3 && generatedProvider === 'sqlite') {
                     const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
                     prisma = new PrismaClient({ adapter });
                 } else {
