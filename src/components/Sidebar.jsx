@@ -1,11 +1,10 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { moduleMenus, getActiveModule } from '../config/navigation'
 import logoCollapsed from '../assets/logos/Group1.svg'
-import { ChevronRight, ChevronLeft, Crown } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Crown, Layers } from 'lucide-react'
 import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
 import { useEffect } from 'react'
-
 
 export default function Sidebar({ collapsed, onToggle }) {
     const { openNewTab } = useTabs()
@@ -31,11 +30,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 <div className="sidebar-logo" style={{ background: 'transparent', boxShadow: 'none', width: '24px', height: '24px' }}>
                     <img src={logoCollapsed} alt="Kontrol Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
-                {!collapsed && (
-                    <span className="sidebar-title">
-                        {activeModule === 'platform' ? 'SaaS Platform' : 'Kontrol'}
-                    </span>
-                )}
+                {!collapsed && <span className="sidebar-title">Kontrol</span>}
             </div>
 
             <nav className="sidebar-nav">
@@ -46,7 +41,17 @@ export default function Sidebar({ collapsed, onToggle }) {
                             <NavLink
                                 key={item.path}
                                 to={item.path}
-                                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                                className={({ isActive }) => {
+                                    let isCurrent = false
+                                    if (item.path.includes('?')) {
+                                        const fullCurrent = `${location.pathname}${location.search}`
+                                        isCurrent = fullCurrent === item.path || 
+                                            (item.path === '/platform-admin?tab=users' && location.pathname === '/platform-admin' && (!location.search || location.search === '?tab=users'))
+                                    } else {
+                                        isCurrent = location.pathname === item.path && (!location.search || item.path !== '/platform-admin')
+                                    }
+                                    return `nav-item ${isCurrent || (isActive && !item.path.includes('?') && location.pathname === item.path) ? 'active' : ''}`
+                                }}
                                 title={collapsed ? item.label : ''}
                                 onAuxClick={(e) => e.preventDefault()}
                                 onClick={(e) => {
@@ -88,6 +93,32 @@ export default function Sidebar({ collapsed, onToggle }) {
                     >
                         <Crown size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
                         {!collapsed && <span>Platform Yönetimi</span>}
+                    </button>
+                )}
+
+                {activeModule === 'platform' && (
+                    <button
+                        onClick={() => openNewTab('/portal', false, 'Ana Portal')}
+                        className="nav-item"
+                        style={{
+                            width: '100%',
+                            background: 'rgba(59, 130, 246, 0.12)',
+                            color: '#60a5fa',
+                            border: '1px solid rgba(59, 130, 246, 0.25)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: collapsed ? '10px 0' : '8px 12px',
+                            justifyContent: collapsed ? 'center' : 'flex-start',
+                            fontWeight: 600,
+                            fontSize: '12.5px',
+                            cursor: 'pointer'
+                        }}
+                        title={collapsed ? 'Ana Portala Dön' : ''}
+                    >
+                        <Layers size={18} style={{ color: '#60a5fa', flexShrink: 0 }} />
+                        {!collapsed && <span>Ana Portala Dön</span>}
                     </button>
                 )}
 

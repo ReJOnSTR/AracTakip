@@ -23,7 +23,10 @@ import {
     Calendar,
     Clock,
     Globe,
-    Crown
+    Crown,
+    Activity,
+    Database,
+    ScrollText
 } from 'lucide-react'
 
 // Define menus per module
@@ -160,18 +163,26 @@ export const moduleMenus = {
     ],
     platform: [
         {
-            title: 'SaaS Platform Yönetimi',
+            title: 'Platform Yönetimi',
             items: [
-                { path: '/platform-admin', label: 'Platform Yönetimi', icon: Crown },
-                { path: '/companies', label: 'Şirketler & Portföy', icon: Building2 },
-                { path: '/settings', label: 'Sistem Tercihleri', icon: Settings }
+                { path: '/platform-admin', label: 'Genel Bakış', icon: Crown },
             ]
         },
         {
-            title: 'Hızlı Navigasyon',
+            title: 'Yönetim & İzleme',
             items: [
-                { path: '/portal', label: 'Modül Portalı', icon: Layers },
-                { path: '/dashboard', label: 'Filo Paneline Geç', icon: LayoutDashboard }
+                { path: '/platform-admin?tab=users', label: 'Kullanıcılar & Şirketler', icon: Users },
+                { path: '/platform-admin?tab=tenants', label: 'Şirketler & Portföy', icon: Building2 },
+                { path: '/platform-admin?tab=health', label: 'Sistem Sağlığı & İzleme', icon: Activity },
+                { path: '/platform-admin?tab=logs', label: 'Sistem & Güvenlik Logları', icon: ScrollText },
+                { path: '/platform-admin?tab=backups', label: 'Veritabanı Yedekleri', icon: Database }
+            ]
+        },
+        {
+            title: 'Genel',
+            items: [
+                { path: '/portal', label: 'Ana Portal / Modüller', icon: Layers },
+                { path: '/settings', label: 'Sistem Ayarları', icon: Settings }
             ]
         }
     ],
@@ -218,6 +229,9 @@ export const getRouteInfo = (path) => {
     const item = allItems.find(i => i.path === path)
     if (item) return item
 
+    // Fallback for platform admin
+    if (path === '/platform-admin' || path.startsWith('/platform-admin')) return { label: 'Platform Yönetimi', icon: Crown }
+
     // Fallback for global settings
     if (path === '/settings') return { label: 'Ayarlar', icon: Settings }
 
@@ -240,7 +254,6 @@ export const getRouteInfo = (path) => {
     if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
     if (path === '/profile') return { label: 'Profil Ayarları', icon: User }
-    if (path === '/platform-admin') return { label: 'Platform Yönetimi', icon: Crown }
 
     return { label: 'Sayfa', icon: FileText }
 }
@@ -254,7 +267,7 @@ export const getActiveModule = (pathname, search = '') => {
         console.error(e)
     }
 
-    // 1. Platform Admin mode check
+    // 1. Platform Admin detection
     if (pathname === '/platform-admin' || pathname.startsWith('/platform-admin')) {
         return 'platform'
     }
@@ -269,7 +282,7 @@ export const getActiveModule = (pathname, search = '') => {
     // 3. Exact match from data-driven path→module map
     if (pathToModuleMap[pathname]) return pathToModuleMap[pathname]
 
-    // 3. Detail page prefix matching (for /vehicles/:id, /employees/:id, etc.)
+    // 4. Detail page prefix matching (for /vehicles/:id, /employees/:id, etc.)
     // These are child pages that belong to specific modules
     const detailPrefixMap = {
         '/vehicles/': 'fleet',
@@ -288,10 +301,10 @@ export const getActiveModule = (pathname, search = '') => {
         if (pathname.startsWith(prefix)) return moduleKey
     }
 
-    // 4. Portal
+    // 5. Portal
     if (pathname === '/portal' || pathname === '/') return 'portal'
 
-    // 5. Global system pages
+    // 6. Global system pages
     if (pathname === '/settings' || pathname === '/profile' || pathname === '/companies') {
         return 'system'
     }

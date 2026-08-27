@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import { formatDate } from '../utils/helpers'
@@ -42,8 +42,27 @@ export default function PlatformAdmin() {
     const { user, setUser } = useAuth()
     const { selectCompany } = useCompany()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
 
-    const [activeTab, setActiveTab] = useState('users') // 'users' | 'tenants' | 'health' | 'logs' | 'backups'
+    const tabFromUrl = searchParams.get('tab')
+    const [activeTab, setActiveTab] = useState(tabFromUrl || 'users') // 'users' | 'tenants' | 'health' | 'logs' | 'backups'
+
+    useEffect(() => {
+        if (tabFromUrl && ['users', 'tenants', 'health', 'logs', 'backups'].includes(tabFromUrl)) {
+            setActiveTab(tabFromUrl)
+        } else if (!tabFromUrl) {
+            setActiveTab('users')
+        }
+    }, [tabFromUrl])
+
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId)
+        if (tabId === 'users') {
+            setSearchParams({})
+        } else {
+            setSearchParams({ tab: tabId })
+        }
+    }
     const [loading, setLoading] = useState(true)
     const [overviewData, setOverviewData] = useState(null)
     const [platformUsers, setPlatformUsers] = useState([])
@@ -544,7 +563,7 @@ export default function PlatformAdmin() {
             <div className="platform-tabs">
                 <button
                     className={`platform-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('users')}
+                    onClick={() => handleTabChange('users')}
                 >
                     <Users size={16} />
                     <span>Kullanıcılar & Şirket Bağlantıları</span>
@@ -553,7 +572,7 @@ export default function PlatformAdmin() {
 
                 <button
                     className={`platform-tab-btn ${activeTab === 'tenants' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('tenants')}
+                    onClick={() => handleTabChange('tenants')}
                 >
                     <Building2 size={16} />
                     <span>Şirketler & Portföy</span>
@@ -562,7 +581,7 @@ export default function PlatformAdmin() {
 
                 <button
                     className={`platform-tab-btn ${activeTab === 'health' ? 'active' : ''}`}
-                    onClick={() => { setActiveTab('health'); loadHealth(); }}
+                    onClick={() => { handleTabChange('health'); loadHealth(); }}
                 >
                     <Activity size={16} />
                     <span>Sistem Sağlığı & Canlı İzleme</span>
@@ -570,7 +589,7 @@ export default function PlatformAdmin() {
 
                 <button
                     className={`platform-tab-btn ${activeTab === 'logs' ? 'active' : ''}`}
-                    onClick={() => { setActiveTab('logs'); loadLogs(); }}
+                    onClick={() => { handleTabChange('logs'); loadLogs(); }}
                 >
                     <ScrollText size={16} />
                     <span>Sistem & Güvenlik Logları</span>
@@ -579,7 +598,7 @@ export default function PlatformAdmin() {
 
                 <button
                     className={`platform-tab-btn ${activeTab === 'backups' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('backups')}
+                    onClick={() => handleTabChange('backups')}
                 >
                     <Database size={16} />
                     <span>Veritabanı Yedekleri</span>
