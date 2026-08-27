@@ -22,7 +22,8 @@ import {
     User,
     Calendar,
     Clock,
-    Globe
+    Globe,
+    Crown
 } from 'lucide-react'
 
 // Define menus per module
@@ -157,6 +158,23 @@ export const moduleMenus = {
             ]
         }
     ],
+    platform: [
+        {
+            title: 'SaaS Platform Yönetimi',
+            items: [
+                { path: '/platform-admin', label: 'Platform Yönetimi', icon: Crown },
+                { path: '/companies', label: 'Şirketler & Portföy', icon: Building2 },
+                { path: '/settings', label: 'Sistem Tercihleri', icon: Settings }
+            ]
+        },
+        {
+            title: 'Hızlı Navigasyon',
+            items: [
+                { path: '/portal', label: 'Modül Portalı', icon: Layers },
+                { path: '/dashboard', label: 'Filo Paneline Geç', icon: LayoutDashboard }
+            ]
+        }
+    ],
     system: [],
     portal: []
 }
@@ -222,6 +240,7 @@ export const getRouteInfo = (path) => {
     if (path.startsWith('/customers/')) return { label: 'Müşteri Detay', icon: Building2 }
     if (path === '/portal' || path === '/') return { label: 'Ana Portal', icon: Layers }
     if (path === '/profile') return { label: 'Profil Ayarları', icon: User }
+    if (path === '/platform-admin') return { label: 'Platform Yönetimi', icon: Crown }
 
     return { label: 'Sayfa', icon: FileText }
 }
@@ -235,14 +254,19 @@ export const getActiveModule = (pathname, search = '') => {
         console.error(e)
     }
 
-    // 1. Prioritize module parameter from search string
+    // 1. Platform Admin mode check
+    if (pathname === '/platform-admin' || pathname.startsWith('/platform-admin')) {
+        return 'platform'
+    }
+
+    // 2. Prioritize module parameter from search string
     if (search) {
         const params = new URLSearchParams(search)
         const moduleParam = params.get('module')
         if (moduleParam && moduleMenus[moduleParam]) return moduleParam
     }
 
-    // 2. Exact match from data-driven path→module map
+    // 3. Exact match from data-driven path→module map
     if (pathToModuleMap[pathname]) return pathToModuleMap[pathname]
 
     // 3. Detail page prefix matching (for /vehicles/:id, /employees/:id, etc.)

@@ -31,7 +31,11 @@ export default function Sidebar({ collapsed, onToggle }) {
                 <div className="sidebar-logo" style={{ background: 'transparent', boxShadow: 'none', width: '24px', height: '24px' }}>
                     <img src={logoCollapsed} alt="Kontrol Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
-                {!collapsed && <span className="sidebar-title">Kontrol</span>}
+                {!collapsed && (
+                    <span className="sidebar-title">
+                        {activeModule === 'platform' ? 'SaaS Platform' : 'Kontrol'}
+                    </span>
+                )}
             </div>
 
             <nav className="sidebar-nav">
@@ -61,7 +65,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             </nav>
 
             <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {isSuperAdmin && (
+                {isSuperAdmin && activeModule !== 'platform' && (
                     <button
                         onClick={() => openNewTab('/platform-admin', false, 'Platform Yönetimi')}
                         className="nav-item"
