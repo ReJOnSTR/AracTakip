@@ -315,7 +315,49 @@
 .log-level-badge.error {
     background: rgba(239, 68, 68, 0.15);
     color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Custom Modal Checkbox Control */
+.platform-modal-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.platform-modal-checkbox:hover {
+    border-color: var(--primary, #3b82f6);
+}
+
+.platform-modal-checkbox.active {
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.platform-checkbox-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+    flex-shrink: 0;
+}
+
+.platform-modal-checkbox.active .platform-checkbox-box {
+    background: var(--primary, #3b82f6);
+    border-color: var(--primary, #3b82f6);
+    color: #fff;
 }
 
 .log-message-code {

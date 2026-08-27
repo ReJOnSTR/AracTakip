@@ -40,7 +40,8 @@ import {
     Wrench,
     Scale,
     AlertOctagon,
-    Clock
+    Clock,
+    Check
 } from 'lucide-react'
 import './PlatformAdmin.css'
 
@@ -105,6 +106,14 @@ export default function PlatformAdmin({ section }) {
         companyId: ''
     })
     const [createUserLoading, setCreateUserLoading] = useState(false)
+
+    // Helper for robust value extraction from CustomInput
+    const getVal = (v) => {
+        if (v && typeof v === 'object' && v.target !== undefined) {
+            return v.target.value
+        }
+        return v ?? ''
+    }
 
     // Strict SuperAdmin check
     const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
@@ -321,6 +330,10 @@ export default function PlatformAdmin({ section }) {
     // Create Announcement Submit
     const handleCreateAnnouncementSubmit = async (e) => {
         e.preventDefault()
+        if (!newAnnouncement.title || !newAnnouncement.message) {
+            alert('Lütfen duyuru başlığı ve mesajını doldurun.')
+            return
+        }
         setCreatingAnnouncement(true)
         try {
             const res = await window.electronAPI?.createPlatformAnnouncement({
@@ -452,14 +465,23 @@ export default function PlatformAdmin({ section }) {
         }
     ], [overviewData])
 
-    // Dropdown options for CustomSelect in modals
+    // Clean Type Mapping with colors (no ugly text at the beginning)
+    const announcementTypeMeta = {
+        info: { label: 'Bilgilendirme', color: '#3b82f6' },
+        maintenance: { label: 'Planlı Sistem Bakımı', color: '#8b5cf6' },
+        warning: { label: 'Uyarı', color: '#f59e0b' },
+        legal: { label: 'Mevzuat & Sigorta', color: '#eab308' },
+        critical: { label: 'Kritik / Acil Bildirim', color: '#ef4444' },
+        success: { label: 'Başarılı / Tebrik', color: '#10b981' }
+    }
+
     const announcementTypeOptions = [
-        { value: 'info', label: '🔵 Bilgilendirme (Mavi)' },
-        { value: 'maintenance', label: '🟣 Sistem Bakımı (Mor)' },
-        { value: 'warning', label: '🟡 Uyarı (Sarı)' },
-        { value: 'legal', label: '⚖️ Mevzuat & Sigorta (Sarı)' },
-        { value: 'critical', label: '🔴 Kritik Uyarı (Kırmızı)' },
-        { value: 'success', label: '🟢 Başarılı (Yeşil)' }
+        { value: 'info', label: 'Bilgilendirme' },
+        { value: 'maintenance', label: 'Planlı Sistem Bakımı' },
+        { value: 'warning', label: 'Uyarı' },
+        { value: 'legal', label: 'Mevzuat & Sigorta' },
+        { value: 'critical', label: 'Kritik / Acil Bildirim' },
+        { value: 'success', label: 'Başarılı / Tebrik' }
     ]
 
     const announcementCompanyOptions = [
@@ -603,37 +625,33 @@ export default function PlatformAdmin({ section }) {
 
     // ── ANNOUNCEMENTS TABLE COLUMNS ──
     const announcementColumns = [
-        { key: 'title', label: 'Duyuru Başlığı & İçerik', render: (val, r) => (
-            <div>
-                <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {r.type === 'maintenance' && <Wrench size={13} style={{ color: '#8b5cf6' }} />}
-                    {r.type === 'warning' && <AlertTriangle size={13} style={{ color: '#f59e0b' }} />}
-                    {r.type === 'critical' && <AlertOctagon size={13} style={{ color: '#ef4444' }} />}
-                    {r.type === 'legal' && <Scale size={13} style={{ color: '#f59e0b' }} />}
-                    {r.type === 'success' && <Sparkles size={13} style={{ color: '#10b981' }} />}
-                    {(!r.type || r.type === 'info') && <Megaphone size={13} style={{ color: '#3b82f6' }} />}
-                    {val}
-                </strong>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', lineHeight: 1.4 }}>
-                    {r.message}
+        { key: 'title', label: 'Duyuru Başlığı & İçerik', render: (val, r) => {
+            const meta = announcementTypeMeta[r.type] || { color: '#3b82f6' }
+            return (
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{val}</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px', lineHeight: 1.4, paddingLeft: '16px' }}>
+                        {r.message}
+                    </div>
                 </div>
-            </div>
-        )},
+            )
+        }},
         { key: 'companyName', label: 'Hedef Kitle / Şirket', render: (val, r) => (
             <span className={`badge ${!r.company_id ? 'badge-primary' : 'badge-warning'}`}>
                 {val}
             </span>
         )},
         { key: 'type', label: 'Duyuru Türü', render: (val) => {
-            const typeLabels = {
-                info: '🔵 Bilgilendirme',
-                maintenance: '🟣 Sistem Bakımı',
-                warning: '🟡 Uyarı',
-                legal: '⚖️ Mevzuat & Sigorta',
-                critical: '🔴 Kritik / Acil',
-                success: '🟢 Başarılı'
-            }
-            return <span style={{ fontSize: '12px', fontWeight: 500 }}>{typeLabels[val] || val}</span>
+            const meta = announcementTypeMeta[val] || { label: val, color: '#94a3b8' }
+            return (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ fontSize: '12.5px', fontWeight: 500, color: 'var(--text-primary)' }}>{meta.label}</span>
+                </div>
+            )
         }},
         { key: 'status', label: 'Yayın Durumu', render: (_, r) => {
             if (r.isExpired) {
@@ -951,7 +969,7 @@ export default function PlatformAdmin({ section }) {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.54'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.55'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
@@ -1112,7 +1130,7 @@ export default function PlatformAdmin({ section }) {
                 </div>
             )}
 
-            {/* ── MODAL: CREATE BROADCAST ANNOUNCEMENT (CUSTOMSELECT & CUSTOMINPUT) ── */}
+            {/* ── MODAL: CREATE BROADCAST ANNOUNCEMENT ── */}
             {createAnnouncementModal && (
                 <Modal
                     isOpen={createAnnouncementModal}
@@ -1123,7 +1141,7 @@ export default function PlatformAdmin({ section }) {
                         <CustomInput
                             label="Duyuru Başlığı"
                             value={newAnnouncement.title}
-                            onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                            onChange={(val) => setNewAnnouncement(prev => ({ ...prev, title: getVal(val) }))}
                             placeholder="Örn: 28 Ağustos Planlı Sunucu Bakımı"
                             required
                         />
@@ -1136,7 +1154,7 @@ export default function PlatformAdmin({ section }) {
                                 className="form-control"
                                 rows={3}
                                 value={newAnnouncement.message}
-                                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, message: e.target.value })}
+                                onChange={(e) => setNewAnnouncement(prev => ({ ...prev, message: e.target.value }))}
                                 placeholder="Duyuru metnini buraya yazın..."
                                 required
                                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'vertical' }}
@@ -1147,7 +1165,7 @@ export default function PlatformAdmin({ section }) {
                             <CustomSelect
                                 label="Duyuru Türü"
                                 value={newAnnouncement.type}
-                                onChange={(val) => setNewAnnouncement({ ...newAnnouncement, type: val })}
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, type: val }))}
                                 options={announcementTypeOptions}
                                 placeholder="Duyuru türü seçin"
                                 required
@@ -1156,7 +1174,7 @@ export default function PlatformAdmin({ section }) {
                             <CustomSelect
                                 label="Hedef Şirket / Kitle"
                                 value={newAnnouncement.companyId}
-                                onChange={(val) => setNewAnnouncement({ ...newAnnouncement, companyId: val })}
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, companyId: val }))}
                                 options={announcementCompanyOptions}
                                 placeholder="Tüm Şirketler (Genel Yayın)"
                             />
@@ -1167,18 +1185,21 @@ export default function PlatformAdmin({ section }) {
                                 label="Son Geçerlilik Tarihi (Opsiyonel)"
                                 type="date"
                                 value={newAnnouncement.expiresAt}
-                                onChange={(e) => setNewAnnouncement({ ...newAnnouncement, expiresAt: e.target.value })}
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, expiresAt: getVal(val) }))}
                             />
 
                             <div style={{ paddingTop: '18px' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={newAnnouncement.isDismissible === 1}
-                                        onChange={(e) => setNewAnnouncement({ ...newAnnouncement, isDismissible: e.target.checked ? 1 : 0 })}
-                                    />
-                                    <span>Kullanıcılar Kapatabilsin (X)</span>
-                                </label>
+                                <div 
+                                    className={`platform-modal-checkbox ${newAnnouncement.isDismissible === 1 ? 'active' : ''}`}
+                                    onClick={() => setNewAnnouncement(prev => ({ ...prev, isDismissible: prev.isDismissible === 1 ? 0 : 1 }))}
+                                >
+                                    <div className="platform-checkbox-box">
+                                        {newAnnouncement.isDismissible === 1 && <Check size={12} strokeWidth={3} />}
+                                    </div>
+                                    <span style={{ fontSize: '12.5px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                        Kullanıcılar Kapatabilsin (X)
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -1194,7 +1215,7 @@ export default function PlatformAdmin({ section }) {
                 </Modal>
             )}
 
-            {/* ── MODAL: CREATE USER (CUSTOMINPUT & CUSTOMSELECT) ── */}
+            {/* ── MODAL: CREATE USER ── */}
             {createUserModal && (
                 <Modal
                     isOpen={createUserModal}
@@ -1205,7 +1226,7 @@ export default function PlatformAdmin({ section }) {
                         <CustomInput
                             label="Kullanıcı Adı"
                             value={newUserForm.username}
-                            onChange={(e) => setNewUserForm({ ...newUserForm, username: e.target.value })}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, username: getVal(val) }))}
                             placeholder="ornek_kullanici"
                             required
                         />
@@ -1213,28 +1234,28 @@ export default function PlatformAdmin({ section }) {
                             label="E-Posta"
                             type="email"
                             value={newUserForm.email}
-                            onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, email: getVal(val) }))}
                             placeholder="kullanici@sirket.com"
                             required
                         />
                         <CustomInput
                             label="Ad Soyad"
                             value={newUserForm.fullName}
-                            onChange={(e) => setNewUserForm({ ...newUserForm, fullName: e.target.value })}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: getVal(val) }))}
                             placeholder="Ad Soyad"
                         />
                         <CustomInput
                             label="Başlangıç Şifresi"
                             type="password"
                             value={newUserForm.password}
-                            onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
                             placeholder="Şifre belirleyin"
                             required
                         />
                         <CustomSelect
                             label="Bağlanacak Şirket"
                             value={newUserForm.companyId}
-                            onChange={(val) => setNewUserForm({ ...newUserForm, companyId: val })}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: val }))}
                             options={userCompanyOptions}
                             placeholder="Şirketsiz / Sistem Kullanıcısı"
                         />
@@ -1265,7 +1286,7 @@ export default function PlatformAdmin({ section }) {
                             label="Yeni Şifre"
                             type="password"
                             value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
+                            onChange={(val) => setNewPassword(getVal(val))}
                             placeholder="Yeni şifreyi girin"
                             required
                         />
