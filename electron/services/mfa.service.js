@@ -1,15 +1,86 @@
-const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
-// Configure TOTP window tolerance (1 step before/after = ±30 seconds tolerance for clock skew)
-authenticator.options = {
-    window: 1,
-    step: 30
-};
+// RFC 4648 Base32 Alphabet
+const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+function base32Encode(buffer) {
+    let bits = 0;
+    let value = 0;
+    let output = '';
+
+    for (let i = 0; i < buffer.length; i++) {
+        value = (value << 8) | buffer[i];
+        bits += 8;
+
+        while (bits >= 5) {
+            output += BASE32_CHARS[(value >>> (bits - 5)) & 31];
+            bits -= 5;
+        }
+    }
+
+    if (bits > 0) {
+        output += BASE32_CHARS[(value << (5 - bits)) & 31];
+    }
+
+    return output;
+}
+
+function base32Decode(input) {
+    const clean = String(input || '').toUpperCase().replace(/=+$/, '').replace(/\s+/g, '');
+    let bits = 0;
+    let value = 0;
+    let index = 0;
+    const output = Buffer.alloc(Math.floor((clean.length * 5) / 8));
+
+    for (let i = 0; i < clean.length; i++) {
+        const val = BASE32_CHARS.indexOf(clean[i]);
+        if (val === -1) continue;
+
+        value = (value << 5) | val;
+        bits += 5;
+
+        if (bits >= 8) {
+            output[index++] = (value >>> (bits - 8)) & 255;
+            bits -= 8;
+        }
+    }
+
+    return output;
+}
+
+function generateSecret(length = 20) {
+    return base32Encode(crypto.randomBytes(length));
+}
+
+function generateHOTP(secret, counter) {
+    const key = base32Decode(secret);
+    const counterBuf = Buffer.alloc(8);
+    counterBuf.writeBigInt64BE(BigInt(counter));
+
+    const hmac = crypto.createHmac('sha1', key).update(counterBuf).digest();
+    const offset = hmac[hmac.length - 1] & 0xf;
+    const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1000000;
+
+    return code.toString().padStart(6, '0');
+}
+
+function verifyTOTP(token, secret, timeStep = 30, window = 1) {
+    if (!token || !secret) return false;
+    const cleanToken = String(token).replace(/\s+/g, '').trim();
+    if (cleanToken.length !== 6) return false;
+
+    const currentCounter = Math.floor(Date.now() / 1000 / timeStep);
+    for (let i = -window; i <= window; i++) {
+        if (generateHOTP(secret, currentCounter + i) === cleanToken) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Generate 8 random backup recovery codes
@@ -34,9 +105,10 @@ async function generateMfaSetup(userId) {
             return { success: false, error: 'Kullanıcı bulunamadı' };
         }
 
-        const secret = authenticator.generateSecret();
-        const accountName = `${user.username} (${user.email || 'KONTROL'})`;
-        const otpauth = authenticator.keyuri(accountName, 'KONTROL App', secret);
+        const secret = generateSecret(20);
+        const issuer = 'KONTROL App';
+        const accountName = encodeURIComponent(`${user.username} (${user.email || 'KONTROL'})`);
+        const otpauth = `otpauth://totp/${encodeURIComponent(issuer)}:${accountName}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
         
         // Generate high-resolution dark-themed QR Code Data URL
         const qrCodeUrl = await QRCode.toDataURL(otpauth, {
@@ -79,7 +151,7 @@ async function enableMfa(userId, secret, token, backupCodes) {
         const cleanToken = String(token).replace(/\s+/g, '').trim();
 
         // Verify the token with the provided secret
-        const isValid = authenticator.check(cleanToken, secret);
+        const isValid = verifyTOTP(cleanToken, secret);
         if (!isValid) {
             return { success: false, error: 'Girdiğiniz 6 haneli doğrulama kodu geçersiz. Lütfen Authenticator uygulamanızdaki güncel kodu girin.' };
         }
@@ -106,7 +178,7 @@ async function enableMfa(userId, secret, token, backupCodes) {
 }
 
 /**
- * Disable 2FA for a user (requires user confirmation)
+ * Disable 2FA for a user
  */
 async function disableMfa(userId) {
     try {
@@ -147,14 +219,14 @@ async function verifyMfaLogin(userId, tokenOrBackupCode) {
         }
 
         if (user.two_factor_enabled !== 1 || !user.two_factor_secret) {
-            return { success: true, verified: true };
+            return { success: true, verified: true, user: sanitizeUser(user) };
         }
 
         const inputCode = String(tokenOrBackupCode).replace(/\s+/g, '').trim().toUpperCase();
 
         // 1. Try 6-digit TOTP verification
         if (/^\d{6}$/.test(inputCode)) {
-            const isValid = authenticator.check(inputCode, user.two_factor_secret);
+            const isValid = verifyTOTP(inputCode, user.two_factor_secret);
             if (isValid) {
                 return {
                     success: true,
