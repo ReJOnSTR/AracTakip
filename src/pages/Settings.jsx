@@ -253,24 +253,6 @@ export default function Settings() {
         }
     }
 
-    const [syncingAuth, setSyncingAuth] = useState(false)
-    const handleSyncSupabaseAuth = async () => {
-        if (!confirm('Tüm aktif personeller için Supabase Authentication hesapları oluşturulup eşitlenecek. Devam etmek istiyor musunuz?')) return
-        setSyncingAuth(true)
-        try {
-            const result = await window.electronAPI.syncEmployeesToSupabaseAuth(currentCompany?.id)
-            if (result && result.success) {
-                alert(`✅ Başarılı! Toplam ${result.totalSynced} personel Supabase Authentication bulutuna senkronize edildi.`)
-            } else {
-                alert('Senkronizasyon hatası: ' + (result?.error || 'Bilinmeyen hata'))
-            }
-        } catch (err) {
-            alert('Hata: ' + err.message)
-        } finally {
-            setSyncingAuth(false)
-        }
-    }
-
     const checkForUpdates = async () => {
         setUpdateStatus('checking')
         setErrorMsg('')
@@ -697,21 +679,6 @@ export default function Settings() {
                                             </button>
                                             <button className="btn btn-secondary" onClick={handleImport}>
                                                 <Upload size={16} /> Verileri İçe Aktar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="settings-item" style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '24px', alignItems: 'flex-start' }}>
-                                    <div className="settings-item-content">
-                                        <div className="settings-item-label" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            Supabase Authentication Kullanıcı Senkronizasyonu
-                                            <span className="badge badge-primary" style={{ fontSize: '10px', padding: '2px 8px' }}>BULUT AUTH</span>
-                                        </div>
-                                        <div className="settings-item-desc">Tüm aktif personellerinizi Supabase Authentication (`auth.users`) bulut altyapısına aktarır ve giriş hesaplarını hazırlar.</div>
-                                        <div style={{ marginTop: '16px' }}>
-                                            <button className="btn btn-primary" onClick={handleSyncSupabaseAuth} disabled={syncingAuth}>
-                                                <Users size={16} /> {syncingAuth ? 'Senkronize Ediliyor...' : 'Personelleri Supabase Auth\'a Senkronize Et'}
                                             </button>
                                         </div>
                                     </div>
