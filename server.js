@@ -567,6 +567,8 @@ const rpcMap = {
     getPlatformBackups: db.getPlatformBackups,
     triggerPlatformBackup: db.triggerPlatformBackup,
     getPlatformSystemHealth: db.getPlatformSystemHealth,
+    getPlatformLogs: db.getPlatformLogs,
+    clearPlatformLogs: db.clearPlatformLogs,
 };
 
 // Generic RPC Router

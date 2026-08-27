@@ -478,6 +478,86 @@ function formatUptime(seconds) {
     return `${minutes} dk ${secs} sn`;
 }
 
+/**
+ * Read structured server and application logs
+ */
+async function getPlatformLogs(limit = 300) {
+    try {
+        const log = require('../logger');
+        let logPath = null;
+        try {
+            logPath = log.transports.file.getFile()?.path;
+        } catch (e) {}
+
+        if (!logPath || !fs.existsSync(logPath)) {
+            const os = require('os');
+            const candidates = [
+                path.join(os.homedir(), 'Library/Logs/kontrol-app/main.log'),
+                path.join(os.homedir(), '.config/kontrol-app/logs/main.log'),
+                path.join(__dirname, '../../logs/server.log')
+            ];
+            for (const c of candidates) {
+                if (fs.existsSync(c)) {
+                    logPath = c;
+                    break;
+                }
+            }
+        }
+
+        if (!logPath || !fs.existsSync(logPath)) {
+            return { success: true, data: [], totalLines: 0 };
+        }
+
+        const rawContent = fs.readFileSync(logPath, 'utf8');
+        const lines = rawContent.trim().split('\n').filter(l => l.trim().length > 0);
+        const sliced = lines.slice(-Math.min(limit, lines.length)).reverse();
+
+        const regex = /^\[(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(?:\.\d+)?)\]\s\[([a-z]+)\]\s*(.*)$/i;
+
+        const parsed = sliced.map((line, idx) => {
+            const match = line.match(regex);
+            if (match) {
+                const [, timestamp, level, message] = match;
+                return {
+                    id: idx + 1,
+                    timestamp,
+                    level: level.toLowerCase(),
+                    message: message.trim(),
+                    raw: line
+                };
+            }
+            return {
+                id: idx + 1,
+                timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                level: 'info',
+                message: line.trim(),
+                raw: line
+            };
+        });
+
+        return { success: true, data: parsed, totalLines: lines.length, filePath: logPath };
+    } catch (error) {
+        console.error('getPlatformLogs error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Clear or truncate server logs
+ */
+async function clearPlatformLogs() {
+    try {
+        const log = require('../logger');
+        const logPath = log.transports.file.getFile()?.path;
+        if (logPath && fs.existsSync(logPath)) {
+            fs.writeFileSync(logPath, `[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] [info] Log dosyası yönetici tarafından sıfırlandı.\n`);
+        }
+        return { success: true, message: 'Loglar başarıyla temizlendi' };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
     getPlatformOverview,
     getPlatformUsers,
@@ -489,5 +569,7 @@ module.exports = {
     toggleUserStatus,
     getPlatformBackups,
     triggerPlatformBackup,
-    getPlatformSystemHealth
+    getPlatformSystemHealth,
+    getPlatformLogs,
+    clearPlatformLogs
 };

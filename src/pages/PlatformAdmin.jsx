@@ -31,7 +31,10 @@ import {
     ExternalLink,
     Server,
     Cloud,
-    BadgeCheck
+    BadgeCheck,
+    ScrollText,
+    Terminal,
+    Radio
 } from 'lucide-react'
 import './PlatformAdmin.css'
 
@@ -40,7 +43,7 @@ export default function PlatformAdmin() {
     const { selectCompany } = useCompany()
     const navigate = useNavigate()
 
-    const [activeTab, setActiveTab] = useState('users') // 'users' | 'tenants' | 'health' | 'backups'
+    const [activeTab, setActiveTab] = useState('users') // 'users' | 'tenants' | 'health' | 'logs' | 'backups'
     const [loading, setLoading] = useState(true)
     const [overviewData, setOverviewData] = useState(null)
     const [platformUsers, setPlatformUsers] = useState([])
@@ -49,6 +52,11 @@ export default function PlatformAdmin() {
     const [healthLoading, setHealthLoading] = useState(false)
     const [backupLoading, setBackupLoading] = useState(false)
     const [actionMsg, setActionMsg] = useState('')
+
+    // System Logs
+    const [logs, setLogs] = useState([])
+    const [logsLoading, setLogsLoading] = useState(false)
+    const [autoPollLogs, setAutoPollLogs] = useState(false)
 
     // Modals
     const [passwordModalUser, setPasswordModalUser] = useState(null)
@@ -77,6 +85,15 @@ export default function PlatformAdmin() {
         loadAllData()
     }, [isSuperAdmin])
 
+    // Auto-polling for live logs if enabled
+    useEffect(() => {
+        if (!autoPollLogs || activeTab !== 'logs') return
+        const interval = setInterval(() => {
+            loadLogs(false)
+        }, 3000)
+        return () => clearInterval(interval)
+    }, [autoPollLogs, activeTab])
+
     const loadAllData = async () => {
         setLoading(true)
         try {
@@ -84,7 +101,8 @@ export default function PlatformAdmin() {
                 loadOverview(),
                 loadUsers(),
                 loadBackups(),
-                loadHealth()
+                loadHealth(),
+                loadLogs()
             ])
         } catch (err) {
             console.error('Platform data load error:', err)
@@ -95,21 +113,21 @@ export default function PlatformAdmin() {
 
     const loadOverview = async () => {
         const res = await window.electronAPI.getPlatformOverview()
-        if (res.success) {
+        if (res?.success) {
             setOverviewData(res.data)
         }
     }
 
     const loadUsers = async () => {
         const res = await window.electronAPI.getPlatformUsers()
-        if (res.success) {
+        if (res?.success) {
             setPlatformUsers(res.data)
         }
     }
 
     const loadBackups = async () => {
         const res = await window.electronAPI.getPlatformBackups()
-        if (res.success) {
+        if (res?.success) {
             setBackups(res.data)
         }
     }
@@ -118,11 +136,34 @@ export default function PlatformAdmin() {
         setHealthLoading(true)
         try {
             const res = await window.electronAPI.getPlatformSystemHealth()
-            if (res.success) {
+            if (res?.success) {
                 setHealthData(res.data)
             }
         } finally {
             setHealthLoading(false)
+        }
+    }
+
+    const loadLogs = async (showLoading = true) => {
+        if (showLoading) setLogsLoading(true)
+        try {
+            const res = await window.electronAPI.getPlatformLogs(300)
+            if (res?.success) {
+                setLogs(res.data || [])
+            }
+        } finally {
+            if (showLoading) setLogsLoading(false)
+        }
+    }
+
+    const handleClearLogs = async () => {
+        if (!window.confirm('Tüm sistem loglarını sıfırlamak istediğinize emin misiniz?')) {
+            return
+        }
+        const res = await window.electronAPI.clearPlatformLogs()
+        if (res?.success) {
+            setActionMsg('Sistem logları sıfırlandı.')
+            await loadLogs()
         }
     }
 
@@ -138,7 +179,7 @@ export default function PlatformAdmin() {
     // Impersonate User directly
     const handleImpersonateUser = async (targetUser) => {
         const res = await window.electronAPI.impersonatePlatformUser(targetUser.id)
-        if (res.success && res.user) {
+        if (res && res.success && res.user) {
             if (setUser) setUser(res.user)
             localStorage.setItem('aractakip_user', JSON.stringify(res.user))
             if (res.company) {
@@ -153,7 +194,7 @@ export default function PlatformAdmin() {
                 }
             }, 600)
         } else {
-            setActionMsg('Oturum açma hatası: ' + (res.error || 'Bilinmiyor'))
+            setActionMsg('Oturum açma hatası: ' + (res?.error || 'Bilinmiyor'))
         }
     }
 
@@ -195,13 +236,13 @@ export default function PlatformAdmin() {
         setPasswordLoading(true)
         try {
             const res = await window.electronAPI.resetPlatformUserPassword(passwordModalUser.id, newPassword)
-            if (res.success) {
+            if (res?.success) {
                 setActionMsg(`${passwordModalUser.username} şifresi başarıyla değiştirildi.`)
                 setPasswordModalUser(null)
                 setNewPassword('')
                 await loadUsers()
             } else {
-                alert('Şifre değiştirme hatası: ' + res.error)
+                alert('Şifre değiştirme hatası: ' + (res?.error || 'Bilinmiyor'))
             }
         } finally {
             setPasswordLoading(false)
@@ -214,14 +255,14 @@ export default function PlatformAdmin() {
         setCreateUserLoading(true)
         try {
             const res = await window.electronAPI.createPlatformUser(newUserForm)
-            if (res.success) {
+            if (res?.success) {
                 setActionMsg(`Yeni kullanıcı ${newUserForm.username} başarıyla oluşturuldu.`)
                 setCreateUserModal(false)
                 setNewUserForm({ username: '', email: '', password: '', fullName: '', role: 'company_admin', companyId: '' })
                 await loadUsers()
                 await loadOverview()
             } else {
-                alert('Kullanıcı oluşturma hatası: ' + res.error)
+                alert('Kullanıcı oluşturma hatası: ' + (res?.error || 'Bilinmiyor'))
             }
         } finally {
             setCreateUserLoading(false)
@@ -233,11 +274,11 @@ export default function PlatformAdmin() {
         setBackupLoading(true)
         try {
             const res = await window.electronAPI.triggerPlatformBackup()
-            if (res.success) {
+            if (res?.success) {
                 setActionMsg('Yeni veritabanı yedeği başarıyla oluşturuldu!')
                 await loadBackups()
             } else {
-                setActionMsg('Yedekleme hatası: ' + res.error)
+                setActionMsg('Yedekleme hatası: ' + (res?.error || 'Bilinmiyor'))
             }
         } finally {
             setBackupLoading(false)
@@ -250,11 +291,11 @@ export default function PlatformAdmin() {
             return
         }
         const res = await window.electronAPI.deletePlatformUser(u.id)
-        if (res.success) {
+        if (res?.success) {
             setActionMsg(`${u.username} kullanıcısı silindi.`)
             await loadUsers()
         } else {
-            alert('Hata: ' + res.error)
+            alert('Hata: ' + (res?.error || 'Bilinmiyor'))
         }
     }
 
@@ -439,6 +480,21 @@ export default function PlatformAdmin() {
         )}
     ]
 
+    // ── SYSTEM LOGS COLUMNS ──
+    const logColumns = [
+        { key: 'timestamp', label: 'Zaman Damgası', width: '180px', render: (val) => (
+            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>{val}</span>
+        )},
+        { key: 'level', label: 'Seviye', width: '90px', render: (val) => (
+            <span className={`log-level-badge ${val}`}>
+                {val}
+            </span>
+        )},
+        { key: 'message', label: 'Log Detayı & Sistem Olayı', render: (val) => (
+            <span className="log-message-code">{val}</span>
+        )}
+    ]
+
     const backupColumns = [
         { key: 'fileName', label: 'Yedek Dosyası', render: (val) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -452,14 +508,14 @@ export default function PlatformAdmin() {
 
     return (
         <div>
-            <TopProgressBar loading={loading || backupLoading} />
+            <TopProgressBar loading={loading || backupLoading || logsLoading} />
 
             {/* ── STANDARD APP PAGE HEADER ── */}
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Platform Yönetimi</h1>
                     <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                        SaaS şirket-hesap eşleştirmeleri, canlı sistem metrikleri ve operasyonlar.
+                        SaaS şirket-hesap eşleştirmeleri, canlı sistem metrikleri, operasyonlar ve sistem logları.
                     </p>
                 </div>
                 <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
@@ -484,7 +540,7 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── STANDARD SEGMENTED/UNDERLINE TABS MATCHING VEHICLEDETAIL ── */}
+            {/* ── STANDARD SEGMENTED/UNDERLINE TABS ── */}
             <div className="platform-tabs">
                 <button
                     className={`platform-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
@@ -510,6 +566,15 @@ export default function PlatformAdmin() {
                 >
                     <Activity size={16} />
                     <span>Sistem Sağlığı & Canlı İzleme</span>
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeTab === 'logs' ? 'active' : ''}`}
+                    onClick={() => { setActiveTab('logs'); loadLogs(); }}
+                >
+                    <ScrollText size={16} />
+                    <span>Sistem & Güvenlik Logları</span>
+                    <span className="platform-tab-badge">{logs.length}</span>
                 </button>
 
                 <button
@@ -651,7 +716,7 @@ export default function PlatformAdmin() {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.47'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.49'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
@@ -705,7 +770,70 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 4: BACKUPS HUB ── */}
+            {/* ── TAB 4: SYSTEM & SECURITY LOGS ── */}
+            {activeTab === 'logs' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={autoPollLogs}
+                                    onChange={(e) => setAutoPollLogs(e.target.checked)}
+                                />
+                                <Radio size={14} style={{ color: autoPollLogs ? '#10b981' : 'var(--text-muted)' }} />
+                                <span>Canlı Log Akışı (3sn)</span>
+                            </label>
+                            {autoPollLogs && (
+                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>● Canlı Akış Devrede</span>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => loadLogs(true)}
+                                disabled={logsLoading}
+                                style={{ padding: '6px 12px', fontSize: '12px' }}
+                            >
+                                <RefreshCw size={13} className={logsLoading ? 'spin' : ''} />
+                                <span>Yenile</span>
+                            </button>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={handleClearLogs}
+                                style={{ padding: '6px 12px', fontSize: '12px', color: '#f87171' }}
+                            >
+                                <Trash2 size={13} />
+                                <span>Logları Temizle</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <DataTable
+                        persistenceKey="PlatformAdmin_logs_table"
+                        columns={logColumns}
+                        data={logs}
+                        showSearch={true}
+                        showCheckboxes={false}
+                        searchPlaceholder="Log mesajı, kullanıcı veya işlem içinde ara..."
+                        searchKeys={['message', 'level', 'timestamp']}
+                        filters={[
+                            {
+                                key: 'level',
+                                label: 'Log Seviyesi',
+                                options: [
+                                    { value: 'info', label: '🔵 Info / Bilgi' },
+                                    { value: 'warn', label: '🟡 Warn / Uyarı' },
+                                    { value: 'error', label: '🔴 Error / Hata' }
+                                ]
+                            }
+                        ]}
+                    />
+                </div>
+            )}
+
+            {/* ── TAB 5: BACKUPS HUB ── */}
             {activeTab === 'backups' && (
                 <div>
                     <div className="backup-card-header">

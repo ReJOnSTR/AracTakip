@@ -299,4 +299,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getPlatformBackups: () => ipcRenderer.invoke('platform:getBackups'),
     triggerPlatformBackup: () => ipcRenderer.invoke('platform:triggerBackup'),
     getPlatformSystemHealth: () => ipcRenderer.invoke('platform:getSystemHealth'),
+    getPlatformLogs: (limit) => ipcRenderer.invoke('platform:getLogs', limit),
+    clearPlatformLogs: () => ipcRenderer.invoke('platform:clearLogs'),
 })

@@ -2718,4 +2718,10 @@ ipcMain.handle('platform:triggerBackup', async () => {
 ipcMain.handle('platform:getSystemHealth', async () => {
     return await db.getPlatformSystemHealth();
 });
+ipcMain.handle('platform:getLogs', async (event, limit) => {
+    return await db.getPlatformLogs(limit);
+});
+ipcMain.handle('platform:clearLogs', async () => {
+    return await db.clearPlatformLogs();
+});
 
