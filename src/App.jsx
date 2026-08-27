@@ -195,7 +195,14 @@ function AppRoutes() {
                         <Route path="/customers/:id" element={<CustomerDetail />} />
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/module-settings/:module" element={<AdminRoute><ModuleSettings /></AdminRoute>} />
-                        <Route path="/platform-admin" element={<SuperAdminRoute><PlatformAdmin /></SuperAdminRoute>} />
+                        <Route path="/platform-admin" element={<Navigate to="/platform/users" replace />} />
+                        <Route path="/platform" element={<Navigate to="/platform/users" replace />} />
+                        <Route path="/platform/users" element={<SuperAdminRoute><PlatformAdmin section="users" /></SuperAdminRoute>} />
+                        <Route path="/platform/companies" element={<SuperAdminRoute><PlatformAdmin section="companies" /></SuperAdminRoute>} />
+                        <Route path="/platform/announcements" element={<SuperAdminRoute><PlatformAdmin section="announcements" /></SuperAdminRoute>} />
+                        <Route path="/platform/health" element={<SuperAdminRoute><PlatformAdmin section="health" /></SuperAdminRoute>} />
+                        <Route path="/platform/logs" element={<SuperAdminRoute><PlatformAdmin section="logs" /></SuperAdminRoute>} />
+                        <Route path="/platform/backups" element={<SuperAdminRoute><PlatformAdmin section="backups" /></SuperAdminRoute>} />
                         <Route path="/approvals" element={<ApprovalCenter />} />
                         <Route path="/personnel-portal" element={<Navigate to="/personnel-profile" replace />} />
                         <Route path="/reports" element={<Reports />} />

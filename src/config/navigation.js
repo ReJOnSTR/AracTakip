@@ -166,18 +166,17 @@ export const moduleMenus = {
         {
             title: 'Platform Yönetimi',
             items: [
-                { path: '/platform-admin', label: 'Genel Bakış', icon: Crown },
+                { path: '/platform/users', label: 'Kullanıcı Hesapları', icon: Users },
+                { path: '/platform/companies', label: 'Şirket Portföyü', icon: Building2 },
+                { path: '/platform/announcements', label: 'Canlı Duyuru Yayını', icon: Megaphone }
             ]
         },
         {
-            title: 'Yönetim & İzleme',
+            title: 'Sistem & Altyapı',
             items: [
-                { path: '/platform-admin?tab=users', label: 'Kullanıcılar & Şirketler', icon: Users },
-                { path: '/platform-admin?tab=tenants', label: 'Şirketler & Portföy', icon: Building2 },
-                { path: '/platform-admin?tab=announcements', label: 'Canlı Duyuru Yayını', icon: Megaphone },
-                { path: '/platform-admin?tab=health', label: 'Sistem Sağlığı & İzleme', icon: Activity },
-                { path: '/platform-admin?tab=logs', label: 'Sistem & Güvenlik Logları', icon: ScrollText },
-                { path: '/platform-admin?tab=backups', label: 'Veritabanı Yedekleri', icon: Database }
+                { path: '/platform/health', label: 'Sistem Sağlığı & İzleme', icon: Activity },
+                { path: '/platform/logs', label: 'Sistem & Güvenlik Logları', icon: ScrollText },
+                { path: '/platform/backups', label: 'Veritabanı Yedekleri', icon: Database }
             ]
         }
     ],
@@ -224,8 +223,14 @@ export const getRouteInfo = (path) => {
     const item = allItems.find(i => i.path === path)
     if (item) return item
 
-    // Fallback for platform admin
-    if (path === '/platform-admin' || path.startsWith('/platform-admin')) return { label: 'Platform Yönetimi', icon: Crown }
+    // Platform routes
+    if (path === '/platform/users') return { label: 'Kullanıcı Hesapları', icon: Users }
+    if (path === '/platform/companies') return { label: 'Şirket Portföyü', icon: Building2 }
+    if (path === '/platform/announcements') return { label: 'Canlı Duyuru Yayını', icon: Megaphone }
+    if (path === '/platform/health') return { label: 'Sistem Sağlığı & İzleme', icon: Activity }
+    if (path === '/platform/logs') return { label: 'Sistem & Güvenlik Logları', icon: ScrollText }
+    if (path === '/platform/backups') return { label: 'Veritabanı Yedekleri', icon: Database }
+    if (path.startsWith('/platform')) return { label: 'Platform Yönetimi', icon: Crown }
 
     // Fallback for global settings
     if (path === '/settings') return { label: 'Ayarlar', icon: Settings }
@@ -273,7 +278,7 @@ export const getActiveModule = (pathname, search = '') => {
     }
 
     // 3. Platform Admin detection
-    if (pathname === '/platform-admin' || pathname.startsWith('/platform-admin')) {
+    if (pathname.startsWith('/platform')) {
         return 'platform'
     }
 

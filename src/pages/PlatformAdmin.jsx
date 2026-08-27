@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import { formatDate } from '../utils/helpers'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import CustomInput from '../components/CustomInput'
+import CustomSelect from '../components/CustomSelect'
 import TopProgressBar from '../components/TopProgressBar'
 import { 
     Building2, 
@@ -33,7 +34,6 @@ import {
     Cloud,
     BadgeCheck,
     ScrollText,
-    Terminal,
     Radio,
     Megaphone,
     AlertTriangle,
@@ -44,31 +44,22 @@ import {
 } from 'lucide-react'
 import './PlatformAdmin.css'
 
-export default function PlatformAdmin() {
+export default function PlatformAdmin({ section }) {
     const { user, setUser } = useAuth()
     const { selectCompany } = useCompany()
     const navigate = useNavigate()
-    const [searchParams, setSearchParams] = useSearchParams()
+    const location = useLocation()
 
-    const tabFromUrl = searchParams.get('tab')
-    const [activeTab, setActiveTab] = useState(tabFromUrl || 'users') // 'users' | 'tenants' | 'announcements' | 'health' | 'logs' | 'backups'
-
-    useEffect(() => {
-        if (tabFromUrl && ['users', 'tenants', 'announcements', 'health', 'logs', 'backups'].includes(tabFromUrl)) {
-            setActiveTab(tabFromUrl)
-        } else if (!tabFromUrl) {
-            setActiveTab('users')
-        }
-    }, [tabFromUrl])
-
-    const handleTabChange = (tabId) => {
-        setActiveTab(tabId)
-        if (tabId === 'users') {
-            setSearchParams({})
-        } else {
-            setSearchParams({ tab: tabId })
-        }
-    }
+    // Determine current section from prop or pathname
+    const activeSection = useMemo(() => {
+        if (section) return section
+        if (location.pathname.includes('/companies')) return 'companies'
+        if (location.pathname.includes('/announcements')) return 'announcements'
+        if (location.pathname.includes('/health')) return 'health'
+        if (location.pathname.includes('/logs')) return 'logs'
+        if (location.pathname.includes('/backups')) return 'backups'
+        return 'users'
+    }, [section, location.pathname])
 
     const [loading, setLoading] = useState(true)
     const [overviewData, setOverviewData] = useState(null)
@@ -123,29 +114,34 @@ export default function PlatformAdmin() {
             navigate('/dashboard')
             return
         }
-        loadAllData()
-    }, [isSuperAdmin])
+        loadSectionData()
+    }, [isSuperAdmin, activeSection])
 
     // Auto-polling for live logs if enabled
     useEffect(() => {
-        if (!autoPollLogs || activeTab !== 'logs') return
+        if (!autoPollLogs || activeSection !== 'logs') return
         const interval = setInterval(() => {
             loadLogs(false)
         }, 3000)
         return () => clearInterval(interval)
-    }, [autoPollLogs, activeTab])
+    }, [autoPollLogs, activeSection])
 
-    const loadAllData = async () => {
+    const loadSectionData = async () => {
         setLoading(true)
         try {
-            await Promise.all([
-                loadOverview(),
-                loadUsers(),
-                loadAnnouncements(),
-                loadBackups(),
-                loadHealth(),
-                loadLogs()
-            ])
+            if (activeSection === 'users') {
+                await Promise.all([loadUsers(), loadOverview()])
+            } else if (activeSection === 'companies') {
+                await loadOverview()
+            } else if (activeSection === 'announcements') {
+                await Promise.all([loadAnnouncements(), loadOverview()])
+            } else if (activeSection === 'health') {
+                await loadHealth()
+            } else if (activeSection === 'logs') {
+                await loadLogs()
+            } else if (activeSection === 'backups') {
+                await loadBackups()
+            }
         } catch (err) {
             console.error('Platform data load error:', err)
         } finally {
@@ -456,11 +452,31 @@ export default function PlatformAdmin() {
         }
     ], [overviewData])
 
+    // Dropdown options for CustomSelect in modals
+    const announcementTypeOptions = [
+        { value: 'info', label: '🔵 Bilgilendirme (Mavi)' },
+        { value: 'maintenance', label: '🟣 Sistem Bakımı (Mor)' },
+        { value: 'warning', label: '🟡 Uyarı (Sarı)' },
+        { value: 'legal', label: '⚖️ Mevzuat & Sigorta (Sarı)' },
+        { value: 'critical', label: '🔴 Kritik Uyarı (Kırmızı)' },
+        { value: 'success', label: '🟢 Başarılı (Yeşil)' }
+    ]
+
+    const announcementCompanyOptions = [
+        { value: '', label: 'Tüm Şirketler (Genel Yayın)' },
+        ...(overviewData?.companies?.map(c => ({ value: String(c.id), label: c.name })) || [])
+    ]
+
+    const userCompanyOptions = [
+        { value: '', label: 'Şirketsiz / Sistem Kullanıcısı' },
+        ...(overviewData?.companies?.map(c => ({ value: String(c.id), label: c.name })) || [])
+    ]
+
     if (!isSuperAdmin) {
         return null
     }
 
-    // ── USERS TABLE COLUMNS (CLEAN & MINIMALIST) ──
+    // ── USERS TABLE COLUMNS ──
     const userColumns = [
         { key: 'username', label: 'Kullanıcı Adı & E-Posta', render: (val, r) => (
             <div>
@@ -681,102 +697,40 @@ export default function PlatformAdmin() {
         <div>
             <TopProgressBar loading={loading || backupLoading || logsLoading || announcementsLoading} />
 
-            {/* ── STANDARD APP PAGE HEADER ── */}
-            <div className="page-header">
+            {/* ══════════════════════════════════════════════════════
+                PAGE 1: USERS & COMPANY ACCOUNTS (/platform/users)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'users' && (
                 <div>
-                    <h1 className="page-title">Platform Yönetimi</h1>
-                    <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
-                        SaaS şirket-hesap eşleştirmeleri, canlı sistem metrikleri, anlık duyuru yayını ve loglar.
-                    </p>
-                </div>
-                <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-secondary" onClick={loadAllData} disabled={loading}>
-                        <RefreshCw size={16} className={loading ? 'spin' : ''} />
-                        Yenile
-                    </button>
-                    {activeTab === 'announcements' ? (
-                        <button className="btn btn-primary" onClick={() => setCreateAnnouncementModal(true)}>
-                            <Megaphone size={18} />
-                            Yeni Duyuru Yayınla
-                        </button>
-                    ) : (
-                        <button className="btn btn-primary" onClick={() => setCreateUserModal(true)}>
-                            <Plus size={18} />
-                            Yeni Kullanıcı
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {actionMsg && (
-                <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Sparkles size={15} />
-                        <span>{actionMsg}</span>
+                    <div className="page-header">
+                        <div>
+                            <h1 className="page-title">Kullanıcı Hesapları & Şirket Bağlantıları</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                KONTROL SaaS platformundaki tüm kullanıcı hesapları, yetkiler ve şirket eşleştirmeleri.
+                            </p>
+                        </div>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-secondary" onClick={loadSectionData} disabled={loading}>
+                                <RefreshCw size={16} className={loading ? 'spin' : ''} />
+                                Yenile
+                            </button>
+                            <button className="btn btn-primary" onClick={() => setCreateUserModal(true)}>
+                                <Plus size={18} />
+                                Yeni Kullanıcı
+                            </button>
+                        </div>
                     </div>
-                    <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
-                </div>
-            )}
 
-            {/* ── STANDARD SEGMENTED/UNDERLINE TABS ── */}
-            <div className="platform-tabs">
-                <button
-                    className={`platform-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-                    onClick={() => handleTabChange('users')}
-                >
-                    <Users size={16} />
-                    <span>Kullanıcılar & Şirket Bağlantıları</span>
-                    <span className="platform-tab-badge">{platformUsers.length}</span>
-                </button>
+                    {actionMsg && (
+                        <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Sparkles size={15} />
+                                <span>{actionMsg}</span>
+                            </div>
+                            <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
+                        </div>
+                    )}
 
-                <button
-                    className={`platform-tab-btn ${activeTab === 'tenants' ? 'active' : ''}`}
-                    onClick={() => handleTabChange('tenants')}
-                >
-                    <Building2 size={16} />
-                    <span>Şirketler & Portföy</span>
-                    <span className="platform-tab-badge">{overviewData?.companies?.length || 0}</span>
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeTab === 'announcements' ? 'active' : ''}`}
-                    onClick={() => { handleTabChange('announcements'); loadAnnouncements(); }}
-                >
-                    <Megaphone size={16} />
-                    <span>Canlı Duyuru Yayını</span>
-                    <span className="platform-tab-badge">{announcements.length}</span>
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeTab === 'health' ? 'active' : ''}`}
-                    onClick={() => { handleTabChange('health'); loadHealth(); }}
-                >
-                    <Activity size={16} />
-                    <span>Sistem Sağlığı & Canlı İzleme</span>
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeTab === 'logs' ? 'active' : ''}`}
-                    onClick={() => { handleTabChange('logs'); loadLogs(); }}
-                >
-                    <ScrollText size={16} />
-                    <span>Sistem & Güvenlik Logları</span>
-                    <span className="platform-tab-badge">{logs.length}</span>
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeTab === 'backups' ? 'active' : ''}`}
-                    onClick={() => handleTabChange('backups')}
-                >
-                    <Database size={16} />
-                    <span>Veritabanı Yedekleri</span>
-                    <span className="platform-tab-badge">{backups.length}</span>
-                </button>
-            </div>
-
-            {/* ── TAB 1: USERS & COMPANY MAPPINGS ── */}
-            {activeTab === 'users' && (
-                <div>
                     <DataTable
                         persistenceKey="PlatformAdmin_users_table"
                         columns={userColumns}
@@ -790,9 +744,36 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 2: TENANTS HUB ── */}
-            {activeTab === 'tenants' && (
+            {/* ══════════════════════════════════════════════════════
+                PAGE 2: TENANTS & COMPANIES (/platform/companies)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'companies' && (
                 <div>
+                    <div className="page-header">
+                        <div>
+                            <h1 className="page-title">Şirketler & Portföy</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                Sisteme kayıtlı tüm kiracı şirketler, iletişim bilgileri ve kullanım özetleri.
+                            </p>
+                        </div>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-secondary" onClick={loadSectionData} disabled={loading}>
+                                <RefreshCw size={16} className={loading ? 'spin' : ''} />
+                                Yenile
+                            </button>
+                        </div>
+                    </div>
+
+                    {actionMsg && (
+                        <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Sparkles size={15} />
+                                <span>{actionMsg}</span>
+                            </div>
+                            <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
+                        </div>
+                    )}
+
                     <DataTable
                         persistenceKey="PlatformAdmin_tenants_table"
                         columns={tenantColumns}
@@ -805,22 +786,39 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 3: BROADCAST ANNOUNCEMENTS HUB ── */}
-            {activeTab === 'announcements' && (
+            {/* ══════════════════════════════════════════════════════
+                PAGE 3: BROADCAST ANNOUNCEMENTS (/platform/announcements)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'announcements' && (
                 <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-                        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
-                            Tüm şirketlere veya seçtiğiniz şirketin ekranının en üstüne anlık duyuru bandı yayınlayın.
-                        </p>
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => setCreateAnnouncementModal(true)}
-                            style={{ padding: '8px 14px', fontSize: '13px' }}
-                        >
-                            <Megaphone size={15} />
-                            <span>+ Yeni Duyuru Yayınla</span>
-                        </button>
+                    <div className="page-header">
+                        <div>
+                            <h1 className="page-title">Canlı Duyuru & Bildirim Yayını</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                Tüm SaaS şirketlerine veya seçtiğiniz şirketin ekranının en üstüne anlık duyuru bandı yayınlayın.
+                            </p>
+                        </div>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-secondary" onClick={loadAnnouncements} disabled={announcementsLoading}>
+                                <RefreshCw size={16} className={announcementsLoading ? 'spin' : ''} />
+                                Yenile
+                            </button>
+                            <button className="btn btn-primary" onClick={() => setCreateAnnouncementModal(true)}>
+                                <Megaphone size={16} />
+                                Yeni Duyuru Yayınla
+                            </button>
+                        </div>
                     </div>
+
+                    {actionMsg && (
+                        <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Sparkles size={15} />
+                                <span>{actionMsg}</span>
+                            </div>
+                            <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
+                        </div>
+                    )}
 
                     <DataTable
                         persistenceKey="PlatformAdmin_announcements_table"
@@ -848,17 +846,24 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 4: SYSTEM HEALTH OBSERVABILITY ── */}
-            {activeTab === 'health' && (
+            {/* ══════════════════════════════════════════════════════
+                PAGE 4: SYSTEM HEALTH & OBSERVABILITY (/platform/health)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'health' && (
                 <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                            Son güncelleme: <strong>{new Date(healthData?.timestamp || Date.now()).toLocaleTimeString('tr-TR')}</strong>
+                    <div className="page-header">
+                        <div>
+                            <h1 className="page-title">Sistem Sağlığı & Canlı İzleme</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                PostgreSQL veritabanı gecikmesi, sunucu donanım durumu ve altyapı servisleri.
+                            </p>
                         </div>
-                        <button className="btn btn-secondary" onClick={loadHealth} disabled={healthLoading} style={{ padding: '6px 12px', fontSize: '12px' }}>
-                            <RefreshCw size={13} className={healthLoading ? 'spin' : ''} />
-                            <span>Metrikleri Yenile</span>
-                        </button>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-secondary" onClick={loadHealth} disabled={healthLoading}>
+                                <RefreshCw size={16} className={healthLoading ? 'spin' : ''} />
+                                Metrikleri Yenile
+                            </button>
+                        </div>
                     </div>
 
                     <div className="health-dashboard-grid">
@@ -946,7 +951,7 @@ export default function PlatformAdmin() {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.53'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.54'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
@@ -1005,42 +1010,36 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 5: SYSTEM & SECURITY LOGS ── */}
-            {activeTab === 'logs' && (
+            {/* ══════════════════════════════════════════════════════
+                PAGE 5: SYSTEM & SECURITY LOGS (/platform/logs)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'logs' && (
                 <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                    <div className="page-header">
+                        <div>
+                            <h1 className="page-title">Sistem & Güvenlik Logları</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                Sunucu olayları, kullanıcı giriş denemeleri, veritabanı sorguları ve denetim logları.
+                            </p>
+                        </div>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-primary)', cursor: 'pointer', marginRight: '8px' }}>
                                 <input
                                     type="checkbox"
                                     checked={autoPollLogs}
                                     onChange={(e) => setAutoPollLogs(e.target.checked)}
                                 />
                                 <Radio size={14} style={{ color: autoPollLogs ? '#10b981' : 'var(--text-muted)' }} />
-                                <span>Canlı Log Akışı (3sn)</span>
+                                <span>Canlı Akış (3sn)</span>
                             </label>
-                            {autoPollLogs && (
-                                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>● Canlı Akış Devrede</span>
-                            )}
-                        </div>
 
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => loadLogs(true)}
-                                disabled={logsLoading}
-                                style={{ padding: '6px 12px', fontSize: '12px' }}
-                            >
-                                <RefreshCw size={13} className={logsLoading ? 'spin' : ''} />
-                                <span>Yenile</span>
+                            <button className="btn btn-secondary" onClick={() => loadLogs(true)} disabled={logsLoading}>
+                                <RefreshCw size={16} className={logsLoading ? 'spin' : ''} />
+                                Yenile
                             </button>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={handleClearLogs}
-                                style={{ padding: '6px 12px', fontSize: '12px', color: '#f87171' }}
-                            >
-                                <Trash2 size={13} />
-                                <span>Logları Temizle</span>
+                            <button className="btn btn-secondary" onClick={handleClearLogs} style={{ color: '#f87171' }}>
+                                <Trash2 size={16} />
+                                Logları Temizle
                             </button>
                         </div>
                     </div>
@@ -1068,35 +1067,37 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 6: BACKUPS HUB ── */}
-            {activeTab === 'backups' && (
+            {/* ══════════════════════════════════════════════════════
+                PAGE 6: DATABASE BACKUPS (/platform/backups)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'backups' && (
                 <div>
-                    <div className="backup-card-header">
+                    <div className="page-header">
                         <div>
-                            <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 600 }}>
-                                Otomatik & Manuel Veritabanı Yedekleri
-                            </h3>
-                            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            <h1 className="page-title">Veritabanı Yedekleri</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
                                 Sistem her gece 03:00'te otomatik tam gzip yedeği alır. İstediğiniz zaman anlık yedek de oluşturabilirsiniz.
                             </p>
                         </div>
-                        <button
-                            className="backup-now-btn"
-                            onClick={handleManualBackup}
-                            disabled={backupLoading}
-                        >
-                            {backupLoading ? (
-                                <>
-                                    <Loader2 size={14} className="spin" />
-                                    <span>Yedek Alınıyor...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Database size={14} />
-                                    <span>⚡ Şimdi Anlık Yedek Al</span>
-                                </>
-                            )}
-                        </button>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-secondary" onClick={loadBackups} disabled={backupLoading}>
+                                <RefreshCw size={16} className={backupLoading ? 'spin' : ''} />
+                                Yenile
+                            </button>
+                            <button className="btn btn-primary" onClick={handleManualBackup} disabled={backupLoading}>
+                                {backupLoading ? (
+                                    <>
+                                        <Loader2 size={16} className="spin" />
+                                        Yedek Alınıyor...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Database size={16} />
+                                        ⚡ Anlık Yedek Al
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     <DataTable
@@ -1111,7 +1112,7 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── MODAL: CREATE BROADCAST ANNOUNCEMENT ── */}
+            {/* ── MODAL: CREATE BROADCAST ANNOUNCEMENT (CUSTOMSELECT & CUSTOMINPUT) ── */}
             {createAnnouncementModal && (
                 <Modal
                     isOpen={createAnnouncementModal}
@@ -1143,41 +1144,22 @@ export default function PlatformAdmin() {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                                    Duyuru Türü:
-                                </label>
-                                <select
-                                    className="form-control"
-                                    value={newAnnouncement.type}
-                                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, type: e.target.value })}
-                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-                                >
-                                    <option value="info">🔵 Bilgilendirme (Mavi)</option>
-                                    <option value="maintenance">🟣 Sistem Bakımı (Mor)</option>
-                                    <option value="warning">🟡 Uyarı (Sarı)</option>
-                                    <option value="legal">⚖️ Mevzuat & Sigorta (Sarı)</option>
-                                    <option value="critical">🔴 Kritik Uyarı (Kırmızı)</option>
-                                    <option value="success">🟢 Başarılı (Yeşil)</option>
-                                </select>
-                            </div>
+                            <CustomSelect
+                                label="Duyuru Türü"
+                                value={newAnnouncement.type}
+                                onChange={(val) => setNewAnnouncement({ ...newAnnouncement, type: val })}
+                                options={announcementTypeOptions}
+                                placeholder="Duyuru türü seçin"
+                                required
+                            />
 
-                            <div>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                                    Hedef Şirket / Kitle:
-                                </label>
-                                <select
-                                    className="form-control"
-                                    value={newAnnouncement.companyId}
-                                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, companyId: e.target.value })}
-                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-                                >
-                                    <option value="">Tüm Şirketler (Genel Yayın)</option>
-                                    {overviewData?.companies?.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            <CustomSelect
+                                label="Hedef Şirket / Kitle"
+                                value={newAnnouncement.companyId}
+                                onChange={(val) => setNewAnnouncement({ ...newAnnouncement, companyId: val })}
+                                options={announcementCompanyOptions}
+                                placeholder="Tüm Şirketler (Genel Yayın)"
+                            />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'center' }}>
@@ -1212,38 +1194,7 @@ export default function PlatformAdmin() {
                 </Modal>
             )}
 
-            {/* ── MODAL: RESET PASSWORD ── */}
-            {passwordModalUser && (
-                <Modal
-                    isOpen={!!passwordModalUser}
-                    onClose={() => setPasswordModalUser(null)}
-                    title={`Şifre Sıfırla: ${passwordModalUser.username}`}
-                >
-                    <form onSubmit={handleResetPasswordSubmit} className="modal-form-grid">
-                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-                            <strong>{passwordModalUser.username}</strong> ({passwordModalUser.email}) kullanıcısı için yeni bir şifre belirleyin:
-                        </p>
-                        <CustomInput
-                            label="Yeni Şifre"
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Yeni şifreyi girin"
-                            required
-                        />
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
-                            <button type="button" className="btn btn-secondary" onClick={() => setPasswordModalUser(null)}>
-                                İptal
-                            </button>
-                            <button type="submit" className="btn btn-primary" disabled={passwordLoading}>
-                                {passwordLoading ? 'Kaydediliyor...' : 'Şifreyi Güncelle'}
-                            </button>
-                        </div>
-                    </form>
-                </Modal>
-            )}
-
-            {/* ── MODAL: CREATE USER ── */}
+            {/* ── MODAL: CREATE USER (CUSTOMINPUT & CUSTOMSELECT) ── */}
             {createUserModal && (
                 <Modal
                     isOpen={createUserModal}
@@ -1280,28 +1231,50 @@ export default function PlatformAdmin() {
                             placeholder="Şifre belirleyin"
                             required
                         />
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                                Bağlanacak Şirket:
-                            </label>
-                            <select
-                                className="form-control"
-                                value={newUserForm.companyId}
-                                onChange={(e) => setNewUserForm({ ...newUserForm, companyId: e.target.value })}
-                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-                            >
-                                <option value="">Şirketsiz / Sistem Kullanıcısı</option>
-                                {overviewData?.companies?.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <CustomSelect
+                            label="Bağlanacak Şirket"
+                            value={newUserForm.companyId}
+                            onChange={(val) => setNewUserForm({ ...newUserForm, companyId: val })}
+                            options={userCompanyOptions}
+                            placeholder="Şirketsiz / Sistem Kullanıcısı"
+                        />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setCreateUserModal(false)}>
                                 İptal
                             </button>
                             <button type="submit" className="btn btn-primary" disabled={createUserLoading}>
                                 {createUserLoading ? 'Ekleniyor...' : 'Kullanıcıyı Oluştur'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* ── MODAL: RESET PASSWORD ── */}
+            {passwordModalUser && (
+                <Modal
+                    isOpen={!!passwordModalUser}
+                    onClose={() => setPasswordModalUser(null)}
+                    title={`Şifre Sıfırla: ${passwordModalUser.username}`}
+                >
+                    <form onSubmit={handleResetPasswordSubmit} className="modal-form-grid">
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                            <strong>{passwordModalUser.username}</strong> ({passwordModalUser.email}) kullanıcısı için yeni bir şifre belirleyin:
+                        </p>
+                        <CustomInput
+                            label="Yeni Şifre"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Yeni şifreyi girin"
+                            required
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setPasswordModalUser(null)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={passwordLoading}>
+                                {passwordLoading ? 'Kaydediliyor...' : 'Şifreyi Güncelle'}
                             </button>
                         </div>
                     </form>

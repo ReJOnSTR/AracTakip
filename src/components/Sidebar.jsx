@@ -72,7 +72,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {isSuperAdmin && activeModule !== 'platform' && (
                     <button
-                        onClick={() => openNewTab('/platform-admin', false, 'Platform Yönetimi')}
+                        onClick={() => openNewTab('/platform/users', false, 'Platform Yönetimi')}
                         className="nav-item"
                         style={{
                             width: '100%',
