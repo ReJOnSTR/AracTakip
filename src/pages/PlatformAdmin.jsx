@@ -748,16 +748,6 @@ export default function PlatformAdmin({ section }) {
                         </div>
                     </div>
 
-                    {actionMsg && (
-                        <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Sparkles size={15} />
-                                <span>{actionMsg}</span>
-                            </div>
-                            <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
-                        </div>
-                    )}
-
                     <DataTable
                         persistenceKey="PlatformAdmin_users_table"
                         columns={userColumns}
@@ -790,16 +780,6 @@ export default function PlatformAdmin({ section }) {
                             </button>
                         </div>
                     </div>
-
-                    {actionMsg && (
-                        <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Sparkles size={15} />
-                                <span>{actionMsg}</span>
-                            </div>
-                            <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
-                        </div>
-                    )}
 
                     <DataTable
                         persistenceKey="PlatformAdmin_tenants_table"
@@ -836,16 +816,6 @@ export default function PlatformAdmin({ section }) {
                             </button>
                         </div>
                     </div>
-
-                    {actionMsg && (
-                        <div className="ghost-mode-banner" style={{ padding: '8px 16px', marginBottom: '14px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Sparkles size={15} />
-                                <span>{actionMsg}</span>
-                            </div>
-                            <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
-                        </div>
-                    )}
 
                     <DataTable
                         persistenceKey="PlatformAdmin_announcements_table"

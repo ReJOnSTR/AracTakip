@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useAuth } from '../context/AuthContext'
 import { 
@@ -14,9 +15,13 @@ import {
 import './BroadcastBanner.css'
 
 export default function BroadcastBanner() {
+    const location = useLocation()
     const { currentCompany } = useCompany()
     const { user } = useAuth()
     const [announcements, setAnnouncements] = useState([])
+    
+    // Only display on main portal (/portal or /)
+    const isPortal = location.pathname === '/portal' || location.pathname === '/'
     
     // Session-based dismiss (Re-appears on next login / app start)
     const [sessionDismissed, setSessionDismissed] = useState(() => {
@@ -78,7 +83,7 @@ export default function BroadcastBanner() {
         return !sessionDismissed.includes(a.id)
     })
 
-    if (visibleAnnouncements.length === 0) return null
+    if (!isPortal || visibleAnnouncements.length === 0) return null
 
     // Pick icon based on type
     const getIcon = (type) => {
