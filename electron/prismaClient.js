@@ -135,22 +135,43 @@ function getDbPath() {
     return targetDbPath;
 }
 
+function getGeneratedProvider() {
+    try {
+        const schemaPath = path.join(__dirname, 'prisma/client/schema.prisma');
+        if (fs.existsSync(schemaPath)) {
+            const schemaContent = fs.readFileSync(schemaPath, 'utf8');
+            if (schemaContent.includes('provider = "postgresql"') || schemaContent.includes('provider = "postgres"')) {
+                return 'postgresql';
+            }
+            if (schemaContent.includes('provider = "sqlite"')) {
+                return 'sqlite';
+            }
+        }
+    } catch (e) {}
+    return 'postgresql';
+}
+
 /**
  * Initializes and exports the Prisma Singleton
- * Dynamically binds the correct user data folder path.
+ * Dynamically binds the correct user data folder path or PostgreSQL connection.
  */
 function getPrismaClient() {
     if (!prisma) {
         try {
+            const generatedProvider = getGeneratedProvider();
             let dbUrl = process.env.DATABASE_URL;
-            const isPostgres = process.env.USE_POSTGRES === 'true' || (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) || (!app && !process.env.USE_SQLITE);
+            const isPostgres = generatedProvider === 'postgresql' || process.env.USE_POSTGRES === 'true' || (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) || (!app && !process.env.USE_SQLITE);
 
             if (isPostgres) {
                 if (!dbUrl || !dbUrl.startsWith('postgres')) {
-                    dbUrl = 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres';
+                    // In Docker, 172.17.0.1 is host; on local desktop, use direct VPS IP
+                    const isDocker = fs.existsSync('/.dockerenv');
+                    dbUrl = isDocker 
+                        ? 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres'
+                        : 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@45.147.47.56:5432/postgres';
                     process.env.DATABASE_URL = dbUrl;
                 }
-                log.info('Initializing Prisma Client with PostgreSQL');
+                log.info(`Initializing Prisma Client with PostgreSQL (${dbUrl.split('@')[1] || 'remote'})`);
                 if (PrismaPg && pg) {
                     const pool = new pg.Pool({ connectionString: dbUrl });
                     const adapter = new PrismaPg(pool);
