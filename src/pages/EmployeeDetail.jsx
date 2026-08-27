@@ -1846,7 +1846,7 @@ export default function EmployeeDetail() {
             }))
     ];
 
-    const salaryAllowedPeriods = ['salary', 'overtime_pay', 'advance', 'bonus', 'carryover', 'loan_payment'];
+    const salaryAllowedPeriods = ['salary', 'overtime_pay', 'advance', 'bonus', 'expense', 'other', 'carryover', 'loan_payment'];
 
     const monthlySalaries = combinedSalaries.filter(s => {
         if (s.period && !salaryAllowedPeriods.includes(s.period)) {
@@ -2499,11 +2499,13 @@ export default function EmployeeDetail() {
                             const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidAdvance = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidBonus = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'bonus').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const paidExpense = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'expense').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const paidOther = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'other').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidLoanDeduction = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'loan_payment' && s.payment_method === 'salary_deduction').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             
-                            const totalPaid = paidSalary + paidOt + paidAdvance + paidBonus + paidLoanDeduction
+                            const totalPaid = paidSalary + paidOt + paidAdvance + paidBonus + paidExpense + paidOther + paidLoanDeduction
 
-                            const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanDeduction
+                            const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanDeduction - paidOther
                             const remainingOt = totalOtTarget - paidOt
                             
                             const nextMonthForDevir = getNextMonth(selectedMonth)

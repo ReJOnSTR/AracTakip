@@ -239,7 +239,7 @@ export default function EmployeeReportRenderer({ reports, config, listConfig, da
                                     {report.salaries.map((item, i) => (
                                         <tr key={i}>
                                             <td style={tdStyle}>{formatDate(item.payment_date || item.date)}</td>
-                                            <td style={tdStyle}>{item.period === 'salary' ? 'Maaş' : item.period === 'bonus' ? 'Prim' : item.period === 'advance' ? 'Avans' : item.period === 'loan' ? 'Borç' : item.period === 'loan_payment' ? 'Borç Ödeme' : item.period || '-'} {item.notes ? `(${item.notes})` : ''}</td>
+                                            <td style={tdStyle}>{item.period === 'salary' ? 'Maaş' : item.period === 'bonus' ? 'Prim' : item.period === 'advance' ? 'Avans' : item.period === 'loan' ? 'Borç' : item.period === 'loan_payment' ? 'Borç Ödeme' : item.period === 'expense' ? 'Harcırah' : item.period === 'other' ? 'Diğer' : item.period || '-'} {item.notes ? `(${item.notes})` : ''}</td>
                                             <td style={tdStyle}>{formatCurrency(item.net_salary || item.amount)}</td>
                                         </tr>
                                     ))}
