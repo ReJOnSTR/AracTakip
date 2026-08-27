@@ -15,6 +15,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     const [numPages, setNumPages] = useState(null)
     const [pageNumber, setPageNumber] = useState(1)
     const [pdfLoading, setPdfLoading] = useState(true)
+    const [pdfError, setPdfError] = useState(false)
     
     // Zoom, Pan & Rotation states
     const [zoomLevel, setZoomLevel] = useState(1)
@@ -31,6 +32,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
         if (doc) {
             setPageNumber(1)
             setPdfLoading(true)
+            setPdfError(false)
             setZoomLevel(1)
             setRotation(0)
             setPosition({ x: 0, y: 0 })
@@ -39,8 +41,42 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
 
     const fileName = doc?.name || doc?.file_name || doc?.fileName || 'Belge'
     const ext = (fileName.substring(fileName.lastIndexOf('.')).toLowerCase()) || doc?.ext || ''
+    const cleanFileName = String(doc?.path || doc?.file_path || doc?.name || doc?.fileName || doc?.file_name || '').split(/[\\/]/).pop()
+    const pdfUrl = cleanFileName ? `/uploads/${cleanFileName}` : null
 
-    const isPdf = ext === '.pdf' || doc?.data?.startsWith('data:application/pdf') || doc?.file_type?.toLowerCase() === '.pdf'
+    const formattedPdfSource = React.useMemo(() => {
+        if (!doc) return null
+        if (doc.data) {
+            if (typeof doc.data === 'string') {
+                if (doc.data.startsWith('data:application/pdf')) return doc.data
+                if (doc.data.startsWith('http://') || doc.data.startsWith('https://')) return doc.data
+                if (doc.data.startsWith('data:')) {
+                    return doc.data.replace(/^data:[^;]+;base64,/, 'data:application/pdf;base64,')
+                }
+                return `data:application/pdf;base64,${doc.data.trim()}`
+            }
+        }
+        if (doc.url) return doc.url
+        if (pdfUrl) return pdfUrl
+        return null
+    }, [doc, pdfUrl])
+
+    const formattedImageSource = React.useMemo(() => {
+        if (!doc) return null
+        if (doc.data) {
+            if (typeof doc.data === 'string') {
+                if (doc.data.startsWith('data:image/') || doc.data.startsWith('http://') || doc.data.startsWith('https://')) return doc.data
+                const cleanExt = (ext.replace('.', '') || 'png').toLowerCase()
+                const mimeExt = cleanExt === 'jpg' ? 'jpeg' : cleanExt
+                return `data:image/${mimeExt};base64,${doc.data.trim()}`
+            }
+        }
+        if (doc.url) return doc.url
+        if (pdfUrl) return pdfUrl
+        return null
+    }, [doc, ext, pdfUrl])
+
+    const isPdf = ext === '.pdf' || doc?.data?.startsWith('data:application/pdf') || doc?.file_type?.toLowerCase() === '.pdf' || (cleanFileName && cleanFileName.toLowerCase().endsWith('.pdf'))
     const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.avif'].includes(ext) || doc?.data?.startsWith('data:image/')
     const isText = ['.txt', '.log', '.csv', '.json', '.xml', '.html', '.md'].includes(ext)
     const isUnsupported = !isPdf && !isImage && !isText
@@ -141,41 +177,31 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
     const handleMouseUp = () => setIsDragging(false)
 
     // Open externally handler (supports files AND generated base64 data)
+    // Open externally handler (supports direct URL, file path, and base64)
     const handleExternalOpen = async () => {
-        const filePath = doc.path || doc.file_path
-        if (filePath && window.electronAPI?.openDocument) {
-            const error = await window.electronAPI.openDocument(filePath)
-            if (error) {
-                if (doc.data && window.electronAPI?.openTempDocument) {
-                    await window.electronAPI.openTempDocument(doc.data, fileName)
-                } else {
-                    alert('Dosya harici olarak açılamadı: ' + error)
-                }
-            }
-        } else if (doc.data && window.electronAPI?.openTempDocument) {
-            const error = await window.electronAPI.openTempDocument(doc.data, fileName)
-            if (error) alert('Dosya harici olarak açılamadı: ' + error)
-        } else {
-            alert('Dosya yolu veya içeriği bulunamadı.')
+        if (pdfUrl) {
+            window.open(pdfUrl, '_blank', 'noopener,noreferrer')
+            return
         }
+        const src = formattedPdfSource || formattedImageSource
+        if (src) {
+            const w = window.open('')
+            if (w) {
+                w.document.write(`<iframe src="${src}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`)
+                return
+            }
+        }
+        alert('Dosya yolu veya içeriği bulunamadı.')
     }
 
     // Download file handler
     const handleDownload = async () => {
-        const filePath = doc.path || doc.file_path
-        if (window.electronAPI?.downloadFile) {
-            const res = await window.electronAPI.downloadFile({
-                filePath,
-                base64Data: doc.data,
-                defaultName: fileName
-            })
-            if (res && res.error) {
-                alert('Dosya indirilemedi: ' + res.error)
-            }
-        } else if (doc.data) {
+        const src = pdfUrl || formattedPdfSource || formattedImageSource
+        if (src) {
             const a = document.createElement('a')
-            a.href = doc.data
+            a.href = src
             a.download = fileName
+            a.target = '_blank'
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)
@@ -452,20 +478,23 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                         userSelect: 'none'
                     }}
                 >
-                    {doc.data || isUnsupported ? (
-                        isPdf ? (
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                padding: '24px',
-                                minWidth: '100%',
-                                minHeight: '100%',
-                                margin: 'auto'
-                            }}>
+                    {isPdf ? (
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '100%',
+                            height: '100%',
+                            minHeight: '65vh'
+                        }}>
+                            {!pdfError ? (
                                 <Document
-                                    file={doc.data}
+                                    file={formattedPdfSource}
                                     onLoadSuccess={onDocumentLoadSuccess}
+                                    onLoadError={(err) => {
+                                        console.warn('React-PDF load error, switching to native viewer:', err)
+                                        setPdfError(true)
+                                    }}
                                     loading={
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#8892b0', gap: '12px' }}>
                                             <Loader2 className="spin" size={36} style={{ color: 'var(--accent-primary)' }} />
@@ -473,13 +502,17 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                         </div>
                                     }
                                     error={
-                                        <div style={{ color: '#ff6b6b', textAlign: 'center', padding: '24px', backgroundColor: '#161922', borderRadius: '12px', border: '1px solid #282d3c' }}>
-                                            <p style={{ fontWeight: 600, margin: '0 0 8px 0' }}>PDF Önizlemesi Yüklenemedi</p>
-                                            <p style={{ fontSize: '12px', color: '#8892b0', margin: 0 }}>Dosyayı masaüstü uygulamasında harici görüntüleyici ile açabilirsiniz.</p>
-                                            <button onClick={handleExternalOpen} className="btn btn-primary btn-sm" style={{ marginTop: '16px', gap: '6px' }}>
-                                                <ExternalLink size={14} /> Dışarıda Aç
-                                            </button>
-                                        </div>
+                                        <iframe
+                                            src={pdfUrl || formattedPdfSource}
+                                            title={fileName}
+                                            style={{
+                                                width: '100%',
+                                                height: '70vh',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                backgroundColor: '#fff'
+                                            }}
+                                        />
                                     }
                                 >
                                     <Page
@@ -490,34 +523,47 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                         renderAnnotationLayer={true}
                                     />
                                 </Document>
-                            </div>
-                        ) : isImage ? (
-                            <div style={{
-                                transform: `translate(${position.x}px, ${position.y}px) scale(${zoomLevel}) rotate(${rotation}deg)`,
-                                transition: isDragging ? 'none' : 'transform 0.15s ease-out',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '24px',
-                                minWidth: '100%',
-                                minHeight: '100%',
-                                margin: 'auto'
-                            }}>
-                                <img
-                                    src={doc.data}
-                                    alt={fileName}
-                                    draggable={false}
+                            ) : (
+                                <iframe
+                                    src={pdfUrl || formattedPdfSource}
+                                    title={fileName}
                                     style={{
-                                        maxWidth: '85vw',
-                                        maxHeight: '68vh',
-                                        objectFit: 'contain',
+                                        width: '100%',
+                                        height: '70vh',
+                                        border: 'none',
                                         borderRadius: '8px',
-                                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)'
+                                        backgroundColor: '#fff'
                                     }}
                                 />
-                            </div>
-                        ) : isText ? (
+                            )}
+                        </div>
+                    ) : isImage ? (
+                        <div style={{
+                            transform: `translate(${position.x}px, ${position.y}px) scale(${zoomLevel}) rotate(${rotation}deg)`,
+                            transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '24px',
+                            minWidth: '100%',
+                            minHeight: '100%',
+                            margin: 'auto'
+                        }}>
+                            <img
+                                src={formattedImageSource}
+                                alt={fileName}
+                                draggable={false}
+                                style={{
+                                    maxWidth: '85vw',
+                                    maxHeight: '68vh',
+                                    objectFit: 'contain',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)'
+                                }}
+                            />
+                        </div>
+                    ) : isText ? (
                             <div style={{
                                 width: '100%',
                                 height: '100%',
@@ -547,7 +593,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                justifyCenter: 'center',
+                                justifyContent: 'center',
                                 padding: '40px',
                                 backgroundColor: '#161b22',
                                 borderRadius: '16px',
@@ -574,7 +620,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                     {fileName}
                                 </h3>
                                 <p style={{ fontSize: '12px', color: '#8b949e', margin: '0 0 20px 0', lineHeight: 1.5 }}>
-                                    Bu dosya türü (`{ext}`) doğrudan içi önizlenemez. Dosyayı varsayılan bilgisayar uygulamanız ile doğrudan açabilirsiniz.
+                                    Bu dosya türü (`{ext}`) doğrudan içi önizlenemez. Dosyayı indirebilir veya yeni sekmede açabilirsiniz.
                                 </p>
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button className="btn btn-secondary" onClick={handleDownload} style={{ gap: '8px' }}>
@@ -585,20 +631,7 @@ export default function DocumentPreviewModal({ doc, onClose, onDelete }) {
                                     </button>
                                 </div>
                             </div>
-                        )
-                    ) : (
-                        <div style={{ color: '#8b949e', textAlign: 'center', padding: '20px', margin: 'auto' }}>
-                            <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>Önizleme Yüklenemedi</p>
-                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '12px' }}>
-                                <button className="btn btn-secondary btn-sm" onClick={handleDownload} style={{ gap: '6px' }}>
-                                    <Download size={14} /> İndir
-                                </button>
-                                <button className="btn btn-primary btn-sm" onClick={handleExternalOpen} style={{ gap: '6px' }}>
-                                    <ExternalLink size={14} /> Dışarıda Aç
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                        )}
                 </div>
             </div>
         </Modal>
