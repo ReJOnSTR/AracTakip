@@ -2691,6 +2691,18 @@ ipcMain.handle('platform:getOverview', async () => {
 ipcMain.handle('platform:getUsers', async () => {
     return await db.getPlatformUsers();
 });
+ipcMain.handle('platform:resetUserPassword', async (event, userId, newPassword) => {
+    return await db.resetPlatformUserPassword(userId, newPassword);
+});
+ipcMain.handle('platform:impersonateUser', async (event, userId) => {
+    return await db.impersonatePlatformUser(userId);
+});
+ipcMain.handle('platform:createUser', async (event, userData) => {
+    return await db.createPlatformUser(userData);
+});
+ipcMain.handle('platform:deleteUser', async (event, userId) => {
+    return await db.deletePlatformUser(userId);
+});
 ipcMain.handle('platform:toggleCompanyStatus', async (event, companyId, isActive) => {
     return await db.toggleCompanyStatus(companyId, isActive);
 });

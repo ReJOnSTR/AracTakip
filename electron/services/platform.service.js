@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 const { getPrismaClient } = require('../prismaClient');
 const prisma = getPrismaClient();
 
@@ -11,11 +12,21 @@ async function getPlatformOverview() {
         const [companies, totalVehicles, totalEmployees, totalWorks, totalUsers] = await Promise.all([
             prisma.companies.findMany({
                 include: {
+                    users: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            full_name: true
+                        }
+                    },
                     _count: {
                         select: {
                             vehicles: true,
                             employees: true,
-                            works: true
+                            works: true,
+                            customers: true,
+                            transactions: true
                         }
                     }
                 },
@@ -41,14 +52,22 @@ async function getPlatformOverview() {
                     id: c.id,
                     name: c.name,
                     tax_number: c.tax_number || '-',
+                    tax_office: c.tax_office || '-',
                     phone: c.phone || '-',
                     address: c.address || '-',
                     created_at: c.created_at,
-                    is_active: 1,
+                    owner: c.users ? {
+                        id: c.users.id,
+                        username: c.users.username,
+                        email: c.users.email,
+                        fullName: c.users.full_name
+                    } : null,
                     counts: {
                         vehicles: c._count?.vehicles || 0,
                         employees: c._count?.employees || 0,
-                        works: c._count?.works || 0
+                        works: c._count?.works || 0,
+                        customers: c._count?.customers || 0,
+                        transactions: c._count?.transactions || 0
                     }
                 }))
             }
@@ -60,7 +79,7 @@ async function getPlatformOverview() {
 }
 
 /**
- * Get all users across the entire platform
+ * Get all users across the entire platform with full relationship mapping
  */
 async function getPlatformUsers() {
     try {
@@ -69,38 +88,85 @@ async function getPlatformUsers() {
                 companies: {
                     select: {
                         id: true,
-                        name: true
+                        name: true,
+                        phone: true,
+                        tax_number: true
                     }
                 },
                 employee: {
+                    include: {
+                        companies: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                },
+                custom_role: {
                     select: {
                         id: true,
-                        first_name: true,
-                        last_name: true,
-                        company_id: true
+                        name: true,
+                        description: true
                     }
                 }
             },
             orderBy: { id: 'asc' }
         });
 
-        const sanitized = users.map(u => {
-            const compName = u.companies && u.companies.length > 0
-                ? u.companies.map(c => c.name).join(', ')
-                : (u.employee ? 'Personel Portalı' : 'Sistem / Genel');
+        const mapped = users.map(u => {
+            // Determine primary linked company
+            let linkedCompany = null;
+            let accountType = 'user';
+            let accountBadge = 'Kullanıcı';
+
+            if (u.username === 'admin' || u.role === 'superadmin') {
+                accountType = 'superadmin';
+                accountBadge = '👑 Süper Yönetici';
+                if (u.companies && u.companies.length > 0) {
+                    linkedCompany = u.companies[0];
+                }
+            } else if (u.companies && u.companies.length > 0) {
+                accountType = 'company_owner';
+                accountBadge = '🏢 Şirket Sahibi';
+                linkedCompany = u.companies[0];
+            } else if (u.employee) {
+                accountType = 'employee';
+                accountBadge = '👤 Personel / Şoför';
+                linkedCompany = u.employee.companies || null;
+            } else if (u.role === 'admin') {
+                accountType = 'admin';
+                accountBadge = '🛡️ Yönetici';
+            }
 
             return {
                 id: u.id,
                 username: u.username,
                 email: u.email,
+                fullName: u.full_name || u.username,
                 role: u.role || 'user',
-                is_active: u.is_active !== undefined ? u.is_active : 1,
-                company_name: compName,
-                created_at: u.created_at
+                customRole: u.custom_role?.name || null,
+                accountType,
+                accountBadge,
+                isActive: u.is_active !== 0,
+                mustChangePassword: u.must_change_password === 1,
+                company: linkedCompany ? {
+                    id: linkedCompany.id,
+                    name: linkedCompany.name,
+                    phone: linkedCompany.phone || '-'
+                } : { id: null, name: 'Sistem / Genel', phone: '-' },
+                employee: u.employee ? {
+                    id: u.employee.id,
+                    fullName: `${u.employee.first_name || ''} ${u.employee.last_name || ''}`.trim(),
+                    tcNo: u.employee.tc_no || '-',
+                    phone: u.employee.phone || '-',
+                    position: u.employee.position || 'Personel'
+                } : null,
+                createdAt: u.created_at
             };
         });
 
-        return { success: true, data: sanitized };
+        return { success: true, data: mapped };
     } catch (error) {
         console.error('getPlatformUsers error:', error);
         return { success: false, error: error.message };
@@ -108,11 +174,133 @@ async function getPlatformUsers() {
 }
 
 /**
- * Toggle active state of a company
+ * Reset password for a platform user
  */
-async function toggleCompanyStatus(companyId, isActive) {
+async function resetPlatformUserPassword(userId, newPassword) {
     try {
-        return { success: true, message: 'Durum güncellendi' };
+        if (!newPassword || newPassword.length < 4) {
+            return { success: false, error: 'Şifre en az 4 karakter olmalıdır' };
+        }
+        const password_hash = bcrypt.hashSync(newPassword, 10);
+        await prisma.users.update({
+            where: { id: parseInt(userId, 10) },
+            data: {
+                password_hash,
+                must_change_password: 0
+            }
+        });
+        return { success: true, message: 'Şifre başarıyla güncellendi' };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Impersonate user - get clean login payload for client session
+ */
+async function impersonatePlatformUser(userId) {
+    try {
+        const uid = parseInt(userId, 10);
+        const user = await prisma.users.findUnique({
+            where: { id: uid },
+            include: {
+                companies: true,
+                employee: {
+                    include: {
+                        companies: true
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            return { success: false, error: 'Kullanıcı bulunamadı' };
+        }
+
+        const sanitized = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            full_name: user.full_name,
+            role: user.role,
+            role_id: user.role_id,
+            employee_id: user.employee_id,
+            mustChangePassword: user.must_change_password === 1
+        };
+
+        const targetCompany = user.companies?.[0] || user.employee?.companies || null;
+
+        return {
+            success: true,
+            user: sanitized,
+            company: targetCompany
+        };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Create a new user from Master Portal
+ */
+async function createPlatformUser(userData) {
+    try {
+        const { username, email, password, role, fullName, companyId } = userData;
+        if (!username || !email || !password) {
+            return { success: false, error: 'Kullanıcı adı, e-posta ve şifre zorunludur' };
+        }
+
+        const cleanEmail = email.toLowerCase().trim();
+        const existing = await prisma.users.findFirst({
+            where: {
+                OR: [{ username }, { email: cleanEmail }]
+            }
+        });
+
+        if (existing) {
+            return { success: false, error: 'Bu kullanıcı adı veya e-posta zaten kayıtlı' };
+        }
+
+        const password_hash = bcrypt.hashSync(password, 10);
+        const newUser = await prisma.users.create({
+            data: {
+                username,
+                email: cleanEmail,
+                full_name: fullName || username,
+                password_hash,
+                role: role || 'user',
+                must_change_password: 0,
+                is_active: 1
+            }
+        });
+
+        if (companyId) {
+            await prisma.companies.update({
+                where: { id: parseInt(companyId, 10) },
+                data: { user_id: newUser.id }
+            }).catch(() => {});
+        }
+
+        return { success: true, user: newUser };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Delete a user account safely
+ */
+async function deletePlatformUser(userId) {
+    try {
+        const uid = parseInt(userId, 10);
+        const user = await prisma.users.findUnique({ where: { id: uid } });
+        if (!user) return { success: false, error: 'Kullanıcı bulunamadı' };
+        if (user.username === 'admin' || user.id === 1) {
+            return { success: false, error: 'Ana Süper Yönetici hesabı silinemez' };
+        }
+
+        await prisma.users.delete({ where: { id: uid } });
+        return { success: true, message: 'Kullanıcı hesabı silindi' };
     } catch (error) {
         return { success: false, error: error.message };
     }
@@ -128,6 +316,17 @@ async function toggleUserStatus(userId, isActive) {
             data: { is_active: isActive ? 1 : 0 }
         });
         return { success: true, data: updated };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Toggle active state of a company
+ */
+async function toggleCompanyStatus(companyId, isActive) {
+    try {
+        return { success: true, message: 'Durum güncellendi' };
     } catch (error) {
         return { success: false, error: error.message };
     }
@@ -207,7 +406,7 @@ async function getPlatformSystemHealth() {
                 dbLatencyMs,
                 nodeVersion: process.version,
                 platform: process.platform,
-                appVersion: '1.13.40'
+                appVersion: '1.13.42'
             }
         };
     } catch (error) {
@@ -233,6 +432,10 @@ function formatUptime(seconds) {
 module.exports = {
     getPlatformOverview,
     getPlatformUsers,
+    resetPlatformUserPassword,
+    impersonatePlatformUser,
+    createPlatformUser,
+    deletePlatformUser,
     toggleCompanyStatus,
     toggleUserStatus,
     getPlatformBackups,

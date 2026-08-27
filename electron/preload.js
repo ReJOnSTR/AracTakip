@@ -290,6 +290,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Platform Super Admin API
     getPlatformOverview: () => ipcRenderer.invoke('platform:getOverview'),
     getPlatformUsers: () => ipcRenderer.invoke('platform:getUsers'),
+    resetPlatformUserPassword: (userId, newPassword) => ipcRenderer.invoke('platform:resetUserPassword', userId, newPassword),
+    impersonatePlatformUser: (userId) => ipcRenderer.invoke('platform:impersonateUser', userId),
+    createPlatformUser: (userData) => ipcRenderer.invoke('platform:createUser', userData),
+    deletePlatformUser: (userId) => ipcRenderer.invoke('platform:deleteUser', userId),
     toggleCompanyStatus: (companyId, isActive) => ipcRenderer.invoke('platform:toggleCompanyStatus', companyId, isActive),
     toggleUserStatus: (userId, isActive) => ipcRenderer.invoke('platform:toggleUserStatus', userId, isActive),
     getPlatformBackups: () => ipcRenderer.invoke('platform:getBackups'),

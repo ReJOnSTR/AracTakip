@@ -558,6 +558,10 @@ const rpcMap = {
     // Platform Super Admin API
     getPlatformOverview: db.getPlatformOverview,
     getPlatformUsers: db.getPlatformUsers,
+    resetPlatformUserPassword: db.resetPlatformUserPassword,
+    impersonatePlatformUser: db.impersonatePlatformUser,
+    createPlatformUser: db.createPlatformUser,
+    deletePlatformUser: db.deletePlatformUser,
     toggleCompanyStatus: db.toggleCompanyStatus,
     toggleUserStatus: db.toggleUserStatus,
     getPlatformBackups: db.getPlatformBackups,
