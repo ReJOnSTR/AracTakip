@@ -152,7 +152,25 @@ app.post('/api/upload', async (req, res) => {
             return res.status(400).json({ success: false, error: 'No file data provided' });
         }
 
-        const ext = path.extname(fileName || '') || '.png';
+        const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.doc', '.docx', '.xls', '.xlsx', '.csv'];
+        let ext = (path.extname(fileName || '') || '').toLowerCase();
+        if (!ext && mimeType) {
+            ext = mimeType.includes('pdf') ? '.pdf' : (mimeType.includes('png') ? '.png' : '.jpg');
+        }
+        if (!ext || !allowedExtensions.includes(ext)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Güvenlik Uyarısı: İzin verilmeyen dosya formatı. Sadece PDF, JPG, PNG ve Office belgeleri yüklenebilir.' 
+            });
+        }
+
+        // Convert base64 data to buffer and enforce 20MB limit
+        const base64Clean = fileData.replace(/^data:.*?;base64,/, '');
+        const buffer = Buffer.from(base64Clean, 'base64');
+        if (buffer.length > 20 * 1024 * 1024) {
+            return res.status(400).json({ success: false, error: 'Dosya boyutu 20 MB sınırını aşamaz.' });
+        }
+
         const uniqueFile = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
 
         // Build enterprise hierarchy: company_X/module/entity_Y/category/file.ext
@@ -179,9 +197,6 @@ app.post('/api/upload', async (req, res) => {
             fs.mkdirSync(targetDir, { recursive: true });
         }
 
-        // Convert base64 data to buffer
-        const base64Clean = fileData.replace(/^data:.*?;base64,/, '');
-        const buffer = Buffer.from(base64Clean, 'base64');
         fs.writeFileSync(targetPath, buffer);
 
         // Upload to Supabase Storage in background with clean hierarchical path
