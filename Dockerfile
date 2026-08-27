@@ -32,6 +32,8 @@ RUN apt-get update && apt-get install -y openssl ca-certificates curl postgresql
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV USE_POSTGRES="true"
+ENV DATABASE_URL="postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres"
 
 # Copy pre-compiled node_modules from builder
 COPY --from=builder /app/node_modules ./node_modules

@@ -9,6 +9,12 @@ try {
     require('dotenv').config();
 } catch (e) {}
 
+const defaultDbUrl = 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres';
+if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = defaultDbUrl;
+    process.env.USE_POSTGRES = 'true';
+}
+
 const { getPrismaClient, runAutoMigrations } = require('./electron/prismaClient');
 const db = require('./electron/prismaService');
 const authService = require('./electron/services/auth.service');

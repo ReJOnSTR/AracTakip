@@ -142,8 +142,14 @@ function getDbPath() {
 function getPrismaClient() {
     if (!prisma) {
         try {
-            const dbUrl = process.env.DATABASE_URL;
-            if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
+            let dbUrl = process.env.DATABASE_URL;
+            const isPostgres = process.env.USE_POSTGRES === 'true' || (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) || (!app && !process.env.USE_SQLITE);
+
+            if (isPostgres) {
+                if (!dbUrl || !dbUrl.startsWith('postgres')) {
+                    dbUrl = 'postgresql://postgres:eyaeaj0djlbjhybz04ma4vrw7otatabf@172.17.0.1:5432/postgres';
+                    process.env.DATABASE_URL = dbUrl;
+                }
                 log.info('Initializing Prisma Client with PostgreSQL');
                 if (PrismaPg && pg) {
                     const pool = new pg.Pool({ connectionString: dbUrl });
