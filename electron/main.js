@@ -9,6 +9,7 @@ const db = require('./prismaService')
 const { getPrismaClient, runAutoMigrations } = require('./prismaClient')
 const log = require('./logger') // Import logger
 const { startAdminServer, stopAdminServer } = require('./adminServer')
+const mfaService = require('./services/mfa.service')
 
 
 // Optional: Override console to correct log file
@@ -2744,5 +2745,22 @@ ipcMain.handle('platform:createCompany', async (event, data) => {
 });
 ipcMain.handle('platform:deleteCompany', async (event, companyId) => {
     return await db.deletePlatformCompany(companyId);
+});
+
+// 2FA / MFA IPC Handlers
+ipcMain.handle('mfa:generateSetup', async (event, userId) => {
+    return await mfaService.generateMfaSetup(userId);
+});
+ipcMain.handle('mfa:enable', async (event, userId, secret, token, backupCodes) => {
+    return await mfaService.enableMfa(userId, secret, token, backupCodes);
+});
+ipcMain.handle('mfa:disable', async (event, userId) => {
+    return await mfaService.disableMfa(userId);
+});
+ipcMain.handle('mfa:verifyLogin', async (event, userId, tokenOrBackupCode) => {
+    return await mfaService.verifyMfaLogin(userId, tokenOrBackupCode);
+});
+ipcMain.handle('mfa:getStatus', async (event, userId) => {
+    return await mfaService.getMfaStatus(userId);
 });
 

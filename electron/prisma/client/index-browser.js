@@ -446,7 +446,10 @@ exports.Prisma.UsersScalarFieldEnum = {
   role_id: 'role_id',
   employee_id: 'employee_id',
   must_change_password: 'must_change_password',
-  is_active: 'is_active'
+  is_active: 'is_active',
+  two_factor_secret: 'two_factor_secret',
+  two_factor_enabled: 'two_factor_enabled',
+  two_factor_backup_codes: 'two_factor_backup_codes'
 };
 
 exports.Prisma.VehiclesScalarFieldEnum = {

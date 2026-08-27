@@ -25,6 +25,16 @@ export function AuthProvider({ children }) {
         try {
             const result = await authService.login({ email, password })
             if (result.success) {
+                if (result.require2FA) {
+                    return {
+                        success: true,
+                        require2FA: true,
+                        userId: result.userId,
+                        username: result.username,
+                        email: result.email
+                    }
+                }
+
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
                 sessionStorage.setItem('aractakip_session_active', 'true')
@@ -39,6 +49,34 @@ export function AuthProvider({ children }) {
         } catch (error) {
             console.error('Login error:', error)
             return { success: false, error: 'Bağlantı hatası: ' + error.message }
+        }
+    }
+
+    const verify2FALogin = async (userId, tokenOrBackupCode) => {
+        try {
+            let result;
+            if (window.electronAPI?.verifyMfaLogin) {
+                result = await window.electronAPI.verifyMfaLogin(userId, tokenOrBackupCode);
+            } else if (authService?.verifyMfaLogin) {
+                result = await authService.verifyMfaLogin({ userId, token: tokenOrBackupCode });
+            } else {
+                result = await fetch('/api/rpc/verifyMfaLogin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ args: [userId, tokenOrBackupCode] })
+                }).then(r => r.json());
+            }
+
+            if (result && result.success && result.user) {
+                setUser(result.user)
+                localStorage.setItem('aractakip_user', JSON.stringify(result.user))
+                sessionStorage.setItem('aractakip_session_active', 'true')
+                return { success: true, backupCodeUsed: result.backupCodeUsed, remainingBackupCodes: result.remainingBackupCodes }
+            }
+            return { success: false, error: result?.error || 'Geçersiz 2FA güvenlik kodu' }
+        } catch (error) {
+            console.error('verify2FALogin error:', error)
+            return { success: false, error: 'Doğrulama hatası: ' + error.message }
         }
     }
 
@@ -109,6 +147,7 @@ export function AuthProvider({ children }) {
             user, 
             loading, 
             login, 
+            verify2FALogin,
             register, 
             logout, 
             updateProfile,

@@ -294,6 +294,24 @@ export default function PlatformAdmin({ section }) {
         }
     }
 
+    // Reset User 2FA (Emergency Rescue)
+    const handleResetUser2FA = async (u) => {
+        if (!window.confirm(`"${u.username}" kullanıcısının İki Adımlı Doğrulama (2FA) kilidini sıfırlamak istediğinize emin misiniz? Kullanıcı sadece şifresiyle giriş yapabilecektir.`)) {
+            return
+        }
+        try {
+            const res = await window.electronAPI?.disableMfa(u.id)
+            if (res && res.success) {
+                alert(`"${u.username}" kullanıcısının 2FA kilidi başarıyla sıfırlandı.`)
+                await loadUsers()
+            } else {
+                alert('2FA sıfırlama hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        }
+    }
+
     // Reset Password
     const handleResetPasswordSubmit = async (e) => {
         e.preventDefault()
@@ -613,6 +631,13 @@ export default function PlatformAdmin({ section }) {
                 )}
             </div>
         )},
+        { key: 'two_factor_enabled', label: '2FA', render: (val, r) => (
+            r.two_factor_enabled === 1 ? (
+                <span className="badge badge-success" style={{ fontSize: '10.5px' }}>🛡️ Açık</span>
+            ) : (
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kapalı</span>
+            )
+        )},
         { key: 'status', label: 'Durum', render: (_, r) => (
             r.isActive ? (
                 <span className="status-badge-active"><CheckCircle2 size={11} /> Aktif</span>
@@ -638,6 +663,16 @@ export default function PlatformAdmin({ section }) {
                 >
                     <KeyRound size={13} />
                 </button>
+                {r.two_factor_enabled === 1 && (
+                    <button
+                        className="action-icon-btn"
+                        onClick={() => handleResetUser2FA(r)}
+                        title="2FA Kilidini Sıfırla (Kullanıcı Telefonunu Kaybettiğinde)"
+                        style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.4)' }}
+                    >
+                        <Shield size={13} />
+                    </button>
+                )}
                 <button
                     className="action-icon-btn"
                     onClick={() => handleToggleUser(r)}

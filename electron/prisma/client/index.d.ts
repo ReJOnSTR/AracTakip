@@ -32893,6 +32893,7 @@ export namespace Prisma {
     employee_id: number | null
     must_change_password: number | null
     is_active: number | null
+    two_factor_enabled: number | null
   }
 
   export type UsersSumAggregateOutputType = {
@@ -32901,6 +32902,7 @@ export namespace Prisma {
     employee_id: number | null
     must_change_password: number | null
     is_active: number | null
+    two_factor_enabled: number | null
   }
 
   export type UsersMinAggregateOutputType = {
@@ -32915,6 +32917,9 @@ export namespace Prisma {
     employee_id: number | null
     must_change_password: number | null
     is_active: number | null
+    two_factor_secret: string | null
+    two_factor_enabled: number | null
+    two_factor_backup_codes: string | null
   }
 
   export type UsersMaxAggregateOutputType = {
@@ -32929,6 +32934,9 @@ export namespace Prisma {
     employee_id: number | null
     must_change_password: number | null
     is_active: number | null
+    two_factor_secret: string | null
+    two_factor_enabled: number | null
+    two_factor_backup_codes: string | null
   }
 
   export type UsersCountAggregateOutputType = {
@@ -32943,6 +32951,9 @@ export namespace Prisma {
     employee_id: number
     must_change_password: number
     is_active: number
+    two_factor_secret: number
+    two_factor_enabled: number
+    two_factor_backup_codes: number
     _all: number
   }
 
@@ -32953,6 +32964,7 @@ export namespace Prisma {
     employee_id?: true
     must_change_password?: true
     is_active?: true
+    two_factor_enabled?: true
   }
 
   export type UsersSumAggregateInputType = {
@@ -32961,6 +32973,7 @@ export namespace Prisma {
     employee_id?: true
     must_change_password?: true
     is_active?: true
+    two_factor_enabled?: true
   }
 
   export type UsersMinAggregateInputType = {
@@ -32975,6 +32988,9 @@ export namespace Prisma {
     employee_id?: true
     must_change_password?: true
     is_active?: true
+    two_factor_secret?: true
+    two_factor_enabled?: true
+    two_factor_backup_codes?: true
   }
 
   export type UsersMaxAggregateInputType = {
@@ -32989,6 +33005,9 @@ export namespace Prisma {
     employee_id?: true
     must_change_password?: true
     is_active?: true
+    two_factor_secret?: true
+    two_factor_enabled?: true
+    two_factor_backup_codes?: true
   }
 
   export type UsersCountAggregateInputType = {
@@ -33003,6 +33022,9 @@ export namespace Prisma {
     employee_id?: true
     must_change_password?: true
     is_active?: true
+    two_factor_secret?: true
+    two_factor_enabled?: true
+    two_factor_backup_codes?: true
     _all?: true
   }
 
@@ -33104,6 +33126,9 @@ export namespace Prisma {
     employee_id: number | null
     must_change_password: number | null
     is_active: number | null
+    two_factor_secret: string | null
+    two_factor_enabled: number | null
+    two_factor_backup_codes: string | null
     _count: UsersCountAggregateOutputType | null
     _avg: UsersAvgAggregateOutputType | null
     _sum: UsersSumAggregateOutputType | null
@@ -33137,6 +33162,9 @@ export namespace Prisma {
     employee_id?: boolean
     must_change_password?: boolean
     is_active?: boolean
+    two_factor_secret?: boolean
+    two_factor_enabled?: boolean
+    two_factor_backup_codes?: boolean
     companies?: boolean | users$companiesArgs<ExtArgs>
     employee?: boolean | users$employeeArgs<ExtArgs>
     custom_role?: boolean | users$custom_roleArgs<ExtArgs>
@@ -33157,6 +33185,9 @@ export namespace Prisma {
     employee_id?: boolean
     must_change_password?: boolean
     is_active?: boolean
+    two_factor_secret?: boolean
+    two_factor_enabled?: boolean
+    two_factor_backup_codes?: boolean
     employee?: boolean | users$employeeArgs<ExtArgs>
     custom_role?: boolean | users$custom_roleArgs<ExtArgs>
   }, ExtArgs["result"]["users"]>
@@ -33173,6 +33204,9 @@ export namespace Prisma {
     employee_id?: boolean
     must_change_password?: boolean
     is_active?: boolean
+    two_factor_secret?: boolean
+    two_factor_enabled?: boolean
+    two_factor_backup_codes?: boolean
     employee?: boolean | users$employeeArgs<ExtArgs>
     custom_role?: boolean | users$custom_roleArgs<ExtArgs>
   }, ExtArgs["result"]["users"]>
@@ -33189,9 +33223,12 @@ export namespace Prisma {
     employee_id?: boolean
     must_change_password?: boolean
     is_active?: boolean
+    two_factor_secret?: boolean
+    two_factor_enabled?: boolean
+    two_factor_backup_codes?: boolean
   }
 
-  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "full_name" | "password_hash" | "created_at" | "role" | "role_id" | "employee_id" | "must_change_password" | "is_active", ExtArgs["result"]["users"]>
+  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "full_name" | "password_hash" | "created_at" | "role" | "role_id" | "employee_id" | "must_change_password" | "is_active" | "two_factor_secret" | "two_factor_enabled" | "two_factor_backup_codes", ExtArgs["result"]["users"]>
   export type usersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companies?: boolean | users$companiesArgs<ExtArgs>
     employee?: boolean | users$employeeArgs<ExtArgs>
@@ -33230,6 +33267,9 @@ export namespace Prisma {
       employee_id: number | null
       must_change_password: number | null
       is_active: number | null
+      two_factor_secret: string | null
+      two_factor_enabled: number | null
+      two_factor_backup_codes: string | null
     }, ExtArgs["result"]["users"]>
     composites: {}
   }
@@ -33669,6 +33709,9 @@ export namespace Prisma {
     readonly employee_id: FieldRef<"users", 'Int'>
     readonly must_change_password: FieldRef<"users", 'Int'>
     readonly is_active: FieldRef<"users", 'Int'>
+    readonly two_factor_secret: FieldRef<"users", 'String'>
+    readonly two_factor_enabled: FieldRef<"users", 'Int'>
+    readonly two_factor_backup_codes: FieldRef<"users", 'String'>
   }
     
 
@@ -51393,7 +51436,10 @@ export namespace Prisma {
     role_id: 'role_id',
     employee_id: 'employee_id',
     must_change_password: 'must_change_password',
-    is_active: 'is_active'
+    is_active: 'is_active',
+    two_factor_secret: 'two_factor_secret',
+    two_factor_enabled: 'two_factor_enabled',
+    two_factor_backup_codes: 'two_factor_backup_codes'
   };
 
   export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
@@ -53778,6 +53824,9 @@ export namespace Prisma {
     employee_id?: IntNullableFilter<"users"> | number | null
     must_change_password?: IntNullableFilter<"users"> | number | null
     is_active?: IntNullableFilter<"users"> | number | null
+    two_factor_secret?: StringNullableFilter<"users"> | string | null
+    two_factor_enabled?: IntNullableFilter<"users"> | number | null
+    two_factor_backup_codes?: StringNullableFilter<"users"> | string | null
     companies?: CompaniesListRelationFilter
     employee?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     custom_role?: XOR<RolesNullableScalarRelationFilter, rolesWhereInput> | null
@@ -53797,6 +53846,9 @@ export namespace Prisma {
     employee_id?: SortOrderInput | SortOrder
     must_change_password?: SortOrderInput | SortOrder
     is_active?: SortOrderInput | SortOrder
+    two_factor_secret?: SortOrderInput | SortOrder
+    two_factor_enabled?: SortOrderInput | SortOrder
+    two_factor_backup_codes?: SortOrderInput | SortOrder
     companies?: companiesOrderByRelationAggregateInput
     employee?: employeesOrderByWithRelationInput
     custom_role?: rolesOrderByWithRelationInput
@@ -53819,6 +53871,9 @@ export namespace Prisma {
     role_id?: IntNullableFilter<"users"> | number | null
     must_change_password?: IntNullableFilter<"users"> | number | null
     is_active?: IntNullableFilter<"users"> | number | null
+    two_factor_secret?: StringNullableFilter<"users"> | string | null
+    two_factor_enabled?: IntNullableFilter<"users"> | number | null
+    two_factor_backup_codes?: StringNullableFilter<"users"> | string | null
     companies?: CompaniesListRelationFilter
     employee?: XOR<EmployeesNullableScalarRelationFilter, employeesWhereInput> | null
     custom_role?: XOR<RolesNullableScalarRelationFilter, rolesWhereInput> | null
@@ -53838,6 +53893,9 @@ export namespace Prisma {
     employee_id?: SortOrderInput | SortOrder
     must_change_password?: SortOrderInput | SortOrder
     is_active?: SortOrderInput | SortOrder
+    two_factor_secret?: SortOrderInput | SortOrder
+    two_factor_enabled?: SortOrderInput | SortOrder
+    two_factor_backup_codes?: SortOrderInput | SortOrder
     _count?: usersCountOrderByAggregateInput
     _avg?: usersAvgOrderByAggregateInput
     _max?: usersMaxOrderByAggregateInput
@@ -53860,6 +53918,9 @@ export namespace Prisma {
     employee_id?: IntNullableWithAggregatesFilter<"users"> | number | null
     must_change_password?: IntNullableWithAggregatesFilter<"users"> | number | null
     is_active?: IntNullableWithAggregatesFilter<"users"> | number | null
+    two_factor_secret?: StringNullableWithAggregatesFilter<"users"> | string | null
+    two_factor_enabled?: IntNullableWithAggregatesFilter<"users"> | number | null
+    two_factor_backup_codes?: StringNullableWithAggregatesFilter<"users"> | string | null
   }
 
   export type vehiclesWhereInput = {
@@ -57265,6 +57326,9 @@ export namespace Prisma {
     role?: string | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesCreateNestedManyWithoutUsersInput
     employee?: employeesCreateNestedOneWithoutUserInput
     custom_role?: rolesCreateNestedOneWithoutUsersInput
@@ -57284,6 +57348,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesUncheckedCreateNestedManyWithoutUsersInput
     created_requests?: requestsUncheckedCreateNestedManyWithoutCreatorInput
     approval_actions?: request_approvalsUncheckedCreateNestedManyWithoutApproverInput
@@ -57298,6 +57365,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUpdateManyWithoutUsersNestedInput
     employee?: employeesUpdateOneWithoutUserNestedInput
     custom_role?: rolesUpdateOneWithoutUsersNestedInput
@@ -57317,6 +57387,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
     created_requests?: requestsUncheckedUpdateManyWithoutCreatorNestedInput
     approval_actions?: request_approvalsUncheckedUpdateManyWithoutApproverNestedInput
@@ -57334,6 +57407,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
   }
 
   export type usersUpdateManyMutationInput = {
@@ -57345,6 +57421,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type usersUncheckedUpdateManyInput = {
@@ -57359,6 +57438,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type vehiclesCreateInput = {
@@ -60386,6 +60468,9 @@ export namespace Prisma {
     employee_id?: SortOrder
     must_change_password?: SortOrder
     is_active?: SortOrder
+    two_factor_secret?: SortOrder
+    two_factor_enabled?: SortOrder
+    two_factor_backup_codes?: SortOrder
   }
 
   export type usersAvgOrderByAggregateInput = {
@@ -60394,6 +60479,7 @@ export namespace Prisma {
     employee_id?: SortOrder
     must_change_password?: SortOrder
     is_active?: SortOrder
+    two_factor_enabled?: SortOrder
   }
 
   export type usersMaxOrderByAggregateInput = {
@@ -60408,6 +60494,9 @@ export namespace Prisma {
     employee_id?: SortOrder
     must_change_password?: SortOrder
     is_active?: SortOrder
+    two_factor_secret?: SortOrder
+    two_factor_enabled?: SortOrder
+    two_factor_backup_codes?: SortOrder
   }
 
   export type usersMinOrderByAggregateInput = {
@@ -60422,6 +60511,9 @@ export namespace Prisma {
     employee_id?: SortOrder
     must_change_password?: SortOrder
     is_active?: SortOrder
+    two_factor_secret?: SortOrder
+    two_factor_enabled?: SortOrder
+    two_factor_backup_codes?: SortOrder
   }
 
   export type usersSumOrderByAggregateInput = {
@@ -60430,6 +60522,7 @@ export namespace Prisma {
     employee_id?: SortOrder
     must_change_password?: SortOrder
     is_active?: SortOrder
+    two_factor_enabled?: SortOrder
   }
 
   export type AssignmentsListRelationFilter = {
@@ -64195,6 +64288,9 @@ export namespace Prisma {
     role?: string | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     employee?: employeesCreateNestedOneWithoutUserInput
     custom_role?: rolesCreateNestedOneWithoutUsersInput
     created_requests?: requestsCreateNestedManyWithoutCreatorInput
@@ -64213,6 +64309,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     created_requests?: requestsUncheckedCreateNestedManyWithoutCreatorInput
     approval_actions?: request_approvalsUncheckedCreateNestedManyWithoutApproverInput
   }
@@ -64840,6 +64939,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     employee?: employeesUpdateOneWithoutUserNestedInput
     custom_role?: rolesUpdateOneWithoutUsersNestedInput
     created_requests?: requestsUpdateManyWithoutCreatorNestedInput
@@ -64858,6 +64960,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     created_requests?: requestsUncheckedUpdateManyWithoutCreatorNestedInput
     approval_actions?: request_approvalsUncheckedUpdateManyWithoutApproverNestedInput
   }
@@ -66571,6 +66676,9 @@ export namespace Prisma {
     role?: string | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesCreateNestedManyWithoutUsersInput
     custom_role?: rolesCreateNestedOneWithoutUsersInput
     created_requests?: requestsCreateNestedManyWithoutCreatorInput
@@ -66588,6 +66696,9 @@ export namespace Prisma {
     role_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesUncheckedCreateNestedManyWithoutUsersInput
     created_requests?: requestsUncheckedCreateNestedManyWithoutCreatorInput
     approval_actions?: request_approvalsUncheckedCreateNestedManyWithoutApproverInput
@@ -67091,6 +67202,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUpdateManyWithoutUsersNestedInput
     custom_role?: rolesUpdateOneWithoutUsersNestedInput
     created_requests?: requestsUpdateManyWithoutCreatorNestedInput
@@ -67108,6 +67222,9 @@ export namespace Prisma {
     role_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
     created_requests?: requestsUncheckedUpdateManyWithoutCreatorNestedInput
     approval_actions?: request_approvalsUncheckedUpdateManyWithoutApproverNestedInput
@@ -72006,6 +72123,9 @@ export namespace Prisma {
     role?: string | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesCreateNestedManyWithoutUsersInput
     employee?: employeesCreateNestedOneWithoutUserInput
     created_requests?: requestsCreateNestedManyWithoutCreatorInput
@@ -72023,6 +72143,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesUncheckedCreateNestedManyWithoutUsersInput
     created_requests?: requestsUncheckedCreateNestedManyWithoutCreatorInput
     approval_actions?: request_approvalsUncheckedCreateNestedManyWithoutApproverInput
@@ -72164,6 +72287,9 @@ export namespace Prisma {
     employee_id?: IntNullableFilter<"users"> | number | null
     must_change_password?: IntNullableFilter<"users"> | number | null
     is_active?: IntNullableFilter<"users"> | number | null
+    two_factor_secret?: StringNullableFilter<"users"> | string | null
+    two_factor_enabled?: IntNullableFilter<"users"> | number | null
+    two_factor_backup_codes?: StringNullableFilter<"users"> | string | null
   }
 
   export type permissionsUpsertWithWhereUniqueWithoutRolesInput = {
@@ -72326,6 +72452,9 @@ export namespace Prisma {
     role?: string | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesCreateNestedManyWithoutUsersInput
     employee?: employeesCreateNestedOneWithoutUserInput
     custom_role?: rolesCreateNestedOneWithoutUsersInput
@@ -72344,6 +72473,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesUncheckedCreateNestedManyWithoutUsersInput
     approval_actions?: request_approvalsUncheckedCreateNestedManyWithoutApproverInput
   }
@@ -72546,6 +72678,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUpdateManyWithoutUsersNestedInput
     employee?: employeesUpdateOneWithoutUserNestedInput
     custom_role?: rolesUpdateOneWithoutUsersNestedInput
@@ -72564,6 +72699,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
     approval_actions?: request_approvalsUncheckedUpdateManyWithoutApproverNestedInput
   }
@@ -72789,6 +72927,9 @@ export namespace Prisma {
     role?: string | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesCreateNestedManyWithoutUsersInput
     employee?: employeesCreateNestedOneWithoutUserInput
     custom_role?: rolesCreateNestedOneWithoutUsersInput
@@ -72807,6 +72948,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
     companies?: companiesUncheckedCreateNestedManyWithoutUsersInput
     created_requests?: requestsUncheckedCreateNestedManyWithoutCreatorInput
   }
@@ -72880,6 +73024,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUpdateManyWithoutUsersNestedInput
     employee?: employeesUpdateOneWithoutUserNestedInput
     custom_role?: rolesUpdateOneWithoutUsersNestedInput
@@ -72898,6 +73045,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
     created_requests?: requestsUncheckedUpdateManyWithoutCreatorNestedInput
   }
@@ -75167,6 +75317,9 @@ export namespace Prisma {
     employee_id?: number | null
     must_change_password?: number | null
     is_active?: number | null
+    two_factor_secret?: string | null
+    two_factor_enabled?: number | null
+    two_factor_backup_codes?: string | null
   }
 
   export type permissionsCreateManyRolesInput = {
@@ -75189,6 +75342,9 @@ export namespace Prisma {
     role?: NullableStringFieldUpdateOperationsInput | string | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUpdateManyWithoutUsersNestedInput
     employee?: employeesUpdateOneWithoutUserNestedInput
     created_requests?: requestsUpdateManyWithoutCreatorNestedInput
@@ -75206,6 +75362,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
     created_requests?: requestsUncheckedUpdateManyWithoutCreatorNestedInput
     approval_actions?: request_approvalsUncheckedUpdateManyWithoutApproverNestedInput
@@ -75222,6 +75381,9 @@ export namespace Prisma {
     employee_id?: NullableIntFieldUpdateOperationsInput | number | null
     must_change_password?: NullableIntFieldUpdateOperationsInput | number | null
     is_active?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_secret?: NullableStringFieldUpdateOperationsInput | string | null
+    two_factor_enabled?: NullableIntFieldUpdateOperationsInput | number | null
+    two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type permissionsUpdateWithoutRolesInput = {

@@ -298,6 +298,18 @@ async function loginUser(credentials) {
             }
         }
 
+        // 4. If 2FA is enabled, return 2FA challenge
+        if (user.two_factor_enabled === 1 && user.two_factor_secret) {
+            log.info(`User "${user.username}" credentials valid. 2FA verification challenge issued.`);
+            return {
+                success: true,
+                require2FA: true,
+                userId: user.id,
+                username: user.username,
+                email: user.email
+            };
+        }
+
         const safeUser = {
             id: user.id,
             username: user.username,
@@ -306,6 +318,7 @@ async function loginUser(credentials) {
             role: user.role || 'admin',
             role_id: user.role_id,
             employee_id: user.employee_id,
+            two_factor_enabled: user.two_factor_enabled === 1,
             mustChangePassword: user.must_change_password === 1,
             employee: employeeData ? {
                 id: employeeData.id,

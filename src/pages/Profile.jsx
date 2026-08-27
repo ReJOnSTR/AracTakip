@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { 
     User, 
@@ -9,10 +9,18 @@ import {
     CheckCircle2, 
     AlertCircle,
     Shield,
-    AtSign
+    AtSign,
+    QrCode,
+    Smartphone,
+    Copy,
+    Check,
+    KeyRound,
+    Loader2,
+    X
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 import CustomInput from '../components/CustomInput'
+import Modal from '../components/Modal'
 
 export default function Profile() {
     const { user, updateProfile } = useAuth()
@@ -32,6 +40,35 @@ export default function Profile() {
     
     const [loading, setLoading] = useState(false)
     const [msg, setMsg] = useState({ type: '', text: '' })
+
+    // 2FA / MFA State
+    const [mfaStatus, setMfaStatus] = useState({ enabled: false, remainingBackupCodes: 0 })
+    const [mfaLoading, setMfaLoading] = useState(false)
+    const [setupModal, setSetupModal] = useState(false)
+    const [setupData, setSetupData] = useState(null) // { secret, qrCodeUrl, backupCodes }
+    const [verificationCode, setVerificationCode] = useState('')
+    const [enablingMfa, setEnablingMfa] = useState(false)
+    const [copiedSecret, setCopiedSecret] = useState(false)
+    const [copiedBackupCodes, setCopiedBackupCodes] = useState(false)
+
+    useEffect(() => {
+        loadMfaStatus()
+    }, [user?.id])
+
+    const loadMfaStatus = async () => {
+        if (!user?.id || !window.electronAPI?.getMfaStatus) return
+        try {
+            const res = await window.electronAPI.getMfaStatus(user.id)
+            if (res?.success) {
+                setMfaStatus({
+                    enabled: !!res.enabled,
+                    remainingBackupCodes: res.remainingBackupCodes || 0
+                })
+            }
+        } catch (err) {
+            console.error('Fetch MFA status error:', err)
+        }
+    }
 
     const handleProfileSubmit = async (e) => {
         e.preventDefault()
@@ -63,14 +100,101 @@ export default function Profile() {
         setLoading(false)
     }
 
+    // Start 2FA Setup Flow
+    const handleStart2FASetup = async () => {
+        setMfaLoading(true)
+        setMsg({ type: '', text: '' })
+        try {
+            const res = await window.electronAPI.generateMfaSetup(user.id)
+            if (res && res.success) {
+                setSetupData(res)
+                setVerificationCode('')
+                setCopiedSecret(false)
+                setCopiedBackupCodes(false)
+                setSetupModal(true)
+            } else {
+                setMsg({ type: 'error', text: res?.error || '2FA kurulumu başlatılamadı' })
+            }
+        } catch (err) {
+            setMsg({ type: 'error', text: 'Hata: ' + err.message })
+        } finally {
+            setMfaLoading(false)
+        }
+    }
+
+    // Confirm & Enable 2FA
+    const handleEnable2FASubmit = async (e) => {
+        e.preventDefault()
+        if (!verificationCode || verificationCode.trim().length < 6) {
+            alert('Lütfen Authenticator uygulamanızdaki 6 haneli kodu girin.')
+            return
+        }
+
+        setEnablingMfa(true)
+        try {
+            const res = await window.electronAPI.enableMfa(
+                user.id,
+                setupData.secret,
+                verificationCode.trim(),
+                setupData.backupCodes
+            )
+            if (res && res.success) {
+                setSetupModal(false)
+                setMsg({ type: 'success', text: 'İki Adımlı Doğrulama (2FA) başarıyla etkinleştirildi!' })
+                await loadMfaStatus()
+            } else {
+                alert(res?.error || 'Doğrulama kodu geçersiz. Lütfen tekrar deneyin.')
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        } finally {
+            setEnablingMfa(false)
+        }
+    }
+
+    // Disable 2FA
+    const handleDisable2FA = async () => {
+        if (!window.confirm('İki Adımlı Doğrulamayı (2FA) devre dışı bırakmak istediğinize emin misiniz?')) {
+            return
+        }
+        setMfaLoading(true)
+        try {
+            const res = await window.electronAPI.disableMfa(user.id)
+            if (res && res.success) {
+                setMsg({ type: 'success', text: 'İki Adımlı Doğrulama (2FA) devre dışı bırakıldı.' })
+                await loadMfaStatus()
+            } else {
+                setMsg({ type: 'error', text: res?.error || '2FA kapatılamadı' })
+            }
+        } catch (err) {
+            setMsg({ type: 'error', text: 'Hata: ' + err.message })
+        } finally {
+            setMfaLoading(false)
+        }
+    }
+
+    const copySecretToClipboard = () => {
+        if (!setupData?.secret) return
+        navigator.clipboard.writeText(setupData.secret)
+        setCopiedSecret(true)
+        setTimeout(() => setCopiedSecret(false), 2000)
+    }
+
+    const copyBackupCodesToClipboard = () => {
+        if (!setupData?.backupCodes) return
+        navigator.clipboard.writeText(setupData.backupCodes.join('\n'))
+        setCopiedBackupCodes(true)
+        setTimeout(() => setCopiedBackupCodes(false), 2000)
+    }
+
     return (
         <div className="settings-page">
-            <TopProgressBar loading={loading} />
+            <TopProgressBar loading={loading || mfaLoading} />
             
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Profil Ayarları</h1>
-                    <p style={{ marginTop: '5px', color: 'var(--text-muted)' }}>Kişisel bilgilerinizi ve hesap güvenliğinizi yönetin.</p>
+                    <h1 className="page-title">Profil & Güvenlik Ayarları</h1>
+                    <p style={{ marginTop: '5px', color: 'var(--text-muted)' }}>Kişisel bilgilerinizi, şifrenizi ve 2FA güvenliğinizi yönetin.</p>
                 </div>
             </div>
 
@@ -90,7 +214,7 @@ export default function Profile() {
                         onClick={() => setActiveTab('security')}
                     >
                         <Shield size={18} />
-                        <span>Güvenlik</span>
+                        <span>Güvenlik & 2FA</span>
                     </div>
                 </div>
 
@@ -124,7 +248,9 @@ export default function Profile() {
                                     <div className="profile-details">
                                         <h3>{profileData.full_name || user?.username}</h3>
                                         <p>{profileData.email}</p>
-                                        <span className="profile-badge">Sistem Yöneticisi</span>
+                                        <span className="profile-badge">
+                                            {user?.role === 'superadmin' ? '👑 Süper Yönetici' : '🏢 Yönetici'}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -165,50 +291,258 @@ export default function Profile() {
                                 </div>
                             </form>
                         ) : (
-                            <form onSubmit={handlePasswordSubmit}>
-                                <h3 className="settings-card-title">Şifre Değiştir</h3>
-                                
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    <CustomInput 
-                                        label="Mevcut Şifre"
-                                        type="password"
-                                        value={passwordData.currentPassword}
-                                        onChange={val => setPasswordData({...passwordData, currentPassword: val})}
-                                        icon={<Key size={15} />}
-                                        placeholder="••••••••"
-                                    />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                {/* ── TWO-FACTOR AUTHENTICATION (2FA - TOTP) CARD ── */}
+                                <div style={{ background: 'var(--bg-tertiary, #1e293b)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                                        <div style={{ display: 'flex', gap: '14px' }}>
+                                            <div style={{ 
+                                                width: '42px', 
+                                                height: '42px', 
+                                                borderRadius: '10px', 
+                                                background: mfaStatus.enabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)', 
+                                                color: mfaStatus.enabled ? '#10b981' : '#3b82f6',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}>
+                                                <Smartphone size={22} />
+                                            </div>
+                                            <div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                        İki Adımlı Doğrulama (2FA - TOTP)
+                                                    </h3>
+                                                    {mfaStatus.enabled ? (
+                                                        <span className="badge badge-success">🟢 Aktif</span>
+                                                    ) : (
+                                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}>⚪ Kapalı</span>
+                                                    )}
+                                                </div>
+                                                <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, maxWidth: '540px' }}>
+                                                    Hesabınıza ekstra bir güvenlik katmanı ekleyin. Giriş yaparken şifrenize ek olarak Google Authenticator veya Microsoft Authenticator uygulamanızdaki 6 haneli kod istenir.
+                                                </p>
+                                                {mfaStatus.enabled && mfaStatus.remainingBackupCodes > 0 && (
+                                                    <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                        Kalan Acil Kurtarma Kodu: <strong>{mfaStatus.remainingBackupCodes}</strong> adet
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
 
-                                    <div className="settings-grid">
-                                        <CustomInput 
-                                            label="Yeni Şifre"
-                                            type="password"
-                                            value={passwordData.newPassword}
-                                            onChange={val => setPasswordData({...passwordData, newPassword: val})}
-                                            icon={<Lock size={15} />}
-                                            placeholder="Yeni şifreniz"
-                                        />
-                                        <CustomInput 
-                                            label="Yeni Şifre Onayı"
-                                            type="password"
-                                            value={passwordData.confirmPassword}
-                                            onChange={val => setPasswordData({...passwordData, confirmPassword: val})}
-                                            icon={<Lock size={15} />}
-                                            placeholder="Yeni şifrenizi doğrulayın"
-                                        />
-                                    </div>
-
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-                                        <button type="submit" className="btn btn-primary" disabled={loading} style={{ minWidth: '140px' }}>
-                                            <Key size={18} />
-                                            Şifreyi Güncelle
-                                        </button>
+                                        <div>
+                                            {mfaStatus.enabled ? (
+                                                <button 
+                                                    type="button" 
+                                                    className="btn btn-secondary" 
+                                                    onClick={handleDisable2FA}
+                                                    disabled={mfaLoading}
+                                                    style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                                                >
+                                                    2FA'yı Devre Dışı Bırak
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    type="button" 
+                                                    className="btn btn-primary" 
+                                                    onClick={handleStart2FASetup}
+                                                    disabled={mfaLoading}
+                                                >
+                                                    <QrCode size={16} />
+                                                    2FA'yı Etkinleştir
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </form>
+
+                                {/* ── PASSWORD CHANGE FORM ── */}
+                                <form onSubmit={handlePasswordSubmit}>
+                                    <h3 className="settings-card-title">Şifre Değiştir</h3>
+                                    
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        <CustomInput 
+                                            label="Mevcut Şifre"
+                                            type="password"
+                                            value={passwordData.currentPassword}
+                                            onChange={val => setPasswordData({...passwordData, currentPassword: val})}
+                                            icon={<Key size={15} />}
+                                            placeholder="••••••••"
+                                        />
+
+                                        <div className="settings-grid">
+                                            <CustomInput 
+                                                label="Yeni Şifre"
+                                                type="password"
+                                                value={passwordData.newPassword}
+                                                onChange={val => setPasswordData({...passwordData, newPassword: val})}
+                                                icon={<Lock size={15} />}
+                                                placeholder="Yeni şifreniz"
+                                            />
+                                            <CustomInput 
+                                                label="Yeni Şifre Onayı"
+                                                type="password"
+                                                value={passwordData.confirmPassword}
+                                                onChange={val => setPasswordData({...passwordData, confirmPassword: val})}
+                                                icon={<Lock size={15} />}
+                                                placeholder="Yeni şifrenizi doğrulayın"
+                                            />
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                                            <button type="submit" className="btn btn-primary" disabled={loading} style={{ minWidth: '140px' }}>
+                                                <Key size={18} />
+                                                Şifreyi Güncelle
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* ── 2FA SETUP MODAL ── */}
+            {setupModal && setupData && (
+                <Modal
+                    isOpen={setupModal}
+                    onClose={() => setSetupModal(false)}
+                    title="İki Adımlı Doğrulamayı (2FA) Kur"
+                >
+                    <form onSubmit={handleEnable2FASubmit} className="modal-form-grid">
+                        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
+                                Telefonunuzdaki <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong> veya <strong>Apple Parolalar</strong> uygulamasını açıp aşağıdaki QR kodu taratın:
+                            </p>
+
+                            <div style={{ 
+                                display: 'inline-block', 
+                                padding: '12px', 
+                                background: '#ffffff', 
+                                borderRadius: '12px', 
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                marginBottom: '14px'
+                            }}>
+                                <img 
+                                    src={setupData.qrCodeUrl} 
+                                    alt="2FA QR Code" 
+                                    style={{ width: '180px', height: '180px', display: 'block' }} 
+                                />
+                            </div>
+
+                            {/* Manual Secret Key */}
+                            <div style={{ 
+                                background: 'var(--bg-secondary)', 
+                                border: '1px solid var(--border-color)', 
+                                borderRadius: '8px', 
+                                padding: '10px 14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '10px',
+                                textAlign: 'left'
+                            }}>
+                                <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Manuel Kurulum Gizli Anahtarı:</div>
+                                    <code style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '1px', color: '#3b82f6' }}>
+                                        {setupData.secret}
+                                    </code>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="ghost-btn"
+                                    onClick={copySecretToClipboard}
+                                    style={{ padding: '6px 10px', fontSize: '12px' }}
+                                >
+                                    {copiedSecret ? <Check size={14} style={{ color: '#10b981' }} /> : <Copy size={14} />}
+                                    <span>{copiedSecret ? 'Kopyalandı' : 'Kopyala'}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Backup Recovery Codes Box */}
+                        <div style={{ 
+                            background: 'rgba(245, 158, 11, 0.08)', 
+                            border: '1px solid rgba(245, 158, 11, 0.25)', 
+                            borderRadius: '8px', 
+                            padding: '12px 14px' 
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', fontSize: '12.5px', fontWeight: 600 }}>
+                                    <KeyRound size={14} />
+                                    <span>Acil Durum Kurtarma Kodları</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="ghost-btn"
+                                    onClick={copyBackupCodesToClipboard}
+                                    style={{ padding: '4px 8px', fontSize: '11.5px', height: 'auto' }}
+                                >
+                                    {copiedBackupCodes ? <Check size={12} style={{ color: '#10b981' }} /> : <Copy size={12} />}
+                                    <span>{copiedBackupCodes ? 'Kopyalandı' : 'Tümünü Kopyala'}</span>
+                                </button>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-primary)' }}>
+                                {setupData.backupCodes.map((code, idx) => (
+                                    <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', padding: '3px 8px', borderRadius: '4px' }}>
+                                        {code}
+                                    </div>
+                                ))}
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '8px 0 0 0' }}>
+                                ⚠️ Telefonunuzu kaybederseniz bu kodlarla giriş yapabilirsiniz. Lütfen güvenli bir yere kaydedin.
+                            </p>
+                        </div>
+
+                        {/* 6-Digit Confirmation Test Input */}
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                                Authenticator'daki 6 Haneli Kodu Girin:
+                            </label>
+                            <input
+                                type="text"
+                                className="modern-input-field"
+                                placeholder="000 000"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value)}
+                                maxLength={7}
+                                required
+                                autoFocus
+                                style={{
+                                    letterSpacing: '5px',
+                                    fontSize: '18px',
+                                    textAlign: 'center',
+                                    fontWeight: '700',
+                                    fontFamily: 'monospace',
+                                    width: '100%',
+                                    padding: '10px'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setSetupModal(false)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={enablingMfa}>
+                                {enablingMfa ? (
+                                    <>
+                                        <Loader2 size={16} className="spin" />
+                                        Doğrulanıyor...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 size={16} />
+                                        Doğrula ve 2FA'yı Aktif Et
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
         </div>
     )
 }

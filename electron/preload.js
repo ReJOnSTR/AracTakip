@@ -308,4 +308,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deletePlatformAnnouncement: (id) => ipcRenderer.invoke('platform:deleteAnnouncement', id),
     createPlatformCompany: (data) => ipcRenderer.invoke('platform:createCompany', data),
     deletePlatformCompany: (companyId) => ipcRenderer.invoke('platform:deleteCompany', companyId),
+    generateMfaSetup: (userId) => ipcRenderer.invoke('mfa:generateSetup', userId),
+    enableMfa: (userId, secret, token, backupCodes) => ipcRenderer.invoke('mfa:enable', userId, secret, token, backupCodes),
+    disableMfa: (userId) => ipcRenderer.invoke('mfa:disable', userId),
+    verifyMfaLogin: (userId, tokenOrBackupCode) => ipcRenderer.invoke('mfa:verifyLogin', userId, tokenOrBackupCode),
+    getMfaStatus: (userId) => ipcRenderer.invoke('mfa:getStatus', userId),
 })
