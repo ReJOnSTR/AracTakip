@@ -204,6 +204,12 @@ function getPrismaClient() {
  * Must be called AFTER getPrismaClient() and BEFORE any queries.
  */
 async function runAutoMigrations() {
+    const isPostgres = getGeneratedProvider() === 'postgresql' || process.env.USE_POSTGRES === 'true' || (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgres'));
+    if (isPostgres) {
+        log.info('PostgreSQL connection active, SQLite pragma migrations skipped.');
+        return;
+    }
+
     // 0. Native Migration check using raw better-sqlite3 (bypasses Prisma caching & locks on Windows)
     try {
         const dbPath = getDbPath();
