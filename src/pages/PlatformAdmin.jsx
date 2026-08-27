@@ -8,7 +8,6 @@ import Modal from '../components/Modal'
 import CustomInput from '../components/CustomInput'
 import TopProgressBar from '../components/TopProgressBar'
 import { 
-    Crown, 
     Building2, 
     Users, 
     Car, 
@@ -25,7 +24,7 @@ import {
     Sparkles, 
     Loader2,
     KeyRound,
-    UserPlus,
+    Plus,
     Trash2,
     Lock,
     ExternalLink,
@@ -295,30 +294,15 @@ export default function PlatformAdmin() {
         return null
     }
 
-    const stats = overviewData?.stats || {
-        totalCompanies: 0,
-        totalVehicles: 0,
-        totalEmployees: 0,
-        totalWorks: 0,
-        totalUsers: 0
-    }
-
-    // ── USERS TABLE COLUMNS (HIGH DENSITY) ──
+    // ── USERS TABLE COLUMNS (CLEAN & MINIMALIST) ──
     const userColumns = [
-        { key: 'identity', label: 'Kullanıcı & Hesap', render: (_, r) => (
-            <div className="user-identity-cell">
-                <div className="user-cell-avatar">
-                    {r.username?.charAt(0).toUpperCase()}
-                </div>
-                <div className="user-cell-info">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span className="user-cell-name">{r.username}</span>
-                        {r.fullName && r.fullName !== r.username && (
-                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({r.fullName})</span>
-                        )}
-                    </div>
-                    <span className="user-cell-email">{r.email}</span>
-                </div>
+        { key: 'username', label: 'Kullanıcı Adı & E-Posta', render: (val, r) => (
+            <div>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{val}</strong>
+                {r.fullName && r.fullName !== val && (
+                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>({r.fullName})</span>
+                )}
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{r.email}</div>
             </div>
         )},
         { key: 'company', label: 'Bağlı Şirket & İlişki', render: (_, r) => (
@@ -358,7 +342,7 @@ export default function PlatformAdmin() {
                 <span className="status-badge-suspended"><XCircle size={11} /> Kilitli</span>
             )
         )},
-        { key: 'created_at', label: 'Kayıt', render: (val) => formatDate(val) },
+        { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
         { key: 'actions', label: 'İşlemler', render: (_, r) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <button
@@ -419,7 +403,7 @@ export default function PlatformAdmin() {
                 <span className="badge badge-success">{val?.works || 0} İş</span>
             </div>
         )},
-        { key: 'created_at', label: 'Kayıt', render: (val) => formatDate(val) },
+        { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
         { key: 'actions', label: 'Yönetim', render: (_, r) => (
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <button
@@ -446,32 +430,25 @@ export default function PlatformAdmin() {
     ]
 
     return (
-        <div className="platform-admin-page">
+        <div>
             <TopProgressBar loading={loading || backupLoading} />
 
-            {/* ── MASTER HEADER ── */}
-            <div className="platform-header">
-                <div className="platform-header-left">
-                    <div className="platform-crown-icon">
-                        <Crown size={22} />
-                    </div>
-                    <div className="platform-title-group">
-                        <h1>
-                            <span>Platform Yönetimi</span>
-                            <span className="platform-badge">Master Portal</span>
-                        </h1>
-                        <p>KONTROL SaaS şirket-hesap eşleştirmeleri, canlı sunucu metrikleri ve operasyonlar.</p>
-                    </div>
+            {/* ── STANDARD APP PAGE HEADER ── */}
+            <div className="page-header">
+                <div>
+                    <h1 className="page-title">Platform Yönetimi</h1>
+                    <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                        SaaS şirket-hesap eşleştirmeleri, canlı sistem metrikleri ve operasyonlar.
+                    </p>
                 </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-primary" onClick={() => setCreateUserModal(true)} style={{ padding: '6px 12px', fontSize: '12px' }}>
-                        <UserPlus size={14} />
-                        <span>Yeni Kullanıcı Ekle</span>
+                <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-secondary" onClick={loadAllData} disabled={loading}>
+                        <RefreshCw size={16} className={loading ? 'spin' : ''} />
+                        Yenile
                     </button>
-                    <button className="btn btn-secondary" onClick={loadAllData} disabled={loading} style={{ padding: '6px 12px', fontSize: '12px' }}>
-                        <RefreshCw size={14} className={loading ? 'spin' : ''} />
-                        <span>Yenile</span>
+                    <button className="btn btn-primary" onClick={() => setCreateUserModal(true)}>
+                        <Plus size={18} />
+                        Yeni Kullanıcı
                     </button>
                 </div>
             </div>
@@ -485,49 +462,6 @@ export default function PlatformAdmin() {
                     <button className="btn btn-sm btn-secondary" onClick={() => setActionMsg('')}>Kapat</button>
                 </div>
             )}
-
-            {/* ── STATS CARDS (COMPACT) ── */}
-            <div className="platform-stats-grid">
-                <div className="platform-stat-card">
-                    <div className="platform-stat-icon" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3b82f6' }}>
-                        <Building2 size={18} />
-                    </div>
-                    <div className="platform-stat-info">
-                        <span className="platform-stat-value">{stats.totalCompanies}</span>
-                        <span className="platform-stat-label">Toplam Şirket</span>
-                    </div>
-                </div>
-
-                <div className="platform-stat-card">
-                    <div className="platform-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
-                        <Users size={18} />
-                    </div>
-                    <div className="platform-stat-info">
-                        <span className="platform-stat-value">{stats.totalUsers}</span>
-                        <span className="platform-stat-label">Toplam Kullanıcı</span>
-                    </div>
-                </div>
-
-                <div className="platform-stat-card">
-                    <div className="platform-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
-                        <Car size={18} />
-                    </div>
-                    <div className="platform-stat-info">
-                        <span className="platform-stat-value">{stats.totalVehicles}</span>
-                        <span className="platform-stat-label">Kayıtlı Araç</span>
-                    </div>
-                </div>
-
-                <div className="platform-stat-card">
-                    <div className="platform-stat-icon" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' }}>
-                        <Briefcase size={18} />
-                    </div>
-                    <div className="platform-stat-info">
-                        <span className="platform-stat-value">{stats.totalWorks}</span>
-                        <span className="platform-stat-label">Toplam İş Hacmi</span>
-                    </div>
-                </div>
-            </div>
 
             {/* ── NAVIGATION TABS ── */}
             <div className="platform-tabs">
@@ -564,7 +498,7 @@ export default function PlatformAdmin() {
                 </button>
             </div>
 
-            {/* ── TAB 1: USERS & COMPANY MAPPINGS (NATIVE DATATABLE FILTERS) ── */}
+            {/* ── TAB 1: USERS & COMPANY MAPPINGS ── */}
             {activeTab === 'users' && (
                 <div>
                     <DataTable
@@ -595,7 +529,7 @@ export default function PlatformAdmin() {
                 </div>
             )}
 
-            {/* ── TAB 3: COMPLETE REAL SYSTEM HEALTH OBSERVABILITY ── */}
+            {/* ── TAB 3: SYSTEM HEALTH OBSERVABILITY ── */}
             {activeTab === 'health' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -693,7 +627,7 @@ export default function PlatformAdmin() {
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Yazılım Sürümü:</span>
-                                    <span>v{healthData?.appVersion || '1.13.45'}</span>
+                                    <span>v{healthData?.appVersion || '1.13.46'}</span>
                                 </div>
                                 <div className="health-detail-item">
                                     <span>Node.js Runtime:</span>
