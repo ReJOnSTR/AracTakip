@@ -21,23 +21,22 @@ async function getCompanies(userId) {
                         });
                     }
                 } else {
-                    // For admin / manager: return companies owned by this user
+                    // For admin / manager: return companies owned by this user or unassigned
                     companies = await prisma.companies.findMany({
-                        where: { user_id: uid }
+                        where: {
+                            OR: [
+                                { user_id: uid },
+                                { user_id: null }
+                            ]
+                        }
                     });
 
-                    // If user has no company created yet, check if there are legacy unassigned companies or create one
+                    // If no company found specifically for this user, fallback to existing companies
                     if (companies.length === 0) {
-                        const unassigned = await prisma.companies.findMany({
-                            where: { user_id: null }
-                        });
-                        if (unassigned.length > 0 && uid === 1) {
-                            await prisma.companies.update({
-                                where: { id: unassigned[0].id },
-                                data: { user_id: uid }
-                            }).catch(() => {});
-                            companies = await prisma.companies.findMany({ where: { user_id: uid } });
-                        } else if (unassigned.length === 0) {
+                        const allComps = await prisma.companies.findMany();
+                        if (allComps.length > 0) {
+                            companies = allComps;
+                        } else {
                             const newComp = await prisma.companies.create({
                                 data: {
                                     name: (user.username || 'Şirketim') + ' Filo',
