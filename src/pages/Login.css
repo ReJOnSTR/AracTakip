@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MODERN AUTH / LOGIN PAGE STYLES
+   MODERN AUTH / LOGIN & REGISTER PAGE STYLES
    ========================================================================== */
 
 .modern-auth-page {
@@ -13,6 +13,7 @@
                 var(--bg-primary, #0f1117);
     padding: 24px 16px;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .modern-auth-container {
@@ -26,15 +27,19 @@
     display: grid;
     grid-template-columns: 1fr 1.15fr;
     overflow: hidden;
-    animation: authFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: authFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modern-auth-container.register-layout {
+    max-width: 1020px;
 }
 
 @keyframes authFadeIn {
-    from {
+    0% {
         opacity: 0;
-        transform: translateY(16px) scale(0.98);
+        transform: translateY(12px) scale(0.99);
     }
-    to {
+    100% {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
@@ -57,8 +62,8 @@
     position: absolute;
     top: -50px;
     left: -50px;
-    width: 200px;
-    height: 200px;
+    width: 220px;
+    height: 220px;
     background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
@@ -68,7 +73,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 
 .brand-logo-img {
@@ -79,7 +84,7 @@
 }
 
 .brand-hero-title {
-    font-size: 24px;
+    font-size: 23px;
     font-weight: 700;
     color: #f8fafc;
     line-height: 1.35;
@@ -91,24 +96,24 @@
     font-size: 13px;
     color: #94a3b8;
     line-height: 1.6;
-    margin: 0 0 28px 0;
+    margin: 0 0 24px 0;
 }
 
 .brand-feature-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .brand-feature-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
     color: #cbd5e1;
     background: rgba(255, 255, 255, 0.03);
-    padding: 10px 14px;
+    padding: 9px 13px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -126,7 +131,7 @@
 }
 
 .brand-footer-trust {
-    margin-top: 32px;
+    margin-top: 28px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -136,7 +141,7 @@
 
 /* ── RIGHT FORM PANEL ── */
 .auth-form-panel {
-    padding: 44px 40px;
+    padding: 38px 36px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -144,14 +149,14 @@
 }
 
 .form-header-block {
-    margin-bottom: 28px;
+    margin-bottom: 22px;
 }
 
 .form-header-title {
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 700;
     color: var(--text-primary, #f8fafc);
-    margin: 0 0 6px 0;
+    margin: 0 0 4px 0;
     letter-spacing: -0.01em;
 }
 
@@ -159,6 +164,12 @@
     font-size: 13px;
     color: var(--text-secondary, #94a3b8);
     margin: 0;
+}
+
+.auth-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
 
 .modern-input-wrapper {
@@ -182,7 +193,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-primary, #f8fafc);
     font-size: 13.5px;
-    padding: 12px 14px 12px 42px;
+    padding: 11px 14px 11px 42px;
     border-radius: 12px;
     outline: none;
     transition: all 0.2s ease;
@@ -235,7 +246,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 16px 0 24px 0;
+    margin: 14px 0 20px 0;
     font-size: 12.5px;
 }
 
@@ -262,7 +273,7 @@
     color: #ffffff;
     border: none;
     border-radius: 12px;
-    padding: 13px 20px;
+    padding: 12px 20px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -296,7 +307,7 @@
     font-size: 12.5px;
     padding: 10px 14px;
     border-radius: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -311,7 +322,7 @@
 
 .auth-bottom-footer {
     text-align: center;
-    margin-top: 24px;
+    margin-top: 20px;
     font-size: 12.5px;
     color: var(--text-muted, #64748b);
 }
@@ -328,15 +339,18 @@
 }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 820px) {
+@media (max-width: 860px) {
     .modern-auth-container {
         grid-template-columns: 1fr;
-        max-width: 440px;
+        max-width: 460px;
     }
     .auth-brand-panel {
-        display: none; /* Focus strictly on login form on mobile */
+        display: none;
     }
     .auth-form-panel {
         padding: 32px 24px;
+    }
+    .auth-form-grid {
+        grid-template-columns: 1fr;
     }
 }
