@@ -653,6 +653,15 @@ export default function PlatformAdmin({ section }) {
                 </div>
             )
         }},
+        { key: 'is_dismissible', label: 'Kapatma Kuralı', render: (val) => {
+            const mode = val !== undefined && val !== null ? Number(val) : 1
+            if (mode === 0) {
+                return <span className="badge badge-danger" style={{ fontSize: '11px' }}>🔒 Sabit (Kapatılamaz)</span>
+            } else if (mode === 2) {
+                return <span className="badge badge-info" style={{ fontSize: '11px' }}>👁️ Kalıcı Kapatılabilir</span>
+            }
+            return <span className="badge badge-warning" style={{ fontSize: '11px' }}>🔄 Her Girişte Göster</span>
+        }},
         { key: 'status', label: 'Yayın Durumu', render: (_, r) => {
             if (r.isExpired) {
                 return <span className="status-badge-suspended"><Clock size={11} /> Süresi Doldu</span>
@@ -1180,7 +1189,7 @@ export default function PlatformAdmin({ section }) {
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                             <CustomInput
                                 label="Son Geçerlilik Tarihi (Opsiyonel)"
                                 type="date"
@@ -1188,19 +1197,17 @@ export default function PlatformAdmin({ section }) {
                                 onChange={(val) => setNewAnnouncement(prev => ({ ...prev, expiresAt: getVal(val) }))}
                             />
 
-                            <div style={{ paddingTop: '18px' }}>
-                                <div 
-                                    className={`platform-modal-checkbox ${newAnnouncement.isDismissible === 1 ? 'active' : ''}`}
-                                    onClick={() => setNewAnnouncement(prev => ({ ...prev, isDismissible: prev.isDismissible === 1 ? 0 : 1 }))}
-                                >
-                                    <div className="platform-checkbox-box">
-                                        {newAnnouncement.isDismissible === 1 && <Check size={12} strokeWidth={3} />}
-                                    </div>
-                                    <span style={{ fontSize: '12.5px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                        Kullanıcılar Kapatabilsin (X)
-                                    </span>
-                                </div>
-                            </div>
+                            <CustomSelect
+                                label="Kapatma & Görünürlük Kuralı"
+                                value={String(newAnnouncement.isDismissible)}
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, isDismissible: parseInt(val, 10) }))}
+                                options={[
+                                    { value: '1', label: '🔄 Her Girişte Göster (Kapatılsa da sonraki girişte tekrar çıkar)' },
+                                    { value: '0', label: '🔒 Sabit / Kapatılamaz (Zorunlu Acil Duyuru)' },
+                                    { value: '2', label: '👁️ Kalıcı Kapatılabilir (Kapatınca bir daha çıkmaz)' }
+                                ]}
+                                required
+                            />
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>

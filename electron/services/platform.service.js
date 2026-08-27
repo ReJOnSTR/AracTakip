@@ -641,7 +641,7 @@ async function createPlatformAnnouncement(payload) {
                 type: type || 'info',
                 company_id: companyId && companyId !== 'ALL' && companyId !== '' ? parseInt(companyId, 10) : null,
                 expires_at: expiresAt ? new Date(expiresAt) : null,
-                is_dismissible: isDismissible ? 1 : 0,
+                is_dismissible: typeof isDismissible !== 'undefined' ? parseInt(isDismissible, 10) : 1,
                 show_popup: showPopup ? 1 : 0,
                 created_by: createdBy ? parseInt(createdBy, 10) : null,
                 is_active: 1

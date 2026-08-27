@@ -17,9 +17,20 @@ export default function BroadcastBanner() {
     const { currentCompany } = useCompany()
     const { user } = useAuth()
     const [announcements, setAnnouncements] = useState([])
-    const [dismissedIds, setDismissedIds] = useState(() => {
+    
+    // Session-based dismiss (Re-appears on next login / app start)
+    const [sessionDismissed, setSessionDismissed] = useState(() => {
         try {
-            return JSON.parse(localStorage.getItem('dismissed_announcements') || '[]')
+            return JSON.parse(sessionStorage.getItem('session_dismissed_announcements') || '[]')
+        } catch {
+            return []
+        }
+    })
+
+    // Permanent-based dismiss
+    const [permanentDismissed, setPermanentDismissed] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('permanent_dismissed_announcements') || '[]')
         } catch {
             return []
         }
@@ -44,14 +55,28 @@ export default function BroadcastBanner() {
         return () => clearInterval(interval)
     }, [currentCompany?.id])
 
-    const handleDismiss = (id) => {
-        const next = [...dismissedIds, id]
-        setDismissedIds(next)
-        localStorage.setItem('dismissed_announcements', JSON.stringify(next))
+    const handleDismiss = (announcement) => {
+        const mode = announcement.is_dismissible !== undefined ? Number(announcement.is_dismissible) : 1
+        if (mode === 2) {
+            const next = [...permanentDismissed, announcement.id]
+            setPermanentDismissed(next)
+            localStorage.setItem('permanent_dismissed_announcements', JSON.stringify(next))
+        } else {
+            // Mode 1: Closes for current session, reappears on next app launch/login
+            const next = [...sessionDismissed, announcement.id]
+            setSessionDismissed(next)
+            sessionStorage.setItem('session_dismissed_announcements', JSON.stringify(next))
+        }
     }
 
-    // Filter visible announcements
-    const visibleAnnouncements = announcements.filter(a => !dismissedIds.includes(a.id))
+    // Filter visible announcements according to dismissal rule
+    const visibleAnnouncements = announcements.filter(a => {
+        const mode = a.is_dismissible !== undefined ? Number(a.is_dismissible) : 1
+        if (mode === 0) return true // Sabit / Non-dismissible
+        if (mode === 2) return !permanentDismissed.includes(a.id)
+        // Default mode 1: Session-dismissible (Her girişte tekrar görünür)
+        return !sessionDismissed.includes(a.id)
+    })
 
     if (visibleAnnouncements.length === 0) return null
 
@@ -77,7 +102,8 @@ export default function BroadcastBanner() {
         <div className="broadcast-container">
             {visibleAnnouncements.map((a) => {
                 const typeClass = `broadcast-${a.type || 'info'}`
-                const isDismissible = a.is_dismissible !== 0
+                const mode = a.is_dismissible !== undefined ? Number(a.is_dismissible) : 1
+                const isDismissible = mode !== 0
 
                 return (
                     <div key={a.id} className={`broadcast-banner ${typeClass}`}>
@@ -104,8 +130,8 @@ export default function BroadcastBanner() {
                                 {isDismissible && (
                                     <button
                                         className="broadcast-dismiss-btn"
-                                        onClick={() => handleDismiss(a.id)}
-                                        title="Bildirimi Kapat"
+                                        onClick={() => handleDismiss(a)}
+                                        title={mode === 1 ? 'Oturum Boyunca Kapat (Yeniden girişte tekrar gösterilir)' : 'Bildirimi Kapat'}
                                     >
                                         <X size={14} />
                                     </button>
