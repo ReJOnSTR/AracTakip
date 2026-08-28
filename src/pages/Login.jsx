@@ -35,6 +35,9 @@ export default function Login() {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const [emailVerified, setEmailVerified] = useState(false)
+    const [unverifiedEmail, setUnverifiedEmail] = useState('')
+    const [resendingVerification, setResendingVerification] = useState(false)
+    const [resendVerificationMsg, setResendVerificationMsg] = useState('')
 
     // Forgot Password Modal State
     const [showForgotModal, setShowForgotModal] = useState(false)
@@ -115,6 +118,12 @@ export default function Login() {
                     localStorage.removeItem('aractakip_saved_user')
                 }
             } else {
+                if (result.requireEmailVerification) {
+                    setUnverifiedEmail(result.email || cleanEmail)
+                    setResendVerificationMsg('')
+                } else {
+                    setUnverifiedEmail('')
+                }
                 setError(result.error || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.')
                 setLoading(false)
             }
@@ -391,9 +400,54 @@ export default function Login() {
                             )}
 
                             {error && (
-                                <div className="auth-error-alert">
-                                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
-                                    <span>{error}</span>
+                                <div className="auth-error-alert" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+                                        <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                                        <span>{error}</span>
+                                    </div>
+                                    {unverifiedEmail && (
+                                        <div style={{ width: '100%', paddingTop: '4px', borderTop: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                            {resendVerificationMsg ? (
+                                                <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600 }}>{resendVerificationMsg}</span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        setResendingVerification(true)
+                                                        try {
+                                                            if (window.electronAPI?.resendVerificationEmail) {
+                                                                await window.electronAPI.resendVerificationEmail({ email: unverifiedEmail })
+                                                            } else {
+                                                                await supabase.auth.resend({
+                                                                    type: 'signup',
+                                                                    email: unverifiedEmail,
+                                                                    options: { emailRedirectTo: 'https://kontrol-app.com/login?verified=true' }
+                                                                })
+                                                            }
+                                                            setResendVerificationMsg('Doğrulama bağlantısı e-posta adresinize tekrar gönderildi!')
+                                                        } catch (e) {
+                                                            setResendVerificationMsg('Gönderim hatası: ' + e.message)
+                                                        } finally {
+                                                            setResendingVerification(false)
+                                                        }
+                                                    }}
+                                                    disabled={resendingVerification}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        color: '#3b82f6',
+                                                        fontSize: '12.5px',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        padding: 0,
+                                                        textDecoration: 'underline'
+                                                    }}
+                                                >
+                                                    {resendingVerification ? 'Gönderiliyor...' : 'Doğrulama E-postasını Tekrar Gönder →'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

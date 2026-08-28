@@ -38,7 +38,7 @@ async function registerUser(userData) {
                 password_hash,
                 role: 'company_admin',
                 must_change_password: 0,
-                is_active: 1
+                is_active: 0 // Inactive until email is confirmed
             }
         });
 
@@ -51,73 +51,49 @@ async function registerUser(userData) {
             }
         }).catch(e => console.warn('Company auto-create notice:', e.message));
 
-        // Sync user to Supabase Auth (auth.users & auth.identities) if running PostgreSQL
-        const dbUrl = process.env.DATABASE_URL || '';
-        if (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://')) {
+        // Provision user in Supabase Auth & trigger confirmation email via Mailu
+        const { supabaseAdmin } = require('./supabase.service');
+        if (supabaseAdmin) {
             try {
-                const { Client } = require('pg');
-                const pgClient = new Client({ connectionString: dbUrl });
-                await pgClient.connect();
-
-                const metaJson = JSON.stringify({
-                    username,
-                    full_name: fullName || username,
-                    role: 'admin'
+                await supabaseAdmin.auth.admin.createUser({
+                    email: cleanEmail,
+                    password: password,
+                    email_confirm: false,
+                    user_metadata: {
+                        username,
+                        full_name: fullName || username,
+                        role: 'company_admin'
+                    }
                 });
 
-                const newAuth = await pgClient.query(`
-                    INSERT INTO auth.users (
-                        instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-                        raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
-                    ) VALUES (
-                        '00000000-0000-0000-0000-000000000000',
-                        gen_random_uuid(),
-                        'authenticated',
-                        'authenticated',
-                        $1,
-                        $2,
-                        CURRENT_TIMESTAMP,
-                        '{"provider":"email","providers":["email"]}'::jsonb,
-                        $3::jsonb,
-                        CURRENT_TIMESTAMP,
-                        CURRENT_TIMESTAMP,
-                        '', '', '', ''
-                    ) RETURNING id;
-                `, [cleanEmail, password_hash, metaJson]);
+                // Trigger confirmation email
+                await supabaseAdmin.auth.resend({
+                    type: 'signup',
+                    email: cleanEmail,
+                    options: {
+                        emailRedirectTo: 'https://kontrol-app.com/login?verified=true'
+                    }
+                }).catch(e => log.warn('Resend confirmation notice:', e.message));
 
-                const authUserId = newAuth.rows[0].id;
-                const subData = JSON.stringify({ sub: String(authUserId), email: cleanEmail });
-
-                await pgClient.query(`
-                    INSERT INTO auth.identities (
-                        id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at
-                    ) VALUES (
-                        gen_random_uuid(),
-                        $1::uuid,
-                        $2::jsonb,
-                        'email',
-                        $3,
-                        CURRENT_TIMESTAMP,
-                        CURRENT_TIMESTAMP,
-                        CURRENT_TIMESTAMP
-                    )
-                `, [authUserId, subData, cleanEmail]);
-
-                await pgClient.end();
-            } catch (supaPgErr) {
-                console.warn('Direct Supabase Auth create notice for admin:', supaPgErr.message);
+                log.info(`[Register] User ${username} (${cleanEmail}) registered and confirmation email sent.`);
+            } catch (supaErr) {
+                log.warn('Supabase auth signup notice:', supaErr.message);
             }
         }
 
-        // Strip hash before returning
-        const safeUser = { 
-            id: result.id, 
-            username: result.username, 
-            email: result.email,
-            full_name: result.full_name,
-            role: result.role
+        return {
+            success: true,
+            requireVerification: true,
+            email: cleanEmail,
+            user: { 
+                id: result.id, 
+                username: result.username, 
+                email: result.email,
+                full_name: result.full_name,
+                role: result.role
+            },
+            message: 'Kayıt başarılı! Lütfen e-posta adresinize gönderilen doğrulama linkine tıklayarak hesabınızı aktifleştirin.'
         };
-        return { success: true, user: safeUser };
 
     } catch (error) {
         console.error('Registration error:', error);
@@ -233,20 +209,39 @@ async function loginUser(credentials) {
         }
 
         if (user.is_active === 0) {
-            log.warn(`Login failed: User "${user.username}" is inactive`);
-            logAudit({
-                companyId: user.company_id,
-                userId: user.id,
-                username: user.username,
-                userRole: user.role,
-                action: 'LOGIN_FAILED',
-                entityType: 'auth',
-                entityId: String(user.id),
-                entityName: user.username,
-                description: `Kilitli/Pasif hesaba giriş engellendi: "${user.username}"`,
-                severity: 'warn'
-            });
-            return { success: false, error: 'Hesabınız pasif duruma getirilmiştir. Yönetici ile iletişime geçiniz.' };
+            // Check if user confirmed their email via Supabase Auth
+            let isEmailConfirmed = false;
+            if (user.email) {
+                try {
+                    const { supabaseAdmin } = require('./supabase.service');
+                    if (supabaseAdmin) {
+                        const { data: supaUsers } = await supabaseAdmin.auth.admin.listUsers();
+                        const supaUser = supaUsers?.users?.find(u => u.email?.toLowerCase() === user.email.toLowerCase());
+                        if (supaUser && supaUser.email_confirmed_at) {
+                            // User verified! Auto-activate in local database:
+                            await prisma.users.update({
+                                where: { id: user.id },
+                                data: { is_active: 1 }
+                            });
+                            user.is_active = 1;
+                            isEmailConfirmed = true;
+                            log.info(`[Auth] User ${user.username} (${user.email}) auto-activated after email verification.`);
+                        }
+                    }
+                } catch (e) {
+                    log.warn('Auto-activate check error:', e.message);
+                }
+            }
+
+            if (!isEmailConfirmed && user.is_active === 0) {
+                log.warn(`Login failed: User "${user.username}" is unverified / inactive`);
+                return {
+                    success: false,
+                    requireEmailVerification: true,
+                    email: user.email,
+                    error: 'E-posta adresiniz henüz doğrulanmamış. Lütfen gelen kutunuzdaki onay linkine tıklayın.'
+                };
+            }
         }
 
         let isValid = bcrypt.compareSync(password, user.password_hash);
@@ -805,12 +800,69 @@ async function requestPasswordReset(data) {
     }
 }
 
+async function resendVerificationEmail(data) {
+    try {
+        const { email } = data || {};
+        if (!email) return { success: false, error: 'E-posta adresi gereklidir' };
+
+        const cleanEmail = email.trim().toLowerCase();
+        const { supabaseAdmin } = require('./supabase.service');
+
+        if (supabaseAdmin) {
+            const { error: resendErr } = await supabaseAdmin.auth.resend({
+                type: 'signup',
+                email: cleanEmail,
+                options: {
+                    emailRedirectTo: 'https://kontrol-app.com/login?verified=true'
+                }
+            });
+
+            if (resendErr) {
+                return { success: false, error: resendErr.message };
+            }
+            log.info(`[Auth] Resent verification email to: ${cleanEmail}`);
+        }
+
+        return { success: true, message: 'Doğrulama bağlantısı e-posta adresinize tekrar gönderildi.' };
+    } catch (err) {
+        log.error('resendVerificationEmail error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+async function activateUserByEmail(data) {
+    try {
+        const { email } = data || {};
+        if (!email) return { success: false, error: 'E-posta adresi gereklidir' };
+
+        const cleanEmail = email.trim().toLowerCase();
+        const user = await prisma.users.findFirst({
+            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+        });
+
+        if (user) {
+            await prisma.users.update({
+                where: { id: user.id },
+                data: { is_active: 1 }
+            });
+            log.info(`[Auth] User activated via email callback: ${cleanEmail}`);
+        }
+
+        return { success: true };
+    } catch (err) {
+        log.error('activateUserByEmail error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     changePassword,
     syncPasswordReset,
     requestPasswordReset,
+    resendVerificationEmail,
+    activateUserByEmail,
     updateProfile,
     getUserPasswordHash,
     createEmployeeUser,

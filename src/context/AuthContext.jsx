@@ -145,19 +145,22 @@ export function AuthProvider({ children }) {
             localStorage.removeItem('aractakip_company')
             const result = await authService.register({ username, email, password, companyName })
             if (result.success) {
+                // If email verification is required, do not log user in immediately
+                if (result.requireVerification) {
+                    return { 
+                        success: true, 
+                        requireVerification: true, 
+                        email: result.email || email,
+                        message: result.message 
+                    }
+                }
+
                 const freshSessionId = 'sess_' + result.user.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
                 sessionStorage.setItem('aractakip_session_id', freshSessionId)
 
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
                 sessionStorage.setItem('aractakip_session_active', 'true')
-
-                // Register in Supabase Auth on client
-                supabase.auth.signUp({
-                    email,
-                    password,
-                    options: { data: { username, company_name: companyName } }
-                }).catch(() => {});
 
                 return { success: true }
             }

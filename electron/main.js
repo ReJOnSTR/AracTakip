@@ -472,6 +472,14 @@ ipcMain.handle('auth:requestPasswordReset', async (event, data) => {
     return await db.requestPasswordReset(data)
 })
 
+ipcMain.handle('auth:resendVerificationEmail', async (event, data) => {
+    return await db.resendVerificationEmail(data)
+})
+
+ipcMain.handle('auth:activateUserByEmail', async (event, data) => {
+    return await db.activateUserByEmail(data)
+})
+
 ipcMain.handle('auth:updateProfile', async (event, data) => {
     return await db.updateProfile(data)
 })

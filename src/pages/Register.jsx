@@ -1,12 +1,30 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Building2, User, Mail, Lock, Eye, EyeOff, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react'
+import { supabase } from '../services/supabase'
+import { 
+    Building2, 
+    User, 
+    Mail, 
+    Lock, 
+    Eye, 
+    EyeOff, 
+    ShieldCheck, 
+    CheckCircle2, 
+    AlertCircle, 
+    ArrowRight, 
+    Loader2, 
+    KeyRound, 
+    Send,
+    ArrowLeft
+} from 'lucide-react'
 import logo from '../assets/logos/Group5.svg'
 import './Login.css'
 
 export default function Register() {
     const { register } = useAuth()
+    const navigate = useNavigate()
+
     const [companyName, setCompanyName] = useState('')
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
@@ -17,13 +35,31 @@ export default function Register() {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
+    // Verification Step States
+    const [isSubmitted, setIsSubmitted] = useState(false)
+    const [registeredEmail, setRegisteredEmail] = useState('')
+    const [otpCode, setOtpCode] = useState('')
+    const [verifyingOtp, setVerifyingOtp] = useState(false)
+    const [otpError, setOtpError] = useState('')
+    const [resendCooldown, setResendCooldown] = useState(0)
+    const [resendMsg, setResendMsg] = useState('')
+    const [resending, setResending] = useState(false)
+
+    useEffect(() => {
+        let timer
+        if (resendCooldown > 0) {
+            timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
+        }
+        return () => clearTimeout(timer)
+    }, [resendCooldown])
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError('')
 
         const cleanCompany = companyName.trim()
         const cleanUser = username.trim()
-        const cleanEmail = email.trim()
+        const cleanEmail = email.trim().toLowerCase()
         const cleanPassword = password.trim()
         const cleanConfirm = confirmPassword.trim()
 
@@ -47,13 +83,85 @@ export default function Register() {
         try {
             const result = await register(cleanUser, cleanEmail, cleanPassword, cleanCompany)
 
-            if (!result.success) {
+            if (result.success) {
+                if (result.requireVerification) {
+                    setRegisteredEmail(cleanEmail)
+                    setIsSubmitted(true)
+                    setResendCooldown(60)
+                } else {
+                    navigate('/')
+                }
+            } else {
                 setError(result.error || 'Kayıt işlemi gerçekleştirilemedi.')
                 setLoading(false)
             }
         } catch (err) {
             setError('Sunucu bağlantı hatası: ' + err.message)
             setLoading(false)
+        }
+    }
+
+    const handleVerifyOtp = async (e) => {
+        e?.preventDefault()
+        setOtpError('')
+        const cleanCode = otpCode.trim()
+
+        if (!cleanCode || cleanCode.length < 6) {
+            setOtpError('Lütfen 6 haneli doğrulama kodunu eksiksiz girin.')
+            return
+        }
+
+        setVerifyingOtp(true)
+
+        try {
+            const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+                email: registeredEmail,
+                token: cleanCode,
+                type: 'signup'
+            })
+
+            if (verifyErr) {
+                setOtpError(verifyErr.message || 'Geçersiz veya süresi dolmuş kod.')
+                setVerifyingOtp(false)
+                return
+            }
+
+            // Activate user in local database
+            if (window.electronAPI?.activateUserByEmail) {
+                await window.electronAPI.activateUserByEmail({ email: registeredEmail })
+            }
+
+            navigate('/login?verified=true')
+        } catch (err) {
+            setOtpError('Doğrulama hatası: ' + err.message)
+            setVerifyingOtp(false)
+        }
+    }
+
+    const handleResendEmail = async () => {
+        if (resendCooldown > 0 || resending) return
+        setResending(true)
+        setResendMsg('')
+        setOtpError('')
+
+        try {
+            if (window.electronAPI?.resendVerificationEmail) {
+                await window.electronAPI.resendVerificationEmail({ email: registeredEmail })
+            } else {
+                await supabase.auth.resend({
+                    type: 'signup',
+                    email: registeredEmail,
+                    options: {
+                        emailRedirectTo: 'https://kontrol-app.com/login?verified=true'
+                    }
+                })
+            }
+            setResendMsg('Doğrulama e-postası tekrar gönderildi!')
+            setResendCooldown(60)
+        } catch (err) {
+            setOtpError('E-posta gönderim hatası: ' + err.message)
+        } finally {
+            setResending(false)
         }
     }
 
@@ -102,153 +210,272 @@ export default function Register() {
                     </div>
                 </div>
 
-                {/* ── RIGHT SIDE: MODERN REGISTER FORM ── */}
+                {/* ── RIGHT SIDE: REGISTER FORM OR VERIFICATION SCREEN ── */}
                 <div className="auth-form-panel">
-                    <div className="form-header-block">
-                        <h2 className="form-header-title">Şirket Hesabı Oluştur</h2>
-                        <p className="form-header-subtitle">Filo yönetim sistemine başlamak için formu doldurun.</p>
-                    </div>
+                    {isSubmitted ? (
+                        /* ── EMAIL VERIFICATION WAITING STEP ── */
+                        <div>
+                            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                <div style={{ 
+                                    width: '60px', 
+                                    height: '60px', 
+                                    borderRadius: '50%', 
+                                    background: 'rgba(59, 130, 246, 0.15)', 
+                                    color: '#3b82f6', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    margin: '0 auto 16px',
+                                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                                }}>
+                                    <Mail size={30} />
+                                </div>
+                                <h2 className="form-header-title">E-Postanızı Doğrulayın</h2>
+                                <p className="form-header-subtitle" style={{ marginTop: '8px', lineHeight: 1.5 }}>
+                                    <strong style={{ color: 'var(--text-primary)' }}>{registeredEmail}</strong> adresinize bir doğrulama bağlantısı ve 6 haneli güvenlik kodu gönderdik.
+                                </p>
+                            </div>
 
-                    {error && (
-                        <div className="auth-error-alert">
-                            <AlertCircle size={16} style={{ flexShrink: 0 }} />
-                            <span>{error}</span>
+                            {resendMsg && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#10b981', fontSize: '12.5px', marginBottom: '16px' }}>
+                                    <CheckCircle2 size={15} style={{ flexShrink: 0 }} />
+                                    <span>{resendMsg}</span>
+                                </div>
+                            )}
+
+                            {otpError && (
+                                <div className="auth-error-alert" style={{ marginBottom: '16px' }}>
+                                    <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                                    <span>{otpError}</span>
+                                </div>
+                            )}
+
+                            {/* Option 1: Enter 6-digit OTP code directly */}
+                            <form onSubmit={handleVerifyOtp} style={{ marginBottom: '20px' }}>
+                                <div className="form-group" style={{ marginBottom: '14px' }}>
+                                    <label className="form-label" style={{ textAlign: 'center', display: 'block', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                                        Maildeki 6 haneli güvenlik kodunu girin:
+                                    </label>
+                                    <div className="modern-input-wrapper">
+                                        <KeyRound size={18} className="input-leading-icon" />
+                                        <input
+                                            type="text"
+                                            className="modern-input-field"
+                                            placeholder="000 000"
+                                            maxLength={6}
+                                            value={otpCode}
+                                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                                            style={{ letterSpacing: '6px', textAlign: 'center', fontSize: '20px', fontWeight: 'bold' }}
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="modern-submit-btn"
+                                    disabled={verifyingOtp || otpCode.length < 6}
+                                >
+                                    {verifyingOtp ? (
+                                        <>
+                                            <Loader2 size={16} className="spin" />
+                                            <span>Doğrulanıyor...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Kodu Onayla ve Giriş Yap</span>
+                                            <ArrowRight size={16} />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            <div style={{ textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0 }}>
+                                    Doğrulama linki veya kodu ulaşmadı mı?
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleResendEmail}
+                                    disabled={resendCooldown > 0 || resending}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: resendCooldown > 0 ? 'var(--text-muted)' : 'var(--accent-primary, #3b82f6)',
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px',
+                                        padding: 0
+                                    }}
+                                >
+                                    <Send size={14} />
+                                    <span>
+                                        {resending ? 'Gönderiliyor...' : resendCooldown > 0 ? `Tekrar Gönder (${resendCooldown}s)` : 'Tekrar E-posta Gönder'}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div className="auth-bottom-footer" style={{ marginTop: '20px' }}>
+                                <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <ArrowLeft size={14} />
+                                    <span>Giriş Sayfasına Git</span>
+                                </Link>
+                            </div>
+                        </div>
+                    ) : (
+                        /* ── STANDARD REGISTER FORM ── */
+                        <div>
+                            <div className="form-header-block">
+                                <h2 className="form-header-title">Şirket Hesabı Oluştur</h2>
+                                <p className="form-header-subtitle">Filo yönetim sistemine başlamak için formu doldurun.</p>
+                            </div>
+
+                            {error && (
+                                <div className="auth-error-alert">
+                                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} noValidate>
+                                <div className="form-group" style={{ marginBottom: '14px' }}>
+                                    <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
+                                        Şirket / Firma Adı *
+                                    </label>
+                                    <div className="modern-input-wrapper">
+                                        <Building2 size={18} className="input-leading-icon" />
+                                        <input
+                                            type="text"
+                                            className="modern-input-field"
+                                            placeholder="Örn: SAK VİNÇ LTD. ŞTİ."
+                                            value={companyName}
+                                            onChange={(e) => setCompanyName(e.target.value)}
+                                            autoFocus
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="auth-form-grid" style={{ marginBottom: '14px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
+                                            Kullanıcı Adı *
+                                        </label>
+                                        <div className="modern-input-wrapper">
+                                            <User size={18} className="input-leading-icon" />
+                                            <input
+                                                type="text"
+                                                className="modern-input-field"
+                                                placeholder="admin_kullanici"
+                                                value={username}
+                                                onChange={(e) => setUsername(e.target.value)}
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
+                                            E-Posta *
+                                        </label>
+                                        <div className="modern-input-wrapper">
+                                            <Mail size={18} className="input-leading-icon" />
+                                            <input
+                                                type="email"
+                                                className="modern-input-field"
+                                                placeholder="ornek@sirket.com"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="auth-form-grid" style={{ marginBottom: '22px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
+                                            Şifre (Min. 6) *
+                                        </label>
+                                        <div className="modern-input-wrapper">
+                                            <Lock size={18} className="input-leading-icon" />
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                className="modern-input-field"
+                                                style={{ paddingRight: '40px' }}
+                                                placeholder="••••••••"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                disabled={loading}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="input-toggle-btn"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                tabIndex="-1"
+                                                title={showPassword ? 'Şifreyi Gizle' : 'Şifreyi Göster'}
+                                            >
+                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
+                                            Şifre Tekrar *
+                                        </label>
+                                        <div className="modern-input-wrapper">
+                                            <Lock size={18} className="input-leading-icon" />
+                                            <input
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                className="modern-input-field"
+                                                style={{ paddingRight: '40px' }}
+                                                placeholder="••••••••"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                disabled={loading}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="input-toggle-btn"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                tabIndex="-1"
+                                                title={showConfirmPassword ? 'Şifreyi Gizle' : 'Şifreyi Göster'}
+                                            >
+                                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="modern-submit-btn"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 size={18} className="spin" />
+                                            <span>Hesap Oluşturuluyor...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Hesabı Oluştur ve Başla</span>
+                                            <ArrowRight size={16} />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            <div className="auth-bottom-footer">
+                                Zaten bir hesabınız var mı? <Link to="/login">Giriş Yapın</Link>
+                            </div>
                         </div>
                     )}
-
-                    <form onSubmit={handleSubmit} noValidate>
-                        <div className="form-group" style={{ marginBottom: '14px' }}>
-                            <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                Şirket / Firma Adı *
-                            </label>
-                            <div className="modern-input-wrapper">
-                                <Building2 size={18} className="input-leading-icon" />
-                                <input
-                                    type="text"
-                                    className="modern-input-field"
-                                    placeholder="Örn: SAK VİNÇ LTD. ŞTİ."
-                                    value={companyName}
-                                    onChange={(e) => setCompanyName(e.target.value)}
-                                    autoFocus
-                                    disabled={loading}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="auth-form-grid" style={{ marginBottom: '14px' }}>
-                            <div className="form-group">
-                                <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                    Kullanıcı Adı *
-                                </label>
-                                <div className="modern-input-wrapper">
-                                    <User size={18} className="input-leading-icon" />
-                                    <input
-                                        type="text"
-                                        className="modern-input-field"
-                                        placeholder="admin_kullanici"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                    E-Posta *
-                                </label>
-                                <div className="modern-input-wrapper">
-                                    <Mail size={18} className="input-leading-icon" />
-                                    <input
-                                        type="email"
-                                        className="modern-input-field"
-                                        placeholder="ornek@sirket.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="auth-form-grid" style={{ marginBottom: '22px' }}>
-                            <div className="form-group">
-                                <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                    Şifre (Min. 6) *
-                                </label>
-                                <div className="modern-input-wrapper">
-                                    <Lock size={18} className="input-leading-icon" />
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        className="modern-input-field"
-                                        style={{ paddingRight: '40px' }}
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        disabled={loading}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="input-toggle-btn"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        tabIndex="-1"
-                                        title={showPassword ? 'Şifreyi Gizle' : 'Şifreyi Göster'}
-                                    >
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                    Şifre Tekrar *
-                                </label>
-                                <div className="modern-input-wrapper">
-                                    <Lock size={18} className="input-leading-icon" />
-                                    <input
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        className="modern-input-field"
-                                        style={{ paddingRight: '40px' }}
-                                        placeholder="••••••••"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        disabled={loading}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="input-toggle-btn"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        tabIndex="-1"
-                                        title={showConfirmPassword ? 'Şifreyi Gizle' : 'Şifreyi Göster'}
-                                    >
-                                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="modern-submit-btn"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={18} className="spin" />
-                                    <span>Hesap Oluşturuluyor...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>Hesabı Oluştur ve Başla</span>
-                                    <ArrowRight size={16} />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="auth-bottom-footer">
-                        Zaten bir hesabınız var mı? <Link to="/login">Giriş Yapın</Link>
-                    </div>
                 </div>
             </div>
         </div>
