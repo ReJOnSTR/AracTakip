@@ -411,25 +411,27 @@ export default function EmailTemplatesManager() {
             {mainTab === 'templates' && (
                 <div className="supabase-templates-content">
                     
-                    {/* Amber Notice Banner (Matching Supabase Studio) */}
-                    <div className="supabase-amber-banner">
-                        <div className="banner-icon">
-                            <ShieldAlert size={18} />
+                    {/* Amber Notice Banner - Only shown when custom SMTP is NOT configured */}
+                    {(!smtpHost || !hasPass) && (
+                        <div className="supabase-amber-banner">
+                            <div className="banner-icon">
+                                <ShieldAlert size={18} />
+                            </div>
+                            <div className="banner-text-wrap">
+                                <h4 className="banner-title">Email rate-limits and custom delivery</h4>
+                                <p className="banner-desc">
+                                    E-postalarınızın şirket logonuz ve %100 özel HTML tasarımınızla sorunsuz iletilmesi için özel SMTP sunucunuzu bağlayabilirsiniz.
+                                </p>
+                                <button 
+                                    type="button"
+                                    className="banner-btn"
+                                    onClick={() => setMainTab('smtp')}
+                                >
+                                    Set up custom SMTP server
+                                </button>
+                            </div>
                         </div>
-                        <div className="banner-text-wrap">
-                            <h4 className="banner-title">Email rate-limits and custom delivery</h4>
-                            <p className="banner-desc">
-                                E-postalarınızın şirket logonuz ve %100 özel HTML tasarımınızla sorunsuz iletilmesi için özel SMTP sunucunuzu bağlayabilirsiniz.
-                            </p>
-                            <button 
-                                type="button"
-                                className="banner-btn"
-                                onClick={() => setMainTab('smtp')}
-                            >
-                                Set up custom SMTP server
-                            </button>
-                        </div>
-                    </div>
+                    )}
 
                     {/* Main Template Box (Red Boxed Container #3 in Screenshot) */}
                     <div className="supabase-template-box">
@@ -499,25 +501,6 @@ export default function EmailTemplatesManager() {
                                             <Eye size={13} />
                                             <span>Preview</span>
                                         </button>
-                                    </div>
-                                </div>
-
-                                {/* Dynamic Variables Inline Ribbon */}
-                                <div className="supabase-vars-ribbon">
-                                    <span className="vars-ribbon-title">Available variables:</span>
-                                    <div className="vars-chips-wrap">
-                                        {DYNAMIC_VARIABLES.map(v => (
-                                            <button
-                                                key={v.key}
-                                                type="button"
-                                                className={`supabase-var-chip ${copiedVar === v.key ? 'copied' : ''}`}
-                                                onClick={() => handleInsertVariable(v.key)}
-                                                title={`${v.label} (İmlecin olduğu yere ekle)`}
-                                            >
-                                                <code>{v.key}</code>
-                                                {copiedVar === v.key ? <Check size={11} /> : <Copy size={11} />}
-                                            </button>
-                                        ))}
                                     </div>
                                 </div>
 
