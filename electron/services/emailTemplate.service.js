@@ -453,14 +453,26 @@ async function sendTestEmail(data, actorUser) {
             return { success: false, error: 'Hedef e-posta adresi ve HTML içeriği gereklidir' };
         }
 
-        let confirmationUrl = 'https://kontrol-app.com/login?verified=true&test=1';
+        let redirectTarget = 'https://kontrol-app.com/login?verified=true';
+        if (type === 'recovery') {
+            redirectTarget = 'https://kontrol-app.com/reset-password';
+        } else if (type === 'invite') {
+            redirectTarget = 'https://kontrol-app.com/reset-password?invite=true';
+        } else if (type === 'change_email') {
+            redirectTarget = 'https://kontrol-app.com/login?email_changed=true';
+        }
+
+        let confirmationUrl = redirectTarget;
         let token = '849 201';
 
         try {
             const linkType = type === 'confirmation' ? 'signup' : (type === 'recovery' ? 'recovery' : (type === 'invite' ? 'invite' : 'magiclink'));
             const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
                 type: linkType,
-                email: targetEmail
+                email: targetEmail,
+                options: {
+                    redirectTo: redirectTarget
+                }
             });
             if (linkData?.properties?.action_link) {
                 confirmationUrl = linkData.properties.action_link;
