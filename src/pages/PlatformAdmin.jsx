@@ -960,8 +960,71 @@ export default function PlatformAdmin({ section }) {
     ]
 
     return (
-        <div>
+        <div className="platform-admin-page">
             <TopProgressBar loading={loading || backupLoading || logsLoading || announcementsLoading || createCompanyLoading} />
+
+            {/* Platform Master Navigation Tabs */}
+            <div className="platform-tabs">
+                <button
+                    className={`platform-tab-btn ${activeSection === 'users' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/users')}
+                >
+                    <Users size={15} />
+                    <span>Kullanıcı Hesapları</span>
+                    {platformUsers.length > 0 && <span className="platform-tab-badge">{platformUsers.length}</span>}
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeSection === 'companies' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/companies')}
+                >
+                    <Building2 size={15} />
+                    <span>Şirketler</span>
+                    {overviewData?.stats?.totalCompanies > 0 && <span className="platform-tab-badge">{overviewData.stats.totalCompanies}</span>}
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeSection === 'announcements' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/announcements')}
+                >
+                    <Megaphone size={15} />
+                    <span>Canlı Duyurular</span>
+                    {announcements.length > 0 && <span className="platform-tab-badge">{announcements.length}</span>}
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeSection === 'audit' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/audit')}
+                >
+                    <History size={15} />
+                    <span>Denetim İzi & Olaylar</span>
+                    {auditMetrics?.total24h > 0 && <span className="platform-tab-badge">{auditMetrics.total24h}</span>}
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeSection === 'health' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/health')}
+                >
+                    <Activity size={15} />
+                    <span>Sistem Sağlığı</span>
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeSection === 'logs' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/logs')}
+                >
+                    <ScrollText size={15} />
+                    <span>Hata Logları</span>
+                </button>
+
+                <button
+                    className={`platform-tab-btn ${activeSection === 'backups' ? 'active' : ''}`}
+                    onClick={() => navigate('/platform/backups')}
+                >
+                    <Database size={15} />
+                    <span>Yedekler</span>
+                </button>
+            </div>
 
             {/* ══════════════════════════════════════════════════════
                 PAGE 1: USERS & COMPANY ACCOUNTS (/platform/users)

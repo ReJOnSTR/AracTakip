@@ -5,9 +5,9 @@
 /* Standard Segmented/Underline Tabs matching VehicleDetail & Settings */
 .platform-tabs {
     display: flex;
-    gap: 24px;
+    gap: 8px;
     margin-bottom: 24px;
-    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 0;
     overflow-x: auto;
     position: relative;
@@ -17,43 +17,46 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 2px 14px 2px;
+    padding: 10px 14px 12px 14px;
     font-size: 13.5px;
     font-weight: 500;
-    color: var(--text-secondary, #94a3b8);
+    color: var(--text-secondary);
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
     cursor: pointer;
-    transition: color 0.15s ease, border-color 0.15s ease;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
     white-space: nowrap;
     position: relative;
     margin-bottom: -1px;
+    border-radius: 6px 6px 0 0;
 }
 
 .platform-tab-btn:hover {
-    color: var(--text-primary, #f8fafc);
+    color: var(--text-primary);
+    background: var(--bg-card-hover, rgba(255, 255, 255, 0.03));
 }
 
 .platform-tab-btn.active {
     color: var(--accent-primary, #3b82f6);
     border-bottom-color: var(--accent-primary, #3b82f6);
+    font-weight: 600;
 }
 
 .platform-tab-badge {
-    padding: 1px 7px;
+    padding: 2px 7px;
     border-radius: 10px;
     font-size: 11px;
-    font-weight: 500;
-    background: var(--bg-tertiary, #222736);
-    color: var(--text-secondary, #94a3b8);
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
-    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    font-weight: 600;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    transition: all 0.15s ease;
 }
 
 .platform-tab-btn.active .platform-tab-badge {
     background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
+    color: var(--accent-primary, #3b82f6);
     border-color: rgba(59, 130, 246, 0.3);
 }
 
@@ -78,6 +81,33 @@
     font-size: 11px;
     color: #10b981;
     margin-top: 3px;
+}
+
+/* Status Badges */
+.status-badge-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: var(--radius-full, 9999px);
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-badge-suspended {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: var(--radius-full, 9999px);
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    font-size: 11px;
+    font-weight: 600;
 }
 
 /* Action Buttons */
@@ -129,6 +159,76 @@
     border-color: #3b82f6;
 }
 
+/* ==========================================================================
+   PLATFORM METRIC CARDS & OVERVIEW GRID (Used in Audit Trail & Stats)
+   ========================================================================== */
+.platform-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.platform-metric-card {
+    background: var(--bg-card, var(--bg-secondary));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 12px);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.platform-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-primary, #3b82f6);
+}
+
+.metric-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.metric-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.metric-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.metric-sublabel {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Health Metrics & Observability Grid */
 .health-dashboard-grid {
     display: grid;
@@ -138,12 +238,13 @@
 }
 
 .health-metric-card {
-    background: var(--bg-secondary, #161922);
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    background: var(--bg-card, var(--bg-secondary));
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 16px;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .health-metric-header {
@@ -156,7 +257,7 @@
 .health-metric-title {
     font-size: 12.5px;
     font-weight: 600;
-    color: var(--text-secondary, #94a3b8);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 6px;
