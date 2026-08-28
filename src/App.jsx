@@ -171,7 +171,11 @@ function AppRoutes() {
                                 ? <Navigate to="/platform/users" replace />
                                 : (user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <Navigate to="/portal" replace />)
                         } />
-                        <Route path="/portal" element={user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <MainPortal />} />
+                        <Route path="/portal" element={
+                            user?.role === 'personnel' 
+                                ? <Navigate to="/personnel-profile" replace /> 
+                                : (user?.role === 'superadmin' ? <Navigate to="/platform/users" replace /> : <MainPortal />)
+                        } />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/finance-dashboard" element={<FinanceDashboard />} />
                         <Route path="/finance" element={<Finance />} />

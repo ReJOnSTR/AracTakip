@@ -45,7 +45,7 @@ function SortableTab({ tab, isActive, activateTab, closeTab }) {
 export default function TabBar() {
     const { tabs, activeTabId, activateTab, closeTab, updateTabsOrder, openNewTab, canGoBack, canGoForward, goBack, goForward } = useTabs()
     const { user, logout } = useAuth()
-    const { companies, currentCompany, selectCompany } = useCompany()
+    const { companies, currentCompany, selectCompany, isImpersonating } = useCompany()
     const navigate = useNavigate()
     const location = useLocation()
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
@@ -213,62 +213,64 @@ export default function TabBar() {
             {/* Right: Header Actions */}
             <div className="tab-bar-right">
                 <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Company Selector */}
-                    <div className="company-selector">
-                        {user?.role === 'personnel' ? (
-                            <div
-                                className="company-selector-btn"
-                                style={{ cursor: 'default', opacity: 0.9, pointerEvents: 'none' }}
-                            >
-                                <Building2 size={16} />
-                                <span>{currentCompany?.name || ''}</span>
-                            </div>
-                        ) : (
-                            <button
-                                className="company-selector-btn"
-                                onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                            >
-                                <Building2 size={16} />
-                                <span>{currentCompany?.name || 'Şirket Seçin'}</span>
-                                <ChevronDown size={14} />
-                            </button>
-                        )}
-
-                        {showCompanyDropdown && (
-                            <>
+                    {/* Company Selector - Hidden for Standalone SuperAdmin in Main Window */}
+                    {!(isSuperAdmin && !isImpersonating) && (
+                        <div className="company-selector">
+                            {user?.role === 'personnel' || isImpersonating ? (
                                 <div
-                                    className="dropdown-backdrop"
-                                    style={{ position: 'fixed', inset: 0, zIndex: 199 }}
-                                    onClick={() => setShowCompanyDropdown(false)}
-                                />
-                                <div className="company-dropdown">
-                                    {companies.length === 0 ? (
-                                        <div className="company-dropdown-item">
-                                            <span style={{ color: 'var(--text-secondary)' }}>Henüz şirket eklenmemiş</span>
-                                        </div>
-                                    ) : (
-                                        companies.map((company) => (
-                                            <div
-                                                key={company.id}
-                                                className={`company-dropdown-item ${currentCompany?.id === company.id ? 'active' : ''}`}
-                                                onClick={() => handleCompanySelect(company)}
-                                            >
-                                                <Building2 size={18} />
-                                                <span>{company.name}</span>
-                                            </div>
-                                        ))
-                                    )}
-                                    <div
-                                        className="company-dropdown-item management-action"
-                                        onClick={() => { navigate('/companies'); setShowCompanyDropdown(false) }}
-                                    >
-                                        <Settings size={16} />
-                                        <span>Şirket Yönetimi</span>
-                                    </div>
+                                    className="company-selector-btn"
+                                    style={{ cursor: 'default', opacity: 0.9, pointerEvents: 'none' }}
+                                >
+                                    <Building2 size={16} />
+                                    <span>{currentCompany?.name || ''}</span>
                                 </div>
-                            </>
-                        )}
-                    </div>
+                            ) : (
+                                <button
+                                    className="company-selector-btn"
+                                    onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                                >
+                                    <Building2 size={16} />
+                                    <span>{currentCompany?.name || 'Şirket Seçin'}</span>
+                                    <ChevronDown size={14} />
+                                </button>
+                            )}
+
+                            {showCompanyDropdown && (
+                                <>
+                                    <div
+                                        className="dropdown-backdrop"
+                                        style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+                                        onClick={() => setShowCompanyDropdown(false)}
+                                    />
+                                    <div className="company-dropdown">
+                                        {companies.length === 0 ? (
+                                            <div className="company-dropdown-item">
+                                                <span style={{ color: 'var(--text-secondary)' }}>Henüz şirket eklenmemiş</span>
+                                            </div>
+                                        ) : (
+                                            companies.map((company) => (
+                                                <div
+                                                    key={company.id}
+                                                    className={`company-dropdown-item ${currentCompany?.id === company.id ? 'active' : ''}`}
+                                                    onClick={() => handleCompanySelect(company)}
+                                                >
+                                                    <Building2 size={18} />
+                                                    <span>{company.name}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                        <div
+                                            className="company-dropdown-item management-action"
+                                            onClick={() => { navigate('/companies'); setShowCompanyDropdown(false) }}
+                                        >
+                                            <Settings size={16} />
+                                            <span>Şirket Yönetimi</span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
 
                     {/* User Menu */}
                     <div className="user-menu">

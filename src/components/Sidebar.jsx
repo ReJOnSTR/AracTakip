@@ -6,23 +6,28 @@ import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
 import { useEffect } from 'react'
 
+import { useCompany } from '../context/CompanyContext'
+
 export default function Sidebar({ collapsed, onToggle }) {
     const { openNewTab } = useTabs()
     const { user } = useAuth()
+    const { isImpersonating } = useCompany()
     const location = useLocation()
 
     const isSuperAdmin = user?.role === 'superadmin'
 
-    // Determine the active module
-    const activeModule = getActiveModule(location.pathname, location.search)
+    // Determine the active module (For standalone SuperAdmin, always 'platform')
+    const activeModule = (isSuperAdmin && !isImpersonating) 
+        ? 'platform' 
+        : getActiveModule(location.pathname, location.search)
     const activeMenus = moduleMenus[activeModule] || []
 
     // Persist active module so we can recover it for non-module pages (like /settings)
     useEffect(() => {
-        if (activeModule && activeModule !== 'portal') {
+        if (activeModule && activeModule !== 'portal' && !isSuperAdmin) {
             sessionStorage.setItem('lastActiveModule', activeModule)
         }
-    }, [activeModule])
+    }, [activeModule, isSuperAdmin])
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''} `}>
@@ -70,56 +75,20 @@ export default function Sidebar({ collapsed, onToggle }) {
             </nav>
 
             <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {isSuperAdmin && activeModule !== 'platform' && (
-                    <button
-                        onClick={() => openNewTab('/platform/users', false, 'Platform Yönetimi')}
-                        className="nav-item"
-                        style={{
-                            width: '100%',
-                            background: 'rgba(245, 158, 11, 0.12)',
-                            color: '#f59e0b',
-                            border: '1px solid rgba(245, 158, 11, 0.25)',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: collapsed ? '10px 0' : '8px 12px',
-                            justifyContent: collapsed ? 'center' : 'flex-start',
-                            fontWeight: 600,
-                            fontSize: '12.5px',
-                            cursor: 'pointer'
-                        }}
-                        title={collapsed ? 'Platform Yönetimi' : ''}
-                    >
-                        <Crown size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
-                        {!collapsed && <span>Platform Yönetimi</span>}
-                    </button>
-                )}
-
-                {activeModule === 'platform' && (
-                    <button
-                        onClick={() => openNewTab('/portal', false, 'Ana Portal')}
-                        className="nav-item"
-                        style={{
-                            width: '100%',
-                            background: 'rgba(59, 130, 246, 0.12)',
-                            color: '#60a5fa',
-                            border: '1px solid rgba(59, 130, 246, 0.25)',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: collapsed ? '10px 0' : '8px 12px',
-                            justifyContent: collapsed ? 'center' : 'flex-start',
-                            fontWeight: 600,
-                            fontSize: '12.5px',
-                            cursor: 'pointer'
-                        }}
-                        title={collapsed ? 'Ana Portala Dön' : ''}
-                    >
-                        <Layers size={18} style={{ color: '#60a5fa', flexShrink: 0 }} />
-                        {!collapsed && <span>Ana Portala Dön</span>}
-                    </button>
+                {/* Portal / Platform Quick Switches (Hidden for standalone SuperAdmin in main window) */}
+                {isImpersonating && (
+                    <div style={{
+                        padding: collapsed ? '8px 4px' : '6px 10px',
+                        background: 'rgba(245, 158, 11, 0.15)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        color: '#f59e0b',
+                        fontWeight: 600,
+                        textAlign: 'center'
+                    }}>
+                        {collapsed ? '👁️' : '👁️ Gözlemci Modu'}
+                    </div>
                 )}
 
                 <button className="sidebar-toggle" onClick={onToggle}>
