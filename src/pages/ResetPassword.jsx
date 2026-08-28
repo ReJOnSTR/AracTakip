@@ -123,7 +123,7 @@ export default function ResetPassword() {
         e?.preventDefault()
         setError('')
         const cleanEmail = manualEmail.trim()
-        const cleanCode = otpCode.trim()
+        const cleanCode = otpCode.replace(/[\s\-_]/g, '').trim()
 
         if (!cleanEmail || !cleanCode) {
             setError('Lütfen e-posta adresinizi ve 6 haneli doğrulama kodunu girin.')

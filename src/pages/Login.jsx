@@ -219,7 +219,7 @@ export default function Login() {
         setForgotError('')
 
         const cleanEmail = forgotEmail.trim()
-        const cleanOtp = forgotOtp.trim()
+        const cleanOtp = forgotOtp.replace(/[\s\-_]/g, '').trim()
 
         if (!cleanEmail || !cleanOtp) {
             setForgotError('Lütfen 6 haneli doğrulama kodunu girin.')
