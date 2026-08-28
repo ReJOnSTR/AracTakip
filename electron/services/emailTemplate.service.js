@@ -93,10 +93,9 @@ function generateTemplateHtml(type) {
       margin: 0;
       padding: 0;
       width: 100% !important;
-      background: transparent !important;
+      background-color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      color: #334155;
-      -webkit-font-smoothing: antialiased;
+      color: #a1a1aa;
     }
     table {
       border-spacing: 0;
@@ -107,91 +106,104 @@ function generateTemplateHtml(type) {
     }
     .wrapper {
       width: 100%;
-      background: transparent !important;
-      padding: 32px 12px;
+      background-color: #ffffff;
+      padding: 40px 16px;
     }
     .card {
       width: 100%;
-      max-width: 500px;
+      max-width: 640px;
       margin: 0 auto;
-      background: transparent !important;
+      background: #141416;
+      border: 1px solid #27272a;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .header {
+      padding: 24px 36px;
+      border-bottom: 1px solid #27272a;
+      background: #141416;
     }
     .brand {
-      font-size: 13.5px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 2px;
-      color: #0f172a;
+      color: #ffffff;
       text-transform: uppercase;
-      margin-bottom: 24px;
+    }
+    .content {
+      padding: 36px 36px 32px 36px;
     }
     h1 {
-      margin: 0 0 12px 0;
-      font-size: 19px;
+      margin: 0 0 14px 0;
+      font-size: 22px;
       font-weight: 600;
-      color: #0f172a;
+      color: #ffffff;
       line-height: 1.35;
-      letter-spacing: -0.2px;
+      letter-spacing: -0.3px;
     }
     p {
-      margin: 0 0 20px 0;
-      font-size: 14px;
+      margin: 0 0 24px 0;
+      font-size: 14.5px;
       line-height: 1.6;
-      color: #475569;
+      color: #a1a1aa;
     }
     .btn-wrap {
-      margin: 24px 0;
+      margin: 28px 0;
     }
     .btn {
       display: inline-block;
-      padding: 10px 20px;
-      background: #0f172a;
-      color: #ffffff !important;
+      padding: 12px 26px;
+      background: #ffffff;
+      color: #09090b !important;
       text-decoration: none;
       border-radius: 6px;
-      font-weight: 500;
-      font-size: 13.5px;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.1px;
     }
     .otp-block {
-      margin: 20px 0;
-      padding: 12px 16px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      display: inline-block;
+      margin: 26px 0;
+      padding: 16px 20px;
+      background: #0c0c0e;
+      border: 1px solid #27272a;
+      border-radius: 8px;
     }
     .otp-label {
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      color: #64748b;
-      margin-bottom: 4px;
+      color: #71717a;
+      margin-bottom: 6px;
     }
     .otp-code {
       font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
-      font-size: 22px;
+      font-size: 26px;
       font-weight: 700;
-      letter-spacing: 5px;
-      color: #0f172a;
+      letter-spacing: 8px;
+      color: #14b8a6;
     }
     .notice {
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid #f1f5f9;
-      font-size: 12px;
+      margin-top: 26px;
+      padding-top: 20px;
+      border-top: 1px solid #27272a;
+      font-size: 12.5px;
       line-height: 1.5;
-      color: #94a3b8;
+      color: #71717a;
     }
     .footer {
-      margin-top: 20px;
-      font-size: 11px;
-      line-height: 1.5;
-      color: #94a3b8;
+      padding: 22px 36px;
+      border-top: 1px solid #27272a;
+      background: #0f0f11;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #52525b;
     }
     @media screen and (max-width: 600px) {
       .wrapper { padding: 16px 8px; }
+      .content, .header, .footer { padding: 20px 18px; }
       .btn { display: block; text-align: center; }
-      .otp-code { font-size: 18px; letter-spacing: 4px; }
+      .otp-code { font-size: 22px; letter-spacing: 4px; }
     }
   </style>
 </head>
@@ -201,8 +213,12 @@ function generateTemplateHtml(type) {
       <td align="center">
         <table class="card" role="presentation">
           <tr>
-            <td>
+            <td class="header">
               <div class="brand">KONTROL</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="content">
               <h1>${title}</h1>
               <p>${description}</p>
               
@@ -219,11 +235,12 @@ function generateTemplateHtml(type) {
               <div class="notice">
                 Bu isteği siz başlatmadıysanız bu iletiyi güvenle yok sayabilirsiniz.
               </div>
-
-              <div class="footer">
-                Bu e-posta <strong>{{ .Email }}</strong> adresine gönderilmiştir.<br>
-                © 2026 Kontrol. Tüm hakları saklıdır.
-              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="footer">
+              Bu e-posta <strong>{{ .Email }}</strong> adresine gönderilmiştir.<br>
+              © 2026 Kontrol. Tüm hakları saklıdır.
             </td>
           </tr>
         </table>

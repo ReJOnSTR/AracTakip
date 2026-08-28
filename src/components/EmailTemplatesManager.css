@@ -400,8 +400,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
-    background: var(--bg-primary, #0f0f11);
+    padding: 16px;
+    background: #0f0f11;
     overflow: auto;
 }
 
@@ -409,26 +409,15 @@
     width: 100%;
 }
 
-.preview-viewport.desktop .preview-frame {
-    max-width: 540px;
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-}
-
 .preview-viewport.mobile .preview-frame {
     max-width: 375px;
-    background: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
 }
 
 .preview-frame {
     width: 100%;
-    min-height: 420px;
+    min-height: 440px;
     border: none;
     background: transparent;
 }
