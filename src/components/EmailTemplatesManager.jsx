@@ -7,7 +7,6 @@ import {
     RefreshCw, 
     Code2, 
     Eye, 
-    Columns, 
     Smartphone, 
     Monitor, 
     Send, 
@@ -19,10 +18,8 @@ import {
     AlertCircle, 
     CheckCircle2, 
     Loader2,
-    Layers,
     Shield,
-    User,
-    ChevronDown
+    User
 } from 'lucide-react'
 import Modal from './Modal'
 import CustomInput from './CustomInput'
@@ -32,8 +29,7 @@ export default function EmailTemplatesManager() {
     const [templates, setTemplates] = useState([])
     const [loading, setLoading] = useState(true)
     const [activeType, setActiveType] = useState('confirmation')
-    const [viewMode, setViewMode] = useState('split') // 'split', 'code', 'preview'
-    const [deviceMode, setDeviceMode] = useState('desktop') // 'desktop', 'mobile'
+    const [deviceMode, setDeviceMode] = useState('desktop') // 'desktop' | 'mobile'
     
     // Editor State
     const [currentSubject, setCurrentSubject] = useState('')
@@ -54,10 +50,10 @@ export default function EmailTemplatesManager() {
 
     // Dynamic Variables Reference
     const DYNAMIC_VARIABLES = [
-        { key: '{{ .ConfirmationURL }}', label: 'Onay Linki', desc: 'İşlem butonu URL bağlantısı' },
-        { key: '{{ .Token }}', label: 'OTP Kodu', desc: '6 haneli doğrulama kodu' },
+        { key: '{{ .ConfirmationURL }}', label: 'Onay Linki', desc: 'İşlem butonu güvenli URL bağlantısı' },
+        { key: '{{ .Token }}', label: 'OTP Kod', desc: '6 haneli doğrulama kodu' },
         { key: '{{ .Email }}', label: 'Alıcı E-Posta', desc: 'Kullanıcı e-posta adresi' },
-        { key: '{{ .SiteURL }}', label: 'Site URL', desc: 'Uygulama web adresi' },
+        { key: '{{ .SiteURL }}', label: 'Site URL', desc: 'SaaS platform web adresi' },
         { key: '{{ .Data.username }}', label: 'Kullanıcı Adı', desc: 'Kullanıcı adı' },
         { key: '{{ .Data.company_name }}', label: 'Şirket Adı', desc: 'Kayıtlı şirket unvanı' }
     ]
@@ -273,12 +269,12 @@ export default function EmailTemplatesManager() {
 
     const getIconForType = (type) => {
         switch(type) {
-            case 'confirmation': return <Mail size={16} />
-            case 'recovery': return <KeyRound size={16} />
-            case 'magic_link': return <Sparkles size={16} />
-            case 'invite': return <UserPlus size={16} />
-            case 'change_email': return <RefreshCw size={16} />
-            default: return <Mail size={16} />
+            case 'confirmation': return <Mail size={15} />
+            case 'recovery': return <KeyRound size={15} />
+            case 'magic_link': return <Sparkles size={15} />
+            case 'invite': return <UserPlus size={15} />
+            case 'change_email': return <RefreshCw size={15} />
+            default: return <Mail size={15} />
         }
     }
 
@@ -292,8 +288,8 @@ export default function EmailTemplatesManager() {
     }
 
     return (
-        <div className="email-templates-card">
-            {/* Feedback Toast */}
+        <div className="email-templates-studio">
+            {/* Feedback Alert Toast */}
             {feedback && (
                 <div className={`email-templates-toast ${feedback.type}`}>
                     {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
@@ -301,244 +297,207 @@ export default function EmailTemplatesManager() {
                 </div>
             )}
 
-            {/* Workspace Layout */}
-            <div className="email-templates-workspace">
-                
-                {/* Left Sidebar: Template Navigation */}
-                <div className="email-templates-sidebar">
-                    <div className="sidebar-header">
-                        <Layers size={15} style={{ color: 'var(--accent-primary)' }} />
-                        <h3>Şablonlar</h3>
-                    </div>
-                    
-                    <div className="sidebar-templates-list">
-                        {templates.map(t => (
-                            <button
-                                key={t.type}
-                                className={`template-nav-item ${activeType === t.type ? 'active' : ''}`}
-                                onClick={() => handleSelectTemplate(t.type)}
-                            >
-                                <div className="template-nav-left">
-                                    <span className="template-nav-icon-wrap">
-                                        {getIconForType(t.type)}
-                                    </span>
-                                    <div className="template-nav-info">
-                                        <div className="template-nav-name">{t.name}</div>
-                                        <div className="template-nav-desc">{t.description}</div>
-                                    </div>
-                                </div>
-                                {t.isCustomized && (
-                                    <span className="badge-customized">Özel</span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
+            {/* 1. Standard Platform Tabs */}
+            <div className="platform-tabs" style={{ marginBottom: '16px' }}>
+                {templates.map(t => (
+                    <button
+                        key={t.type}
+                        className={`platform-tab-btn ${activeType === t.type ? 'active' : ''}`}
+                        onClick={() => handleSelectTemplate(t.type)}
+                    >
+                        {getIconForType(t.type)}
+                        <span>{t.name?.split('(')[0]?.trim()}</span>
+                        {t.isCustomized ? (
+                            <span className="platform-tab-badge" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>Özel</span>
+                        ) : null}
+                    </button>
+                ))}
+            </div>
 
-                    <div className="sidebar-footer-hint">
-                        <Shield size={13} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
-                        <span>Tüm e-posta istemcileriyle (Gmail, Outlook, Apple) %100 uyumludur.</span>
-                    </div>
+            {/* 2. Top Action Controls */}
+            <div className="studio-action-bar">
+                <div className="studio-template-description">
+                    <strong>{activeTemplate?.name}</strong>: {activeTemplate?.description}
                 </div>
+                <div className="studio-actions-group">
+                    <button 
+                        className="btn btn-secondary"
+                        onClick={() => setTestModalOpen(true)}
+                        title="Kendi e-posta adresinize gerçek bir test maili gönderin"
+                    >
+                        <Send size={15} />
+                        <span>Test Maili Gönder</span>
+                    </button>
 
-                {/* Right Main Studio Workspace */}
-                <div className="email-templates-main">
+                    {activeTemplate?.isCustomized && (
+                        <button 
+                            className="btn btn-secondary"
+                            onClick={handleReset}
+                            disabled={resetting}
+                            title="Orijinal varsayılan şablona geri dön"
+                        >
+                            <RotateCcw size={15} className={resetting ? 'spin' : ''} />
+                            <span>Varsayılana Sıfırla</span>
+                        </button>
+                    )}
+
+                    <button 
+                        className="btn btn-primary"
+                        onClick={handleSave}
+                        disabled={saving || !isDirty}
+                    >
+                        {saving ? <Loader2 size={15} className="spin" /> : <Save size={15} />}
+                        <span>{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* 3. Studio 2-Column Responsive Workspace */}
+            <div className="studio-workspace-grid">
+                
+                {/* Left Column: Form Settings & HTML Code Editor */}
+                <div className="studio-col-editor">
                     
-                    {/* 1. Clean Top Header Bar (Integrated Subject + Actions) */}
-                    <div className="studio-topbar">
-                        {/* Subject Line & Active Template Pill */}
-                        <div className="studio-subject-wrapper">
-                            <span className="studio-template-pill">
-                                {getIconForType(activeType)}
-                                <span>{activeTemplate?.name?.split('(')[0]?.trim() || 'Şablon'}</span>
+                    {/* Card 1: Email Metadata Form */}
+                    <div className="studio-card">
+                        <div className="studio-card-header">
+                            <span className="studio-card-title">
+                                <User size={14} style={{ color: 'var(--accent-primary)' }} />
+                                E-Posta Başlık & Gönderici Ayarları
                             </span>
-                            <div className="studio-subject-input-box">
-                                <span className="subject-prefix">Konu:</span>
-                                <input 
-                                    type="text"
-                                    className="studio-subject-input"
-                                    value={currentSubject}
-                                    onChange={handleSubjectChange}
-                                    placeholder="E-posta konu başlığını yazın..."
-                                />
-                            </div>
                         </div>
-
-                        {/* Right Actions: View Switcher & Action Buttons */}
-                        <div className="studio-top-actions">
-                            <div className="studio-view-tabs">
-                                <button 
-                                    className={`studio-tab ${viewMode === 'code' ? 'active' : ''}`}
-                                    onClick={() => setViewMode('code')}
-                                    title="Sadece HTML Kod Editörü"
-                                >
-                                    <Code2 size={13} />
-                                    <span>Kod</span>
-                                </button>
-                                <button 
-                                    className={`studio-tab ${viewMode === 'split' ? 'active' : ''}`}
-                                    onClick={() => setViewMode('split')}
-                                    title="Bölünmüş Ekran (Kod + Canlı Önizleme)"
-                                >
-                                    <Columns size={13} />
-                                    <span>Bölünmüş</span>
-                                </button>
-                                <button 
-                                    className={`studio-tab ${viewMode === 'preview' ? 'active' : ''}`}
-                                    onClick={() => setViewMode('preview')}
-                                    title="Sadece Canlı Önizleme"
-                                >
-                                    <Eye size={13} />
-                                    <span>Önizleme</span>
-                                </button>
-                            </div>
-
-                            <button 
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => setTestModalOpen(true)}
-                                title="Kendi e-postanıza canlı test iletisi gönderin"
-                            >
-                                <Send size={13} />
-                                <span>Test Gönder</span>
-                            </button>
-
-                            {activeTemplate?.isCustomized && (
-                                <button 
-                                    className="btn btn-secondary btn-sm"
-                                    onClick={handleReset}
-                                    disabled={resetting}
-                                    title="Orijinal varsayılana sıfırla"
-                                >
-                                    <RotateCcw size={13} className={resetting ? 'spin' : ''} />
-                                    <span>Sıfırla</span>
-                                </button>
-                            )}
-
-                            <button 
-                                className="btn btn-primary btn-sm"
-                                onClick={handleSave}
-                                disabled={saving || !isDirty}
-                            >
-                                {saving ? <Loader2 size={13} className="spin" /> : <Save size={13} />}
-                                <span>{saving ? 'Kaydediliyor' : 'Kaydet'}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 2. Compact Metadata & Dynamic Variable Ribbon */}
-                    <div className="studio-metadata-ribbon">
-                        {/* Sender Input */}
-                        <div className="ribbon-sender-box">
-                            <span className="ribbon-label">Gönderen:</span>
-                            <input 
-                                type="text"
-                                className="ribbon-sender-input"
-                                value={currentSenderName}
-                                onChange={handleSenderNameChange}
-                                placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
-                            />
-                        </div>
-
-                        {/* Variables Inline Chips */}
-                        <div className="ribbon-vars-box">
-                            <span className="ribbon-vars-title">Değişkenler:</span>
-                            <div className="ribbon-vars-list">
-                                {DYNAMIC_VARIABLES.map(v => (
-                                    <button
-                                        key={v.key}
-                                        type="button"
-                                        className={`var-chip ${copiedVar === v.key ? 'copied' : ''}`}
-                                        onClick={() => handleInsertVariable(v.key)}
-                                        title={`${v.label}: ${v.desc} (Tıklayıp imlecin olduğu yere ekleyin)`}
-                                    >
-                                        <code>{v.key}</code>
-                                        {copiedVar === v.key && <Check size={10} />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 3. Editor & Live Preview Grid */}
-                    <div className={`studio-editor-grid ${viewMode}`}>
-                        
-                        {/* HTML Code Editor Pane */}
-                        {(viewMode === 'code' || viewMode === 'split') && (
-                            <div className="studio-code-pane">
-                                <div className="pane-header">
-                                    <div className="pane-header-title">
-                                        <Code2 size={13} style={{ color: 'var(--accent-primary)' }} />
-                                        <span>HTML5 Şablon Kodu</span>
-                                    </div>
-                                    <button 
-                                        type="button"
-                                        className="pane-tool-btn"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(currentHtml)
-                                            showToast('HTML kodu panoya kopyalandı', 'info')
-                                        }}
-                                        title="Tüm HTML'i Kopyala"
-                                    >
-                                        <Copy size={12} />
-                                        <span>Kopyala</span>
-                                    </button>
+                        <div className="studio-card-body">
+                            <div className="studio-form-grid">
+                                <div className="form-group">
+                                    <label className="form-label">Gönderici Başlığı (From Name):</label>
+                                    <CustomInput
+                                        value={currentSenderName}
+                                        onChange={handleSenderNameChange}
+                                        placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
+                                    />
                                 </div>
-                                <div className="code-textarea-wrap">
-                                    <textarea
-                                        ref={editorRef}
-                                        className="studio-code-textarea"
-                                        value={currentHtml}
-                                        onChange={handleHtmlChange}
-                                        placeholder="<!DOCTYPE html><html>..."
-                                        spellCheck="false"
+                                <div className="form-group">
+                                    <label className="form-label">E-Posta Konusu (Subject):</label>
+                                    <CustomInput
+                                        value={currentSubject}
+                                        onChange={handleSubjectChange}
+                                        placeholder="E-posta konu satırı..."
                                     />
                                 </div>
                             </div>
-                        )}
 
-                        {/* Live Render Preview Pane */}
-                        {(viewMode === 'preview' || viewMode === 'split') && (
-                            <div className="studio-preview-pane">
-                                <div className="pane-header">
-                                    <div className="pane-header-title">
-                                        <Eye size={13} style={{ color: 'var(--success)' }} />
-                                        <span>Canlı E-Posta Önizleme</span>
-                                    </div>
-                                    <div className="preview-device-toggle">
-                                        <button 
-                                            className={`device-tab ${deviceMode === 'desktop' ? 'active' : ''}`}
-                                            onClick={() => setDeviceMode('desktop')}
-                                            title="Masaüstü Ekranı (600px)"
+                            {/* Dynamic Variables Bar */}
+                            <div className="studio-vars-wrap">
+                                <span className="vars-label">Dinamik Değişkenler (Tıklayıp Ekleyin):</span>
+                                <div className="vars-chip-list">
+                                    {DYNAMIC_VARIABLES.map(v => (
+                                        <button
+                                            key={v.key}
+                                            type="button"
+                                            className={`vars-chip-btn ${copiedVar === v.key ? 'copied' : ''}`}
+                                            onClick={() => handleInsertVariable(v.key)}
+                                            title={`${v.label}: ${v.desc}`}
                                         >
-                                            <Monitor size={12} />
-                                            <span>Masaüstü</span>
+                                            <code>{v.key}</code>
+                                            {copiedVar === v.key ? <Check size={11} /> : <Copy size={11} />}
                                         </button>
-                                        <button 
-                                            className={`device-tab ${deviceMode === 'mobile' ? 'active' : ''}`}
-                                            onClick={() => setDeviceMode('mobile')}
-                                            title="Mobil Telefon Ekranı (375px)"
-                                        >
-                                            <Smartphone size={12} />
-                                            <span>Mobil</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className={`studio-preview-canvas ${deviceMode}`}>
-                                    <div className="preview-viewport-frame">
-                                        <iframe
-                                            title="Email Template Live Preview"
-                                            className="preview-iframe"
-                                            srcDoc={getRenderedPreview()}
-                                            sandbox="allow-same-origin"
-                                        />
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    </div>
 
+                    {/* Card 2: HTML Code Editor */}
+                    <div className="studio-card editor-card">
+                        <div className="studio-card-header">
+                            <span className="studio-card-title">
+                                <Code2 size={14} style={{ color: 'var(--accent-primary)' }} />
+                                HTML5 Kaynak Kodu
+                            </span>
+                            <button
+                                type="button"
+                                className="btn-ghost-copy"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(currentHtml)
+                                    showToast('HTML kodu panoya kopyalandı', 'info')
+                                }}
+                                title="Tüm HTML'i Kopyala"
+                            >
+                                <Copy size={12} />
+                                <span>Kopyala</span>
+                            </button>
+                        </div>
+                        <div className="studio-card-body editor-body">
+                            <textarea
+                                ref={editorRef}
+                                className="studio-code-editor"
+                                value={currentHtml}
+                                onChange={handleHtmlChange}
+                                placeholder="<!DOCTYPE html><html>..."
+                                spellCheck="false"
+                            />
+                        </div>
                     </div>
 
                 </div>
+
+                {/* Right Column: Live Visual Render Preview */}
+                <div className="studio-col-preview">
+                    <div className="studio-card preview-card">
+                        <div className="studio-card-header">
+                            <span className="studio-card-title">
+                                <Eye size={14} style={{ color: 'var(--success)' }} />
+                                Canlı E-Posta Önizleme
+                            </span>
+                            <div className="device-switcher-pill">
+                                <button 
+                                    type="button"
+                                    className={`dev-btn ${deviceMode === 'desktop' ? 'active' : ''}`}
+                                    onClick={() => setDeviceMode('desktop')}
+                                    title="Masaüstü Ekranı (600px)"
+                                >
+                                    <Monitor size={13} />
+                                    <span>Masaüstü</span>
+                                </button>
+                                <button 
+                                    type="button"
+                                    className={`dev-btn ${deviceMode === 'mobile' ? 'active' : ''}`}
+                                    onClick={() => setDeviceMode('mobile')}
+                                    title="Mobil Telefon Ekranı (375px)"
+                                >
+                                    <Smartphone size={13} />
+                                    <span>Mobil</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className={`studio-preview-wrapper ${deviceMode}`}>
+                            <div className="mock-email-window">
+                                <div className="mock-window-header">
+                                    <div className="mock-window-dots">
+                                        <span className="dot red"></span>
+                                        <span className="dot yellow"></span>
+                                        <span className="dot green"></span>
+                                    </div>
+                                    <div className="mock-window-info">
+                                        <div className="info-row"><strong>Kimden:</strong> {currentSenderName || 'Kontrol Güvenlik'} &lt;noreply@kontrol-app.com&gt;</div>
+                                        <div className="info-row"><strong>Konu:</strong> {currentSubject || 'Konu Başlığı'}</div>
+                                    </div>
+                                </div>
+                                <div className="mock-window-body">
+                                    <iframe
+                                        title="Live Rendered Email"
+                                        className="preview-render-frame"
+                                        srcDoc={getRenderedPreview()}
+                                        sandbox="allow-same-origin"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
 
             {/* Test Email Send Modal */}
@@ -550,11 +509,11 @@ export default function EmailTemplatesManager() {
             >
                 <div className="test-email-modal-body">
                     <p className="test-modal-desc">
-                        Bu şablonun e-posta kutunuzda nasıl görüntülendiğini test etmek için e-posta adresinize bir test iletisi gönderin.
+                        Bu şablonun e-posta istemcilerinizde nasıl görüntülendiğini test etmek için kendi e-posta adresinize gerçek bir test iletisi gönderin.
                     </p>
 
                     <div className="test-input-wrap">
-                        <label>Hedef E-Posta Adresi:</label>
+                        <label className="form-label">Hedef E-Posta Adresi:</label>
                         <CustomInput
                             type="email"
                             placeholder="ornek@alanadiniz.com"
@@ -569,7 +528,7 @@ export default function EmailTemplatesManager() {
                         <span>E-postada <code>{"{{ .Token }}"}</code> yerine örnek kod (849 201) ve canlı buton bağlantısı görüntülenecektir.</span>
                     </div>
 
-                    <div className="modal-actions-custom">
+                    <div className="modal-actions-custom" style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button 
                             className="btn btn-secondary"
                             onClick={() => setTestModalOpen(false)}
