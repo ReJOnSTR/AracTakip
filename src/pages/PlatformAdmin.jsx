@@ -613,6 +613,10 @@ export default function PlatformAdmin({ section }) {
 
     // Delete User
     const handleDeleteUser = async (u) => {
+        if (u.role === 'superadmin' || u.username === 'superadmin') {
+            alert('Ana Süper Yönetici hesabı silinemez.')
+            return
+        }
         if (!window.confirm(`"${u.username}" kullanıcısını silmek istediğinize emin misiniz?`)) {
             return
         }
@@ -805,15 +809,17 @@ export default function PlatformAdmin({ section }) {
                         <Shield size={13} />
                     </button>
                 )}
-                <button
-                    className="action-icon-btn"
-                    onClick={() => handleToggleUser(r)}
-                    title={r.isActive ? 'Hesabı Kilitle (Pasife Al)' : 'Hesabın Kilidini Aç (Aktif Et)'}
-                    style={!r.isActive ? { color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)' } : {}}
-                >
-                    {r.isActive ? <Lock size={13} /> : <Unlock size={13} style={{ color: '#10b981' }} />}
-                </button>
-                {r.username !== 'admin' && r.id !== 1 && (
+                {r.role !== 'superadmin' && r.username !== 'superadmin' && (
+                    <button
+                        className="action-icon-btn"
+                        onClick={() => handleToggleUser(r)}
+                        title={r.isActive ? 'Hesabı Kilitle (Pasife Al)' : 'Hesabın Kilidini Aç (Aktif Et)'}
+                        style={!r.isActive ? { color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)' } : {}}
+                    >
+                        {r.isActive ? <Lock size={13} /> : <Unlock size={13} style={{ color: '#10b981' }} />}
+                    </button>
+                )}
+                {r.role !== 'superadmin' && r.username !== 'superadmin' && (
                     <button
                         className="action-icon-btn danger"
                         onClick={() => handleDeleteUser(r)}
