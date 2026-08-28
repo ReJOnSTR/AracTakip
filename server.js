@@ -17,6 +17,7 @@ const { getPrismaClient, runAutoMigrations } = require('./electron/prismaClient'
 const db = require('./electron/prismaService');
 const authService = require('./electron/services/auth.service');
 const mfaService = require('./electron/services/mfa.service');
+const auditService = require('./electron/services/audit.service');
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -582,6 +583,8 @@ const rpcMap = {
     disableMfa: mfaService.disableMfa,
     verifyMfaLogin: mfaService.verifyMfaLogin,
     getMfaStatus: mfaService.getMfaStatus,
+    getPlatformAuditLogs: auditService.getPlatformAuditLogs,
+    getAuditSummaryMetrics: auditService.getAuditSummaryMetrics,
 };
 
 // Generic RPC Router

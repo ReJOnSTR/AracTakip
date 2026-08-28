@@ -625,6 +625,24 @@ exports.Prisma.System_announcementsScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Audit_logsScalarFieldEnum = {
+  id: 'id',
+  company_id: 'company_id',
+  user_id: 'user_id',
+  username: 'username',
+  user_role: 'user_role',
+  action: 'action',
+  entity_type: 'entity_type',
+  entity_id: 'entity_id',
+  entity_name: 'entity_name',
+  description: 'description',
+  details: 'details',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  severity: 'severity',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -679,7 +697,8 @@ exports.Prisma.ModelName = {
   permissions: 'permissions',
   requests: 'requests',
   request_approvals: 'request_approvals',
-  system_announcements: 'system_announcements'
+  system_announcements: 'system_announcements',
+  audit_logs: 'audit_logs'
 };
 
 /**

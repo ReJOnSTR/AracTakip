@@ -1,6 +1,7 @@
 const { getPrismaClient } = require('../prismaClient');
 const bcrypt = require('bcryptjs');
 const log = require('../logger');
+const { logAudit } = require('./audit.service');
 
 const prisma = getPrismaClient();
 
@@ -219,11 +220,31 @@ async function loginUser(credentials) {
 
         if (!user) {
             log.warn(`Login failed: No matching user for "${rawLookup}"`);
+            logAudit({
+                username: rawLookup,
+                action: 'LOGIN_FAILED',
+                entityType: 'auth',
+                entityName: rawLookup,
+                description: `Bilinmeyen hesap adı/e-posta ile hatalı giriş denemesi: "${rawLookup}"`,
+                severity: 'warn'
+            });
             return { success: false, error: 'Kullanıcı bulunamadı' };
         }
 
         if (user.is_active === 0) {
             log.warn(`Login failed: User "${user.username}" is inactive`);
+            logAudit({
+                companyId: user.company_id,
+                userId: user.id,
+                username: user.username,
+                userRole: user.role,
+                action: 'LOGIN_FAILED',
+                entityType: 'auth',
+                entityId: String(user.id),
+                entityName: user.username,
+                description: `Kilitli/Pasif hesaba giriş engellendi: "${user.username}"`,
+                severity: 'warn'
+            });
             return { success: false, error: 'Hesabınız pasif duruma getirilmiştir. Yönetici ile iletişime geçiniz.' };
         }
 
@@ -267,6 +288,18 @@ async function loginUser(credentials) {
                 log.info('Reset admin user password hash');
             } else {
                 log.warn(`Login failed: Incorrect password for user "${user.username}"`);
+                logAudit({
+                    companyId: user.company_id,
+                    userId: user.id,
+                    username: user.username,
+                    userRole: user.role,
+                    action: 'LOGIN_FAILED',
+                    entityType: 'auth',
+                    entityId: String(user.id),
+                    entityName: user.username,
+                    description: `"${user.username}" hesabı için hatalı şifre girildi`,
+                    severity: 'warn'
+                });
                 return { success: false, error: 'Hatalı şifre' };
             }
         }
@@ -333,6 +366,19 @@ async function loginUser(credentials) {
         };
 
         log.info(`User "${safeUser.username}" logged in successfully.`);
+        logAudit({
+            companyId: employeeData?.company_id || null,
+            userId: user.id,
+            username: user.username,
+            userRole: user.role || 'admin',
+            action: 'LOGIN_SUCCESS',
+            entityType: 'auth',
+            entityId: String(user.id),
+            entityName: user.username,
+            description: `"${user.username}" kullanıcısı başarıyla giriş yaptı`,
+            severity: 'info'
+        });
+
         return { success: true, user: safeUser };
 
     } catch (error) {
@@ -375,7 +421,19 @@ async function changePassword(data) {
             }
         });
 
-        return { success: true };
+        logAudit({
+            userId: user.id,
+            username: user.username,
+            userRole: user.role,
+            action: 'SECURITY',
+            entityType: 'auth',
+            entityId: String(user.id),
+            entityName: user.username,
+            description: `"${user.username}" kullanıcısı şifresini değiştirdi`,
+            severity: 'info'
+        });
+
+        return { success: true, message: 'Şifre başarıyla güncellendi' };
 
     } catch (error) {
         console.error('Change password error:', error);

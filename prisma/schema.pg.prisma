@@ -53,6 +53,7 @@ model companies {
   meal_price_history     meal_price_history[]
   public_holidays        public_holidays[]
   roles                  roles[]
+  audit_logs             audit_logs[]
   requests               requests[]
 
   @@index([user_id], map: "idx_companies_user")
@@ -670,4 +671,32 @@ model system_announcements {
   @@index([company_id], map: "idx_announcements_company")
   @@index([is_active], map: "idx_announcements_active")
 }
+
+model audit_logs {
+  id           Int       @id @default(autoincrement())
+  company_id   Int?
+  user_id      Int?
+  username     String?
+  user_role    String?
+  action       String    // CREATE, UPDATE, DELETE, LOGIN_SUCCESS, LOGIN_FAILED, IMPERSONATE, SECURITY
+  entity_type  String    // vehicle, employee, transaction, work, user, company, auth
+  entity_id    String?
+  entity_name  String?
+  description  String
+  details      String?   // JSON formatted
+  ip_address   String?
+  user_agent   String?
+  severity     String?   @default("info")
+  created_at   DateTime? @default(now())
+
+  companies    companies? @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([company_id], map: "idx_audit_company")
+  @@index([user_id], map: "idx_audit_user")
+  @@index([action], map: "idx_audit_action")
+  @@index([entity_type], map: "idx_audit_entity")
+  @@index([severity], map: "idx_audit_severity")
+  @@index([created_at], map: "idx_audit_created")
+}
+
 

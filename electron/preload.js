@@ -313,4 +313,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     disableMfa: (userId) => ipcRenderer.invoke('mfa:disable', userId),
     verifyMfaLogin: (userId, tokenOrBackupCode) => ipcRenderer.invoke('mfa:verifyLogin', userId, tokenOrBackupCode),
     getMfaStatus: (userId) => ipcRenderer.invoke('mfa:getStatus', userId),
+    getPlatformAuditLogs: (params) => ipcRenderer.invoke('platform:getAuditLogs', params),
+    getAuditSummaryMetrics: () => ipcRenderer.invoke('platform:getAuditSummaryMetrics'),
 })

@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../prismaClient');
+const { logAudit } = require('./audit.service');
 const prisma = getPrismaClient();
 
 async function getEmployees(companyId, isArchived = 0) {
@@ -128,6 +129,18 @@ async function addEmployee(data) {
                 }
             }
         });
+
+        logAudit({
+            companyId: emp.company_id,
+            action: 'CREATE',
+            entityType: 'employee',
+            entityId: String(emp.id),
+            entityName: `${emp.first_name} ${emp.last_name}${emp.position ? ` (${emp.position})` : ''}`,
+            description: `"${emp.first_name} ${emp.last_name}" adlı personel kaydı oluşturuldu`,
+            details: { position: emp.position, department: emp.department, salary: emp.salary },
+            severity: 'info'
+        });
+
         return { success: true, data: emp };
     } catch (error) { 
         console.error('addEmployee error:', error);
@@ -178,34 +191,44 @@ async function updateEmployee(data) {
             salary: newSalary,
             status: data.status || 'active',
             notes: data.notes !== undefined ? data.notes : undefined,
+            first_name: data.firstName || data.first_name || undefined,
+            last_name: data.lastName || data.last_name || undefined,
+            tc_no: data.tcNo || data.tc_no !== undefined ? (data.tcNo || data.tc_no || null) : undefined,
+            phone: data.phone !== undefined ? data.phone : undefined,
+            email: data.email !== undefined ? data.email : undefined,
+            position: data.position !== undefined ? data.position : undefined,
+            department: data.department !== undefined ? data.department : undefined,
+            start_date: data.startDate ? parseDate(data.startDate) : undefined,
+            end_date: data.endDate !== undefined ? parseDate(data.endDate) : undefined,
             image: data.image !== undefined ? data.image : undefined,
-            past_used_leaves: data.pastUsedLeaves ? parseInt(data.pastUsedLeaves) : undefined,
+            signature_path: data.signaturePath !== undefined ? data.signaturePath : (data.signature_path !== undefined ? data.signature_path : undefined),
+            past_used_leaves: data.pastUsedLeaves !== undefined ? parseInt(data.pastUsedLeaves) : undefined,
+            birth_date: data.birthDate ? parseDate(data.birthDate) : undefined,
             iban: data.iban !== undefined ? data.iban : undefined,
-            off_days: data.offDays !== undefined ? data.offDays : undefined
+            off_days: data.offDays !== undefined ? data.offDays : undefined,
+            is_archived: data.isArchived !== undefined ? (data.isArchived ? 1 : 0) : undefined,
         };
 
-        if (data.firstName || data.first_name) updateData.first_name = data.firstName || data.first_name;
-        if (data.lastName || data.last_name) updateData.last_name = data.lastName || data.last_name;
-        if (data.tcNo !== undefined || data.tc_no !== undefined) updateData.tc_no = data.tcNo || data.tc_no || null;
-        if (data.phone !== undefined) updateData.phone = data.phone || null;
-        if (data.email !== undefined) updateData.email = data.email || null;
-        if (data.position !== undefined) updateData.position = data.position || null;
-        if (data.department !== undefined) updateData.department = data.department || null;
-        if (data.startDate !== undefined) updateData.start_date = parseDate(data.startDate);
-        if (data.endDate !== undefined) updateData.end_date = parseDate(data.endDate);
-        if (data.birthDate !== undefined) updateData.birth_date = parseDate(data.birthDate);
-        if (data.signaturePath !== undefined || data.signature_path !== undefined) {
-            updateData.signature_path = data.signaturePath || data.signature_path || null;
-        }
         if (salaryHistoryOp) {
             updateData.employee_salary_history = salaryHistoryOp;
         }
 
-        const emp = await prisma.employees.update({
+        const updated = await prisma.employees.update({
             where: { id: empId },
             data: updateData
         });
-        return { success: true, data: emp };
+
+        logAudit({
+            companyId: updated.company_id,
+            action: 'UPDATE',
+            entityType: 'employee',
+            entityId: String(updated.id),
+            entityName: `${updated.first_name} ${updated.last_name}${updated.position ? ` (${updated.position})` : ''}`,
+            description: `"${updated.first_name} ${updated.last_name}" personel bilgileri güncellendi`,
+            severity: 'info'
+        });
+
+        return { success: true, data: updated };
     } catch (error) { 
         console.error('updateEmployee error:', error);
         return { success: false, error: error.message }; 
@@ -215,6 +238,8 @@ async function updateEmployee(data) {
 async function deleteEmployee(id) {
     try {
         const empId = parseInt(id);
+        const existing = await prisma.employees.findUnique({ where: { id: empId } });
+
         await prisma.$transaction(async (tx) => {
             // Disassociate or remove users linked to this employee
             await tx.users.updateMany({
@@ -237,6 +262,18 @@ async function deleteEmployee(id) {
             // Finally delete the employee
             await tx.employees.delete({ where: { id: empId } });
         });
+
+        if (existing) {
+            logAudit({
+                companyId: existing.company_id,
+                action: 'DELETE',
+                entityType: 'employee',
+                entityId: String(existing.id),
+                entityName: `${existing.first_name} ${existing.last_name}${existing.position ? ` (${existing.position})` : ''}`,
+                description: `"${existing.first_name} ${existing.last_name}" personeli ve tüm bordro/izin geçmişi silindi`,
+                severity: 'critical'
+            });
+        }
 
         return { success: true };
     } catch (error) {

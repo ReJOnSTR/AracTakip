@@ -200,6 +200,7 @@ function AppRoutes() {
                         <Route path="/platform/users" element={<SuperAdminRoute><PlatformAdmin section="users" /></SuperAdminRoute>} />
                         <Route path="/platform/companies" element={<SuperAdminRoute><PlatformAdmin section="companies" /></SuperAdminRoute>} />
                         <Route path="/platform/announcements" element={<SuperAdminRoute><PlatformAdmin section="announcements" /></SuperAdminRoute>} />
+                        <Route path="/platform/audit" element={<SuperAdminRoute><PlatformAdmin section="audit" /></SuperAdminRoute>} />
                         <Route path="/platform/health" element={<SuperAdminRoute><PlatformAdmin section="health" /></SuperAdminRoute>} />
                         <Route path="/platform/logs" element={<SuperAdminRoute><PlatformAdmin section="logs" /></SuperAdminRoute>} />
                         <Route path="/platform/backups" element={<SuperAdminRoute><PlatformAdmin section="backups" /></SuperAdminRoute>} />

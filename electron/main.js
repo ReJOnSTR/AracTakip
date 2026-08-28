@@ -10,6 +10,7 @@ const { getPrismaClient, runAutoMigrations } = require('./prismaClient')
 const log = require('./logger') // Import logger
 const { startAdminServer, stopAdminServer } = require('./adminServer')
 const mfaService = require('./services/mfa.service')
+const auditService = require('./services/audit.service')
 
 
 // Optional: Override console to correct log file
@@ -2762,5 +2763,13 @@ ipcMain.handle('mfa:verifyLogin', async (event, userId, tokenOrBackupCode) => {
 });
 ipcMain.handle('mfa:getStatus', async (event, userId) => {
     return await mfaService.getMfaStatus(userId);
+});
+
+// Platform Audit Trail IPC Handlers
+ipcMain.handle('platform:getAuditLogs', async (event, params) => {
+    return await auditService.getPlatformAuditLogs(params);
+});
+ipcMain.handle('platform:getAuditSummaryMetrics', async (event) => {
+    return await auditService.getAuditSummaryMetrics();
 });
 

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { getPrismaClient } = require('../prismaClient');
+const { logAudit } = require('./audit.service');
 const prisma = getPrismaClient();
 
 /**
@@ -181,14 +182,32 @@ async function resetPlatformUserPassword(userId, newPassword) {
         if (!newPassword || newPassword.length < 4) {
             return { success: false, error: 'Şifre en az 4 karakter olmalıdır' };
         }
+        const targetUid = parseInt(userId, 10);
+        const targetUser = await prisma.users.findUnique({ where: { id: targetUid } });
         const password_hash = bcrypt.hashSync(newPassword, 10);
         await prisma.users.update({
-            where: { id: parseInt(userId, 10) },
+            where: { id: targetUid },
             data: {
                 password_hash,
                 must_change_password: 0
             }
         });
+
+        if (targetUser) {
+            logAudit({
+                companyId: targetUser.company_id,
+                userId: targetUser.id,
+                username: targetUser.username,
+                userRole: targetUser.role,
+                action: 'SECURITY',
+                entityType: 'user',
+                entityId: String(targetUser.id),
+                entityName: targetUser.username,
+                description: `SuperAdmin tarafından "${targetUser.username}" kullanıcısının şifresi sıfırlandı`,
+                severity: 'warn'
+            });
+        }
+
         return { success: true, message: 'Şifre başarıyla güncellendi' };
     } catch (error) {
         return { success: false, error: error.message };
@@ -229,6 +248,19 @@ async function impersonatePlatformUser(userId) {
         };
 
         const targetCompany = user.companies?.[0] || user.employee?.companies || null;
+
+        logAudit({
+            companyId: targetCompany?.id || null,
+            userId: user.id,
+            username: user.username,
+            userRole: user.role,
+            action: 'IMPERSONATE',
+            entityType: 'auth',
+            entityId: String(user.id),
+            entityName: user.username,
+            description: `SuperAdmin, "${user.username}" (${targetCompany?.name || 'Genel'}) kullanıcısı olarak oturum açtı (Ghost Login)`,
+            severity: 'warn'
+        });
 
         return {
             success: true,
@@ -304,6 +336,19 @@ async function createPlatformUser(userData) {
             }).catch(() => {});
         }
 
+        logAudit({
+            companyId: companyId ? parseInt(companyId, 10) : null,
+            userId: newUser.id,
+            username: newUser.username,
+            userRole: newUser.role,
+            action: 'CREATE',
+            entityType: 'user',
+            entityId: String(newUser.id),
+            entityName: `${newUser.username} (${newUser.role})`,
+            description: `SuperAdmin tarafından "${newUser.username}" (${newUser.role}) kullanıcısı oluşturuldu`,
+            severity: 'info'
+        });
+
         return { success: true, user: newUser };
     } catch (error) {
         console.error('createPlatformUser error:', error);
@@ -324,6 +369,20 @@ async function deletePlatformUser(userId) {
         }
 
         await prisma.users.delete({ where: { id: uid } });
+
+        logAudit({
+            companyId: user.company_id,
+            userId: user.id,
+            username: user.username,
+            userRole: user.role,
+            action: 'DELETE',
+            entityType: 'user',
+            entityId: String(user.id),
+            entityName: user.username,
+            description: `SuperAdmin tarafından "${user.username}" kullanıcı hesabı silindi`,
+            severity: 'critical'
+        });
+
         return { success: true, message: 'Kullanıcı hesabı silindi' };
     } catch (error) {
         return { success: false, error: error.message };
@@ -341,6 +400,20 @@ async function toggleUserStatus(userId, isActive) {
             where: { id: uid },
             data: { is_active: statusVal }
         });
+
+        logAudit({
+            companyId: updated.company_id,
+            userId: updated.id,
+            username: updated.username,
+            userRole: updated.role,
+            action: 'SECURITY',
+            entityType: 'user',
+            entityId: String(updated.id),
+            entityName: updated.username,
+            description: statusVal === 1 ? `"${updated.username}" kullanıcı hesabının kilidi açıldı (Aktif)` : `"${updated.username}" kullanıcı hesabı kilitlendi (Pasif)`,
+            severity: statusVal === 1 ? 'info' : 'warn'
+        });
+
         return { success: true, data: updated };
     } catch (error) {
         console.error('toggleUserStatus error:', error);
@@ -672,6 +745,16 @@ async function createPlatformAnnouncement(payload) {
             }
         });
 
+        logAudit({
+            companyId: created.company_id,
+            action: 'CREATE',
+            entityType: 'announcement',
+            entityId: String(created.id),
+            entityName: created.title,
+            description: `SuperAdmin tarafından "${created.title}" başlıklı sistem duyurusu yayınlandı`,
+            severity: 'info'
+        });
+
         return { success: true, data: created };
     } catch (error) {
         console.error('createPlatformAnnouncement error:', error);
@@ -730,6 +813,17 @@ async function createPlatformCompany(data) {
                 user_id: ownerUserId && ownerUserId !== '' ? parseInt(ownerUserId, 10) : null
             }
         });
+
+        logAudit({
+            companyId: newComp.id,
+            action: 'CREATE',
+            entityType: 'company',
+            entityId: String(newComp.id),
+            entityName: newComp.name,
+            description: `SuperAdmin tarafından "${newComp.name}" şirketi sisteme eklendi`,
+            severity: 'info'
+        });
+
         return { success: true, data: newComp };
     } catch (error) {
         console.error('createPlatformCompany error:', error);
@@ -747,6 +841,17 @@ async function deletePlatformCompany(companyId) {
         if (!company) return { success: false, error: 'Şirket bulunamadı' };
 
         await prisma.companies.delete({ where: { id: cid } });
+
+        logAudit({
+            companyId: company.id,
+            action: 'DELETE',
+            entityType: 'company',
+            entityId: String(company.id),
+            entityName: company.name,
+            description: `SuperAdmin tarafından "${company.name}" şirketi ve tüm bağlı verileri silindi`,
+            severity: 'critical'
+        });
+
         return { success: true, message: 'Şirket başarıyla silindi' };
     } catch (error) {
         console.error('deletePlatformCompany error:', error);

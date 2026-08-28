@@ -203,6 +203,11 @@ export type request_approvals = $Result.DefaultSelection<Prisma.$request_approva
  * 
  */
 export type system_announcements = $Result.DefaultSelection<Prisma.$system_announcementsPayload>
+/**
+ * Model audit_logs
+ * 
+ */
+export type audit_logs = $Result.DefaultSelection<Prisma.$audit_logsPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -704,6 +709,16 @@ export class PrismaClient<
     * ```
     */
   get system_announcements(): Prisma.system_announcementsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.audit_logs`: Exposes CRUD operations for the **audit_logs** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Audit_logs
+    * const audit_logs = await prisma.audit_logs.findMany()
+    * ```
+    */
+  get audit_logs(): Prisma.audit_logsDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1188,7 +1203,8 @@ export namespace Prisma {
     permissions: 'permissions',
     requests: 'requests',
     request_approvals: 'request_approvals',
-    system_announcements: 'system_announcements'
+    system_announcements: 'system_announcements',
+    audit_logs: 'audit_logs'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1204,7 +1220,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "public_holidays" | "roles" | "permissions" | "requests" | "request_approvals" | "system_announcements"
+      modelProps: "assignments" | "companies" | "customers" | "documents" | "employee_assignments" | "employee_attendance" | "employee_documents" | "employee_movements" | "employee_salary_history" | "employees" | "inspections" | "insurances" | "leaves" | "maintenances" | "meal_settings" | "meal_tickets" | "meal_price_history" | "overtimes" | "recurring_transactions" | "salaries" | "schema_migrations" | "services" | "transactions" | "users" | "vehicles" | "work_items" | "works" | "departments" | "leave_types" | "document_categories" | "document_folders" | "vehicle_types" | "public_holidays" | "roles" | "permissions" | "requests" | "request_approvals" | "system_announcements" | "audit_logs"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4020,6 +4036,80 @@ export namespace Prisma {
           }
         }
       }
+      audit_logs: {
+        payload: Prisma.$audit_logsPayload<ExtArgs>
+        fields: Prisma.audit_logsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.audit_logsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.audit_logsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>
+          }
+          findFirst: {
+            args: Prisma.audit_logsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.audit_logsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>
+          }
+          findMany: {
+            args: Prisma.audit_logsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>[]
+          }
+          create: {
+            args: Prisma.audit_logsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>
+          }
+          createMany: {
+            args: Prisma.audit_logsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.audit_logsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>[]
+          }
+          delete: {
+            args: Prisma.audit_logsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>
+          }
+          update: {
+            args: Prisma.audit_logsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>
+          }
+          deleteMany: {
+            args: Prisma.audit_logsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.audit_logsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.audit_logsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>[]
+          }
+          upsert: {
+            args: Prisma.audit_logsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$audit_logsPayload>
+          }
+          aggregate: {
+            args: Prisma.Audit_logsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAudit_logs>
+          }
+          groupBy: {
+            args: Prisma.audit_logsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Audit_logsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.audit_logsCountArgs<ExtArgs>
+            result: $Utils.Optional<Audit_logsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4181,6 +4271,7 @@ export namespace Prisma {
     requests?: requestsOmit
     request_approvals?: request_approvalsOmit
     system_announcements?: system_announcementsOmit
+    audit_logs?: audit_logsOmit
   }
 
   /* Types for Logging */
@@ -4276,6 +4367,7 @@ export namespace Prisma {
     meal_price_history: number
     public_holidays: number
     roles: number
+    audit_logs: number
     requests: number
   }
 
@@ -4295,6 +4387,7 @@ export namespace Prisma {
     meal_price_history?: boolean | CompaniesCountOutputTypeCountMeal_price_historyArgs
     public_holidays?: boolean | CompaniesCountOutputTypeCountPublic_holidaysArgs
     roles?: boolean | CompaniesCountOutputTypeCountRolesArgs
+    audit_logs?: boolean | CompaniesCountOutputTypeCountAudit_logsArgs
     requests?: boolean | CompaniesCountOutputTypeCountRequestsArgs
   }
 
@@ -4412,6 +4505,13 @@ export namespace Prisma {
    */
   export type CompaniesCountOutputTypeCountRolesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: rolesWhereInput
+  }
+
+  /**
+   * CompaniesCountOutputType without action
+   */
+  export type CompaniesCountOutputTypeCountAudit_logsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: audit_logsWhereInput
   }
 
   /**
@@ -6296,6 +6396,7 @@ export namespace Prisma {
     meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
     public_holidays?: boolean | companies$public_holidaysArgs<ExtArgs>
     roles?: boolean | companies$rolesArgs<ExtArgs>
+    audit_logs?: boolean | companies$audit_logsArgs<ExtArgs>
     requests?: boolean | companies$requestsArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["companies"]>
@@ -6363,6 +6464,7 @@ export namespace Prisma {
     meal_price_history?: boolean | companies$meal_price_historyArgs<ExtArgs>
     public_holidays?: boolean | companies$public_holidaysArgs<ExtArgs>
     roles?: boolean | companies$rolesArgs<ExtArgs>
+    audit_logs?: boolean | companies$audit_logsArgs<ExtArgs>
     requests?: boolean | companies$requestsArgs<ExtArgs>
     _count?: boolean | CompaniesCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -6393,6 +6495,7 @@ export namespace Prisma {
       meal_price_history: Prisma.$meal_price_historyPayload<ExtArgs>[]
       public_holidays: Prisma.$public_holidaysPayload<ExtArgs>[]
       roles: Prisma.$rolesPayload<ExtArgs>[]
+      audit_logs: Prisma.$audit_logsPayload<ExtArgs>[]
       requests: Prisma.$requestsPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -6818,6 +6921,7 @@ export namespace Prisma {
     meal_price_history<T extends companies$meal_price_historyArgs<ExtArgs> = {}>(args?: Subset<T, companies$meal_price_historyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$meal_price_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     public_holidays<T extends companies$public_holidaysArgs<ExtArgs> = {}>(args?: Subset<T, companies$public_holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$public_holidaysPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     roles<T extends companies$rolesArgs<ExtArgs> = {}>(args?: Subset<T, companies$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$rolesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    audit_logs<T extends companies$audit_logsArgs<ExtArgs> = {}>(args?: Subset<T, companies$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     requests<T extends companies$requestsArgs<ExtArgs> = {}>(args?: Subset<T, companies$requestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$requestsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -7655,6 +7759,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: RolesScalarFieldEnum | RolesScalarFieldEnum[]
+  }
+
+  /**
+   * companies.audit_logs
+   */
+  export type companies$audit_logsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    where?: audit_logsWhereInput
+    orderBy?: audit_logsOrderByWithRelationInput | audit_logsOrderByWithRelationInput[]
+    cursor?: audit_logsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Audit_logsScalarFieldEnum | Audit_logsScalarFieldEnum[]
   }
 
   /**
@@ -51028,6 +51156,1260 @@ export namespace Prisma {
 
 
   /**
+   * Model audit_logs
+   */
+
+  export type AggregateAudit_logs = {
+    _count: Audit_logsCountAggregateOutputType | null
+    _avg: Audit_logsAvgAggregateOutputType | null
+    _sum: Audit_logsSumAggregateOutputType | null
+    _min: Audit_logsMinAggregateOutputType | null
+    _max: Audit_logsMaxAggregateOutputType | null
+  }
+
+  export type Audit_logsAvgAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    user_id: number | null
+  }
+
+  export type Audit_logsSumAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    user_id: number | null
+  }
+
+  export type Audit_logsMinAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    user_id: number | null
+    username: string | null
+    user_role: string | null
+    action: string | null
+    entity_type: string | null
+    entity_id: string | null
+    entity_name: string | null
+    description: string | null
+    details: string | null
+    ip_address: string | null
+    user_agent: string | null
+    severity: string | null
+    created_at: Date | null
+  }
+
+  export type Audit_logsMaxAggregateOutputType = {
+    id: number | null
+    company_id: number | null
+    user_id: number | null
+    username: string | null
+    user_role: string | null
+    action: string | null
+    entity_type: string | null
+    entity_id: string | null
+    entity_name: string | null
+    description: string | null
+    details: string | null
+    ip_address: string | null
+    user_agent: string | null
+    severity: string | null
+    created_at: Date | null
+  }
+
+  export type Audit_logsCountAggregateOutputType = {
+    id: number
+    company_id: number
+    user_id: number
+    username: number
+    user_role: number
+    action: number
+    entity_type: number
+    entity_id: number
+    entity_name: number
+    description: number
+    details: number
+    ip_address: number
+    user_agent: number
+    severity: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Audit_logsAvgAggregateInputType = {
+    id?: true
+    company_id?: true
+    user_id?: true
+  }
+
+  export type Audit_logsSumAggregateInputType = {
+    id?: true
+    company_id?: true
+    user_id?: true
+  }
+
+  export type Audit_logsMinAggregateInputType = {
+    id?: true
+    company_id?: true
+    user_id?: true
+    username?: true
+    user_role?: true
+    action?: true
+    entity_type?: true
+    entity_id?: true
+    entity_name?: true
+    description?: true
+    details?: true
+    ip_address?: true
+    user_agent?: true
+    severity?: true
+    created_at?: true
+  }
+
+  export type Audit_logsMaxAggregateInputType = {
+    id?: true
+    company_id?: true
+    user_id?: true
+    username?: true
+    user_role?: true
+    action?: true
+    entity_type?: true
+    entity_id?: true
+    entity_name?: true
+    description?: true
+    details?: true
+    ip_address?: true
+    user_agent?: true
+    severity?: true
+    created_at?: true
+  }
+
+  export type Audit_logsCountAggregateInputType = {
+    id?: true
+    company_id?: true
+    user_id?: true
+    username?: true
+    user_role?: true
+    action?: true
+    entity_type?: true
+    entity_id?: true
+    entity_name?: true
+    description?: true
+    details?: true
+    ip_address?: true
+    user_agent?: true
+    severity?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Audit_logsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which audit_logs to aggregate.
+     */
+    where?: audit_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of audit_logs to fetch.
+     */
+    orderBy?: audit_logsOrderByWithRelationInput | audit_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: audit_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` audit_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` audit_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned audit_logs
+    **/
+    _count?: true | Audit_logsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Audit_logsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Audit_logsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Audit_logsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Audit_logsMaxAggregateInputType
+  }
+
+  export type GetAudit_logsAggregateType<T extends Audit_logsAggregateArgs> = {
+        [P in keyof T & keyof AggregateAudit_logs]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAudit_logs[P]>
+      : GetScalarType<T[P], AggregateAudit_logs[P]>
+  }
+
+
+
+
+  export type audit_logsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: audit_logsWhereInput
+    orderBy?: audit_logsOrderByWithAggregationInput | audit_logsOrderByWithAggregationInput[]
+    by: Audit_logsScalarFieldEnum[] | Audit_logsScalarFieldEnum
+    having?: audit_logsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Audit_logsCountAggregateInputType | true
+    _avg?: Audit_logsAvgAggregateInputType
+    _sum?: Audit_logsSumAggregateInputType
+    _min?: Audit_logsMinAggregateInputType
+    _max?: Audit_logsMaxAggregateInputType
+  }
+
+  export type Audit_logsGroupByOutputType = {
+    id: number
+    company_id: number | null
+    user_id: number | null
+    username: string | null
+    user_role: string | null
+    action: string
+    entity_type: string
+    entity_id: string | null
+    entity_name: string | null
+    description: string
+    details: string | null
+    ip_address: string | null
+    user_agent: string | null
+    severity: string | null
+    created_at: Date | null
+    _count: Audit_logsCountAggregateOutputType | null
+    _avg: Audit_logsAvgAggregateOutputType | null
+    _sum: Audit_logsSumAggregateOutputType | null
+    _min: Audit_logsMinAggregateOutputType | null
+    _max: Audit_logsMaxAggregateOutputType | null
+  }
+
+  type GetAudit_logsGroupByPayload<T extends audit_logsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Audit_logsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Audit_logsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Audit_logsGroupByOutputType[P]>
+            : GetScalarType<T[P], Audit_logsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type audit_logsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    user_id?: boolean
+    username?: boolean
+    user_role?: boolean
+    action?: boolean
+    entity_type?: boolean
+    entity_id?: boolean
+    entity_name?: boolean
+    description?: boolean
+    details?: boolean
+    ip_address?: boolean
+    user_agent?: boolean
+    severity?: boolean
+    created_at?: boolean
+    companies?: boolean | audit_logs$companiesArgs<ExtArgs>
+  }, ExtArgs["result"]["audit_logs"]>
+
+  export type audit_logsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    user_id?: boolean
+    username?: boolean
+    user_role?: boolean
+    action?: boolean
+    entity_type?: boolean
+    entity_id?: boolean
+    entity_name?: boolean
+    description?: boolean
+    details?: boolean
+    ip_address?: boolean
+    user_agent?: boolean
+    severity?: boolean
+    created_at?: boolean
+    companies?: boolean | audit_logs$companiesArgs<ExtArgs>
+  }, ExtArgs["result"]["audit_logs"]>
+
+  export type audit_logsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    company_id?: boolean
+    user_id?: boolean
+    username?: boolean
+    user_role?: boolean
+    action?: boolean
+    entity_type?: boolean
+    entity_id?: boolean
+    entity_name?: boolean
+    description?: boolean
+    details?: boolean
+    ip_address?: boolean
+    user_agent?: boolean
+    severity?: boolean
+    created_at?: boolean
+    companies?: boolean | audit_logs$companiesArgs<ExtArgs>
+  }, ExtArgs["result"]["audit_logs"]>
+
+  export type audit_logsSelectScalar = {
+    id?: boolean
+    company_id?: boolean
+    user_id?: boolean
+    username?: boolean
+    user_role?: boolean
+    action?: boolean
+    entity_type?: boolean
+    entity_id?: boolean
+    entity_name?: boolean
+    description?: boolean
+    details?: boolean
+    ip_address?: boolean
+    user_agent?: boolean
+    severity?: boolean
+    created_at?: boolean
+  }
+
+  export type audit_logsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company_id" | "user_id" | "username" | "user_role" | "action" | "entity_type" | "entity_id" | "entity_name" | "description" | "details" | "ip_address" | "user_agent" | "severity" | "created_at", ExtArgs["result"]["audit_logs"]>
+  export type audit_logsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | audit_logs$companiesArgs<ExtArgs>
+  }
+  export type audit_logsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | audit_logs$companiesArgs<ExtArgs>
+  }
+  export type audit_logsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    companies?: boolean | audit_logs$companiesArgs<ExtArgs>
+  }
+
+  export type $audit_logsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "audit_logs"
+    objects: {
+      companies: Prisma.$companiesPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      company_id: number | null
+      user_id: number | null
+      username: string | null
+      user_role: string | null
+      action: string
+      entity_type: string
+      entity_id: string | null
+      entity_name: string | null
+      description: string
+      details: string | null
+      ip_address: string | null
+      user_agent: string | null
+      severity: string | null
+      created_at: Date | null
+    }, ExtArgs["result"]["audit_logs"]>
+    composites: {}
+  }
+
+  type audit_logsGetPayload<S extends boolean | null | undefined | audit_logsDefaultArgs> = $Result.GetResult<Prisma.$audit_logsPayload, S>
+
+  type audit_logsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<audit_logsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Audit_logsCountAggregateInputType | true
+    }
+
+  export interface audit_logsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['audit_logs'], meta: { name: 'audit_logs' } }
+    /**
+     * Find zero or one Audit_logs that matches the filter.
+     * @param {audit_logsFindUniqueArgs} args - Arguments to find a Audit_logs
+     * @example
+     * // Get one Audit_logs
+     * const audit_logs = await prisma.audit_logs.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends audit_logsFindUniqueArgs>(args: SelectSubset<T, audit_logsFindUniqueArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Audit_logs that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {audit_logsFindUniqueOrThrowArgs} args - Arguments to find a Audit_logs
+     * @example
+     * // Get one Audit_logs
+     * const audit_logs = await prisma.audit_logs.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends audit_logsFindUniqueOrThrowArgs>(args: SelectSubset<T, audit_logsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Audit_logs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {audit_logsFindFirstArgs} args - Arguments to find a Audit_logs
+     * @example
+     * // Get one Audit_logs
+     * const audit_logs = await prisma.audit_logs.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends audit_logsFindFirstArgs>(args?: SelectSubset<T, audit_logsFindFirstArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Audit_logs that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {audit_logsFindFirstOrThrowArgs} args - Arguments to find a Audit_logs
+     * @example
+     * // Get one Audit_logs
+     * const audit_logs = await prisma.audit_logs.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends audit_logsFindFirstOrThrowArgs>(args?: SelectSubset<T, audit_logsFindFirstOrThrowArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Audit_logs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {audit_logsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Audit_logs
+     * const audit_logs = await prisma.audit_logs.findMany()
+     * 
+     * // Get first 10 Audit_logs
+     * const audit_logs = await prisma.audit_logs.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const audit_logsWithIdOnly = await prisma.audit_logs.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends audit_logsFindManyArgs>(args?: SelectSubset<T, audit_logsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Audit_logs.
+     * @param {audit_logsCreateArgs} args - Arguments to create a Audit_logs.
+     * @example
+     * // Create one Audit_logs
+     * const Audit_logs = await prisma.audit_logs.create({
+     *   data: {
+     *     // ... data to create a Audit_logs
+     *   }
+     * })
+     * 
+     */
+    create<T extends audit_logsCreateArgs>(args: SelectSubset<T, audit_logsCreateArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Audit_logs.
+     * @param {audit_logsCreateManyArgs} args - Arguments to create many Audit_logs.
+     * @example
+     * // Create many Audit_logs
+     * const audit_logs = await prisma.audit_logs.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends audit_logsCreateManyArgs>(args?: SelectSubset<T, audit_logsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Audit_logs and returns the data saved in the database.
+     * @param {audit_logsCreateManyAndReturnArgs} args - Arguments to create many Audit_logs.
+     * @example
+     * // Create many Audit_logs
+     * const audit_logs = await prisma.audit_logs.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Audit_logs and only return the `id`
+     * const audit_logsWithIdOnly = await prisma.audit_logs.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends audit_logsCreateManyAndReturnArgs>(args?: SelectSubset<T, audit_logsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Audit_logs.
+     * @param {audit_logsDeleteArgs} args - Arguments to delete one Audit_logs.
+     * @example
+     * // Delete one Audit_logs
+     * const Audit_logs = await prisma.audit_logs.delete({
+     *   where: {
+     *     // ... filter to delete one Audit_logs
+     *   }
+     * })
+     * 
+     */
+    delete<T extends audit_logsDeleteArgs>(args: SelectSubset<T, audit_logsDeleteArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Audit_logs.
+     * @param {audit_logsUpdateArgs} args - Arguments to update one Audit_logs.
+     * @example
+     * // Update one Audit_logs
+     * const audit_logs = await prisma.audit_logs.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends audit_logsUpdateArgs>(args: SelectSubset<T, audit_logsUpdateArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Audit_logs.
+     * @param {audit_logsDeleteManyArgs} args - Arguments to filter Audit_logs to delete.
+     * @example
+     * // Delete a few Audit_logs
+     * const { count } = await prisma.audit_logs.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends audit_logsDeleteManyArgs>(args?: SelectSubset<T, audit_logsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Audit_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {audit_logsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Audit_logs
+     * const audit_logs = await prisma.audit_logs.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends audit_logsUpdateManyArgs>(args: SelectSubset<T, audit_logsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Audit_logs and returns the data updated in the database.
+     * @param {audit_logsUpdateManyAndReturnArgs} args - Arguments to update many Audit_logs.
+     * @example
+     * // Update many Audit_logs
+     * const audit_logs = await prisma.audit_logs.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Audit_logs and only return the `id`
+     * const audit_logsWithIdOnly = await prisma.audit_logs.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends audit_logsUpdateManyAndReturnArgs>(args: SelectSubset<T, audit_logsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Audit_logs.
+     * @param {audit_logsUpsertArgs} args - Arguments to update or create a Audit_logs.
+     * @example
+     * // Update or create a Audit_logs
+     * const audit_logs = await prisma.audit_logs.upsert({
+     *   create: {
+     *     // ... data to create a Audit_logs
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Audit_logs we want to update
+     *   }
+     * })
+     */
+    upsert<T extends audit_logsUpsertArgs>(args: SelectSubset<T, audit_logsUpsertArgs<ExtArgs>>): Prisma__audit_logsClient<$Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Audit_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {audit_logsCountArgs} args - Arguments to filter Audit_logs to count.
+     * @example
+     * // Count the number of Audit_logs
+     * const count = await prisma.audit_logs.count({
+     *   where: {
+     *     // ... the filter for the Audit_logs we want to count
+     *   }
+     * })
+    **/
+    count<T extends audit_logsCountArgs>(
+      args?: Subset<T, audit_logsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Audit_logsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Audit_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Audit_logsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Audit_logsAggregateArgs>(args: Subset<T, Audit_logsAggregateArgs>): Prisma.PrismaPromise<GetAudit_logsAggregateType<T>>
+
+    /**
+     * Group by Audit_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {audit_logsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends audit_logsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: audit_logsGroupByArgs['orderBy'] }
+        : { orderBy?: audit_logsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, audit_logsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAudit_logsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the audit_logs model
+   */
+  readonly fields: audit_logsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for audit_logs.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__audit_logsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    companies<T extends audit_logs$companiesArgs<ExtArgs> = {}>(args?: Subset<T, audit_logs$companiesArgs<ExtArgs>>): Prisma__companiesClient<$Result.GetResult<Prisma.$companiesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the audit_logs model
+   */
+  interface audit_logsFieldRefs {
+    readonly id: FieldRef<"audit_logs", 'Int'>
+    readonly company_id: FieldRef<"audit_logs", 'Int'>
+    readonly user_id: FieldRef<"audit_logs", 'Int'>
+    readonly username: FieldRef<"audit_logs", 'String'>
+    readonly user_role: FieldRef<"audit_logs", 'String'>
+    readonly action: FieldRef<"audit_logs", 'String'>
+    readonly entity_type: FieldRef<"audit_logs", 'String'>
+    readonly entity_id: FieldRef<"audit_logs", 'String'>
+    readonly entity_name: FieldRef<"audit_logs", 'String'>
+    readonly description: FieldRef<"audit_logs", 'String'>
+    readonly details: FieldRef<"audit_logs", 'String'>
+    readonly ip_address: FieldRef<"audit_logs", 'String'>
+    readonly user_agent: FieldRef<"audit_logs", 'String'>
+    readonly severity: FieldRef<"audit_logs", 'String'>
+    readonly created_at: FieldRef<"audit_logs", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * audit_logs findUnique
+   */
+  export type audit_logsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * Filter, which audit_logs to fetch.
+     */
+    where: audit_logsWhereUniqueInput
+  }
+
+  /**
+   * audit_logs findUniqueOrThrow
+   */
+  export type audit_logsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * Filter, which audit_logs to fetch.
+     */
+    where: audit_logsWhereUniqueInput
+  }
+
+  /**
+   * audit_logs findFirst
+   */
+  export type audit_logsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * Filter, which audit_logs to fetch.
+     */
+    where?: audit_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of audit_logs to fetch.
+     */
+    orderBy?: audit_logsOrderByWithRelationInput | audit_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for audit_logs.
+     */
+    cursor?: audit_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` audit_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` audit_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of audit_logs.
+     */
+    distinct?: Audit_logsScalarFieldEnum | Audit_logsScalarFieldEnum[]
+  }
+
+  /**
+   * audit_logs findFirstOrThrow
+   */
+  export type audit_logsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * Filter, which audit_logs to fetch.
+     */
+    where?: audit_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of audit_logs to fetch.
+     */
+    orderBy?: audit_logsOrderByWithRelationInput | audit_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for audit_logs.
+     */
+    cursor?: audit_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` audit_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` audit_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of audit_logs.
+     */
+    distinct?: Audit_logsScalarFieldEnum | Audit_logsScalarFieldEnum[]
+  }
+
+  /**
+   * audit_logs findMany
+   */
+  export type audit_logsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * Filter, which audit_logs to fetch.
+     */
+    where?: audit_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of audit_logs to fetch.
+     */
+    orderBy?: audit_logsOrderByWithRelationInput | audit_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing audit_logs.
+     */
+    cursor?: audit_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` audit_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` audit_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of audit_logs.
+     */
+    distinct?: Audit_logsScalarFieldEnum | Audit_logsScalarFieldEnum[]
+  }
+
+  /**
+   * audit_logs create
+   */
+  export type audit_logsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a audit_logs.
+     */
+    data: XOR<audit_logsCreateInput, audit_logsUncheckedCreateInput>
+  }
+
+  /**
+   * audit_logs createMany
+   */
+  export type audit_logsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many audit_logs.
+     */
+    data: audit_logsCreateManyInput | audit_logsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * audit_logs createManyAndReturn
+   */
+  export type audit_logsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * The data used to create many audit_logs.
+     */
+    data: audit_logsCreateManyInput | audit_logsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * audit_logs update
+   */
+  export type audit_logsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a audit_logs.
+     */
+    data: XOR<audit_logsUpdateInput, audit_logsUncheckedUpdateInput>
+    /**
+     * Choose, which audit_logs to update.
+     */
+    where: audit_logsWhereUniqueInput
+  }
+
+  /**
+   * audit_logs updateMany
+   */
+  export type audit_logsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update audit_logs.
+     */
+    data: XOR<audit_logsUpdateManyMutationInput, audit_logsUncheckedUpdateManyInput>
+    /**
+     * Filter which audit_logs to update
+     */
+    where?: audit_logsWhereInput
+    /**
+     * Limit how many audit_logs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * audit_logs updateManyAndReturn
+   */
+  export type audit_logsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * The data used to update audit_logs.
+     */
+    data: XOR<audit_logsUpdateManyMutationInput, audit_logsUncheckedUpdateManyInput>
+    /**
+     * Filter which audit_logs to update
+     */
+    where?: audit_logsWhereInput
+    /**
+     * Limit how many audit_logs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * audit_logs upsert
+   */
+  export type audit_logsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the audit_logs to update in case it exists.
+     */
+    where: audit_logsWhereUniqueInput
+    /**
+     * In case the audit_logs found by the `where` argument doesn't exist, create a new audit_logs with this data.
+     */
+    create: XOR<audit_logsCreateInput, audit_logsUncheckedCreateInput>
+    /**
+     * In case the audit_logs was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<audit_logsUpdateInput, audit_logsUncheckedUpdateInput>
+  }
+
+  /**
+   * audit_logs delete
+   */
+  export type audit_logsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+    /**
+     * Filter which audit_logs to delete.
+     */
+    where: audit_logsWhereUniqueInput
+  }
+
+  /**
+   * audit_logs deleteMany
+   */
+  export type audit_logsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which audit_logs to delete
+     */
+    where?: audit_logsWhereInput
+    /**
+     * Limit how many audit_logs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * audit_logs.companies
+   */
+  export type audit_logs$companiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the companies
+     */
+    select?: companiesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the companies
+     */
+    omit?: companiesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: companiesInclude<ExtArgs> | null
+    where?: companiesWhereInput
+  }
+
+  /**
+   * audit_logs without action
+   */
+  export type audit_logsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the audit_logs
+     */
+    select?: audit_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the audit_logs
+     */
+    omit?: audit_logsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: audit_logsInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -51660,6 +53042,27 @@ export namespace Prisma {
   export type System_announcementsScalarFieldEnum = (typeof System_announcementsScalarFieldEnum)[keyof typeof System_announcementsScalarFieldEnum]
 
 
+  export const Audit_logsScalarFieldEnum: {
+    id: 'id',
+    company_id: 'company_id',
+    user_id: 'user_id',
+    username: 'username',
+    user_role: 'user_role',
+    action: 'action',
+    entity_type: 'entity_type',
+    entity_id: 'entity_id',
+    entity_name: 'entity_name',
+    description: 'description',
+    details: 'details',
+    ip_address: 'ip_address',
+    user_agent: 'user_agent',
+    severity: 'severity',
+    created_at: 'created_at'
+  };
+
+  export type Audit_logsScalarFieldEnum = (typeof Audit_logsScalarFieldEnum)[keyof typeof Audit_logsScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -51874,6 +53277,7 @@ export namespace Prisma {
     meal_price_history?: Meal_price_historyListRelationFilter
     public_holidays?: Public_holidaysListRelationFilter
     roles?: RolesListRelationFilter
+    audit_logs?: Audit_logsListRelationFilter
     requests?: RequestsListRelationFilter
   }
 
@@ -51906,6 +53310,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyOrderByRelationAggregateInput
     public_holidays?: public_holidaysOrderByRelationAggregateInput
     roles?: rolesOrderByRelationAggregateInput
+    audit_logs?: audit_logsOrderByRelationAggregateInput
     requests?: requestsOrderByRelationAggregateInput
   }
 
@@ -51941,6 +53346,7 @@ export namespace Prisma {
     meal_price_history?: Meal_price_historyListRelationFilter
     public_holidays?: Public_holidaysListRelationFilter
     roles?: RolesListRelationFilter
+    audit_logs?: Audit_logsListRelationFilter
     requests?: RequestsListRelationFilter
   }, "id">
 
@@ -55083,6 +56489,113 @@ export namespace Prisma {
     updated_at?: DateTimeNullableWithAggregatesFilter<"system_announcements"> | Date | string | null
   }
 
+  export type audit_logsWhereInput = {
+    AND?: audit_logsWhereInput | audit_logsWhereInput[]
+    OR?: audit_logsWhereInput[]
+    NOT?: audit_logsWhereInput | audit_logsWhereInput[]
+    id?: IntFilter<"audit_logs"> | number
+    company_id?: IntNullableFilter<"audit_logs"> | number | null
+    user_id?: IntNullableFilter<"audit_logs"> | number | null
+    username?: StringNullableFilter<"audit_logs"> | string | null
+    user_role?: StringNullableFilter<"audit_logs"> | string | null
+    action?: StringFilter<"audit_logs"> | string
+    entity_type?: StringFilter<"audit_logs"> | string
+    entity_id?: StringNullableFilter<"audit_logs"> | string | null
+    entity_name?: StringNullableFilter<"audit_logs"> | string | null
+    description?: StringFilter<"audit_logs"> | string
+    details?: StringNullableFilter<"audit_logs"> | string | null
+    ip_address?: StringNullableFilter<"audit_logs"> | string | null
+    user_agent?: StringNullableFilter<"audit_logs"> | string | null
+    severity?: StringNullableFilter<"audit_logs"> | string | null
+    created_at?: DateTimeNullableFilter<"audit_logs"> | Date | string | null
+    companies?: XOR<CompaniesNullableScalarRelationFilter, companiesWhereInput> | null
+  }
+
+  export type audit_logsOrderByWithRelationInput = {
+    id?: SortOrder
+    company_id?: SortOrderInput | SortOrder
+    user_id?: SortOrderInput | SortOrder
+    username?: SortOrderInput | SortOrder
+    user_role?: SortOrderInput | SortOrder
+    action?: SortOrder
+    entity_type?: SortOrder
+    entity_id?: SortOrderInput | SortOrder
+    entity_name?: SortOrderInput | SortOrder
+    description?: SortOrder
+    details?: SortOrderInput | SortOrder
+    ip_address?: SortOrderInput | SortOrder
+    user_agent?: SortOrderInput | SortOrder
+    severity?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    companies?: companiesOrderByWithRelationInput
+  }
+
+  export type audit_logsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: audit_logsWhereInput | audit_logsWhereInput[]
+    OR?: audit_logsWhereInput[]
+    NOT?: audit_logsWhereInput | audit_logsWhereInput[]
+    company_id?: IntNullableFilter<"audit_logs"> | number | null
+    user_id?: IntNullableFilter<"audit_logs"> | number | null
+    username?: StringNullableFilter<"audit_logs"> | string | null
+    user_role?: StringNullableFilter<"audit_logs"> | string | null
+    action?: StringFilter<"audit_logs"> | string
+    entity_type?: StringFilter<"audit_logs"> | string
+    entity_id?: StringNullableFilter<"audit_logs"> | string | null
+    entity_name?: StringNullableFilter<"audit_logs"> | string | null
+    description?: StringFilter<"audit_logs"> | string
+    details?: StringNullableFilter<"audit_logs"> | string | null
+    ip_address?: StringNullableFilter<"audit_logs"> | string | null
+    user_agent?: StringNullableFilter<"audit_logs"> | string | null
+    severity?: StringNullableFilter<"audit_logs"> | string | null
+    created_at?: DateTimeNullableFilter<"audit_logs"> | Date | string | null
+    companies?: XOR<CompaniesNullableScalarRelationFilter, companiesWhereInput> | null
+  }, "id">
+
+  export type audit_logsOrderByWithAggregationInput = {
+    id?: SortOrder
+    company_id?: SortOrderInput | SortOrder
+    user_id?: SortOrderInput | SortOrder
+    username?: SortOrderInput | SortOrder
+    user_role?: SortOrderInput | SortOrder
+    action?: SortOrder
+    entity_type?: SortOrder
+    entity_id?: SortOrderInput | SortOrder
+    entity_name?: SortOrderInput | SortOrder
+    description?: SortOrder
+    details?: SortOrderInput | SortOrder
+    ip_address?: SortOrderInput | SortOrder
+    user_agent?: SortOrderInput | SortOrder
+    severity?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: audit_logsCountOrderByAggregateInput
+    _avg?: audit_logsAvgOrderByAggregateInput
+    _max?: audit_logsMaxOrderByAggregateInput
+    _min?: audit_logsMinOrderByAggregateInput
+    _sum?: audit_logsSumOrderByAggregateInput
+  }
+
+  export type audit_logsScalarWhereWithAggregatesInput = {
+    AND?: audit_logsScalarWhereWithAggregatesInput | audit_logsScalarWhereWithAggregatesInput[]
+    OR?: audit_logsScalarWhereWithAggregatesInput[]
+    NOT?: audit_logsScalarWhereWithAggregatesInput | audit_logsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"audit_logs"> | number
+    company_id?: IntNullableWithAggregatesFilter<"audit_logs"> | number | null
+    user_id?: IntNullableWithAggregatesFilter<"audit_logs"> | number | null
+    username?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    user_role?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    action?: StringWithAggregatesFilter<"audit_logs"> | string
+    entity_type?: StringWithAggregatesFilter<"audit_logs"> | string
+    entity_id?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    entity_name?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    description?: StringWithAggregatesFilter<"audit_logs"> | string
+    details?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    ip_address?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    user_agent?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    severity?: StringNullableWithAggregatesFilter<"audit_logs"> | string | null
+    created_at?: DateTimeNullableWithAggregatesFilter<"audit_logs"> | Date | string | null
+  }
+
   export type assignmentsCreateInput = {
     item_name: string
     quantity?: number | null
@@ -55204,6 +56717,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -55235,6 +56749,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -55265,6 +56780,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -55296,6 +56812,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -58639,6 +60156,128 @@ export namespace Prisma {
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type audit_logsCreateInput = {
+    user_id?: number | null
+    username?: string | null
+    user_role?: string | null
+    action: string
+    entity_type: string
+    entity_id?: string | null
+    entity_name?: string | null
+    description: string
+    details?: string | null
+    ip_address?: string | null
+    user_agent?: string | null
+    severity?: string | null
+    created_at?: Date | string | null
+    companies?: companiesCreateNestedOneWithoutAudit_logsInput
+  }
+
+  export type audit_logsUncheckedCreateInput = {
+    id?: number
+    company_id?: number | null
+    user_id?: number | null
+    username?: string | null
+    user_role?: string | null
+    action: string
+    entity_type: string
+    entity_id?: string | null
+    entity_name?: string | null
+    description: string
+    details?: string | null
+    ip_address?: string | null
+    user_agent?: string | null
+    severity?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type audit_logsUpdateInput = {
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    companies?: companiesUpdateOneWithoutAudit_logsNestedInput
+  }
+
+  export type audit_logsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: NullableIntFieldUpdateOperationsInput | number | null
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type audit_logsCreateManyInput = {
+    id?: number
+    company_id?: number | null
+    user_id?: number | null
+    username?: string | null
+    user_role?: string | null
+    action: string
+    entity_type: string
+    entity_id?: string | null
+    entity_name?: string | null
+    description: string
+    details?: string | null
+    ip_address?: string | null
+    user_agent?: string | null
+    severity?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type audit_logsUpdateManyMutationInput = {
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type audit_logsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    company_id?: NullableIntFieldUpdateOperationsInput | number | null
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -58975,6 +60614,12 @@ export namespace Prisma {
     none?: rolesWhereInput
   }
 
+  export type Audit_logsListRelationFilter = {
+    every?: audit_logsWhereInput
+    some?: audit_logsWhereInput
+    none?: audit_logsWhereInput
+  }
+
   export type RequestsListRelationFilter = {
     every?: requestsWhereInput
     some?: requestsWhereInput
@@ -59038,6 +60683,10 @@ export namespace Prisma {
   }
 
   export type rolesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type audit_logsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -61362,6 +63011,77 @@ export namespace Prisma {
     show_popup?: SortOrder
   }
 
+  export type CompaniesNullableScalarRelationFilter = {
+    is?: companiesWhereInput | null
+    isNot?: companiesWhereInput | null
+  }
+
+  export type audit_logsCountOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    user_id?: SortOrder
+    username?: SortOrder
+    user_role?: SortOrder
+    action?: SortOrder
+    entity_type?: SortOrder
+    entity_id?: SortOrder
+    entity_name?: SortOrder
+    description?: SortOrder
+    details?: SortOrder
+    ip_address?: SortOrder
+    user_agent?: SortOrder
+    severity?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type audit_logsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    user_id?: SortOrder
+  }
+
+  export type audit_logsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    user_id?: SortOrder
+    username?: SortOrder
+    user_role?: SortOrder
+    action?: SortOrder
+    entity_type?: SortOrder
+    entity_id?: SortOrder
+    entity_name?: SortOrder
+    description?: SortOrder
+    details?: SortOrder
+    ip_address?: SortOrder
+    user_agent?: SortOrder
+    severity?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type audit_logsMinOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    user_id?: SortOrder
+    username?: SortOrder
+    user_role?: SortOrder
+    action?: SortOrder
+    entity_type?: SortOrder
+    entity_id?: SortOrder
+    entity_name?: SortOrder
+    description?: SortOrder
+    details?: SortOrder
+    ip_address?: SortOrder
+    user_agent?: SortOrder
+    severity?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type audit_logsSumOrderByAggregateInput = {
+    id?: SortOrder
+    company_id?: SortOrder
+    user_id?: SortOrder
+  }
+
   export type vehiclesCreateNestedOneWithoutAssignmentsInput = {
     create?: XOR<vehiclesCreateWithoutAssignmentsInput, vehiclesUncheckedCreateWithoutAssignmentsInput>
     connectOrCreate?: vehiclesCreateOrConnectWithoutAssignmentsInput
@@ -61527,6 +63247,13 @@ export namespace Prisma {
     connect?: rolesWhereUniqueInput | rolesWhereUniqueInput[]
   }
 
+  export type audit_logsCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<audit_logsCreateWithoutCompaniesInput, audit_logsUncheckedCreateWithoutCompaniesInput> | audit_logsCreateWithoutCompaniesInput[] | audit_logsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: audit_logsCreateOrConnectWithoutCompaniesInput | audit_logsCreateOrConnectWithoutCompaniesInput[]
+    createMany?: audit_logsCreateManyCompaniesInputEnvelope
+    connect?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+  }
+
   export type requestsCreateNestedManyWithoutCompaniesInput = {
     create?: XOR<requestsCreateWithoutCompaniesInput, requestsUncheckedCreateWithoutCompaniesInput> | requestsCreateWithoutCompaniesInput[] | requestsUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: requestsCreateOrConnectWithoutCompaniesInput | requestsCreateOrConnectWithoutCompaniesInput[]
@@ -61643,6 +63370,13 @@ export namespace Prisma {
     connectOrCreate?: rolesCreateOrConnectWithoutCompaniesInput | rolesCreateOrConnectWithoutCompaniesInput[]
     createMany?: rolesCreateManyCompaniesInputEnvelope
     connect?: rolesWhereUniqueInput | rolesWhereUniqueInput[]
+  }
+
+  export type audit_logsUncheckedCreateNestedManyWithoutCompaniesInput = {
+    create?: XOR<audit_logsCreateWithoutCompaniesInput, audit_logsUncheckedCreateWithoutCompaniesInput> | audit_logsCreateWithoutCompaniesInput[] | audit_logsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: audit_logsCreateOrConnectWithoutCompaniesInput | audit_logsCreateOrConnectWithoutCompaniesInput[]
+    createMany?: audit_logsCreateManyCompaniesInputEnvelope
+    connect?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
   }
 
   export type requestsUncheckedCreateNestedManyWithoutCompaniesInput = {
@@ -61882,6 +63616,20 @@ export namespace Prisma {
     deleteMany?: rolesScalarWhereInput | rolesScalarWhereInput[]
   }
 
+  export type audit_logsUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<audit_logsCreateWithoutCompaniesInput, audit_logsUncheckedCreateWithoutCompaniesInput> | audit_logsCreateWithoutCompaniesInput[] | audit_logsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: audit_logsCreateOrConnectWithoutCompaniesInput | audit_logsCreateOrConnectWithoutCompaniesInput[]
+    upsert?: audit_logsUpsertWithWhereUniqueWithoutCompaniesInput | audit_logsUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: audit_logsCreateManyCompaniesInputEnvelope
+    set?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    disconnect?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    delete?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    connect?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    update?: audit_logsUpdateWithWhereUniqueWithoutCompaniesInput | audit_logsUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: audit_logsUpdateManyWithWhereWithoutCompaniesInput | audit_logsUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: audit_logsScalarWhereInput | audit_logsScalarWhereInput[]
+  }
+
   export type requestsUpdateManyWithoutCompaniesNestedInput = {
     create?: XOR<requestsCreateWithoutCompaniesInput, requestsUncheckedCreateWithoutCompaniesInput> | requestsCreateWithoutCompaniesInput[] | requestsUncheckedCreateWithoutCompaniesInput[]
     connectOrCreate?: requestsCreateOrConnectWithoutCompaniesInput | requestsCreateOrConnectWithoutCompaniesInput[]
@@ -62114,6 +63862,20 @@ export namespace Prisma {
     update?: rolesUpdateWithWhereUniqueWithoutCompaniesInput | rolesUpdateWithWhereUniqueWithoutCompaniesInput[]
     updateMany?: rolesUpdateManyWithWhereWithoutCompaniesInput | rolesUpdateManyWithWhereWithoutCompaniesInput[]
     deleteMany?: rolesScalarWhereInput | rolesScalarWhereInput[]
+  }
+
+  export type audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput = {
+    create?: XOR<audit_logsCreateWithoutCompaniesInput, audit_logsUncheckedCreateWithoutCompaniesInput> | audit_logsCreateWithoutCompaniesInput[] | audit_logsUncheckedCreateWithoutCompaniesInput[]
+    connectOrCreate?: audit_logsCreateOrConnectWithoutCompaniesInput | audit_logsCreateOrConnectWithoutCompaniesInput[]
+    upsert?: audit_logsUpsertWithWhereUniqueWithoutCompaniesInput | audit_logsUpsertWithWhereUniqueWithoutCompaniesInput[]
+    createMany?: audit_logsCreateManyCompaniesInputEnvelope
+    set?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    disconnect?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    delete?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    connect?: audit_logsWhereUniqueInput | audit_logsWhereUniqueInput[]
+    update?: audit_logsUpdateWithWhereUniqueWithoutCompaniesInput | audit_logsUpdateWithWhereUniqueWithoutCompaniesInput[]
+    updateMany?: audit_logsUpdateManyWithWhereWithoutCompaniesInput | audit_logsUpdateManyWithWhereWithoutCompaniesInput[]
+    deleteMany?: audit_logsScalarWhereInput | audit_logsScalarWhereInput[]
   }
 
   export type requestsUncheckedUpdateManyWithoutCompaniesNestedInput = {
@@ -63936,6 +65698,22 @@ export namespace Prisma {
     update?: XOR<XOR<usersUpdateToOneWithWhereWithoutApproval_actionsInput, usersUpdateWithoutApproval_actionsInput>, usersUncheckedUpdateWithoutApproval_actionsInput>
   }
 
+  export type companiesCreateNestedOneWithoutAudit_logsInput = {
+    create?: XOR<companiesCreateWithoutAudit_logsInput, companiesUncheckedCreateWithoutAudit_logsInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutAudit_logsInput
+    connect?: companiesWhereUniqueInput
+  }
+
+  export type companiesUpdateOneWithoutAudit_logsNestedInput = {
+    create?: XOR<companiesCreateWithoutAudit_logsInput, companiesUncheckedCreateWithoutAudit_logsInput>
+    connectOrCreate?: companiesCreateOrConnectWithoutAudit_logsInput
+    upsert?: companiesUpsertWithoutAudit_logsInput
+    disconnect?: companiesWhereInput | boolean
+    delete?: companiesWhereInput | boolean
+    connect?: companiesWhereUniqueInput
+    update?: XOR<XOR<companiesUpdateToOneWithWhereWithoutAudit_logsInput, companiesUpdateWithoutAudit_logsInput>, companiesUncheckedUpdateWithoutAudit_logsInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -64876,6 +66654,49 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type audit_logsCreateWithoutCompaniesInput = {
+    user_id?: number | null
+    username?: string | null
+    user_role?: string | null
+    action: string
+    entity_type: string
+    entity_id?: string | null
+    entity_name?: string | null
+    description: string
+    details?: string | null
+    ip_address?: string | null
+    user_agent?: string | null
+    severity?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type audit_logsUncheckedCreateWithoutCompaniesInput = {
+    id?: number
+    user_id?: number | null
+    username?: string | null
+    user_role?: string | null
+    action: string
+    entity_type: string
+    entity_id?: string | null
+    entity_name?: string | null
+    description: string
+    details?: string | null
+    ip_address?: string | null
+    user_agent?: string | null
+    severity?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type audit_logsCreateOrConnectWithoutCompaniesInput = {
+    where: audit_logsWhereUniqueInput
+    create: XOR<audit_logsCreateWithoutCompaniesInput, audit_logsUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type audit_logsCreateManyCompaniesInputEnvelope = {
+    data: audit_logsCreateManyCompaniesInput | audit_logsCreateManyCompaniesInput[]
+    skipDuplicates?: boolean
+  }
+
   export type requestsCreateWithoutCompaniesInput = {
     type: string
     title: string
@@ -65468,6 +67289,43 @@ export namespace Prisma {
     created_at?: DateTimeNullableFilter<"roles"> | Date | string | null
   }
 
+  export type audit_logsUpsertWithWhereUniqueWithoutCompaniesInput = {
+    where: audit_logsWhereUniqueInput
+    update: XOR<audit_logsUpdateWithoutCompaniesInput, audit_logsUncheckedUpdateWithoutCompaniesInput>
+    create: XOR<audit_logsCreateWithoutCompaniesInput, audit_logsUncheckedCreateWithoutCompaniesInput>
+  }
+
+  export type audit_logsUpdateWithWhereUniqueWithoutCompaniesInput = {
+    where: audit_logsWhereUniqueInput
+    data: XOR<audit_logsUpdateWithoutCompaniesInput, audit_logsUncheckedUpdateWithoutCompaniesInput>
+  }
+
+  export type audit_logsUpdateManyWithWhereWithoutCompaniesInput = {
+    where: audit_logsScalarWhereInput
+    data: XOR<audit_logsUpdateManyMutationInput, audit_logsUncheckedUpdateManyWithoutCompaniesInput>
+  }
+
+  export type audit_logsScalarWhereInput = {
+    AND?: audit_logsScalarWhereInput | audit_logsScalarWhereInput[]
+    OR?: audit_logsScalarWhereInput[]
+    NOT?: audit_logsScalarWhereInput | audit_logsScalarWhereInput[]
+    id?: IntFilter<"audit_logs"> | number
+    company_id?: IntNullableFilter<"audit_logs"> | number | null
+    user_id?: IntNullableFilter<"audit_logs"> | number | null
+    username?: StringNullableFilter<"audit_logs"> | string | null
+    user_role?: StringNullableFilter<"audit_logs"> | string | null
+    action?: StringFilter<"audit_logs"> | string
+    entity_type?: StringFilter<"audit_logs"> | string
+    entity_id?: StringNullableFilter<"audit_logs"> | string | null
+    entity_name?: StringNullableFilter<"audit_logs"> | string | null
+    description?: StringFilter<"audit_logs"> | string
+    details?: StringNullableFilter<"audit_logs"> | string | null
+    ip_address?: StringNullableFilter<"audit_logs"> | string | null
+    user_agent?: StringNullableFilter<"audit_logs"> | string | null
+    severity?: StringNullableFilter<"audit_logs"> | string | null
+    created_at?: DateTimeNullableFilter<"audit_logs"> | Date | string | null
+  }
+
   export type requestsUpsertWithWhereUniqueWithoutCompaniesInput = {
     where: requestsWhereUniqueInput
     update: XOR<requestsUpdateWithoutCompaniesInput, requestsUncheckedUpdateWithoutCompaniesInput>
@@ -65530,6 +67388,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -65560,6 +67419,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -65658,6 +67518,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -65688,6 +67549,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -66935,6 +68797,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -66965,6 +68828,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -67439,6 +69303,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -67469,6 +69334,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68154,6 +70020,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68184,6 +70051,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68229,6 +70097,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68259,6 +70128,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68288,6 +70158,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68318,6 +70189,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68363,6 +70235,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68393,6 +70266,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68422,6 +70296,7 @@ export namespace Prisma {
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68452,6 +70327,7 @@ export namespace Prisma {
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68497,6 +70373,7 @@ export namespace Prisma {
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68527,6 +70404,7 @@ export namespace Prisma {
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68726,6 +70604,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68756,6 +70635,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -68801,6 +70681,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -68831,6 +70712,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -69140,6 +71022,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -69170,6 +71053,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -69215,6 +71099,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -69245,6 +71130,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -69274,6 +71160,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -69304,6 +71191,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -69933,6 +71821,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -69963,6 +71852,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -70314,6 +72204,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -70344,6 +72235,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -70970,6 +72862,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71000,6 +72893,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71239,6 +73133,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71269,6 +73164,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71336,6 +73232,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71366,6 +73263,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71411,6 +73309,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71441,6 +73340,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71470,6 +73370,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71500,6 +73401,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71545,6 +73447,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71575,6 +73478,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71604,6 +73508,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71634,6 +73539,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71679,6 +73585,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71709,6 +73616,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71738,6 +73646,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71768,6 +73677,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71813,6 +73723,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71843,6 +73754,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71872,6 +73784,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71902,6 +73815,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -71947,6 +73861,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -71977,6 +73892,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -72006,6 +73922,7 @@ export namespace Prisma {
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -72036,6 +73953,7 @@ export namespace Prisma {
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -72081,6 +73999,7 @@ export namespace Prisma {
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -72111,6 +74030,7 @@ export namespace Prisma {
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -72218,6 +74138,7 @@ export namespace Prisma {
     document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
     requests?: requestsCreateNestedManyWithoutCompaniesInput
   }
 
@@ -72248,6 +74169,7 @@ export namespace Prisma {
     document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
     requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
@@ -72360,6 +74282,7 @@ export namespace Prisma {
     document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -72390,6 +74313,7 @@ export namespace Prisma {
     document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -72621,6 +74545,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
     roles?: rolesCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesUncheckedCreateWithoutRequestsInput = {
@@ -72651,6 +74576,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
     public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
     roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    audit_logs?: audit_logsUncheckedCreateNestedManyWithoutCompaniesInput
   }
 
   export type companiesCreateOrConnectWithoutRequestsInput = {
@@ -72848,6 +74774,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
   }
 
   export type companiesUncheckedUpdateWithoutRequestsInput = {
@@ -72878,6 +74805,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type requestsCreateWithoutApprovalsInput = {
@@ -73050,6 +74978,144 @@ export namespace Prisma {
     two_factor_backup_codes?: NullableStringFieldUpdateOperationsInput | string | null
     companies?: companiesUncheckedUpdateManyWithoutUsersNestedInput
     created_requests?: requestsUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type companiesCreateWithoutAudit_logsInput = {
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    users?: usersCreateNestedOneWithoutCompaniesInput
+    employees?: employeesCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesCreateNestedManyWithoutCompaniesInput
+    works?: worksCreateNestedManyWithoutCompaniesInput
+    customers?: customersCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysCreateNestedManyWithoutCompaniesInput
+    roles?: rolesCreateNestedManyWithoutCompaniesInput
+    requests?: requestsCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesUncheckedCreateWithoutAudit_logsInput = {
+    id?: number
+    user_id?: number | null
+    name: string
+    tax_number?: string | null
+    tax_office?: string | null
+    sgk_no?: string | null
+    address?: string | null
+    phone?: string | null
+    signature_path?: string | null
+    stamp_path?: string | null
+    created_at?: Date | string | null
+    employees?: employeesUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_settings?: meal_settingsUncheckedCreateNestedOneWithoutCompaniesInput
+    meal_tickets?: meal_ticketsUncheckedCreateNestedManyWithoutCompaniesInput
+    recurring_transactions?: recurring_transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    transactions?: transactionsUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicles?: vehiclesUncheckedCreateNestedManyWithoutCompaniesInput
+    works?: worksUncheckedCreateNestedManyWithoutCompaniesInput
+    customers?: customersUncheckedCreateNestedManyWithoutCompaniesInput
+    departments?: departmentsUncheckedCreateNestedManyWithoutCompaniesInput
+    leave_types?: leave_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_categories?: document_categoriesUncheckedCreateNestedManyWithoutCompaniesInput
+    vehicle_types?: vehicle_typesUncheckedCreateNestedManyWithoutCompaniesInput
+    document_folders?: document_foldersUncheckedCreateNestedManyWithoutCompaniesInput
+    meal_price_history?: meal_price_historyUncheckedCreateNestedManyWithoutCompaniesInput
+    public_holidays?: public_holidaysUncheckedCreateNestedManyWithoutCompaniesInput
+    roles?: rolesUncheckedCreateNestedManyWithoutCompaniesInput
+    requests?: requestsUncheckedCreateNestedManyWithoutCompaniesInput
+  }
+
+  export type companiesCreateOrConnectWithoutAudit_logsInput = {
+    where: companiesWhereUniqueInput
+    create: XOR<companiesCreateWithoutAudit_logsInput, companiesUncheckedCreateWithoutAudit_logsInput>
+  }
+
+  export type companiesUpsertWithoutAudit_logsInput = {
+    update: XOR<companiesUpdateWithoutAudit_logsInput, companiesUncheckedUpdateWithoutAudit_logsInput>
+    create: XOR<companiesCreateWithoutAudit_logsInput, companiesUncheckedCreateWithoutAudit_logsInput>
+    where?: companiesWhereInput
+  }
+
+  export type companiesUpdateToOneWithWhereWithoutAudit_logsInput = {
+    where?: companiesWhereInput
+    data: XOR<companiesUpdateWithoutAudit_logsInput, companiesUncheckedUpdateWithoutAudit_logsInput>
+  }
+
+  export type companiesUpdateWithoutAudit_logsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    users?: usersUpdateOneWithoutCompaniesNestedInput
+    employees?: employeesUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUpdateManyWithoutCompaniesNestedInput
+    works?: worksUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
+    roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    requests?: requestsUpdateManyWithoutCompaniesNestedInput
+  }
+
+  export type companiesUncheckedUpdateWithoutAudit_logsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    name?: StringFieldUpdateOperationsInput | string
+    tax_number?: NullableStringFieldUpdateOperationsInput | string | null
+    tax_office?: NullableStringFieldUpdateOperationsInput | string | null
+    sgk_no?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    signature_path?: NullableStringFieldUpdateOperationsInput | string | null
+    stamp_path?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employees?: employeesUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_settings?: meal_settingsUncheckedUpdateOneWithoutCompaniesNestedInput
+    meal_tickets?: meal_ticketsUncheckedUpdateManyWithoutCompaniesNestedInput
+    recurring_transactions?: recurring_transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    transactions?: transactionsUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicles?: vehiclesUncheckedUpdateManyWithoutCompaniesNestedInput
+    works?: worksUncheckedUpdateManyWithoutCompaniesNestedInput
+    customers?: customersUncheckedUpdateManyWithoutCompaniesNestedInput
+    departments?: departmentsUncheckedUpdateManyWithoutCompaniesNestedInput
+    leave_types?: leave_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_categories?: document_categoriesUncheckedUpdateManyWithoutCompaniesNestedInput
+    vehicle_types?: vehicle_typesUncheckedUpdateManyWithoutCompaniesNestedInput
+    document_folders?: document_foldersUncheckedUpdateManyWithoutCompaniesNestedInput
+    meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
+    public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
+    roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 
   export type employeesCreateManyCompaniesInput = {
@@ -73226,6 +75292,23 @@ export namespace Prisma {
     id?: number
     name: string
     description?: string | null
+    created_at?: Date | string | null
+  }
+
+  export type audit_logsCreateManyCompaniesInput = {
+    id?: number
+    user_id?: number | null
+    username?: string | null
+    user_role?: string | null
+    action: string
+    entity_type: string
+    entity_id?: string | null
+    entity_name?: string | null
+    description: string
+    details?: string | null
+    ip_address?: string | null
+    user_agent?: string | null
+    severity?: string | null
     created_at?: Date | string | null
   }
 
@@ -73806,6 +75889,56 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type audit_logsUpdateWithoutCompaniesInput = {
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type audit_logsUncheckedUpdateWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type audit_logsUncheckedUpdateManyWithoutCompaniesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: NullableIntFieldUpdateOperationsInput | number | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    user_role?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entity_type?: StringFieldUpdateOperationsInput | string
+    entity_id?: NullableStringFieldUpdateOperationsInput | string | null
+    entity_name?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ip_address?: NullableStringFieldUpdateOperationsInput | string | null
+    user_agent?: NullableStringFieldUpdateOperationsInput | string | null
+    severity?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -74612,6 +76745,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUpdateManyWithoutCompaniesNestedInput
   }
 
@@ -74642,6 +76776,7 @@ export namespace Prisma {
     meal_price_history?: meal_price_historyUncheckedUpdateManyWithoutCompaniesNestedInput
     public_holidays?: public_holidaysUncheckedUpdateManyWithoutCompaniesNestedInput
     roles?: rolesUncheckedUpdateManyWithoutCompaniesNestedInput
+    audit_logs?: audit_logsUncheckedUpdateManyWithoutCompaniesNestedInput
     requests?: requestsUncheckedUpdateManyWithoutCompaniesNestedInput
   }
 

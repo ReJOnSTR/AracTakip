@@ -27,7 +27,9 @@ import {
     Activity,
     Database,
     ScrollText,
-    Megaphone
+    Megaphone,
+    History,
+    ShieldAlert
 } from 'lucide-react'
 
 // Define menus per module
@@ -172,10 +174,11 @@ export const moduleMenus = {
             ]
         },
         {
-            title: 'Sistem & Altyapı',
+            title: 'Sistem, Güvenlik & Denetim',
             items: [
+                { path: '/platform/audit', label: 'Denetim İzi & Olaylar', icon: History },
                 { path: '/platform/health', label: 'Sistem Sağlığı & İzleme', icon: Activity },
-                { path: '/platform/logs', label: 'Sistem & Güvenlik Logları', icon: ScrollText },
+                { path: '/platform/logs', label: 'Sunucu Hata Logları', icon: ScrollText },
                 { path: '/platform/backups', label: 'Veritabanı Yedekleri', icon: Database }
             ]
         }

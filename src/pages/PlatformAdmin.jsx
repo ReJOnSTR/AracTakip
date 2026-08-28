@@ -41,7 +41,11 @@ import {
     Scale,
     AlertOctagon,
     Clock,
-    Check
+    Check,
+    History,
+    ShieldAlert,
+    Copy,
+    Filter
 } from 'lucide-react'
 import './PlatformAdmin.css'
 
@@ -56,6 +60,7 @@ export default function PlatformAdmin({ section }) {
         if (section) return section
         if (location.pathname.includes('/companies')) return 'companies'
         if (location.pathname.includes('/announcements')) return 'announcements'
+        if (location.pathname.includes('/audit')) return 'audit'
         if (location.pathname.includes('/health')) return 'health'
         if (location.pathname.includes('/logs')) return 'logs'
         if (location.pathname.includes('/backups')) return 'backups'
@@ -102,6 +107,26 @@ export default function PlatformAdmin({ section }) {
     const [logs, setLogs] = useState([])
     const [logsLoading, setLogsLoading] = useState(false)
     const [autoPollLogs, setAutoPollLogs] = useState(false)
+
+    // Audit Trail State
+    const [auditLogs, setAuditLogs] = useState([])
+    const [auditMetrics, setAuditMetrics] = useState({
+        total24h: 0,
+        failedLogins24h: 0,
+        criticalDeletes24h: 0,
+        securityEvents24h: 0,
+        activeUsersCount: 0
+    })
+    const [auditLoading, setAuditLoading] = useState(false)
+    const [auditDetailModal, setAuditDetailModal] = useState(false)
+    const [selectedAuditDetail, setSelectedAuditDetail] = useState(null)
+    const [copiedDetailJson, setCopiedDetailJson] = useState(false)
+    const [auditFilters, setAuditFilters] = useState({
+        action: 'all',
+        entityType: 'all',
+        severity: 'all',
+        companyId: 'all'
+    })
 
     // Modals
     const [passwordModalUser, setPasswordModalUser] = useState(null)
@@ -158,6 +183,8 @@ export default function PlatformAdmin({ section }) {
                 await Promise.all([loadOverview(), loadUsers()])
             } else if (activeSection === 'announcements') {
                 await Promise.all([loadAnnouncements(), loadOverview()])
+            } else if (activeSection === 'audit') {
+                await Promise.all([loadAuditLogs(), loadOverview()])
             } else if (activeSection === 'health') {
                 await loadHealth()
             } else if (activeSection === 'logs') {
@@ -169,6 +196,36 @@ export default function PlatformAdmin({ section }) {
             console.error('Platform data load error:', err)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const loadAuditLogs = async (overrideFilters = {}) => {
+        setAuditLoading(true)
+        try {
+            const effectiveFilters = {
+                ...auditFilters,
+                ...overrideFilters
+            }
+            if (effectiveFilters.action === 'all') delete effectiveFilters.action
+            if (effectiveFilters.entityType === 'all') delete effectiveFilters.entityType
+            if (effectiveFilters.severity === 'all') delete effectiveFilters.severity
+            if (effectiveFilters.companyId === 'all') delete effectiveFilters.companyId
+
+            const [logsRes, metricsRes] = await Promise.all([
+                window.electronAPI?.getPlatformAuditLogs ? window.electronAPI.getPlatformAuditLogs(effectiveFilters) : fetch('/api/rpc/getPlatformAuditLogs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ args: [effectiveFilters] }) }).then(r => r.json()),
+                window.electronAPI?.getAuditSummaryMetrics ? window.electronAPI.getAuditSummaryMetrics() : fetch('/api/rpc/getAuditSummaryMetrics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ args: [] }) }).then(r => r.json())
+            ])
+
+            if (logsRes?.success) {
+                setAuditLogs(logsRes.logs || [])
+            }
+            if (metricsRes?.success) {
+                setAuditMetrics(metricsRes.metrics || {})
+            }
+        } catch (err) {
+            console.error('loadAuditLogs error:', err)
+        } finally {
+            setAuditLoading(false)
         }
     }
 
@@ -810,6 +867,72 @@ export default function PlatformAdmin({ section }) {
         )}
     ]
 
+    // ── AUDIT TRAIL COLUMNS ──
+    const auditColumns = [
+        { key: 'createdAt', label: 'Zaman Damgası', width: '160px', render: (val) => (
+            <div style={{ fontFamily: 'monospace', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                {val ? new Date(val).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}
+            </div>
+        )},
+        { key: 'companyName', label: 'Şirket', width: '160px', render: (val) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Building2 size={12} style={{ color: 'var(--accent-primary, #3b82f6)' }} />
+                <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{val || 'Sistem / Platform'}</strong>
+            </div>
+        )},
+        { key: 'username', label: 'Kullanıcı & Rol', width: '150px', render: (val, r) => (
+            <div>
+                <span style={{ fontWeight: 600, fontSize: '12px' }}>{val || 'Sistem'}</span>
+                {r.userRole && (
+                    <span className="badge" style={{ marginLeft: '6px', fontSize: '10px', background: 'rgba(255,255,255,0.08)' }}>
+                        {r.userRole}
+                    </span>
+                )}
+            </div>
+        )},
+        { key: 'action', label: 'İşlem Türü', width: '130px', render: (val) => {
+            const actionStyles = {
+                CREATE: { label: '🟢 Ekleme', bg: 'rgba(16, 185, 129, 0.15)', color: '#10b981' },
+                UPDATE: { label: '🟡 Güncelleme', bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' },
+                DELETE: { label: '🔴 Silme', bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' },
+                LOGIN_SUCCESS: { label: '🔑 Başarılı Giriş', bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' },
+                LOGIN_FAILED: { label: '🚨 Hatalı Giriş', bg: 'rgba(239, 68, 68, 0.2)', color: '#f87171' },
+                IMPERSONATE: { label: '👑 Şirkete Geçiş', bg: 'rgba(168, 85, 247, 0.15)', color: '#a855f7' },
+                SECURITY: { label: '🛡️ Güvenlik', bg: 'rgba(234, 179, 8, 0.15)', color: '#eab308' },
+            }
+            const s = actionStyles[val] || { label: val, bg: 'rgba(255,255,255,0.08)', color: 'var(--text-primary)' }
+            return (
+                <span style={{ background: s.bg, color: s.color, padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, display: 'inline-block' }}>
+                    {s.label}
+                </span>
+            )
+        }},
+        { key: 'entityName', label: 'Hedef / Varlık', width: '180px', render: (val, r) => (
+            <div>
+                <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{val || '-'}</strong>
+                {r.entityType && (
+                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Modül: {r.entityType}</div>
+                )}
+            </div>
+        )},
+        { key: 'description', label: 'İşlem Açıklaması', render: (val) => (
+            <div style={{ fontSize: '12px', color: 'var(--text-primary)' }}>
+                {val}
+            </div>
+        )},
+        { key: 'actions', label: 'Detay', width: '80px', render: (_, r) => (
+            <button
+                className="ghost-btn"
+                onClick={() => { setSelectedAuditDetail(r); setAuditDetailModal(true); setCopiedDetailJson(false); }}
+                title="İşlem Detayını Görüntüle"
+                style={{ padding: '4px 8px', fontSize: '11.5px' }}
+            >
+                <Eye size={12} />
+                <span>İncele</span>
+            </button>
+        )}
+    ]
+
     // ── SYSTEM LOGS COLUMNS ──
     const logColumns = [
         { key: 'timestamp', label: 'Zaman Damgası', width: '180px', render: (val) => (
@@ -1124,6 +1247,123 @@ export default function PlatformAdmin({ section }) {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════
+                PAGE: AUDIT TRAIL & SECURITY EVENTS (/platform/audit)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'audit' && (
+                <div>
+                    <div className="page-header">
+                        <div>
+                            <h1 className="page-title">Denetim İzi & Güvenlik Olayları</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                Platform genelindeki tüm veri ekleme, silme, güncelleme hareketleri ve şüpheli güvenlik olayları.
+                            </p>
+                        </div>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button className="btn btn-secondary" onClick={() => loadAuditLogs()} disabled={auditLoading}>
+                                <RefreshCw size={16} className={auditLoading ? 'spin' : ''} />
+                                Yenile
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 4 KPI Metric Cards */}
+                    <div className="platform-overview-grid" style={{ marginBottom: '24px' }}>
+                        <div className="platform-metric-card">
+                            <div className="metric-icon-box" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                                <History size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <div className="metric-value">{auditMetrics.total24h || 0}</div>
+                                <div className="metric-label">24s Toplam İşlem</div>
+                                <div className="metric-sublabel">Tüm kiracı veri hareketleri</div>
+                            </div>
+                        </div>
+
+                        <div className="platform-metric-card">
+                            <div className="metric-icon-box" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                <ShieldAlert size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <div className="metric-value" style={{ color: (auditMetrics.failedLogins24h > 0) ? '#ef4444' : 'inherit' }}>
+                                    {auditMetrics.failedLogins24h || 0}
+                                </div>
+                                <div className="metric-label">Hatalı Giriş / Tehdit</div>
+                                <div className="metric-sublabel">Son 24 saat auth denemeleri</div>
+                            </div>
+                        </div>
+
+                        <div className="platform-metric-card">
+                            <div className="metric-icon-box" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
+                                <Trash2 size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <div className="metric-value">{auditMetrics.criticalDeletes24h || 0}</div>
+                                <div className="metric-label">Kritik Silme İşlemi</div>
+                                <div className="metric-sublabel">Araç, personel, hesap</div>
+                            </div>
+                        </div>
+
+                        <div className="platform-metric-card">
+                            <div className="metric-icon-box" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                                <Users size={24} />
+                            </div>
+                            <div className="metric-info">
+                                <div className="metric-value">{auditMetrics.activeUsersCount || 0}</div>
+                                <div className="metric-label">Aktif Kullanıcı</div>
+                                <div className="metric-sublabel">Son 7 günde işlem yapan</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <DataTable
+                        persistenceKey="PlatformAdmin_audit_table"
+                        columns={auditColumns}
+                        data={auditLogs}
+                        showSearch={true}
+                        showCheckboxes={false}
+                        searchPlaceholder="Kullanıcı, hedef varlık, plaka veya işlem ara..."
+                        searchKeys={['username', 'entityName', 'description', 'companyName', 'action']}
+                        filters={[
+                            {
+                                key: 'action',
+                                label: 'İşlem Türü',
+                                options: [
+                                    { value: 'CREATE', label: '🟢 Ekleme (CREATE)' },
+                                    { value: 'UPDATE', label: '🟡 Güncelleme (UPDATE)' },
+                                    { value: 'DELETE', label: '🔴 Silme (DELETE)' },
+                                    { value: 'LOGIN_SUCCESS', label: '🔑 Başarılı Giriş' },
+                                    { value: 'LOGIN_FAILED', label: '🚨 Hatalı Giriş' },
+                                    { value: 'IMPERSONATE', label: '👑 Şirkete Geçiş' },
+                                    { value: 'SECURITY', label: '🛡️ Güvenlik Olayı' }
+                                ]
+                            },
+                            {
+                                key: 'entityType',
+                                label: 'Modül',
+                                options: [
+                                    { value: 'vehicle', label: '🚗 Araçlar' },
+                                    { value: 'employee', label: '👥 Personel' },
+                                    { value: 'auth', label: '🔐 Kimlik & Giriş' },
+                                    { value: 'user', label: '👤 Kullanıcı Hesapları' },
+                                    { value: 'company', label: '🏢 Şirketler' },
+                                    { value: 'announcement', label: '📢 Duyurular' }
+                                ]
+                            },
+                            {
+                                key: 'severity',
+                                label: 'Önem Seviyesi',
+                                options: [
+                                    { value: 'info', label: '🔵 Bilgi (Info)' },
+                                    { value: 'warn', label: '🟡 Uyarı (Warn)' },
+                                    { value: 'critical', label: '🔴 Kritik (Critical)' }
+                                ]
+                            }
+                        ]}
+                    />
                 </div>
             )}
 
@@ -1504,6 +1744,91 @@ export default function PlatformAdmin({ section }) {
                             </button>
                         </div>
                     </form>
+                </Modal>
+            )}
+
+            {/* ── MODAL: AUDIT DETAIL PREVIEW ── */}
+            {auditDetailModal && selectedAuditDetail && (
+                <Modal
+                    isOpen={auditDetailModal}
+                    onClose={() => setAuditDetailModal(false)}
+                    title="İşlem Denetim Detayı"
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'var(--bg-secondary)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                            <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>İşlem Zamanı:</span>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {new Date(selectedAuditDetail.createdAt).toLocaleString('tr-TR')}
+                                </div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>İlgili Şirket:</span>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {selectedAuditDetail.companyName || 'Sistem / Platform'}
+                                </div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kullanıcı:</span>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {selectedAuditDetail.username} ({selectedAuditDetail.userRole || 'rolsüz'})
+                                </div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>İşlem Türü / Modül:</span>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {selectedAuditDetail.action} / {selectedAuditDetail.entityType}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Açıklama:</span>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', background: 'var(--bg-tertiary)', padding: '10px 14px', borderRadius: '8px' }}>
+                                {selectedAuditDetail.description}
+                            </div>
+                        </div>
+
+                        {selectedAuditDetail.details && (
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Değişiklik Verisi / Parametreler (JSON):</span>
+                                    <button
+                                        type="button"
+                                        className="ghost-btn"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(JSON.stringify(selectedAuditDetail.details, null, 2));
+                                            setCopiedDetailJson(true);
+                                            setTimeout(() => setCopiedDetailJson(false), 2000);
+                                        }}
+                                        style={{ padding: '4px 8px', fontSize: '11px' }}
+                                    >
+                                        {copiedDetailJson ? <Check size={12} style={{ color: '#10b981' }} /> : <Copy size={12} />}
+                                        <span>{copiedDetailJson ? 'Kopyalandı' : 'JSON Kopyala'}</span>
+                                    </button>
+                                </div>
+                                <pre style={{
+                                    background: '#0f172a',
+                                    color: '#38bdf8',
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    maxHeight: '220px',
+                                    overflowY: 'auto',
+                                    fontFamily: 'monospace',
+                                    margin: 0
+                                }}>
+                                    {JSON.stringify(selectedAuditDetail.details, null, 2)}
+                                </pre>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setAuditDetailModal(false)}>
+                                Kapat
+                            </button>
+                        </div>
+                    </div>
                 </Modal>
             )}
         </div>

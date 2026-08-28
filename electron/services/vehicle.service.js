@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../prismaClient');
+const { logAudit } = require('./audit.service');
 const prisma = getPrismaClient();
 
 // ========== VEHICLES ==========
@@ -82,6 +83,18 @@ async function createVehicle(data) {
                 notes: rest.notes || null
             }
         });
+
+        logAudit({
+            companyId: vehicle.company_id,
+            action: 'CREATE',
+            entityType: 'vehicle',
+            entityId: String(vehicle.id),
+            entityName: `${vehicle.plate}${vehicle.brand ? ` (${vehicle.brand} ${vehicle.model || ''})` : ''}`,
+            description: `"${vehicle.plate}" plakalı araç sisteme eklendi`,
+            details: { plate: vehicle.plate, brand: vehicle.brand, model: vehicle.model, year: vehicle.year, type: vehicle.type },
+            severity: 'info'
+        });
+
         return { success: true, data: vehicle };
     } catch (error) {
         return { success: false, error: error.message };
@@ -106,6 +119,17 @@ async function updateVehicle(data) {
                 notes: rest.notes || null
             }
         });
+
+        logAudit({
+            companyId: vehicle.company_id,
+            action: 'UPDATE',
+            entityType: 'vehicle',
+            entityId: String(vehicle.id),
+            entityName: `${vehicle.plate}${vehicle.brand ? ` (${vehicle.brand} ${vehicle.model || ''})` : ''}`,
+            description: `"${vehicle.plate}" plakalı araç bilgileri güncellendi`,
+            severity: 'info'
+        });
+
         return { success: true, data: vehicle };
     } catch (error) {
         return { success: false, error: error.message };
@@ -115,6 +139,8 @@ async function updateVehicle(data) {
 async function deleteVehicle(id) {
     try {
         const vId = parseInt(id);
+        const existing = await prisma.vehicles.findUnique({ where: { id: vId } });
+
         await prisma.$transaction(async (tx) => {
             await tx.maintenances.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
             await tx.inspections.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
@@ -125,6 +151,19 @@ async function deleteVehicle(id) {
             await tx.works.deleteMany({ where: { vehicle_id: vId } }).catch(() => {});
             await tx.vehicles.delete({ where: { id: vId } });
         });
+
+        if (existing) {
+            logAudit({
+                companyId: existing.company_id,
+                action: 'DELETE',
+                entityType: 'vehicle',
+                entityId: String(existing.id),
+                entityName: `${existing.plate}${existing.brand ? ` (${existing.brand} ${existing.model || ''})` : ''}`,
+                description: `"${existing.plate}" plakalı araç ve tüm bağlı kayıtları (muayene, sigorta, bakım) silindi`,
+                severity: 'critical'
+            });
+        }
+
         return { success: true };
     } catch (error) {
         return { success: false, error: error.message };
