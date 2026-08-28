@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx'
 import CustomSelect from './CustomSelect'
 import CustomDatePicker from './CustomDatePicker'
 import { TableVirtuoso } from 'react-virtuoso'
+import TableActionMenu from './TableActionMenu'
 
 export default function DataTable({
     columns,
@@ -1126,18 +1127,18 @@ export default function DataTable({
                                     })}
                                     {(actions || onRowClick) && (
                                         <td className="td-actions" onClick={(e) => e.stopPropagation()}>
-                                            <div className="action-btns">
+                                            <TableActionMenu>
                                                 {actions && actions(row)}
                                                 {onRowClick && (
-                                                        <button 
-                                                            className="btn-icon row-details-btn" 
-                                                            onClick={(e) => handleRowClick(row, e, index)}
-                                                            title="Detaya Git"
-                                                        >
-                                                            <ChevronRight size={18} />
-                                                        </button>
+                                                    <button 
+                                                        className="btn-icon row-details-btn" 
+                                                        onClick={(e) => handleRowClick(row, e, index)}
+                                                        title="Detaya Git"
+                                                    >
+                                                        <ChevronRight size={18} />
+                                                    </button>
                                                 )}
-                                            </div>
+                                            </TableActionMenu>
                                         </td>
                                     )}
                                 </tr>

@@ -2321,6 +2321,51 @@ textarea,
   color: var(--success);
 }
 
+/* Responsive Table Action Menu & 3-Dots Popover */
+.table-action-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-3dots-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary, #a1a1aa);
+  transition: all 0.15s ease;
+}
+
+.table-3dots-btn:hover,
+.table-3dots-btn.active {
+  background: var(--bg-tertiary, rgba(255, 255, 255, 0.08));
+  border-color: var(--border-color, rgba(255, 255, 255, 0.15));
+  color: var(--text-primary, #ffffff);
+}
+
+.table-action-popover {
+  animation: popoverFadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Empty */
 .empty-cell {
   text-align: center;

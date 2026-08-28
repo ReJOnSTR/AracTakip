@@ -8,6 +8,7 @@ import Modal from '../components/Modal'
 import CustomInput from '../components/CustomInput'
 import CustomSelect from '../components/CustomSelect'
 import TopProgressBar from '../components/TopProgressBar'
+import TableActionMenu from '../components/TableActionMenu'
 import { 
     Building2, 
     Users, 
@@ -782,12 +783,12 @@ export default function PlatformAdmin({ section }) {
             )
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'İşlemler', render: (_, r) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        { key: 'actions', label: 'İşlemler', width: '130px', render: (_, r) => (
+            <TableActionMenu>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateUser(r)}
-                    title="Bu Kullanıcı Olarak Oturum Aç (Ghost Login)"
+                    title="Kullanıcı Olarak Giriş Yap (Ghost Login)"
                 >
                     <ExternalLink size={12} />
                     <span>Giriş Yap</span>
@@ -803,7 +804,7 @@ export default function PlatformAdmin({ section }) {
                     <button
                         className="action-icon-btn"
                         onClick={() => handleResetUser2FA(r)}
-                        title="2FA Kilidini Sıfırla (Kullanıcı Telefonunu Kaybettiğinde)"
+                        title="2FA Kilidini Sıfırla"
                         style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.4)' }}
                     >
                         <Shield size={13} />
@@ -828,7 +829,7 @@ export default function PlatformAdmin({ section }) {
                         <Trash2 size={13} />
                     </button>
                 )}
-            </div>
+            </TableActionMenu>
         )}
     ]
 
@@ -856,12 +857,12 @@ export default function PlatformAdmin({ section }) {
             </div>
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'Yönetim & İşlemler', render: (_, r) => (
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        { key: 'actions', label: 'Yönetim & İşlemler', width: '130px', render: (_, r) => (
+            <TableActionMenu>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateCompany(r)}
-                    title="Bu şirketin paneline geçiş yap (Ghost Mode)"
+                    title="Şirkete Giriş Yap (Gözat)"
                 >
                     <Eye size={12} />
                     <span>Şirkete Geç</span>
@@ -873,7 +874,7 @@ export default function PlatformAdmin({ section }) {
                 >
                     <Trash2 size={13} />
                 </button>
-            </div>
+            </TableActionMenu>
         )}
     ]
 
@@ -927,8 +928,8 @@ export default function PlatformAdmin({ section }) {
             )
         }},
         { key: 'expires_at', label: 'Bitiş Tarihi', render: (val) => val ? formatDate(val) : <span style={{ color: 'var(--text-muted)' }}>Süresiz</span> },
-        { key: 'actions', label: 'İşlemler', render: (_, r) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        { key: 'actions', label: 'İşlemler', width: '90px', render: (_, r) => (
+            <TableActionMenu>
                 <button
                     className="action-icon-btn"
                     onClick={() => handleToggleAnnouncement(r)}
@@ -944,7 +945,7 @@ export default function PlatformAdmin({ section }) {
                 >
                     <Trash2 size={13} />
                 </button>
-            </div>
+            </TableActionMenu>
         )}
     ]
 
