@@ -3,34 +3,43 @@ import { createPortal } from 'react-dom'
 import { MoreVertical } from 'lucide-react'
 
 /**
- * Recursively extracts valid React elements/buttons out of Fragments & Arrays
+ * Recursively extracts action buttons from React Fragments, arrays, and elements
  */
-function extractButtons(nodes) {
-    const buttons = []
-    function traverse(items) {
-        React.Children.forEach(items, (child) => {
-            if (!child) return
-            if (child.type === React.Fragment) {
-                traverse(child.props?.children)
-            } else if (React.isValidElement(child)) {
-                buttons.push(child)
+function extractActionButtons(children) {
+    const list = []
+
+    function walk(node) {
+        if (!node) return
+        if (Array.isArray(node)) {
+            node.forEach(walk)
+            return
+        }
+        if (node.type === React.Fragment) {
+            walk(node.props?.children)
+            return
+        }
+        if (React.isValidElement(node)) {
+            if (node.type === 'button' || node.props?.onClick) {
+                list.push(node)
+            } else if (node.props?.children) {
+                walk(node.props.children)
             }
-        })
+        }
     }
-    traverse(nodes)
-    return buttons
+
+    walk(children)
+    return list
 }
 
 /**
  * Universal Responsive Table Action Menu
- * - Gracefully collapses into a 3-dots (...) floating dropdown popover
- * - Accurately unrolls fragments and button actions with icons and labels
+ * - Desktop (>1024px): Renders standard action buttons inline
+ * - Mobile / Tablet / Small screens (<=1024px): Collapses into a 3-dots (...) button with a dropdown popover
  */
 export default function TableActionMenu({
     items = null,
     children = null,
-    align = 'right',
-    forceDropdown = true
+    align = 'right'
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, placement: 'bottom' })
@@ -41,8 +50,8 @@ export default function TableActionMenu({
     const calculatePosition = () => {
         if (!triggerRef.current) return
         const rect = triggerRef.current.getBoundingClientRect()
-        const menuWidth = 185
-        const menuHeight = 240
+        const menuWidth = 180
+        const menuHeight = 220
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
 
@@ -50,12 +59,12 @@ export default function TableActionMenu({
         if (left < 10) left = 10
         if (left + menuWidth > viewportWidth - 10) left = viewportWidth - menuWidth - 10
 
-        let top = rect.bottom + 5
+        let top = rect.bottom + 4
         let placement = 'bottom'
 
         // If overflowing bottom, flip upwards
         if (top + menuHeight > viewportHeight - 10 && rect.top > menuHeight) {
-            top = rect.top - 5
+            top = rect.top - 4
             placement = 'top'
         }
 
@@ -73,7 +82,7 @@ export default function TableActionMenu({
         }
     }
 
-    // Close on click outside, resize, scroll or Escape key
+    // Close on click outside, resize, or Escape key
     useEffect(() => {
         if (!isOpen) return
 
@@ -90,23 +99,18 @@ export default function TableActionMenu({
             if (e.key === 'Escape') setIsOpen(false)
         }
 
-        const handleScroll = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) {
-                setIsOpen(false)
-            }
-        }
-
-        window.addEventListener('mousedown', handleClickOutside, true)
-        window.addEventListener('touchstart', handleClickOutside, true)
-        window.addEventListener('keydown', handleKeyDown)
-        window.addEventListener('scroll', handleScroll, true)
-        window.addEventListener('resize', () => setIsOpen(false))
+        const timer = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside)
+            document.addEventListener('touchstart', handleClickOutside)
+            document.addEventListener('keydown', handleKeyDown)
+            window.addEventListener('resize', () => setIsOpen(false))
+        }, 10)
 
         return () => {
-            window.removeEventListener('mousedown', handleClickOutside, true)
-            window.removeEventListener('touchstart', handleClickOutside, true)
-            window.removeEventListener('keydown', handleKeyDown)
-            window.removeEventListener('scroll', handleScroll, true)
+            clearTimeout(timer)
+            document.removeEventListener('click', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+            document.removeEventListener('keydown', handleKeyDown)
             window.removeEventListener('resize', () => setIsOpen(false))
         }
     }, [isOpen])
@@ -115,32 +119,38 @@ export default function TableActionMenu({
     const parsedItems = useMemo(() => {
         if (items && items.length > 0) return items
 
-        const rawButtons = extractButtons(children)
+        const rawButtons = extractActionButtons(children)
         return rawButtons.map((btn, index) => {
-            const { title, onClick, className, style, disabled, children: btnChildren } = btn.props || {}
+            const props = btn.props || {}
+            const { title, onClick, className, style, disabled } = props
             
+            let label = title || ''
             let icon = null
-            let textLabel = title || ''
 
+            const btnChildren = props.children
             if (React.isValidElement(btnChildren)) {
                 icon = btnChildren
             } else if (Array.isArray(btnChildren)) {
                 btnChildren.forEach((c) => {
-                    if (typeof c === 'string') textLabel = textLabel || c
-                    else if (React.isValidElement(c)) {
+                    if (typeof c === 'string') {
+                        label = label || c
+                    } else if (React.isValidElement(c)) {
                         if (c.type === 'span' && typeof c.props?.children === 'string') {
-                            textLabel = textLabel || c.props.children
+                            label = label || c.props.children
                         } else {
                             icon = icon || c
                         }
                     }
                 })
             } else if (typeof btnChildren === 'string') {
-                textLabel = textLabel || btnChildren
+                label = label || btnChildren
             }
 
-            if (!textLabel) {
-                textLabel = 'İşlem'
+            if (!label) {
+                if (className?.includes('danger') || title?.toLowerCase()?.includes('sil')) label = 'Sil'
+                else if (title?.toLowerCase()?.includes('düzenle')) label = 'Düzenle'
+                else if (title?.toLowerCase()?.includes('detay')) label = 'Detaya Git'
+                else label = 'İşlem'
             }
 
             const isDanger = className?.includes('danger') || (style && (style.color === '#ef4444' || style.color === 'red'))
@@ -148,17 +158,17 @@ export default function TableActionMenu({
 
             return {
                 key: btn.key || index,
-                label: textLabel,
-                title: title || textLabel,
+                label,
                 icon: icon || btnChildren,
                 onClick: (e) => {
+                    e.preventDefault()
                     e.stopPropagation()
                     setIsOpen(false)
                     if (onClick) onClick(e)
                 },
-                danger: isDanger,
-                success: isSuccess,
                 disabled: !!disabled,
+                isDanger,
+                isSuccess,
                 style
             }
         })
@@ -168,123 +178,89 @@ export default function TableActionMenu({
         <div 
             className="table-action-menu-wrapper" 
             onClick={(e) => e.stopPropagation()}
-            style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
         >
-            <button
-                ref={triggerRef}
-                type="button"
-                className={`table-3dots-btn ${isOpen ? 'active' : ''}`}
-                onClick={toggleMenu}
-                title="İşlemler Menüsü"
-                style={{
-                    width: '30px',
-                    height: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '6px',
-                    background: isOpen ? 'var(--bg-tertiary, rgba(255, 255, 255, 0.12))' : 'rgba(255, 255, 255, 0.04)',
-                    border: isOpen ? '1px solid var(--accent-primary, #3b82f6)' : '1px solid rgba(255, 255, 255, 0.08)',
-                    color: isOpen ? 'var(--text-primary, #ffffff)' : 'var(--text-secondary, #a1a1aa)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isOpen ? '0 0 8px rgba(59, 130, 246, 0.3)' : 'none'
-                }}
-            >
-                <MoreVertical size={16} />
-            </button>
+            {/* Desktop View: Render action buttons directly inline */}
+            <div className="table-actions-desktop action-btns">
+                {children ? children : (
+                    items?.map((item, idx) => {
+                        if (item.hidden) return null
+                        const Icon = item.icon
+                        return (
+                            <button
+                                key={idx}
+                                type="button"
+                                className={`action-icon-btn ${item.isDanger || item.danger ? 'danger' : ''} ${item.isSuccess || item.success ? 'success' : ''}`}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (item.onClick) item.onClick(e)
+                                }}
+                                title={item.title || item.label}
+                                disabled={item.disabled}
+                                style={item.style}
+                            >
+                                {typeof Icon === 'function' ? <Icon size={14} /> : Icon}
+                            </button>
+                        )
+                    })
+                )}
+            </div>
 
-            {isOpen && createPortal(
-                <div
-                    ref={menuRef}
-                    className="table-action-popover"
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                        position: 'fixed',
-                        top: menuPosition.placement === 'top' ? 'auto' : `${menuPosition.top}px`,
-                        bottom: menuPosition.placement === 'top' ? `${window.innerHeight - menuPosition.top}px` : 'auto',
-                        left: `${menuPosition.left}px`,
-                        minWidth: '175px',
-                        maxWidth: '230px',
-                        background: '#18181b',
-                        border: '1px solid rgba(255, 255, 255, 0.14)',
-                        borderRadius: '8px',
-                        boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4)',
-                        padding: '5px',
-                        zIndex: 999999,
-                        backdropFilter: 'blur(16px)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px'
-                    }}
+            {/* Mobile / Narrow Screens: Render 3-dots (...) trigger button */}
+            <div className="table-actions-mobile">
+                <button
+                    ref={triggerRef}
+                    type="button"
+                    className={`table-3dots-btn ${isOpen ? 'active' : ''}`}
+                    onClick={toggleMenu}
+                    title="İşlemler Menüsü"
                 >
-                    {parsedItems.length === 0 ? (
-                        <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text-muted, #71717a)' }}>
-                            İşlem yok
-                        </div>
-                    ) : (
-                        parsedItems.map((item, idx) => {
-                            if (item.hidden) return null
-                            const Icon = item.icon
+                    <MoreVertical size={16} />
+                </button>
 
-                            return (
-                                <button
-                                    key={item.key || idx}
-                                    type="button"
-                                    disabled={item.disabled}
-                                    onClick={item.onClick}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '9px',
-                                        width: '100%',
-                                        padding: '8px 12px',
-                                        borderRadius: '6px',
-                                        fontSize: '12.5px',
-                                        fontWeight: 500,
-                                        textAlign: 'left',
-                                        background: 'transparent',
-                                        border: 'none',
-                                        color: item.danger ? '#ef4444' : item.success ? '#10b981' : '#f4f4f5',
-                                        cursor: item.disabled ? 'not-allowed' : 'pointer',
-                                        opacity: item.disabled ? 0.5 : 1,
-                                        transition: 'all 0.12s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!item.disabled) {
-                                            e.currentTarget.style.background = item.danger
-                                                ? 'rgba(239, 68, 68, 0.16)'
-                                                : item.success
-                                                ? 'rgba(16, 185, 129, 0.16)'
-                                                : 'rgba(255, 255, 255, 0.1)'
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'transparent'
-                                    }}
-                                >
-                                    {Icon && (
-                                        <span style={{ 
-                                            display: 'inline-flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center', 
-                                            flexShrink: 0, 
-                                            width: '18px',
-                                            color: item.danger ? '#ef4444' : item.success ? '#10b981' : 'inherit'
-                                        }}>
-                                            {typeof Icon === 'function' ? <Icon size={15} /> : Icon}
+                {isOpen && createPortal(
+                    <div
+                        ref={menuRef}
+                        className="table-action-popover"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            top: menuPosition.placement === 'top' ? 'auto' : `${menuPosition.top}px`,
+                            bottom: menuPosition.placement === 'top' ? `${window.innerHeight - menuPosition.top}px` : 'auto',
+                            left: `${menuPosition.left}px`,
+                        }}
+                    >
+                        {parsedItems.length === 0 ? (
+                            <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text-muted, #71717a)' }}>
+                                İşlem yok
+                            </div>
+                        ) : (
+                            parsedItems.map((item) => {
+                                if (item.hidden) return null
+                                const Icon = item.icon
+
+                                return (
+                                    <button
+                                        key={item.key}
+                                        type="button"
+                                        disabled={item.disabled}
+                                        onClick={item.onClick}
+                                        className={`table-action-popover-item ${item.isDanger ? 'danger' : ''} ${item.isSuccess ? 'success' : ''}`}
+                                    >
+                                        {Icon && (
+                                            <span className="popover-item-icon">
+                                                {typeof Icon === 'function' ? <Icon size={15} /> : Icon}
+                                            </span>
+                                        )}
+                                        <span className="popover-item-label">
+                                            {item.label}
                                         </span>
-                                    )}
-                                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {item.label}
-                                    </span>
-                                </button>
-                            )
-                        })
-                    )}
-                </div>,
-                document.body
-            )}
+                                    </button>
+                                )
+                            })
+                        )}
+                    </div>,
+                    document.body
+                )}
+            </div>
         </div>
     )
 }
