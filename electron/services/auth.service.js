@@ -825,7 +825,56 @@ async function requestPasswordReset(data) {
                 // User may already exist in auth.users, ignore
             }
 
-            // 3. Trigger password recovery email via Supabase & Mailu
+            // 3. Generate password recovery action link & token from Supabase Auth
+            let actionLink = 'https://kontrol-app.com/reset-password';
+            let otpToken = '849 201';
+
+            try {
+                const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+                    type: 'recovery',
+                    email: cleanEmail
+                });
+                if (linkData?.properties?.action_link) {
+                    actionLink = linkData.properties.action_link;
+                }
+                if (linkData?.properties?.email_otp) {
+                    otpToken = linkData.properties.email_otp;
+                }
+            } catch (genErr) {
+                log.warn(`[Password Reset] generateLink notice:`, genErr.message);
+            }
+
+            // 4. Load custom HTML template from database
+            const { getEmailTemplates } = require('./emailTemplate.service');
+            const { sendCustomHtmlEmail } = require('./mailer.service');
+
+            const tRes = await getEmailTemplates();
+            const template = tRes?.data?.find(t => t.type === 'recovery');
+            const templateHtml = template?.htmlContent;
+
+            if (templateHtml) {
+                const renderedHtml = templateHtml
+                    .replace(/\{\{\s*\.ConfirmationURL\s*\}\}/g, actionLink)
+                    .replace(/\{\{\s*\.Token\s*\}\}/g, otpToken)
+                    .replace(/\{\{\s*\.Email\s*\}\}/g, cleanEmail)
+                    .replace(/\{\{\s*\.SiteURL\s*\}\}/g, 'https://kontrol-app.com')
+                    .replace(/\{\{\s*\.Data\.username\s*\}\}/g, user ? user.username : cleanEmail.split('@')[0])
+                    .replace(/\{\{\s*\.Data\.company_name\s*\}\}/g, 'Kontrol Filo & Yönetim Platformu');
+
+                const mailRes = await sendCustomHtmlEmail({
+                    to: cleanEmail,
+                    subject: template.subject || '⚡ Kontrol App - Şifre Sıfırlama Talebi',
+                    html: renderedHtml,
+                    senderName: template.senderName || '⚡ Kontrol Güvenlik Ekibi'
+                });
+
+                if (mailRes.success) {
+                    log.info(`[Password Reset] Custom HTML recovery email dispatched to ${cleanEmail}`);
+                    return { success: true, message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.' };
+                }
+            }
+
+            // Fallback: Supabase default mailer if direct send didn't run
             const { error: resetErr } = await supabaseAdmin.auth.resetPasswordForEmail(cleanEmail, {
                 redirectTo: 'https://kontrol-app.com/reset-password'
             });
@@ -835,7 +884,7 @@ async function requestPasswordReset(data) {
                 return { success: false, error: resetErr.message };
             }
 
-            log.info(`[Password Reset] Recovery email sent successfully to ${cleanEmail}`);
+            log.info(`[Password Reset] Fallback recovery email sent to ${cleanEmail}`);
         }
 
         return { success: true, message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.' };
@@ -854,6 +903,47 @@ async function resendVerificationEmail(data) {
         const { supabaseAdmin } = require('./supabase.service');
 
         if (supabaseAdmin) {
+            try {
+                const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                    type: 'signup',
+                    email: cleanEmail
+                });
+
+                const { getEmailTemplates } = require('./emailTemplate.service');
+                const { sendCustomHtmlEmail } = require('./mailer.service');
+
+                const tRes = await getEmailTemplates();
+                const template = tRes?.data?.find(t => t.type === 'confirmation');
+                const templateHtml = template?.htmlContent;
+
+                if (templateHtml && linkData?.properties) {
+                    const actionLink = linkData.properties.action_link || 'https://kontrol-app.com/login?verified=true';
+                    const otpToken = linkData.properties.email_otp || '849 201';
+
+                    const renderedHtml = templateHtml
+                        .replace(/\{\{\s*\.ConfirmationURL\s*\}\}/g, actionLink)
+                        .replace(/\{\{\s*\.Token\s*\}\}/g, otpToken)
+                        .replace(/\{\{\s*\.Email\s*\}\}/g, cleanEmail)
+                        .replace(/\{\{\s*\.SiteURL\s*\}\}/g, 'https://kontrol-app.com')
+                        .replace(/\{\{\s*\.Data\.username\s*\}\}/g, cleanEmail.split('@')[0])
+                        .replace(/\{\{\s*\.Data\.company_name\s*\}\}/g, 'Kontrol Filo & Yönetim Platformu');
+
+                    const mailRes = await sendCustomHtmlEmail({
+                        to: cleanEmail,
+                        subject: template.subject || '⚡ Kontrol App - E-Posta Adresinizi Doğrulayın',
+                        html: renderedHtml,
+                        senderName: template.senderName || '⚡ Kontrol Güvenlik Ekibi'
+                    });
+
+                    if (mailRes.success) {
+                        log.info(`[Auth] Custom HTML verification email resent to: ${cleanEmail}`);
+                        return { success: true, message: 'Doğrulama bağlantısı e-posta adresinize tekrar gönderildi.' };
+                    }
+                }
+            } catch (customErr) {
+                log.warn('[Auth] Custom resend notice:', customErr.message);
+            }
+
             const { error: resendErr } = await supabaseAdmin.auth.resend({
                 type: 'signup',
                 email: cleanEmail,

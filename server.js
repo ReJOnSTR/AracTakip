@@ -595,11 +595,14 @@ const rpcMap = {
     getRealtimeActiveUsers: sessionService.getRealtimeActiveUsers,
     terminateUserSession: sessionService.terminateUserSession,
 
-    // Email Templates API
+    // Email Templates & SMTP Mailer API
     getEmailTemplates: emailTemplateService.getEmailTemplates,
     saveEmailTemplate: emailTemplateService.saveEmailTemplate,
     resetEmailTemplate: emailTemplateService.resetEmailTemplate,
     sendTestEmail: emailTemplateService.sendTestEmail,
+    getEmailSettings: emailTemplateService.getEmailSettings,
+    saveEmailSettings: emailTemplateService.saveEmailSettings,
+    testSmtpConnection: emailTemplateService.testSmtpConnection,
 };
 
 // Generic RPC Router

@@ -404,38 +404,61 @@ async function resetEmailTemplate(data, actorUser) {
     }
 }
 
+const { sendCustomHtmlEmail, getEmailSettings, saveEmailSettings, testSmtpConnection } = require('./mailer.service');
+
 /**
- * Send a real test email with dummy dynamic variables
+ * Send a real test email with custom HTML & dynamic variables
  */
 async function sendTestEmail(data, actorUser) {
     try {
-        const { type, targetEmail, subject, htmlContent } = data || {};
+        const { type, targetEmail, subject, htmlContent, senderName } = data || {};
         if (!targetEmail || !htmlContent) {
             return { success: false, error: 'Hedef e-posta adresi ve HTML içeriği gereklidir' };
         }
 
+        let confirmationUrl = 'https://kontrol-app.com/login?verified=true&test=1';
+        let token = '849 201';
+
+        // Try to generate real action link from Supabase Auth
+        try {
+            const linkType = type === 'confirmation' ? 'signup' : (type === 'recovery' ? 'recovery' : (type === 'invite' ? 'invite' : 'magiclink'));
+            const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                type: linkType,
+                email: targetEmail
+            });
+            if (linkData?.properties?.action_link) {
+                confirmationUrl = linkData.properties.action_link;
+            }
+            if (linkData?.properties?.email_otp) {
+                token = linkData.properties.email_otp;
+            }
+        } catch (linkErr) {
+            log.warn('[Test Email] Supabase generateLink notice:', linkErr.message);
+        }
+
         const mockSiteUrl = 'https://kontrol-app.com';
-        const mockConfirmationUrl = 'https://kontrol-app.com/login?verified=true&test=1';
-        const mockToken = '849 201';
         const mockUsername = actorUser?.username || 'halilsak';
         const mockCompanyName = 'SAK PETROL LOJİSTİK A.Ş.';
 
         let renderedHtml = htmlContent
-            .replace(/\{\{\s*\.ConfirmationURL\s*\}\}/g, mockConfirmationUrl)
-            .replace(/\{\{\s*\.Token\s*\}\}/g, mockToken)
+            .replace(/\{\{\s*\.ConfirmationURL\s*\}\}/g, confirmationUrl)
+            .replace(/\{\{\s*\.Token\s*\}\}/g, token)
             .replace(/\{\{\s*\.Email\s*\}\}/g, targetEmail)
             .replace(/\{\{\s*\.SiteURL\s*\}\}/g, mockSiteUrl)
             .replace(/\{\{\s*\.Data\.username\s*\}\}/g, mockUsername)
             .replace(/\{\{\s*\.Data\.company_name\s*\}\}/g, mockCompanyName);
 
-        log.info(`[Test Email] Sending test email "${type}" to: ${targetEmail}`);
+        log.info(`[Test Email] Dispatching custom HTML email "${type}" to: ${targetEmail}`);
 
-        const { data: supaRes, error: supaErr } = await supabaseAdmin.auth.resetPasswordForEmail(targetEmail, {
-            redirectTo: mockConfirmationUrl
+        const mailRes = await sendCustomHtmlEmail({
+            to: targetEmail,
+            subject: subject || 'Kontrol Bildirimi',
+            html: renderedHtml,
+            senderName: senderName || '⚡ Kontrol Güvenlik Ekibi'
         });
 
-        if (supaErr && !supaErr.message?.includes('rate_limit')) {
-            log.warn('[Test Email] Supabase notification notice:', supaErr.message);
+        if (!mailRes.success) {
+            return { success: false, error: 'E-posta gönderim hatası: ' + mailRes.error };
         }
 
         if (actorUser) {
@@ -446,13 +469,13 @@ async function sendTestEmail(data, actorUser) {
                 action: 'EMAIL_TEST_SEND',
                 entityType: 'EMAIL_TEMPLATE',
                 entityId: type,
-                details: { targetEmail, type }
+                details: { targetEmail, type, messageId: mailRes.messageId }
             });
         }
 
         return {
             success: true,
-            message: `Test e-postası başarıyla "${targetEmail}" adresine gönderildi! Gelen kutunuzu kontrol edin.`
+            message: `Özel tasarımlı test e-postası "${targetEmail}" adresine başarıyla gönderildi! Gelen kutunuzu kontrol edin.`
         };
     } catch (err) {
         log.error('sendTestEmail error:', err);
@@ -466,5 +489,8 @@ module.exports = {
     getEmailTemplates,
     saveEmailTemplate,
     resetEmailTemplate,
-    sendTestEmail
+    sendTestEmail,
+    getEmailSettings,
+    saveEmailSettings,
+    testSmtpConnection
 };

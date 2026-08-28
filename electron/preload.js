@@ -327,4 +327,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveEmailTemplate: (data) => ipcRenderer.invoke('platform:saveEmailTemplate', data),
     resetEmailTemplate: (data) => ipcRenderer.invoke('platform:resetEmailTemplate', data),
     sendTestEmail: (data) => ipcRenderer.invoke('platform:sendTestEmail', data),
+    getEmailSettings: () => ipcRenderer.invoke('platform:getEmailSettings'),
+    saveEmailSettings: (data) => ipcRenderer.invoke('platform:saveEmailSettings', data),
+    testSmtpConnection: (data) => ipcRenderer.invoke('platform:testSmtpConnection', data),
 })

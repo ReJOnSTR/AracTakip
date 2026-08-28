@@ -2815,6 +2815,15 @@ ipcMain.handle('platform:resetEmailTemplate', async (event, data) => {
 ipcMain.handle('platform:sendTestEmail', async (event, data) => {
     return await emailTemplateService.sendTestEmail(data);
 });
+ipcMain.handle('platform:getEmailSettings', async () => {
+    return await emailTemplateService.getEmailSettings();
+});
+ipcMain.handle('platform:saveEmailSettings', async (event, data) => {
+    return await emailTemplateService.saveEmailSettings(data);
+});
+ipcMain.handle('platform:testSmtpConnection', async (event, data) => {
+    return await emailTemplateService.testSmtpConnection(data);
+});
 
 // Company Impersonation / Observer Mode New Window
 ipcMain.handle('platform:openImpersonateWindow', async (event, { companyId, companyName }) => {
