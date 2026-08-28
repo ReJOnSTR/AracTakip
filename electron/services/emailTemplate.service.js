@@ -463,7 +463,8 @@ async function sendTestEmail(data, actorUser) {
         }
 
         let confirmationUrl = redirectTarget;
-        let token = '849 201';
+        const randomOtp = String(Math.floor(100000 + Math.random() * 900000));
+        let token = `${randomOtp.slice(0, 3)} ${randomOtp.slice(3)}`;
 
         try {
             const linkType = type === 'confirmation' ? 'signup' : (type === 'recovery' ? 'recovery' : (type === 'invite' ? 'invite' : 'magiclink'));
@@ -478,7 +479,8 @@ async function sendTestEmail(data, actorUser) {
                 confirmationUrl = linkData.properties.action_link;
             }
             if (linkData?.properties?.email_otp) {
-                token = linkData.properties.email_otp;
+                const rawOtp = String(linkData.properties.email_otp);
+                token = rawOtp.length === 6 ? `${rawOtp.slice(0, 3)} ${rawOtp.slice(3)}` : rawOtp;
             }
         } catch (linkErr) {
             log.warn('[Test Email] Supabase generateLink notice:', linkErr.message);

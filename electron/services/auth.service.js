@@ -827,18 +827,24 @@ async function requestPasswordReset(data) {
 
             // 3. Generate password recovery action link & token from Supabase Auth
             let actionLink = 'https://kontrol-app.com/reset-password';
-            let otpToken = '849 201';
+            // Generate a fresh dynamic 6-digit code
+            const randomOtp = String(Math.floor(100000 + Math.random() * 900000));
+            let otpToken = randomOtp.slice(0, 3) + ' ' + randomOtp.slice(3);
 
             try {
                 const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
                     type: 'recovery',
-                    email: cleanEmail
+                    email: cleanEmail,
+                    options: {
+                        redirectTo: 'https://kontrol-app.com/reset-password'
+                    }
                 });
                 if (linkData?.properties?.action_link) {
                     actionLink = linkData.properties.action_link;
                 }
                 if (linkData?.properties?.email_otp) {
-                    otpToken = linkData.properties.email_otp;
+                    const rawOtp = String(linkData.properties.email_otp);
+                    otpToken = rawOtp.length === 6 ? `${rawOtp.slice(0, 3)} ${rawOtp.slice(3)}` : rawOtp;
                 }
             } catch (genErr) {
                 log.warn(`[Password Reset] generateLink notice:`, genErr.message);
