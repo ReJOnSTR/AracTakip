@@ -1,4 +1,17 @@
-const { createClient } = require('@supabase/supabase-js')
+// Polyfill global.WebSocket for Supabase JS in Node.js / Electron main process
+if (typeof global !== 'undefined' && !global.WebSocket) {
+    try {
+        global.WebSocket = require('ws')
+    } catch (e) {
+        global.WebSocket = class MockWebSocket {
+            constructor() {}
+            addEventListener() {}
+            removeEventListener() {}
+            send() {}
+            close() {}
+        }
+    }
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://supabase.kontrol-app.com'
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -9,6 +22,9 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || SUPABAS
     auth: {
         autoRefreshToken: false,
         persistSession: false
+    },
+    realtime: {
+        enabled: false
     }
 })
 

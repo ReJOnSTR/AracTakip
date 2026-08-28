@@ -1,8 +1,24 @@
+// Polyfill global.WebSocket for Supabase JS in Node.js / Electron main process
+if (typeof global !== 'undefined' && !global.WebSocket) {
+    try {
+        global.WebSocket = require('ws');
+    } catch (e) {
+        global.WebSocket = class MockWebSocket {
+            constructor() {}
+            addEventListener() {}
+            removeEventListener() {}
+            send() {}
+            close() {}
+        };
+    }
+}
+
 const { getPrismaClient } = require('../prismaClient');
 const bcrypt = require('bcryptjs');
 const log = require('../logger');
 const { logAudit } = require('./audit.service');
 const { generateSecurePassword } = require('../utils/security');
+const { supabaseAdmin } = require('./supabase.service');
 
 const prisma = getPrismaClient();
 
@@ -162,7 +178,10 @@ async function loginUser(credentials) {
                 const { createClient } = require('@supabase/supabase-js');
                 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://supabase.kontrol-app.com';
                 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_36cfd54f23bbf88d313317_24673797';
-                const supaClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
+                const supaClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+                    auth: { persistSession: false },
+                    realtime: { enabled: false }
+                });
 
                 const { data: supaAuthData, error: supaAuthErr } = await supaClient.auth.signInWithPassword({
                     email: rawLookup.toLowerCase(),
@@ -252,7 +271,10 @@ async function loginUser(credentials) {
                 const { createClient } = require('@supabase/supabase-js');
                 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://supabase.kontrol-app.com';
                 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_36cfd54f23bbf88d313317_24673797';
-                const supaClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
+                const supaClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+                    auth: { persistSession: false },
+                    realtime: { enabled: false }
+                });
 
                 const { data: supaAuthData, error: supaAuthErr } = await supaClient.auth.signInWithPassword({
                     email: user.email,
