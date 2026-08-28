@@ -1,26 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { 
-    Mail, 
-    KeyRound, 
-    Sparkles, 
-    UserPlus, 
-    RefreshCw, 
-    Code2, 
-    Eye, 
-    Send, 
-    RotateCcw, 
-    Save, 
-    Copy, 
-    Check, 
-    Info, 
-    AlertCircle, 
-    CheckCircle2, 
-    Loader2,
-    Server,
-    ShieldAlert,
-    Smartphone,
-    Monitor
-} from 'lucide-react'
 import Modal from './Modal'
 import CustomInput from './CustomInput'
 import './EmailTemplatesManager.css'
@@ -43,7 +21,6 @@ export default function EmailTemplatesManager() {
     const [isDirty, setIsDirty] = useState(false)
     const [saving, setSaving] = useState(false)
     const [resetting, setResetting] = useState(false)
-    const [copiedVar, setCopiedVar] = useState(null)
     const [feedback, setFeedback] = useState(null)
 
     // Test Email Modal State
@@ -58,7 +35,7 @@ export default function EmailTemplatesManager() {
     const [smtpUser, setSmtpUser] = useState('')
     const [smtpPass, setSmtpPass] = useState('')
     const [hasPass, setHasPass] = useState(false)
-    const [defaultSenderName, setDefaultSenderName] = useState('⚡ Kontrol Güvenlik Ekibi')
+    const [defaultSenderName, setDefaultSenderName] = useState('Kontrol')
     const [defaultSenderEmail, setDefaultSenderEmail] = useState('noreply@kontrol-app.com')
     const [savingSmtp, setSavingSmtp] = useState(false)
     const [testingSmtp, setTestingSmtp] = useState(false)
@@ -73,15 +50,6 @@ export default function EmailTemplatesManager() {
         { type: 'magic_link', label: 'Magic Link' },
         { type: 'change_email', label: 'Change Email Address' },
         { type: 'recovery', label: 'Reset Password' }
-    ]
-
-    const DYNAMIC_VARIABLES = [
-        { key: '{{ .ConfirmationURL }}', label: 'Onay Linki' },
-        { key: '{{ .Token }}', label: 'OTP Kod' },
-        { key: '{{ .Email }}', label: 'Alıcı E-Posta' },
-        { key: '{{ .SiteURL }}', label: 'Site URL' },
-        { key: '{{ .Data.username }}', label: 'Kullanıcı Adı' },
-        { key: '{{ .Data.company_name }}', label: 'Şirket Adı' }
     ]
 
     useEffect(() => {
@@ -99,7 +67,7 @@ export default function EmailTemplatesManager() {
                 if (current) {
                     setActiveType(current.type)
                     setCurrentSubject(current.subject || '')
-                    setCurrentSenderName(current.senderName || '⚡ Kontrol Güvenlik Ekibi')
+                    setCurrentSenderName(current.senderName || 'Kontrol')
                     setCurrentHtml(current.htmlContent || '')
                     setIsDirty(false)
                 }
@@ -122,7 +90,7 @@ export default function EmailTemplatesManager() {
                 setSmtpUser(res.data.smtpUser || '')
                 setSmtpPass(res.data.smtpPass || '')
                 setHasPass(!!res.data.hasPass)
-                setDefaultSenderName(res.data.senderName || '⚡ Kontrol Güvenlik Ekibi')
+                setDefaultSenderName(res.data.senderName || 'Kontrol')
                 setDefaultSenderEmail(res.data.senderEmail || 'noreply@kontrol-app.com')
             }
         } catch (err) {
@@ -140,7 +108,7 @@ export default function EmailTemplatesManager() {
         const t = templates.find(item => item.type === type)
         if (t) {
             setCurrentSubject(t.subject || '')
-            setCurrentSenderName(t.senderName || '⚡ Kontrol Güvenlik Ekibi')
+            setCurrentSenderName(t.senderName || 'Kontrol')
             setCurrentHtml(t.htmlContent || '')
             setIsDirty(false)
         }
@@ -159,32 +127,6 @@ export default function EmailTemplatesManager() {
     const handleHtmlChange = (e) => {
         setCurrentHtml(e.target.value)
         setIsDirty(true)
-    }
-
-    const handleInsertVariable = (varKey) => {
-        if (!editorRef.current) {
-            navigator.clipboard.writeText(varKey)
-            setCopiedVar(varKey)
-            setTimeout(() => setCopiedVar(null), 2000)
-            return
-        }
-
-        const textarea = editorRef.current
-        const start = textarea.selectionStart
-        const end = textarea.selectionEnd
-        const text = textarea.value
-        const newText = text.substring(0, start) + varKey + text.substring(end)
-        
-        setCurrentHtml(newText)
-        setIsDirty(true)
-
-        setTimeout(() => {
-            textarea.focus()
-            textarea.setSelectionRange(start + varKey.length, start + varKey.length)
-        }, 0)
-
-        setCopiedVar(varKey)
-        setTimeout(() => setCopiedVar(null), 2000)
     }
 
     const handleSave = async () => {
@@ -330,12 +272,12 @@ export default function EmailTemplatesManager() {
             })
 
             if (res?.success) {
-                setSmtpTestResult({ success: true, msg: '✅ SMTP Sunucu bağlantısı başarılı!' })
+                setSmtpTestResult({ success: true, msg: 'SMTP Sunucu bağlantısı başarılı!' })
             } else {
-                setSmtpTestResult({ success: false, msg: '❌ ' + (res?.error || 'Bağlantı hatası') })
+                setSmtpTestResult({ success: false, msg: res?.error || 'Bağlantı hatası' })
             }
         } catch (err) {
-            setSmtpTestResult({ success: false, msg: '❌ ' + (err.message || 'Bilinmeyen hata') })
+            setSmtpTestResult({ success: false, msg: err.message || 'Bilinmeyen hata' })
         } finally {
             setTestingSmtp(false)
         }
@@ -373,7 +315,6 @@ export default function EmailTemplatesManager() {
     if (loading) {
         return (
             <div className="studio-minimal-loading">
-                <Loader2 className="spin" style={{ color: 'var(--accent-primary)' }} size={28} />
                 <p>E-Posta Şablonları yükleniyor...</p>
             </div>
         )
@@ -384,7 +325,6 @@ export default function EmailTemplatesManager() {
             {/* Feedback Alert Toast */}
             {feedback && (
                 <div className={`supabase-toast ${feedback.type}`}>
-                    {feedback.type === 'success' ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
                     <span>{feedback.msg}</span>
                 </div>
             )}
@@ -414,9 +354,6 @@ export default function EmailTemplatesManager() {
                     {/* Amber Notice Banner - Only shown when custom SMTP is NOT configured */}
                     {(!smtpHost || !hasPass) && (
                         <div className="supabase-amber-banner">
-                            <div className="banner-icon">
-                                <ShieldAlert size={18} />
-                            </div>
                             <div className="banner-text-wrap">
                                 <h4 className="banner-title">Email rate-limits and custom delivery</h4>
                                 <p className="banner-desc">
@@ -433,7 +370,7 @@ export default function EmailTemplatesManager() {
                         </div>
                     )}
 
-                    {/* Main Template Box (Red Boxed Container #3 in Screenshot) */}
+                    {/* Main Template Box */}
                     <div className="supabase-template-box">
                         
                         {/* Horizontal Template Selector Tabs */}
@@ -463,7 +400,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-input"
                                             value={currentSenderName}
                                             onChange={handleSenderNameChange}
-                                            placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
+                                            placeholder="Örn: Kontrol"
                                         />
                                     </div>
                                     <div className="field-half">
@@ -490,16 +427,14 @@ export default function EmailTemplatesManager() {
                                             className={`toggle-tab ${editorTab === 'source' ? 'active' : ''}`}
                                             onClick={() => setEditorTab('source')}
                                         >
-                                            <Code2 size={13} />
-                                            <span>Source</span>
+                                            Source
                                         </button>
                                         <button 
                                             type="button"
                                             className={`toggle-tab ${editorTab === 'preview' ? 'active' : ''}`}
                                             onClick={() => setEditorTab('preview')}
                                         >
-                                            <Eye size={13} />
-                                            <span>Preview</span>
+                                            Preview
                                         </button>
                                     </div>
                                 </div>
@@ -533,16 +468,14 @@ export default function EmailTemplatesManager() {
                                                     className={`dev-btn ${previewDevice === 'desktop' ? 'active' : ''}`}
                                                     onClick={() => setPreviewDevice('desktop')}
                                                 >
-                                                    <Monitor size={12} />
-                                                    <span>Desktop</span>
+                                                    Desktop
                                                 </button>
                                                 <button 
                                                     type="button" 
                                                     className={`dev-btn ${previewDevice === 'mobile' ? 'active' : ''}`}
                                                     onClick={() => setPreviewDevice('mobile')}
                                                 >
-                                                    <Smartphone size={12} />
-                                                    <span>Mobile</span>
+                                                    Mobile
                                                 </button>
                                             </div>
                                         </div>
@@ -570,8 +503,7 @@ export default function EmailTemplatesManager() {
                                         onClick={handleReset}
                                         disabled={resetting}
                                     >
-                                        <RotateCcw size={13} className={resetting ? 'spin' : ''} />
-                                        <span>Reset to default</span>
+                                        Reset to default
                                     </button>
                                 )}
                             </div>
@@ -582,8 +514,7 @@ export default function EmailTemplatesManager() {
                                     className="btn btn-secondary"
                                     onClick={() => setTestModalOpen(true)}
                                 >
-                                    <Send size={14} />
-                                    <span>Send test email</span>
+                                    Send test email
                                 </button>
 
                                 <button 
@@ -592,8 +523,7 @@ export default function EmailTemplatesManager() {
                                     onClick={handleSave}
                                     disabled={saving || !isDirty}
                                 >
-                                    {saving ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
-                                    <span>{saving ? 'Saving...' : 'Save changes'}</span>
+                                    {saving ? 'Saving...' : 'Save changes'}
                                 </button>
                             </div>
                         </div>
@@ -666,7 +596,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={defaultSenderName}
                                         onChange={(e) => setDefaultSenderName(e.target.value)}
-                                        placeholder="⚡ Kontrol Güvenlik Ekibi"
+                                        placeholder="Kontrol"
                                     />
                                 </div>
                                 <div className="field-half">
@@ -693,20 +623,16 @@ export default function EmailTemplatesManager() {
                                     className="btn btn-secondary"
                                     onClick={handleTestSmtpConnection}
                                     disabled={testingSmtp || !smtpHost}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
-                                    {testingSmtp ? <Loader2 size={14} className="spin" /> : <Server size={14} />}
-                                    <span>{testingSmtp ? 'Testing connection...' : 'Test Connection'}</span>
+                                    {testingSmtp ? 'Testing connection...' : 'Test Connection'}
                                 </button>
 
                                 <button 
                                     type="submit"
                                     className="btn btn-primary"
                                     disabled={savingSmtp}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
-                                    {savingSmtp ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
-                                    <span>{savingSmtp ? 'Saving...' : 'Save Settings'}</span>
+                                    {savingSmtp ? 'Saving...' : 'Save Settings'}
                                 </button>
                             </div>
                         </form>
@@ -718,7 +644,7 @@ export default function EmailTemplatesManager() {
             <Modal
                 isOpen={testModalOpen}
                 onClose={() => setTestModalOpen(false)}
-                title="🧪 Send Test Email"
+                title="Send Test Email"
                 size="small"
             >
                 <div className="test-email-modal-body">
@@ -737,12 +663,7 @@ export default function EmailTemplatesManager() {
                         />
                     </div>
 
-                    <div className="test-modal-info">
-                        <Info size={15} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
-                        <span>Real verification tokens and links will be populated into the template.</span>
-                    </div>
-
-                    <div className="modal-actions-custom" style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <div className="modal-actions-custom" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button 
                             className="btn btn-secondary"
                             onClick={() => setTestModalOpen(false)}
@@ -754,10 +675,8 @@ export default function EmailTemplatesManager() {
                             className="btn btn-primary"
                             onClick={handleSendTestEmail}
                             disabled={sendingTest || !testTargetEmail}
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                         >
-                            {sendingTest ? <Loader2 size={15} className="spin" /> : <Send size={15} />}
-                            <span>{sendingTest ? 'Sending...' : 'Send Test'}</span>
+                            {sendingTest ? 'Sending...' : 'Send Test'}
                         </button>
                     </div>
                 </div>
