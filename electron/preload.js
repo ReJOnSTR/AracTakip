@@ -315,4 +315,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getMfaStatus: (userId) => ipcRenderer.invoke('mfa:getStatus', userId),
     getPlatformAuditLogs: (params) => ipcRenderer.invoke('platform:getAuditLogs', params),
     getAuditSummaryMetrics: () => ipcRenderer.invoke('platform:getAuditSummaryMetrics'),
+    recordHeartbeat: (payload) => ipcRenderer.invoke('session:heartbeat', payload),
+    getRealtimeActiveUsers: () => ipcRenderer.invoke('session:getRealtimeActiveUsers'),
+    terminateUserSession: (sessionId) => ipcRenderer.invoke('session:terminate', sessionId),
 })

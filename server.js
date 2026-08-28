@@ -18,6 +18,7 @@ const db = require('./electron/prismaService');
 const authService = require('./electron/services/auth.service');
 const mfaService = require('./electron/services/mfa.service');
 const auditService = require('./electron/services/audit.service');
+const sessionService = require('./electron/services/session.service');
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -585,6 +586,9 @@ const rpcMap = {
     getMfaStatus: mfaService.getMfaStatus,
     getPlatformAuditLogs: auditService.getPlatformAuditLogs,
     getAuditSummaryMetrics: auditService.getAuditSummaryMetrics,
+    recordHeartbeat: sessionService.recordHeartbeat,
+    getRealtimeActiveUsers: sessionService.getRealtimeActiveUsers,
+    terminateUserSession: sessionService.terminateUserSession,
 };
 
 // Generic RPC Router

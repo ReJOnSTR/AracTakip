@@ -128,6 +128,11 @@ export default function PlatformAdmin({ section }) {
         companyId: 'all'
     })
 
+    // Real-Time Online Users & Active Sessions
+    const [onlineUsersData, setOnlineUsersData] = useState({ onlineCount: 0, idleCount: 0, totalTracked: 0, sessions: [] })
+    const [onlineUsersModal, setOnlineUsersModal] = useState(false)
+    const [terminatingSessionId, setTerminatingSessionId] = useState(null)
+
     // Modals
     const [passwordModalUser, setPasswordModalUser] = useState(null)
     const [newPassword, setNewPassword] = useState('')
@@ -174,19 +179,77 @@ export default function PlatformAdmin({ section }) {
         return () => clearInterval(interval)
     }, [autoPollLogs, activeSection])
 
+    // Auto-refresh real-time active users every 8 seconds
+    useEffect(() => {
+        if (!isSuperAdmin) return
+        loadRealtimeUsers()
+        const interval = setInterval(() => {
+            loadRealtimeUsers()
+        }, 8000)
+        return () => clearInterval(interval)
+    }, [isSuperAdmin])
+
+    const loadRealtimeUsers = async () => {
+        try {
+            let res;
+            if (window.electronAPI?.getRealtimeActiveUsers) {
+                res = await window.electronAPI.getRealtimeActiveUsers()
+            } else {
+                res = await fetch('/api/rpc/getRealtimeActiveUsers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ args: [] })
+                }).then(r => r.json()).catch(() => null)
+            }
+            if (res && res.success) {
+                setOnlineUsersData(res)
+            }
+        } catch (err) {
+            console.error('loadRealtimeUsers error:', err)
+        }
+    }
+
+    const handleTerminateSession = async (session) => {
+        if (!window.confirm(`"${session.username}" (${session.companyName}) kullanıcısının oturumunu derhal sonlandırmak ve sistemden atmak istediğinizden emin misiniz?`)) {
+            return
+        }
+        setTerminatingSessionId(session.sessionId)
+        try {
+            let res;
+            if (window.electronAPI?.terminateUserSession) {
+                res = await window.electronAPI.terminateUserSession(session.sessionId)
+            } else {
+                res = await fetch('/api/rpc/terminateUserSession', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ args: [session.sessionId] })
+                }).then(r => r.json()).catch(() => null)
+            }
+            if (res && res.success) {
+                await loadRealtimeUsers()
+            } else {
+                alert(res?.error || 'Oturum sonlandırılamadı')
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        } finally {
+            setTerminatingSessionId(null)
+        }
+    }
+
     const loadSectionData = async () => {
         setLoading(true)
         try {
             if (activeSection === 'users') {
-                await Promise.all([loadUsers(), loadOverview()])
+                await Promise.all([loadUsers(), loadOverview(), loadRealtimeUsers()])
             } else if (activeSection === 'companies') {
-                await Promise.all([loadOverview(), loadUsers()])
+                await Promise.all([loadOverview(), loadUsers(), loadRealtimeUsers()])
             } else if (activeSection === 'announcements') {
                 await Promise.all([loadAnnouncements(), loadOverview()])
             } else if (activeSection === 'audit') {
-                await Promise.all([loadAuditLogs(), loadOverview()])
+                await Promise.all([loadAuditLogs(), loadOverview(), loadRealtimeUsers()])
             } else if (activeSection === 'health') {
-                await loadHealth()
+                await Promise.all([loadHealth(), loadRealtimeUsers()])
             } else if (activeSection === 'logs') {
                 await loadLogs()
             } else if (activeSection === 'backups') {
@@ -963,69 +1026,6 @@ export default function PlatformAdmin({ section }) {
         <div className="platform-admin-page">
             <TopProgressBar loading={loading || backupLoading || logsLoading || announcementsLoading || createCompanyLoading} />
 
-            {/* Platform Master Navigation Tabs */}
-            <div className="platform-tabs">
-                <button
-                    className={`platform-tab-btn ${activeSection === 'users' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/users')}
-                >
-                    <Users size={15} />
-                    <span>Kullanıcı Hesapları</span>
-                    {platformUsers.length > 0 && <span className="platform-tab-badge">{platformUsers.length}</span>}
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeSection === 'companies' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/companies')}
-                >
-                    <Building2 size={15} />
-                    <span>Şirketler</span>
-                    {overviewData?.stats?.totalCompanies > 0 && <span className="platform-tab-badge">{overviewData.stats.totalCompanies}</span>}
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeSection === 'announcements' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/announcements')}
-                >
-                    <Megaphone size={15} />
-                    <span>Canlı Duyurular</span>
-                    {announcements.length > 0 && <span className="platform-tab-badge">{announcements.length}</span>}
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeSection === 'audit' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/audit')}
-                >
-                    <History size={15} />
-                    <span>Denetim İzi & Olaylar</span>
-                    {auditMetrics?.total24h > 0 && <span className="platform-tab-badge">{auditMetrics.total24h}</span>}
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeSection === 'health' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/health')}
-                >
-                    <Activity size={15} />
-                    <span>Sistem Sağlığı</span>
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeSection === 'logs' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/logs')}
-                >
-                    <ScrollText size={15} />
-                    <span>Hata Logları</span>
-                </button>
-
-                <button
-                    className={`platform-tab-btn ${activeSection === 'backups' ? 'active' : ''}`}
-                    onClick={() => navigate('/platform/backups')}
-                >
-                    <Database size={15} />
-                    <span>Yedekler</span>
-                </button>
-            </div>
-
             {/* ══════════════════════════════════════════════════════
                 PAGE 1: USERS & COMPANY ACCOUNTS (/platform/users)
                ══════════════════════════════════════════════════════ */}
@@ -1038,7 +1038,16 @@ export default function PlatformAdmin({ section }) {
                                 KONTROL SaaS platformundaki tüm kullanıcı hesapları, roller, pozisyonlar ve şirket eşleştirmeleri.
                             </p>
                         </div>
-                        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+                        <div className="page-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => { loadRealtimeUsers(); setOnlineUsersModal(true); }}
+                                title="Anlık Çevrimiçi Kullanıcıları & Oturumları İncele"
+                                style={{ display: 'flex', alignItems: 'center', gap: '7px' }}
+                            >
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
+                                <span>Canlı Oturumlar: <strong style={{ color: '#10b981' }}>{onlineUsersData.onlineCount || 0}</strong></span>
+                            </button>
                             <button className="btn btn-secondary" onClick={loadSectionData} disabled={loading}>
                                 <RefreshCw size={16} className={loading ? 'spin' : ''} />
                                 Yenile
@@ -1370,14 +1379,21 @@ export default function PlatformAdmin({ section }) {
                             </div>
                         </div>
 
-                        <div className="platform-metric-card">
+                        <div
+                            className="platform-metric-card"
+                            onClick={() => { loadRealtimeUsers(); setOnlineUsersModal(true); }}
+                            style={{ cursor: 'pointer' }}
+                            title="Canlı bağlı kullanıcıları ve oturumları incelemek için tıklayın"
+                        >
                             <div className="metric-icon-box" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
                                 <Users size={24} />
                             </div>
                             <div className="metric-info">
-                                <div className="metric-value">{auditMetrics.activeUsersCount || 0}</div>
-                                <div className="metric-label">Aktif Kullanıcı</div>
-                                <div className="metric-sublabel">Son 7 günde işlem yapan</div>
+                                <div className="metric-value" style={{ color: '#10b981' }}>
+                                    {onlineUsersData.onlineCount || 0}
+                                </div>
+                                <div className="metric-label">Anlık Çevrimiçi Kullanıcı</div>
+                                <div className="metric-sublabel">Canlı oturumları yönet (Tıkla)</div>
                             </div>
                         </div>
                     </div>
@@ -1553,13 +1569,22 @@ export default function PlatformAdmin({ section }) {
                                 Duyuru Mesajı / İçerik:
                             </label>
                             <textarea
-                                className="form-control"
-                                rows={3}
                                 value={newAnnouncement.message}
                                 onChange={(e) => setNewAnnouncement(prev => ({ ...prev, message: e.target.value }))}
-                                placeholder="Duyuru metnini buraya yazın..."
+                                placeholder="Duyuru detayını yazın..."
+                                rows={3}
                                 required
-                                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'vertical' }}
+                                style={{
+                                    width: '100%',
+                                    background: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    color: 'var(--text-primary)',
+                                    fontSize: '13px',
+                                    outline: 'none',
+                                    resize: 'vertical'
+                                }}
                             />
                         </div>
 
@@ -1567,43 +1592,66 @@ export default function PlatformAdmin({ section }) {
                             <CustomSelect
                                 label="Duyuru Türü"
                                 value={newAnnouncement.type}
-                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, type: val }))}
-                                options={announcementTypeOptions}
-                                placeholder="Duyuru türü seçin"
-                                required
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, type: getVal(val) }))}
+                                options={[
+                                    { value: 'info', label: '🔵 Bilgilendirme (Info)' },
+                                    { value: 'warning', label: '🟡 Dikkat / Uyarı (Warning)' },
+                                    { value: 'maintenance', label: '🛠️ Sistem Bakımı (Maintenance)' },
+                                    { value: 'legal', label: '⚖️ Mevzuat / Zorunlu (Legal)' },
+                                    { value: 'urgent', label: '🔴 Acil Bildirim (Urgent)' }
+                                ]}
                             />
 
                             <CustomSelect
-                                label="Hedef Şirket / Kitle"
+                                label="Hedef Kitle"
                                 value={newAnnouncement.companyId}
-                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, companyId: val }))}
-                                options={announcementCompanyOptions}
-                                placeholder="Tüm Şirketler (Genel Yayın)"
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, companyId: getVal(val) }))}
+                                options={[
+                                    { value: '', label: '🌐 Tüm Şirketler (Genel Yayın)' },
+                                    ...tenantCompanies.map(c => ({ value: String(c.id), label: `🏢 ${c.name}` }))
+                                ]}
                             />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <CustomSelect
+                                label="Kapatma Davranışı"
+                                value={newAnnouncement.isDismissible}
+                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, isDismissible: Number(getVal(val)) }))}
+                                options={[
+                                    { value: 1, label: '🔄 Her Girişte Göster (Kapatınca Gizlenir)' },
+                                    { value: 2, label: '👁️ Kalıcı Kapatılabilir (Bir Kez Okundu)' },
+                                    { value: 0, label: '🔒 Kapatılamaz (Sürekli Sabit)' }
+                                ]}
+                            />
+
                             <CustomInput
-                                label="Son Geçerlilik Tarihi (Opsiyonel)"
-                                type="date"
+                                label="Bitiş / Son Tarih (Opsiyonel)"
+                                type="datetime-local"
                                 value={newAnnouncement.expiresAt}
                                 onChange={(val) => setNewAnnouncement(prev => ({ ...prev, expiresAt: getVal(val) }))}
                             />
-
-                            <CustomSelect
-                                label="Kapatma & Görünürlük Kuralı"
-                                value={String(newAnnouncement.isDismissible)}
-                                onChange={(val) => setNewAnnouncement(prev => ({ ...prev, isDismissible: parseInt(val, 10) }))}
-                                options={[
-                                    { value: '1', label: '🔄 Her Girişte Göster (Kapatılsa da sonraki girişte tekrar çıkar)' },
-                                    { value: '0', label: '🔒 Sabit / Kapatılamaz (Zorunlu Acil Duyuru)' },
-                                    { value: '2', label: '👁️ Kalıcı Kapatılabilir (Kapatınca bir daha çıkmaz)' }
-                                ]}
-                                required
-                            />
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+                        <label className={`platform-modal-checkbox ${newAnnouncement.showPopup ? 'active' : ''}`}>
+                            <input
+                                type="checkbox"
+                                checked={newAnnouncement.showPopup === 1}
+                                onChange={(e) => setNewAnnouncement(prev => ({ ...prev, showPopup: e.target.checked ? 1 : 0 }))}
+                                style={{ display: 'none' }}
+                            />
+                            <div className="platform-checkbox-box">
+                                {newAnnouncement.showPopup === 1 && <Check size={12} />}
+                            </div>
+                            <div>
+                                <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Popup Modal Olarak Aç</strong>
+                                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
+                                    Kullanıcılar sisteme girdiğinde ekranın ortasında açılır modal olarak gösterilsin.
+                                </p>
+                            </div>
+                        </label>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setCreateAnnouncementModal(false)}>
                                 İptal
                             </button>
@@ -1624,10 +1672,10 @@ export default function PlatformAdmin({ section }) {
                 >
                     <form onSubmit={handleCreateCompanySubmit} className="modal-form-grid">
                         <CustomInput
-                            label="Şirket Unvanı / Ticari Adı"
+                            label="Şirket Tam Unvanı"
                             value={newCompanyForm.name}
                             onChange={(val) => setNewCompanyForm(prev => ({ ...prev, name: getVal(val) }))}
-                            placeholder="Örn: Sak Lojistik A.Ş."
+                            placeholder="Örn: Akdeniz Lojistik Ltd. Şti."
                             required
                         />
 
@@ -1636,30 +1684,28 @@ export default function PlatformAdmin({ section }) {
                                 label="Vergi Numarası"
                                 value={newCompanyForm.taxNumber}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, taxNumber: getVal(val) }))}
-                                placeholder="Vergi No (10 haneli)"
+                                placeholder="10 haneli vergi no"
                             />
-
                             <CustomInput
                                 label="Vergi Dairesi"
                                 value={newCompanyForm.taxOffice}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, taxOffice: getVal(val) }))}
-                                placeholder="Vergi Dairesi Adı"
+                                placeholder="Daire adı"
                             />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                             <CustomInput
-                                label="SGK İşyeri Sicil No"
+                                label="SGK İşyeri No"
                                 value={newCompanyForm.sgkNo}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, sgkNo: getVal(val) }))}
-                                placeholder="SGK Sicil Numarası"
+                                placeholder="SGK sicil no"
                             />
-
                             <CustomInput
-                                label="Telefon Numarası"
+                                label="Telefon"
                                 value={newCompanyForm.phone}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, phone: getVal(val) }))}
-                                placeholder="05XX XXX XX XX"
+                                placeholder="0212 XXX XX XX"
                                 format="phone"
                             />
                         </div>
@@ -1714,53 +1760,53 @@ export default function PlatformAdmin({ section }) {
                                 label="Ad Soyad"
                                 value={newUserForm.fullName}
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: getVal(val) }))}
-                                placeholder="Ad Soyad"
-                                required
+                                placeholder="Ahmet Yılmaz"
                             />
                             <CustomInput
-                                label="Başlangıç Şifresi"
+                                label="Geçici Şifre"
                                 type="password"
                                 value={newUserForm.password}
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
-                                placeholder="Şifre belirleyin"
+                                placeholder="En az 4 karakter"
                                 required
                             />
                         </div>
 
-                        <CustomSelect
-                            label="Kullanıcı Rolü & Yetki Seviyesi"
-                            value={newUserForm.role}
-                            onChange={(val) => {
-                                let defaultPos = 'Şirket Yöneticisi'
-                                if (val === 'personnel') defaultPos = 'Şoför / Saha Personeli'
-                                else if (val === 'superadmin') defaultPos = 'Sistem Yöneticisi'
-                                else if (val === 'admin') defaultPos = 'Birim Yöneticisi'
-                                setNewUserForm(prev => ({ ...prev, role: val, position: defaultPos }))
-                            }}
-                            options={userRoleOptions}
-                            placeholder="Rol seçin"
-                            required
-                        />
-
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                             <CustomSelect
-                                label="Bağlanacak Şirket"
-                                value={newUserForm.companyId}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: val }))}
-                                options={userCompanyOptions}
-                                placeholder="Şirketsiz / Sistem Kullanıcısı"
+                                label="Hesap Rolü & Türü"
+                                value={newUserForm.role}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, role: getVal(val) }))}
+                                options={[
+                                    { value: 'company_admin', label: '🏢 Şirket Yöneticisi (Admin)' },
+                                    { value: 'manager', label: '💼 Operasyon Sorumlusu' },
+                                    { value: 'personnel', label: '🚗 Şoför / Saha Personeli' },
+                                    { value: 'superadmin', label: '👑 Platform Süper Yöneticisi' }
+                                ]}
                             />
 
+                            <CustomSelect
+                                label="Bağlanacağı Şirket"
+                                value={newUserForm.companyId}
+                                onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: getVal(val) }))}
+                                options={[
+                                    { value: '', label: 'Şirket Seçin...' },
+                                    ...tenantCompanies.map(c => ({ value: String(c.id), label: `🏢 ${c.name}` }))
+                                ]}
+                            />
+                        </div>
+
+                        {newUserForm.role === 'personnel' && (
                             <CustomInput
-                                label="Pozisyon / Görev Ünvanı"
+                                label="Personel Görevi / Pozisyonu"
                                 value={newUserForm.position}
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, position: getVal(val) }))}
                                 placeholder="Örn: Ağır Vasıta Şoförü"
                             />
-                        </div>
+                        )}
 
                         <CustomInput
-                            label="İletişim Telefonu (Opsiyonel)"
+                            label="Telefon Numarası"
                             value={newUserForm.phone}
                             onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: getVal(val) }))}
                             placeholder="05XX XXX XX XX"
@@ -1776,6 +1822,108 @@ export default function PlatformAdmin({ section }) {
                             </button>
                         </div>
                     </form>
+                </Modal>
+            )}
+
+            {/* ── MODAL: REAL-TIME ONLINE USERS MONITOR ── */}
+            {onlineUsersModal && (
+                <Modal
+                    isOpen={onlineUsersModal}
+                    onClose={() => setOnlineUsersModal(false)}
+                    title="Canlı Çevrimiçi Kullanıcılar & Aktif Oturumlar"
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 10px #10b981' }} />
+                                <div>
+                                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
+                                        {onlineUsersData.onlineCount || 0} Çevrimiçi Oturum
+                                    </strong>
+                                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginLeft: '8px' }}>
+                                        ({onlineUsersData.idleCount || 0} Boşta / İnaktif)
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-secondary"
+                                onClick={loadRealtimeUsers}
+                            >
+                                <RefreshCw size={13} />
+                                Yenile
+                            </button>
+                        </div>
+
+                        {(!onlineUsersData.sessions || onlineUsersData.sessions.length === 0) ? (
+                            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                Şu anda kayıtlı aktif canlı oturum bulunmuyor.
+                            </div>
+                        ) : (
+                            <div style={{ maxHeight: '360px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                                <table className="services-status-table" style={{ margin: 0 }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Kullanıcı & Rol</th>
+                                            <th>Şirket</th>
+                                            <th>İstemci & IP</th>
+                                            <th>Süre</th>
+                                            <th>Durum</th>
+                                            <th style={{ textAlign: 'right' }}>İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {onlineUsersData.sessions.map((s) => (
+                                            <tr key={s.sessionId}>
+                                                <td>
+                                                    <strong>{s.username}</strong>
+                                                    <span className="badge" style={{ marginLeft: '6px', fontSize: '9.5px' }}>{s.userRole}</span>
+                                                </td>
+                                                <td>
+                                                    <span style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{s.companyName}</span>
+                                                </td>
+                                                <td>
+                                                    <code style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{s.ip}</code>
+                                                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{s.platform}</div>
+                                                </td>
+                                                <td>
+                                                    <span style={{ fontSize: '11.5px', color: 'var(--text-primary)' }}>{s.durationFormatted}</span>
+                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                        {s.lastSeenSecsAgo < 60 ? 'Az önce' : `${s.lastSeenSecsAgo}sn önce`}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {s.status === 'online' ? (
+                                                        <span className="status-badge-active" style={{ fontSize: '10px' }}>🟢 Canlı</span>
+                                                    ) : (
+                                                        <span className="status-badge-suspended" style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.25)' }}>🟡 Boşta</span>
+                                                    )}
+                                                </td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    <button
+                                                        type="button"
+                                                        className="action-icon-btn danger"
+                                                        onClick={() => handleTerminateSession(s)}
+                                                        disabled={terminatingSessionId === s.sessionId}
+                                                        title="Bu Oturumu Zorla Sonlandır (Kick / Force Logout)"
+                                                        style={{ width: '28px', height: '28px' }}
+                                                    >
+                                                        <XCircle size={14} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setOnlineUsersModal(false)}>
+                                Kapat
+                            </button>
+                        </div>
+                    </div>
                 </Modal>
             )}
 

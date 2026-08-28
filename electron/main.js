@@ -11,6 +11,7 @@ const log = require('./logger') // Import logger
 const { startAdminServer, stopAdminServer } = require('./adminServer')
 const mfaService = require('./services/mfa.service')
 const auditService = require('./services/audit.service')
+const sessionService = require('./services/session.service')
 
 
 // Optional: Override console to correct log file
@@ -2771,5 +2772,16 @@ ipcMain.handle('platform:getAuditLogs', async (event, params) => {
 });
 ipcMain.handle('platform:getAuditSummaryMetrics', async (event) => {
     return await auditService.getAuditSummaryMetrics();
+});
+
+// Live Session & Online User Monitoring IPC Handlers
+ipcMain.handle('session:heartbeat', async (event, payload) => {
+    return sessionService.recordHeartbeat(payload);
+});
+ipcMain.handle('session:getRealtimeActiveUsers', async (event) => {
+    return sessionService.getRealtimeActiveUsers();
+});
+ipcMain.handle('session:terminate', async (event, sessionId) => {
+    return sessionService.terminateUserSession(sessionId);
 });
 

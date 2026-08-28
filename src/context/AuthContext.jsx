@@ -21,6 +21,57 @@ export function AuthProvider({ children }) {
         setLoading(false)
     }, [])
 
+    // Real-Time Heartbeat & Session Liveness
+    useEffect(() => {
+        if (!user || !user.id) return
+
+        let sessionId = sessionStorage.getItem('aractakip_session_id')
+        if (!sessionId) {
+            sessionId = 'sess_' + user.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+            sessionStorage.setItem('aractakip_session_id', sessionId)
+        }
+
+        const sendHeartbeat = async () => {
+            try {
+                const payload = {
+                    userId: user.id,
+                    username: user.username,
+                    userRole: user.role,
+                    companyId: user.company_id || user.companies?.[0]?.id || null,
+                    companyName: user.companies?.[0]?.name || 'Sistem / Genel',
+                    sessionId,
+                    platform: navigator.platform || 'Web / Desktop',
+                    userAgent: navigator.userAgent || ''
+                }
+
+                let res;
+                if (window.electronAPI?.recordHeartbeat) {
+                    res = await window.electronAPI.recordHeartbeat(payload)
+                } else {
+                    res = await fetch('/api/rpc/recordHeartbeat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ args: [payload] })
+                    }).then(r => r.json()).catch(() => null)
+                }
+
+                if (res && res.forceLogout) {
+                    logout()
+                    alert('⚠️ Güvenlik Uyarısı:\nOturumunuz sistem yöneticisi tarafından sonlandırıldı.')
+                }
+            } catch (err) {
+                // Ignore transient network errors
+            }
+        }
+
+        // Send initial heartbeat immediately
+        sendHeartbeat()
+
+        // Recurring heartbeat every 25 seconds
+        const timer = setInterval(sendHeartbeat, 25000)
+        return () => clearInterval(timer)
+    }, [user])
+
     const login = async (email, password) => {
         try {
             const result = await authService.login({ email, password })
