@@ -6,16 +6,17 @@ const { supabaseAdmin } = require('./supabase.service');
 const prisma = getPrismaClient();
 
 /**
- * Enterprise Email Template Generator (Linear, Stripe & Apple standard)
- * 600px Responsive Table layout, inline CSS, universal client support (Gmail, Outlook, Apple Mail)
+ * Enterprise Email Template Generator (Kontrol App Design System)
+ * Palette: Teal (#14b8a6) / Cyan (#0ea5e9), Dark Charcoal (#0f0f11, #141416, #1d1d20)
+ * 600px Responsive Table layout, bulletproof inline CSS, 100% universal client support
  */
 function generateTemplateHtml(type) {
     let icon = '⚡';
-    let iconBg = 'linear-gradient(135deg, #2563eb 0%, #38bdf8 100%)';
-    let iconShadow = 'rgba(37,99,235,0.45)';
-    let accentColor = '#38bdf8';
-    let btnGradient = 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)';
-    let btnShadow = 'rgba(37,99,235,0.4)';
+    let iconBg = 'linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%)';
+    let iconShadow = 'rgba(20,184,166,0.35)';
+    let accentColor = '#2dd4bf';
+    let btnGradient = 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)';
+    let btnShadow = 'rgba(20,184,166,0.35)';
     let title = 'E-Posta Adresinizi Doğrulayın';
     let description = 'Kontrol platformuna hoş geldiniz! Hesabınızı güvenle aktifleştirmek ve tüm filo & operasyon yönetim araçlarına erişmek için lütfen aşağıdaki butona tıklayın.';
     let btnLabel = 'E-Postamı Doğrula';
@@ -24,33 +25,33 @@ function generateTemplateHtml(type) {
 
     if (type === 'recovery') {
         icon = '🔑';
-        iconBg = 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)';
-        iconShadow = 'rgba(225,29,72,0.45)';
-        accentColor = '#fb7185';
-        btnGradient = 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)';
-        btnShadow = 'rgba(225,29,72,0.4)';
+        iconBg = 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)';
+        iconShadow = 'rgba(239,68,68,0.35)';
+        accentColor = '#f87171';
+        btnGradient = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        btnShadow = 'rgba(239,68,68,0.35)';
         title = 'Şifre Sıfırlama Talebi';
-        description = 'Hesabınız için bir şifre sıfırlama talebi aldık. Yeni bir şifre belirlemek için aşağıdaki güvenli butona tıklayabilir veya güvenlik kodunu kullanabilirsiniz.';
+        description = 'Hesabınız için bir şifre sıfırlama talebinde bulunuldu. Yeni bir şifre belirlemek için aşağıdaki butona tıklayabilir veya güvenlik kodunu kullanabilirsiniz.';
         btnLabel = 'Şifremi Sıfırla';
         otpLabel = 'Tek Kullanımlık Güvenlik Kodunuz';
     } else if (type === 'magic_link') {
         icon = '✨';
-        iconBg = 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)';
-        iconShadow = 'rgba(139,92,246,0.45)';
+        iconBg = 'linear-gradient(135deg, #8b5cf6 0%, #0ea5e9 100%)';
+        iconShadow = 'rgba(139,92,246,0.35)';
         accentColor = '#c084fc';
         btnGradient = 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)';
-        btnShadow = 'rgba(139,92,246,0.4)';
+        btnShadow = 'rgba(139,92,246,0.35)';
         title = 'Tek Tıkla Giriş Bağlantısı';
         description = 'Aşağıdaki bağlantıya tıklayarak Kontrol platformuna şifre girmeden anında ve güvenle giriş yapabilirsiniz.';
         btnLabel = 'Hemen Oturum Aç';
         showOtp = false;
     } else if (type === 'invite') {
         icon = '👥';
-        iconBg = 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)';
-        iconShadow = 'rgba(16,185,129,0.45)';
+        iconBg = 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)';
+        iconShadow = 'rgba(16,185,129,0.35)';
         accentColor = '#34d399';
         btnGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        btnShadow = 'rgba(16,185,129,0.4)';
+        btnShadow = 'rgba(16,185,129,0.35)';
         title = 'Ekibe Katılmaya Davet Edildiniz';
         description = 'Şirketiniz tarafından Kontrol filo ve operasyon yönetim sistemine davet edildiniz. Hesabınızı oluşturmak için daveti onaylayın.';
         btnLabel = 'Daveti Kabul Et & Başla';
@@ -58,10 +59,10 @@ function generateTemplateHtml(type) {
     } else if (type === 'change_email') {
         icon = '🔄';
         iconBg = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-        iconShadow = 'rgba(245,158,11,0.45)';
+        iconShadow = 'rgba(245,158,11,0.35)';
         accentColor = '#fbbf24';
         btnGradient = 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)';
-        btnShadow = 'rgba(245,158,11,0.4)';
+        btnShadow = 'rgba(245,158,11,0.35)';
         title = 'E-Posta Değişikliğini Onaylayın';
         description = 'Hesabınızın kayıtlı e-posta adresini değiştirmek için bir talepte bulunuldu. Yeni adresinizi onaylamak için lütfen butona tıklayın.';
         btnLabel = 'Değişikliği Onayla';
@@ -76,34 +77,34 @@ function generateTemplateHtml(type) {
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${title}</title>
   <style type="text/css">
-    body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #080c14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #94a3b8; }
+    body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #0f0f11; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #a1a1aa; }
     table { border-spacing: 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     td { padding: 0; }
     img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
-    .wrapper { width: 100%; table-layout: fixed; background-color: #080c14; padding: 44px 16px; }
-    .main-table { width: 100%; max-width: 560px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.8); }
-    .top-glow-bar { height: 4px; width: 100%; background: linear-gradient(90deg, #2563eb 0%, #38bdf8 50%, #6366f1 100%); }
-    .header-td { padding: 36px 32px 24px; text-align: center; border-bottom: 1px solid #1e293b; background: linear-gradient(180deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.2) 100%); }
-    .badge-icon { display: inline-block; width: 54px; height: 54px; line-height: 54px; border-radius: 16px; background: ${iconBg}; text-align: center; font-size: 26px; box-shadow: 0 8px 24px ${iconShadow}; }
-    .brand-title { margin-top: 14px; font-size: 22px; font-weight: 900; letter-spacing: 1px; color: #ffffff; }
-    .brand-title span { color: #38bdf8; }
-    .brand-sub { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-    .body-td { padding: 36px 32px; text-align: center; }
-    h1 { margin: 0 0 14px; font-size: 21px; font-weight: 800; color: #f8fafc; line-height: 1.35; letter-spacing: -0.3px; }
-    p.lead-text { margin: 0 0 28px; font-size: 14.5px; line-height: 1.65; color: #94a3b8; }
-    .btn-wrap { margin: 28px 0; }
-    .cta-btn { display: inline-block; padding: 15px 36px; background: ${btnGradient}; color: #ffffff !important; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14.5px; letter-spacing: 0.3px; box-shadow: 0 8px 22px ${btnShadow}; }
-    .otp-card { margin: 26px 0 14px; background: #080c14; border: 1px dashed #334155; border-radius: 14px; padding: 18px; text-align: center; }
-    .otp-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 8px; }
-    .otp-digits { font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace; font-size: 30px; font-weight: 800; letter-spacing: 8px; color: ${accentColor}; }
-    .security-notice { margin-top: 28px; padding: 14px 18px; background: #080c14; border-radius: 10px; text-align: left; font-size: 11.5px; line-height: 1.6; color: #64748b; border-left: 3px solid ${accentColor}; }
-    .footer-td { padding: 24px 32px; text-align: center; font-size: 11.5px; line-height: 1.6; color: #475569; border-top: 1px solid #1e293b; background: #090e17; }
-    .footer-links a { color: #60a5fa; text-decoration: none; margin: 0 8px; font-weight: 600; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #0f0f11; padding: 40px 16px; }
+    .main-table { width: 100%; max-width: 560px; margin: 0 auto; background: #141416; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .top-accent-bar { height: 4px; width: 100%; background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%); }
+    .header-td { padding: 32px 30px 22px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); background: #18181b; }
+    .badge-icon { display: inline-block; width: 50px; height: 50px; line-height: 50px; border-radius: 14px; background: ${iconBg}; text-align: center; font-size: 24px; box-shadow: 0 6px 18px ${iconShadow}; }
+    .brand-title { margin-top: 12px; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fafafa; }
+    .brand-title span { color: #14b8a6; }
+    .brand-sub { font-size: 11px; font-weight: 600; color: #71717a; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+    .body-td { padding: 32px 30px; text-align: center; }
+    h1 { margin: 0 0 12px; font-size: 20px; font-weight: 700; color: #fafafa; line-height: 1.35; letter-spacing: -0.2px; }
+    p.lead-text { margin: 0 0 26px; font-size: 14px; line-height: 1.6; color: #a1a1aa; }
+    .btn-wrap { margin: 26px 0; }
+    .cta-btn { display: inline-block; padding: 13px 34px; background: ${btnGradient}; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.2px; box-shadow: 0 4px 14px ${btnShadow}; }
+    .otp-card { margin: 24px 0 14px; background: #0f0f11; border: 1px dashed rgba(255,255,255,0.15); border-radius: 10px; padding: 16px; text-align: center; }
+    .otp-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #71717a; margin-bottom: 6px; }
+    .otp-digits { font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace; font-size: 28px; font-weight: 800; letter-spacing: 8px; color: ${accentColor}; }
+    .security-notice { margin-top: 26px; padding: 12px 16px; background: #0f0f11; border-radius: 8px; text-align: left; font-size: 11.5px; line-height: 1.5; color: #71717a; border-left: 3px solid ${accentColor}; }
+    .footer-td { padding: 22px 30px; text-align: center; font-size: 11.5px; line-height: 1.5; color: #71717a; border-top: 1px solid rgba(255,255,255,0.08); background: #0f0f11; }
+    .footer-links a { color: #14b8a6; text-decoration: none; margin: 0 8px; font-weight: 600; }
     @media screen and (max-width: 600px) {
-      .main-table { width: 100% !important; border-radius: 12px !important; }
-      .body-td, .header-td, .footer-td { padding: 24px 18px !important; }
-      .cta-btn { width: 100% !important; box-sizing: border-box !important; padding: 14px 18px !important; }
-      .otp-digits { font-size: 24px !important; letter-spacing: 5px !important; }
+      .main-table { width: 100% !important; border-radius: 10px !important; }
+      .body-td, .header-td, .footer-td { padding: 20px 16px !important; }
+      .cta-btn { width: 100% !important; box-sizing: border-box !important; padding: 12px 16px !important; }
+      .otp-digits { font-size: 22px !important; letter-spacing: 4px !important; }
     }
   </style>
 </head>
@@ -113,10 +114,10 @@ function generateTemplateHtml(type) {
       <td align="center">
         <table class="main-table" role="presentation">
           
-          <!-- Top Accent Glow Bar -->
+          <!-- Top Accent Bar -->
           <tr>
             <td>
-              <div class="top-glow-bar"></div>
+              <div class="top-accent-bar"></div>
             </td>
           </tr>
 
@@ -141,7 +142,7 @@ function generateTemplateHtml(type) {
               </div>
 
               ${showOtp ? `
-              <!-- Security OTP Code Box -->
+              <!-- Security OTP Box -->
               <div class="otp-card">
                 <div class="otp-title">${otpLabel}</div>
                 <div class="otp-digits">{{ .Token }}</div>
@@ -160,7 +161,7 @@ function generateTemplateHtml(type) {
               <div style="margin-bottom: 10px;" class="footer-links">
                 <a href="{{ .SiteURL }}" target="_blank">Kontrol Paneli</a> •
                 <a href="{{ .SiteURL }}/privacy" target="_blank">Gizlilik & Güvenlik</a> •
-                <a href="mailto:destek@kontrol-app.com">Destek Hattı</a>
+                <a href="mailto:destek@kontrol-app.com">Destek</a>
               </div>
               <div>
                 Bu e-posta <strong>{{ .Email }}</strong> adresine sistem tarafından otomatik olarak gönderilmiştir.<br>

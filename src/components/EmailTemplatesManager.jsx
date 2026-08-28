@@ -75,7 +75,7 @@ export default function EmailTemplatesManager() {
                 if (current) {
                     setActiveType(current.type)
                     setCurrentSubject(current.subject || '')
-                    setCurrentSenderName(current.senderName || 'Kontrol Güvenlik Ekibi')
+                    setCurrentSenderName(current.senderName || '⚡ Kontrol Güvenlik Ekibi')
                     setCurrentHtml(current.htmlContent || '')
                     setIsDirty(false)
                 }
@@ -98,7 +98,7 @@ export default function EmailTemplatesManager() {
         const t = templates.find(item => item.type === type)
         if (t) {
             setCurrentSubject(t.subject || '')
-            setCurrentSenderName(t.senderName || 'Kontrol Güvenlik Ekibi')
+            setCurrentSenderName(t.senderName || '⚡ Kontrol Güvenlik Ekibi')
             setCurrentHtml(t.htmlContent || '')
             setIsDirty(false)
         }
@@ -272,11 +272,11 @@ export default function EmailTemplatesManager() {
 
     const getIconForType = (type) => {
         switch(type) {
-            case 'confirmation': return <Mail className="template-item-icon confirmation" />
-            case 'recovery': return <KeyRound className="template-item-icon recovery" />
-            case 'magic_link': return <Sparkles className="template-item-icon magic" />
-            case 'invite': return <UserPlus className="template-item-icon invite" />
-            case 'change_email': return <RefreshCw className="template-item-icon change" />
+            case 'confirmation': return <Mail className="template-item-icon" />
+            case 'recovery': return <KeyRound className="template-item-icon" />
+            case 'magic_link': return <Sparkles className="template-item-icon" />
+            case 'invite': return <UserPlus className="template-item-icon" />
+            case 'change_email': return <RefreshCw className="template-item-icon" />
             default: return <Mail className="template-item-icon" />
         }
     }
@@ -284,273 +284,272 @@ export default function EmailTemplatesManager() {
     if (loading) {
         return (
             <div className="email-templates-loading">
-                <Loader2 className="animate-spin text-blue-500" size={36} />
-                <p>E-Posta Şablonları & Tasarım Editörü Yükleniyor...</p>
+                <Loader2 className="spin" style={{ color: 'var(--accent-primary)' }} size={32} />
+                <p>E-Posta Şablonları yükleniyor...</p>
             </div>
         )
     }
 
     return (
-        <div className="email-templates-container">
-            {/* Feedback Alert Toast */}
-            {feedback && (
-                <div className={`email-templates-toast ${feedback.type}`}>
-                    {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                    <span>{feedback.msg}</span>
-                </div>
-            )}
-
-            {/* Layout: Sidebar + Main Studio Workspace */}
-            <div className="email-templates-workspace">
-                
-                {/* Left Sidebar: Template Navigation */}
-                <div className="email-templates-sidebar">
-                    <div className="sidebar-header">
-                        <Layers size={18} className="text-blue-400" />
-                        <h3>E-Posta Şablonları</h3>
+        <div className="email-templates-wrapper">
+            <div className="email-templates-card">
+                {/* Feedback Toast */}
+                {feedback && (
+                    <div className={`email-templates-toast ${feedback.type}`}>
+                        {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                        <span>{feedback.msg}</span>
                     </div>
+                )}
+
+                {/* Workspace Layout */}
+                <div className="email-templates-workspace">
                     
-                    <div className="sidebar-templates-list">
-                        {templates.map(t => (
-                            <button
-                                key={t.type}
-                                className={`template-nav-item ${activeType === t.type ? 'active' : ''}`}
-                                onClick={() => handleSelectTemplate(t.type)}
-                            >
-                                <div className="template-nav-left">
-                                    {getIconForType(t.type)}
-                                    <div className="template-nav-info">
-                                        <div className="template-nav-name">{t.name}</div>
-                                        <div className="template-nav-desc">{t.description}</div>
-                                    </div>
-                                </div>
-                                {t.isCustomized ? (
-                                    <span className="badge-customized" title="Özel HTML Şablonu Aktif">Özel</span>
-                                ) : (
-                                    <span className="badge-default" title="Varsayılan Şablon">Varsayılan</span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="sidebar-footer-hint">
-                        <Shield size={14} className="text-blue-400 flex-shrink-0" />
-                        <span>Kayıt ve kurtarma mailleri tüm e-posta istemcileriyle (Gmail, Outlook, Apple Mail) %100 uyumludur.</span>
-                    </div>
-                </div>
-
-                {/* Right Area: Studio Editor & Live Rendering */}
-                <div className="email-templates-main">
-                    
-                    {/* Top Action Bar */}
-                    <div className="template-main-header">
-                        <div className="template-header-left">
-                            <div className="template-title-wrap">
-                                {getIconForType(activeType)}
-                                <div>
-                                    <h2>{activeTemplate?.name || 'Şablon'}</h2>
-                                    <span className="template-subtext">{activeTemplate?.description}</span>
-                                </div>
-                            </div>
+                    {/* Left Sidebar: Template Navigation */}
+                    <div className="email-templates-sidebar">
+                        <div className="sidebar-header">
+                            <Layers size={16} style={{ color: 'var(--accent-primary)' }} />
+                            <h3>Şablon Listesi</h3>
                         </div>
-
-                        {/* Top Action Buttons */}
-                        <div className="template-header-actions">
-                            <div className="view-mode-toggle">
-                                <button 
-                                    className={`view-btn ${viewMode === 'code' ? 'active' : ''}`}
-                                    onClick={() => setViewMode('code')}
-                                    title="Sadece HTML Kod Düzenleyici"
-                                >
-                                    <Code2 size={15} />
-                                    <span>HTML</span>
-                                </button>
-                                <button 
-                                    className={`view-btn ${viewMode === 'split' ? 'active' : ''}`}
-                                    onClick={() => setViewMode('split')}
-                                    title="Yan Yana Bölünmüş Ekran"
-                                >
-                                    <Columns size={15} />
-                                    <span>Bölünmüş</span>
-                                </button>
-                                <button 
-                                    className={`view-btn ${viewMode === 'preview' ? 'active' : ''}`}
-                                    onClick={() => setViewMode('preview')}
-                                    title="Sadece Canlı Önizleme"
-                                >
-                                    <Eye size={15} />
-                                    <span>Önizleme</span>
-                                </button>
-                            </div>
-
-                            <button 
-                                className="btn-test-mail"
-                                onClick={() => setTestModalOpen(true)}
-                                title="Kendi e-posta adresinize gerçek bir test maili gönderin"
-                            >
-                                <Send size={15} />
-                                <span>Test Gönder</span>
-                            </button>
-
-                            {activeTemplate?.isCustomized && (
-                                <button 
-                                    className="btn-reset-template"
-                                    onClick={handleReset}
-                                    disabled={resetting}
-                                    title="Orijinal varsayılan şablona geri dön"
-                                >
-                                    <RotateCcw size={15} className={resetting ? 'animate-spin' : ''} />
-                                    <span>Sıfırla</span>
-                                </button>
-                            )}
-
-                            <button 
-                                className={`btn-save-template ${isDirty ? 'dirty' : ''}`}
-                                onClick={handleSave}
-                                disabled={saving || !isDirty}
-                            >
-                                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                <span>{saving ? 'Kaydediliyor...' : 'Kaydet'}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Sender & Subject Configuration Bar */}
-                    <div className="template-subject-bar">
-                        <div className="subject-row">
-                            <div className="subject-input-group sender">
-                                <label><User size={13} className="text-slate-400" /> Gönderen Başlığı:</label>
-                                <input 
-                                    type="text"
-                                    className="subject-input"
-                                    value={currentSenderName}
-                                    onChange={handleSenderNameChange}
-                                    placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
-                                />
-                            </div>
-
-                            <div className="subject-input-group subject">
-                                <label><Mail size={13} className="text-slate-400" /> Konu Satırı (Subject):</label>
-                                <input 
-                                    type="text"
-                                    className="subject-input"
-                                    value={currentSubject}
-                                    onChange={handleSubjectChange}
-                                    placeholder="E-posta konu başlığını giriniz..."
-                                />
-                            </div>
-                        </div>
-
-                        {/* Variables Pills Bar */}
-                        <div className="dynamic-variables-bar">
-                            <div className="variables-label">
-                                <Sparkles size={13} className="text-amber-400" />
-                                <span>Dinamik Değişkenler (Tıklayıp Ekleyin):</span>
-                            </div>
-                            <div className="variables-pills">
-                                {DYNAMIC_VARIABLES.map(v => (
-                                    <button
-                                        key={v.key}
-                                        type="button"
-                                        className={`var-pill ${copiedVar === v.key ? 'copied' : ''}`}
-                                        onClick={() => handleInsertVariable(v.key)}
-                                        title={`${v.label}: ${v.desc}`}
-                                    >
-                                        {copiedVar === v.key ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                                        <code>{v.key}</code>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Editor & Preview Split Panels */}
-                    <div className={`template-editor-grid ${viewMode}`}>
                         
-                        {/* HTML Code Editor Panel */}
-                        {(viewMode === 'code' || viewMode === 'split') && (
-                            <div className="editor-panel">
-                                <div className="panel-header">
-                                    <div className="panel-title">
-                                        <Code2 size={15} className="text-blue-400" />
-                                        <span>HTML5 Kaynak Kodu Düzenleyici</span>
+                        <div className="sidebar-templates-list">
+                            {templates.map(t => (
+                                <button
+                                    key={t.type}
+                                    className={`template-nav-item ${activeType === t.type ? 'active' : ''}`}
+                                    onClick={() => handleSelectTemplate(t.type)}
+                                >
+                                    <div className="template-nav-left">
+                                        {getIconForType(t.type)}
+                                        <div className="template-nav-info">
+                                            <div className="template-nav-name">{t.name}</div>
+                                            <div className="template-nav-desc">{t.description}</div>
+                                        </div>
                                     </div>
-                                    <div className="code-tools">
+                                    {t.isCustomized ? (
+                                        <span className="badge-customized" title="Özel HTML Şablonu">Özel</span>
+                                    ) : (
+                                        <span className="badge-default" title="Varsayılan Şablon">Varsayılan</span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="sidebar-footer-hint">
+                            <Shield size={14} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                            <span>Tüm e-posta istemcileriyle (Gmail, Outlook, Apple Mail) %100 uyumludur.</span>
+                        </div>
+                    </div>
+
+                    {/* Right Main Studio Workspace */}
+                    <div className="email-templates-main">
+                        
+                        {/* Top Action Header */}
+                        <div className="template-main-header">
+                            <div className="template-header-left">
+                                <div className="template-title-wrap">
+                                    {getIconForType(activeType)}
+                                    <div>
+                                        <h2>{activeTemplate?.name || 'Şablon'}</h2>
+                                        <span className="template-subtext">{activeTemplate?.description}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="template-header-actions">
+                                <div className="view-mode-toggle">
+                                    <button 
+                                        className={`view-btn ${viewMode === 'code' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('code')}
+                                        title="Sadece HTML Kod Editörü"
+                                    >
+                                        <Code2 size={14} />
+                                        <span>HTML</span>
+                                    </button>
+                                    <button 
+                                        className={`view-btn ${viewMode === 'split' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('split')}
+                                        title="Bölünmüş Ekran (Kod + Canlı Önizleme)"
+                                    >
+                                        <Columns size={14} />
+                                        <span>Bölünmüş</span>
+                                    </button>
+                                    <button 
+                                        className={`view-btn ${viewMode === 'preview' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('preview')}
+                                        title="Sadece Canlı Önizleme"
+                                    >
+                                        <Eye size={14} />
+                                        <span>Önizleme</span>
+                                    </button>
+                                </div>
+
+                                <button 
+                                    className="btn btn-secondary"
+                                    onClick={() => setTestModalOpen(true)}
+                                    title="Kendi e-posta adresinize gerçek bir test iletisi gönderin"
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <Send size={14} />
+                                    <span>Test Gönder</span>
+                                </button>
+
+                                {activeTemplate?.isCustomized && (
+                                    <button 
+                                        className="btn btn-secondary"
+                                        onClick={handleReset}
+                                        disabled={resetting}
+                                        title="Varsayılan şablona geri dön"
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        <RotateCcw size={14} className={resetting ? 'spin' : ''} />
+                                        <span>Sıfırla</span>
+                                    </button>
+                                )}
+
+                                <button 
+                                    className="btn btn-primary"
+                                    onClick={handleSave}
+                                    disabled={saving || !isDirty}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    {saving ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
+                                    <span>{saving ? 'Kaydediliyor...' : 'Kaydet'}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Sender & Subject Configuration Bar */}
+                        <div className="template-subject-bar">
+                            <div className="subject-row">
+                                <div className="subject-input-group">
+                                    <label><User size={12} style={{ color: 'var(--text-muted)' }} /> Gönderen Başlığı:</label>
+                                    <input 
+                                        type="text"
+                                        className="subject-input"
+                                        value={currentSenderName}
+                                        onChange={handleSenderNameChange}
+                                        placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
+                                    />
+                                </div>
+
+                                <div className="subject-input-group">
+                                    <label><Mail size={12} style={{ color: 'var(--text-muted)' }} /> Konu Satırı (Subject):</label>
+                                    <input 
+                                        type="text"
+                                        className="subject-input"
+                                        value={currentSubject}
+                                        onChange={handleSubjectChange}
+                                        placeholder="E-posta konu başlığını giriniz..."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Dynamic Variables Bar */}
+                            <div className="dynamic-variables-bar">
+                                <div className="variables-label">
+                                    <Sparkles size={13} style={{ color: 'var(--accent-primary)' }} />
+                                    <span>Dinamik Değişkenler (Tıklayıp Ekleyin):</span>
+                                </div>
+                                <div className="variables-pills">
+                                    {DYNAMIC_VARIABLES.map(v => (
+                                        <button
+                                            key={v.key}
+                                            type="button"
+                                            className={`var-pill ${copiedVar === v.key ? 'copied' : ''}`}
+                                            onClick={() => handleInsertVariable(v.key)}
+                                            title={`${v.label}: ${v.desc}`}
+                                        >
+                                            {copiedVar === v.key ? <Check size={11} style={{ color: 'var(--success)' }} /> : <Copy size={11} />}
+                                            <code>{v.key}</code>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Editor & Preview Split Panels */}
+                        <div className={`template-editor-grid ${viewMode}`}>
+                            
+                            {/* HTML Code Editor Panel */}
+                            {(viewMode === 'code' || viewMode === 'split') && (
+                                <div className="editor-panel">
+                                    <div className="panel-header">
+                                        <div className="panel-title">
+                                            <Code2 size={14} style={{ color: 'var(--accent-primary)' }} />
+                                            <span>HTML5 Kaynak Kodu</span>
+                                        </div>
                                         <button 
                                             type="button"
                                             className="btn-code-copy"
                                             onClick={() => {
                                                 navigator.clipboard.writeText(currentHtml)
-                                                showToast('HTML kodu panoya kopyalandı', 'info')
+                                                showToast('HTML kodu kopyalandı', 'info')
                                             }}
                                             title="Tüm HTML Kodunu Kopyala"
                                         >
-                                            <Copy size={13} />
+                                            <Copy size={12} />
                                             <span>Kopyala</span>
                                         </button>
                                     </div>
-                                </div>
-                                <div className="code-editor-wrapper">
-                                    <textarea
-                                        ref={editorRef}
-                                        className="html-code-textarea"
-                                        value={currentHtml}
-                                        onChange={handleHtmlChange}
-                                        placeholder="<!DOCTYPE html><html>..."
-                                        spellCheck="false"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Live Render Preview Panel */}
-                        {(viewMode === 'preview' || viewMode === 'split') && (
-                            <div className="preview-panel">
-                                <div className="panel-header">
-                                    <div className="panel-title">
-                                        <Eye size={15} className="text-emerald-400" />
-                                        <span>Canlı E-Posta Önizleme</span>
+                                    <div className="code-editor-wrapper">
+                                        <textarea
+                                            ref={editorRef}
+                                            className="html-code-textarea"
+                                            value={currentHtml}
+                                            onChange={handleHtmlChange}
+                                            placeholder="<!DOCTYPE html><html>..."
+                                            spellCheck="false"
+                                        />
                                     </div>
-                                    <div className="preview-header-controls">
-                                        {/* Device Switcher (Desktop vs Mobile Frame) */}
+                                </div>
+                            )}
+
+                            {/* Live Render Preview Panel */}
+                            {(viewMode === 'preview' || viewMode === 'split') && (
+                                <div className="preview-panel">
+                                    <div className="panel-header">
+                                        <div className="panel-title">
+                                            <Eye size={14} style={{ color: 'var(--success)' }} />
+                                            <span>Canlı E-Posta Önizleme</span>
+                                        </div>
                                         <div className="device-switcher">
                                             <button 
                                                 className={`device-btn ${deviceMode === 'desktop' ? 'active' : ''}`}
                                                 onClick={() => setDeviceMode('desktop')}
                                                 title="Masaüstü Görünümü (600px)"
                                             >
-                                                <Monitor size={14} />
+                                                <Monitor size={13} />
                                                 <span>Masaüstü</span>
                                             </button>
                                             <button 
                                                 className={`device-btn ${deviceMode === 'mobile' ? 'active' : ''}`}
                                                 onClick={() => setDeviceMode('mobile')}
-                                                title="Mobil Telefon Görünümü (375px)"
+                                                title="Mobil Görünüm (375px)"
                                             >
-                                                <Smartphone size={14} />
+                                                <Smartphone size={13} />
                                                 <span>Mobil</span>
                                             </button>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className={`preview-viewport ${deviceMode}`}>
-                                    <div className="preview-frame-container">
-                                        <iframe
-                                            title="Email Template Live Preview"
-                                            className="preview-iframe"
-                                            srcDoc={getRenderedPreview()}
-                                            sandbox="allow-same-origin"
-                                        />
+                                    <div className={`preview-viewport ${deviceMode}`}>
+                                        <div className="preview-frame-container">
+                                            <iframe
+                                                title="Email Template Live Preview"
+                                                className="preview-iframe"
+                                                srcDoc={getRenderedPreview()}
+                                                sandbox="allow-same-origin"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+
+                        </div>
 
                     </div>
 
                 </div>
-
             </div>
 
             {/* Test Email Send Modal */}
@@ -562,7 +561,7 @@ export default function EmailTemplatesManager() {
             >
                 <div className="test-email-modal-body">
                     <p className="test-modal-desc">
-                        Bu şablonun e-posta istemcilerinizde nasıl görüntülendiğini test etmek için kendi e-posta adresinize anında bir test iletisi gönderin.
+                        Bu şablonun e-posta istemcilerinizde nasıl görüntülendiğini test etmek için kendi e-posta adresinize bir test iletisi gönderin.
                     </p>
 
                     <div className="test-input-wrap">
@@ -577,24 +576,25 @@ export default function EmailTemplatesManager() {
                     </div>
 
                     <div className="test-modal-info">
-                        <Info size={15} className="text-blue-400 flex-shrink-0" />
+                        <Info size={15} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
                         <span>E-postada <code>{"{{ .Token }}"}</code> yerine örnek kod (849 201) ve canlı buton bağlantısı görüntülenecektir.</span>
                     </div>
 
                     <div className="modal-actions-custom">
                         <button 
-                            className="btn-cancel"
+                            className="btn btn-secondary"
                             onClick={() => setTestModalOpen(false)}
                             disabled={sendingTest}
                         >
                             İptal
                         </button>
                         <button 
-                            className="btn-primary-send"
+                            className="btn btn-primary"
                             onClick={handleSendTestEmail}
                             disabled={sendingTest || !testTargetEmail}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                         >
-                            {sendingTest ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                            {sendingTest ? <Loader2 size={15} className="spin" /> : <Send size={15} />}
                             <span>{sendingTest ? 'Gönderiliyor...' : 'Test Maili Gönder'}</span>
                         </button>
                     </div>
