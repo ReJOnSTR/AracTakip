@@ -121,23 +121,20 @@ async function getPlatformUsers() {
             let accountType = 'user';
             let accountBadge = 'Kullanıcı';
 
-            if (u.username === 'admin' || u.role === 'superadmin') {
+            if (u.role === 'superadmin') {
                 accountType = 'superadmin';
                 accountBadge = '👑 Süper Yönetici';
-                if (u.companies && u.companies.length > 0) {
-                    linkedCompany = u.companies[0];
-                }
             } else if (u.companies && u.companies.length > 0) {
                 accountType = 'company_owner';
-                accountBadge = '🏢 Şirket Sahibi';
+                accountBadge = '🏢 Şirket Yöneticisi';
                 linkedCompany = u.companies[0];
             } else if (u.employee) {
                 accountType = 'employee';
                 accountBadge = '👤 Personel / Şoför';
                 linkedCompany = u.employee.companies || null;
-            } else if (u.role === 'admin') {
-                accountType = 'admin';
-                accountBadge = '🛡️ Yönetici';
+            } else if (u.role === 'company_admin' || u.role === 'admin') {
+                accountType = 'company_admin';
+                accountBadge = '🏢 Şirket Yöneticisi';
             }
 
             return {
@@ -364,7 +361,7 @@ async function deletePlatformUser(userId) {
         const uid = parseInt(userId, 10);
         const user = await prisma.users.findUnique({ where: { id: uid } });
         if (!user) return { success: false, error: 'Kullanıcı bulunamadı' };
-        if (user.username === 'admin' || user.id === 1) {
+        if (user.role === 'superadmin' || user.username === 'superadmin') {
             return { success: false, error: 'Ana Süper Yönetici hesabı silinemez' };
         }
 

@@ -88,7 +88,7 @@ function AdminRoute({ children }) {
 
 function SuperAdminRoute({ children }) {
     const { user, loading } = useAuth()
-    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
+    const isSuperAdmin = user?.role === 'superadmin'
 
     if (loading) return null
     if (!isSuperAdmin) return <Navigate to="/dashboard" replace />
@@ -167,7 +167,7 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }>
                         <Route path="/" element={
-                            (user?.role === 'superadmin' || user?.username === 'admin')
+                            user?.role === 'superadmin'
                                 ? <Navigate to="/platform/users" replace />
                                 : (user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <Navigate to="/portal" replace />)
                         } />

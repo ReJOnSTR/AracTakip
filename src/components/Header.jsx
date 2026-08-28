@@ -41,7 +41,7 @@ export default function Header() {
         setShowCompanyDropdown(false)
     }
 
-    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
+    const isSuperAdmin = user?.role === 'superadmin'
 
     return (
         <header className="header">

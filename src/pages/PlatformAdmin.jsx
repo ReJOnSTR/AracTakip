@@ -160,7 +160,7 @@ export default function PlatformAdmin({ section }) {
     }
 
     // Strict SuperAdmin check
-    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
+    const isSuperAdmin = user?.role === 'superadmin'
 
     useEffect(() => {
         if (!isSuperAdmin) {
@@ -402,7 +402,7 @@ export default function PlatformAdmin({ section }) {
 
     // Toggle User Status (Lock / Unlock)
     const handleToggleUser = async (u) => {
-        if (u.username === 'admin' || u.id === 1) {
+        if (u.role === 'superadmin' || u.username === 'superadmin') {
             alert('Ana Süper Yönetici hesabı kilitlenemez.')
             return
         }

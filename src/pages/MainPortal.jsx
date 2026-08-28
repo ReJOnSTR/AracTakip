@@ -213,7 +213,7 @@ export default function MainPortal() {
             active: true,
             features: ['Müşteri profili', 'Açık bakiyeler', 'İletişim bilgileri', 'Geçmiş işler']
         },
-        ...((user?.role === 'superadmin' || user?.username === 'admin') ? [{
+        ...(user?.role === 'superadmin' ? [{
             id: 'platform',
             title: 'Platform Yönetimi',
             description: 'SaaS Master: Tüm şirketler, kullanıcılar, canlı sunucu sağlığı ve yedekleme.',

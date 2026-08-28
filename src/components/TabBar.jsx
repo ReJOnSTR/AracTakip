@@ -51,7 +51,7 @@ export default function TabBar() {
     const [showCompanyDropdown, setShowCompanyDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
 
-    const isSuperAdmin = user?.role === 'superadmin' || user?.username === 'admin'
+    const isSuperAdmin = user?.role === 'superadmin'
 
     // Force re-render when location changes so canGoBack/canGoForward update
     const [, forceUpdate] = useState(0)
