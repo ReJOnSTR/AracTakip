@@ -10,6 +10,14 @@ export function CompanyProvider({ children }) {
     const [currentCompany, setCurrentCompany] = useState(null)
     const [loading, setLoading] = useState(true)
     const [upcomingEvents, setUpcomingEvents] = useState([])
+    const [isImpersonating, setIsImpersonating] = useState(() => {
+        const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
+        return !!(urlParams.get('impersonate_company_id') || sessionStorage.getItem('aractakip_impersonate_company_id'))
+    })
+    const [impersonatedCompanyName, setImpersonatedCompanyName] = useState(() => {
+        const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
+        return urlParams.get('impersonate_company_name') || sessionStorage.getItem('aractakip_impersonate_company_name') || ''
+    })
 
     useEffect(() => {
         if (currentCompany) {
@@ -37,8 +45,6 @@ export function CompanyProvider({ children }) {
     const loadUpcomingEvents = async (isBackground = false) => {
         if (!currentCompany) return
 
-        // Upcoming events don't set a global loading state in context anyway,
-        // but it's good practice. This logic is already silent.
         try {
             const result = await dashboardService.getUpcomingEvents(currentCompany.id)
             if (result.success) {
@@ -66,15 +72,34 @@ export function CompanyProvider({ children }) {
             if (result.success) {
                 setCompanies(result.data)
 
-                // Restore last selected company or select first
-                const storedCompanyId = localStorage.getItem('aractakip_company')
-                const storedCompany = result.data.find(c => c.id === parseInt(storedCompanyId))
+                const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
+                const impId = urlParams.get('impersonate_company_id') || sessionStorage.getItem('aractakip_impersonate_company_id')
+                const impName = urlParams.get('impersonate_company_name') || sessionStorage.getItem('aractakip_impersonate_company_name')
 
-                if (storedCompany) {
-                    setCurrentCompany(storedCompany)
-                } else if (result.data.length > 0) {
-                    setCurrentCompany(result.data[0])
-                    localStorage.setItem('aractakip_company', result.data[0].id)
+                if (impId) {
+                    const numericImpId = parseInt(impId, 10)
+                    sessionStorage.setItem('aractakip_impersonate_company_id', String(numericImpId))
+                    if (impName) sessionStorage.setItem('aractakip_impersonate_company_name', decodeURIComponent(impName))
+                    setIsImpersonating(true)
+                    setImpersonatedCompanyName(impName ? decodeURIComponent(impName) : '')
+
+                    const targetComp = result.data.find(c => c.id === numericImpId) || {
+                        id: numericImpId,
+                        name: impName ? decodeURIComponent(impName) : `Şirket #${numericImpId}`
+                    }
+                    setCurrentCompany(targetComp)
+                    localStorage.setItem('aractakip_company', String(numericImpId))
+                } else {
+                    // Restore last selected company or select first
+                    const storedCompanyId = localStorage.getItem('aractakip_company')
+                    const storedCompany = result.data.find(c => c.id === parseInt(storedCompanyId))
+
+                    if (storedCompany) {
+                        setCurrentCompany(storedCompany)
+                    } else if (result.data.length > 0) {
+                        setCurrentCompany(result.data[0])
+                        localStorage.setItem('aractakip_company', result.data[0].id)
+                    }
                 }
             }
         } catch (error) {
@@ -161,7 +186,9 @@ export function CompanyProvider({ children }) {
             deleteCompany,
             refreshCompanies: loadCompanies,
             upcomingEvents,
-            loadUpcomingEvents
+            loadUpcomingEvents,
+            isImpersonating,
+            impersonatedCompanyName
         }}>
             {children}
         </CompanyContext.Provider>

@@ -2785,3 +2785,58 @@ ipcMain.handle('session:terminate', async (event, sessionId) => {
     return sessionService.terminateUserSession(sessionId);
 });
 
+// Company Impersonation / Observer Mode New Window
+ipcMain.handle('platform:openImpersonateWindow', async (event, { companyId, companyName }) => {
+    try {
+        const bounds = store.get('windowBounds') || { width: 1400, height: 900 };
+        let platformIcon = path.join(__dirname, '../resources/icon-win.png');
+        if (process.platform === 'darwin') {
+            platformIcon = path.join(__dirname, '../resources/icon-mac.png');
+        }
+
+        const impersonateWin = new BrowserWindow({
+            title: `[GÖZLEMCİ MODU] ${companyName || 'Şirket'} - Kontrol`,
+            width: bounds.width,
+            height: bounds.height,
+            minWidth: 1200,
+            minHeight: 700,
+            icon: platformIcon,
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                contextIsolation: true,
+                nodeIntegration: false,
+                plugins: true
+            },
+            titleBarStyle: 'hidden',
+            titleBarOverlay: {
+                color: '#18181b',
+                symbolColor: '#ffffff',
+                height: 38
+            },
+            trafficLightPosition: { x: 12, y: 12 },
+            backgroundColor: '#0f0f1a',
+            show: false
+        });
+
+        const queryString = `impersonate_company_id=${companyId}&impersonate_company_name=${encodeURIComponent(companyName || '')}`;
+        if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+            impersonateWin.loadURL(`http://127.0.0.1:5173/?${queryString}#/dashboard`);
+        } else {
+            impersonateWin.loadFile(path.join(__dirname, '../dist/index.html'), {
+                search: `?${queryString}`,
+                hash: '/dashboard'
+            });
+        }
+
+        impersonateWin.once('ready-to-show', () => {
+            impersonateWin.show();
+            impersonateWin.focus();
+        });
+
+        return { success: true };
+    } catch (err) {
+        log.error('Failed to open impersonate window:', err);
+        return { success: false, error: err.message };
+    }
+});
+

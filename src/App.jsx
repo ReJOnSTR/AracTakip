@@ -96,6 +96,7 @@ function SuperAdminRoute({ children }) {
 }
 
 import BroadcastBanner from './components/BroadcastBanner'
+import ImpersonationBanner from './components/ImpersonationBanner'
 
 function MainLayout() {
     const { user } = useAuth()
@@ -117,6 +118,7 @@ function MainLayout() {
             <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
                 <div className="main-content">
+                    <ImpersonationBanner />
                     <TabBar />
                     <BroadcastBanner />
                     <div className="page-content">
@@ -164,7 +166,11 @@ function AppRoutes() {
                             </CompanyProvider>
                         </ProtectedRoute>
                     }>
-                        <Route path="/" element={user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <Navigate to="/portal" replace />} />
+                        <Route path="/" element={
+                            (user?.role === 'superadmin' || user?.username === 'admin')
+                                ? <Navigate to="/platform/users" replace />
+                                : (user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <Navigate to="/portal" replace />)
+                        } />
                         <Route path="/portal" element={user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <MainPortal />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/finance-dashboard" element={<FinanceDashboard />} />

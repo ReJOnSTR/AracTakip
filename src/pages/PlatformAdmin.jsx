@@ -359,12 +359,24 @@ export default function PlatformAdmin({ section }) {
         }
     }
 
-    // Impersonate Company (Ghost Mode)
-    const handleImpersonateCompany = (company) => {
-        selectCompany(company)
-        setTimeout(() => {
+    // Impersonate Company (Ghost Mode in Separate Dedicated Window)
+    const handleImpersonateCompany = async (company) => {
+        try {
+            if (window.electronAPI?.openImpersonateWindow) {
+                await window.electronAPI.openImpersonateWindow({
+                    companyId: company.id,
+                    companyName: company.name
+                })
+            } else {
+                const queryStr = `impersonate_company_id=${company.id}&impersonate_company_name=${encodeURIComponent(company.name)}`
+                const url = `${window.location.origin}/?${queryStr}#/dashboard`
+                window.open(url, '_blank', 'width=1400,height=900,menubar=no,toolbar=no')
+            }
+        } catch (err) {
+            console.error('handleImpersonateCompany error:', err)
+            selectCompany(company)
             navigate('/dashboard')
-        }, 300)
+        }
     }
 
     // Impersonate User directly

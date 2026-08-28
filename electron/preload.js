@@ -318,4 +318,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     recordHeartbeat: (payload) => ipcRenderer.invoke('session:heartbeat', payload),
     getRealtimeActiveUsers: () => ipcRenderer.invoke('session:getRealtimeActiveUsers'),
     terminateUserSession: (sessionId) => ipcRenderer.invoke('session:terminate', sessionId),
+    openImpersonateWindow: (payload) => ipcRenderer.invoke('platform:openImpersonateWindow', payload),
 })
