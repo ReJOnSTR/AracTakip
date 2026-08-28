@@ -473,6 +473,14 @@ ipcMain.handle('auth:requestPasswordReset', async (event, data) => {
     return await db.requestPasswordReset(data)
 })
 
+ipcMain.handle('auth:verifyRecoveryOtp', async (event, data) => {
+    return await db.verifyRecoveryOtp(data)
+})
+
+ipcMain.handle('auth:completePasswordReset', async (event, data) => {
+    return await db.completePasswordReset(data)
+})
+
 ipcMain.handle('auth:resendVerificationEmail', async (event, data) => {
     return await db.resendVerificationEmail(data)
 })

@@ -229,18 +229,41 @@ export default function Login() {
         setForgotLoading(true)
 
         try {
-            const { data, error: verifyErr } = await supabase.auth.verifyOtp({
-                email: cleanEmail,
-                token: cleanOtp,
-                type: 'recovery'
-            })
+            let verified = false
 
-            if (verifyErr) {
-                setForgotError(verifyErr.message || 'Geçersiz veya süresi dolmuş kod.')
-                setForgotLoading(false)
-            } else {
+            // 1. Direct Electron API verification
+            if (window.electronAPI?.verifyRecoveryOtp) {
+                const res = await window.electronAPI.verifyRecoveryOtp({
+                    email: cleanEmail,
+                    otp: cleanOtp
+                })
+                if (res?.success) {
+                    verified = true
+                }
+            }
+
+            // 2. Supabase Auth API verification
+            if (!verified) {
+                const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+                    email: cleanEmail,
+                    token: cleanOtp,
+                    type: 'recovery'
+                })
+                if (!verifyErr) {
+                    verified = true
+                } else if (!window.electronAPI?.verifyRecoveryOtp) {
+                    setForgotError(verifyErr.message || 'Geçersiz veya süresi dolmuş kod.')
+                    setForgotLoading(false)
+                    return
+                }
+            }
+
+            if (verified) {
                 setShowForgotModal(false)
-                navigate('/reset-password')
+                navigate('/reset-password?email=' + encodeURIComponent(cleanEmail) + '&otp=' + encodeURIComponent(cleanOtp))
+            } else {
+                setForgotError('Geçersiz veya süresi dolmuş kod. Lütfen e-postanızı kontrol edin.')
+                setForgotLoading(false)
             }
         } catch (err) {
             setForgotError('Doğrulama hatası: ' + err.message)

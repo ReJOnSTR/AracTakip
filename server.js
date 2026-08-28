@@ -240,6 +240,8 @@ const rpcMap = {
     changePassword: authService.changePassword,
     syncPasswordReset: authService.syncPasswordReset,
     requestPasswordReset: authService.requestPasswordReset,
+    verifyRecoveryOtp: authService.verifyRecoveryOtp,
+    completePasswordReset: authService.completePasswordReset,
     resendVerificationEmail: authService.resendVerificationEmail,
     activateUserByEmail: authService.activateUserByEmail,
     updateProfile: authService.updateProfile,

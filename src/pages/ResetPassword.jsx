@@ -41,7 +41,23 @@ export default function ResetPassword() {
 
         const checkRecoveryState = async () => {
             try {
-                // 0. Check URL Hash for error parameters (e.g. otp_expired)
+                // 0. Check URL query parameters (?email=...&otp=...)
+                const queryParams = new URLSearchParams(location.search)
+                const queryEmail = queryParams.get('email')
+                const queryOtp = queryParams.get('otp')
+
+                if (queryEmail && queryOtp) {
+                    if (isMounted) {
+                        setManualEmail(queryEmail)
+                        setOtpCode(queryOtp)
+                        setUserEmail(queryEmail)
+                        setHasRecoverySession(true)
+                        setCheckingSession(false)
+                    }
+                    return
+                }
+
+                // 0.1. Check URL Hash for error parameters (e.g. otp_expired)
                 const hash = window.location.hash
                 if (hash) {
                     const params = new URLSearchParams(hash.replace(/^#/, ''))
@@ -98,7 +114,7 @@ export default function ResetPassword() {
         return () => {
             isMounted = false
         }
-    }, [])
+    }, [location.search])
 
     // Password strength calculation
     const getPasswordStrength = (pass) => {
@@ -132,22 +148,38 @@ export default function ResetPassword() {
 
         setVerifyingOtp(true)
         try {
-            const { data, error: otpErr } = await supabase.auth.verifyOtp({
-                email: cleanEmail,
-                token: cleanCode,
-                type: 'recovery'
-            })
+            let verified = false
 
-            if (otpErr) {
-                setError(otpErr.message || 'Geçersiz veya süresi dolmuş doğrulama kodu.')
-                setVerifyingOtp(false)
-                return
+            // 1. Direct Electron verification
+            if (window.electronAPI?.verifyRecoveryOtp) {
+                const res = await window.electronAPI.verifyRecoveryOtp({
+                    email: cleanEmail,
+                    otp: cleanCode
+                })
+                if (res?.success) {
+                    verified = true
+                }
             }
 
-            if (data?.session) {
+            // 2. Supabase Auth verifyOtp fallback
+            if (!verified) {
+                const { data, error: otpErr } = await supabase.auth.verifyOtp({
+                    email: cleanEmail,
+                    token: cleanCode,
+                    type: 'recovery'
+                })
+
+                if (!otpErr && data?.session) {
+                    verified = true
+                }
+            }
+
+            if (verified) {
                 setHasRecoverySession(true)
-                setUserEmail(data.session.user?.email || cleanEmail)
+                setUserEmail(cleanEmail)
                 setError('')
+            } else {
+                setError('Geçersiz veya süresi dolmuş doğrulama kodu.')
             }
         } catch (err) {
             setError('Doğrulama hatası: ' + err.message)
@@ -180,37 +212,53 @@ export default function ResetPassword() {
         setLoading(true)
 
         try {
-            // 1. Update password in Supabase Auth
-            const { data, error: updateError } = await supabase.auth.updateUser({
-                password: password
-            })
+            const activeEmail = userEmail || manualEmail
+            let resetSuccess = false
 
-            if (updateError) {
-                setError(updateError.message || 'Şifre güncellenirken bir hata oluştu.')
-                setLoading(false)
-                return
+            // 1. Direct Electron reset API
+            if (window.electronAPI?.completePasswordReset && activeEmail) {
+                const res = await window.electronAPI.completePasswordReset({
+                    email: activeEmail,
+                    newPassword: password,
+                    otp: otpCode
+                })
+                if (res?.success) {
+                    resetSuccess = true
+                }
             }
 
-            // 2. Sync password reset to local PostgreSQL database
-            const activeEmail = userEmail || data?.user?.email || manualEmail
-            if (activeEmail && window.electronAPI?.syncPasswordReset) {
+            // 2. Supabase Auth updateUser fallback
+            try {
+                const { data, error: updateError } = await supabase.auth.updateUser({
+                    password: password
+                })
+                if (!updateError) {
+                    resetSuccess = true
+                }
+            } catch (supaErr) {}
+
+            // 3. Fallback sync if needed
+            if (!resetSuccess && activeEmail && window.electronAPI?.syncPasswordReset) {
                 try {
                     await window.electronAPI.syncPasswordReset({
                         email: activeEmail,
                         newPassword: password
                     })
-                } catch (syncErr) {
-                    console.warn('Local database password sync warning:', syncErr)
-                }
+                    resetSuccess = true
+                } catch (syncErr) {}
             }
 
-            setSuccessMessage('Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...')
-            
-            setTimeout(() => {
-                navigate('/login')
-            }, 2500)
+            if (resetSuccess) {
+                setSuccessMessage('Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...')
+                setTimeout(() => {
+                    navigate('/login')
+                }, 2000)
+            } else {
+                setError('Şifre güncellenemedi. Lütfen tekrar deneyin.')
+            }
         } catch (err) {
             setError('Şifre güncelleme hatası: ' + err.message)
+        } finally {
             setLoading(false)
         }
     }

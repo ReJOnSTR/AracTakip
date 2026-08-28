@@ -793,6 +793,8 @@ async function syncPasswordReset(data) {
     }
 }
 
+const recoveryOtpStore = new Map();
+
 async function requestPasswordReset(data) {
     try {
         const { email } = data || {};
@@ -827,8 +829,8 @@ async function requestPasswordReset(data) {
 
             // 3. Generate password recovery action link & token from Supabase Auth
             let actionLink = 'https://kontrol-app.com/reset-password';
-            // Generate a fresh dynamic 6-digit code
             const randomOtp = String(Math.floor(100000 + Math.random() * 900000));
+            let rawOtpCode = randomOtp;
             let otpToken = randomOtp.slice(0, 3) + ' ' + randomOtp.slice(3);
 
             try {
@@ -843,12 +845,19 @@ async function requestPasswordReset(data) {
                     actionLink = linkData.properties.action_link;
                 }
                 if (linkData?.properties?.email_otp) {
-                    const rawOtp = String(linkData.properties.email_otp);
-                    otpToken = rawOtp.length === 6 ? `${rawOtp.slice(0, 3)} ${rawOtp.slice(3)}` : rawOtp;
+                    rawOtpCode = String(linkData.properties.email_otp);
+                    otpToken = rawOtpCode.length === 6 ? `${rawOtpCode.slice(0, 3)} ${rawOtpCode.slice(3)}` : rawOtpCode;
                 }
             } catch (genErr) {
                 log.warn(`[Password Reset] generateLink notice:`, genErr.message);
             }
+
+            // Store in reliable backend cache with 15-min expiry
+            recoveryOtpStore.set(cleanEmail, {
+                otp: rawOtpCode,
+                expiresAt: Date.now() + 15 * 60 * 1000,
+                verified: false
+            });
 
             // 4. Load custom HTML template from database
             const { getEmailTemplates } = require('./emailTemplate.service');
@@ -896,6 +905,93 @@ async function requestPasswordReset(data) {
         return { success: true, message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.' };
     } catch (err) {
         log.error('requestPasswordReset error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+async function verifyRecoveryOtp(data) {
+    try {
+        const { email, otp } = data || {};
+        if (!email || !otp) return { success: false, error: 'E-posta ve doğrulama kodu gereklidir' };
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanOtp = String(otp).replace(/[\s\-_]/g, '').trim();
+
+        const entry = recoveryOtpStore.get(cleanEmail);
+        if (entry && entry.expiresAt > Date.now() && entry.otp === cleanOtp) {
+            entry.verified = true;
+            log.info(`[Password Reset] OTP verified via memory cache for ${cleanEmail}`);
+            return { success: true, verified: true };
+        }
+
+        // Also attempt Supabase Auth verify
+        try {
+            const { supabaseAdmin } = require('./supabase.service');
+            if (supabaseAdmin) {
+                const { data: supaData, error: supaErr } = await supabaseAdmin.auth.verifyOtp({
+                    email: cleanEmail,
+                    token: cleanOtp,
+                    type: 'recovery'
+                });
+                if (!supaErr) {
+                    recoveryOtpStore.set(cleanEmail, { otp: cleanOtp, expiresAt: Date.now() + 15 * 60 * 1000, verified: true });
+                    return { success: true, verified: true };
+                }
+            }
+        } catch (e) {}
+
+        return { success: false, error: 'Geçersiz veya süresi dolmuş doğrulama kodu.' };
+    } catch (err) {
+        return { success: false, error: err.message };
+    }
+}
+
+async function completePasswordReset(data) {
+    try {
+        const { email, newPassword, otp } = data || {};
+        if (!email || !newPassword) return { success: false, error: 'E-posta ve yeni şifre gereklidir' };
+        if (newPassword.length < 6) return { success: false, error: 'Şifre en az 6 karakter olmalıdır' };
+        const cleanEmail = email.trim().toLowerCase();
+
+        const entry = recoveryOtpStore.get(cleanEmail);
+        const cleanOtp = otp ? String(otp).replace(/[\s\-_]/g, '').trim() : '';
+
+        const isAuthorized = Boolean(entry && (entry.verified || (entry.otp === cleanOtp && entry.expiresAt > Date.now())));
+
+        if (!isAuthorized && cleanOtp) {
+            const v = await verifyRecoveryOtp({ email: cleanEmail, otp: cleanOtp });
+            if (!v.success) return v;
+        }
+
+        // 1. Update PostgreSQL user
+        const newHash = bcrypt.hashSync(newPassword, 10);
+        await prisma.users.updateMany({
+            where: { email: { equals: cleanEmail, mode: 'insensitive' } },
+            data: { password_hash: newHash }
+        });
+
+        // 2. Update Supabase Auth user
+        try {
+            const { supabaseAdmin } = require('./supabase.service');
+            if (supabaseAdmin) {
+                const { data: supaUsers } = await supabaseAdmin.auth.admin.listUsers();
+                const supaUser = supaUsers?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
+                if (supaUser) {
+                    await supabaseAdmin.auth.admin.updateUserById(supaUser.id, {
+                        password: newPassword
+                    });
+                    log.info(`[Password Reset] Synced new password to Supabase Auth user: ${supaUser.id}`);
+                }
+            }
+        } catch (supaErr) {
+            log.warn('[Password Reset] Supabase sync warning:', supaErr.message);
+        }
+
+        recoveryOtpStore.delete(cleanEmail);
+        log.info(`[Password Reset] Password reset complete for: ${cleanEmail}`);
+
+        return { success: true, message: 'Şifreniz başarıyla güncellendi!' };
+    } catch (err) {
+        log.error('completePasswordReset error:', err);
         return { success: false, error: err.message };
     }
 }
@@ -1002,6 +1098,8 @@ module.exports = {
     changePassword,
     syncPasswordReset,
     requestPasswordReset,
+    verifyRecoveryOtp,
+    completePasswordReset,
     resendVerificationEmail,
     activateUserByEmail,
     updateProfile,

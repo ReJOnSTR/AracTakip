@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     changePassword: (data) => ipcRenderer.invoke('auth:changePassword', data),
     syncPasswordReset: (data) => ipcRenderer.invoke('auth:syncPasswordReset', data),
     requestPasswordReset: (data) => ipcRenderer.invoke('auth:requestPasswordReset', data),
+    verifyRecoveryOtp: (data) => ipcRenderer.invoke('auth:verifyRecoveryOtp', data),
+    completePasswordReset: (data) => ipcRenderer.invoke('auth:completePasswordReset', data),
     resendVerificationEmail: (data) => ipcRenderer.invoke('auth:resendVerificationEmail', data),
     activateUserByEmail: (data) => ipcRenderer.invoke('auth:activateUserByEmail', data),
     updateProfile: (data) => ipcRenderer.invoke('auth:updateProfile', data),
