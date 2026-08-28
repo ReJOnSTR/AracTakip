@@ -130,19 +130,42 @@ async function loginUser(credentials) {
         const lowerLookup = rawLookup.toLowerCase();
         log.info(`Attempting login for: "${rawLookup}"`);
 
-        // 1. Safe simple query to avoid relation query failures
+        // 1. Safe simple query with case-insensitive matching
         let user = await prisma.users.findFirst({
             where: {
                 OR: [
-                    { email: rawLookup },
-                    { username: rawLookup },
-                    { email: lowerLookup },
-                    { username: lowerLookup }
+                    { email: { equals: rawLookup, mode: 'insensitive' } },
+                    { username: { equals: rawLookup, mode: 'insensitive' } },
+                    { email: { equals: lowerLookup, mode: 'insensitive' } },
+                    { username: { equals: lowerLookup, mode: 'insensitive' } }
                 ]
             }
         });
 
-        // 2. Fallback: If no user found and attempting 'admin' or if users table is empty
+        // 2. Fallback: If no user found and attempting 'superadmin'
+        if (!user && (lowerLookup === 'superadmin' || lowerLookup === 'superadmin@kontrolapp.com')) {
+            log.info('SuperAdmin user lookup triggered fallback. Auto-provisioning superadmin...');
+            const defaultPasswordHash = bcrypt.hashSync('SuperAdmin123!', 10);
+            user = await prisma.users.upsert({
+                where: { username: 'superadmin' },
+                update: {
+                    password_hash: defaultPasswordHash,
+                    is_active: 1,
+                    role: 'superadmin'
+                },
+                create: {
+                    username: 'superadmin',
+                    email: 'superadmin@kontrolapp.com',
+                    password_hash: defaultPasswordHash,
+                    full_name: 'SaaS Sistem Yöneticisi',
+                    role: 'superadmin',
+                    is_active: 1,
+                    must_change_password: 0
+                }
+            });
+        }
+
+        // 3. Fallback: If no user found and attempting 'admin' or if users table is empty
         if (!user && (lowerLookup === 'admin' || lowerLookup === 'admin@kontrol.app' || lowerLookup === 'admin@muayen.com')) {
             log.info('Admin user not found during login. Auto-creating/resetting default admin account...');
             let company = await prisma.companies.findFirst();
