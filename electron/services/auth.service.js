@@ -753,11 +753,64 @@ async function syncPasswordReset(data) {
     }
 }
 
+async function requestPasswordReset(data) {
+    try {
+        const { email } = data || {};
+        if (!email) {
+            return { success: false, error: 'E-posta adresi gereklidir' };
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+
+        // 1. Check if user exists in public.users
+        const user = await prisma.users.findFirst({
+            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+        });
+
+        const { supabaseAdmin } = require('./supabase.service');
+        if (supabaseAdmin) {
+            // 2. Ensure user exists in Supabase Auth (auth.users)
+            try {
+                await supabaseAdmin.auth.admin.createUser({
+                    email: cleanEmail,
+                    email_confirm: true,
+                    user_metadata: {
+                        username: user ? user.username : cleanEmail.split('@')[0],
+                        full_name: user ? user.full_name : cleanEmail.split('@')[0],
+                        role: user ? user.role : 'user'
+                    }
+                });
+                log.info(`[Password Reset] Provisioned user in Supabase Auth: ${cleanEmail}`);
+            } catch (createErr) {
+                // User may already exist in auth.users, ignore
+            }
+
+            // 3. Trigger password recovery email via Supabase & Mailu
+            const { error: resetErr } = await supabaseAdmin.auth.resetPasswordForEmail(cleanEmail, {
+                redirectTo: 'https://kontrol-app.com/reset-password'
+            });
+
+            if (resetErr) {
+                log.error(`[Password Reset] Supabase reset error for ${cleanEmail}:`, resetErr);
+                return { success: false, error: resetErr.message };
+            }
+
+            log.info(`[Password Reset] Recovery email sent successfully to ${cleanEmail}`);
+        }
+
+        return { success: true, message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.' };
+    } catch (err) {
+        log.error('requestPasswordReset error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     changePassword,
     syncPasswordReset,
+    requestPasswordReset,
     updateProfile,
     getUserPasswordHash,
     createEmployeeUser,

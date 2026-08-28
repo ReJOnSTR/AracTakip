@@ -468,6 +468,10 @@ ipcMain.handle('auth:syncPasswordReset', async (event, data) => {
     return await db.syncPasswordReset(data)
 })
 
+ipcMain.handle('auth:requestPasswordReset', async (event, data) => {
+    return await db.requestPasswordReset(data)
+})
+
 ipcMain.handle('auth:updateProfile', async (event, data) => {
     return await db.updateProfile(data)
 })

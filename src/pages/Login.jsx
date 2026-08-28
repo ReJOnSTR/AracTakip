@@ -178,16 +178,26 @@ export default function Login() {
         setForgotLoading(true)
 
         try {
-            const { error: resetErr } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-                redirectTo: 'https://kontrol-app.com/reset-password'
-            })
-
-            if (resetErr) {
-                setForgotError(resetErr.message || 'Sıfırlama talebi gönderilemedi.')
+            if (window.electronAPI?.requestPasswordReset) {
+                const res = await window.electronAPI.requestPasswordReset({ email: cleanEmail })
+                if (!res.success) {
+                    setForgotError(res.error || 'Sıfırlama talebi gönderilemedi.')
+                    setForgotLoading(false)
+                    return
+                }
             } else {
-                setForgotSuccess('Şifre sıfırlama bağlantısı ve 6 haneli güvenlik kodunuz e-posta adresinize gönderildi!')
-                setForgotStep('otp')
+                const { error: resetErr } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+                    redirectTo: 'https://kontrol-app.com/reset-password'
+                })
+                if (resetErr) {
+                    setForgotError(resetErr.message || 'Sıfırlama talebi gönderilemedi.')
+                    setForgotLoading(false)
+                    return
+                }
             }
+
+            setForgotSuccess('Şifre sıfırlama bağlantısı ve 6 haneli güvenlik kodunuz e-posta adresinize gönderildi!')
+            setForgotStep('otp')
         } catch (err) {
             setForgotError('Bağlantı hatası: ' + err.message)
         } finally {
