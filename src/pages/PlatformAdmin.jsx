@@ -1870,84 +1870,120 @@ export default function PlatformAdmin({ section }) {
                     isOpen={onlineUsersModal}
                     onClose={() => setOnlineUsersModal(false)}
                     title="Canlı Çevrimiçi Kullanıcılar & Aktif Oturumlar"
+                    size="xl"
                 >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)', padding: '14px 18px', borderRadius: '10px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 10px #10b981' }} />
+                                <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 12px #10b981' }} />
                                 <div>
-                                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-                                        {onlineUsersData.onlineCount || 0} Çevrimiçi Oturum
-                                    </strong>
-                                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginLeft: '8px' }}>
-                                        ({onlineUsersData.idleCount || 0} Boşta / İnaktif)
-                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <strong style={{ fontSize: '15px', color: 'var(--text-primary)' }}>
+                                            {onlineUsersData.onlineCount || 0} Aktif Çevrimiçi Kullanıcı
+                                        </strong>
+                                        <span className="badge badge-success" style={{ fontSize: '11px' }}>
+                                            Canlı İzleme
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                        Toplam {onlineUsersData.totalTracked || onlineUsersData.sessions?.length || 0} oturum takip ediliyor ({onlineUsersData.idleCount || 0} boşta / inaktif).
+                                    </div>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-secondary"
-                                onClick={loadRealtimeUsers}
-                            >
-                                <RefreshCw size={13} />
-                                Yenile
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={loadRealtimeUsers}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <RefreshCw size={14} className={loading ? 'spin' : ''} />
+                                    <span>Yenile</span>
+                                </button>
+                            </div>
                         </div>
 
                         {(!onlineUsersData.sessions || onlineUsersData.sessions.length === 0) ? (
-                            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                                Şu anda kayıtlı aktif canlı oturum bulunmuyor.
+                            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '13px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                Şu anda sistemde kayıtlı aktif canlı oturum bulunmuyor.
                             </div>
                         ) : (
-                            <div style={{ maxHeight: '360px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-                                <table className="services-status-table" style={{ margin: 0 }}>
+                            <div style={{ maxHeight: '480px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-primary)' }}>
+                                <table className="services-status-table" style={{ margin: 0, width: '100%' }}>
                                     <thead>
                                         <tr>
-                                            <th>Kullanıcı & Rol</th>
-                                            <th>Şirket</th>
-                                            <th>İstemci & IP</th>
-                                            <th>Süre</th>
-                                            <th>Durum</th>
-                                            <th style={{ textAlign: 'right' }}>İşlem</th>
+                                            <th style={{ minWidth: '180px' }}>Kullanıcı & Rol</th>
+                                            <th style={{ minWidth: '180px' }}>Bağlı Şirket</th>
+                                            <th style={{ minWidth: '160px' }}>İstemci / Cihaz & IP</th>
+                                            <th style={{ minWidth: '130px' }}>Oturum Süresi</th>
+                                            <th style={{ minWidth: '110px' }}>Canlı Durum</th>
+                                            <th style={{ textAlign: 'right', minWidth: '130px' }}>Güvenlik İşlemi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {onlineUsersData.sessions.map((s) => (
-                                            <tr key={s.sessionId}>
+                                            <tr key={s.sessionId} style={{ transition: 'background 0.1s ease' }}>
                                                 <td>
-                                                    <strong>{s.username}</strong>
-                                                    <span className="badge" style={{ marginLeft: '6px', fontSize: '9.5px' }}>{s.userRole}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent-primary, #3b82f6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}>
+                                                            {s.username ? s.username[0].toUpperCase() : 'U'}
+                                                        </div>
+                                                        <div>
+                                                            <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block' }}>{s.username}</strong>
+                                                            <span className="badge" style={{ fontSize: '9.5px', background: 'rgba(255,255,255,0.08)' }}>
+                                                                {s.userRole}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <span style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{s.companyName}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <Building2 size={13} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                                                        <span style={{ fontSize: '12.5px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                                                            {s.companyName}
+                                                        </span>
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <code style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{s.ip}</code>
-                                                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{s.platform}</div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                        <code style={{ fontSize: '11.5px', color: 'var(--accent-primary, #3b82f6)' }}>{s.ip || '127.0.0.1'}</code>
+                                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.platform || s.userAgent}>
+                                                            {s.platform || 'Web İstemcisi'}
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <span style={{ fontSize: '11.5px', color: 'var(--text-primary)' }}>{s.durationFormatted}</span>
-                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                        {s.lastSeenSecsAgo < 60 ? 'Az önce' : `${s.lastSeenSecsAgo}sn önce`}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                        <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>{s.durationFormatted}</span>
+                                                        <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                                                            {s.lastSeenSecsAgo < 60 ? 'Az önce görüldü' : `${s.lastSeenSecsAgo} sn önce`}
+                                                        </span>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     {s.status === 'online' ? (
-                                                        <span className="status-badge-active" style={{ fontSize: '10px' }}>🟢 Canlı</span>
+                                                        <span className="status-badge-active" style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                                                            Canlı
+                                                        </span>
                                                     ) : (
-                                                        <span className="status-badge-suspended" style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.25)' }}>🟡 Boşta</span>
+                                                        <span className="status-badge-suspended" style={{ fontSize: '11px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
+                                                            Boşta
+                                                        </span>
                                                     )}
                                                 </td>
                                                 <td style={{ textAlign: 'right' }}>
                                                     <button
                                                         type="button"
-                                                        className="action-icon-btn danger"
+                                                        className="btn btn-sm btn-danger"
                                                         onClick={() => handleTerminateSession(s)}
                                                         disabled={terminatingSessionId === s.sessionId}
                                                         title="Bu Oturumu Zorla Sonlandır (Kick / Force Logout)"
-                                                        style={{ width: '28px', height: '28px' }}
+                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 10px', fontSize: '11.5px' }}
                                                     >
-                                                        <XCircle size={14} />
+                                                        <XCircle size={13} />
+                                                        <span>Sonlandır</span>
                                                     </button>
                                                 </td>
                                             </tr>
