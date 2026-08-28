@@ -12,6 +12,7 @@ const { startAdminServer, stopAdminServer } = require('./adminServer')
 const mfaService = require('./services/mfa.service')
 const auditService = require('./services/audit.service')
 const sessionService = require('./services/session.service')
+const emailTemplateService = require('./services/emailTemplate.service')
 
 
 // Optional: Override console to correct log file
@@ -2799,6 +2800,20 @@ ipcMain.handle('session:getRealtimeActiveUsers', async (event) => {
 });
 ipcMain.handle('session:terminate', async (event, sessionId) => {
     return sessionService.terminateUserSession(sessionId);
+});
+
+// Platform Email Templates IPC Handlers
+ipcMain.handle('platform:getEmailTemplates', async () => {
+    return await emailTemplateService.getEmailTemplates();
+});
+ipcMain.handle('platform:saveEmailTemplate', async (event, data) => {
+    return await emailTemplateService.saveEmailTemplate(data);
+});
+ipcMain.handle('platform:resetEmailTemplate', async (event, data) => {
+    return await emailTemplateService.resetEmailTemplate(data);
+});
+ipcMain.handle('platform:sendTestEmail', async (event, data) => {
+    return await emailTemplateService.sendTestEmail(data);
 });
 
 // Company Impersonation / Observer Mode New Window

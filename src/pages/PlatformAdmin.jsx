@@ -9,6 +9,7 @@ import CustomInput from '../components/CustomInput'
 import CustomSelect from '../components/CustomSelect'
 import TopProgressBar from '../components/TopProgressBar'
 import TableActionMenu from '../components/TableActionMenu'
+import EmailTemplatesManager from '../components/EmailTemplatesManager'
 import { 
     Building2, 
     Users, 
@@ -61,6 +62,7 @@ export default function PlatformAdmin({ section }) {
         if (section) return section
         if (location.pathname.includes('/companies')) return 'companies'
         if (location.pathname.includes('/announcements')) return 'announcements'
+        if (location.pathname.includes('/email-templates')) return 'email-templates'
         if (location.pathname.includes('/audit')) return 'audit'
         if (location.pathname.includes('/health')) return 'health'
         if (location.pathname.includes('/logs')) return 'logs'
@@ -1174,6 +1176,23 @@ export default function PlatformAdmin({ section }) {
                             }
                         ]}
                     />
+                </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════
+                PAGE: EMAIL TEMPLATES & DESIGN EDITOR (/platform/email-templates)
+               ══════════════════════════════════════════════════════ */}
+            {activeSection === 'email-templates' && (
+                <div>
+                    <div className="page-header" style={{ marginBottom: '16px' }}>
+                        <div>
+                            <h1 className="page-title">E-Posta Şablonları & Tasarım Editörü</h1>
+                            <p style={{ marginTop: '5px', color: 'var(--text-secondary)' }}>
+                                Kullanıcı kayıt, şifre sıfırlama, davet ve sihirli giriş e-postalarının HTML/CSS tasarımlarını canlı önizlemeli editör ile özelleştirin.
+                            </p>
+                        </div>
+                    </div>
+                    <EmailTemplatesManager />
                 </div>
             )}
 

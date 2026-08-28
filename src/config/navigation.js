@@ -29,7 +29,8 @@ import {
     ScrollText,
     Megaphone,
     History,
-    ShieldAlert
+    ShieldAlert,
+    Mail
 } from 'lucide-react'
 
 // Define menus per module
@@ -170,7 +171,8 @@ export const moduleMenus = {
             items: [
                 { path: '/platform/users', label: 'Kullanıcı Hesapları', icon: Users },
                 { path: '/platform/companies', label: 'Şirket Portföyü', icon: Building2 },
-                { path: '/platform/announcements', label: 'Canlı Duyuru Yayını', icon: Megaphone }
+                { path: '/platform/announcements', label: 'Canlı Duyuru Yayını', icon: Megaphone },
+                { path: '/platform/email-templates', label: 'E-Posta Şablonları', icon: Mail }
             ]
         },
         {
@@ -230,6 +232,7 @@ export const getRouteInfo = (path) => {
     if (path === '/platform/users') return { label: 'Kullanıcı Hesapları', icon: Users }
     if (path === '/platform/companies') return { label: 'Şirket Portföyü', icon: Building2 }
     if (path === '/platform/announcements') return { label: 'Canlı Duyuru Yayını', icon: Megaphone }
+    if (path === '/platform/email-templates') return { label: 'E-Posta Şablonları', icon: Mail }
     if (path === '/platform/health') return { label: 'Sistem Sağlığı & İzleme', icon: Activity }
     if (path === '/platform/logs') return { label: 'Sistem & Güvenlik Logları', icon: ScrollText }
     if (path === '/platform/backups') return { label: 'Veritabanı Yedekleri', icon: Database }

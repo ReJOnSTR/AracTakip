@@ -323,4 +323,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getRealtimeActiveUsers: () => ipcRenderer.invoke('session:getRealtimeActiveUsers'),
     terminateUserSession: (sessionId) => ipcRenderer.invoke('session:terminate', sessionId),
     openImpersonateWindow: (payload) => ipcRenderer.invoke('platform:openImpersonateWindow', payload),
+    getEmailTemplates: () => ipcRenderer.invoke('platform:getEmailTemplates'),
+    saveEmailTemplate: (data) => ipcRenderer.invoke('platform:saveEmailTemplate', data),
+    resetEmailTemplate: (data) => ipcRenderer.invoke('platform:resetEmailTemplate', data),
+    sendTestEmail: (data) => ipcRenderer.invoke('platform:sendTestEmail', data),
 })

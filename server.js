@@ -19,6 +19,7 @@ const authService = require('./electron/services/auth.service');
 const mfaService = require('./electron/services/mfa.service');
 const auditService = require('./electron/services/audit.service');
 const sessionService = require('./electron/services/session.service');
+const emailTemplateService = require('./electron/services/emailTemplate.service');
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -593,6 +594,12 @@ const rpcMap = {
     recordHeartbeat: sessionService.recordHeartbeat,
     getRealtimeActiveUsers: sessionService.getRealtimeActiveUsers,
     terminateUserSession: sessionService.terminateUserSession,
+
+    // Email Templates API
+    getEmailTemplates: emailTemplateService.getEmailTemplates,
+    saveEmailTemplate: emailTemplateService.saveEmailTemplate,
+    resetEmailTemplate: emailTemplateService.resetEmailTemplate,
+    sendTestEmail: emailTemplateService.sendTestEmail,
 };
 
 // Generic RPC Router
