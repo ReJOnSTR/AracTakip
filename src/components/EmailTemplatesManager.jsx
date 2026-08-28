@@ -20,13 +20,6 @@ import {
     CheckCircle2, 
     Loader2,
     Layers,
-    Sliders,
-    HelpCircle,
-    ExternalLink,
-    Palette,
-    Moon,
-    Sun,
-    Zap,
     Shield,
     User
 } from 'lucide-react'
@@ -40,7 +33,6 @@ export default function EmailTemplatesManager() {
     const [activeType, setActiveType] = useState('confirmation')
     const [viewMode, setViewMode] = useState('split') // 'split', 'code', 'preview'
     const [deviceMode, setDeviceMode] = useState('desktop') // 'desktop', 'mobile'
-    const [previewClientTheme, setPreviewClientTheme] = useState('dark') // 'dark' | 'light' (simulate Gmail dark/light background)
     
     // Editor State
     const [currentSubject, setCurrentSubject] = useState('')
@@ -67,13 +59,6 @@ export default function EmailTemplatesManager() {
         { key: '{{ .SiteURL }}', label: 'Site URL', desc: 'Uygulamanın ana web adresi (https://kontrol-app.com)' },
         { key: '{{ .Data.username }}', label: 'Kullanıcı Adı', desc: 'Kullanıcının kayıtlı kullanıcı adı' },
         { key: '{{ .Data.company_name }}', label: 'Şirket Adı', desc: 'Kullanıcının bağlı olduğu şirket unvanı' }
-    ]
-
-    // Pre-built Design Themes (Linear, Stripe, Vercel standard)
-    const DESIGN_THEMES = [
-        { id: 'dark', name: 'Modern Koyu', desc: 'Linear & Raycast tarzı şık koyu lacivert kart', icon: Moon },
-        { id: 'light', name: 'Kurumsal Beyaz', desc: 'Stripe & Postmark tarzı temiz resmi görünüm', icon: Sun },
-        { id: 'gradient', name: 'Siber Degrade', desc: 'Vercel & Supabase tarzı modern degradeli tasarım', icon: Zap }
     ]
 
     useEffect(() => {
@@ -134,27 +119,6 @@ export default function EmailTemplatesManager() {
     const handleHtmlChange = (e) => {
         setCurrentHtml(e.target.value)
         setIsDirty(true)
-    }
-
-    const handleApplyTheme = async (themeId) => {
-        if (isDirty) {
-            if (!window.confirm('Mevcut HTML kodunuz seçtiğiniz hazır tema ile değiştirilecek. Onaylıyor musunuz?')) {
-                return
-            }
-        }
-        setResetting(true)
-        try {
-            const res = await window.electronAPI?.resetEmailTemplate({ type: activeType, theme: themeId })
-            if (res?.success && res.data) {
-                setCurrentHtml(res.data.htmlContent)
-                setIsDirty(true)
-                showToast(`"${DESIGN_THEMES.find(t => t.id === themeId)?.name}" teması şablona uygulandı!`, 'success')
-            }
-        } catch (e) {
-            showToast('Tema uygulanamadı: ' + e.message, 'error')
-        } finally {
-            setResetting(false)
-        }
     }
 
     const handleInsertVariable = (varKey) => {
@@ -226,7 +190,7 @@ export default function EmailTemplatesManager() {
 
         setResetting(true)
         try {
-            const res = await window.electronAPI?.resetEmailTemplate({ type: activeType, theme: 'dark' })
+            const res = await window.electronAPI?.resetEmailTemplate({ type: activeType })
             if (res?.success && res.data) {
                 setCurrentSubject(res.data.subject)
                 setCurrentSenderName(res.data.senderName)
@@ -321,7 +285,7 @@ export default function EmailTemplatesManager() {
         return (
             <div className="email-templates-loading">
                 <Loader2 className="animate-spin text-blue-500" size={36} />
-                <p>E-Posta Şablonları & Tasarım Stüdyosu Yükleniyor...</p>
+                <p>E-Posta Şablonları & Tasarım Editörü Yükleniyor...</p>
             </div>
         )
     }
@@ -367,31 +331,6 @@ export default function EmailTemplatesManager() {
                                 )}
                             </button>
                         ))}
-                    </div>
-
-                    {/* Pre-built Theme Presets Selector */}
-                    <div className="sidebar-presets-box">
-                        <div className="presets-header">
-                            <Palette size={14} className="text-amber-400" />
-                            <span>Hazır Tasarım Temaları</span>
-                        </div>
-                        <div className="presets-buttons">
-                            {DESIGN_THEMES.map(theme => {
-                                const ThemeIcon = theme.icon
-                                return (
-                                    <button
-                                        key={theme.id}
-                                        type="button"
-                                        className="preset-btn"
-                                        onClick={() => handleApplyTheme(theme.id)}
-                                        title={theme.desc}
-                                    >
-                                        <ThemeIcon size={14} />
-                                        <span>{theme.name}</span>
-                                    </button>
-                                )
-                            })}
-                        </div>
                     </div>
 
                     <div className="sidebar-footer-hint">
@@ -506,7 +445,7 @@ export default function EmailTemplatesManager() {
                         <div className="dynamic-variables-bar">
                             <div className="variables-label">
                                 <Sparkles size={13} className="text-amber-400" />
-                                <span>Dinamik Etiketler (Tıklayıp Ekleyin):</span>
+                                <span>Dinamik Değişkenler (Tıklayıp Ekleyin):</span>
                             </div>
                             <div className="variables-pills">
                                 {DYNAMIC_VARIABLES.map(v => (
@@ -534,7 +473,7 @@ export default function EmailTemplatesManager() {
                                 <div className="panel-header">
                                     <div className="panel-title">
                                         <Code2 size={15} className="text-blue-400" />
-                                        <span>HTML5 Şablon Kaynak Kodu</span>
+                                        <span>HTML5 Kaynak Kodu Düzenleyici</span>
                                     </div>
                                     <div className="code-tools">
                                         <button 
@@ -570,33 +509,15 @@ export default function EmailTemplatesManager() {
                                 <div className="panel-header">
                                     <div className="panel-title">
                                         <Eye size={15} className="text-emerald-400" />
-                                        <span>Canlı E-Posta Önizleme (Inbox Render)</span>
+                                        <span>Canlı E-Posta Önizleme</span>
                                     </div>
                                     <div className="preview-header-controls">
-                                        {/* Client Background Theme Toggle (Dark vs Light mail client) */}
-                                        <div className="client-theme-toggle">
-                                            <button
-                                                className={`theme-btn ${previewClientTheme === 'dark' ? 'active' : ''}`}
-                                                onClick={() => setPreviewClientTheme('dark')}
-                                                title="Koyu E-Posta İstemcisi Görünümü (Dark Client)"
-                                            >
-                                                <Moon size={13} />
-                                            </button>
-                                            <button
-                                                className={`theme-btn ${previewClientTheme === 'light' ? 'active' : ''}`}
-                                                onClick={() => setPreviewClientTheme('light')}
-                                                title="Açık E-Posta İstemcisi Görünümü (Light Client)"
-                                            >
-                                                <Sun size={13} />
-                                            </button>
-                                        </div>
-
                                         {/* Device Switcher (Desktop vs Mobile Frame) */}
                                         <div className="device-switcher">
                                             <button 
                                                 className={`device-btn ${deviceMode === 'desktop' ? 'active' : ''}`}
                                                 onClick={() => setDeviceMode('desktop')}
-                                                title="Masaüstü Ekranı"
+                                                title="Masaüstü Görünümü (600px)"
                                             >
                                                 <Monitor size={14} />
                                                 <span>Masaüstü</span>
@@ -604,7 +525,7 @@ export default function EmailTemplatesManager() {
                                             <button 
                                                 className={`device-btn ${deviceMode === 'mobile' ? 'active' : ''}`}
                                                 onClick={() => setDeviceMode('mobile')}
-                                                title="Mobil Telefon Ekranı"
+                                                title="Mobil Telefon Görünümü (375px)"
                                             >
                                                 <Smartphone size={14} />
                                                 <span>Mobil</span>
@@ -613,24 +534,7 @@ export default function EmailTemplatesManager() {
                                     </div>
                                 </div>
 
-                                <div className={`preview-viewport ${deviceMode} client-bg-${previewClientTheme}`}>
-                                    {/* Mock Email Client Header */}
-                                    <div className="mock-email-client-header">
-                                        <div className="mock-header-dots">
-                                            <span className="dot red"></span>
-                                            <span className="dot yellow"></span>
-                                            <span className="dot green"></span>
-                                        </div>
-                                        <div className="mock-header-details">
-                                            <div className="mock-sender-line">
-                                                <strong>{currentSenderName || 'Kontrol Güvenlik Ekibi'}</strong> &lt;noreply@kontrol-app.com&gt;
-                                            </div>
-                                            <div className="mock-subject-line">
-                                                <strong>Konu:</strong> {currentSubject || 'Konu Başlığı'}
-                                            </div>
-                                        </div>
-                                    </div>
-
+                                <div className={`preview-viewport ${deviceMode}`}>
                                     <div className="preview-frame-container">
                                         <iframe
                                             title="Email Template Live Preview"
@@ -658,7 +562,7 @@ export default function EmailTemplatesManager() {
             >
                 <div className="test-email-modal-body">
                     <p className="test-modal-desc">
-                        Bu şablonun Gmail, Outlook veya Apple Mail istemcilerinizde nasıl render edildiğini test etmek için e-posta adresinize bir test iletisi gönderin.
+                        Bu şablonun e-posta istemcilerinizde nasıl görüntülendiğini test etmek için kendi e-posta adresinize anında bir test iletisi gönderin.
                     </p>
 
                     <div className="test-input-wrap">
@@ -674,7 +578,7 @@ export default function EmailTemplatesManager() {
 
                     <div className="test-modal-info">
                         <Info size={15} className="text-blue-400 flex-shrink-0" />
-                        <span>E-postada <code>{"{{ .Token }}"}</code> yerine örnek kod (849 201) ve geçerli bağlantılar görüntülenecektir.</span>
+                        <span>E-postada <code>{"{{ .Token }}"}</code> yerine örnek kod (849 201) ve canlı buton bağlantısı görüntülenecektir.</span>
                     </div>
 
                     <div className="modal-actions-custom">
