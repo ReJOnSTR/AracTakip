@@ -4,9 +4,8 @@ const { logAudit } = require('./audit.service');
 // Key: sessionId (string), Value: Session Object
 const activeSessions = new Map();
 
-// Blacklisted / Terminated sessions (force logout)
+// Blacklisted / Terminated session IDs (force logout)
 const terminatedSessionIds = new Set();
-const terminatedUserIds = new Set();
 
 /**
  * Handle heartbeat from active client
@@ -32,8 +31,8 @@ function recordHeartbeat(data) {
 
         const uid = parseInt(userId, 10);
 
-        // Check if session or user was terminated by SuperAdmin
-        if (terminatedSessionIds.has(sessionId) || terminatedUserIds.has(uid)) {
+        // Check if this specific session was terminated by SuperAdmin
+        if (terminatedSessionIds.has(sessionId)) {
             return {
                 success: false,
                 forceLogout: true,
@@ -154,7 +153,6 @@ function terminateUserSession(sessionId, adminUser = 'SuperAdmin') {
         terminatedSessionIds.add(sessionId);
 
         if (session) {
-            terminatedUserIds.add(session.userId);
             activeSessions.delete(sessionId);
 
             logAudit({
@@ -172,11 +170,10 @@ function terminateUserSession(sessionId, adminUser = 'SuperAdmin') {
             });
         }
 
-        // Keep blacklist clean after 1 hour
+        // Keep blacklist clean after 30 minutes
         setTimeout(() => {
             terminatedSessionIds.delete(sessionId);
-            if (session) terminatedUserIds.delete(session.userId);
-        }, 60 * 60 * 1000);
+        }, 30 * 60 * 1000);
 
         return {
             success: true,

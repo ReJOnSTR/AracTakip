@@ -56,6 +56,7 @@ export function AuthProvider({ children }) {
                 }
 
                 if (res && res.forceLogout) {
+                    sessionStorage.removeItem('aractakip_session_id')
                     logout()
                     alert('⚠️ Güvenlik Uyarısı:\nOturumunuz sistem yöneticisi tarafından sonlandırıldı.')
                 }
@@ -85,6 +86,10 @@ export function AuthProvider({ children }) {
                         email: result.email
                     }
                 }
+
+                // Generate fresh new session ID on every login
+                const freshSessionId = 'sess_' + result.user.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+                sessionStorage.setItem('aractakip_session_id', freshSessionId)
 
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
@@ -119,6 +124,10 @@ export function AuthProvider({ children }) {
             }
 
             if (result && result.success && result.user) {
+                // Generate fresh new session ID on 2FA login
+                const freshSessionId = 'sess_' + result.user.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+                sessionStorage.setItem('aractakip_session_id', freshSessionId)
+
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
                 sessionStorage.setItem('aractakip_session_active', 'true')
@@ -136,6 +145,9 @@ export function AuthProvider({ children }) {
             localStorage.removeItem('aractakip_company')
             const result = await authService.register({ username, email, password, companyName })
             if (result.success) {
+                const freshSessionId = 'sess_' + result.user.id + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+                sessionStorage.setItem('aractakip_session_id', freshSessionId)
+
                 setUser(result.user)
                 localStorage.setItem('aractakip_user', JSON.stringify(result.user))
                 sessionStorage.setItem('aractakip_session_active', 'true')
@@ -161,6 +173,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('aractakip_user')
         localStorage.removeItem('aractakip_company')
         localStorage.removeItem('aractakip_locked')
+        sessionStorage.removeItem('aractakip_session_id')
         sessionStorage.removeItem('aractakip_session_active')
         supabase.auth.signOut().catch(() => {});
     }
