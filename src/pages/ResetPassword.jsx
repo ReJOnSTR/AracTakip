@@ -41,6 +41,22 @@ export default function ResetPassword() {
 
         const checkRecoveryState = async () => {
             try {
+                // 0. Check URL Hash for error parameters (e.g. otp_expired)
+                const hash = window.location.hash
+                if (hash) {
+                    const params = new URLSearchParams(hash.replace(/^#/, ''))
+                    const errorDesc = params.get('error_description')
+                    const errorCode = params.get('error_code')
+                    
+                    if (errorCode === 'otp_expired' || errorDesc?.includes('expired') || errorDesc?.includes('invalid')) {
+                        if (isMounted) {
+                            setError('Bu bağlantı tek kullanımlıktır ve süresi dolmuş veya daha önce kullanılmış. Aşağıdaki alana e-postanızı ve 6 haneli doğrulama kodunuzu girerek işleminize devam edebilirsiniz.')
+                            setCheckingSession(false)
+                        }
+                        return
+                    }
+                }
+
                 // 1. Check existing session
                 const { data: { session } } = await supabase.auth.getSession()
                 
@@ -66,7 +82,7 @@ export default function ResetPassword() {
                 // 3. Fallback timeout to stop spinner if no link hash is present
                 setTimeout(() => {
                     if (isMounted) setCheckingSession(false)
-                }, 1500)
+                }, 1200)
 
                 return () => {
                     subscription?.unsubscribe()
