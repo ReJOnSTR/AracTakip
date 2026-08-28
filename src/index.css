@@ -2321,34 +2321,12 @@ textarea,
   color: var(--success);
 }
 
-/* Responsive Table Action Menu & 3-Dots Popover */
+/* 3-Dots Action Dropdown Popover */
 .table-action-menu-wrapper {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.table-actions-desktop {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: center;
-}
-
-.table-actions-mobile {
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (max-width: 1024px) {
-  .table-actions-desktop {
-    display: none !important;
-  }
-  .table-actions-mobile {
-    display: inline-flex !important;
-  }
 }
 
 .table-3dots-btn {

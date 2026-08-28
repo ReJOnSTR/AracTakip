@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { MoreVertical } from 'lucide-react'
 
 /**
- * Recursively extracts action buttons from React Fragments, arrays, and elements
+ * Recursively extracts action buttons from React elements, Fragments, and arrays
  */
 function extractActionButtons(children) {
     const list = []
@@ -32,66 +32,61 @@ function extractActionButtons(children) {
 }
 
 /**
- * Universal Responsive Table Action Menu
- * - Desktop (>1024px): Renders standard action buttons inline
- * - Mobile / Tablet / Small screens (<=1024px): Collapses into a 3-dots (...) button with a dropdown popover
+ * TableActionMenu - 3-Dot Action Dropdown Popover
  */
 export default function TableActionMenu({
     items = null,
-    children = null,
-    align = 'right'
+    children = null
 }) {
     const [isOpen, setIsOpen] = useState(false)
-    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, placement: 'bottom' })
+    const [dropdownStyle, setDropdownStyle] = useState({})
     const triggerRef = useRef(null)
-    const menuRef = useRef(null)
 
-    // Calculate menu position relative to trigger button
-    const calculatePosition = () => {
+    const updatePosition = () => {
         if (!triggerRef.current) return
         const rect = triggerRef.current.getBoundingClientRect()
         const menuWidth = 180
-        const menuHeight = 220
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
+        const spaceBelow = window.innerHeight - rect.bottom
+        const spaceAbove = rect.top
 
-        let left = align === 'right' ? rect.right - menuWidth : rect.left
-        if (left < 10) left = 10
-        if (left + menuWidth > viewportWidth - 10) left = viewportWidth - menuWidth - 10
-
-        let top = rect.bottom + 4
         let placement = 'bottom'
-
-        // If overflowing bottom, flip upwards
-        if (top + menuHeight > viewportHeight - 10 && rect.top > menuHeight) {
-            top = rect.top - 4
+        if (spaceBelow < 200 && spaceAbove > spaceBelow) {
             placement = 'top'
         }
 
-        setMenuPosition({ top, left, placement })
+        const left = Math.max(10, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 10))
+
+        setDropdownStyle({
+            position: 'fixed',
+            top: placement === 'bottom' ? `${rect.bottom + 4}px` : 'auto',
+            bottom: placement === 'top' ? `${window.innerHeight - rect.top + 4}px` : 'auto',
+            left: `${left}px`,
+            width: `${menuWidth}px`,
+            zIndex: 999999
+        })
     }
 
-    const toggleMenu = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (!isOpen) {
-            calculatePosition()
-            setIsOpen(true)
-        } else {
-            setIsOpen(false)
-        }
-    }
-
-    // Close on click outside, resize, or Escape key
     useEffect(() => {
-        if (!isOpen) return
+        if (isOpen) {
+            updatePosition()
+            window.addEventListener('resize', updatePosition)
+            window.addEventListener('scroll', updatePosition, true)
 
+            return () => {
+                window.removeEventListener('resize', updatePosition)
+                window.removeEventListener('scroll', updatePosition, true)
+            }
+        }
+    }, [isOpen])
+
+    // Close on outside click
+    useEffect(() => {
         const handleClickOutside = (e) => {
-            if (
-                menuRef.current && !menuRef.current.contains(e.target) &&
-                triggerRef.current && !triggerRef.current.contains(e.target)
-            ) {
-                setIsOpen(false)
+            if (triggerRef.current && !triggerRef.current.contains(e.target)) {
+                const isDropdownClick = e.target.closest('.table-action-popover')
+                if (!isDropdownClick) {
+                    setIsOpen(false)
+                }
             }
         }
 
@@ -99,23 +94,22 @@ export default function TableActionMenu({
             if (e.key === 'Escape') setIsOpen(false)
         }
 
-        const timer = setTimeout(() => {
-            document.addEventListener('click', handleClickOutside)
-            document.addEventListener('touchstart', handleClickOutside)
-            document.addEventListener('keydown', handleKeyDown)
-            window.addEventListener('resize', () => setIsOpen(false))
-        }, 10)
+        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('keydown', handleKeyDown)
 
         return () => {
-            clearTimeout(timer)
-            document.removeEventListener('click', handleClickOutside)
-            document.removeEventListener('touchstart', handleClickOutside)
+            document.removeEventListener('mousedown', handleClickOutside)
             document.removeEventListener('keydown', handleKeyDown)
-            window.removeEventListener('resize', () => setIsOpen(false))
         }
-    }, [isOpen])
+    }, [])
 
-    // Parse items from either explicit `items` array or React `children`
+    const toggleMenu = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsOpen(prev => !prev)
+    }
+
+    // Parse button items
     const parsedItems = useMemo(() => {
         if (items && items.length > 0) return items
 
@@ -123,7 +117,7 @@ export default function TableActionMenu({
         return rawButtons.map((btn, index) => {
             const props = btn.props || {}
             const { title, onClick, className, style, disabled } = props
-            
+
             let label = title || ''
             let icon = null
 
@@ -168,8 +162,7 @@ export default function TableActionMenu({
                 },
                 disabled: !!disabled,
                 isDanger,
-                isSuccess,
-                style
+                isSuccess
             }
         })
     }, [children, items])
@@ -178,89 +171,56 @@ export default function TableActionMenu({
         <div 
             className="table-action-menu-wrapper" 
             onClick={(e) => e.stopPropagation()}
+            style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
         >
-            {/* Desktop View: Render action buttons directly inline */}
-            <div className="table-actions-desktop action-btns">
-                {children ? children : (
-                    items?.map((item, idx) => {
-                        if (item.hidden) return null
-                        const Icon = item.icon
-                        return (
-                            <button
-                                key={idx}
-                                type="button"
-                                className={`action-icon-btn ${item.isDanger || item.danger ? 'danger' : ''} ${item.isSuccess || item.success ? 'success' : ''}`}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (item.onClick) item.onClick(e)
-                                }}
-                                title={item.title || item.label}
-                                disabled={item.disabled}
-                                style={item.style}
-                            >
-                                {typeof Icon === 'function' ? <Icon size={14} /> : Icon}
-                            </button>
-                        )
-                    })
-                )}
-            </div>
+            <button
+                ref={triggerRef}
+                type="button"
+                className={`table-3dots-btn ${isOpen ? 'active' : ''}`}
+                onClick={toggleMenu}
+                title="İşlemler"
+            >
+                <MoreVertical size={16} />
+            </button>
 
-            {/* Mobile / Narrow Screens: Render 3-dots (...) trigger button */}
-            <div className="table-actions-mobile">
-                <button
-                    ref={triggerRef}
-                    type="button"
-                    className={`table-3dots-btn ${isOpen ? 'active' : ''}`}
-                    onClick={toggleMenu}
-                    title="İşlemler Menüsü"
+            {isOpen && createPortal(
+                <div
+                    className="table-action-popover"
+                    onClick={(e) => e.stopPropagation()}
+                    style={dropdownStyle}
                 >
-                    <MoreVertical size={16} />
-                </button>
+                    {parsedItems.length === 0 ? (
+                        <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text-muted, #71717a)' }}>
+                            İşlem yok
+                        </div>
+                    ) : (
+                        parsedItems.map((item) => {
+                            if (item.hidden) return null
+                            const Icon = item.icon
 
-                {isOpen && createPortal(
-                    <div
-                        ref={menuRef}
-                        className="table-action-popover"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            top: menuPosition.placement === 'top' ? 'auto' : `${menuPosition.top}px`,
-                            bottom: menuPosition.placement === 'top' ? `${window.innerHeight - menuPosition.top}px` : 'auto',
-                            left: `${menuPosition.left}px`,
-                        }}
-                    >
-                        {parsedItems.length === 0 ? (
-                            <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text-muted, #71717a)' }}>
-                                İşlem yok
-                            </div>
-                        ) : (
-                            parsedItems.map((item) => {
-                                if (item.hidden) return null
-                                const Icon = item.icon
-
-                                return (
-                                    <button
-                                        key={item.key}
-                                        type="button"
-                                        disabled={item.disabled}
-                                        onClick={item.onClick}
-                                        className={`table-action-popover-item ${item.isDanger ? 'danger' : ''} ${item.isSuccess ? 'success' : ''}`}
-                                    >
-                                        {Icon && (
-                                            <span className="popover-item-icon">
-                                                {typeof Icon === 'function' ? <Icon size={15} /> : Icon}
-                                            </span>
-                                        )}
-                                        <span className="popover-item-label">
-                                            {item.label}
+                            return (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    disabled={item.disabled}
+                                    onClick={item.onClick}
+                                    className={`table-action-popover-item ${item.isDanger ? 'danger' : ''} ${item.isSuccess ? 'success' : ''}`}
+                                >
+                                    {Icon && (
+                                        <span className="popover-item-icon">
+                                            {typeof Icon === 'function' ? <Icon size={15} /> : Icon}
                                         </span>
-                                    </button>
-                                )
-                            })
-                        )}
-                    </div>,
-                    document.body
-                )}
-            </div>
+                                    )}
+                                    <span className="popover-item-label">
+                                        {item.label}
+                                    </span>
+                                </button>
+                            )
+                        })
+                    )}
+                </div>,
+                document.body
+            )}
         </div>
     )
 }
