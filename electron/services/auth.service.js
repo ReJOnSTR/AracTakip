@@ -712,10 +712,52 @@ async function ensureSuperAdminExists() {
     }
 }
 
+async function syncPasswordReset(data) {
+    try {
+        const { email, newPassword } = data || {};
+        if (!email || !newPassword) {
+            return { success: false, error: 'E-posta ve yeni şifre gereklidir' };
+        }
+
+        const user = await prisma.users.findFirst({
+            where: { email: { equals: email, mode: 'insensitive' } }
+        });
+
+        if (user) {
+            const password_hash = bcrypt.hashSync(newPassword, 10);
+            await prisma.users.update({
+                where: { id: user.id },
+                data: {
+                    password_hash,
+                    must_change_password: 0
+                }
+            });
+
+            logAudit({
+                userId: user.id,
+                username: user.username,
+                userRole: user.role,
+                action: 'PASSWORD_RESET',
+                entityType: 'auth',
+                entityId: user.id,
+                details: 'Kullanıcı şifresini e-posta kurtarma linki/kodu ile sıfırladı.'
+            });
+
+            log.info(`[Auth Sync] Password reset synced for user ${user.username} (${user.email})`);
+        }
+
+        return { success: true };
+    } catch (err) {
+        log.error('syncPasswordReset error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     changePassword,
+    syncPasswordReset,
     updateProfile,
     getUserPasswordHash,
     createEmployeeUser,

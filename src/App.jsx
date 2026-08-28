@@ -19,6 +19,7 @@ import { useIdle } from './hooks/useIdle'
 // Lazy-loaded pages (code splitting)
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const MainPortal = lazy(() => import('./pages/MainPortal'))
 const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard'))
@@ -157,6 +158,7 @@ function AppRoutes() {
                 <Routes>
                     <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
                     <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/change-password" element={<ChangePassword />} />
 
                     <Route element={

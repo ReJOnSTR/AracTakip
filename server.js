@@ -237,6 +237,7 @@ const rpcMap = {
     register: authService.registerUser,
     registerUser: authService.registerUser,
     changePassword: authService.changePassword,
+    syncPasswordReset: authService.syncPasswordReset,
     updateProfile: authService.updateProfile,
     createEmployeeUser: authService.createEmployeeUser,
     syncEmployeesToSupabaseAuth: async (companyId) => {

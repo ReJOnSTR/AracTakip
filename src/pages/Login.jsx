@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../services/supabase'
+import Modal from '../components/Modal'
 import { 
     Mail, 
     Lock, 
@@ -14,13 +16,17 @@ import {
     Shield, 
     KeyRound, 
     ArrowLeft,
-    Smartphone
+    Smartphone,
+    Send
 } from 'lucide-react'
 import logo from '../assets/logos/Group5.svg'
 import './Login.css'
 
 export default function Login() {
     const { login, verify2FALogin } = useAuth()
+    const navigate = useNavigate()
+    const location = useLocation()
+
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -28,6 +34,16 @@ export default function Login() {
     const [capsLockActive, setCapsLockActive] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [emailVerified, setEmailVerified] = useState(false)
+
+    // Forgot Password Modal State
+    const [showForgotModal, setShowForgotModal] = useState(false)
+    const [forgotEmail, setForgotEmail] = useState('')
+    const [forgotOtp, setForgotOtp] = useState('')
+    const [forgotStep, setForgotStep] = useState('request') // 'request' | 'otp'
+    const [forgotLoading, setForgotLoading] = useState(false)
+    const [forgotError, setForgotError] = useState('')
+    const [forgotSuccess, setForgotSuccess] = useState('')
 
     // 2FA Challenge State
     const [mfaChallenge, setMfaChallenge] = useState(null) // { userId, username, email }
@@ -35,6 +51,14 @@ export default function Login() {
     const [isBackupMode, setIsBackupMode] = useState(false)
     const [verifying2FA, setVerifying2FA] = useState(false)
     const mfaInputRef = useRef(null)
+
+    // Check if user arrived after confirming email
+    useEffect(() => {
+        const params = new URLSearchParams(location.search)
+        if (params.get('verified') === 'true') {
+            setEmailVerified(true)
+        }
+    }, [location])
 
     // Load remembered user
     useEffect(() => {
@@ -139,6 +163,72 @@ export default function Login() {
         setError('')
     }
 
+    // Forgot Password Handlers
+    const handleForgotRequest = async (e) => {
+        e?.preventDefault()
+        setForgotError('')
+        setForgotSuccess('')
+
+        const cleanEmail = forgotEmail.trim()
+        if (!cleanEmail) {
+            setForgotError('Lütfen geçerli bir e-posta adresi girin.')
+            return
+        }
+
+        setForgotLoading(true)
+
+        try {
+            const { error: resetErr } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+                redirectTo: 'https://kontrol-app.com/reset-password'
+            })
+
+            if (resetErr) {
+                setForgotError(resetErr.message || 'Sıfırlama talebi gönderilemedi.')
+            } else {
+                setForgotSuccess('Şifre sıfırlama bağlantısı ve 6 haneli güvenlik kodunuz e-posta adresinize gönderildi!')
+                setForgotStep('otp')
+            }
+        } catch (err) {
+            setForgotError('Bağlantı hatası: ' + err.message)
+        } finally {
+            setForgotLoading(false)
+        }
+    }
+
+    const handleVerifyForgotOtp = async (e) => {
+        e?.preventDefault()
+        setForgotError('')
+
+        const cleanEmail = forgotEmail.trim()
+        const cleanOtp = forgotOtp.trim()
+
+        if (!cleanEmail || !cleanOtp) {
+            setForgotError('Lütfen 6 haneli doğrulama kodunu girin.')
+            return
+        }
+
+        setForgotLoading(true)
+
+        try {
+            const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+                email: cleanEmail,
+                token: cleanOtp,
+                type: 'recovery'
+            })
+
+            if (verifyErr) {
+                setForgotError(verifyErr.message || 'Geçersiz veya süresi dolmuş kod.')
+                setForgotLoading(false)
+            } else {
+                setShowForgotModal(false)
+                navigate('/reset-password')
+            }
+        } catch (err) {
+            setForgotError('Doğrulama hatası: ' + err.message)
+            setForgotLoading(false)
+        }
+    }
+
     return (
         <div className="modern-auth-page">
             <div className="modern-auth-container">
@@ -148,73 +238,56 @@ export default function Login() {
                         <div className="brand-header">
                             <img src={logo} alt="Kontrol Logo" className="brand-logo-img" />
                         </div>
-                        <h1 className="brand-hero-title">
-                            Filo ve Operasyonlarınızı <br />
-                            <span style={{ color: 'var(--accent-primary, #3b82f6)' }}>Tek Merkezden</span> Yönetin.
-                        </h1>
-                        <p className="brand-hero-desc">
-                            Araç takip, muayene, sigorta, personel bordro ve operasyonel maliyetlerinizi bulut gücüyle kontrol altına alın.
-                        </p>
-
-                        <div className="brand-feature-list">
-                            <div className="brand-feature-item">
-                                <div className="brand-feature-icon">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                                <span>Canlı Araç Takibi & Muayene / Sigorta Takibi</span>
-                            </div>
-                            <div className="brand-feature-item">
-                                <div className="brand-feature-icon">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                                <span>Otomatik Personel Bordro, İzin ve Mesai Yönetimi</span>
-                            </div>
-                            <div className="brand-feature-item">
-                                <div className="brand-feature-icon">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                                <span>Finansal Kasa, Gelir / Gider ve Raporlama</span>
-                            </div>
+                        <div className="brand-hero">
+                            <h1 className="brand-hero-title">
+                                Kurumsal Filo & <br />
+                                <span>Operasyon Kontrolü</span>
+                            </h1>
+                            <p className="brand-hero-subtitle">
+                                Araçlar, personeller, seferler ve şirket operasyonlarınızı tek bir merkezden güvenle yönetin.
+                            </p>
                         </div>
                     </div>
 
-                    <div className="brand-footer-trust">
-                        <ShieldCheck size={16} style={{ color: '#10b981' }} />
-                        <span>256-Bit SSL Uçtan Uca Güvenli Bulut Altyapısı</span>
+                    <div className="brand-footer-features">
+                        <div className="feature-item">
+                            <div className="feature-icon-box">
+                                <ShieldCheck size={16} />
+                            </div>
+                            <div className="feature-text">
+                                <strong>Çift Faktörlü Güvenlik</strong>
+                                <span>Kurumsal düzeyde veri koruması ve şifreleme</span>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon-box">
+                                <CheckCircle2 size={16} />
+                            </div>
+                            <div className="feature-text">
+                                <strong>Canlı Takip & Denetim</strong>
+                                <span>Tüm işlemler anlık olarak kayıt altına alınır</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* ── RIGHT SIDE: FORM / 2FA CHALLENGE ── */}
+                {/* ── RIGHT SIDE: FORM CONTAINER ── */}
                 <div className="auth-form-panel">
+                    {/* ── 2FA VERIFICATION CHALLENGE FORM ── */}
                     {mfaChallenge ? (
-                        /* ── 2FA CHALLENGE SCREEN ── */
                         <div>
-                            <div className="form-header-block" style={{ textAlign: 'center' }}>
-                                <div style={{ 
-                                    display: 'inline-flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    width: '48px', 
-                                    height: '48px', 
-                                    borderRadius: '12px', 
-                                    background: 'rgba(59, 130, 246, 0.15)', 
-                                    color: '#3b82f6',
-                                    marginBottom: '14px',
-                                    border: '1px solid rgba(59, 130, 246, 0.3)'
-                                }}>
-                                    {isBackupMode ? <KeyRound size={24} /> : <Smartphone size={24} />}
+                            <div className="form-header-block">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <span className="badge badge-success" style={{ padding: '4px 8px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                        <Smartphone size={12} />
+                                        2FA Aktif
+                                    </span>
                                 </div>
-                                <h2 className="form-header-title">
-                                    {isBackupMode ? 'Kurtarma Kodu ile Giriş' : 'İki Adımlı Doğrulama'}
-                                </h2>
+                                <h2 className="form-header-title">Güvenlik Doğrulaması</h2>
                                 <p className="form-header-subtitle">
-                                    {isBackupMode ? (
-                                        '8 haneli acil durum kurtarma kodunuzu girin.'
-                                    ) : (
-                                        <>
-                                            <strong>{mfaChallenge.username}</strong> için Authenticator uygulamasındaki 6 haneli güvenlik kodunu girin.
-                                        </>
-                                    )}
+                                    {isBackupMode 
+                                        ? 'Lütfen 8 haneli kurtarma (backup) kodunuzu girin.' 
+                                        : 'Authenticator uygulamanızdaki (Google / Microsoft vb.) 6 haneli kodu girin.'}
                                 </p>
                             </div>
 
@@ -225,8 +298,11 @@ export default function Login() {
                                 </div>
                             )}
 
-                            <form onSubmit={handle2FASubmit} noValidate>
-                                <div className="form-group" style={{ marginBottom: '18px' }}>
+                            <form onSubmit={handle2FASubmit}>
+                                <div className="form-group" style={{ marginBottom: '14px' }}>
+                                    <label className="form-label" style={{ marginBottom: '8px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
+                                        {isBackupMode ? 'Kurtarma Kodu' : '6 Haneli Doğrulama Kodu'}
+                                    </label>
                                     <div className="modern-input-wrapper">
                                         {isBackupMode ? <KeyRound size={18} className="input-leading-icon" /> : <Shield size={18} className="input-leading-icon" />}
                                         <input
@@ -297,6 +373,13 @@ export default function Login() {
                                 <p className="form-header-subtitle">Yönetim paneline erişmek için bilgilerinizi girin.</p>
                             </div>
 
+                            {emailVerified && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10b981', fontSize: '13px', marginBottom: '16px' }}>
+                                    <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+                                    <span>E-posta adresiniz başarıyla doğrulandı! Şimdi giriş yapabilirsiniz.</span>
+                                </div>
+                            )}
+
                             {error && (
                                 <div className="auth-error-alert">
                                     <AlertCircle size={16} style={{ flexShrink: 0 }} />
@@ -361,7 +444,7 @@ export default function Login() {
                                     )}
                                 </div>
 
-                                <div className="auth-options-row">
+                                <div className="auth-options-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <label className="remember-label">
                                         <input
                                             type="checkbox"
@@ -372,6 +455,29 @@ export default function Login() {
                                         />
                                         <span>Beni Hatırla</span>
                                     </label>
+
+                                    <button
+                                        type="button"
+                                        className="forgot-password-link"
+                                        onClick={() => {
+                                            setShowForgotModal(true)
+                                            setForgotEmail(email.includes('@') ? email : '')
+                                            setForgotStep('request')
+                                            setForgotError('')
+                                            setForgotSuccess('')
+                                        }}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: 'var(--accent-primary, #3b82f6)',
+                                            fontSize: '13px',
+                                            cursor: 'pointer',
+                                            fontWeight: 500,
+                                            padding: 0
+                                        }}
+                                    >
+                                        Şifremi Unuttum?
+                                    </button>
                                 </div>
 
                                 <button
@@ -400,6 +506,132 @@ export default function Login() {
                     )}
                 </div>
             </div>
+
+            {/* ── FORGOT PASSWORD MODAL ── */}
+            {showForgotModal && (
+                <Modal
+                    isOpen={showForgotModal}
+                    onClose={() => setShowForgotModal(false)}
+                    title="Şifre Sıfırlama"
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                            {forgotStep === 'request'
+                                ? 'Hesabınıza kayıtlı e-posta adresinizi girin. Size bir şifre sıfırlama linki ve güvenlik kodu göndereceğiz.'
+                                : 'E-posta adresinize gönderilen linke tıklayabilir veya aşağıdaki kutuya 6 haneli güvenlik kodunu girebilirsiniz.'}
+                        </p>
+
+                        {forgotError && (
+                            <div className="auth-error-alert" style={{ margin: 0 }}>
+                                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                                <span>{forgotError}</span>
+                            </div>
+                        )}
+
+                        {forgotSuccess && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#10b981', fontSize: '12.5px' }}>
+                                <CheckCircle2 size={15} style={{ flexShrink: 0 }} />
+                                <span>{forgotSuccess}</span>
+                            </div>
+                        )}
+
+                        {forgotStep === 'request' ? (
+                            <form onSubmit={handleForgotRequest}>
+                                <div className="form-group" style={{ marginBottom: '16px' }}>
+                                    <label className="form-label">E-Posta Adresiniz</label>
+                                    <div className="modern-input-wrapper">
+                                        <Mail size={16} className="input-leading-icon" />
+                                        <input
+                                            type="email"
+                                            className="modern-input-field"
+                                            placeholder="ornek@sirket.com"
+                                            value={forgotEmail}
+                                            onChange={(e) => setForgotEmail(e.target.value)}
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => setShowForgotModal(false)}
+                                    >
+                                        İptal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        disabled={forgotLoading}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        {forgotLoading ? (
+                                            <>
+                                                <Loader2 size={14} className="spin" />
+                                                <span>Gönderiliyor...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send size={14} />
+                                                <span>Sıfırlama Linki Gönder</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleVerifyForgotOtp}>
+                                <div className="form-group" style={{ marginBottom: '14px' }}>
+                                    <label className="form-label">6 Haneli Güvenlik Kodu</label>
+                                    <div className="modern-input-wrapper">
+                                        <KeyRound size={16} className="input-leading-icon" />
+                                        <input
+                                            type="text"
+                                            className="modern-input-field"
+                                            placeholder="000 000"
+                                            maxLength={6}
+                                            value={forgotOtp}
+                                            onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))}
+                                            style={{ letterSpacing: '4px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                                    <button
+                                        type="button"
+                                        style={{ background: 'none', border: 'none', color: 'var(--accent-primary, #3b82f6)', fontSize: '12px', cursor: 'pointer', padding: 0 }}
+                                        onClick={() => setForgotStep('request')}
+                                    >
+                                        ← Başka E-Posta Dene
+                                    </button>
+
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
+                                            onClick={() => setShowForgotModal(false)}
+                                        >
+                                            Kapat
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary"
+                                            disabled={forgotLoading}
+                                        >
+                                            {forgotLoading ? 'Doğrulanıyor...' : 'Kodu Onayla ve Şifreyi Yenile'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                </Modal>
+            )}
         </div>
     )
 }
