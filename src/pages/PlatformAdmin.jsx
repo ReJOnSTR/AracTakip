@@ -1774,14 +1774,34 @@ export default function PlatformAdmin({ section }) {
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: getVal(val) }))}
                                 placeholder="Ahmet Yılmaz"
                             />
-                            <CustomInput
-                                label="Geçici Şifre"
-                                type="password"
-                                value={newUserForm.password}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
-                                placeholder="En az 4 karakter"
-                                required
-                            />
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                        Geçici Şifre <span style={{ color: '#ef4444' }}>*</span>
+                                    </label>
+                                    <button
+                                        type="button"
+                                        className="ghost-btn"
+                                        style={{ padding: '2px 6px', fontSize: '11px', color: '#3b82f6' }}
+                                        onClick={() => {
+                                            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*+=?';
+                                            let pwd = '';
+                                            for (let i = 0; i < 16; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+                                            setNewUserForm(prev => ({ ...prev, password: pwd }));
+                                            navigator.clipboard.writeText(pwd);
+                                            alert('🎲 Güvenli Şifre Üretildi ve Panoya Kopyalandı:\n\n' + pwd);
+                                        }}
+                                    >
+                                        🎲 Rastgele Üret
+                                    </button>
+                                </div>
+                                <CustomInput
+                                    value={newUserForm.password}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
+                                    placeholder="En az 4 karakter"
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1950,14 +1970,34 @@ export default function PlatformAdmin({ section }) {
                         <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
                             <strong>{passwordModalUser.username}</strong> ({passwordModalUser.email}) kullanıcısı için yeni bir şifre belirleyin:
                         </p>
-                        <CustomInput
-                            label="Yeni Şifre"
-                            type="password"
-                            value={newPassword}
-                            onChange={(val) => setNewPassword(getVal(val))}
-                            placeholder="Yeni şifreyi girin"
-                            required
-                        />
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                    Yeni Şifre <span style={{ color: '#ef4444' }}>*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    className="ghost-btn"
+                                    style={{ padding: '2px 6px', fontSize: '11px', color: '#3b82f6' }}
+                                    onClick={() => {
+                                        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*+=?';
+                                        let pwd = '';
+                                        for (let i = 0; i < 16; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+                                        setNewPassword(pwd);
+                                        navigator.clipboard.writeText(pwd);
+                                        alert('🎲 Güvenli Şifre Üretildi ve Panoya Kopyalandı:\n\n' + pwd);
+                                    }}
+                                >
+                                    🎲 Rastgele Üret
+                                </button>
+                            </div>
+                            <CustomInput
+                                value={newPassword}
+                                onChange={(val) => setNewPassword(getVal(val))}
+                                placeholder="Yeni şifreyi girin"
+                                required
+                            />
+                        </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setPasswordModalUser(null)}>
                                 İptal

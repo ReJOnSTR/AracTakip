@@ -701,6 +701,11 @@ async function start() {
             console.log('✅ Database schema and migrations verified.');
         }
 
+        // Ensure dedicated SuperAdmin exists and separate company admins
+        if (typeof authService.ensureSuperAdminExists === 'function') {
+            await authService.ensureSuperAdminExists();
+        }
+
         // Start automated daily backup scheduler (Runs at 03:00 AM)
         const { performBackup } = require('./scripts/backup-service');
         setInterval(async () => {

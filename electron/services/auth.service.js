@@ -2,6 +2,7 @@ const { getPrismaClient } = require('../prismaClient');
 const bcrypt = require('bcryptjs');
 const log = require('../logger');
 const { logAudit } = require('./audit.service');
+const { generateSecurePassword } = require('../utils/security');
 
 const prisma = getPrismaClient();
 
@@ -651,11 +652,72 @@ async function createEmployeeUser(data) {
     }
 }
 
+/**
+ * Ensures a dedicated superadmin account exists and separates company admins
+ */
+async function ensureSuperAdminExists() {
+    try {
+        // 1. If admin@muayen.com has role superadmin, update it to company_admin so it manages SAK PETROL
+        const adminMuayen = await prisma.users.findFirst({
+            where: { email: 'admin@muayen.com' }
+        });
+        if (adminMuayen && adminMuayen.role === 'superadmin') {
+            await prisma.users.update({
+                where: { id: adminMuayen.id },
+                data: { role: 'company_admin' }
+            });
+            log.info('Updated admin@muayen.com role to company_admin.');
+        }
+
+        // 2. Check if a dedicated superadmin user exists
+        let superAdmin = await prisma.users.findFirst({
+            where: { role: 'superadmin' }
+        });
+
+        if (!superAdmin) {
+            const username = process.env.SUPERADMIN_USERNAME || 'superadmin';
+            const email = process.env.SUPERADMIN_EMAIL || 'superadmin@kontrolapp.com';
+            const initialPassword = process.env.SUPERADMIN_INITIAL_PASSWORD || generateSecurePassword(16);
+            const password_hash = bcrypt.hashSync(initialPassword, 10);
+
+            superAdmin = await prisma.users.create({
+                data: {
+                    username,
+                    email,
+                    full_name: 'SaaS Sistem Yöneticisi',
+                    password_hash,
+                    role: 'superadmin',
+                    is_active: 1,
+                    must_change_password: 0
+                }
+            });
+
+            const box = `
+╔══════════════════════════════════════════════════════════════════════╗
+║             👑 KONTROL SAAS - SİSTEM YÖNETİCİSİ OLUŞTURULDU         ║
+╠══════════════════════════════════════════════════════════════════════╣
+║ Kullanıcı Adı : ${superAdmin.username.padEnd(52)}║
+║ E-Posta       : ${superAdmin.email.padEnd(52)}║
+║ Geçici Şifre  : ${initialPassword.padEnd(52)}║
+║                                                                      ║
+║ ⚠️  Bu şifre rastgele üretilmiştir. Güvenli bir yere kaydediniz.     ║
+╚══════════════════════════════════════════════════════════════════════╝`;
+            console.log(box);
+            log.info('SuperAdmin auto-created:\n' + box);
+        }
+
+        return superAdmin;
+    } catch (err) {
+        log.warn('ensureSuperAdminExists notice:', err.message);
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     changePassword,
     updateProfile,
     getUserPasswordHash,
-    createEmployeeUser
+    createEmployeeUser,
+    ensureSuperAdminExists
 };
