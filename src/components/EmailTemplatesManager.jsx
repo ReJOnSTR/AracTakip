@@ -7,8 +7,6 @@ import {
     RefreshCw, 
     Code2, 
     Eye, 
-    Smartphone, 
-    Monitor, 
     Send, 
     RotateCcw, 
     Save, 
@@ -18,23 +16,27 @@ import {
     AlertCircle, 
     CheckCircle2, 
     Loader2,
-    Shield,
-    User,
-    Settings,
     Server,
-    Lock
+    ShieldAlert,
+    Smartphone,
+    Monitor
 } from 'lucide-react'
 import Modal from './Modal'
 import CustomInput from './CustomInput'
 import './EmailTemplatesManager.css'
 
 export default function EmailTemplatesManager() {
+    // Top Tabs: 'templates' | 'smtp'
+    const [mainTab, setMainTab] = useState('templates')
+    
+    // Templates State
     const [templates, setTemplates] = useState([])
     const [loading, setLoading] = useState(true)
     const [activeType, setActiveType] = useState('confirmation')
-    const [deviceMode, setDeviceMode] = useState('desktop') // 'desktop' | 'mobile'
-    
-    // Editor State
+    const [editorTab, setEditorTab] = useState('source') // 'source' | 'preview'
+    const [previewDevice, setPreviewDevice] = useState('desktop') // 'desktop' | 'mobile'
+
+    // Active Template Fields
     const [currentSubject, setCurrentSubject] = useState('')
     const [currentSenderName, setCurrentSenderName] = useState('')
     const [currentHtml, setCurrentHtml] = useState('')
@@ -49,13 +51,13 @@ export default function EmailTemplatesManager() {
     const [testTargetEmail, setTestTargetEmail] = useState('')
     const [sendingTest, setSendingTest] = useState(false)
 
-    // SMTP Settings Modal State
-    const [smtpModalOpen, setSmtpModalOpen] = useState(false)
+    // SMTP Settings State
     const [smtpHost, setSmtpHost] = useState('')
     const [smtpPort, setSmtpPort] = useState('587')
     const [smtpSecure, setSmtpSecure] = useState(false)
     const [smtpUser, setSmtpUser] = useState('')
     const [smtpPass, setSmtpPass] = useState('')
+    const [hasPass, setHasPass] = useState(false)
     const [defaultSenderName, setDefaultSenderName] = useState('⚡ Kontrol Güvenlik Ekibi')
     const [defaultSenderEmail, setDefaultSenderEmail] = useState('noreply@kontrol-app.com')
     const [savingSmtp, setSavingSmtp] = useState(false)
@@ -64,14 +66,22 @@ export default function EmailTemplatesManager() {
 
     const editorRef = useRef(null)
 
-    // Dynamic Variables Reference
+    // Template Definitions matching Supabase Studio exactly
+    const TEMPLATE_TABS = [
+        { type: 'confirmation', label: 'Confirm signup' },
+        { type: 'invite', label: 'Invite user' },
+        { type: 'magic_link', label: 'Magic Link' },
+        { type: 'change_email', label: 'Change Email Address' },
+        { type: 'recovery', label: 'Reset Password' }
+    ]
+
     const DYNAMIC_VARIABLES = [
-        { key: '{{ .ConfirmationURL }}', label: 'Onay Linki', desc: 'İşlem butonu güvenli URL bağlantısı' },
-        { key: '{{ .Token }}', label: 'OTP Kod', desc: '6 haneli doğrulama kodu' },
-        { key: '{{ .Email }}', label: 'Alıcı E-Posta', desc: 'Kullanıcı e-posta adresi' },
-        { key: '{{ .SiteURL }}', label: 'Site URL', desc: 'SaaS platform web adresi' },
-        { key: '{{ .Data.username }}', label: 'Kullanıcı Adı', desc: 'Kullanıcı adı' },
-        { key: '{{ .Data.company_name }}', label: 'Şirket Adı', desc: 'Kayıtlı şirket unvanı' }
+        { key: '{{ .ConfirmationURL }}', label: 'Onay Linki' },
+        { key: '{{ .Token }}', label: 'OTP Kod' },
+        { key: '{{ .Email }}', label: 'Alıcı E-Posta' },
+        { key: '{{ .SiteURL }}', label: 'Site URL' },
+        { key: '{{ .Data.username }}', label: 'Kullanıcı Adı' },
+        { key: '{{ .Data.company_name }}', label: 'Şirket Adı' }
     ]
 
     useEffect(() => {
@@ -96,7 +106,7 @@ export default function EmailTemplatesManager() {
             }
         } catch (err) {
             console.error('Failed to load email templates:', err)
-            showToast('Şablonlar yüklenirken bir hata oluştu', 'error')
+            showToast('Şablonlar yüklenirken hata oluştu', 'error')
         } finally {
             setLoading(false)
         }
@@ -111,6 +121,7 @@ export default function EmailTemplatesManager() {
                 setSmtpSecure(!!res.data.smtpSecure)
                 setSmtpUser(res.data.smtpUser || '')
                 setSmtpPass(res.data.smtpPass || '')
+                setHasPass(!!res.data.hasPass)
                 setDefaultSenderName(res.data.senderName || '⚡ Kontrol Güvenlik Ekibi')
                 setDefaultSenderEmail(res.data.senderEmail || 'noreply@kontrol-app.com')
             }
@@ -136,14 +147,12 @@ export default function EmailTemplatesManager() {
     }
 
     const handleSubjectChange = (e) => {
-        const val = e.target ? e.target.value : e
-        setCurrentSubject(val)
+        setCurrentSubject(e.target.value)
         setIsDirty(true)
     }
 
     const handleSenderNameChange = (e) => {
-        const val = e.target ? e.target.value : e
-        setCurrentSenderName(val)
+        setCurrentSenderName(e.target.value)
         setIsDirty(true)
     }
 
@@ -194,7 +203,7 @@ export default function EmailTemplatesManager() {
             })
 
             if (res?.success) {
-                showToast('E-posta şablonu başarıyla kaydedildi!', 'success')
+                showToast('Şablon başarıyla kaydedildi!', 'success')
                 setIsDirty(false)
                 setTemplates(prev => prev.map(t => t.type === activeType ? {
                     ...t,
@@ -208,7 +217,7 @@ export default function EmailTemplatesManager() {
                 showToast(res?.error || 'Kayıt başarısız', 'error')
             }
         } catch (err) {
-            showToast(err.message || 'Kayıt sırasında hata oluştu', 'error')
+            showToast(err.message || 'Kayıt hatası', 'error')
         } finally {
             setSaving(false)
         }
@@ -276,7 +285,8 @@ export default function EmailTemplatesManager() {
         }
     }
 
-    const handleSaveSmtp = async () => {
+    const handleSaveSmtp = async (e) => {
+        if (e) e.preventDefault()
         if (!smtpHost.trim()) {
             showToast('SMTP Sunucu adresi boş bırakılamaz', 'error')
             return
@@ -296,7 +306,7 @@ export default function EmailTemplatesManager() {
 
             if (res?.success) {
                 showToast('SMTP Ayarları başarıyla kaydedildi!', 'success')
-                setSmtpModalOpen(false)
+                setHasPass(true)
             } else {
                 showToast(res?.error || 'Kayıt başarısız', 'error')
             }
@@ -320,7 +330,7 @@ export default function EmailTemplatesManager() {
             })
 
             if (res?.success) {
-                setSmtpTestResult({ success: true, msg: '✅ Sunucu bağlantısı başarılı!' })
+                setSmtpTestResult({ success: true, msg: '✅ SMTP Sunucu bağlantısı başarılı!' })
             } else {
                 setSmtpTestResult({ success: false, msg: '❌ ' + (res?.error || 'Bağlantı hatası') })
             }
@@ -356,265 +366,388 @@ export default function EmailTemplatesManager() {
 
     const activeTemplate = templates.find(t => t.type === activeType)
 
-    const getIconForType = (type) => {
-        switch(type) {
-            case 'confirmation': return <Mail size={15} />
-            case 'recovery': return <KeyRound size={15} />
-            case 'magic_link': return <Sparkles size={15} />
-            case 'invite': return <UserPlus size={15} />
-            case 'change_email': return <RefreshCw size={15} />
-            default: return <Mail size={15} />
-        }
-    }
+    // Calculate line numbers for source editor
+    const lineCount = (currentHtml.match(/\n/g) || []).length + 1
+    const lineNumbers = Array.from({ length: Math.max(lineCount, 8) }, (_, i) => i + 1)
 
     if (loading) {
         return (
-            <div className="email-templates-loading">
-                <Loader2 className="spin" style={{ color: 'var(--accent-primary)' }} size={32} />
+            <div className="studio-minimal-loading">
+                <Loader2 className="spin" style={{ color: 'var(--accent-primary)' }} size={28} />
                 <p>E-Posta Şablonları yükleniyor...</p>
             </div>
         )
     }
 
     return (
-        <div className="email-templates-studio">
+        <div className="supabase-studio-page">
             {/* Feedback Alert Toast */}
             {feedback && (
-                <div className={`email-templates-toast ${feedback.type}`}>
-                    {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                <div className={`supabase-toast ${feedback.type}`}>
+                    {feedback.type === 'success' ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
                     <span>{feedback.msg}</span>
                 </div>
             )}
 
-            {/* 1. Standard Platform Tabs */}
-            <div className="platform-tabs" style={{ marginBottom: '16px' }}>
-                {templates.map(t => (
-                    <button
-                        key={t.type}
-                        className={`platform-tab-btn ${activeType === t.type ? 'active' : ''}`}
-                        onClick={() => handleSelectTemplate(t.type)}
-                    >
-                        {getIconForType(t.type)}
-                        <span>{t.name?.split('(')[0]?.trim()}</span>
-                        {t.isCustomized ? (
-                            <span className="platform-tab-badge" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>Özel</span>
-                        ) : null}
-                    </button>
-                ))}
+            {/* 1. Supabase Main Top Navigation Tabs */}
+            <div className="supabase-top-nav">
+                <button 
+                    type="button"
+                    className={`supabase-nav-link ${mainTab === 'templates' ? 'active' : ''}`}
+                    onClick={() => setMainTab('templates')}
+                >
+                    Templates
+                </button>
+                <button 
+                    type="button"
+                    className={`supabase-nav-link ${mainTab === 'smtp' ? 'active' : ''}`}
+                    onClick={() => setMainTab('smtp')}
+                >
+                    SMTP Settings
+                </button>
             </div>
 
-            {/* 2. Top Action Controls */}
-            <div className="studio-action-bar">
-                <div className="studio-template-description">
-                    <strong>{activeTemplate?.name}</strong>: {activeTemplate?.description}
-                </div>
-                <div className="studio-actions-group">
-                    <button 
-                        className="btn btn-secondary"
-                        onClick={() => setSmtpModalOpen(true)}
-                        title="SMTP Mail Sunucusu ve Kimlik Bilgilerini Yapılandırın"
-                    >
-                        <Settings size={15} />
-                        <span>SMTP Ayarları</span>
-                    </button>
-
-                    <button 
-                        className="btn btn-secondary"
-                        onClick={() => setTestModalOpen(true)}
-                        title="Kendi e-posta adresinize gerçek bir test maili gönderin"
-                    >
-                        <Send size={15} />
-                        <span>Test Maili Gönder</span>
-                    </button>
-
-                    {activeTemplate?.isCustomized && (
-                        <button 
-                            className="btn btn-secondary"
-                            onClick={handleReset}
-                            disabled={resetting}
-                            title="Orijinal varsayılan şablona geri dön"
-                        >
-                            <RotateCcw size={15} className={resetting ? 'spin' : ''} />
-                            <span>Varsayılana Sıfırla</span>
-                        </button>
-                    )}
-
-                    <button 
-                        className="btn btn-primary"
-                        onClick={handleSave}
-                        disabled={saving || !isDirty}
-                    >
-                        {saving ? <Loader2 size={15} className="spin" /> : <Save size={15} />}
-                        <span>{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* 3. Studio 2-Column Responsive Workspace */}
-            <div className="studio-workspace-grid">
-                
-                {/* Left Column: Form Settings & HTML Code Editor */}
-                <div className="studio-col-editor">
+            {/* TAB 1: TEMPLATES VIEW */}
+            {mainTab === 'templates' && (
+                <div className="supabase-templates-content">
                     
-                    {/* Card 1: Email Metadata Form */}
-                    <div className="studio-card">
-                        <div className="studio-card-header">
-                            <span className="studio-card-title">
-                                <User size={14} style={{ color: 'var(--accent-primary)' }} />
-                                E-Posta Başlık & Gönderici Ayarları
-                            </span>
+                    {/* Amber Notice Banner (Matching Supabase Studio) */}
+                    <div className="supabase-amber-banner">
+                        <div className="banner-icon">
+                            <ShieldAlert size={18} />
                         </div>
-                        <div className="studio-card-body">
-                            <div className="studio-form-grid">
-                                <div className="form-group">
-                                    <label className="form-label">Gönderici Başlığı (From Name):</label>
-                                    <CustomInput
-                                        value={currentSenderName}
-                                        onChange={handleSenderNameChange}
-                                        placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">E-Posta Konusu (Subject):</label>
-                                    <CustomInput
-                                        value={currentSubject}
-                                        onChange={handleSubjectChange}
-                                        placeholder="E-posta konu satırı..."
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Dynamic Variables Bar */}
-                            <div className="studio-vars-wrap">
-                                <span className="vars-label">Dinamik Değişkenler (Tıklayıp Ekleyin):</span>
-                                <div className="vars-chip-list">
-                                    {DYNAMIC_VARIABLES.map(v => (
-                                        <button
-                                            key={v.key}
-                                            type="button"
-                                            className={`vars-chip-btn ${copiedVar === v.key ? 'copied' : ''}`}
-                                            onClick={() => handleInsertVariable(v.key)}
-                                            title={`${v.label}: ${v.desc}`}
-                                        >
-                                            <code>{v.key}</code>
-                                            {copiedVar === v.key ? <Check size={11} /> : <Copy size={11} />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 2: HTML Code Editor */}
-                    <div className="studio-card editor-card">
-                        <div className="studio-card-header">
-                            <span className="studio-card-title">
-                                <Code2 size={14} style={{ color: 'var(--accent-primary)' }} />
-                                HTML5 Kaynak Kodu
-                            </span>
-                            <button
+                        <div className="banner-text-wrap">
+                            <h4 className="banner-title">Email rate-limits and custom delivery</h4>
+                            <p className="banner-desc">
+                                E-postalarınızın şirket logonuz ve %100 özel HTML tasarımınızla sorunsuz iletilmesi için özel SMTP sunucunuzu bağlayabilirsiniz.
+                            </p>
+                            <button 
                                 type="button"
-                                className="btn-ghost-copy"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(currentHtml)
-                                    showToast('HTML kodu panoya kopyalandı', 'info')
-                                }}
-                                title="Tüm HTML'i Kopyala"
+                                className="banner-btn"
+                                onClick={() => setMainTab('smtp')}
                             >
-                                <Copy size={12} />
-                                <span>Kopyala</span>
+                                Set up custom SMTP server
                             </button>
                         </div>
-                        <div className="studio-card-body editor-body">
-                            <textarea
-                                ref={editorRef}
-                                className="studio-code-editor"
-                                value={currentHtml}
-                                onChange={handleHtmlChange}
-                                placeholder="<!DOCTYPE html><html>..."
-                                spellCheck="false"
-                            />
-                        </div>
                     </div>
 
-                </div>
-
-                {/* Right Column: Live Visual Render Preview */}
-                <div className="studio-col-preview">
-                    <div className="studio-card preview-card">
-                        <div className="studio-card-header">
-                            <span className="studio-card-title">
-                                <Eye size={14} style={{ color: 'var(--success)' }} />
-                                Canlı E-Posta Önizleme
-                            </span>
-                            <div className="device-switcher-pill">
-                                <button 
+                    {/* Main Template Box (Red Boxed Container #3 in Screenshot) */}
+                    <div className="supabase-template-box">
+                        
+                        {/* Horizontal Template Selector Tabs */}
+                        <div className="supabase-inner-tabs">
+                            {TEMPLATE_TABS.map(tab => (
+                                <button
+                                    key={tab.type}
                                     type="button"
-                                    className={`dev-btn ${deviceMode === 'desktop' ? 'active' : ''}`}
-                                    onClick={() => setDeviceMode('desktop')}
-                                    title="Masaüstü Ekranı (600px)"
+                                    className={`supabase-inner-tab ${activeType === tab.type ? 'active' : ''}`}
+                                    onClick={() => handleSelectTemplate(tab.type)}
                                 >
-                                    <Monitor size={13} />
-                                    <span>Masaüstü</span>
+                                    {tab.label}
                                 </button>
+                            ))}
+                        </div>
+
+                        {/* Template Form Body */}
+                        <div className="supabase-form-body">
+                            
+                            {/* Row 1: Sender Name & Subject Heading */}
+                            <div className="supabase-field-group">
+                                <div className="field-row-split">
+                                    <div className="field-half">
+                                        <label className="supabase-label">Sender name</label>
+                                        <input 
+                                            type="text"
+                                            className="supabase-input"
+                                            value={currentSenderName}
+                                            onChange={handleSenderNameChange}
+                                            placeholder="Örn: ⚡ Kontrol Güvenlik Ekibi"
+                                        />
+                                    </div>
+                                    <div className="field-half">
+                                        <label className="supabase-label">Subject heading</label>
+                                        <input 
+                                            type="text"
+                                            className="supabase-input"
+                                            value={currentSubject}
+                                            onChange={handleSubjectChange}
+                                            placeholder="Subject heading..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 2: Message Body Header & Source/Preview Switcher */}
+                            <div className="supabase-field-group" style={{ marginTop: '20px' }}>
+                                <div className="message-body-header">
+                                    <label className="supabase-label">Message body</label>
+                                    
+                                    <div className="source-preview-toggle">
+                                        <button 
+                                            type="button"
+                                            className={`toggle-tab ${editorTab === 'source' ? 'active' : ''}`}
+                                            onClick={() => setEditorTab('source')}
+                                        >
+                                            <Code2 size={13} />
+                                            <span>Source</span>
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            className={`toggle-tab ${editorTab === 'preview' ? 'active' : ''}`}
+                                            onClick={() => setEditorTab('preview')}
+                                        >
+                                            <Eye size={13} />
+                                            <span>Preview</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Dynamic Variables Inline Ribbon */}
+                                <div className="supabase-vars-ribbon">
+                                    <span className="vars-ribbon-title">Available variables:</span>
+                                    <div className="vars-chips-wrap">
+                                        {DYNAMIC_VARIABLES.map(v => (
+                                            <button
+                                                key={v.key}
+                                                type="button"
+                                                className={`supabase-var-chip ${copiedVar === v.key ? 'copied' : ''}`}
+                                                onClick={() => handleInsertVariable(v.key)}
+                                                title={`${v.label} (İmlecin olduğu yere ekle)`}
+                                            >
+                                                <code>{v.key}</code>
+                                                {copiedVar === v.key ? <Check size={11} /> : <Copy size={11} />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Code Editor or Live Preview */}
+                                {editorTab === 'source' ? (
+                                    <div className="supabase-editor-wrapper">
+                                        <div className="editor-line-numbers">
+                                            {lineNumbers.map(n => (
+                                                <span key={n}>{n}</span>
+                                            ))}
+                                        </div>
+                                        <textarea
+                                            ref={editorRef}
+                                            className="supabase-code-area"
+                                            value={currentHtml}
+                                            onChange={handleHtmlChange}
+                                            placeholder="<h2>Confirm your signup</h2>..."
+                                            spellCheck="false"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="supabase-preview-wrapper">
+                                        <div className="preview-toolbar">
+                                            <div className="preview-info">
+                                                <strong>From:</strong> {currentSenderName} &lt;{defaultSenderEmail}&gt; | <strong>Subject:</strong> {currentSubject}
+                                            </div>
+                                            <div className="device-pills">
+                                                <button 
+                                                    type="button" 
+                                                    className={`dev-btn ${previewDevice === 'desktop' ? 'active' : ''}`}
+                                                    onClick={() => setPreviewDevice('desktop')}
+                                                >
+                                                    <Monitor size={12} />
+                                                    <span>Desktop</span>
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    className={`dev-btn ${previewDevice === 'mobile' ? 'active' : ''}`}
+                                                    onClick={() => setPreviewDevice('mobile')}
+                                                >
+                                                    <Smartphone size={12} />
+                                                    <span>Mobile</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={`preview-viewport ${previewDevice}`}>
+                                            <iframe
+                                                title="Template Preview"
+                                                className="preview-frame"
+                                                srcDoc={getRenderedPreview()}
+                                                sandbox="allow-same-origin"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                        </div>
+
+                        {/* Bottom Actions Bar */}
+                        <div className="supabase-box-footer">
+                            <div className="footer-left">
+                                {activeTemplate?.isCustomized && (
+                                    <button 
+                                        type="button"
+                                        className="btn-link-reset"
+                                        onClick={handleReset}
+                                        disabled={resetting}
+                                    >
+                                        <RotateCcw size={13} className={resetting ? 'spin' : ''} />
+                                        <span>Reset to default</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="footer-right">
                                 <button 
                                     type="button"
-                                    className={`dev-btn ${deviceMode === 'mobile' ? 'active' : ''}`}
-                                    onClick={() => setDeviceMode('mobile')}
-                                    title="Mobil Telefon Ekranı (375px)"
+                                    className="btn btn-secondary"
+                                    onClick={() => setTestModalOpen(true)}
                                 >
-                                    <Smartphone size={13} />
-                                    <span>Mobil</span>
+                                    <Send size={14} />
+                                    <span>Send test email</span>
+                                </button>
+
+                                <button 
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={handleSave}
+                                    disabled={saving || !isDirty}
+                                >
+                                    {saving ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
+                                    <span>{saving ? 'Saving...' : 'Save changes'}</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div className={`studio-preview-wrapper ${deviceMode}`}>
-                            <div className="mock-email-window">
-                                <div className="mock-window-header">
-                                    <div className="mock-window-dots">
-                                        <span className="dot red"></span>
-                                        <span className="dot yellow"></span>
-                                        <span className="dot green"></span>
-                                    </div>
-                                    <div className="mock-window-info">
-                                        <div className="info-row"><strong>Kimden:</strong> {currentSenderName || 'Kontrol Güvenlik'} &lt;{defaultSenderEmail || 'noreply@kontrol-app.com'}&gt;</div>
-                                        <div className="info-row"><strong>Konu:</strong> {currentSubject || 'Konu Başlığı'}</div>
-                                    </div>
+                    </div>
+                </div>
+            )}
+
+            {/* TAB 2: SMTP SETTINGS VIEW */}
+            {mainTab === 'smtp' && (
+                <div className="supabase-smtp-content">
+                    <div className="supabase-template-box smtp-box">
+                        <div className="smtp-box-header">
+                            <h3>Custom SMTP Provider Settings</h3>
+                            <p>Configure an external SMTP mail server (Mailu, Gmail, Yandex, Brevo, SendGrid) to dispatch emails directly with custom HTML styling.</p>
+                        </div>
+
+                        <form className="smtp-form" onSubmit={handleSaveSmtp}>
+                            <div className="field-row-split">
+                                <div className="field-half">
+                                    <label className="supabase-label">SMTP Host</label>
+                                    <input 
+                                        type="text"
+                                        className="supabase-input"
+                                        value={smtpHost}
+                                        onChange={(e) => setSmtpHost(e.target.value)}
+                                        placeholder="e.g. 45.147.47.56 or smtp.gmail.com"
+                                    />
                                 </div>
-                                <div className="mock-window-body">
-                                    <iframe
-                                        title="Live Rendered Email"
-                                        className="preview-render-frame"
-                                        srcDoc={getRenderedPreview()}
-                                        sandbox="allow-same-origin"
+                                <div className="field-half">
+                                    <label className="supabase-label">Port</label>
+                                    <input 
+                                        type="text"
+                                        className="supabase-input"
+                                        value={smtpPort}
+                                        onChange={(e) => setSmtpPort(e.target.value)}
+                                        placeholder="587 / 465 / 25"
                                     />
                                 </div>
                             </div>
-                        </div>
 
+                            <div className="field-row-split" style={{ marginTop: '16px' }}>
+                                <div className="field-half">
+                                    <label className="supabase-label">SMTP Username / Email</label>
+                                    <input 
+                                        type="text"
+                                        className="supabase-input"
+                                        value={smtpUser}
+                                        onChange={(e) => setSmtpUser(e.target.value)}
+                                        placeholder="admin@kontrol-app.com"
+                                    />
+                                </div>
+                                <div className="field-half">
+                                    <label className="supabase-label">SMTP Password</label>
+                                    <input 
+                                        type="password"
+                                        className="supabase-input"
+                                        value={smtpPass}
+                                        onChange={(e) => setSmtpPass(e.target.value)}
+                                        placeholder={hasPass ? '••••••••' : 'Password'}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="field-row-split" style={{ marginTop: '16px' }}>
+                                <div className="field-half">
+                                    <label className="supabase-label">Default Sender Name</label>
+                                    <input 
+                                        type="text"
+                                        className="supabase-input"
+                                        value={defaultSenderName}
+                                        onChange={(e) => setDefaultSenderName(e.target.value)}
+                                        placeholder="⚡ Kontrol Güvenlik Ekibi"
+                                    />
+                                </div>
+                                <div className="field-half">
+                                    <label className="supabase-label">Default Sender Email</label>
+                                    <input 
+                                        type="text"
+                                        className="supabase-input"
+                                        value={defaultSenderEmail}
+                                        onChange={(e) => setDefaultSenderEmail(e.target.value)}
+                                        placeholder="noreply@kontrol-app.com"
+                                    />
+                                </div>
+                            </div>
+
+                            {smtpTestResult && (
+                                <div className={`smtp-test-alert ${smtpTestResult.success ? 'success' : 'error'}`}>
+                                    <span>{smtpTestResult.msg}</span>
+                                </div>
+                            )}
+
+                            <div className="smtp-actions-footer">
+                                <button 
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleTestSmtpConnection}
+                                    disabled={testingSmtp || !smtpHost}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    {testingSmtp ? <Loader2 size={14} className="spin" /> : <Server size={14} />}
+                                    <span>{testingSmtp ? 'Testing connection...' : 'Test Connection'}</span>
+                                </button>
+
+                                <button 
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={savingSmtp}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    {savingSmtp ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
+                                    <span>{savingSmtp ? 'Saving...' : 'Save Settings'}</span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-            </div>
+            )}
 
             {/* Test Email Send Modal */}
             <Modal
                 isOpen={testModalOpen}
                 onClose={() => setTestModalOpen(false)}
-                title="🧪 Canlı Test E-Postası Gönder"
+                title="🧪 Send Test Email"
                 size="small"
             >
                 <div className="test-email-modal-body">
                     <p className="test-modal-desc">
-                        Bu şablonun e-posta istemcilerinizde nasıl görüntülendiğini test etmek için kendi e-posta adresinize gerçek bir test iletisi gönderin.
+                        Send a test email to verify your template layout and delivery.
                     </p>
 
                     <div className="test-input-wrap">
-                        <label className="form-label">Hedef E-Posta Adresi:</label>
+                        <label className="supabase-label">Recipient Email Address:</label>
                         <CustomInput
                             type="email"
-                            placeholder="ornek@alanadiniz.com"
+                            placeholder="yourname@gmail.com"
                             value={testTargetEmail}
                             onChange={(e) => setTestTargetEmail(e.target ? e.target.value : e)}
                             autoFocus
@@ -623,7 +756,7 @@ export default function EmailTemplatesManager() {
 
                     <div className="test-modal-info">
                         <Info size={15} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
-                        <span>E-posta doğrudan sunucunuzun SMTP servisi üzerinden özel HTML olarak iletilecektir.</span>
+                        <span>Real verification tokens and links will be populated into the template.</span>
                     </div>
 
                     <div className="modal-actions-custom" style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -632,7 +765,7 @@ export default function EmailTemplatesManager() {
                             onClick={() => setTestModalOpen(false)}
                             disabled={sendingTest}
                         >
-                            İptal
+                            Cancel
                         </button>
                         <button 
                             className="btn btn-primary"
@@ -641,120 +774,12 @@ export default function EmailTemplatesManager() {
                             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                         >
                             {sendingTest ? <Loader2 size={15} className="spin" /> : <Send size={15} />}
-                            <span>{sendingTest ? 'Gönderiliyor...' : 'Test Maili Gönder'}</span>
+                            <span>{sendingTest ? 'Sending...' : 'Send Test'}</span>
                         </button>
                     </div>
                 </div>
             </Modal>
 
-            {/* SMTP & Server Settings Modal */}
-            <Modal
-                isOpen={smtpModalOpen}
-                onClose={() => setSmtpModalOpen(false)}
-                title="⚙️ SMTP E-Posta Sunucu Ayarları"
-                size="medium"
-            >
-                <div className="test-email-modal-body">
-                    <p className="test-modal-desc">
-                        Sistem üzerinden giden tüm doğrulama, şifre sıfırlama ve test e-postalarının güvenle iletilmesi için SMTP sunucu bilgilerinizi giriniz.
-                    </p>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
-                        <div className="test-input-wrap">
-                            <label className="form-label">SMTP Sunucu Adresi (Host):</label>
-                            <CustomInput
-                                placeholder="Örn: 45.147.47.56 veya mail.kontrol-app.com"
-                                value={smtpHost}
-                                onChange={(e) => setSmtpHost(e.target ? e.target.value : e)}
-                            />
-                        </div>
-                        <div className="test-input-wrap">
-                            <label className="form-label">Port:</label>
-                            <CustomInput
-                                placeholder="587 / 465 / 25"
-                                value={smtpPort}
-                                onChange={(e) => setSmtpPort(e.target ? e.target.value : e)}
-                            />
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <div className="test-input-wrap">
-                            <label className="form-label">SMTP Kullanıcı Adı / E-Posta:</label>
-                            <CustomInput
-                                placeholder="noreply@kontrol-app.com"
-                                value={smtpUser}
-                                onChange={(e) => setSmtpUser(e.target ? e.target.value : e)}
-                            />
-                        </div>
-                        <div className="test-input-wrap">
-                            <label className="form-label">SMTP Parolası:</label>
-                            <CustomInput
-                                type="password"
-                                placeholder="••••••••"
-                                value={smtpPass}
-                                onChange={(e) => setSmtpPass(e.target ? e.target.value : e)}
-                            />
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <div className="test-input-wrap">
-                            <label className="form-label">Varsayılan Gönderen Adı:</label>
-                            <CustomInput
-                                placeholder="⚡ Kontrol Güvenlik Ekibi"
-                                value={defaultSenderName}
-                                onChange={(e) => setDefaultSenderName(e.target ? e.target.value : e)}
-                            />
-                        </div>
-                        <div className="test-input-wrap">
-                            <label className="form-label">Varsayılan Gönderen E-Posta:</label>
-                            <CustomInput
-                                placeholder="noreply@kontrol-app.com"
-                                value={defaultSenderEmail}
-                                onChange={(e) => setDefaultSenderEmail(e.target ? e.target.value : e)}
-                            />
-                        </div>
-                    </div>
-
-                    {smtpTestResult && (
-                        <div className={`email-templates-toast ${smtpTestResult.success ? 'success' : 'error'}`} style={{ position: 'static', margin: '8px 0' }}>
-                            <span>{smtpTestResult.msg}</span>
-                        </div>
-                    )}
-
-                    <div className="modal-actions-custom" style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <button 
-                            className="btn btn-secondary"
-                            onClick={handleTestSmtpConnection}
-                            disabled={testingSmtp || !smtpHost}
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                        >
-                            {testingSmtp ? <Loader2 size={14} className="spin" /> : <Server size={14} />}
-                            <span>{testingSmtp ? 'Test Ediliyor...' : 'Bağlantıyı Test Et'}</span>
-                        </button>
-
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button 
-                                className="btn btn-secondary"
-                                onClick={() => setSmtpModalOpen(false)}
-                                disabled={savingSmtp}
-                            >
-                                İptal
-                            </button>
-                            <button 
-                                className="btn btn-primary"
-                                onClick={handleSaveSmtp}
-                                disabled={savingSmtp}
-                                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                            >
-                                {savingSmtp ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
-                                <span>{savingSmtp ? 'Kaydediliyor...' : 'Ayarları Kaydet'}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
         </div>
     )
 }

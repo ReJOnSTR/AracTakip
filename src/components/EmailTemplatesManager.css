@@ -1,411 +1,571 @@
 /* ==========================================================================
-   Email Templates Studio - Standard Kontrol App 2-Column Layout
+   Supabase Studio - Minimalist Email Templates & SMTP UI
    ========================================================================== */
 
-.email-templates-studio {
+.supabase-studio-page {
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 16px;
+    gap: 20px;
+    padding: 4px 0 32px 0;
 }
 
-.email-templates-loading {
+.studio-minimal-loading {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 380px;
-    gap: 14px;
+    height: 350px;
+    gap: 12px;
     color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13.5px;
 }
 
-/* Feedback Alert Toast */
-.email-templates-toast {
+/* Supabase Feedback Toast */
+.supabase-toast {
     position: fixed;
     top: 24px;
     right: 24px;
     z-index: 9999;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
+    gap: 8px;
+    padding: 10px 18px;
     border-radius: var(--radius-sm, 8px);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     box-shadow: var(--shadow-lg);
-    animation: toastSlide 0.2s ease-out;
+    animation: toastIn 0.2s ease-out;
 }
 
-.email-templates-toast.success {
-    background: var(--success-bg, rgba(34, 197, 94, 0.15));
-    color: var(--success, #22c55e);
-    border: 1px solid var(--success, #22c55e);
+.supabase-toast.success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-.email-templates-toast.error {
-    background: var(--danger-bg, rgba(239, 68, 68, 0.15));
-    color: var(--danger, #ef4444);
-    border: 1px solid var(--danger, #ef4444);
+.supabase-toast.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.email-templates-toast.info {
-    background: var(--primary-bg, rgba(20, 184, 166, 0.15));
-    color: var(--accent-primary, #14b8a6);
-    border: 1px solid var(--accent-primary, #14b8a6);
-}
-
-@keyframes toastSlide {
-    from { opacity: 0; transform: translateY(-10px); }
+@keyframes toastIn {
+    from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Top Action Bar (Description + Buttons) */
-.studio-action-bar {
+/* ==========================================================================
+   1. Supabase Main Top Navigation Tabs
+   ========================================================================== */
+
+.supabase-top-nav {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 18px;
-    background: var(--bg-card, var(--bg-secondary));
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm, 8px);
-    gap: 16px;
+    gap: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+    margin-bottom: 4px;
 }
 
-.studio-template-description {
-    font-size: 13px;
+.supabase-nav-link {
+    font-size: 13.5px;
+    font-weight: 500;
     color: var(--text-secondary);
-    line-height: 1.4;
+    background: transparent;
+    border: none;
+    padding: 8px 2px 12px 2px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s ease;
 }
 
-.studio-template-description strong {
+.supabase-nav-link:hover {
     color: var(--text-primary);
 }
 
-.studio-actions-group {
+.supabase-nav-link.active {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.supabase-nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px 2px 0 0;
+}
+
+/* ==========================================================================
+   Amber Rate-limit Banner (Supabase Style)
+   ========================================================================== */
+
+.supabase-amber-banner {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: var(--radius-sm, 8px);
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.22);
+}
+
+.banner-icon {
+    color: #f59e0b;
+    margin-top: 1px;
     flex-shrink: 0;
 }
 
-/* 2-Column Responsive Workspace Grid */
-.studio-workspace-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: stretch;
-}
-
-@media (max-width: 1200px) {
-    .studio-workspace-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Column Wrappers */
-.studio-col-editor {
+.banner-text-wrap {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 6px;
+    flex: 1;
 }
 
-.studio-col-preview {
-    display: flex;
-    flex-direction: column;
+.banner-title {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #f59e0b;
 }
 
-/* Studio Standard Card */
-.studio-card {
-    background: var(--bg-card, var(--bg-secondary));
+.banner-desc {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
+.banner-btn {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-tertiary, #27272a);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.banner-btn:hover {
+    background: var(--bg-card-hover, #3f3f46);
+}
+
+/* ==========================================================================
+   Supabase Main Template Box (#3 Box)
+   ========================================================================== */
+
+.supabase-template-box {
+    background: var(--bg-secondary, #141416);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm, 8px);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-sm);
 }
 
-.studio-card-header {
+/* Inner Tabs (Confirm signup, Invite user, Magic Link...) */
+.supabase-inner-tabs {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--bg-secondary);
+    gap: 18px;
+    padding: 0 18px;
     border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary, #141416);
+    overflow-x: auto;
 }
 
-.studio-card-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.supabase-inner-tab {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    padding: 12px 2px;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.supabase-inner-tab:hover {
     color: var(--text-primary);
 }
 
-.studio-card-body {
-    padding: 16px;
+.supabase-inner-tab.active {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
-/* Card 1: Metadata Form */
-.studio-form-grid {
+.supabase-inner-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--text-primary);
+}
+
+/* Form Body */
+.supabase-form-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.supabase-field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-row-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 14px;
+    gap: 16px;
 }
 
-@media (max-width: 640px) {
-    .studio-form-grid {
+@media (max-width: 768px) {
+    .field-row-split {
         grid-template-columns: 1fr;
     }
 }
 
-.form-group {
+.field-half {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
 }
 
-.form-label {
-    font-size: 12px;
-    font-weight: 600;
+.supabase-label {
+    font-size: 12.5px;
+    font-weight: 500;
     color: var(--text-secondary);
 }
 
-/* Variables Chips Bar */
-.studio-vars-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+.supabase-input {
+    width: 100%;
+    background: var(--bg-primary, #0f0f11);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.vars-label {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.supabase-input:focus {
+    border-color: var(--accent-primary, #14b8a6);
 }
 
-.vars-chip-list {
+/* Message Body Header & Source/Preview Toggle */
+.message-body-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.source-preview-toggle {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.toggle-tab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.toggle-tab:hover {
+    color: var(--text-secondary);
+}
+
+.toggle-tab.active {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Available Variables Ribbon */
+.supabase-vars-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
 }
 
-.vars-chip-btn {
-    display: inline-flex;
+.vars-ribbon-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.vars-chips-wrap {
+    display: flex;
     align-items: center;
     gap: 5px;
-    padding: 4px 9px;
-    border-radius: var(--radius-xs, 6px);
-    background: var(--bg-tertiary);
+    flex-wrap: wrap;
+}
+
+.supabase-var-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--bg-tertiary, #1d1d20);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 11.5px;
-    transition: all var(--transition-fast, 0.15s ease);
+    font-size: 11px;
+    transition: all 0.15s ease;
 }
 
-.vars-chip-btn code {
+.supabase-var-chip code {
     font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--accent-secondary, #2dd4bf);
 }
 
-.vars-chip-btn:hover {
-    background: var(--bg-card-hover, var(--bg-elevated));
+.supabase-var-chip:hover {
     border-color: var(--accent-primary);
     color: var(--text-primary);
 }
 
-.vars-chip-btn.copied {
-    background: var(--success-bg);
-    border-color: var(--success);
-    color: var(--success);
+.supabase-var-chip.copied {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: #22c55e;
+    color: #22c55e;
 }
 
-/* Card 2: HTML Code Editor */
-.editor-card {
-    flex: 1;
-    min-height: 440px;
-}
-
-.editor-body {
-    padding: 0 !important;
-    flex: 1;
+/* Editor Wrapper with Line Numbers */
+.supabase-editor-wrapper {
     display: flex;
-}
-
-.btn-ghost-copy {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 9px;
-    border-radius: var(--radius-xs, 6px);
-    background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    font-size: 11.5px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-fast, 0.15s ease);
+    border-radius: 6px;
+    background: var(--bg-primary, #0f0f11);
+    min-height: 380px;
+    overflow: hidden;
 }
 
-.btn-ghost-copy:hover {
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
+.editor-line-numbers {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-muted, #71717a);
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    user-select: none;
+    text-align: right;
+    min-width: 32px;
 }
 
-.studio-code-editor {
-    width: 100%;
-    height: 100%;
-    min-height: 420px;
-    background: var(--bg-primary);
+.supabase-code-area {
+    flex: 1;
+    background: transparent;
     border: none;
-    padding: 16px;
+    padding: 12px 14px;
     color: var(--text-primary);
-    font-family: 'SF Mono', 'JetBrains Mono', Monaco, Menlo, Consolas, monospace;
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
     font-size: 12.5px;
     line-height: 1.6;
     outline: none;
     resize: vertical;
     box-sizing: border-box;
     tab-size: 2;
+    min-height: 380px;
 }
 
-.studio-code-editor::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-}
-
-.studio-code-editor::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-/* Right Column: Preview Card */
-.preview-card {
-    height: 100%;
-    min-height: 640px;
-}
-
-.device-switcher-pill {
+/* Preview Wrapper */
+.supabase-preview-wrapper {
     display: flex;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-xs, 6px);
-    padding: 2px;
+    flex-direction: column;
     border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary, #0f0f11);
+    min-height: 480px;
+    overflow: hidden;
+}
+
+.preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--bg-secondary, #141416);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+}
+
+.preview-info strong {
+    color: var(--text-primary);
+}
+
+.device-pills {
+    display: flex;
+    gap: 4px;
 }
 
 .dev-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 4px;
+    padding: 2px 7px;
     border-radius: 4px;
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--text-secondary);
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-size: 11px;
     cursor: pointer;
-    transition: all var(--transition-fast, 0.15s ease);
 }
 
 .dev-btn.active {
-    background: var(--accent-subtle, rgba(20, 184, 166, 0.15));
-    color: var(--accent-primary, #14b8a6);
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
-/* Preview Viewport & Frame */
-.studio-preview-wrapper {
+.preview-viewport {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    background: var(--bg-primary);
+    padding: 16px;
+    background: #0f0f11;
     overflow: auto;
 }
 
-.mock-email-window {
+.preview-viewport.desktop {
     width: 100%;
-    height: 100%;
-    min-height: 560px;
-    background: var(--bg-secondary);
+}
+
+.preview-viewport.mobile .preview-frame {
+    max-width: 375px;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm, 8px);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-md);
-    transition: width 0.25s ease, height 0.25s ease;
+    border-radius: 12px;
 }
 
-.studio-preview-wrapper.mobile .mock-email-window {
-    width: 375px;
-    height: 640px;
-    border-radius: 28px;
-    border: 6px solid var(--border-light);
+.preview-frame {
+    width: 100%;
+    min-height: 440px;
+    border: none;
+    background: transparent;
 }
 
-.mock-window-header {
-    background: var(--bg-tertiary);
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border-color);
+/* Box Footer */
+.supabase-box-footer {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary, #141416);
 }
 
-.mock-window-dots {
+.btn-link-reset {
     display: flex;
+    align-items: center;
     gap: 5px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s ease;
 }
 
-.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+.btn-link-reset:hover {
+    color: var(--danger, #ef4444);
 }
 
-.dot.red { background: #ef4444; }
-.dot.yellow { background: #f59e0b; }
-.dot.green { background: #10b981; }
-
-.mock-window-info {
+.footer-right {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    align-items: center;
+    gap: 8px;
 }
 
-.mock-window-info strong {
+/* ==========================================================================
+   2. SMTP Settings Tab
+   ========================================================================== */
+
+.smtp-box {
+    padding: 24px;
+}
+
+.smtp-box-header {
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.smtp-box-header h3 {
+    margin: 0 0 6px 0;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--text-primary);
 }
 
-.mock-window-body {
-    flex: 1;
-    background: #0f0f11;
-    overflow: hidden;
+.smtp-box-header p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.45;
 }
 
-.preview-render-frame {
-    width: 100%;
-    height: 100%;
-    min-height: 500px;
-    border: none;
-    display: block;
-    background: transparent;
+.smtp-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.smtp-test-alert {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.smtp-test-alert.success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.smtp-test-alert.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.smtp-actions-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
 }
