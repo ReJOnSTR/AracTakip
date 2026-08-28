@@ -1,40 +1,48 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { MoreHorizontal, MoreVertical } from 'lucide-react'
+import { MoreVertical } from 'lucide-react'
+
+/**
+ * Recursively extracts valid React elements/buttons out of Fragments & Arrays
+ */
+function extractButtons(nodes) {
+    const buttons = []
+    function traverse(items) {
+        React.Children.forEach(items, (child) => {
+            if (!child) return
+            if (child.type === React.Fragment) {
+                traverse(child.props?.children)
+            } else if (React.isValidElement(child)) {
+                buttons.push(child)
+            }
+        })
+    }
+    traverse(nodes)
+    return buttons
+}
 
 /**
  * Universal Responsive Table Action Menu
- * - Renders buttons inline on wide screens
- * - Gracefully collapses into a 3-dots (...) floating dropdown popover on small/mobile screens
+ * - Gracefully collapses into a 3-dots (...) floating dropdown popover
+ * - Accurately unrolls fragments and button actions with icons and labels
  */
 export default function TableActionMenu({
     items = null,
     children = null,
     align = 'right',
-    maxInline = 3,
-    forceDropdown = false
+    forceDropdown = true
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, placement: 'bottom' })
-    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 1024)
     const triggerRef = useRef(null)
     const menuRef = useRef(null)
 
-    // Window resize detector for responsive breakpoint
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 1024)
-        }
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    // Update menu position based on trigger rect
+    // Calculate menu position relative to trigger button
     const calculatePosition = () => {
         if (!triggerRef.current) return
         const rect = triggerRef.current.getBoundingClientRect()
-        const menuWidth = 190
-        const menuHeight = 220
+        const menuWidth = 185
+        const menuHeight = 240
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
 
@@ -42,12 +50,12 @@ export default function TableActionMenu({
         if (left < 10) left = 10
         if (left + menuWidth > viewportWidth - 10) left = viewportWidth - menuWidth - 10
 
-        let top = rect.bottom + 6
+        let top = rect.bottom + 5
         let placement = 'bottom'
 
         // If overflowing bottom, flip upwards
         if (top + menuHeight > viewportHeight - 10 && rect.top > menuHeight) {
-            top = rect.top - 6
+            top = rect.top - 5
             placement = 'top'
         }
 
@@ -55,6 +63,7 @@ export default function TableActionMenu({
     }
 
     const toggleMenu = (e) => {
+        e.preventDefault()
         e.stopPropagation()
         if (!isOpen) {
             calculatePosition()
@@ -64,13 +73,15 @@ export default function TableActionMenu({
         }
     }
 
-    // Close on click outside, scroll or Escape key
+    // Close on click outside, resize, scroll or Escape key
     useEffect(() => {
         if (!isOpen) return
 
         const handleClickOutside = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target) &&
-                triggerRef.current && !triggerRef.current.contains(e.target)) {
+            if (
+                menuRef.current && !menuRef.current.contains(e.target) &&
+                triggerRef.current && !triggerRef.current.contains(e.target)
+            ) {
                 setIsOpen(false)
             }
         }
@@ -80,190 +91,199 @@ export default function TableActionMenu({
         }
 
         const handleScroll = (e) => {
-            // Close if scrolling outside the menu
             if (menuRef.current && !menuRef.current.contains(e.target)) {
                 setIsOpen(false)
             }
         }
 
         window.addEventListener('mousedown', handleClickOutside, true)
+        window.addEventListener('touchstart', handleClickOutside, true)
         window.addEventListener('keydown', handleKeyDown)
         window.addEventListener('scroll', handleScroll, true)
+        window.addEventListener('resize', () => setIsOpen(false))
 
         return () => {
             window.removeEventListener('mousedown', handleClickOutside, true)
+            window.removeEventListener('touchstart', handleClickOutside, true)
             window.removeEventListener('keydown', handleKeyDown)
             window.removeEventListener('scroll', handleScroll, true)
+            window.removeEventListener('resize', () => setIsOpen(false))
         }
     }, [isOpen])
 
-    const showDropdown = forceDropdown || isMobile
-
     // Parse items from either explicit `items` array or React `children`
-    const parsedItems = items || React.Children.toArray(children).map((child) => {
-        if (!React.isValidElement(child)) return null
-        const { title, onClick, className, children: childContent, disabled } = child.props || {}
-        const isDanger = className?.includes('danger') || false
-        const isSuccess = className?.includes('success') || false
+    const parsedItems = useMemo(() => {
+        if (items && items.length > 0) return items
 
-        return {
-            label: title || (typeof childContent === 'string' ? childContent : 'İşlem'),
-            icon: childContent,
-            onClick: (e) => {
-                e.stopPropagation()
-                setIsOpen(false)
-                if (onClick) onClick(e)
-            },
-            danger: isDanger,
-            success: isSuccess,
-            disabled: !!disabled
-        }
-    }).filter(Boolean)
+        const rawButtons = extractButtons(children)
+        return rawButtons.map((btn, index) => {
+            const { title, onClick, className, style, disabled, children: btnChildren } = btn.props || {}
+            
+            let icon = null
+            let textLabel = title || ''
+
+            if (React.isValidElement(btnChildren)) {
+                icon = btnChildren
+            } else if (Array.isArray(btnChildren)) {
+                btnChildren.forEach((c) => {
+                    if (typeof c === 'string') textLabel = textLabel || c
+                    else if (React.isValidElement(c)) {
+                        if (c.type === 'span' && typeof c.props?.children === 'string') {
+                            textLabel = textLabel || c.props.children
+                        } else {
+                            icon = icon || c
+                        }
+                    }
+                })
+            } else if (typeof btnChildren === 'string') {
+                textLabel = textLabel || btnChildren
+            }
+
+            if (!textLabel) {
+                textLabel = 'İşlem'
+            }
+
+            const isDanger = className?.includes('danger') || (style && (style.color === '#ef4444' || style.color === 'red'))
+            const isSuccess = className?.includes('success') || (style && (style.color === '#10b981' || style.color === 'green'))
+
+            return {
+                key: btn.key || index,
+                label: textLabel,
+                title: title || textLabel,
+                icon: icon || btnChildren,
+                onClick: (e) => {
+                    e.stopPropagation()
+                    setIsOpen(false)
+                    if (onClick) onClick(e)
+                },
+                danger: isDanger,
+                success: isSuccess,
+                disabled: !!disabled,
+                style
+            }
+        })
+    }, [children, items])
 
     return (
-        <div className="table-action-menu-wrapper" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
-            {/* Desktop View: Show buttons inline */}
-            {!showDropdown && (
-                <div className="action-btns table-actions-inline" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {children ? children : (
-                        items?.map((item, idx) => {
+        <div 
+            className="table-action-menu-wrapper" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
+        >
+            <button
+                ref={triggerRef}
+                type="button"
+                className={`table-3dots-btn ${isOpen ? 'active' : ''}`}
+                onClick={toggleMenu}
+                title="İşlemler Menüsü"
+                style={{
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '6px',
+                    background: isOpen ? 'var(--bg-tertiary, rgba(255, 255, 255, 0.12))' : 'rgba(255, 255, 255, 0.04)',
+                    border: isOpen ? '1px solid var(--accent-primary, #3b82f6)' : '1px solid rgba(255, 255, 255, 0.08)',
+                    color: isOpen ? 'var(--text-primary, #ffffff)' : 'var(--text-secondary, #a1a1aa)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isOpen ? '0 0 8px rgba(59, 130, 246, 0.3)' : 'none'
+                }}
+            >
+                <MoreVertical size={16} />
+            </button>
+
+            {isOpen && createPortal(
+                <div
+                    ref={menuRef}
+                    className="table-action-popover"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        position: 'fixed',
+                        top: menuPosition.placement === 'top' ? 'auto' : `${menuPosition.top}px`,
+                        bottom: menuPosition.placement === 'top' ? `${window.innerHeight - menuPosition.top}px` : 'auto',
+                        left: `${menuPosition.left}px`,
+                        minWidth: '175px',
+                        maxWidth: '230px',
+                        background: '#18181b',
+                        border: '1px solid rgba(255, 255, 255, 0.14)',
+                        borderRadius: '8px',
+                        boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4)',
+                        padding: '5px',
+                        zIndex: 999999,
+                        backdropFilter: 'blur(16px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px'
+                    }}
+                >
+                    {parsedItems.length === 0 ? (
+                        <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text-muted, #71717a)' }}>
+                            İşlem yok
+                        </div>
+                    ) : (
+                        parsedItems.map((item, idx) => {
                             if (item.hidden) return null
                             const Icon = item.icon
+
                             return (
                                 <button
-                                    key={idx}
+                                    key={item.key || idx}
                                     type="button"
-                                    className={`action-icon-btn ${item.danger ? 'danger' : ''} ${item.success ? 'success' : ''}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        if (item.onClick) item.onClick(e)
-                                    }}
-                                    title={item.title || item.label}
                                     disabled={item.disabled}
-                                    style={item.style}
+                                    onClick={item.onClick}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '9px',
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        borderRadius: '6px',
+                                        fontSize: '12.5px',
+                                        fontWeight: 500,
+                                        textAlign: 'left',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: item.danger ? '#ef4444' : item.success ? '#10b981' : '#f4f4f5',
+                                        cursor: item.disabled ? 'not-allowed' : 'pointer',
+                                        opacity: item.disabled ? 0.5 : 1,
+                                        transition: 'all 0.12s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!item.disabled) {
+                                            e.currentTarget.style.background = item.danger
+                                                ? 'rgba(239, 68, 68, 0.16)'
+                                                : item.success
+                                                ? 'rgba(16, 185, 129, 0.16)'
+                                                : 'rgba(255, 255, 255, 0.1)'
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'transparent'
+                                    }}
                                 >
-                                    {typeof Icon === 'function' ? <Icon size={14} /> : Icon}
+                                    {Icon && (
+                                        <span style={{ 
+                                            display: 'inline-flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center', 
+                                            flexShrink: 0, 
+                                            width: '18px',
+                                            color: item.danger ? '#ef4444' : item.success ? '#10b981' : 'inherit'
+                                        }}>
+                                            {typeof Icon === 'function' ? <Icon size={15} /> : Icon}
+                                        </span>
+                                    )}
+                                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {item.label}
+                                    </span>
                                 </button>
                             )
                         })
                     )}
-                </div>
-            )}
-
-            {/* Mobile / Narrow Screen View: 3-Dots Button */}
-            {showDropdown && (
-                <>
-                    <button
-                        ref={triggerRef}
-                        type="button"
-                        className={`table-3dots-btn ${isOpen ? 'active' : ''}`}
-                        onClick={toggleMenu}
-                        title="İşlemler"
-                        style={{
-                            width: '28px',
-                            height: '28px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '6px',
-                            background: isOpen ? 'var(--bg-tertiary, #27272a)' : 'transparent',
-                            border: isOpen ? '1px solid var(--border-color, #3f3f46)' : '1px solid transparent',
-                            color: isOpen ? 'var(--text-primary, #ffffff)' : 'var(--text-secondary, #a1a1aa)',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
-                        }}
-                    >
-                        <MoreVertical size={16} />
-                    </button>
-
-                    {isOpen && createPortal(
-                        <div
-                            ref={menuRef}
-                            className="table-action-popover"
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                                position: 'fixed',
-                                top: menuPosition.placement === 'top' ? 'auto' : `${menuPosition.top}px`,
-                                bottom: menuPosition.placement === 'top' ? `${window.innerHeight - menuPosition.top}px` : 'auto',
-                                left: `${menuPosition.left}px`,
-                                minWidth: '175px',
-                                maxWidth: '240px',
-                                background: 'var(--bg-secondary, #18181b)',
-                                border: '1px solid var(--border-color, #27272a)',
-                                borderRadius: '8px',
-                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
-                                padding: '4px',
-                                zIndex: 99999,
-                                backdropFilter: 'blur(12px)',
-                                animation: 'fadeInScale 0.15s ease-out',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '2px'
-                            }}
-                        >
-                            {parsedItems.length === 0 ? (
-                                <div style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text-muted)' }}>İşlem yok</div>
-                            ) : (
-                                parsedItems.map((item, idx) => {
-                                    if (item.hidden) return null
-                                    const Icon = item.icon
-
-                                    return (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            disabled={item.disabled}
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setIsOpen(false)
-                                                if (item.onClick) item.onClick(e)
-                                            }}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                width: '100%',
-                                                padding: '7px 10px',
-                                                borderRadius: '6px',
-                                                fontSize: '12.5px',
-                                                fontWeight: 500,
-                                                textAlign: 'left',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: item.danger ? '#ef4444' : item.success ? '#10b981' : 'var(--text-primary, #f4f4f5)',
-                                                cursor: item.disabled ? 'not-allowed' : 'pointer',
-                                                opacity: item.disabled ? 0.5 : 1,
-                                                transition: 'background 0.12s ease'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (!item.disabled) {
-                                                    e.currentTarget.style.background = item.danger
-                                                        ? 'rgba(239, 68, 68, 0.12)'
-                                                        : item.success
-                                                        ? 'rgba(16, 185, 129, 0.12)'
-                                                        : 'var(--bg-tertiary, #27272a)'
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'transparent'
-                                            }}
-                                        >
-                                            {Icon && (
-                                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, width: '16px' }}>
-                                                    {typeof Icon === 'function' ? <Icon size={14} /> : Icon}
-                                                </span>
-                                            )}
-                                            <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {item.label}
-                                            </span>
-                                        </button>
-                                    )
-                                })
-                            )}
-                        </div>,
-                        document.body
-                    )}
-                </>
+                </div>,
+                document.body
             )}
         </div>
     )
