@@ -18,7 +18,7 @@ import {
     Send,
     ArrowLeft
 } from 'lucide-react'
-import logo from '../assets/logos/Group5.svg'
+import logo from '../assets/logos/Group1.svg'
 import './Login.css'
 
 export default function Register() {
@@ -188,9 +188,7 @@ export default function Register() {
                 {/* ── LEFT SIDE: BRANDING & MINIMAL IDENTITY ── */}
                 <div className="auth-brand-panel">
                     <div className="brand-panel-inner">
-                        <div className="brand-logo-container">
-                            <img src={logo} alt="Kontrol Logo" className="brand-logo-img" />
-                        </div>
+                        <img src={logo} alt="Kontrol Logo" className="brand-logo-img" />
                         <h1 className="brand-title-clean">KONTROL</h1>
                         <p className="brand-subtitle-clean">Filo & Yönetim Platformu</p>
                     </div>

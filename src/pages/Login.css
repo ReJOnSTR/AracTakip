@@ -65,25 +65,12 @@
     margin: auto 0;
 }
 
-.brand-logo-container {
-    width: 84px;
-    height: 84px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
 .brand-logo-img {
-    height: 48px;
+    height: 64px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 4px 10px rgba(59, 130, 246, 0.3));
+    margin-bottom: 16px;
+    filter: drop-shadow(0 6px 16px rgba(20, 184, 166, 0.35));
 }
 
 .brand-title-clean {
