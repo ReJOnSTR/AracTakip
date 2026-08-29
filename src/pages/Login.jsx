@@ -118,13 +118,17 @@ export default function Login() {
                     localStorage.removeItem('aractakip_saved_user')
                 }
             } else {
-                if (result.requireEmailVerification) {
+                if (result.pendingApproval) {
+                    setUnverifiedEmail('')
+                    setError('⏳ Hesap Onayı Bekleniyor: Şirket başvurunuz başarıyla alınmış olup Platform Yöneticisi incelemesindedir. Hesabınız onaylandığında giriş yapabilirsiniz.')
+                } else if (result.requireEmailVerification) {
                     setUnverifiedEmail(result.email || cleanEmail)
                     setResendVerificationMsg('')
+                    setError(result.error || 'E-posta adresiniz henüz doğrulanmamış.')
                 } else {
                     setUnverifiedEmail('')
+                    setError(result.error || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.')
                 }
-                setError(result.error || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.')
                 setLoading(false)
             }
         } catch (err) {

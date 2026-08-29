@@ -37,6 +37,7 @@ export default function Register() {
 
     // Verification Step States
     const [isSubmitted, setIsSubmitted] = useState(false)
+    const [isPendingApproval, setIsPendingApproval] = useState(false)
     const [registeredEmail, setRegisteredEmail] = useState('')
     const [otpCode, setOtpCode] = useState('')
     const [verifyingOtp, setVerifyingOtp] = useState(false)
@@ -114,24 +115,32 @@ export default function Register() {
         setVerifyingOtp(true)
 
         try {
+            let verified = false
+
             const { data, error: verifyErr } = await supabase.auth.verifyOtp({
                 email: registeredEmail,
                 token: cleanCode,
                 type: 'signup'
             })
 
-            if (verifyErr) {
-                setOtpError(verifyErr.message || 'Geçersiz veya süresi dolmuş kod.')
-                setVerifyingOtp(false)
-                return
+            if (!verifyErr) {
+                verified = true
             }
 
-            // Activate user in local database
+            // Local database activate check
             if (window.electronAPI?.activateUserByEmail) {
-                await window.electronAPI.activateUserByEmail({ email: registeredEmail })
+                const res = await window.electronAPI.activateUserByEmail({ email: registeredEmail })
+                if (res?.success) {
+                    verified = true
+                }
             }
 
-            navigate('/login?verified=true')
+            if (verified) {
+                setIsPendingApproval(true)
+            } else {
+                setOtpError('Geçersiz veya süresi dolmuş kod.')
+                setVerifyingOtp(false)
+            }
         } catch (err) {
             setOtpError('Doğrulama hatası: ' + err.message)
             setVerifyingOtp(false)
@@ -212,7 +221,88 @@ export default function Register() {
 
                 {/* ── RIGHT SIDE: REGISTER FORM OR VERIFICATION SCREEN ── */}
                 <div className="auth-form-panel">
-                    {isSubmitted ? (
+                    {isPendingApproval ? (
+                        /* ── STEP 3: APPLICATION SUBMITTED & PENDING PLATFORM APPROVAL ── */
+                        <div>
+                            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                <div style={{ 
+                                    width: '64px', 
+                                    height: '64px', 
+                                    borderRadius: '50%', 
+                                    background: 'rgba(16, 185, 129, 0.15)', 
+                                    color: '#10b981', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    margin: '0 auto 16px',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)'
+                                }}>
+                                    <ShieldCheck size={36} />
+                                </div>
+                                <h2 className="form-header-title" style={{ fontSize: '22px' }}>Başvurunuz Alındı! 🎉</h2>
+                                <p className="form-header-subtitle" style={{ marginTop: '8px', lineHeight: 1.5 }}>
+                                    E-posta adresiniz başarıyla doğrulandı.
+                                </p>
+                            </div>
+
+                            <div style={{
+                                background: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '10px',
+                                padding: '16px',
+                                marginBottom: '20px',
+                                fontSize: '13px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
+                                    <span style={{ color: 'var(--text-secondary)' }}>Kayıtlı Şirket:</span>
+                                    <strong style={{ color: 'var(--text-primary)' }}>{companyName || 'Şirketiniz'}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
+                                    <span style={{ color: 'var(--text-secondary)' }}>Yetkili E-Posta:</span>
+                                    <strong style={{ color: 'var(--text-primary)' }}>{registeredEmail}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ color: 'var(--text-secondary)' }}>Hesap Durumu:</span>
+                                    <span style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        gap: '5px',
+                                        fontSize: '12px', 
+                                        fontWeight: 600, 
+                                        color: '#f59e0b', 
+                                        background: 'rgba(245, 158, 11, 0.12)', 
+                                        padding: '3px 8px', 
+                                        borderRadius: '4px',
+                                        border: '1px solid rgba(245, 158, 11, 0.25)'
+                                    }}>
+                                        ⏳ Yönetici Onayı Bekleniyor
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style={{ 
+                                background: 'rgba(59, 130, 246, 0.08)', 
+                                border: '1px solid rgba(59, 130, 246, 0.2)', 
+                                borderRadius: '8px', 
+                                padding: '12px 14px', 
+                                marginBottom: '24px', 
+                                fontSize: '12.5px', 
+                                color: 'var(--text-secondary)',
+                                lineHeight: 1.5
+                            }}>
+                                Kontrol App kurumsal güvenlik protokolü gereği yeni şirket başvuruları sistem yöneticisi tarafından incelenerek onaylanmaktadır. Hesabınız aktif edildiğinde giriş yapabilirsiniz.
+                            </div>
+
+                            <Link
+                                to="/login"
+                                className="modern-submit-btn"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+                            >
+                                <span>Giriş Sayfasına Dön</span>
+                                <ArrowRight size={16} />
+                            </Link>
+                        </div>
+                    ) : isSubmitted ? (
                         /* ── EMAIL VERIFICATION WAITING STEP ── */
                         <div>
                             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -232,7 +322,7 @@ export default function Register() {
                                 </div>
                                 <h2 className="form-header-title">E-Postanızı Doğrulayın</h2>
                                 <p className="form-header-subtitle" style={{ marginTop: '8px', lineHeight: 1.5 }}>
-                                    <strong style={{ color: 'var(--text-primary)' }}>{registeredEmail}</strong> adresinize bir doğrulama bağlantısı ve 6 haneli güvenlik kodu gönderdik.
+                                    <strong style={{ color: 'var(--text-primary)' }}>{registeredEmail}</strong> adresinize bir doğrulama kodu gönderdik.
                                 </p>
                             </div>
 
@@ -283,7 +373,7 @@ export default function Register() {
                                         </>
                                     ) : (
                                         <>
-                                            <span>Kodu Onayla ve Giriş Yap</span>
+                                            <span>Kodu Onayla ve Başvuruyu Tamamla</span>
                                             <ArrowRight size={16} />
                                         </>
                                     )}
@@ -330,8 +420,12 @@ export default function Register() {
                         /* ── STANDARD REGISTER FORM ── */
                         <div>
                             <div className="form-header-block">
-                                <h2 className="form-header-title">Şirket Hesabı Oluştur</h2>
-                                <p className="form-header-subtitle">Filo yönetim sistemine başlamak için formu doldurun.</p>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '3px 8px', borderRadius: '20px', marginBottom: '8px', border: '1px solid var(--border-color)' }}>
+                                    <Building2 size={12} />
+                                    <span>Kurumsal B2B Şirket Kaydı</span>
+                                </div>
+                                <h2 className="form-header-title">Yeni Şirket Hesabı Başvurusu</h2>
+                                <p className="form-header-subtitle">Filo yönetim sistemine başlamak için kurumsal bilgilerinizi doldurun.</p>
                             </div>
 
                             {error && (
@@ -344,7 +438,7 @@ export default function Register() {
                             <form onSubmit={handleSubmit} noValidate>
                                 <div className="form-group" style={{ marginBottom: '14px' }}>
                                     <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                        Şirket / Firma Adı *
+                                        Şirket / Firma Unvanı *
                                     </label>
                                     <div className="modern-input-wrapper">
                                         <Building2 size={18} className="input-leading-icon" />
@@ -363,7 +457,7 @@ export default function Register() {
                                 <div className="auth-form-grid" style={{ marginBottom: '14px' }}>
                                     <div className="form-group">
                                         <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                            Kullanıcı Adı *
+                                            Yönetici Kullanıcı Adı *
                                         </label>
                                         <div className="modern-input-wrapper">
                                             <User size={18} className="input-leading-icon" />
@@ -380,7 +474,7 @@ export default function Register() {
 
                                     <div className="form-group">
                                         <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
-                                            E-Posta *
+                                            Kurumsal E-Posta *
                                         </label>
                                         <div className="modern-input-wrapper">
                                             <Mail size={18} className="input-leading-icon" />
@@ -396,7 +490,7 @@ export default function Register() {
                                     </div>
                                 </div>
 
-                                <div className="auth-form-grid" style={{ marginBottom: '22px' }}>
+                                <div className="auth-form-grid" style={{ marginBottom: '18px' }}>
                                     <div className="form-group">
                                         <label className="form-label" style={{ marginBottom: '6px', display: 'block', fontSize: '13px', fontWeight: 500 }}>
                                             Şifre (Min. 6) *
@@ -460,18 +554,32 @@ export default function Register() {
                                     {loading ? (
                                         <>
                                             <Loader2 size={18} className="spin" />
-                                            <span>Hesap Oluşturuluyor...</span>
+                                            <span>Başvuru Oluşturuluyor...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span>Hesabı Oluştur ve Başla</span>
+                                            <span>Şirket Başvurusunu Tamamla</span>
                                             <ArrowRight size={16} />
                                         </>
                                     )}
                                 </button>
                             </form>
 
-                            <div className="auth-bottom-footer">
+                            {/* Personnel invite notice box */}
+                            <div style={{
+                                marginTop: '16px',
+                                padding: '10px 12px',
+                                borderRadius: '6px',
+                                background: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-color)',
+                                fontSize: '11.5px',
+                                color: 'var(--text-muted)',
+                                lineHeight: 1.4
+                            }}>
+                                ℹ️ <strong>Personel ve Şoförler için:</strong> Personel hesapları yalnızca bağlı olduğunuz şirket yöneticisi tarafından davetiye yoluyla açılır; dışarıdan bağımsız kayıt yapılamaz.
+                            </div>
+
+                            <div className="auth-bottom-footer" style={{ marginTop: '16px' }}>
                                 Zaten bir hesabınız var mı? <Link to="/login">Giriş Yapın</Link>
                             </div>
                         </div>

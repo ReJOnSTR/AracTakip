@@ -260,30 +260,40 @@ async function loginUser(credentials) {
                         const { data: supaUsers } = await supabaseAdmin.auth.admin.listUsers();
                         const supaUser = supaUsers?.users?.find(u => u.email?.toLowerCase() === user.email.toLowerCase());
                         if (supaUser && supaUser.email_confirmed_at) {
-                            // User verified! Auto-activate in local database:
-                            await prisma.users.update({
-                                where: { id: user.id },
-                                data: { is_active: 1 }
-                            });
-                            user.is_active = 1;
                             isEmailConfirmed = true;
-                            log.info(`[Auth] User ${user.username} (${user.email}) auto-activated after email verification.`);
                         }
                     }
                 } catch (e) {
-                    log.warn('Auto-activate check error:', e.message);
+                    log.warn('Email verification check error:', e.message);
                 }
             }
 
-            if (!isEmailConfirmed && user.is_active === 0) {
-                log.warn(`Login failed: User "${user.username}" is unverified / inactive`);
+            if (!isEmailConfirmed) {
+                log.warn(`Login failed: User "${user.username}" is unverified`);
                 return {
                     success: false,
                     requireEmailVerification: true,
                     email: user.email,
-                    error: 'E-posta adresiniz henüz doğrulanmamış. Lütfen gelen kutunuzdaki onay linkine tıklayın.'
+                    error: 'E-posta adresiniz henüz doğrulanmamış. Lütfen gelen kutunuzdaki doğrulama kodunu girin.'
                 };
             }
+
+            // Email is confirmed, but account is awaiting platform admin approval
+            log.warn(`Login notice: User "${user.username}" is awaiting platform admin approval`);
+            return {
+                success: false,
+                pendingApproval: true,
+                email: user.email,
+                error: 'Hesabınız henüz Platform Yöneticisi tarafından onaylanmadı. Başvurunuz incelendikten sonra hesabınız aktif edilecektir.'
+            };
+        }
+
+        if (user.is_active === -1) {
+            log.warn(`Login failed: User "${user.username}" is suspended/rejected`);
+            return {
+                success: false,
+                error: 'Hesabınız askıya alınmış veya başvurunuz onaylanmamıştır. Destek ekibiyle iletişime geçin.'
+            };
         }
 
         let isValid = bcrypt.compareSync(password, user.password_hash);
@@ -1078,14 +1088,16 @@ async function activateUserByEmail(data) {
         });
 
         if (user) {
+            // If personnel, activate immediately. If company_admin, keep in pending approval state
+            const newStatus = user.role === 'personnel' ? 1 : 0;
             await prisma.users.update({
                 where: { id: user.id },
-                data: { is_active: 1 }
+                data: { is_active: newStatus }
             });
-            log.info(`[Auth] User activated via email callback: ${cleanEmail}`);
+            log.info(`[Auth] User email confirmed: ${cleanEmail} (role: ${user.role}, is_active: ${newStatus})`);
         }
 
-        return { success: true };
+        return { success: true, isPersonnel: user?.role === 'personnel' };
     } catch (err) {
         log.error('activateUserByEmail error:', err);
         return { success: false, error: err.message };

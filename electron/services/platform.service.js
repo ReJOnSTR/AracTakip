@@ -146,7 +146,9 @@ async function getPlatformUsers() {
                 customRole: u.custom_role?.name || null,
                 accountType,
                 accountBadge,
-                isActive: u.is_active !== 0,
+                isActive: u.is_active === 1,
+                isPending: u.is_active === 0,
+                rawStatus: u.is_active,
                 mustChangePassword: u.must_change_password === 1,
                 company: linkedCompany ? {
                     id: linkedCompany.id,

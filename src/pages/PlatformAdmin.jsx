@@ -633,16 +633,21 @@ export default function PlatformAdmin({ section }) {
 
     // Table Data formatted for DataTable search & filters
     const tableUsers = useMemo(() => {
-        return platformUsers.map(u => ({
-            ...u,
-            isActive: u.isActive !== undefined ? u.isActive : (u.is_active !== 0),
-            company_id: u.company?.id ? String(u.company.id) : 'NONE',
-            company_name: u.company?.name || 'Sistem / Genel',
-            employee_name: u.employee?.fullName || '',
-            employee_pos: u.employee?.position || '',
-            employee_tc: u.employee?.tcNo || '',
-            status_filter: (u.isActive !== undefined ? u.isActive : (u.is_active !== 0)) ? 'ACTIVE' : 'LOCKED'
-        }))
+        return platformUsers.map(u => {
+            const isPending = u.isPending !== undefined ? u.isPending : (u.is_active === 0)
+            const isActive = u.isActive !== undefined ? u.isActive : (u.is_active === 1)
+            return {
+                ...u,
+                isActive,
+                isPending,
+                company_id: u.company?.id ? String(u.company.id) : 'NONE',
+                company_name: u.company?.name || 'Sistem / Genel',
+                employee_name: u.employee?.fullName || '',
+                employee_pos: u.employee?.position || '',
+                employee_tc: u.employee?.tcNo || '',
+                status_filter: isPending ? 'PENDING' : (isActive ? 'ACTIVE' : 'LOCKED')
+            }
+        })
     }, [platformUsers])
 
     const tableCompanies = useMemo(() => {
@@ -677,6 +682,7 @@ export default function PlatformAdmin({ section }) {
             key: 'status_filter',
             label: 'Durum',
             options: [
+                { value: 'PENDING', label: '⏳ Onay Bekleyenler' },
                 { value: 'ACTIVE', label: '🟢 Aktif Hesaplar' },
                 { value: 'LOCKED', label: '🔴 Kilitli Hesaplar' }
             ]
@@ -777,16 +783,33 @@ export default function PlatformAdmin({ section }) {
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kapalı</span>
             )
         )},
-        { key: 'status', label: 'Durum', render: (_, r) => (
-            r.isActive ? (
-                <span className="status-badge-active"><CheckCircle2 size={11} /> Aktif</span>
-            ) : (
-                <span className="status-badge-suspended"><XCircle size={11} /> Kilitli</span>
-            )
-        )},
+        { key: 'status', label: 'Durum', render: (_, r) => {
+            if (r.isPending) {
+                return (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', fontSize: '11.5px', fontWeight: 600, border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+                        ⏳ Onay Bekliyor
+                    </span>
+                )
+            }
+            if (r.isActive) {
+                return <span className="status-badge-active"><CheckCircle2 size={11} /> Aktif</span>
+            }
+            return <span className="status-badge-suspended"><XCircle size={11} /> Kilitli</span>
+        }},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'İşlemler', width: '130px', render: (_, r) => (
+        { key: 'actions', label: 'İşlemler', width: '150px', render: (_, r) => (
             <TableActionMenu>
+                {r.isPending && (
+                    <button
+                        className="ghost-btn"
+                        onClick={() => handleToggleUser(r)}
+                        title="Başvuruyu Onayla & Hesabı Aktif Et"
+                        style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.1)', fontWeight: 600 }}
+                    >
+                        <Check size={13} />
+                        <span>Onayla</span>
+                    </button>
+                )}
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateUser(r)}
@@ -812,7 +835,7 @@ export default function PlatformAdmin({ section }) {
                         <Shield size={13} />
                     </button>
                 )}
-                {r.role !== 'superadmin' && r.username !== 'superadmin' && (
+                {r.role !== 'superadmin' && r.username !== 'superadmin' && !r.isPending && (
                     <button
                         className="action-icon-btn"
                         onClick={() => handleToggleUser(r)}
