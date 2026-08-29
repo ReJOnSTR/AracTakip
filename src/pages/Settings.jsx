@@ -11,7 +11,7 @@ import {
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Users, Wallet, 
     Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock, CheckCircle,
-    UserPlus, Key, Unlock, Trash2, Edit2, ShieldAlert, Check, X, Building2
+    UserPlus, Key, Unlock, Trash2, Edit2, ShieldAlert, Check, X, Building2, Sparkles
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 
@@ -1455,74 +1455,57 @@ export default function Settings() {
                 <Modal
                     isOpen={editUserModal}
                     onClose={() => { setEditUserModal(false); setEditingUser(null); }}
-                    title={`Yetkileri Düzenle: ${editingUser.fullName || editingUser.username}`}
+                    title="Yetkileri ve Rolü Düzenle"
                     size="xl"
                 >
-                    <form onSubmit={handleUpdateUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {/* Top Section: User Identity & Edit Inputs */}
+                    <form onSubmit={handleUpdateUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {/* User Identity Banner (Read-only clean badge strip - No inputs!) */}
                         <div style={{
                             background: 'var(--bg-secondary)',
                             border: '1px solid var(--border-color)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '14px 18px',
+                            borderRadius: '10px',
+                            padding: '12px 16px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             flexWrap: 'wrap',
-                            gap: '16px'
+                            gap: '12px'
                         }}>
-                            {/* User Avatar & Identity info */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <div style={{
-                                    width: '42px',
-                                    height: '42px',
+                                    width: '40px',
+                                    height: '40px',
                                     borderRadius: '50%',
-                                    background: 'var(--accent-gradient)',
+                                    background: 'linear-gradient(135deg, var(--accent-primary) 0%, #0d9488 100%)',
                                     color: '#ffffff',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontWeight: 700,
-                                    fontSize: '16px',
-                                    boxShadow: '0 4px 12px var(--accent-glow)',
+                                    fontSize: '15px',
+                                    boxShadow: '0 2px 8px rgba(99,102,241,0.25)',
                                     flexShrink: 0
                                 }}>
                                     {(editingUser.fullName || editingUser.username || 'U').charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                            {editingUser.fullName || editingUser.username}
-                                        </h3>
-                                        <span className="badge badge-primary" style={{ fontSize: '10.5px' }}>
-                                            {ROLE_PRESETS.find(r => r.id === editingUser.role)?.label || editingUser.role}
-                                        </span>
+                                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span>{editingUser.fullName || editingUser.username}</span>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>@{editingUser.username}</span>
                                     </div>
-                                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                        @{editingUser.username}
+                                    <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                        {editingUser.email}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Edit inputs */}
-                            <div style={{ display: 'flex', gap: '12px', flex: '1', maxWidth: '480px' }}>
-                                <div style={{ flex: 1 }}>
-                                    <CustomInput
-                                        label="Ad Soyad"
-                                        value={editingUser.fullName || ''}
-                                        onChange={(val) => setEditingUser(prev => ({ ...prev, fullName: val }))}
-                                        placeholder="Örn: Ahmet Yılmaz"
-                                    />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <CustomInput
-                                        type="email"
-                                        label="E-Posta Adresi"
-                                        value={editingUser.email || ''}
-                                        onChange={(val) => setEditingUser(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
-                                        required
-                                    />
-                                </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span className={`badge ${editingUser.is_active ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '11px' }}>
+                                    {editingUser.is_active ? '● Aktif Hesap' : '● Kilitli Hesap'}
+                                </span>
+                                <span className="badge badge-outline" style={{ fontSize: '11px' }}>
+                                    {ROLE_PRESETS.find(p => p.id === editingUser.role)?.label || 'Özel Rol'}
+                                </span>
                             </div>
                         </div>
 
@@ -1548,13 +1531,19 @@ export default function Settings() {
                             }}
                         />
 
-                        <div className="modal-footer" style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button type="button" className="btn btn-secondary" onClick={() => { setEditUserModal(false); setEditingUser(null); }}>
-                                İptal
-                            </button>
-                            <button type="submit" className="btn btn-primary" disabled={editUserLoading}>
-                                {editUserLoading ? 'Kaydediliyor...' : 'Yetkileri Kaydet'}
-                            </button>
+                        <div className="modal-footer" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <Sparkles size={13} className="text-primary" />
+                                <span>Kaydedilen yetkiler kullanıcının sonraki işlemlerinde anında etkinleşir.</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => { setEditUserModal(false); setEditingUser(null); }}>
+                                    İptal
+                                </button>
+                                <button type="submit" className="btn btn-primary" disabled={editUserLoading}>
+                                    {editUserLoading ? 'Kaydediliyor...' : 'Yetkileri Kaydet'}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </Modal>

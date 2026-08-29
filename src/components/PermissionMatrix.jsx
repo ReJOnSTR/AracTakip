@@ -8,28 +8,37 @@ import {
     BarChart3, 
     Settings,
     Shield,
-    CheckCircle2
+    CheckCircle2,
+    Crown,
+    Calculator,
+    Wrench,
+    FileSearch,
+    UserCheck,
+    Eye,
+    Check,
+    Ban,
+    Sparkles
 } from 'lucide-react'
 
 export const MODULE_DEFINITIONS = [
     { 
         key: 'works', 
-        label: 'Puantaj & İşler', 
-        description: 'Saha çalışma fişleri, saatlik & günlük işler',
+        label: 'Puantaj & Saha İşleri', 
+        description: 'Saha çalışma fişleri, saatlik & günlük iş kayıtları',
         icon: Briefcase,
         color: '#3b82f6'
     },
     { 
         key: 'employees', 
         label: 'Personel & Bordro', 
-        description: 'Personel listesi, izinler, mesailer ve maaşlar',
+        description: 'Personel listesi, izinler, mesailer ve maaş puantajları',
         icon: Users,
         color: '#10b981'
     },
     { 
         key: 'vehicles', 
-        label: 'Araçlar & Filo', 
-        description: 'Vinç/kamyon filosu, periyodik bakım ve muayene',
+        label: 'Araçlar & Filo Yönetimi', 
+        description: 'Vinç/kamyon filosu, periyodik bakım ve muayeneler',
         icon: Truck,
         color: '#f59e0b'
     },
@@ -67,7 +76,8 @@ export const ROLE_PRESETS = [
     {
         id: 'company_admin',
         label: 'Şirket Yöneticisi',
-        subtext: 'Şirket içindeki tüm modüllerde tam yetki',
+        icon: Crown,
+        subtext: 'Tüm modüllerde tam silme, düzenleme ve yönetim yetkisi',
         badgeColor: 'badge-primary',
         levels: {
             works: 'editor',
@@ -82,7 +92,8 @@ export const ROLE_PRESETS = [
     {
         id: 'manager',
         label: 'Operasyon & Puantör',
-        subtext: 'Saha işleri ve araç yönetimi (Finans ve Kasa kapalı)',
+        icon: Briefcase,
+        subtext: 'Saha işleri ve araç operasyonu (Kasa ve Şirket ayarları kapalı)',
         badgeColor: 'badge-info',
         levels: {
             works: 'editor',
@@ -97,7 +108,8 @@ export const ROLE_PRESETS = [
     {
         id: 'accountant',
         label: 'Ön Muhasebe & Finans',
-        subtext: 'Kasa, cari, çek, fatura ve personel bordroları',
+        icon: Calculator,
+        subtext: 'Kasa, cari, çek, tahsilat, fatura ve personel bordroları',
         badgeColor: 'badge-warning',
         levels: {
             works: 'viewer',
@@ -112,6 +124,7 @@ export const ROLE_PRESETS = [
     {
         id: 'maintenance',
         label: 'Kademe & Bakım Şefi',
+        icon: Wrench,
         subtext: 'Araç bakımı, muayene, sigorta ve arıza yönetimi',
         badgeColor: 'badge-warning',
         levels: {
@@ -127,6 +140,7 @@ export const ROLE_PRESETS = [
     {
         id: 'auditor',
         label: 'Mali Müşavir / Denetçi',
+        icon: FileSearch,
         subtext: 'Tüm modülleri sadece inceler (Silme/Değiştirme kapalı)',
         badgeColor: 'badge-neutral',
         levels: {
@@ -142,6 +156,7 @@ export const ROLE_PRESETS = [
     {
         id: 'personnel',
         label: 'Saha Personeli / Şoför',
+        icon: UserCheck,
         subtext: 'Sadece kendine atanan işleri ve izinlerini görür',
         badgeColor: 'badge-success',
         levels: {
@@ -163,18 +178,23 @@ export default function PermissionMatrix({
     onLevelChange,
     readOnly = false
 }) {
+    // Count current level stats
+    const editorCount = Object.values(permissionLevels).filter(l => l === 'editor').length
+    const viewerCount = Object.values(permissionLevels).filter(l => l === 'viewer').length
+    const noneCount = MODULE_DEFINITIONS.length - editorCount - viewerCount
+
     return (
         <div className="permission-matrix-split-container" style={{
             display: 'grid',
             gridTemplateColumns: '270px 1fr',
             gap: '16px',
-            alignItems: 'start'
+            alignItems: 'stretch'
         }}>
             {/* Left Column: Role Preset Cards */}
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: '10px',
                 padding: '14px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -186,18 +206,19 @@ export default function PermissionMatrix({
                     color: 'var(--text-muted)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
-                    marginBottom: '4px',
+                    marginBottom: '2px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px'
                 }}>
-                    <Shield size={13} style={{ color: 'var(--accent-primary)' }} />
-                    <span>Hazır Rol Şablonları</span>
+                    <Shield size={13} className="text-primary" />
+                    <span>1. Hazır Rol Şablonları</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {ROLE_PRESETS.map((preset) => {
                         const isSelected = selectedPreset === preset.id
+                        const PresetIcon = preset.icon || Shield
                         return (
                             <button
                                 key={preset.id}
@@ -206,32 +227,51 @@ export default function PermissionMatrix({
                                 disabled={readOnly}
                                 style={{
                                     display: 'flex',
-                                    flexDirection: 'column',
                                     alignItems: 'flex-start',
-                                    padding: '9px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                                    borderLeft: isSelected ? '3.5px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                                    background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                    gap: '10px',
+                                    padding: '9px 10px',
+                                    borderRadius: '8px',
+                                    border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                    background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-tertiary)',
                                     cursor: readOnly ? 'default' : 'pointer',
                                     textAlign: 'left',
-                                    transition: 'all var(--transition-fast)',
-                                    boxShadow: isSelected ? '0 0 12px var(--accent-glow)' : 'none'
+                                    transition: 'all 0.15s ease',
+                                    boxShadow: isSelected ? '0 0 0 1px var(--accent-primary)' : 'none',
+                                    width: '100%'
                                 }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '2px' }}>
-                                    <span style={{
-                                        fontSize: '12px',
-                                        fontWeight: isSelected ? 700 : 600,
-                                        color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)'
-                                    }}>
-                                        {preset.label}
-                                    </span>
-                                    {isSelected && <CheckCircle2 size={13} style={{ color: 'var(--accent-primary)' }} />}
+                                <div style={{
+                                    width: '26px',
+                                    height: '26px',
+                                    borderRadius: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: isSelected ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                                    flexShrink: 0,
+                                    marginTop: '1px'
+                                }}>
+                                    <PresetIcon size={14} />
                                 </div>
-                                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: 1.3 }}>
-                                    {preset.subtext}
-                                </span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                        <span style={{
+                                            fontSize: '12px',
+                                            fontWeight: isSelected ? 700 : 600,
+                                            color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis'
+                                        }}>
+                                            {preset.label}
+                                        </span>
+                                        {isSelected && <CheckCircle2 size={13} color="var(--accent-primary)" style={{ flexShrink: 0 }} />}
+                                    </div>
+                                    <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        {preset.subtext}
+                                    </span>
+                                </div>
                             </button>
                         )
                     })}
@@ -242,13 +282,15 @@ export default function PermissionMatrix({
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden'
+                borderRadius: '10px',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
             }}>
                 <div style={{
-                    padding: '12px 16px',
+                    padding: '11px 16px',
                     borderBottom: '1px solid var(--border-color)',
-                    background: 'var(--bg-tertiary)',
+                    background: 'var(--bg-card)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
@@ -258,27 +300,46 @@ export default function PermissionMatrix({
                         fontWeight: 700,
                         color: 'var(--text-muted)',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.06em'
+                        letterSpacing: '0.06em',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                     }}>
-                        Modül Yetki Seviyeleri
+                        <Sparkles size={13} className="text-primary" />
+                        <span>2. Modül Yetki Matrisi</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--text-muted)' }} />
-                            Yok
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                        <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(16, 185, 129, 0.12)',
+                            color: '#10b981',
+                            fontWeight: 600
+                        }}>
+                            {editorCount} Düzenleyici
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--info)' }} />
-                            Okuyucu
+                        <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(59, 130, 246, 0.12)',
+                            color: '#3b82f6',
+                            fontWeight: 600
+                        }}>
+                            {viewerCount} Okuyucu
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                            Düzenleyici
+                        <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: 'var(--bg-tertiary)',
+                            color: 'var(--text-muted)',
+                            fontWeight: 500
+                        }}>
+                            {noneCount} Kapalı
                         </span>
                     </div>
                 </div>
 
-                <div style={{ overflowX: 'auto' }}>
+                <div style={{ overflowX: 'auto', flex: 1 }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <tbody>
                             {MODULE_DEFINITIONS.map((mod, idx) => {
@@ -290,29 +351,28 @@ export default function PermissionMatrix({
                                         key={mod.key}
                                         style={{ 
                                             borderTop: idx !== 0 ? '1px solid var(--border-color)' : 'none',
-                                            background: currentLevel === 'editor' ? 'var(--accent-subtle)' : (currentLevel === 'viewer' ? 'var(--info-bg)' : 'transparent'),
-                                            transition: 'background var(--transition-fast)'
+                                            background: currentLevel === 'editor' ? 'rgba(16, 185, 129, 0.04)' : (currentLevel === 'viewer' ? 'rgba(59, 130, 246, 0.04)' : 'transparent'),
+                                            transition: 'background 0.15s ease'
                                         }}
                                     >
                                         {/* Module Info */}
-                                        <td style={{ padding: '10px 16px' }}>
+                                        <td style={{ padding: '8.5px 14px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                 <div style={{
-                                                    width: '28px',
-                                                    height: '28px',
-                                                    borderRadius: 'var(--radius-xs)',
+                                                    width: '26px',
+                                                    height: '26px',
+                                                    borderRadius: '6px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    background: currentLevel === 'editor' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                                                    color: currentLevel === 'editor' ? 'var(--accent-primary)' : (currentLevel === 'viewer' ? 'var(--info)' : 'var(--text-secondary)'),
-                                                    border: '1px solid var(--border-color)',
+                                                    background: `${mod.color}18`,
+                                                    color: mod.color,
                                                     flexShrink: 0
                                                 }}>
                                                     <Icon size={14} />
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '12.5px' }}>
+                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '12px' }}>
                                                         {mod.label}
                                                     </div>
                                                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
@@ -323,14 +383,14 @@ export default function PermissionMatrix({
                                         </td>
 
                                         {/* Segmented Pill Switcher */}
-                                        <td style={{ padding: '10px 16px', textAlign: 'right', width: '240px' }}>
+                                        <td style={{ padding: '8.5px 14px', textAlign: 'right', width: '250px' }}>
                                             <div style={{
                                                 display: 'inline-flex',
-                                                background: 'var(--bg-primary)',
+                                                background: 'var(--bg-tertiary)',
                                                 border: '1px solid var(--border-color)',
-                                                borderRadius: 'var(--radius-sm)',
-                                                padding: '2.5px',
-                                                gap: '3px'
+                                                borderRadius: '7px',
+                                                padding: '2px',
+                                                gap: '2px'
                                             }}>
                                                 {/* None */}
                                                 <button
@@ -338,19 +398,23 @@ export default function PermissionMatrix({
                                                     disabled={readOnly}
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'none')}
                                                     style={{
-                                                        border: currentLevel === 'none' ? '1px solid var(--border-light)' : '1px solid transparent',
+                                                        border: 'none',
                                                         borderRadius: '5px',
-                                                        padding: '4px 10px',
+                                                        padding: '4px 8px',
                                                         fontSize: '11px',
                                                         fontWeight: currentLevel === 'none' ? 600 : 500,
-                                                        background: currentLevel === 'none' ? 'var(--bg-tertiary)' : 'transparent',
+                                                        background: currentLevel === 'none' ? 'var(--bg-card)' : 'transparent',
                                                         color: currentLevel === 'none' ? 'var(--text-primary)' : 'var(--text-muted)',
-                                                        boxShadow: currentLevel === 'none' ? 'var(--shadow-sm)' : 'none',
+                                                        boxShadow: currentLevel === 'none' ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all var(--transition-fast)'
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        transition: 'all 0.15s ease'
                                                     }}
                                                 >
-                                                    Yok
+                                                    <Ban size={11} />
+                                                    <span>Yok</span>
                                                 </button>
 
                                                 {/* Viewer */}
@@ -359,19 +423,23 @@ export default function PermissionMatrix({
                                                     disabled={readOnly}
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'viewer')}
                                                     style={{
-                                                        border: '1px solid transparent',
+                                                        border: 'none',
                                                         borderRadius: '5px',
-                                                        padding: '4px 10px',
+                                                        padding: '4px 8px',
                                                         fontSize: '11px',
                                                         fontWeight: currentLevel === 'viewer' ? 700 : 500,
-                                                        background: currentLevel === 'viewer' ? 'var(--info)' : 'transparent',
+                                                        background: currentLevel === 'viewer' ? '#3b82f6' : 'transparent',
                                                         color: currentLevel === 'viewer' ? '#ffffff' : 'var(--text-muted)',
-                                                        boxShadow: currentLevel === 'viewer' ? '0 2px 8px var(--info-bg)' : 'none',
+                                                        boxShadow: currentLevel === 'viewer' ? '0 1px 4px rgba(59,130,246,0.4)' : 'none',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all var(--transition-fast)'
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        transition: 'all 0.15s ease'
                                                     }}
                                                 >
-                                                    Okuyucu
+                                                    <Eye size={11} />
+                                                    <span>Okuyucu</span>
                                                 </button>
 
                                                 {/* Editor */}
@@ -380,19 +448,23 @@ export default function PermissionMatrix({
                                                     disabled={readOnly}
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'editor')}
                                                     style={{
-                                                        border: '1px solid transparent',
+                                                        border: 'none',
                                                         borderRadius: '5px',
-                                                        padding: '4px 10px',
+                                                        padding: '4px 8px',
                                                         fontSize: '11px',
                                                         fontWeight: currentLevel === 'editor' ? 700 : 500,
-                                                        background: currentLevel === 'editor' ? 'var(--accent-gradient)' : 'transparent',
+                                                        background: currentLevel === 'editor' ? '#10b981' : 'transparent',
                                                         color: currentLevel === 'editor' ? '#ffffff' : 'var(--text-muted)',
-                                                        boxShadow: currentLevel === 'editor' ? '0 2px 10px var(--accent-glow)' : 'none',
+                                                        boxShadow: currentLevel === 'editor' ? '0 1px 4px rgba(16,185,129,0.4)' : 'none',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all var(--transition-fast)'
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        transition: 'all 0.15s ease'
                                                     }}
                                                 >
-                                                    Düzenleyici
+                                                    <Check size={11} />
+                                                    <span>Düzenleyici</span>
                                                 </button>
                                             </div>
                                         </td>
