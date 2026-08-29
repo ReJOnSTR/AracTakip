@@ -362,7 +362,7 @@ export default function PlatformAdmin({ section }) {
         }
     }
 
-    // Impersonate Company (Ghost Mode in Separate Dedicated Window)
+    // Impersonate Company (Dedicated Window -> opens Main Portal)
     const handleImpersonateCompany = async (company) => {
         try {
             if (window.electronAPI?.openImpersonateWindow) {
@@ -372,34 +372,13 @@ export default function PlatformAdmin({ section }) {
                 })
             } else {
                 const queryStr = `impersonate_company_id=${company.id}&impersonate_company_name=${encodeURIComponent(company.name)}`
-                const url = `${window.location.origin}/?${queryStr}#/dashboard`
+                const url = `${window.location.origin}/?${queryStr}#/portal`
                 window.open(url, '_blank', 'width=1400,height=900,menubar=no,toolbar=no')
             }
         } catch (err) {
             console.error('handleImpersonateCompany error:', err)
             selectCompany(company)
-            navigate('/dashboard')
-        }
-    }
-
-    // Impersonate User directly
-    const handleImpersonateUser = async (targetUser) => {
-        const res = await window.electronAPI?.impersonatePlatformUser(targetUser.id)
-        if (res && res.success && res.user) {
-            if (setUser) setUser(res.user)
-            localStorage.setItem('aractakip_user', JSON.stringify(res.user))
-            if (res.company) {
-                selectCompany(res.company)
-            }
-            setTimeout(() => {
-                if (res.user.role === 'personnel') {
-                    navigate('/personnel-profile')
-                } else {
-                    navigate('/dashboard')
-                }
-            }, 300)
-        } else {
-            alert('Oturum açma hatası: ' + (res?.error || 'Bilinmiyor'))
+            navigate('/portal')
         }
     }
 
@@ -811,14 +790,6 @@ export default function PlatformAdmin({ section }) {
                     </button>
                 )}
                 <button
-                    className="ghost-btn"
-                    onClick={() => handleImpersonateUser(r)}
-                    title="Kullanıcı Olarak Giriş Yap (Ghost Login)"
-                >
-                    <ExternalLink size={12} />
-                    <span>Giriş Yap</span>
-                </button>
-                <button
                     className="action-icon-btn"
                     onClick={() => { setPasswordModalUser(r); setNewPassword(''); }}
                     title="Şifre Sıfırla"
@@ -882,15 +853,15 @@ export default function PlatformAdmin({ section }) {
             </div>
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'Yönetim & İşlemler', width: '130px', render: (_, r) => (
+        { key: 'actions', label: 'Yönetim & İşlemler', width: '140px', render: (_, r) => (
             <TableActionMenu>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateCompany(r)}
-                    title="Şirkete Giriş Yap (Gözat)"
+                    title="Şirkete Giriş Yap (Ana Portal)"
                 >
-                    <Eye size={12} />
-                    <span>Şirkete Geç</span>
+                    <ExternalLink size={12} />
+                    <span>Şirkete Giriş Yap</span>
                 </button>
                 <button
                     className="action-icon-btn danger"

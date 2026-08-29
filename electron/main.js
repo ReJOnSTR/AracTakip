@@ -2868,11 +2868,11 @@ ipcMain.handle('platform:openImpersonateWindow', async (event, { companyId, comp
 
         const queryString = `impersonate_company_id=${companyId}&impersonate_company_name=${encodeURIComponent(companyName || '')}`;
         if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
-            impersonateWin.loadURL(`http://127.0.0.1:5173/?${queryString}#/dashboard`);
+            impersonateWin.loadURL(`http://127.0.0.1:5173/?${queryString}#/portal`);
         } else {
             impersonateWin.loadFile(path.join(__dirname, '../dist/index.html'), {
                 search: `?${queryString}`,
-                hash: '/dashboard'
+                hash: '/portal'
             });
         }
 
