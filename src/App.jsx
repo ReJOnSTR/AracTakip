@@ -172,6 +172,10 @@ function AppRoutes() {
     const location = useLocation()
     const isPrintRoute = location.pathname === '/print' || location.pathname === '/print-document' || location.pathname.startsWith('/work-report')
 
+    const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
+    const isImpersonating = !!(urlParams.get('impersonate_company_id') || sessionStorage.getItem('aractakip_impersonate_company_id'))
+    const isStandaloneSuperAdmin = user?.role === 'superadmin' && !isImpersonating
+
     return (
         <>
             {!isPrintRoute && <TitleBar />}
@@ -190,14 +194,14 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }>
                         <Route path="/" element={
-                            user?.role === 'superadmin'
+                            isStandaloneSuperAdmin
                                 ? <Navigate to="/platform/users" replace />
                                 : (user?.role === 'personnel' ? <Navigate to="/personnel-profile" replace /> : <Navigate to="/portal" replace />)
                         } />
                         <Route path="/portal" element={
                             user?.role === 'personnel' 
                                 ? <Navigate to="/personnel-profile" replace /> 
-                                : (user?.role === 'superadmin' ? <Navigate to="/platform/users" replace /> : <MainPortal />)
+                                : (isStandaloneSuperAdmin ? <Navigate to="/platform/users" replace /> : <MainPortal />)
                         } />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/finance-dashboard" element={<FinanceDashboard />} />
