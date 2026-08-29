@@ -749,7 +749,7 @@ async function getUserPasswordHash(userId) {
 
 async function createEmployeeUser(data) {
     try {
-        const { employeeId, username, email, password, role, roleId } = data;
+        const { employeeId, username, email, password, role, roleId, permissions } = data;
 
         if (!employeeId || !username || !password || !email) {
             return { success: false, error: 'Personel, kullanıcı adı, e-posta ve şifre zorunludur' };
@@ -801,6 +801,7 @@ async function createEmployeeUser(data) {
                 role: role || 'personnel',
                 role_id: roleId ? Number(roleId) : null,
                 employee_id: empId,
+                permissions: permissions ? (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)) : null,
                 must_change_password: 1,
                 is_active: 1
             }

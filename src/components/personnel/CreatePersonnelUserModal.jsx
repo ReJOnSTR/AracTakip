@@ -3,16 +3,20 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { authService } from '../../services';
 import CustomInput from '../CustomInput';
-import CustomSelect from '../CustomSelect';
-import { KeyRound, UserCheck, Shield } from 'lucide-react';
+import PermissionMatrix, { ROLE_PRESETS } from '../PermissionMatrix';
+import { UserCheck } from 'lucide-react';
+import Modal from '../Modal';
 
 export default function CreatePersonnelUserModal({ employee, isOpen, onClose, onSuccess }) {
     const toast = useToast();
+    const defaultPreset = ROLE_PRESETS.find(p => p.id === 'personnel') || ROLE_PRESETS[0];
+
     const [formData, setFormData] = useState({
         username: employee ? `${employee.first_name.toLowerCase()}.${employee.last_name.toLowerCase()}`.replace(/\s+/g, '') : '',
         email: employee?.email || '',
         password: '123456Password!',
-        role: 'personnel'
+        role: defaultPreset.id,
+        permissions: defaultPreset.levels || {}
     });
     const [loading, setLoading] = useState(false);
 
@@ -28,7 +32,8 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
-                role: formData.role
+                role: formData.role,
+                permissions: formData.permissions
             });
 
             if (res.success) {
@@ -46,19 +51,14 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-[#121522] border border-gray-800 rounded-3xl p-6 shadow-2xl">
-                <div className="flex items-center gap-3 pb-4 border-b border-gray-800 mb-5">
-                    <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                        <UserCheck size={20} />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-base text-white">Personel Girişi Tanımla</h3>
-                        <p className="text-xs text-gray-400">{employee.first_name} {employee.last_name} ({employee.department || 'Personel'})</p>
-                    </div>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={`Personel Girişi Tanımla: ${employee.first_name} ${employee.last_name}`}
+            size="xl"
+        >
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '12px', background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                     <CustomInput 
                         label="Kullanıcı Adı"
                         required
@@ -84,37 +84,49 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
                             onChange={(val) => setFormData({...formData, password: val})}
                             maxLength={64}
                         />
-                        <span className="text-[10px] text-amber-400 mt-1 block">Personel ilk girişte şifresini değiştirmeye zorlanacaktır.</span>
+                        <span style={{ fontSize: '10.5px', color: 'var(--warning)', marginTop: '2px', display: 'block' }}>İlk girişte şifre değiştirilecektir.</span>
                     </div>
+                </div>
 
-                    <CustomSelect 
-                        label="Sistem Rolü"
-                        value={formData.role}
-                        onChange={(val) => setFormData({...formData, role: val})}
-                        options={[
-                            { value: 'personnel', label: 'Personel (Kısıtlı Portal & Talep Girişi)' },
-                            { value: 'manager', label: 'Departman Müdürü (Onay Yetkisi)' }
-                        ]}
-                    />
+                {/* Unified 2-Column Permission Matrix */}
+                <PermissionMatrix
+                    selectedPreset={formData.role}
+                    onPresetChange={(presetId, levels) => {
+                        setFormData(prev => ({
+                            ...prev,
+                            role: presetId,
+                            permissions: levels
+                        }))
+                    }}
+                    permissionLevels={formData.permissions || {}}
+                    onLevelChange={(moduleKey, level) => {
+                        setFormData(prev => ({
+                            ...prev,
+                            permissions: {
+                                ...(prev.permissions || {}),
+                                [moduleKey]: level
+                            }
+                        }))
+                    }}
+                />
 
-                    <div className="flex justify-end gap-3 pt-3 border-t border-gray-800">
-                        <button 
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs hover:bg-gray-700"
-                        >
-                            İptal
-                        </button>
-                        <button 
-                            type="submit"
-                            disabled={loading}
-                            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-indigo-600/30"
-                        >
-                            {loading ? 'Oluşturuluyor...' : 'Giriş Hesabını Oluştur'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="modal-footer" style={{ marginTop: '4px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <button 
+                        type="button"
+                        onClick={onClose}
+                        className="btn btn-secondary"
+                    >
+                        İptal
+                    </button>
+                    <button 
+                        type="submit"
+                        disabled={loading}
+                        className="btn btn-primary"
+                    >
+                        {loading ? 'Oluşturuluyor...' : 'Giriş Hesabını Oluştur'}
+                    </button>
+                </div>
+            </form>
+        </Modal>
     );
 }

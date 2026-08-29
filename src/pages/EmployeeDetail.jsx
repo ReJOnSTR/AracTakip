@@ -20,6 +20,7 @@ import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { formatCurrency, formatDate, getHistoricalBaseSalary, getHistoricalFullSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers'
 import { calculateEmployeeMonthlyPayroll } from '../utils/payrollCalculator'
+import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -421,27 +422,33 @@ export default function EmployeeDetail() {
     const handleOpenUserAccountModal = (existingUser = null) => {
         const usr = existingUser || employee?.user;
         if (usr) {
-            let roleVal = usr.role || 'personnel';
-            if (usr.role_id) {
-                roleVal = `custom_${usr.role_id}`;
+            let perms = {};
+            if (usr.permissions) {
+                try {
+                    perms = typeof usr.permissions === 'string' ? JSON.parse(usr.permissions) : usr.permissions;
+                } catch(e) {
+                    perms = {};
+                }
+            } else {
+                perms = ROLE_PRESETS.find(p => p.id === (usr.role || 'personnel'))?.levels || {};
             }
+
             setUserAccountFormData({
                 username: usr.username || '',
                 email: usr.email || '',
                 password: '',
-                roleValue: roleVal,
                 role: usr.role || 'personnel',
-                roleId: usr.role_id || null,
+                permissions: perms,
                 isActive: usr.is_active !== 0
             });
         } else {
+            const defaultPreset = ROLE_PRESETS.find(p => p.id === 'personnel') || ROLE_PRESETS[0];
             setUserAccountFormData({
                 username: `${employee?.first_name || ''}.${employee?.last_name || ''}`.toLowerCase().replace(/\s+/g, ''),
                 email: employee?.email || '',
                 password: '123456Password!',
-                roleValue: 'personnel',
-                role: 'personnel',
-                roleId: null,
+                role: defaultPreset.id,
+                permissions: defaultPreset.levels || {},
                 isActive: true
             });
         }
@@ -455,11 +462,11 @@ export default function EmployeeDetail() {
                 const res = await window.electronAPI.assignUserRole({
                     userId: employee.user.id,
                     role: userAccountFormData.role,
-                    roleId: userAccountFormData.roleId,
+                    permissions: userAccountFormData.permissions,
                     isActive: userAccountFormData.isActive
                 });
                 if (res.success) {
-                    if (window.showToast) window.showToast('Giriş hesabı yetkileri güncellendi.', 'success');
+                    if (window.showToast) window.showToast('Giriş hesabı ve yetkileri güncellendi.', 'success');
                     setUserAccountModalOpen(false);
                     loadEmployeeData();
                 } else {
@@ -472,10 +479,10 @@ export default function EmployeeDetail() {
                     email: userAccountFormData.email,
                     password: userAccountFormData.password,
                     role: userAccountFormData.role,
-                    roleId: userAccountFormData.roleId
+                    permissions: userAccountFormData.permissions
                 });
                 if (res.success) {
-                    if (window.showToast) window.showToast('Giriş hesabı başarıyla tanımlandı.', 'success');
+                    if (window.showToast) window.showToast('Giriş hesabı ve yetkileri başarıyla tanımlandı.', 'success');
                     setUserAccountModalOpen(false);
                     loadEmployeeData();
                 } else {
@@ -483,8 +490,8 @@ export default function EmployeeDetail() {
                 }
             }
         } catch (err) {
-            console.error(err);
-            if (window.showToast) window.showToast(err.message, 'error');
+            console.error('User account submit error:', err);
+            if (window.showToast) window.showToast('İşlem başarısız: ' + err.message, 'error');
         }
     }
 
@@ -1887,11 +1894,9 @@ export default function EmployeeDetail() {
     const userAccountColumns = [
         { key: 'username', label: 'Kullanıcı Adı', render: (v) => <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{v}</span> },
         { key: 'email', label: 'E-Posta' },
-        { key: 'role', label: 'Sistem Rolü', render: (_, row) => {
-            if (row.custom_role?.name) return <span className="badge badge-primary">{row.custom_role.name}</span>;
-            if (row.role === 'personnel') return <span className="badge badge-info">Personel Portalı</span>;
-            if (row.role === 'manager') return <span className="badge badge-warning">Departman Müdürü</span>;
-            return <span className="badge badge-success">Yönetici</span>;
+        { key: 'role', label: 'Sistem Rolü & Yetkisi', render: (_, row) => {
+            const preset = ROLE_PRESETS.find(p => p.id === row.role);
+            return <span className="badge badge-primary">{preset?.label || row.role || 'Özel Yetki'}</span>;
         }},
         { key: 'is_active', label: 'Durum', render: (v) => (
             <span className={`badge badge-${v !== 0 ? 'success' : 'danger'}`}>
@@ -3130,9 +3135,9 @@ export default function EmployeeDetail() {
                                 </div>
                             </div>
                             <div className="card" style={{ padding: '14px 16px' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sistem Rolü</div>
-                                <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--accent-primary)', textTransform: 'capitalize' }}>
-                                    {employee?.user ? (employee.user.role === 'personnel' ? 'Personel Portalı' : (employee.user.role === 'manager' ? 'Departman Müdürü' : 'Yönetici')) : '-'}
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sistem Rolü & Yetki</div>
+                                <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '4px', color: 'var(--accent-primary)' }}>
+                                    {employee?.user ? (ROLE_PRESETS.find(p => p.id === employee.user.role)?.label || employee.user.role || 'Özel Rol') : '-'}
                                 </div>
                             </div>
                             <div className="card" style={{ padding: '14px 16px' }}>
@@ -3844,74 +3849,69 @@ export default function EmployeeDetail() {
             )}
 
             {/* User Account Create/Edit Modal */}
+            {/* User Account Create/Edit Modal with Unified PermissionMatrix */}
             <Modal
                 isOpen={userAccountModalOpen}
                 onClose={() => setUserAccountModalOpen(false)}
-                title={employee?.user ? 'Giriş Hesabını Düzenle' : 'Yeni Giriş Hesabı Tanımla'}
-                size="md"
+                title={employee?.user ? `Yetkileri Düzenle: ${employee.first_name} ${employee.last_name}` : `Yeni Giriş Hesabı Tanımla: ${employee?.first_name} ${employee?.last_name}`}
+                size="xl"
                 footer={null}
             >
-                <form onSubmit={handleUserAccountSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <CustomInput
-                        label="Kullanıcı Adı"
-                        required
-                        disabled={!!employee?.user}
-                        value={userAccountFormData.username}
-                        onChange={(val) => setUserAccountFormData({...userAccountFormData, username: val})}
-                        maxLength={50}
-                    />
-                    <CustomInput
-                        label="E-Posta Adresi"
-                        type="email"
-                        required
-                        value={userAccountFormData.email}
-                        onChange={(val) => setUserAccountFormData({...userAccountFormData, email: val})}
-                        maxLength={100}
-                    />
+                <form onSubmit={handleUserAccountSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {/* Top Credentials Row for new users */}
                     {!employee?.user && (
-                        <div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '12px', background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                             <CustomInput
-                                label="Geçici Şifre"
+                                label="Kullanıcı Adı"
                                 required
-                                value={userAccountFormData.password}
-                                onChange={(val) => setUserAccountFormData({...userAccountFormData, password: val})}
-                                maxLength={64}
+                                value={userAccountFormData.username}
+                                onChange={(val) => setUserAccountFormData({...userAccountFormData, username: val})}
+                                maxLength={50}
                             />
-                            <span style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '4px', display: 'block' }}>Personel ilk girişte şifresini değiştirmek zorunda olacaktır.</span>
+                            <CustomInput
+                                label="E-Posta Adresi"
+                                type="email"
+                                required
+                                value={userAccountFormData.email}
+                                onChange={(val) => setUserAccountFormData({...userAccountFormData, email: val})}
+                                maxLength={100}
+                            />
+                            <div>
+                                <CustomInput
+                                    label="Geçici Şifre"
+                                    required
+                                    value={userAccountFormData.password}
+                                    onChange={(val) => setUserAccountFormData({...userAccountFormData, password: val})}
+                                    maxLength={64}
+                                />
+                                <span style={{ fontSize: '10.5px', color: 'var(--warning)', marginTop: '2px', display: 'block' }}>İlk girişte şifre değiştirilecektir.</span>
+                            </div>
                         </div>
                     )}
-                    <CustomSelect
-                        label="Sistem Rolü"
-                        value={userAccountFormData.roleValue}
-                        onChange={(val) => {
-                            if (val && val.startsWith('custom_')) {
-                                const rId = parseInt(val.replace('custom_', ''));
-                                setUserAccountFormData({
-                                    ...userAccountFormData,
-                                    roleValue: val,
-                                    role: 'personnel',
-                                    roleId: rId
-                                });
-                            } else {
-                                setUserAccountFormData({
-                                    ...userAccountFormData,
-                                    roleValue: val,
-                                    role: val,
-                                    roleId: null
-                                });
-                            }
-                        }}
-                        options={[
-                            { value: 'personnel', label: 'Personel (Kısıtlı Portal & Talep Girişi)' },
-                            { value: 'manager', label: 'Departman Müdürü (Onay Yetkisi)' },
-                            ...companyRoles.map(r => ({
-                                value: `custom_${r.id}`,
-                                label: `${r.name} (Özel Rol)`
+
+                    {/* Unified 2-Column Permission Matrix */}
+                    <PermissionMatrix
+                        selectedPreset={userAccountFormData.role}
+                        onPresetChange={(presetId, levels) => {
+                            setUserAccountFormData(prev => ({
+                                ...prev,
+                                role: presetId,
+                                permissions: levels
                             }))
-                        ]}
+                        }}
+                        permissionLevels={userAccountFormData.permissions || {}}
+                        onLevelChange={(moduleKey, level) => {
+                            setUserAccountFormData(prev => ({
+                                ...prev,
+                                permissions: {
+                                    ...(prev.permissions || {}),
+                                    [moduleKey]: level
+                                }
+                            }))
+                        }}
                     />
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px' }}>
+                    <div className="modal-footer" style={{ marginTop: '4px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button type="button" className="btn btn-secondary" onClick={() => setUserAccountModalOpen(false)}>İptal</button>
                         <button type="submit" className="btn btn-primary">Kaydet</button>
                     </div>
