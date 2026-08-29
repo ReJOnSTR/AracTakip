@@ -1907,55 +1907,45 @@ textarea,
 
 .data-table {
   width: auto;
-  /* Allow table to grow based on column widths */
   min-width: 100%;
-  /* But ensure it fills the container at minimum */
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  /* Respect column widths */
 }
 
 .data-table th {
   text-align: left;
-  padding: 12px 16px;
+  padding: 11px 16px;
   background: var(--bg-secondary);
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   white-space: nowrap;
   position: relative;
-  /* For resize handle positioning */
-  overflow: hidden;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: 1px solid var(--border-color);
-  /* Separator Line */
-}
-
-/* Remove border from last header */
-.data-table th:last-child {
+  border-bottom: 1px solid var(--border-color);
+  border-top: none;
   border-right: none;
+  user-select: none;
 }
 
 .data-table th.sortable {
   cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s;
+  transition: color 0.15s, background-color 0.15s;
 }
 
 .data-table th.sortable:hover {
   color: var(--text-primary);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .th-content {
   display: flex;
   align-items: center;
   width: 100%;
-  /* Ensure it fills the th */
   gap: 6px;
 }
 
@@ -1975,6 +1965,7 @@ textarea,
   text-align: center;
   vertical-align: middle;
   padding: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .th-num,
@@ -1983,73 +1974,91 @@ textarea,
   text-align: center;
   color: var(--text-muted);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .th-actions {
-  width: 100px;
-  min-width: 100px;
+  width: 76px;
+  min-width: 76px;
   text-align: center;
   position: sticky !important;
   right: 0;
   background: var(--bg-secondary);
   z-index: 22;
-  /* Clean separator instead of heavy shadow */
-  border-left: 1px solid var(--border-light);
-  box-shadow: -1px 0 2px rgba(0, 0, 0, 0.02);
-  /* Very subtle depth */
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Base Actions Column - Background handled specifically for sticky support */
 .td-actions {
-  width: 100px;
-  min-width: 100px;
+  width: 76px;
+  min-width: 76px;
   text-align: center;
   position: sticky !important;
   right: 0;
   z-index: 21;
-  border-left: 1px solid var(--border-light);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: var(--bg-secondary);
 }
 
-/* Hover/Selected states MUST be solid for sticky Actions column */
+/* Hover/Selected states for sticky Actions column matching Linear/Stripe style */
 .data-table tbody tr:hover td.td-actions {
-  background: var(--bg-tertiary) !important;
+  background: #19191d !important;
 }
 
 .data-table tbody tr.clickable:hover td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-secondary)) !important;
 }
 
 .data-table tbody tr.selected td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 16%, var(--bg-secondary)) !important;
 }
 
 .data-table tbody tr.focused td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-secondary)) !important;
 }
 
 .data-table td {
-  padding: 14px 16px;
+  padding: 13px 16px;
   color: var(--text-primary);
   font-size: 13px;
-  border-top: 1px solid var(--border-color);
-  text-transform: uppercase;
-
-  /* Truncation Logic */
+  font-weight: 400;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: none;
+  border-right: none;
   white-space: nowrap;
   overflow: hidden;
-  overflow: hidden;
   text-overflow: ellipsis;
-  border-right: 1px solid var(--border-color);
-  /* Separator Line */
+  vertical-align: middle;
+  line-height: 1.45;
 }
 
-/* Remove border from last cell */
-.data-table td:last-child {
-  border-right: none;
+/* Tabular numbers for currencies, amounts, and dates */
+.data-table td.text-right,
+.data-table th.text-right,
+.data-table td[style*="text-align: right"],
+.data-table th[style*="text-align: right"],
+.data-table td[style*="text-align:right"],
+.data-table th[style*="text-align:right"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
-/* Resize Handle */
+/* Cell typography helpers */
+.data-table .cell-title {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.data-table .cell-subtitle {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
 /* Resize Handle */
 .resize-handle {
   position: absolute;
@@ -2057,51 +2066,36 @@ textarea,
   top: 0;
   bottom: 0;
   width: 10px;
-  /* Wider hit area for easier grabbing */
   cursor: col-resize;
   background: transparent;
   z-index: 10;
   transform: translateX(50%);
-  /* Center on the border */
 }
 
-/* The Visible Line */
 .resize-handle::after {
   content: '';
   position: absolute;
   left: 50%;
   top: 0;
-  /* Full height */
   bottom: 0;
-  /* Full height */
   width: 1px;
-  background: rgba(128, 128, 128, 0.5);
-  /* Much more visible gray */
+  background: rgba(255, 255, 255, 0.08);
   transition: all 0.2s;
   pointer-events: none;
-  /* Let clicks pass through to the handle div */
 }
 
 .resize-handle:hover::after,
 .resize-handle.active::after {
   background: var(--accent-primary);
-  width: 2px;
-}
-
-.resize-handle:hover::after,
-.resize-handle.active::after {
-  background: var(--accent-primary);
-  top: 0;
-  bottom: 0;
   width: 2px;
 }
 
 .data-table tbody tr {
-  transition: background 0.1s;
+  transition: background-color 0.12s ease;
 }
 
 .data-table tbody tr:hover td {
-  background: var(--bg-tertiary);
+  background: rgba(255, 255, 255, 0.032);
 }
 
 .data-table tbody tr.clickable {
@@ -2109,7 +2103,7 @@ textarea,
 }
 
 .data-table tbody tr.clickable:hover td {
-  background: var(--accent-subtle);
+  background: rgba(99, 102, 241, 0.065);
 }
 
 .row-details-btn {
@@ -2117,9 +2111,9 @@ textarea,
   border: none !important;
   color: var(--text-muted);
   box-shadow: none !important;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   opacity: 0;
-  transform: translateX(-5px);
+  transform: translateX(-4px);
 }
 
 .data-table tbody tr.clickable:hover .row-details-btn {
@@ -2129,11 +2123,11 @@ textarea,
 }
 
 .data-table tbody tr.selected td {
-  background: var(--accent-subtle);
+  background: rgba(99, 102, 241, 0.1) !important;
 }
 
 .data-table tbody tr.focused td {
-  background: var(--accent-subtle);
+  background: rgba(99, 102, 241, 0.07);
   position: relative;
 }
 
@@ -2145,48 +2139,48 @@ textarea,
   bottom: 0;
   width: 3px;
   background: var(--accent-primary);
+  border-radius: 0 2px 2px 0;
 }
 
 /* Pazar Row Highlighting */
 .data-table tbody tr.pazar-row td {
-  background: rgba(239, 68, 68, 0.05); /* Light red tint */
+  background: rgba(239, 68, 68, 0.04);
 }
 .data-table tbody tr.pazar-row:hover td,
 .data-table tbody tr.clickable.pazar-row:hover td {
-  background: rgba(239, 68, 68, 0.12); /* Slightly darker red on hover */
+  background: rgba(239, 68, 68, 0.09);
 }
 .data-table tbody tr.selected.pazar-row td {
-  background: rgba(239, 68, 68, 0.2); /* Even darker if selected */
+  background: rgba(239, 68, 68, 0.16) !important;
 }
 
-/* Fix sticky Actions column transparency on Pazar Rows by using a solid color */
 .data-table tbody tr.pazar-row td.td-actions {
   background: color-mix(in srgb, var(--danger) 5%, var(--bg-secondary));
 }
 .data-table tbody tr.pazar-row:hover td.td-actions,
 .data-table tbody tr.clickable.pazar-row:hover td.td-actions {
-  background: color-mix(in srgb, var(--danger) 12%, var(--bg-tertiary));
+  background: color-mix(in srgb, var(--danger) 10%, var(--bg-tertiary)) !important;
 }
 .data-table tbody tr.selected.pazar-row td.td-actions {
-  background: color-mix(in srgb, var(--danger) 20%, var(--bg-tertiary));
+  background: color-mix(in srgb, var(--danger) 16%, var(--bg-tertiary)) !important;
 }
 
-/* Custom Row Colors (Orange, Blue, Green, Purple) */
-.data-table tbody tr.orange-row td { background: rgba(245, 158, 11, 0.07); }
-.data-table tbody tr.orange-row:hover td, .data-table tbody tr.clickable.orange-row:hover td { background: rgba(245, 158, 11, 0.15); }
-.data-table tbody tr.orange-row td.td-actions { background: color-mix(in srgb, #f59e0b 7%, var(--bg-secondary)); }
+/* Custom Row Colors (Orange, Blue, Green, Purple) with subtle tints */
+.data-table tbody tr.orange-row td { background: rgba(245, 158, 11, 0.05); }
+.data-table tbody tr.orange-row:hover td, .data-table tbody tr.clickable.orange-row:hover td { background: rgba(245, 158, 11, 0.1); }
+.data-table tbody tr.orange-row td.td-actions { background: color-mix(in srgb, #f59e0b 6%, var(--bg-secondary)); }
 
-.data-table tbody tr.blue-row td { background: rgba(59, 130, 246, 0.07); }
-.data-table tbody tr.blue-row:hover td, .data-table tbody tr.clickable.blue-row:hover td { background: rgba(59, 130, 246, 0.15); }
-.data-table tbody tr.blue-row td.td-actions { background: color-mix(in srgb, #3b82f6 7%, var(--bg-secondary)); }
+.data-table tbody tr.blue-row td { background: rgba(59, 130, 246, 0.05); }
+.data-table tbody tr.blue-row:hover td, .data-table tbody tr.clickable.blue-row:hover td { background: rgba(59, 130, 246, 0.1); }
+.data-table tbody tr.blue-row td.td-actions { background: color-mix(in srgb, #3b82f6 6%, var(--bg-secondary)); }
 
-.data-table tbody tr.green-row td { background: rgba(16, 185, 129, 0.07); }
-.data-table tbody tr.green-row:hover td, .data-table tbody tr.clickable.green-row:hover td { background: rgba(16, 185, 129, 0.15); }
-.data-table tbody tr.green-row td.td-actions { background: color-mix(in srgb, #10b981 7%, var(--bg-secondary)); }
+.data-table tbody tr.green-row td { background: rgba(16, 185, 129, 0.05); }
+.data-table tbody tr.green-row:hover td, .data-table tbody tr.clickable.green-row:hover td { background: rgba(16, 185, 129, 0.1); }
+.data-table tbody tr.green-row td.td-actions { background: color-mix(in srgb, #10b981 6%, var(--bg-secondary)); }
 
-.data-table tbody tr.purple-row td { background: rgba(139, 92, 246, 0.07); }
-.data-table tbody tr.purple-row:hover td, .data-table tbody tr.clickable.purple-row:hover td { background: rgba(139, 92, 246, 0.15); }
-.data-table tbody tr.purple-row td.td-actions { background: color-mix(in srgb, #8b5cf6 7%, var(--bg-secondary)); }
+.data-table tbody tr.purple-row td { background: rgba(139, 92, 246, 0.05); }
+.data-table tbody tr.purple-row:hover td, .data-table tbody tr.clickable.purple-row:hover td { background: rgba(139, 92, 246, 0.1); }
+.data-table tbody tr.purple-row td.td-actions { background: color-mix(in srgb, #8b5cf6 6%, var(--bg-secondary)); }
 
 /* Vehicle Type Tabs - Matches VehicleDetail underline style */
 .vehicle-tabs {

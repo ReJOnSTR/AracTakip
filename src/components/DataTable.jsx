@@ -1028,52 +1028,55 @@ export default function DataTable({
                                 </th>
                             )}
                             {showRowNumbers && <th className="th-num">#</th>}
-                            {visibleColumnsList.map((col) => (
-                                <th
-                                    key={col.key}
-                                    style={{
-                                        // Use state width if available, otherwise prop or default
-                                        width: columnWidths[col.key] ? `${columnWidths[col.key]}px` : (col.width || '150px'),
-                                        textAlign: col.align || 'left',
-                                        cursor: col.sortable !== false ? 'pointer' : 'default',
-                                        userSelect: 'none'
-                                    }}
-                                    onClick={() => col.sortable !== false && handleSort(col.key)}
-                                    className={col.sortable !== false ? 'sortable' : ''}
-                                >
-                                    <div className="th-content" style={{ justifyContent: col.align === 'center' ? 'center' : col.align === 'right' ? 'flex-end' : 'flex-start', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span title={col.label}>{col.label}</span>
-                                        {col.sortable !== false && (
-                                            <span
-                                                className="sort-icon"
-                                                style={{
-                                                    display: 'inline-flex',
-                                                    color: (sortConfig.key === col.key && userSorted) ? 'var(--text-primary)' : 'var(--text-muted)',
-                                                    opacity: (sortConfig.key === col.key && userSorted) ? 1 : 0.3,
-                                                    transition: 'all 0.2s ease',
-                                                    visibility: (sortConfig.key === col.key || col.sortable !== false) ? 'visible' : 'hidden'
-                                                }}
-                                            >
-                                                {sortConfig.key === col.key ? (
-                                                    sortConfig.direction === 'asc' ? <ArrowUp size={14} strokeWidth={2.5} /> : <ArrowDown size={14} strokeWidth={2.5} />
-                                                ) : (
-                                                    <ArrowUp size={14} strokeWidth={2.5} />
-                                                )}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div
-                                        className="resize-handle"
-                                        onMouseDown={(e) => handleResizeStart(e, col.key)}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onDoubleClick={(e) => {
-                                            e.stopPropagation()
-                                            resetColumnWidth(col.key)
+                            {visibleColumnsList.map((col) => {
+                                const isNumeric = col.align === 'right' || col.numeric
+                                return (
+                                    <th
+                                        key={col.key}
+                                        style={{
+                                            // Use state width if available, otherwise prop or default
+                                            width: columnWidths[col.key] ? `${columnWidths[col.key]}px` : (col.width || '150px'),
+                                            textAlign: col.align || 'left',
+                                            cursor: col.sortable !== false ? 'pointer' : 'default',
+                                            userSelect: 'none'
                                         }}
-                                        title="Sütun genişliğini ayarla"
-                                    />
-                                </th>
-                            ))}
+                                        onClick={() => col.sortable !== false && handleSort(col.key)}
+                                        className={`${col.sortable !== false ? 'sortable' : ''} ${isNumeric ? 'text-right tabular-nums' : ''}`.trim()}
+                                    >
+                                        <div className="th-content" style={{ justifyContent: col.align === 'center' ? 'center' : col.align === 'right' ? 'flex-end' : 'flex-start', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span title={col.label}>{col.label}</span>
+                                            {col.sortable !== false && (
+                                                <span
+                                                    className="sort-icon"
+                                                    style={{
+                                                        display: 'inline-flex',
+                                                        color: (sortConfig.key === col.key && userSorted) ? 'var(--text-primary)' : 'var(--text-muted)',
+                                                        opacity: (sortConfig.key === col.key && userSorted) ? 1 : 0.3,
+                                                        transition: 'all 0.2s ease',
+                                                        visibility: (sortConfig.key === col.key || col.sortable !== false) ? 'visible' : 'hidden'
+                                                    }}
+                                                >
+                                                    {sortConfig.key === col.key ? (
+                                                        sortConfig.direction === 'asc' ? <ArrowUp size={14} strokeWidth={2.5} /> : <ArrowDown size={14} strokeWidth={2.5} />
+                                                    ) : (
+                                                        <ArrowUp size={14} strokeWidth={2.5} />
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div
+                                            className="resize-handle"
+                                            onMouseDown={(e) => handleResizeStart(e, col.key)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            onDoubleClick={(e) => {
+                                                e.stopPropagation()
+                                                resetColumnWidth(col.key)
+                                            }}
+                                            title="Sütun genişliğini ayarla"
+                                        />
+                                    </th>
+                                )
+                            })}
                             {(actions || onRowClick) && <th className="th-actions">İşlemler</th>}
                         </tr>
                     </thead>
@@ -1118,9 +1121,15 @@ export default function DataTable({
                                     {visibleColumnsList.map((col) => {
                                         const cellContent = col.render ? col.render(row[col.key], row) : row[col.key] || '-'
                                         const titleContent = typeof cellContent === 'string' || typeof cellContent === 'number' ? cellContent : ''
+                                        const isNumeric = col.align === 'right' || col.numeric
 
                                         return (
-                                            <td key={col.key} style={{ textAlign: col.align || 'left' }} title={String(titleContent)}>
+                                            <td 
+                                                key={col.key} 
+                                                className={isNumeric ? 'text-right tabular-nums' : ''}
+                                                style={{ textAlign: col.align || 'left' }} 
+                                                title={String(titleContent)}
+                                            >
                                                 {cellContent}
                                             </td>
                                         )
