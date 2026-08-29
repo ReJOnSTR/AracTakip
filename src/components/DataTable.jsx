@@ -863,25 +863,25 @@ export default function DataTable({
                                 Sütunlar
                             </button>
                             {showColumnMenu && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: dropdownPosition === 'bottom' ? 'calc(100% + 4px)' : 'auto',
-                                    bottom: dropdownPosition === 'top' ? 'calc(100% + 4px)' : 'auto',
-                                    right: 0,
-                                    background: 'var(--bg-secondary)',
-                                    border: '1px solid var(--border-color)',
-                                    borderRadius: '8px',
-                                    padding: '6px',
-                                    zIndex: 1000,
-                                    width: '210px',
-                                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
-                                    animation: dropdownPosition === 'bottom' ? 'dropdownIn 0.12s ease' : 'dropdownUp 0.12s ease'
-                                }}>
+                                <div 
+                                    className={`custom-select-dropdown placement-${dropdownPosition}`}
+                                    style={{
+                                        position: 'absolute',
+                                        top: dropdownPosition === 'bottom' ? 'calc(100% + 4px)' : 'auto',
+                                        bottom: dropdownPosition === 'top' ? 'calc(100% + 4px)' : 'auto',
+                                        right: 0,
+                                        left: 'auto',
+                                        width: '210px',
+                                        padding: '4px',
+                                        maxHeight: '280px',
+                                        zIndex: 1000
+                                    }}
+                                >
                                     <div style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        padding: '4px 8px 6px 8px',
+                                        padding: '6px 8px',
                                         borderBottom: '1px solid var(--border-color)',
                                         marginBottom: '4px'
                                     }}>
@@ -892,24 +892,21 @@ export default function DataTable({
                                             {orderedColumns.filter(c => visibleColumns instanceof Set ? visibleColumns.has(c.key) : new Set(visibleColumns).has(c.key)).length}/{orderedColumns.length}
                                         </span>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '250px', overflowY: 'auto' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', maxHeight: '230px', overflowY: 'auto' }}>
                                         {orderedColumns.map((col, index) => {
                                             const isVisible = visibleColumns instanceof Set ? visibleColumns.has(col.key) : new Set(visibleColumns).has(col.key);
-                                            const isHovered = hoveredColumn === col.key;
                                             return (
                                                 <div
                                                     key={col.key}
+                                                    className="custom-select-option"
                                                     style={{
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'space-between',
                                                         gap: '6px',
-                                                        fontSize: '12px',
-                                                        padding: '5px 8px',
+                                                        padding: '6px 8px',
                                                         borderRadius: '6px',
-                                                        background: isHovered ? 'var(--bg-tertiary)' : (isVisible ? 'rgba(99, 102, 241, 0.04)' : 'transparent'),
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.12s ease'
+                                                        cursor: 'pointer'
                                                     }}
                                                     onMouseEnter={() => setHoveredColumn(col.key)}
                                                     onMouseLeave={() => setHoveredColumn(null)}
@@ -937,9 +934,9 @@ export default function DataTable({
                                                     <div style={{
                                                         display: 'flex',
                                                         gap: '2px',
-                                                        opacity: isHovered ? 1 : 0,
-                                                        pointerEvents: isHovered ? 'auto' : 'none',
-                                                        transition: 'opacity 0.15s',
+                                                        opacity: hoveredColumn === col.key ? 1 : 0,
+                                                        pointerEvents: hoveredColumn === col.key ? 'auto' : 'none',
+                                                        transition: 'opacity 0.12s',
                                                         alignItems: 'center'
                                                     }}>
                                                         <button
