@@ -247,8 +247,7 @@ export default function MainPortal() {
                                 <span>{today}</span>
                             </div>
                             <h1 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px', letterSpacing: '-0.3px' }}>
-                                {getGreeting()}{user?.username ? `, ${user.username}` : ''} 👋
-                            </h1>
+                                {getGreeting()}{user?.username ? `, ${user.username}` : ''} </h1>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.5' }}>
                                 {currentCompany
                                     ? <>{currentCompany.name} şirketinde çalışıyorsunuz. <span style={{ color: 'var(--text-muted)' }}>Bir modül seçerek başlayın.</span></>

@@ -66,7 +66,7 @@ export const MODULE_DEFINITIONS = [
 export const ROLE_PRESETS = [
     {
         id: 'company_admin',
-        label: '🏢 Şirket Yöneticisi',
+        label: 'Şirket Yöneticisi',
         subtext: 'Şirket içindeki tüm modüllerde tam yetki',
         badgeColor: 'badge-primary',
         levels: {
@@ -81,7 +81,7 @@ export const ROLE_PRESETS = [
     },
     {
         id: 'manager',
-        label: '📋 Operasyon & Puantör',
+        label: 'Operasyon & Puantör',
         subtext: 'Saha işleri ve araç yönetimi (Finans ve Kasa kapalı)',
         badgeColor: 'badge-info',
         levels: {
@@ -96,7 +96,7 @@ export const ROLE_PRESETS = [
     },
     {
         id: 'accountant',
-        label: '💼 Ön Muhasebe & Finans',
+        label: 'Ön Muhasebe & Finans',
         subtext: 'Kasa, cari, çek, fatura ve personel bordroları',
         badgeColor: 'badge-warning',
         levels: {
@@ -111,7 +111,7 @@ export const ROLE_PRESETS = [
     },
     {
         id: 'maintenance',
-        label: '🔧 Kademe & Bakım Şefi',
+        label: 'Kademe & Bakım Şefi',
         subtext: 'Araç bakımı, muayene, sigorta ve arıza yönetimi',
         badgeColor: 'badge-warning',
         levels: {
@@ -126,7 +126,7 @@ export const ROLE_PRESETS = [
     },
     {
         id: 'auditor',
-        label: '👁️ Mali Müşavir / Denetçi',
+        label: 'Mali Müşavir / Denetçi',
         subtext: 'Tüm modülleri sadece inceler (Silme/Değiştirme kapalı)',
         badgeColor: 'badge-neutral',
         levels: {
@@ -141,7 +141,7 @@ export const ROLE_PRESETS = [
     },
     {
         id: 'personnel',
-        label: '👤 Saha Personeli / Şoför',
+        label: 'Saha Personeli / Şoför',
         subtext: 'Sadece kendine atanan işleri ve izinlerini görür',
         badgeColor: 'badge-success',
         levels: {
@@ -229,9 +229,9 @@ export default function PermissionMatrix({
                         <thead>
                             <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 <th style={{ textAlign: 'left', padding: '9px 14px', fontWeight: 600 }}>Modül Adı</th>
-                                <th style={{ textAlign: 'center', width: '110px', padding: '9px 8px', fontWeight: 600 }}>⛔ Erişim Yok</th>
-                                <th style={{ textAlign: 'center', width: '110px', padding: '9px 8px', fontWeight: 600 }}>👁️ Okuyucu</th>
-                                <th style={{ textAlign: 'center', width: '110px', padding: '9px 8px', fontWeight: 600 }}>✍️ Düzenleyici</th>
+                                <th style={{ textAlign: 'center', width: '110px', padding: '9px 8px', fontWeight: 600 }}>Erişim Yok</th>
+                                <th style={{ textAlign: 'center', width: '110px', padding: '9px 8px', fontWeight: 600 }}>Okuyucu</th>
+                                <th style={{ textAlign: 'center', width: '110px', padding: '9px 8px', fontWeight: 600 }}>Düzenleyici</th>
                             </tr>
                         </thead>
                         <tbody>

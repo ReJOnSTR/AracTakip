@@ -1727,7 +1727,7 @@ export default function ArventoTracking() {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    🚗 <strong>{selectedVehicle.plate}</strong> plakalı araca olan mesafe:
+                    <strong>{selectedVehicle.plate}</strong> plakalı araca olan mesafe:
                 </div>
                 {isRoutingLoading ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -1745,17 +1745,17 @@ export default function ArventoTracking() {
                         gap: '2px'
                     }}>
                         <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            🚗 Karayolu: {roadDistanceStr}
+                            Karayolu: {roadDistanceStr}
                         </span>
                         {roadDurationStr && (
                             <span style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '20px' }}>
-                                ⏱️ Tahmini Seyahat Süresi: <strong>{roadDurationStr}</strong>
+                                Tahmini Seyahat Süresi: <strong>{roadDurationStr}</strong>
                             </span>
                         )}
                     </div>
                 ) : (
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        ⚠️ Karayolu rotası hesaplanamadı (Hizmet çevrimdışı veya yol yok).
+                        Karayolu rotası hesaplanamadı (Hizmet çevrimdışı veya yol yok).
                     </div>
                 )}
                 
@@ -1767,7 +1767,7 @@ export default function ArventoTracking() {
                     gap: '4px',
                     paddingLeft: '4px'
                 }}>
-                    ✈️ Kuş Uçuşu Mesafe: <strong>{airDistanceStr}</strong>
+                    Kuş Uçuşu Mesafe: <strong>{airDistanceStr}</strong>
                 </div>
             </div>
         )
@@ -3820,7 +3820,7 @@ export default function ArventoTracking() {
                                 {searchedLocation && (
                                     <div className="map-search-distance-card">
                                         <div className="distance-card-header">
-                                            <span className="distance-card-title">📍 Hedef Konum</span>
+                                            <span className="distance-card-title">Hedef Konum</span>
                                             <button 
                                                 className="distance-card-clear" 
                                                 onClick={() => {
@@ -3837,7 +3837,7 @@ export default function ArventoTracking() {
                                             renderDistanceDetails()
                                         ) : (
                                             <div className="distance-card-no-vehicle">
-                                                💡 Mesafeyi hesaplamak için haritadan veya sol listeden bir araç seçin.
+                                                Mesafeyi hesaplamak için haritadan veya sol listeden bir araç seçin.
                                             </div>
                                         )}
                                     </div>
@@ -3883,7 +3883,7 @@ export default function ArventoTracking() {
 
                                             <div className="map-picker-toggle-row">
                                                 <div className="map-picker-toggle-label">
-                                                    <span style={{ fontSize: '14px' }}>🏷️</span>
+                                                    <span style={{ fontSize: '14px' }}></span>
                                                     Etiketler
                                                 </div>
                                                 <button 
@@ -3896,7 +3896,7 @@ export default function ArventoTracking() {
 
                                             <div className="map-picker-toggle-row">
                                                 <div className="map-picker-toggle-label">
-                                                    <span style={{ fontSize: '14px' }}>🚦</span>
+                                                    <span style={{ fontSize: '14px' }}></span>
                                                     Trafik
                                                 </div>
                                                 <button 
@@ -4287,7 +4287,7 @@ export default function ArventoTracking() {
                                                                                             <div className="visit-metrics">
                                                                                                 <span className="metric-tag dur">⌛ {formatDurationCompact(visit.durationMs)}</span>
                                                                                                 <span className="metric-tag speed">
-                                                                                                    {isParked ? '⏱️ Hareketsiz/Park' : `⚡ En Fazla ${visit.maxSpeed.toFixed(0)} km/h`}
+                                                                                                    {isParked ? 'Hareketsiz/Park' : `En Fazla ${visit.maxSpeed.toFixed(0)} km/h`}
                                                                                                 </span>
                                                                                             </div>
                                                                                         </div>

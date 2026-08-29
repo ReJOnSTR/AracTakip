@@ -3877,7 +3877,7 @@ export default function EmployeeDetail() {
                                 onChange={(val) => setUserAccountFormData({...userAccountFormData, password: val})}
                                 maxLength={64}
                             />
-                            <span style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '4px', display: 'block' }}>💡 Personel ilk girişte şifresini değiştirmek zorunda olacaktır.</span>
+                            <span style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '4px', display: 'block' }}>Personel ilk girişte şifresini değiştirmek zorunda olacaktır.</span>
                         </div>
                     )}
                     <CustomSelect

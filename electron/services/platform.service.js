@@ -123,18 +123,18 @@ async function getPlatformUsers() {
 
             if (u.role === 'superadmin') {
                 accountType = 'superadmin';
-                accountBadge = '👑 Süper Yönetici';
+                accountBadge = 'Süper Yönetici';
             } else if (u.companies && u.companies.length > 0) {
                 accountType = 'company_owner';
-                accountBadge = '🏢 Şirket Yöneticisi';
+                accountBadge = 'Şirket Yöneticisi';
                 linkedCompany = u.companies[0];
             } else if (u.employee) {
                 accountType = 'employee';
-                accountBadge = '👤 Personel / Şoför';
+                accountBadge = 'Personel / Şoför';
                 linkedCompany = u.employee.companies || null;
             } else if (u.role === 'company_admin' || u.role === 'admin') {
                 accountType = 'company_admin';
-                accountBadge = '🏢 Şirket Yöneticisi';
+                accountBadge = 'Şirket Yöneticisi';
             }
 
             return {

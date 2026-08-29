@@ -273,7 +273,7 @@ function startAdminServer(prisma, onDbUpdate) {
 
     const PORT = 9999;
     serverInstance = app.listen(PORT, '0.0.0.0', () => {
-        log.info(`🛠️  API Server running on http://0.0.0.0:${PORT} (Admin)`);
+        log.info(`API Server running on http://0.0.0.0:${PORT} (Admin)`);
     });
 }
 

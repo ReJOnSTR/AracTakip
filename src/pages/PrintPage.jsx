@@ -120,7 +120,7 @@ export default function PrintPage() {
                 alignItems: 'center',
                 gap: '6px'
             }}>
-                📥 PDF Olarak İndir (.pdf)
+                PDF Olarak İndir (.pdf)
             </button>
             <button onClick={() => window.print()} style={{
                 background: '#2563eb',
@@ -135,7 +135,7 @@ export default function PrintPage() {
                 alignItems: 'center',
                 gap: '6px'
             }}>
-                🖨️ Yazdır
+                Yazdır
             </button>
             <button onClick={() => window.close()} style={{
                 background: '#475569',

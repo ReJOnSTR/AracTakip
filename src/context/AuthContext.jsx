@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
                 if (res && res.forceLogout) {
                     sessionStorage.removeItem('aractakip_session_id')
                     logout()
-                    alert('⚠️ Güvenlik Uyarısı:\nOturumunuz sistem yöneticisi tarafından sonlandırıldı.')
+                    alert('Güvenlik Uyarısı:\nOturumunuz sistem yöneticisi tarafından sonlandırıldı.')
                 }
             } catch (err) {
                 // Ignore transient network errors

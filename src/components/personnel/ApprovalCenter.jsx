@@ -283,19 +283,19 @@ export default function ApprovalCenter() {
                         label: 'Durum',
                         options: [
                             { value: 'PENDING', label: '⏳ Onay Bekleyenler' },
-                            { value: 'APPROVED', label: '✅ Onaylananlar' },
-                            { value: 'REJECTED', label: '❌ Reddedilenler' }
+                            { value: 'APPROVED', label: 'Onaylananlar' },
+                            { value: 'REJECTED', label: 'Reddedilenler' }
                         ]
                     },
                     {
                         key: 'type',
                         label: 'Talep Türü',
                         options: [
-                            { value: 'LEAVE', label: '🏖️ İzin Talebi' },
-                            { value: 'ADVANCE', label: '💰 Ödeme Talebi' },
+                            { value: 'LEAVE', label: 'İzin Talebi' },
+                            { value: 'ADVANCE', label: 'Ödeme Talebi' },
                             { value: 'OVERTIME', label: '⏰ Mesai Bildirimi' },
-                            { value: 'VEHICLE_ASSIGNMENT', label: '🚗 Araç Talebi' },
-                            { value: 'EXPENSE', label: '🧾 Masraf İadesi' }
+                            { value: 'VEHICLE_ASSIGNMENT', label: 'Araç Talebi' },
+                            { value: 'EXPENSE', label: 'Masraf İadesi' }
                         ]
                     }
                 ]}
@@ -353,7 +353,7 @@ export default function ApprovalCenter() {
 
                         {actionType === 'APPROVED' && (
                             <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '12px', color: 'var(--success)' }}>
-                                💡 <b>Otomasyon:</b> Bu talep onaylandığında sistem ilgili modül tablosuna otomasyon kaydını otomatik düşecektir.
+                                <b>Otomasyon:</b> Bu talep onaylandığında sistem ilgili modül tablosuna otomasyon kaydını otomatik düşecektir.
                             </div>
                         )}
 

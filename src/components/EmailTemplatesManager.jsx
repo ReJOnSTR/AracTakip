@@ -719,7 +719,7 @@ export default function EmailTemplatesManager() {
                                 </div>
                                 {testResult.latency && (
                                     <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
-                                        ⚡ {testResult.latency}
+                                        {testResult.latency}
                                     </span>
                                 )}
                             </div>

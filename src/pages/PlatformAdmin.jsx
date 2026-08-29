@@ -653,10 +653,10 @@ export default function PlatformAdmin({ section }) {
             key: 'accountType',
             label: 'Hesap Türü',
             options: [
-                { value: 'superadmin', label: '👑 Süper Yönetici' },
-                { value: 'company_owner', label: '🏢 Şirket Sahibi' },
-                { value: 'employee', label: '👤 Personel / Şoför' },
-                { value: 'admin', label: '🛡️ Yönetici' }
+                { value: 'superadmin', label: 'Süper Yönetici' },
+                { value: 'company_owner', label: 'Şirket Sahibi' },
+                { value: 'employee', label: 'Personel / Şoför' },
+                { value: 'admin', label: 'Yönetici' }
             ]
         },
         {
@@ -664,8 +664,8 @@ export default function PlatformAdmin({ section }) {
             label: 'Durum',
             options: [
                 { value: 'PENDING', label: '⏳ Onay Bekleyenler' },
-                { value: 'ACTIVE', label: '🟢 Aktif Hesaplar' },
-                { value: 'LOCKED', label: '🔴 Kilitli Hesaplar' }
+                { value: 'ACTIVE', label: 'Aktif Hesaplar' },
+                { value: 'LOCKED', label: 'Kilitli Hesaplar' }
             ]
         }
     ], [overviewData])
@@ -701,10 +701,10 @@ export default function PlatformAdmin({ section }) {
 
     // User Role Options for Modal
     const userRoleOptions = [
-        { value: 'company_admin', label: '🏢 Şirket Sahibi / Yöneticisi (Tüm Modüllere Erişim)' },
-        { value: 'personnel', label: '👤 Şoför / Saha Personeli (Sadece Kendi Bilgilerini Görür)' },
-        { value: 'admin', label: '🛡️ Birim / Modül Sorumlusu' },
-        { value: 'superadmin', label: '👑 Süper Yönetici (Tüm Platform Yetkisi)' }
+        { value: 'company_admin', label: 'Şirket Sahibi / Yöneticisi (Tüm Modüllere Erişim)' },
+        { value: 'personnel', label: 'Şoför / Saha Personeli (Sadece Kendi Bilgilerini Görür)' },
+        { value: 'admin', label: 'Birim / Modül Sorumlusu' },
+        { value: 'superadmin', label: 'Süper Yönetici (Tüm Platform Yetkisi)' }
     ]
 
     const companyOwnerOptions = [
@@ -748,9 +748,9 @@ export default function PlatformAdmin({ section }) {
                     r.accountType === 'company_owner' ? 'badge-primary' : 
                     r.accountType === 'employee' ? 'badge-success' : 'badge-info'
                 }`}>
-                    {r.accountType === 'superadmin' ? '👑 Süper Yönetici' :
-                     r.accountType === 'company_owner' ? '🏢 Şirket Sahibi' :
-                     r.accountType === 'employee' ? '👤 Personel' : r.accountBadge}
+                    {r.accountType === 'superadmin' ? 'Süper Yönetici' :
+                     r.accountType === 'company_owner' ? 'Şirket Sahibi' :
+                     r.accountType === 'employee' ? 'Personel' : r.accountBadge}
                 </span>
                 {r.customRole && (
                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -911,11 +911,11 @@ export default function PlatformAdmin({ section }) {
         { key: 'is_dismissible', label: 'Kapatma Kuralı', render: (val) => {
             const mode = val !== undefined && val !== null ? Number(val) : 1
             if (mode === 0) {
-                return <span className="badge badge-danger">🔒 Sabit</span>
+                return <span className="badge badge-danger">Sabit</span>
             } else if (mode === 2) {
-                return <span className="badge badge-info">👁️ Kalıcı Kapatılabilir</span>
+                return <span className="badge badge-info">Kalıcı Kapatılabilir</span>
             }
-            return <span className="badge badge-warning">🔄 Her Girişte Göster</span>
+            return <span className="badge badge-warning">Her Girişte Göster</span>
         }},
         { key: 'status', label: 'Yayın Durumu', render: (_, r) => {
             if (r.isExpired) {
@@ -1172,12 +1172,12 @@ export default function PlatformAdmin({ section }) {
                                 key: 'type',
                                 label: 'Duyuru Türü',
                                 options: [
-                                    { value: 'info', label: '🔵 Bilgilendirme' },
-                                    { value: 'maintenance', label: '🟣 Sistem Bakımı' },
-                                    { value: 'warning', label: '🟡 Uyarı' },
-                                    { value: 'legal', label: '⚖️ Mevzuat & Sigorta' },
-                                    { value: 'critical', label: '🔴 Kritik Uyarı' },
-                                    { value: 'success', label: '🟢 Başarılı' }
+                                    { value: 'info', label: 'Bilgilendirme' },
+                                    { value: 'maintenance', label: 'Sistem Bakımı' },
+                                    { value: 'warning', label: 'Uyarı' },
+                                    { value: 'legal', label: 'Mevzuat & Sigorta' },
+                                    { value: 'critical', label: 'Kritik Uyarı' },
+                                    { value: 'success', label: 'Başarılı' }
                                 ]
                             }
                         ]}
@@ -1455,34 +1455,34 @@ export default function PlatformAdmin({ section }) {
                                 key: 'action',
                                 label: 'İşlem Türü',
                                 options: [
-                                    { value: 'CREATE', label: '🟢 Ekleme (CREATE)' },
-                                    { value: 'UPDATE', label: '🟡 Güncelleme (UPDATE)' },
-                                    { value: 'DELETE', label: '🔴 Silme (DELETE)' },
-                                    { value: 'LOGIN_SUCCESS', label: '🔑 Başarılı Giriş' },
-                                    { value: 'LOGIN_FAILED', label: '🚨 Hatalı Giriş' },
-                                    { value: 'IMPERSONATE', label: '👑 Şirkete Geçiş' },
-                                    { value: 'SECURITY', label: '🛡️ Güvenlik Olayı' }
+                                    { value: 'CREATE', label: 'Ekleme (CREATE)' },
+                                    { value: 'UPDATE', label: 'Güncelleme (UPDATE)' },
+                                    { value: 'DELETE', label: 'Silme (DELETE)' },
+                                    { value: 'LOGIN_SUCCESS', label: 'Başarılı Giriş' },
+                                    { value: 'LOGIN_FAILED', label: 'Hatalı Giriş' },
+                                    { value: 'IMPERSONATE', label: 'Şirkete Geçiş' },
+                                    { value: 'SECURITY', label: 'Güvenlik Olayı' }
                                 ]
                             },
                             {
                                 key: 'entityType',
                                 label: 'Modül',
                                 options: [
-                                    { value: 'vehicle', label: '🚗 Araçlar' },
-                                    { value: 'employee', label: '👥 Personel' },
-                                    { value: 'auth', label: '🔐 Kimlik & Giriş' },
-                                    { value: 'user', label: '👤 Kullanıcı Hesapları' },
-                                    { value: 'company', label: '🏢 Şirketler' },
-                                    { value: 'announcement', label: '📢 Duyurular' }
+                                    { value: 'vehicle', label: 'Araçlar' },
+                                    { value: 'employee', label: 'Personel' },
+                                    { value: 'auth', label: 'Kimlik & Giriş' },
+                                    { value: 'user', label: 'Kullanıcı Hesapları' },
+                                    { value: 'company', label: 'Şirketler' },
+                                    { value: 'announcement', label: 'Duyurular' }
                                 ]
                             },
                             {
                                 key: 'severity',
                                 label: 'Önem Seviyesi',
                                 options: [
-                                    { value: 'info', label: '🔵 Bilgi (Info)' },
-                                    { value: 'warn', label: '🟡 Uyarı (Warn)' },
-                                    { value: 'critical', label: '🔴 Kritik (Critical)' }
+                                    { value: 'info', label: 'Bilgi (Info)' },
+                                    { value: 'warn', label: 'Uyarı (Warn)' },
+                                    { value: 'critical', label: 'Kritik (Critical)' }
                                 ]
                             }
                         ]}
@@ -1537,9 +1537,9 @@ export default function PlatformAdmin({ section }) {
                                 key: 'level',
                                 label: 'Log Seviyesi',
                                 options: [
-                                    { value: 'info', label: '🔵 Info / Bilgi' },
-                                    { value: 'warn', label: '🟡 Warn / Uyarı' },
-                                    { value: 'error', label: '🔴 Error / Hata' }
+                                    { value: 'info', label: 'Info / Bilgi' },
+                                    { value: 'warn', label: 'Warn / Uyarı' },
+                                    { value: 'error', label: 'Error / Hata' }
                                 ]
                             }
                         ]}
@@ -1573,7 +1573,7 @@ export default function PlatformAdmin({ section }) {
                                 ) : (
                                     <>
                                         <Database size={16} />
-                                        ⚡ Anlık Yedek Al
+                                        Anlık Yedek Al
                                     </>
                                 )}
                             </button>
@@ -1640,11 +1640,11 @@ export default function PlatformAdmin({ section }) {
                                 value={newAnnouncement.type}
                                 onChange={(val) => setNewAnnouncement(prev => ({ ...prev, type: getVal(val) }))}
                                 options={[
-                                    { value: 'info', label: '🔵 Bilgilendirme (Info)' },
-                                    { value: 'warning', label: '🟡 Dikkat / Uyarı (Warning)' },
-                                    { value: 'maintenance', label: '🛠️ Sistem Bakımı (Maintenance)' },
-                                    { value: 'legal', label: '⚖️ Mevzuat / Zorunlu (Legal)' },
-                                    { value: 'urgent', label: '🔴 Acil Bildirim (Urgent)' }
+                                    { value: 'info', label: 'Bilgilendirme (Info)' },
+                                    { value: 'warning', label: 'Dikkat / Uyarı (Warning)' },
+                                    { value: 'maintenance', label: 'Sistem Bakımı (Maintenance)' },
+                                    { value: 'legal', label: 'Mevzuat / Zorunlu (Legal)' },
+                                    { value: 'urgent', label: 'Acil Bildirim (Urgent)' }
                                 ]}
                             />
 
@@ -1653,8 +1653,8 @@ export default function PlatformAdmin({ section }) {
                                 value={newAnnouncement.companyId}
                                 onChange={(val) => setNewAnnouncement(prev => ({ ...prev, companyId: getVal(val) }))}
                                 options={[
-                                    { value: '', label: '🌐 Tüm Şirketler (Genel Yayın)' },
-                                    ...tenantCompanies.map(c => ({ value: String(c.id), label: `🏢 ${c.name}` }))
+                                    { value: '', label: 'Tüm Şirketler (Genel Yayın)' },
+                                    ...tenantCompanies.map(c => ({ value: String(c.id), label: `${c.name}` }))
                                 ]}
                             />
                         </div>
@@ -1665,9 +1665,9 @@ export default function PlatformAdmin({ section }) {
                                 value={newAnnouncement.isDismissible}
                                 onChange={(val) => setNewAnnouncement(prev => ({ ...prev, isDismissible: Number(getVal(val)) }))}
                                 options={[
-                                    { value: 1, label: '🔄 Her Girişte Göster (Kapatınca Gizlenir)' },
-                                    { value: 2, label: '👁️ Kalıcı Kapatılabilir (Bir Kez Okundu)' },
-                                    { value: 0, label: '🔒 Kapatılamaz (Sürekli Sabit)' }
+                                    { value: 1, label: 'Her Girişte Göster (Kapatınca Gizlenir)' },
+                                    { value: 2, label: 'Kalıcı Kapatılabilir (Bir Kez Okundu)' },
+                                    { value: 0, label: 'Kapatılamaz (Sürekli Sabit)' }
                                 ]}
                             />
 
@@ -1833,10 +1833,10 @@ export default function PlatformAdmin({ section }) {
                                             for (let i = 0; i < 16; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
                                             setNewUserForm(prev => ({ ...prev, password: pwd }));
                                             navigator.clipboard.writeText(pwd);
-                                            alert('🎲 Güvenli Şifre Üretildi ve Panoya Kopyalandı:\n\n' + pwd);
+                                            alert('Güvenli Şifre Üretildi ve Panoya Kopyalandı:\n\n' + pwd);
                                         }}
                                     >
-                                        🎲 Rastgele Üret
+                                        Rastgele Üret
                                     </button>
                                 </div>
                                 <CustomInput
@@ -1856,7 +1856,7 @@ export default function PlatformAdmin({ section }) {
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: getVal(val) }))}
                                 options={[
                                     { value: '', label: 'Şirketsiz / Sistem Kullanıcısı' },
-                                    ...tenantCompanies.map(c => ({ value: String(c.id), label: `🏢 ${c.name}` }))
+                                    ...tenantCompanies.map(c => ({ value: String(c.id), label: `${c.name}` }))
                                 ]}
                             />
 
@@ -2080,10 +2080,10 @@ export default function PlatformAdmin({ section }) {
                                         for (let i = 0; i < 16; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
                                         setNewPassword(pwd);
                                         navigator.clipboard.writeText(pwd);
-                                        alert('🎲 Güvenli Şifre Üretildi ve Panoya Kopyalandı:\n\n' + pwd);
+                                        alert('Güvenli Şifre Üretildi ve Panoya Kopyalandı:\n\n' + pwd);
                                     }}
                                 >
-                                    🎲 Rastgele Üret
+                                    Rastgele Üret
                                 </button>
                             </div>
                             <CustomInput

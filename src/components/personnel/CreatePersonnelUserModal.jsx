@@ -84,7 +84,7 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
                             onChange={(val) => setFormData({...formData, password: val})}
                             maxLength={64}
                         />
-                        <span className="text-[10px] text-amber-400 mt-1 block">💡 Personel ilk girişte şifresini değiştirmeye zorlanacaktır.</span>
+                        <span className="text-[10px] text-amber-400 mt-1 block">Personel ilk girişte şifresini değiştirmeye zorlanacaktır.</span>
                     </div>
 
                     <CustomSelect 

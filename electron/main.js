@@ -2690,7 +2690,7 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
             webContents.send('migration-log', `[Storage Notu] Dosya senkronizasyonu: ${storageErr.message}`);
         }
 
-        webContents.send('migration-log', '🎉 Tebrikler! Tüm veritabanı ve dosyalar başarıyla Supabase bulutuna aktarıldı!');
+        webContents.send('migration-log', 'Tebrikler! Tüm veritabanı ve dosyalar başarıyla Supabase bulutuna aktarıldı!');
         return { success: true };
 
     } catch (migrationErr) {

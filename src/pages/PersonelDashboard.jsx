@@ -516,7 +516,7 @@ export default function PersonelDashboard() {
                                                     {e.first_name} {e.last_name}
                                                 </span>
                                                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: statusColor }}>
-                                                    {isToday ? 'BUGÜN 🎉' : isTomorrow ? 'Yarın' : `${e.daysUntil} gün kaldı`}
+                                                    {isToday ? 'BUGÜN ' : isTomorrow ? 'Yarın' : `${e.daysUntil} gün kaldı`}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '0' }}>

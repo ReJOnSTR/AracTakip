@@ -249,7 +249,7 @@ export default function Profile() {
                                         <h3>{profileData.full_name || user?.username}</h3>
                                         <p>{profileData.email}</p>
                                         <span className="profile-badge">
-                                            {user?.role === 'superadmin' ? '👑 Süper Yönetici' : '🏢 Yönetici'}
+                                            {user?.role === 'superadmin' ? 'Süper Yönetici' : 'Yönetici'}
                                         </span>
                                     </div>
                                 </div>
@@ -318,9 +318,9 @@ export default function Profile() {
                                                         İki Adımlı Doğrulama (2FA - TOTP)
                                                     </h3>
                                                     {mfaStatus.enabled ? (
-                                                        <span className="badge badge-success">🟢 Aktif</span>
+                                                        <span className="badge badge-success">Aktif</span>
                                                     ) : (
-                                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}>⚪ Kapalı</span>
+                                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}>Kapalı</span>
                                                     )}
                                                 </div>
                                                 <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, maxWidth: '540px' }}>
@@ -498,7 +498,7 @@ export default function Profile() {
                                 ))}
                             </div>
                             <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '8px 0 0 0' }}>
-                                ⚠️ Telefonunuzu kaybederseniz bu kodlarla giriş yapabilirsiniz. Lütfen güvenli bir yere kaydedin.
+                                Telefonunuzu kaybederseniz bu kodlarla giriş yapabilirsiniz. Lütfen güvenli bir yere kaydedin.
                             </p>
                         </div>
 

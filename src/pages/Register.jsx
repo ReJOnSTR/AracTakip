@@ -219,7 +219,7 @@ export default function Register() {
                                 }}>
                                     <ShieldCheck size={36} />
                                 </div>
-                                <h2 className="form-header-title" style={{ fontSize: '22px' }}>Başvurunuz Alındı! 🎉</h2>
+                                <h2 className="form-header-title" style={{ fontSize: '22px' }}>Başvurunuz Alındı! </h2>
                                 <p className="form-header-subtitle" style={{ marginTop: '8px', lineHeight: 1.5 }}>
                                     E-posta adresiniz başarıyla doğrulandı.
                                 </p>
@@ -561,7 +561,7 @@ export default function Register() {
                                 color: 'var(--text-muted)',
                                 lineHeight: 1.4
                             }}>
-                                ℹ️ <strong>Personel ve Şoförler için:</strong> Personel hesapları yalnızca bağlı olduğunuz şirket yöneticisi tarafından davetiye yoluyla açılır; dışarıdan bağımsız kayıt yapılamaz.
+                                <strong>Personel ve Şoförler için:</strong> Personel hesapları yalnızca bağlı olduğunuz şirket yöneticisi tarafından davetiye yoluyla açılır; dışarıdan bağımsız kayıt yapılamaz.
                             </div>
 
                             <div className="auth-bottom-footer" style={{ marginTop: '16px' }}>

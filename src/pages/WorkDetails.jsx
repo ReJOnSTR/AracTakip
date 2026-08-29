@@ -1571,7 +1571,7 @@ export default function WorkDetails(props) {
                                 color: formData.customColor ? 'var(--accent-primary)' : 'var(--text-primary)'
                             }}
                         >
-                            <span>🎨 Gün Rengi / Etiket</span>
+                            <span>Gün Rengi / Etiket</span>
                             {formData.customColor && (
                                 <span style={{ fontSize: '10px', background: 'var(--accent-primary)', color: '#fff', padding: '1px 6px', borderRadius: '10px' }}>
                                     {formData.customColor === 'red' ? 'Kırmızı' : formData.customColor === 'orange' ? 'Turuncu' : formData.customColor === 'blue' ? 'Mavi' : formData.customColor === 'green' ? 'Yeşil' : 'Mor'}
@@ -1596,7 +1596,7 @@ export default function WorkDetails(props) {
                                 color: (formData.multiplier && formData.multiplier !== '1') ? 'var(--accent-primary)' : 'var(--text-primary)'
                             }}
                         >
-                            <span>🔢 Manuel Katsayı</span>
+                            <span>Manuel Katsayı</span>
                             {(formData.multiplier && formData.multiplier !== '1') && (
                                 <span style={{ fontSize: '10px', background: 'var(--accent-primary)', color: '#fff', padding: '1px 6px', borderRadius: '10px' }}>
                                     {formData.multiplier}x
@@ -1624,7 +1624,7 @@ export default function WorkDetails(props) {
             <Modal
                 isOpen={isColorModalOpen}
                 onClose={() => setIsColorModalOpen(false)}
-                title="🎨 Gün Rengi / Etiketi Seçin"
+                title="Gün Rengi / Etiketi Seçin"
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
@@ -1632,12 +1632,12 @@ export default function WorkDetails(props) {
                     </p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
                         {[
-                            { id: '', label: '⚪ Standart Renk', desc: 'Varsayılan beyaz/şeffaf satır' },
-                            { id: 'red', label: '🔴 Kırmızı', desc: 'Resmi Tatil / Özel Vurgu' },
-                            { id: 'orange', label: '🟠 Turuncu', desc: 'Yarım Gün / Cumartesi' },
-                            { id: 'blue', label: '🔵 Mavi', desc: 'Gece Vardiyası' },
-                            { id: 'green', label: '🟢 Yeşil', desc: 'Özel Saha Görüşmesi' },
-                            { id: 'purple', label: '🟣 Mor', desc: 'Özel Durum' }
+                            { id: '', label: 'Standart Renk', desc: 'Varsayılan beyaz/şeffaf satır' },
+                            { id: 'red', label: 'Kırmızı', desc: 'Resmi Tatil / Özel Vurgu' },
+                            { id: 'orange', label: 'Turuncu', desc: 'Yarım Gün / Cumartesi' },
+                            { id: 'blue', label: 'Mavi', desc: 'Gece Vardiyası' },
+                            { id: 'green', label: 'Yeşil', desc: 'Özel Saha Görüşmesi' },
+                            { id: 'purple', label: 'Mor', desc: 'Özel Durum' }
                         ].map(col => (
                             <button
                                 key={col.id}
@@ -1671,7 +1671,7 @@ export default function WorkDetails(props) {
             <Modal
                 isOpen={isMultiplierModalOpen}
                 onClose={() => setIsMultiplierModalOpen(false)}
-                title="🔢 Manuel Fiyat Katsayısı (Çarpan)"
+                title="Manuel Fiyat Katsayısı (Çarpan)"
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
@@ -1726,7 +1726,7 @@ export default function WorkDetails(props) {
 
                     {parseFloat(formData.multiplier) > 0 && parseFloat(formData.multiplier) !== 1 && (
                         <div style={{ background: 'var(--accent-subtle)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--accent-primary)', fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                            💡 Birim fiyat {formData.multiplier} katı olarak uygulanacaktır.<br />
+                            Birim fiyat {formData.multiplier} katı olarak uygulanacaktır.<br />
                             Etkili Fiyat: {formatCurrency((parseFloat(formData.unitPrice) || 0) * parseFloat(formData.multiplier))}
                         </div>
                     )}
@@ -2082,7 +2082,7 @@ export default function WorkDetails(props) {
                     {modalError && <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>{modalError}</div>}
 
                     <div style={{ background: 'var(--bg-tertiary)', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                        ⚠️ Boş bıraktığınız alanlar mevcut kayıtlarda değiştirilmeyecektir.
+                        Boş bıraktığınız alanlar mevcut kayıtlarda değiştirilmeyecektir.
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
