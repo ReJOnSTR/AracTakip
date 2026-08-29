@@ -366,6 +366,7 @@ export default function ApprovalCenter() {
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder={actionType === 'APPROVED' ? 'Yönetici onay açıklaması...' : 'Red nedenini belirtiniz...'}
+                                maxLength={300}
                                 className="form-control"
                             />
                         </div>

@@ -141,12 +141,14 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     format="tc_no"
                     value={form.tcNo}
                     onChange={(val) => handleChange('tcNo', val)}
+                    maxLength={11}
                 />
                 <CustomInput
                     label="Telefon"
                     format="phone"
                     value={form.phone}
                     onChange={(val) => handleChange('phone', val)}
+                    maxLength={14}
                 />
                 <CustomInput
                     label="E-posta"
@@ -160,6 +162,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     format="iban"
                     value={form.iban}
                     onChange={(val) => handleChange('iban', val)}
+                    maxLength={32}
                     placeholder="TR__ ____ ____ ____ ____ ____ __"
                 />
                 <CustomInput

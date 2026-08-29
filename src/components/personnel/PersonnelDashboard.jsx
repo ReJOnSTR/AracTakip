@@ -428,6 +428,7 @@ export default function PersonnelDashboard() {
                                     required
                                     value={formData.title} 
                                     onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                    maxLength={100}
                                     className="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-indigo-500 text-sm"
                                 />
                             </div>
@@ -461,6 +462,7 @@ export default function PersonnelDashboard() {
                                         <input 
                                             type="number" 
                                             min="0.5" 
+                                            max="365"
                                             step="0.5"
                                             value={formData.days} 
                                             onChange={(e) => setFormData({...formData, days: e.target.value})}
@@ -510,6 +512,8 @@ export default function PersonnelDashboard() {
                                             <input 
                                                 type="number" 
                                                 required
+                                                min="0"
+                                                max="999999999"
                                                 placeholder="5000"
                                                 value={formData.amount} 
                                                 onChange={(e) => setFormData({...formData, amount: e.target.value})}
@@ -585,6 +589,8 @@ export default function PersonnelDashboard() {
                                             <label className="block text-xs font-semibold text-gray-400 mb-1">Mesai Süresi (Saat)</label>
                                             <input 
                                                 type="number" 
+                                                min="0.5"
+                                                max="24"
                                                 step="0.5"
                                                 required
                                                 value={formData.overtime_hours} 
@@ -644,6 +650,7 @@ export default function PersonnelDashboard() {
                                             type="text" 
                                             value={formData.category} 
                                             onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                            maxLength={50}
                                             className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm"
                                         />
                                     </div>
@@ -651,6 +658,8 @@ export default function PersonnelDashboard() {
                                         <label className="block text-xs font-semibold text-gray-400 mb-1">Tutar (₺)</label>
                                         <input 
                                             type="number" 
+                                            min="0"
+                                            max="999999999"
                                             required
                                             value={formData.amount} 
                                             onChange={(e) => setFormData({...formData, amount: e.target.value})}
@@ -667,6 +676,7 @@ export default function PersonnelDashboard() {
                                     value={formData.description} 
                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                                     placeholder="Talep detayları ve nedeni..."
+                                    maxLength={300}
                                     className="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-indigo-500 text-sm"
                                 />
                             </div>

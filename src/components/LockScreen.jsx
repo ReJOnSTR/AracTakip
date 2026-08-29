@@ -123,6 +123,7 @@ export default function LockScreen({ isLocked, onUnlock }) {
                             placeholder="Şifreniz"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            maxLength={64}
                             autoFocus
                         />
                         <button type="submit" disabled={loading || !password}>

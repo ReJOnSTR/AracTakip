@@ -1041,6 +1041,7 @@ export default function Salaries() {
                                 required
                                 value={paymentModal.amount}
                                 onChange={(val) => setPaymentModal({ ...paymentModal, amount: val })}
+                                maxLength={14}
                             />
                             <CustomInput
                                 label="Tarih"
@@ -1139,6 +1140,7 @@ export default function Salaries() {
                             label="Açıklama"
                             value={paymentModal.description}
                             onChange={(val) => setPaymentModal({ ...paymentModal, description: val })}
+                            maxLength={250}
                         />
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
@@ -1168,6 +1170,7 @@ export default function Salaries() {
                         required
                         value={salaryModal.amount}
                         onChange={(val) => setSalaryModal({ ...salaryModal, amount: val })}
+                        maxLength={14}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button className="btn btn-secondary" onClick={() => setSalaryModal({ ...salaryModal, isOpen: false })}>İptal</button>

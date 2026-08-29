@@ -3237,6 +3237,7 @@ export default function ArventoTracking() {
                                 value={loginForm.username}
                                 onChange={(val) => setLoginForm({...loginForm, username: val})}
                                 placeholder="Örn: sirket_kullanici"
+                                maxLength={50}
                                 autoFocus
                             />
                             <CustomInput
@@ -3246,6 +3247,7 @@ export default function ArventoTracking() {
                                 value={loginForm.pin1}
                                 onChange={(val) => setLoginForm({...loginForm, pin1: val})}
                                 placeholder="Arvento PIN1 / Şifreniz"
+                                maxLength={50}
                             />
                             <CustomInput
                                 label="PIN2 (Opsiyonel)"
@@ -3253,6 +3255,7 @@ export default function ArventoTracking() {
                                 value={loginForm.pin2}
                                 onChange={(val) => setLoginForm({...loginForm, pin2: val})}
                                 placeholder="Var ise PIN2"
+                                maxLength={50}
                             />
 
                             {loginError && (

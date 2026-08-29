@@ -64,6 +64,7 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
                         required
                         value={formData.username}
                         onChange={(val) => setFormData({...formData, username: val})}
+                        maxLength={50}
                     />
 
                     <CustomInput 
@@ -72,6 +73,7 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
                         required
                         value={formData.email}
                         onChange={(val) => setFormData({...formData, email: val})}
+                        maxLength={100}
                     />
 
                     <div>
@@ -80,6 +82,7 @@ export default function CreatePersonnelUserModal({ employee, isOpen, onClose, on
                             required
                             value={formData.password}
                             onChange={(val) => setFormData({...formData, password: val})}
+                            maxLength={64}
                         />
                         <span className="text-[10px] text-amber-400 mt-1 block">💡 Personel ilk girişte şifresini değiştirmeye zorlanacaktır.</span>
                     </div>

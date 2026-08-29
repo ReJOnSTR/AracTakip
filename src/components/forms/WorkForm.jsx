@@ -218,6 +218,8 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                     type="number"
                                     step="0.1"
                                     min="0"
+                                    max="10"
+                                    maxLength={4}
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.pazar_multiplier?.message}
@@ -236,6 +238,8 @@ export default function WorkForm({ initialData, onSubmit, onCancel, loading, cus
                                     type="number"
                                     step="0.1"
                                     min="0"
+                                    max="10"
+                                    maxLength={4}
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.mesai_multiplier?.message}

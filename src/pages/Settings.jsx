@@ -763,6 +763,7 @@ export default function Settings() {
                                                     className="form-input" 
                                                     value={postgresUrl} 
                                                     onChange={(e) => setPostgresUrl(e.target.value)}
+                                                    maxLength={250}
                                                     placeholder="postgresql://kullanici:sifre@sunucu:5432/veritabani"
                                                 />
                                                 <label className="form-label">PostgreSQL Bağlantı Adresi (URI)</label>

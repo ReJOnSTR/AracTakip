@@ -615,6 +615,7 @@ export default function Login() {
                                             placeholder="ornek@sirket.com"
                                             value={forgotEmail}
                                             onChange={(e) => setForgotEmail(e.target.value)}
+                                            maxLength={100}
                                             required
                                             autoFocus
                                         />

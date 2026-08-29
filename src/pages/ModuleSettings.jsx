@@ -731,6 +731,7 @@ function HrModuleContent() {
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             min="0.1"
+                            max="10"
                             step="0.1"
                             placeholder="Örn: 1.5"
                             autoFocus

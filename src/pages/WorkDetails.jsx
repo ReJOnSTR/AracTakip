@@ -1779,6 +1779,7 @@ export default function WorkDetails(props) {
                             type="text"
                             value={bulkFormData.receiptNo}
                             onChange={(val) => setBulkFormData({ ...bulkFormData, receiptNo: val })}
+                            maxLength={20}
                         />
                     </div>
 
@@ -1844,6 +1845,7 @@ export default function WorkDetails(props) {
                                     format="currency"
                                     value={bulkFormData.monthlyPrice}
                                     onChange={(val) => setBulkFormData({ ...bulkFormData, monthlyPrice: val })}
+                                    maxLength={12}
                                 />
                             ) : (
                                 <CustomInput
@@ -1851,6 +1853,7 @@ export default function WorkDetails(props) {
                                     format="currency"
                                     value={bulkFormData.unitPrice}
                                     onChange={(val) => setBulkFormData({ ...bulkFormData, unitPrice: val })}
+                                    maxLength={12}
                                 />
                             )}
                         </div>
@@ -2010,6 +2013,7 @@ export default function WorkDetails(props) {
                                     value={curBulkAdditionType}
                                     onChange={(val) => setCurBulkAdditionType(val)}
                                     placeholder="Tür (Örn: Yol, Yemek)"
+                                    maxLength={50}
                                     className="mb-0"
                                 />
                             </div>
@@ -2020,6 +2024,7 @@ export default function WorkDetails(props) {
                                     value={curBulkAdditionPrice}
                                     onChange={(val) => setCurBulkAdditionPrice(val)}
                                     placeholder="0,00"
+                                    maxLength={12}
                                     className="mb-0"
                                 />
                             </div>
@@ -2057,6 +2062,7 @@ export default function WorkDetails(props) {
                         type="text"
                         value={bulkFormData.description}
                         onChange={(val) => setBulkFormData({ ...bulkFormData, description: val })}
+                        maxLength={250}
                     />
 
                     <div className="modal-footer">
@@ -2091,6 +2097,7 @@ export default function WorkDetails(props) {
                             type="text"
                             value={bulkEditFormData.receiptNo}
                             onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, receiptNo: val })}
+                            maxLength={20}
                         />
                     </div>
 
@@ -2147,6 +2154,9 @@ export default function WorkDetails(props) {
                             <CustomInput
                                 label="Birim Fiyat"
                                 type="number"
+                                min={0}
+                                max={999999999}
+                                maxLength={12}
                                 value={bulkEditFormData.unitPrice}
                                 onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, unitPrice: val })}
                             />
@@ -2177,6 +2187,7 @@ export default function WorkDetails(props) {
                         type="text"
                         value={bulkEditFormData.description}
                         onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, description: val })}
+                        maxLength={250}
                     />
 
                     <div className="modal-footer">

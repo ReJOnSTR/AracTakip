@@ -3690,6 +3690,7 @@ export default function EmployeeDetail() {
                             label="Dosya Adı *"
                             value={uploadFileName}
                             onChange={setUploadFileName}
+                            maxLength={120}
                             required
                         />
                         <CustomSelect 

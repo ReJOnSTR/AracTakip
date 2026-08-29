@@ -60,6 +60,7 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                         format="phone"
                         value={formData.phone}
                         onChange={val => handleChange('phone', val)}
+                        maxLength={14}
                         placeholder="(5XX) XXX XX XX"
                     />
                     <CustomInput
@@ -78,6 +79,7 @@ export default function CustomerForm({ initialData = null, onSubmit, onCancel, l
                         format="tc_no"
                         value={formData.tax_number}
                         onChange={val => handleChange('tax_number', val)}
+                        maxLength={11}
                         placeholder="Vergi No veya TCKN"
                     />
                     <CustomInput

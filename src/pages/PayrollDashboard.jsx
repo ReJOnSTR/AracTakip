@@ -662,6 +662,7 @@ export default function PayrollDashboard() {
                                         onChange={(val) => setFormData({ ...formData, amount: val })}
                                         required={!formData.useRemaining}
                                         disabled={formData.useRemaining}
+                                        maxLength={14}
                                         placeholder={formData.useRemaining ? "Bakiyeler otomatik hesaplanacak" : "Elle tutar girin..."}
                                     />
 
@@ -733,6 +734,7 @@ export default function PayrollDashboard() {
                                         rows={2}
                                         value={formData.notes}
                                         onChange={(val) => setFormData({ ...formData, notes: val })}
+                                        maxLength={300}
                                         placeholder="Eklemek istediğiniz notlar..."
                                     />
                                 </div>

@@ -261,6 +261,7 @@ export default function Profile() {
                                         label="Ad Soyad"
                                         value={profileData.full_name}
                                         onChange={val => setProfileData({...profileData, full_name: val})}
+                                        maxLength={100}
                                         placeholder="Tam isminiz"
                                     />
                                     
@@ -270,6 +271,7 @@ export default function Profile() {
                                             required
                                             value={profileData.username}
                                             onChange={val => setProfileData({...profileData, username: val})}
+                                            maxLength={50}
                                             icon={<AtSign size={15} />}
                                         />
                                         <CustomInput 
@@ -278,6 +280,7 @@ export default function Profile() {
                                             required
                                             value={profileData.email}
                                             onChange={val => setProfileData({...profileData, email: val})}
+                                            maxLength={100}
                                             icon={<Mail size={15} />}
                                         />
                                     </div>
@@ -367,6 +370,7 @@ export default function Profile() {
                                             type="password"
                                             value={passwordData.currentPassword}
                                             onChange={val => setPasswordData({...passwordData, currentPassword: val})}
+                                            maxLength={64}
                                             icon={<Key size={15} />}
                                             placeholder="••••••••"
                                         />
@@ -377,6 +381,7 @@ export default function Profile() {
                                                 type="password"
                                                 value={passwordData.newPassword}
                                                 onChange={val => setPasswordData({...passwordData, newPassword: val})}
+                                                maxLength={64}
                                                 icon={<Lock size={15} />}
                                                 placeholder="Yeni şifreniz"
                                             />
@@ -385,6 +390,7 @@ export default function Profile() {
                                                 type="password"
                                                 value={passwordData.confirmPassword}
                                                 onChange={val => setPasswordData({...passwordData, confirmPassword: val})}
+                                                maxLength={64}
                                                 icon={<Lock size={15} />}
                                                 placeholder="Yeni şifrenizi doğrulayın"
                                             />

@@ -400,6 +400,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-input"
                                             value={currentSenderName}
                                             onChange={handleSenderNameChange}
+                                            maxLength={100}
                                             placeholder="Örn: Kontrol"
                                         />
                                     </div>
@@ -410,6 +411,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-input"
                                             value={currentSubject}
                                             onChange={handleSubjectChange}
+                                            maxLength={150}
                                             placeholder="Subject heading..."
                                         />
                                     </div>
@@ -452,6 +454,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-code-area"
                                             value={currentHtml}
                                             onChange={handleHtmlChange}
+                                            maxLength={20000}
                                             placeholder="<h2>Confirm your signup</h2>..."
                                             spellCheck="false"
                                         />
@@ -550,6 +553,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpHost}
                                         onChange={(e) => setSmtpHost(e.target.value)}
+                                        maxLength={100}
                                         placeholder="e.g. 45.147.47.56 or smtp.gmail.com"
                                     />
                                 </div>
@@ -560,6 +564,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpPort}
                                         onChange={(e) => setSmtpPort(e.target.value)}
+                                        maxLength={5}
                                         placeholder="587 / 465 / 25"
                                     />
                                 </div>
@@ -573,6 +578,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpUser}
                                         onChange={(e) => setSmtpUser(e.target.value)}
+                                        maxLength={100}
                                         placeholder="admin@kontrol-app.com"
                                     />
                                 </div>
@@ -583,6 +589,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpPass}
                                         onChange={(e) => setSmtpPass(e.target.value)}
+                                        maxLength={100}
                                         placeholder={hasPass ? '••••••••' : 'Password'}
                                     />
                                 </div>
@@ -596,6 +603,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={defaultSenderName}
                                         onChange={(e) => setDefaultSenderName(e.target.value)}
+                                        maxLength={100}
                                         placeholder="Kontrol"
                                     />
                                 </div>
@@ -606,6 +614,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={defaultSenderEmail}
                                         onChange={(e) => setDefaultSenderEmail(e.target.value)}
+                                        maxLength={100}
                                         placeholder="noreply@kontrol-app.com"
                                     />
                                 </div>
@@ -659,6 +668,7 @@ export default function EmailTemplatesManager() {
                             placeholder="yourname@gmail.com"
                             value={testTargetEmail}
                             onChange={(e) => setTestTargetEmail(e.target ? e.target.value : e)}
+                            maxLength={100}
                             autoFocus
                         />
                     </div>

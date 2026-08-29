@@ -1746,6 +1746,7 @@ export default function PlatformAdmin({ section }) {
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, phone: getVal(val) }))}
                                 placeholder="0212 XXX XX XX"
                                 format="phone"
+                                maxLength={14}
                             />
                         </div>
 
@@ -1866,6 +1867,7 @@ export default function PlatformAdmin({ section }) {
                                 value={newUserForm.position}
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, position: getVal(val) }))}
                                 placeholder="Örn: Ağır Vasıta Şoförü"
+                                maxLength={50}
                             />
                         )}
 
@@ -1875,6 +1877,7 @@ export default function PlatformAdmin({ section }) {
                             onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: getVal(val) }))}
                             placeholder="05XX XXX XX XX"
                             format="phone"
+                            maxLength={14}
                         />
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
@@ -2063,6 +2066,7 @@ export default function PlatformAdmin({ section }) {
                                 value={newPassword}
                                 onChange={(val) => setNewPassword(getVal(val))}
                                 placeholder="Yeni şifreyi girin"
+                                maxLength={64}
                                 required
                             />
                         </div>

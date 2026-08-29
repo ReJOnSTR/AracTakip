@@ -158,6 +158,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                     value={field.value}
                                     onChange={field.onChange}
                                     format="plate"
+                                    maxLength={15}
                                     placeholder="34 ABC 123"
                                     floatingLabel={true}
                                     error={errors.plate?.message}
