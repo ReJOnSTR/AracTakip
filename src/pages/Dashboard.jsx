@@ -176,13 +176,33 @@ export default function Dashboard() {
                     year: data.year ? parseInt(data.year) : null
                 })
             } else if (activeModal === 'add-maintenance') {
-                result = await window.electronAPI.addMaintenance(data)
+                result = await window.electronAPI.createMaintenance({
+                    ...data,
+                    companyId: currentCompany.id,
+                    vehicleId: parseInt(data.vehicleId),
+                    cost: data.cost ? parseFloat(data.cost) : null,
+                    nextKm: data.nextKm ? parseInt(data.nextKm) : null
+                })
             } else if (activeModal === 'add-service') {
-                result = await window.electronAPI.addService(data)
+                result = await window.electronAPI.createService({
+                    ...data,
+                    vehicleId: parseInt(data.vehicleId),
+                    km: data.km ? parseInt(data.km) : null,
+                    cost: data.cost ? parseFloat(data.cost) : 0
+                })
             } else if (activeModal === 'add-inspection') {
-                result = await window.electronAPI.addInspection(data)
+                result = await window.electronAPI.createInspection({
+                    ...data,
+                    vehicleId: parseInt(data.vehicleId),
+                    cost: data.cost ? parseFloat(data.cost) : 0,
+                    type: data.type || 'traffic'
+                })
             } else if (activeModal === 'add-insurance') {
-                result = await window.electronAPI.addInsurance(data)
+                result = await window.electronAPI.createInsurance({
+                    ...data,
+                    vehicleId: parseInt(data.vehicleId),
+                    cost: data.cost ? parseFloat(data.cost) : 0
+                })
             }
         } catch (error) {
             result = { success: false, error: error.message }

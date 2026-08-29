@@ -310,6 +310,14 @@ const rpcMap = {
     updateService: db.updateService,
     deleteService: db.deleteService,
 
+    // Aliases for quick actions / compatibility
+    addMaintenance: db.createMaintenance,
+    addService: db.createService,
+    addInspection: db.createInspection,
+    addInsurance: db.createInsurance,
+    addVehicle: db.createVehicle,
+    addAssignment: db.createAssignment,
+
     // Employees
     getEmployees: db.getEmployees,
     getPayrollSummary: db.getPayrollSummary,

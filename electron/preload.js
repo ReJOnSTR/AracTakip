@@ -75,6 +75,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     updateService: (data) => ipcRenderer.invoke('services:update', data),
     deleteService: (id) => ipcRenderer.invoke('services:delete', id),
 
+    // Aliases for quick actions / compatibility
+    addMaintenance: (data) => ipcRenderer.invoke('maintenances:create', data),
+    addService: (data) => ipcRenderer.invoke('services:create', data),
+    addInspection: (data) => ipcRenderer.invoke('inspections:create', data),
+    addInsurance: (data) => ipcRenderer.invoke('insurances:create', data),
+    addVehicle: (data) => ipcRenderer.invoke('vehicles:create', data),
+    addAssignment: (data) => ipcRenderer.invoke('assignments:create', data),
+
     // Employees
     getEmployees: (companyId, isArchived) => ipcRenderer.invoke('employees:getAll', companyId, isArchived),
     getPayrollSummary: (companyId, month) => ipcRenderer.invoke('employees:getPayrollSummary', companyId, month),
