@@ -852,6 +852,11 @@ async function deletePlatformCompany(companyId) {
 
         return { success: true, message: 'Şirket başarıyla silindi' };
     } catch (error) {
+        console.error('deletePlatformCompany error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 /**
  * Update user role and permissions
  */
