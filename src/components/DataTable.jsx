@@ -1161,7 +1161,7 @@ export default function DataTable({
                                 placeholder=""
                                 floatingLabel={false}
                             />
-                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length}</span>
+                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length} kayıt</span>
                         </div>
 
                         <div className="pagination">

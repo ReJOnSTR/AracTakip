@@ -140,9 +140,7 @@ export default function CustomSelect({
                         justifyContent: 'space-between',
                         cursor: disabled ? 'not-allowed' : 'pointer',
                         opacity: disabled ? 0.6 : 1,
-                        background: disabled ? 'var(--bg-tertiary)' : 'var(--bg-primary)',
-                        paddingLeft: Icon ? '40px' : '14px',
-                        minHeight: '44px',
+                        paddingLeft: Icon ? '40px' : undefined,
                         userSelect: 'none'
                     }}
                 >
