@@ -37,6 +37,25 @@ if (typeof window !== 'undefined') {
             window.electronAPI.focusWindow();
         }
     });
+
+    // Auto-recover from stale Vite deployment chunks (404 dynamic import errors after a new release)
+    window.addEventListener('vite:preloadError', (event) => {
+        console.warn('[Vite Preload] New version deployed or chunk failed to load. Auto-refreshing...', event);
+        window.location.reload();
+    });
+
+    window.addEventListener('error', (event) => {
+        const msg = event?.message || '';
+        if (msg.includes('error loading dynamically imported module') || msg.includes('Failed to fetch dynamically imported module')) {
+            console.warn('[Dynamic Import] Stale module detected, reloading page to fetch latest version...', msg);
+            const lastReload = sessionStorage.getItem('last_chunk_reload');
+            const now = Date.now();
+            if (!lastReload || now - parseInt(lastReload, 10) > 8000) {
+                sessionStorage.setItem('last_chunk_reload', String(now));
+                window.location.reload();
+            }
+        }
+    });
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

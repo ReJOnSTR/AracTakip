@@ -16,50 +16,71 @@ import CommandPalette from './components/CommandPalette'
 import LockScreen from './components/LockScreen'
 import { useIdle } from './hooks/useIdle'
 
-// Lazy-loaded pages (code splitting)
-const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
-const ResetPassword = lazy(() => import('./pages/ResetPassword'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
-const MainPortal = lazy(() => import('./pages/MainPortal'))
-const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard'))
-const Finance = lazy(() => import('./pages/Finance'))
-const Checks = lazy(() => import('./pages/Checks'))
-const Companies = lazy(() => import('./pages/Companies'))
-const Vehicles = lazy(() => import('./pages/Vehicles'))
-const VehicleDetail = lazy(() => import('./pages/VehicleDetail'))
-const ArventoTracking = lazy(() => import('./pages/ArventoTracking'))
-const Maintenance = lazy(() => import('./pages/Maintenance'))
-const Inspections = lazy(() => import('./pages/Inspections'))
-const PeriodicInspections = lazy(() => import('./pages/PeriodicInspections'))
-const Insurance = lazy(() => import('./pages/Insurance'))
-const Assignments = lazy(() => import('./pages/Assignments'))
-const Settings = lazy(() => import('./pages/Settings'))
-const Reports = lazy(() => import('./pages/Reports'))
-const EmployeeReports = lazy(() => import('./pages/EmployeeReports'))
-const PrintPage = lazy(() => import('./pages/PrintPage'))
-const Services = lazy(() => import('./pages/Services'))
-const ChangePassword = lazy(() => import('./pages/ChangePassword'))
-const MealTickets = lazy(() => import('./pages/MealTickets'))
-const MealTicketReport = lazy(() => import('./pages/MealTicketReport'))
-const MealTicketSettings = lazy(() => import('./pages/MealTicketSettings'))
-const Employees = lazy(() => import('./pages/Employees'))
-const EmployeeDetail = lazy(() => import('./pages/EmployeeDetail'))
-const PersonelDashboard = lazy(() => import('./pages/PersonelDashboard'))
-const PayrollDashboard = lazy(() => import('./pages/PayrollDashboard'))
-const Leaves = lazy(() => import('./pages/Leaves'))
-const Overtimes = lazy(() => import('./pages/Overtimes'))
-const Works = lazy(() => import('./pages/Works'))
-const WorkDetails = lazy(() => import('./pages/WorkDetails'))
-const WorkPdfReport = lazy(() => import('./pages/WorkPdfReport'))
-const Customers = lazy(() => import('./pages/Customers'))
-const CustomerDetail = lazy(() => import('./pages/CustomerDetail'))
-const ModuleSettings = lazy(() => import('./pages/ModuleSettings'))
-const Profile = lazy(() => import('./pages/Profile'))
-const PrintDocument = lazy(() => import('./pages/PrintDocument'))
-const PersonnelDashboardPortal = lazy(() => import('./components/personnel/PersonnelDashboard'))
-const ApprovalCenter = lazy(() => import('./components/personnel/ApprovalCenter'))
-const PlatformAdmin = lazy(() => import('./pages/PlatformAdmin'))
+// Resilient lazy import helper that automatically reloads the page once if a stale chunk 404s after a new deployment
+const lazyWithRetry = (componentImport) =>
+    lazy(async () => {
+        const pageAlreadyRefreshed = JSON.parse(
+            window.sessionStorage.getItem('retry-lazy-refreshed') || 'false'
+        );
+        try {
+            const component = await componentImport();
+            window.sessionStorage.setItem('retry-lazy-refreshed', 'false');
+            return component;
+        } catch (error) {
+            const msg = error?.message || '';
+            if (!pageAlreadyRefreshed && (msg.includes('dynamically imported module') || msg.includes('Failed to fetch') || error.name === 'ChunkLoadError')) {
+                window.sessionStorage.setItem('retry-lazy-refreshed', 'true');
+                window.location.reload();
+                return new Promise(() => {});
+            }
+            throw error;
+        }
+    });
+
+// Lazy-loaded pages with chunk error auto-retry
+const Login = lazyWithRetry(() => import('./pages/Login'))
+const Register = lazyWithRetry(() => import('./pages/Register'))
+const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'))
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'))
+const MainPortal = lazyWithRetry(() => import('./pages/MainPortal'))
+const FinanceDashboard = lazyWithRetry(() => import('./pages/FinanceDashboard'))
+const Finance = lazyWithRetry(() => import('./pages/Finance'))
+const Checks = lazyWithRetry(() => import('./pages/Checks'))
+const Companies = lazyWithRetry(() => import('./pages/Companies'))
+const Vehicles = lazyWithRetry(() => import('./pages/Vehicles'))
+const VehicleDetail = lazyWithRetry(() => import('./pages/VehicleDetail'))
+const ArventoTracking = lazyWithRetry(() => import('./pages/ArventoTracking'))
+const Maintenance = lazyWithRetry(() => import('./pages/Maintenance'))
+const Inspections = lazyWithRetry(() => import('./pages/Inspections'))
+const PeriodicInspections = lazyWithRetry(() => import('./pages/PeriodicInspections'))
+const Insurance = lazyWithRetry(() => import('./pages/Insurance'))
+const Assignments = lazyWithRetry(() => import('./pages/Assignments'))
+const Settings = lazyWithRetry(() => import('./pages/Settings'))
+const Reports = lazyWithRetry(() => import('./pages/Reports'))
+const EmployeeReports = lazyWithRetry(() => import('./pages/EmployeeReports'))
+const PrintPage = lazyWithRetry(() => import('./pages/PrintPage'))
+const Services = lazyWithRetry(() => import('./pages/Services'))
+const ChangePassword = lazyWithRetry(() => import('./pages/ChangePassword'))
+const MealTickets = lazyWithRetry(() => import('./pages/MealTickets'))
+const MealTicketReport = lazyWithRetry(() => import('./pages/MealTicketReport'))
+const MealTicketSettings = lazyWithRetry(() => import('./pages/MealTicketSettings'))
+const Employees = lazyWithRetry(() => import('./pages/Employees'))
+const EmployeeDetail = lazyWithRetry(() => import('./pages/EmployeeDetail'))
+const PersonelDashboard = lazyWithRetry(() => import('./pages/PersonelDashboard'))
+const PayrollDashboard = lazyWithRetry(() => import('./pages/PayrollDashboard'))
+const Leaves = lazyWithRetry(() => import('./pages/Leaves'))
+const Overtimes = lazyWithRetry(() => import('./pages/Overtimes'))
+const Works = lazyWithRetry(() => import('./pages/Works'))
+const WorkDetails = lazyWithRetry(() => import('./pages/WorkDetails'))
+const WorkPdfReport = lazyWithRetry(() => import('./pages/WorkPdfReport'))
+const Customers = lazyWithRetry(() => import('./pages/Customers'))
+const CustomerDetail = lazyWithRetry(() => import('./pages/CustomerDetail'))
+const ModuleSettings = lazyWithRetry(() => import('./pages/ModuleSettings'))
+const Profile = lazyWithRetry(() => import('./pages/Profile'))
+const PrintDocument = lazyWithRetry(() => import('./pages/PrintDocument'))
+const PersonnelDashboardPortal = lazyWithRetry(() => import('./components/personnel/PersonnelDashboard'))
+const ApprovalCenter = lazyWithRetry(() => import('./components/personnel/ApprovalCenter'))
+const PlatformAdmin = lazyWithRetry(() => import('./pages/PlatformAdmin'))
 
 // Suspense fallback — invisible placeholder (TopProgressBar handles the visual)
 function PageLoader() {
