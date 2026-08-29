@@ -1370,15 +1370,13 @@ textarea,
 
 
 .table-wrapper {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   position: relative;
   width: 100%;
-  /* Explicit width */
   max-width: 100%;
-  /* Prevent growth beyond parent */
-  /* remove flex to avoid complex width behavior, rely on block flow */
+  overflow: hidden;
 }
 
 .table-container {
@@ -2084,7 +2082,7 @@ textarea,
   right: 0;
   z-index: 21;
   border-left: 1px solid var(--border-color);
-  background: var(--bg-primary) !important;
+  background: var(--bg-secondary) !important;
   box-shadow: -4px 0 10px rgba(0, 0, 0, 0.25);
   transition: background-color 0.12s ease;
 }
@@ -2095,15 +2093,15 @@ textarea,
 }
 
 .data-table tbody tr.clickable:hover td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-primary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-secondary)) !important;
 }
 
 .data-table tbody tr.selected td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-primary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-secondary)) !important;
 }
 
 .data-table tbody tr.focused td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-primary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-secondary)) !important;
 }
 
 .data-table td {
@@ -2216,32 +2214,32 @@ textarea,
 }
 
 .data-table tbody tr.pazar-row td.td-actions {
-  background: color-mix(in srgb, var(--danger) 8%, var(--bg-primary)) !important;
+  background: color-mix(in srgb, var(--danger) 8%, var(--bg-secondary)) !important;
 }
 .data-table tbody tr.pazar-row:hover td.td-actions,
 .data-table tbody tr.clickable.pazar-row:hover td.td-actions {
-  background: color-mix(in srgb, var(--danger) 14%, var(--bg-tertiary)) !important;
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg-secondary)) !important;
 }
 .data-table tbody tr.selected.pazar-row td.td-actions {
-  background: color-mix(in srgb, var(--danger) 20%, var(--bg-tertiary)) !important;
+  background: color-mix(in srgb, var(--danger) 20%, var(--bg-secondary)) !important;
 }
 
 /* Subtle Custom Row Accents */
 .data-table tbody tr.orange-row td { background: rgba(245, 158, 11, 0.04); }
 .data-table tbody tr.orange-row:hover td, .data-table tbody tr.clickable.orange-row:hover td { background: rgba(245, 158, 11, 0.09); }
-.data-table tbody tr.orange-row td.td-actions { background: color-mix(in srgb, #f59e0b 8%, var(--bg-primary)) !important; }
+.data-table tbody tr.orange-row td.td-actions { background: color-mix(in srgb, #f59e0b 8%, var(--bg-secondary)) !important; }
 
 .data-table tbody tr.blue-row td { background: rgba(59, 130, 246, 0.04); }
 .data-table tbody tr.blue-row:hover td, .data-table tbody tr.clickable.blue-row:hover td { background: rgba(59, 130, 246, 0.09); }
-.data-table tbody tr.blue-row td.td-actions { background: color-mix(in srgb, #3b82f6 8%, var(--bg-primary)) !important; }
+.data-table tbody tr.blue-row td.td-actions { background: color-mix(in srgb, #3b82f6 8%, var(--bg-secondary)) !important; }
 
 .data-table tbody tr.green-row td { background: rgba(16, 185, 129, 0.04); }
 .data-table tbody tr.green-row:hover td, .data-table tbody tr.clickable.green-row:hover td { background: rgba(16, 185, 129, 0.09); }
-.data-table tbody tr.green-row td.td-actions { background: color-mix(in srgb, #10b981 8%, var(--bg-primary)) !important; }
+.data-table tbody tr.green-row td.td-actions { background: color-mix(in srgb, #10b981 8%, var(--bg-secondary)) !important; }
 
 .data-table tbody tr.purple-row td { background: rgba(139, 92, 246, 0.04); }
 .data-table tbody tr.purple-row:hover td, .data-table tbody tr.clickable.purple-row:hover td { background: rgba(139, 92, 246, 0.09); }
-.data-table tbody tr.purple-row td.td-actions { background: color-mix(in srgb, #8b5cf6 8%, var(--bg-primary)) !important; }
+.data-table tbody tr.purple-row td.td-actions { background: color-mix(in srgb, #8b5cf6 8%, var(--bg-secondary)) !important; }
 
 /* Vehicle Type Tabs - Matches VehicleDetail underline style */
 .vehicle-tabs {
