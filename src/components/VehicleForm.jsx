@@ -9,8 +9,21 @@ import { Car, Building2 } from 'lucide-react'
 import { vehicleStatuses } from '../utils/helpers'
 import { useCompany } from '../context/CompanyContext'
 
+const defaultVehicleTypes = [
+    { value: 'Otomobil', label: 'Otomobil' },
+    { value: 'Kamyon', label: 'Kamyon' },
+    { value: 'Kamyonet', label: 'Kamyonet' },
+    { value: 'TIR / Çekici', label: 'TIR / Çekici' },
+    { value: 'Minibüs', label: 'Minibüs' },
+    { value: 'Otobüs', label: 'Otobüs' },
+    { value: 'Dorse', label: 'Dorse' },
+    { value: 'İş Makinesi', label: 'İş Makinesi' },
+    { value: 'Motosiklet', label: 'Motosiklet' },
+    { value: 'Diğer', label: 'Diğer' }
+]
+
 export default function VehicleForm({ initialData, onSubmit, onCancel, loading }) {
-    const [vehicleTypes, setVehicleTypes] = useState([])
+    const [vehicleTypes, setVehicleTypes] = useState(defaultVehicleTypes)
     const { currentCompany } = useCompany()
 
     const {
@@ -21,7 +34,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
     } = useForm({
         resolver: zodResolver(vehicleSchema),
         defaultValues: {
-            type: '',
+            type: defaultVehicleTypes[0].value,
             plate: '',
             brand: '',
             model: '',
@@ -37,15 +50,22 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
     useEffect(() => {
         const loadTypes = async () => {
             if (currentCompany) {
-                const res = await window.electronAPI.getVehicleTypes(currentCompany.id)
-                if (res.success) {
-                    const mapped = res.data.map(t => ({ value: t.name, label: t.name }))
-                    setVehicleTypes(mapped)
-                    
-                    // If adding new, set first type as default if no value
-                    if (!initialData) {
-                        reset(prev => ({ ...prev, type: mapped[0]?.value || '' }))
+                try {
+                    const res = await window.electronAPI.getVehicleTypes(currentCompany.id)
+                    if (res?.success && (res.data || []).length > 0) {
+                        const mapped = res.data.map(t => ({ value: t.name, label: t.name }))
+                        setVehicleTypes(mapped)
+                        if (!initialData) {
+                            reset(prev => ({ ...prev, type: prev.type || mapped[0]?.value || defaultVehicleTypes[0].value }))
+                        }
+                    } else {
+                        setVehicleTypes(defaultVehicleTypes)
+                        if (!initialData) {
+                            reset(prev => ({ ...prev, type: prev.type || defaultVehicleTypes[0].value }))
+                        }
                     }
+                } catch (e) {
+                    setVehicleTypes(defaultVehicleTypes)
                 }
             }
         }
@@ -106,6 +126,7 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                     options={vehicleTypes}
                                     placeholder="Seçiniz"
                                     error={errors.type?.message}
+                                    creatable={true}
                                 />
                             )}
                         />

@@ -59,7 +59,22 @@ export default function Leaves() {
     const [searchFilter, setSearchFilter] = useState('');
     const [deptFilter, setDeptFilter] = useState('');
 
-    const [leaveTypes, setLeaveTypes] = useState([]);
+    const defaultLeaveTypeList = [
+        { value: 'Yıllık Ücretli İzin', label: 'Yıllık Ücretli İzin', color: '#3b82f6' },
+        { value: 'Hastalık / Rapor (İstirahat)', label: 'Hastalık / Rapor (İstirahat)', color: '#ef4444' },
+        { value: 'Ücretsiz İzin', label: 'Ücretsiz İzin', color: '#f59e0b' },
+        { value: 'Mazeret İzni', label: 'Mazeret İzni', color: '#8b5cf6' },
+        { value: 'Evlilik İzni', label: 'Evlilik İzni', color: '#ec4899' },
+        { value: 'Ölüm İzni', label: 'Ölüm İzni', color: '#6b7280' },
+        { value: 'Doğum / Analık İzni', label: 'Doğum / Analık İzni', color: '#d946ef' },
+        { value: 'Babalık İzni', label: 'Babalık İzni', color: '#0ea5e9' },
+        { value: 'Süt İzni', label: 'Süt İzni', color: '#10b981' },
+        { value: 'İdari İzin', label: 'İdari İzin', color: '#6366f1' },
+        { value: 'Mesai İzni (Mahsup)', label: 'Mesai İzni (Mahsup)', color: '#f97316' },
+        { value: 'Diğer', label: 'Diğer', color: '#94a3b8' }
+    ];
+
+    const [leaveTypes, setLeaveTypes] = useState(defaultLeaveTypeList);
 
     const defaultColors = {
         'Yıllık Ücretli İzin': '#3b82f6',
@@ -90,7 +105,7 @@ export default function Leaves() {
             if (leavesRes.success) setLeaves(leavesRes.data || []);
             if (employeesRes.success) setEmployees(employeesRes.data || []);
             if (holidaysRes.success) setPublicHolidays(holidaysRes.data || []);
-            if (typesRes.success) {
+            if (typesRes?.success && (typesRes.data || []).length > 0) {
                 const types = (typesRes.data || [])
                     .filter(t => t.status !== 'passive')
                     .map(t => ({
@@ -98,7 +113,9 @@ export default function Leaves() {
                         label: t.name,
                         color: defaultColors[t.name] || '#6b7280'
                     }));
-                setLeaveTypes(types);
+                setLeaveTypes(types.length > 0 ? types : defaultLeaveTypeList);
+            } else {
+                setLeaveTypes(defaultLeaveTypeList);
             }
         } catch (err) {
             console.error('Failed to load leaves:', err);

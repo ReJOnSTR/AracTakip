@@ -323,6 +323,7 @@ const rpcMap = {
     getPayrollSummary: db.getPayrollSummary,
     getEmployeeById: db.getEmployeeById,
     createEmployee: db.addEmployee,
+    addEmployee: db.addEmployee,
     updateEmployee: db.updateEmployee,
     deleteEmployee: db.deleteEmployee,
 
@@ -397,6 +398,7 @@ const rpcMap = {
     getWorks: db.getWorks,
     getWorkDetails: db.getWorkDetails,
     createWork: db.createWork,
+    addWork: db.createWork,
     updateWork: db.updateWork,
     deleteWork: db.deleteWork,
     addWorkItem: db.addWorkItem,
@@ -409,6 +411,7 @@ const rpcMap = {
     getCustomers: db.getCustomers,
     getCustomerDetails: db.getCustomerDetails,
     createCustomer: db.createCustomer,
+    addCustomer: db.createCustomer,
     updateCustomer: db.updateCustomer,
     deleteCustomer: db.deleteCustomer,
 

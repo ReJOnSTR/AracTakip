@@ -22,10 +22,26 @@ const weekDays = [
     { value: 0, label: 'Pazar' }
 ]
 
+const defaultDepartments = [
+    { value: 'Yönetim', label: 'Yönetim' },
+    { value: 'Şoför / Sürücü', label: 'Şoför / Sürücü' },
+    { value: 'Operasyon & Lojistik', label: 'Operasyon & Lojistik' },
+    { value: 'Muhasebe & Finans', label: 'Muhasebe & Finans' },
+    { value: 'Teknik & Bakım', label: 'Teknik & Bakım' },
+    { value: 'Satış & Pazarlama', label: 'Satış & Pazarlama' },
+    { value: 'İnsan Kaynakları', label: 'İnsan Kaynakları' },
+    { value: 'Depo & Sevkiyat', label: 'Depo & Sevkiyat' },
+    { value: 'Diğer', label: 'Diğer' }
+]
+
 export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, departmentOptions = [], onEditSalary }) {
     const { openNewTab } = useTabs()
     const [offDays, setOffDays] = useState([0])
     const [isSigPadOpen, setIsSigPadOpen] = useState(false)
+
+    const resolvedDeptOptions = (departmentOptions || []).length > 0 
+        ? (departmentOptions || []).map(d => typeof d === 'string' ? { value: d, label: d } : { value: d.name || d.value || d.label, label: d.label || d.name || d.value }).filter(d => d.value)
+        : defaultDepartments;
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -156,8 +172,9 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     label="Departman"
                     value={form.department}
                     onChange={(val) => handleChange('department', val)}
-                    options={departmentOptions}
+                    options={resolvedDeptOptions}
                     placeholder="Seçiniz..."
+                    creatable={true}
                 />
                 <CustomInput
                     label="İşe Başlama Tarihi"

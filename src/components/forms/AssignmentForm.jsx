@@ -5,6 +5,7 @@ import { assignmentSchema } from '../../schemas/assignmentSchema'
 import CustomInput from '../CustomInput'
 import CustomSelect from '../CustomSelect'
 import FileAttachmentInput from '../FileAttachmentInput'
+import { formatDateForInput } from '../../utils/helpers'
 
 export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicles, loading }) {
     const {
