@@ -1216,6 +1216,9 @@ export default function Overtimes() {
                                         label="Tutar (₺) *"
                                         type="number"
                                         step="0.01"
+                                        min={0}
+                                        max={999999999}
+                                        maxLength={14}
                                         value={formData.amount}
                                         onChange={(val) => setFormData({ ...formData, amount: val })}
                                         required={!formData.useRemaining}
@@ -1261,6 +1264,7 @@ export default function Overtimes() {
                                 value={formData.notes}
                                 onChange={(val) => setFormData({ ...formData, notes: val })}
                                 placeholder={formData.useAsLeave ? "İzin ataması için ek not..." : "Mesai ödemesi açıklaması..."}
+                                maxLength={300}
                             />
                         </div>
                     </div>
@@ -1591,6 +1595,7 @@ export default function Overtimes() {
                                                 onChange={(val) => updateOvertimeField('hours', val)} 
                                                 step="0.5" 
                                                 min={0} 
+                                                max={24}
                                                 required 
                                             />
                                         </div>
@@ -1628,6 +1633,7 @@ export default function Overtimes() {
                                                     <input
                                                         type="text"
                                                         inputMode="decimal"
+                                                        maxLength={12}
                                                         value={overtimeQueue[overtimeQueueIndex].amount ?? ''}
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(',', '.')
@@ -1660,6 +1666,7 @@ export default function Overtimes() {
                                                 onChange={(val) => updateOvertimeField('notes', val)} 
                                                 rows={1} 
                                                 placeholder="Opsiyonel not..."
+                                                maxLength={300}
                                             />
                                         </div>
 

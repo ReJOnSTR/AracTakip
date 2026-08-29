@@ -154,6 +154,7 @@ export default function TransactionForm({ initialData, onSubmit, onCancel, loadi
                                 onChange={field.onChange}
                                 placeholder="0.00"
                                 error={errors.amount?.message}
+                                maxLength={14}
                             />
                         )}
                     />

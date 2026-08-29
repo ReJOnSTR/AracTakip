@@ -466,6 +466,7 @@ export default function Login() {
                                             placeholder="admin veya ornek@sirket.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
+                                            maxLength={100}
                                             autoComplete="username"
                                             autoFocus
                                             disabled={loading}
@@ -486,6 +487,7 @@ export default function Login() {
                                             placeholder="••••••••"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
+                                            maxLength={64}
                                             onKeyDown={handleKeyDown}
                                             onKeyUp={handleKeyDown}
                                             autoComplete="current-password"

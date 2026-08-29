@@ -231,6 +231,8 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                     <CustomInput
                                         label="Yıl"
                                         type="number"
+                                        min={1900}
+                                        max={new Date().getFullYear() + 1}
                                         value={field.value}
                                         onChange={field.onChange}
                                         placeholder="2024"
@@ -248,6 +250,8 @@ export default function VehicleForm({ initialData, onSubmit, onCancel, loading }
                                     <CustomInput
                                         label="Kilometre"
                                         type="number"
+                                        min={0}
+                                        max={2000000}
                                         value={field.value}
                                         onChange={field.onChange}
                                         placeholder="0"

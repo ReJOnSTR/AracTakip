@@ -518,6 +518,7 @@ export default function Settings() {
                                                             placeholder="Yeni kilit şifresi"
                                                             value={lockSettings.customPassword}
                                                             onChange={(e) => handleLockSettingChange('customPassword', e.target.value)}
+                                                            maxLength={64}
                                                             style={{ paddingRight: '45px' }}
                                                         />
                                                         <button 
@@ -854,6 +855,7 @@ export default function Settings() {
                                                 onChange={(val) => handleArventoChange('username', val)}
                                                 required
                                                 disabled={!settings.arvento?.enabled}
+                                                maxLength={50}
                                             />
 
                                             <CustomInput
@@ -862,6 +864,7 @@ export default function Settings() {
                                                 onChange={(val) => handleArventoChange('language', val)}
                                                 placeholder="Örn: tr, en"
                                                 disabled={!settings.arvento?.enabled}
+                                                maxLength={10}
                                             />
 
                                             <CustomSelect 
@@ -889,6 +892,7 @@ export default function Settings() {
                                                 onChange={(val) => handleArventoChange('pin1', val)}
                                                 required
                                                 disabled={!settings.arvento?.enabled}
+                                                maxLength={50}
                                             />
 
                                             <CustomInput
@@ -898,6 +902,7 @@ export default function Settings() {
                                                 onChange={(val) => handleArventoChange('pin2', val)}
                                                 required
                                                 disabled={!settings.arvento?.enabled}
+                                                maxLength={50}
                                             />
 
                                             <div style={{ width: '100%', marginBottom: '16px' }}>

@@ -1594,6 +1594,7 @@ export default function PlatformAdmin({ section }) {
                             onChange={(val) => setNewAnnouncement(prev => ({ ...prev, title: getVal(val) }))}
                             placeholder="Örn: 28 Ağustos Planlı Sunucu Bakımı"
                             required
+                            maxLength={100}
                         />
 
                         <div>
@@ -1606,6 +1607,7 @@ export default function PlatformAdmin({ section }) {
                                 placeholder="Duyuru detayını yazın..."
                                 rows={3}
                                 required
+                                maxLength={500}
                                 style={{
                                     width: '100%',
                                     background: 'var(--bg-secondary)',
@@ -1709,6 +1711,7 @@ export default function PlatformAdmin({ section }) {
                             onChange={(val) => setNewCompanyForm(prev => ({ ...prev, name: getVal(val) }))}
                             placeholder="Örn: Akdeniz Lojistik Ltd. Şti."
                             required
+                            maxLength={150}
                         />
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1717,12 +1720,15 @@ export default function PlatformAdmin({ section }) {
                                 value={newCompanyForm.taxNumber}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, taxNumber: getVal(val) }))}
                                 placeholder="10 haneli vergi no"
+                                format="tc_no"
+                                maxLength={11}
                             />
                             <CustomInput
                                 label="Vergi Dairesi"
                                 value={newCompanyForm.taxOffice}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, taxOffice: getVal(val) }))}
                                 placeholder="Daire adı"
+                                maxLength={50}
                             />
                         </div>
 
@@ -1732,6 +1738,7 @@ export default function PlatformAdmin({ section }) {
                                 value={newCompanyForm.sgkNo}
                                 onChange={(val) => setNewCompanyForm(prev => ({ ...prev, sgkNo: getVal(val) }))}
                                 placeholder="SGK sicil no"
+                                maxLength={30}
                             />
                             <CustomInput
                                 label="Telefon"
@@ -1747,6 +1754,7 @@ export default function PlatformAdmin({ section }) {
                             value={newCompanyForm.address}
                             onChange={(val) => setNewCompanyForm(prev => ({ ...prev, address: getVal(val) }))}
                             placeholder="Açık adres..."
+                            maxLength={250}
                         />
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
@@ -1776,6 +1784,7 @@ export default function PlatformAdmin({ section }) {
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, username: getVal(val) }))}
                                 placeholder="ornek_kullanici"
                                 required
+                                maxLength={50}
                             />
                             <CustomInput
                                 label="E-Posta"
@@ -1784,6 +1793,7 @@ export default function PlatformAdmin({ section }) {
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, email: getVal(val) }))}
                                 placeholder="kullanici@sirket.com"
                                 required
+                                maxLength={100}
                             />
                         </div>
 
@@ -1793,6 +1803,7 @@ export default function PlatformAdmin({ section }) {
                                 value={newUserForm.fullName}
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: getVal(val) }))}
                                 placeholder="Ahmet Yılmaz"
+                                maxLength={100}
                             />
                             <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
@@ -1820,6 +1831,7 @@ export default function PlatformAdmin({ section }) {
                                     onChange={(val) => setNewUserForm(prev => ({ ...prev, password: getVal(val) }))}
                                     placeholder="En az 4 karakter"
                                     required
+                                    maxLength={64}
                                 />
                             </div>
                         </div>

@@ -428,6 +428,7 @@ export default function Register() {
                                             placeholder="Örn: SAK VİNÇ LTD. ŞTİ."
                                             value={companyName}
                                             onChange={(e) => setCompanyName(e.target.value)}
+                                            maxLength={150}
                                             autoFocus
                                             disabled={loading}
                                         />
@@ -447,6 +448,7 @@ export default function Register() {
                                                 placeholder="admin_kullanici"
                                                 value={username}
                                                 onChange={(e) => setUsername(e.target.value)}
+                                                maxLength={50}
                                                 disabled={loading}
                                             />
                                         </div>
@@ -464,6 +466,7 @@ export default function Register() {
                                                 placeholder="ornek@sirket.com"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
+                                                maxLength={100}
                                                 disabled={loading}
                                             />
                                         </div>
@@ -484,6 +487,7 @@ export default function Register() {
                                                 placeholder="••••••••"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
+                                                maxLength={64}
                                                 disabled={loading}
                                             />
                                             <button
@@ -511,6 +515,7 @@ export default function Register() {
                                                 placeholder="••••••••"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
+                                                maxLength={64}
                                                 disabled={loading}
                                             />
                                             <button

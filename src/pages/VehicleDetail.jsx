@@ -1668,6 +1668,7 @@ export default function VehicleDetail() {
                         label="Dosya Adı *"
                         value={uploadFileName}
                         onChange={setUploadFileName}
+                        maxLength={120}
                         required
                     />
                     <CustomSelect 
@@ -1760,6 +1761,7 @@ export default function VehicleDetail() {
                             onChange={setFolderModalValue}
                             placeholder="Klasör adı girin..."
                             required
+                            maxLength={50}
                             autoFocus
                         />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>

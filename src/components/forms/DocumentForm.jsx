@@ -309,6 +309,7 @@ export default function DocumentForm({ onSubmit, onCancel, loading, initialType 
                         value={currentItem?.displayName}
                         onChange={(val) => updateCurrentItem('displayName', val)}
                         required
+                        maxLength={120}
                     />
                     
                     <CustomSelect

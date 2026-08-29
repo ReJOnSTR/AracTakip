@@ -783,6 +783,7 @@ function HrModuleContent() {
                         onChange={(val) => setPersonnelModal(prev => ({ ...prev, value: val }))}
                         autoFocus={personnelModal.type !== 'holiday'}
                         required
+                        maxLength={60}
                     />
 
                     {personnelModal.item && (
@@ -993,6 +994,7 @@ function FleetModuleContent() {
                         onChange={(val) => setModal(prev => ({ ...prev, value: val }))}
                         autoFocus
                         required
+                        maxLength={60}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                         <button type="button" className="btn btn-secondary" onClick={() => setModal({ isOpen: false, type: '', item: null, value: '' })}>Vazgeç</button>

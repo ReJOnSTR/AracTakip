@@ -1291,6 +1291,7 @@ export default function WorkDetails(props) {
                             type="text"
                             value={formData.receiptNo}
                             onChange={(val) => setFormData({ ...formData, receiptNo: val })}
+                            maxLength={20}
                         />
                     </div>
 
@@ -1348,6 +1349,7 @@ export default function WorkDetails(props) {
                                 format="currency"
                                 value={formData.unitPrice}
                                 onChange={(val) => setFormData({ ...formData, unitPrice: val })}
+                                maxLength={12}
                             />
                         </div>
                     </div>
@@ -1507,6 +1509,7 @@ export default function WorkDetails(props) {
                                     onChange={(val) => setCurAdditionType(val)}
                                     placeholder="Tür (Örn: Yol, Yemek)"
                                     className="mb-0"
+                                    maxLength={50}
                                 />
                             </div>
                             <div style={{ width: '120px' }}>
@@ -1517,6 +1520,7 @@ export default function WorkDetails(props) {
                                     onChange={(val) => setCurAdditionPrice(val)}
                                     placeholder="0,00"
                                     className="mb-0"
+                                    maxLength={12}
                                 />
                             </div>
                             <button
@@ -1606,6 +1610,7 @@ export default function WorkDetails(props) {
                         type="text"
                         value={formData.description}
                         onChange={(val) => setFormData({ ...formData, description: val })}
+                        maxLength={250}
                     />
 
                     <div className="modal-footer">
@@ -2320,6 +2325,7 @@ export default function WorkDetails(props) {
                                             type="number"
                                             step="0.1"
                                             min="0"
+                                            max="10"
                                             className="form-input"
                                             value={pazarMultiplier}
                                             onChange={async (e) => {
@@ -2327,7 +2333,7 @@ export default function WorkDetails(props) {
                                                 setPazarMultiplier(val);
                                                 const numVal = parseFloat(val);
                                                 if (!isNaN(numVal) && work?.id) {
-                                                    await window.electronAPI.updateWork({ id: work.id, pazar_multiplier: numVal });
+                                                    await window.electronAPI.updateWork({ id: work.id, pazar_multiplier: Math.min(Math.max(numVal, 0), 10) });
                                                 }
                                             }}
                                             style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}
@@ -2339,6 +2345,7 @@ export default function WorkDetails(props) {
                                             type="number"
                                             step="0.1"
                                             min="0"
+                                            max="10"
                                             className="form-input"
                                             value={mesaiMultiplier}
                                             onChange={async (e) => {
@@ -2346,7 +2353,7 @@ export default function WorkDetails(props) {
                                                 setMesaiMultiplier(val);
                                                 const numVal = parseFloat(val);
                                                 if (!isNaN(numVal) && work?.id) {
-                                                    await window.electronAPI.updateWork({ id: work.id, mesai_multiplier: numVal });
+                                                    await window.electronAPI.updateWork({ id: work.id, mesai_multiplier: Math.min(Math.max(numVal, 0), 10) });
                                                 }
                                             }}
                                             style={{ fontSize: '12px', padding: '6px 10px', width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }}

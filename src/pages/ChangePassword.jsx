@@ -143,6 +143,7 @@ export default function ChangePassword() {
                                 placeholder="En az 6 karakter"
                                 className="form-input"
                                 style={{ width: '100%', paddingRight: '40px' }}
+                                maxLength={64}
                                 autoFocus
                             />
                             <button
@@ -176,6 +177,7 @@ export default function ChangePassword() {
                             placeholder="Şifrenizi tekrar girin"
                             className="form-input"
                             style={{ width: '100%' }}
+                            maxLength={64}
                         />
                     </div>
 

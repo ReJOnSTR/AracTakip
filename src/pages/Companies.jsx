@@ -328,6 +328,7 @@ export default function Companies() {
                             onChange={(value) => setFormData({ ...formData, name: value })}
                             format="title"
                             placeholder="Şirket adını girin"
+                            maxLength={150}
                         />
                     </div>
 
@@ -338,6 +339,8 @@ export default function Companies() {
                                 value={formData.taxNumber}
                                 onChange={(value) => setFormData({ ...formData, taxNumber: value })}
                                 placeholder="Vergi numarası"
+                                format="tc_no"
+                                maxLength={11}
                             />
                         </div>
 
@@ -359,6 +362,7 @@ export default function Companies() {
                                 value={formData.taxOffice}
                                 onChange={(value) => setFormData({ ...formData, taxOffice: value })}
                                 placeholder="Vergi dairesi"
+                                maxLength={50}
                             />
                         </div>
 
@@ -368,6 +372,7 @@ export default function Companies() {
                                 value={formData.sgkNo}
                                 onChange={(value) => setFormData({ ...formData, sgkNo: value })}
                                 placeholder="SGK numarası"
+                                maxLength={30}
                             />
                         </div>
                     </div>
@@ -381,6 +386,7 @@ export default function Companies() {
                             multiline={true}
                             rows={3}
                             floatingLabel={true}
+                            maxLength={250}
                         />
                     </div>
 

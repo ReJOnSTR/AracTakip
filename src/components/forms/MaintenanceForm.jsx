@@ -133,6 +133,7 @@ export default function MaintenanceForm({ initialData, onSubmit, onCancel, vehic
                                 onChange={field.onChange}
                                 placeholder="0.00"
                                 error={errors.cost?.message}
+                                maxLength={12}
                             />
                         )}
                     />

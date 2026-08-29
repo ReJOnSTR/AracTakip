@@ -1128,6 +1128,7 @@ export default function Leaves() {
                                                     onChange={(val) => updateLeaveQueueField('hours', val)} 
                                                     step="0.5"
                                                     min="0.5"
+                                                    max="24"
                                                     required 
                                                 />
                                             </div>
@@ -1184,6 +1185,7 @@ export default function Leaves() {
                                                         value={leaveQueue[leaveQueueIndex].days} 
                                                         onChange={(val) => updateLeaveQueueField('days', val)} 
                                                         min={1}
+                                                        max={365}
                                                         required 
                                                     />
                                                 </div>
@@ -1247,6 +1249,7 @@ export default function Leaves() {
                                                 type="textarea" 
                                                 rows={1}
                                                 placeholder="Opsiyonel not..."
+                                                maxLength={300}
                                             />
                                         </div>
 

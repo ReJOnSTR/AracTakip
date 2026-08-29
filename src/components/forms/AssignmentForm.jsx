@@ -110,10 +110,12 @@ export default function AssignmentForm({ initialData, onSubmit, onCancel, vehicl
                             <CustomInput
                                 label="Adet"
                                 format="numeric"
+                                min={1}
+                                max={9999}
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.quantity?.message}
-                                maxLength={5}
+                                maxLength={4}
                             />
                         )}
                     />

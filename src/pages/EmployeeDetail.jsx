@@ -3262,7 +3262,7 @@ export default function EmployeeDetail() {
                             <form onSubmit={handleSalarySubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <CustomSelect label="Ödeme Türü *" value={formData.paymentType || 'salary'} options={paymentTypes} onChange={(val) => updateField('paymentType', val)} />
-                                    <CustomInput label="Tutar (₺) *" format="currency" value={formData.amount || ''} onChange={(val) => updateField('amount', val)} required />
+                                    <CustomInput label="Tutar (₺) *" format="currency" maxLength={14} value={formData.amount || ''} onChange={(val) => updateField('amount', val)} required />
                                     <CustomInput label="Ödeme Tarihi" type="date" value={formData.paymentDate || ''} onChange={(val) => updateField('paymentDate', val)} />
                                     <CustomInput label="Ait Olduğu Ay" type="month" value={formData.salaryMonth || selectedMonth} onChange={(val) => updateField('salaryMonth', val)} />
                                     <CustomSelect label="Ödeme Kanalı" value={formData.paymentMethod || 'nakit'} options={paymentMethods} onChange={(val) => updateField('paymentMethod', val)} />
@@ -3286,7 +3286,7 @@ export default function EmployeeDetail() {
                                     </div>
                                 </div>
                                 <div style={{ marginTop: '16px' }}>
-                                    <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
+                                    <CustomInput label="Notlar" maxLength={300} value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -3298,13 +3298,13 @@ export default function EmployeeDetail() {
                         {modalType === 'salary_history' && (
                             <form onSubmit={handleSalaryHistorySubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                    <CustomInput label="Maaş Tutarı (₺) *" format="currency" value={formData.amount || ''} onChange={(val) => updateField('amount', val)} required />
+                                    <CustomInput label="Maaş Tutarı (₺) *" format="currency" maxLength={14} value={formData.amount || ''} onChange={(val) => updateField('amount', val)} required />
                                     <CustomSelect label="Kayıt Türü" value={formData.type || 'raise'} options={[{value: 'initial', label: 'İşe Giriş'}, {value: 'raise', label: 'Zam'}]} onChange={(val) => updateField('type', val)} />
                                     <CustomInput label="Başlangıç Tarihi *" type="date" value={formData.startDate || ''} onChange={(val) => updateField('startDate', val)} required />
                                     <CustomInput label="Bitiş Tarihi" type="date" value={formData.endDate || ''} onChange={(val) => updateField('endDate', val)} />
                                 </div>
                                 <div style={{ marginTop: '16px' }}>
-                                    <CustomInput label="Açıklama" value={formData.description || ''} onChange={(val) => updateField('description', val)} type="textarea" rows={2} />
+                                    <CustomInput label="Açıklama" maxLength={250} value={formData.description || ''} onChange={(val) => updateField('description', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -3368,7 +3368,7 @@ export default function EmployeeDetail() {
                                                     );
                                                 })()}
                                             </div>
-                                            <CustomInput label="Süre (Saat) *" type="number" value={formData.hours ?? ''} onChange={(val) => updateField('hours', val)} step="0.5" min="0.5" required />
+                                            <CustomInput label="Süre (Saat) *" type="number" value={formData.hours ?? ''} onChange={(val) => updateField('hours', val)} step="0.5" min="0.5" max="24" required />
                                         </>
                                     ) : (
                                         <>
@@ -3402,7 +3402,7 @@ export default function EmployeeDetail() {
                                                     );
                                                 })()}
                                             </div>
-                                            <CustomInput label="Gün Sayısı" format="numeric" value={formData.days ?? ''} onChange={(val) => updateField('days', val)} />
+                                            <CustomInput label="Gün Sayısı" format="numeric" min={1} max={365} maxLength={3} value={formData.days ?? ''} onChange={(val) => updateField('days', val)} />
                                         </>
                                     )}
                                 </div>
@@ -3414,51 +3414,49 @@ export default function EmployeeDetail() {
                                     if (!breakdown || (breakdown.offDays === 0 && breakdown.holidays === 0)) return null;
                                     return (
                                         <div style={{
-                                            marginTop: '16px',
-                                            padding: '10px 14px',
+                                            marginTop: '6px',
+                                            padding: '8px 12px',
                                             background: 'rgba(59, 130, 246, 0.08)',
                                             border: '1px dashed rgba(59, 130, 246, 0.3)',
                                             borderRadius: '8px',
                                             fontSize: '12px',
                                             color: 'var(--text-secondary)',
                                             display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '4px'
+                                            alignItems: 'center',
+                                            gap: '8px'
                                         }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontSize: '12.5px' }}>
-                                                <Clock size={14} />
-                                                <span style={{ fontWeight: 600 }}>İzin Süresi Detayı</span>
-                                            </div>
+                                            <Clock size={14} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
                                             <div>
                                                 Toplam <strong>{breakdown.totalDays}</strong> takvim gününden;
-                                                {breakdown.offDays > 0 && <span> <strong>{breakdown.offDays}</strong> gün haftalık izin</span>}
+                                                {breakdown.offDays > 0 && <span> <strong>{breakdown.offDays}</strong> gün hafta tatili</span>}
                                                 {breakdown.offDays > 0 && breakdown.holidays > 0 && <span> ve</span>}
                                                 {breakdown.holidays > 0 && <span> <strong>{breakdown.holidays}</strong> gün resmi tatil</span>} düşülmüştür.
-                                                Maaştan kesilecek net izin süresi: <strong>{breakdown.workingDays} gün</strong>.
+                                                Net kullanılan izin: <strong style={{ color: 'var(--accent-primary)' }}>{breakdown.workingDays} gün</strong>.
                                             </div>
                                         </div>
                                     );
                                 })()}
 
                                 <div style={{
-                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',
+                                    display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px', marginTop: '16px',
                                     background: formData.status === 'approved' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
                                     border: `1px solid ${formData.status === 'approved' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer',
+                                    height: '40px', boxSizing: 'border-box'
                                 }} onClick={() => updateField('status', formData.status === 'approved' ? 'pending' : 'approved')}>
-                                    <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                                    <label className="toggle-switch" style={{ flexShrink: 0, transform: 'scale(0.85)', transformOrigin: 'left center' }} onClick={e => e.stopPropagation()}>
                                         <input type="checkbox" checked={formData.status === 'approved'} onChange={(e) => updateField('status', e.target.checked ? 'approved' : 'pending')} />
                                         <span className="toggle-slider"></span>
                                     </label>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>İzin Durumu</span>
-                                        <span style={{ fontSize: '14px', fontWeight: 600, color: formData.status === 'approved' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1 }}>İzin Durumu</span>
+                                        <span style={{ fontSize: '13px', fontWeight: 600, color: formData.status === 'approved' ? 'var(--text-primary)' : 'var(--text-secondary)', marginTop: '2px', lineHeight: 1 }}>
                                             {formData.status === 'approved' ? 'Onaylandı' : 'Bekliyor'}
                                         </span>
                                     </div>
                                 </div>
                                 <div style={{ marginTop: '16px' }}>
-                                    <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
+                                    <CustomInput label="Notlar" maxLength={300} value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -3469,71 +3467,43 @@ export default function EmployeeDetail() {
 
                         {modalType === 'overtime' && (
                             <form onSubmit={handleOvertimeSubmit}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <CustomSelect label="Mesai Türü *" value={formData.overtimeType || 'weekday'} options={overtimeTypes} onChange={(val) => updateField('overtimeType', val)} />
                                     <CustomInput label="Tarih *" type="date" value={formData.date || ''} onChange={(val) => updateField('date', val)} required />
-                                    <CustomInput label={formData.overtimeType === 'weekday' ? 'Süre (Saat) *' : 'Süre (Gün) *'} type="number" value={formData.hours || ''} onChange={(val) => updateField('hours', val)} step="0.5" min={0} required />
+                                    <CustomInput label={formData.overtimeType === 'weekday' ? 'Süre (Saat) *' : 'Süre (Gün) *'} type="number" value={formData.hours || ''} onChange={(val) => updateField('hours', val)} step="0.5" min={0} max={24} required />
                                 </div>
 
-                                <div style={{
-                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px', marginTop: '16px',
-                                    background: formData.useAsLeave ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
-                                    border: `1px solid ${formData.useAsLeave ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                                    borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
-                                }} onClick={() => updateField('useAsLeave', !formData.useAsLeave)}>
-                                    <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                                        <input type="checkbox" checked={formData.useAsLeave || false} onChange={(e) => updateField('useAsLeave', e.target.checked)} />
-                                        <span className="toggle-slider"></span>
-                                    </label>
-                                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mesaiyi İzin Olarak Kullan</span>
-                                            {formData.useAsLeave && formData.hours > 0 && (
-                                                <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                                                    + {(() => {
-                                                        const whpl = parseFloat(localStorage.getItem('hr_overtime_weekday_hours_per_leave')) || 8
-                                                        const sdpl = parseFloat(localStorage.getItem('hr_overtime_sunday_days_per_leave')) || 1
-                                                        const hdpl = parseFloat(localStorage.getItem('hr_overtime_holiday_days_per_leave')) || 1
-                                                        const hours = parseFloat(formData.hours) || 0
-                                                        let days = 0
-                                                        if (formData.overtimeType === 'weekday') days = hours / whpl
-                                                        else if (formData.overtimeType === 'holiday') days = hours / hdpl
-                                                        else days = hours / sdpl
-                                                        return Math.round(days * 100) / 100
-                                                    })()} Gün İzin
-                                                </span>
-                                            )}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', marginTop: '16px' }}>
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 14px',
+                                        background: formData.useAsLeave ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                        border: `1px solid ${formData.useAsLeave ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                                        borderRadius: 'var(--radius-sm)', transition: 'background 0.15s ease, border-color 0.15s ease', cursor: 'pointer'
+                                    }} onClick={() => updateField('useAsLeave', !formData.useAsLeave)}>
+                                        <label className="toggle-switch" style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" checked={formData.useAsLeave} onChange={(e) => updateField('useAsLeave', e.target.checked)} />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ödeme Şekli</span>
+                                            <span style={{ fontSize: '14px', fontWeight: 600, color: formData.useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                                {formData.useAsLeave ? 'İzin Olarak' : 'Nakit Hakediş'}
+                                            </span>
                                         </div>
-                                        <span style={{ fontSize: '14px', fontWeight: 600, color: formData.useAsLeave ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                                            {formData.useAsLeave ? 'Aktif - İzin Tabına Eklenecek' : 'Pasif - Ücret Olarak Ödenecek'}
-                                        </span>
                                     </div>
-                                </div>
-
-                                <div style={{ 
-                                    marginTop: '16px', 
-                                    padding: '12px 14px', 
-                                    backgroundColor: 'var(--bg-secondary)', 
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--border-color)',
-                                    display: formData.useAsLeave ? 'none' : 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
-                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Hesaplanan Tutar</div>
-                                    <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent-primary)' }}>{formatCurrency(formData.amount || 0)}</div>
-                                </div>
-
-                                {employee?.salary && !formData.useAsLeave && (
-                                    <div style={{ marginTop: '16px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)' }}>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                                            <strong>Birim Ücret:</strong> {formData.overtimeType === 'sunday' ? `${formatCurrency(calcOvertimeRate('sunday'))} / gün` : formData.overtimeType === 'holiday' ? `${formatCurrency(calcOvertimeRate('holiday'))} / gün` : formData.overtimeType === 'gurbet' ? `${formatCurrency(calcOvertimeRate('gurbet'))} / gün` : `${formatCurrency(calcOvertimeRate('weekday'))} / saat`} (Maaş üzerinden otomatik hesaplandı)
-                                        </div>
-                                        <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-color)', paddingTop: '10px', marginTop: '4px' }}>
-                                            <span>Toplam Hak Ediş (TL):</span>
+                                    
+                                    <div style={{ 
+                                        padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-tertiary)',
+                                        border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center'
+                                    }}>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Hakediş Tutar (TL)</span>
+                                        {formData.useAsLeave ? (
+                                            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)' }}>İzin Hakedişi</span>
+                                        ) : (
                                             <input
                                                 type="text"
                                                 inputMode="decimal"
+                                                maxLength={12}
                                                 value={formData.amount ?? ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value.replace(',', '.')
@@ -3543,23 +3513,23 @@ export default function EmployeeDetail() {
                                                 }}
                                                 placeholder="0.00"
                                                 style={{
-                                                    fontSize: '20px',
+                                                    fontSize: '15px',
                                                     fontWeight: 700,
                                                     color: 'var(--accent-primary)',
                                                     background: 'transparent',
                                                     border: 'none',
                                                     borderBottom: '1.5px dashed var(--accent-primary)',
                                                     outline: 'none',
-                                                    textAlign: 'right',
-                                                    width: '140px',
-                                                    padding: '2px 4px'
+                                                    width: '100%',
+                                                    padding: '2px 0'
                                                 }}
                                             />
-                                        </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+
                                 <div style={{ marginTop: '16px' }}>
-                                    <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
+                                    <CustomInput label="Notlar" maxLength={300} value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -3571,9 +3541,9 @@ export default function EmployeeDetail() {
                         {modalType === 'assignment' && (
                             <form onSubmit={handleAssignmentSubmit}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                    <CustomInput label="Demirbaş Adı *" value={formData.itemName || ''} onChange={(val) => updateField('itemName', val)} required />
-                                    <CustomInput label="Seri No" value={formData.serialNumber || ''} onChange={(val) => updateField('serialNumber', val)} />
-                                    <CustomInput label="Adet" format="numeric" value={formData.quantity ?? ''} onChange={(val) => updateField('quantity', val)} />
+                                    <CustomInput label="Demirbaş Adı *" maxLength={100} value={formData.itemName || ''} onChange={(val) => updateField('itemName', val)} required />
+                                    <CustomInput label="Seri No" maxLength={50} value={formData.serialNumber || ''} onChange={(val) => updateField('serialNumber', val)} />
+                                    <CustomInput label="Adet" format="numeric" min={1} max={9999} maxLength={4} value={formData.quantity ?? ''} onChange={(val) => updateField('quantity', val)} />
                                     <div />
                                     <CustomInput label="Teslim Tarihi" type="date" value={formData.assignedDate || ''} onChange={(val) => updateField('assignedDate', val)} />
                                     <CustomInput label="İade Tarihi" type="date" value={formData.returnDate || ''} onChange={(val) => updateField('returnDate', val)} />
@@ -3598,7 +3568,7 @@ export default function EmployeeDetail() {
                                 </div>
 
                                 <div style={{ marginTop: '16px' }}>
-                                    <CustomInput label="Notlar" value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
+                                    <CustomInput label="Notlar" maxLength={300} value={formData.notes || ''} onChange={(val) => updateField('notes', val)} type="textarea" rows={2} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>İptal</button>
@@ -3839,7 +3809,8 @@ export default function EmployeeDetail() {
                     </div>
                 </Modal>
             )}
-
+            
+            {/* Folder Management Modal */}
             {folderModalOpen && (
                 <Modal
                     isOpen={folderModalOpen}
@@ -3854,6 +3825,7 @@ export default function EmployeeDetail() {
                             onChange={setFolderModalValue}
                             placeholder="Klasör adı girin..."
                             required
+                            maxLength={50}
                             autoFocus
                         />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
@@ -3885,6 +3857,7 @@ export default function EmployeeDetail() {
                         disabled={!!employee?.user}
                         value={userAccountFormData.username}
                         onChange={(val) => setUserAccountFormData({...userAccountFormData, username: val})}
+                        maxLength={50}
                     />
                     <CustomInput
                         label="E-Posta Adresi"
@@ -3892,6 +3865,7 @@ export default function EmployeeDetail() {
                         required
                         value={userAccountFormData.email}
                         onChange={(val) => setUserAccountFormData({...userAccountFormData, email: val})}
+                        maxLength={100}
                     />
                     {!employee?.user && (
                         <div>
@@ -3900,6 +3874,7 @@ export default function EmployeeDetail() {
                                 required
                                 value={userAccountFormData.password}
                                 onChange={(val) => setUserAccountFormData({...userAccountFormData, password: val})}
+                                maxLength={64}
                             />
                             <span style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '4px', display: 'block' }}>💡 Personel ilk girişte şifresini değiştirmek zorunda olacaktır.</span>
                         </div>
@@ -3956,12 +3931,14 @@ export default function EmployeeDetail() {
                         required
                         value={requestFormData.title}
                         onChange={(val) => setRequestFormData({ ...requestFormData, title: val })}
+                        maxLength={100}
                     />
 
                     <CustomInput
                         label="Açıklama / Gerekçe"
                         value={requestFormData.description}
                         onChange={(val) => setRequestFormData({ ...requestFormData, description: val })}
+                        maxLength={300}
                     />
 
                     {requestType === 'LEAVE' && (
@@ -3992,6 +3969,9 @@ export default function EmployeeDetail() {
                                 label="Gün Sayısı"
                                 type="number"
                                 required
+                                min={1}
+                                max={365}
+                                maxLength={3}
                                 value={requestFormData.days}
                                 onChange={(val) => setRequestFormData({ ...requestFormData, days: val })}
                             />
@@ -4014,6 +3994,9 @@ export default function EmployeeDetail() {
                                 label="Talep Edilen Tutar (TL)"
                                 type="number"
                                 required
+                                min={0}
+                                max={999999999}
+                                maxLength={14}
                                 value={requestFormData.amount}
                                 onChange={(val) => setRequestFormData({ ...requestFormData, amount: val })}
                             />
@@ -4070,6 +4053,9 @@ export default function EmployeeDetail() {
                                     label="Mesai Süresi (Saat)"
                                     type="number"
                                     required
+                                    min={0}
+                                    max={24}
+                                    maxLength={3}
                                     value={requestFormData.overtime_hours}
                                     onChange={(val) => setRequestFormData({ ...requestFormData, overtime_hours: val })}
                                 />

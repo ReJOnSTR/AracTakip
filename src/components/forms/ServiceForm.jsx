@@ -166,6 +166,7 @@ export default function ServiceForm({ initialData, onSubmit, onCancel, vehicles,
                                 value={field.value}
                                 onChange={field.onChange}
                                 error={errors.cost?.message}
+                                maxLength={12}
                             />
                         )}
                     />

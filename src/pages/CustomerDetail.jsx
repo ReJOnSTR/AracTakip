@@ -1500,6 +1500,7 @@ export default function CustomerDetail() {
                         value={uploadFileName}
                         onChange={setUploadFileName}
                         required
+                        maxLength={120}
                     />
                     <CustomSelect 
                         label="Kategori"
@@ -1597,6 +1598,7 @@ export default function CustomerDetail() {
                             onChange={setFolderModalValue}
                             placeholder="Klasör adı girin..."
                             required
+                            maxLength={50}
                             autoFocus
                         />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
@@ -1646,6 +1648,7 @@ export default function CustomerDetail() {
                                         label="Rapor Başlığı"
                                         value={reportTitle}
                                         onChange={setReportTitle}
+                                        maxLength={100}
                                     />
                                     <CustomInput
                                         label="Başlangıç Tarihi"

@@ -247,6 +247,8 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                     value={form.pastUsedLeaves}
                     onChange={(val) => handleChange('pastUsedLeaves', val)}
                     min={0}
+                    max={365}
+                    maxLength={3}
                 />
                 <CustomSelect
                     label="Durum"

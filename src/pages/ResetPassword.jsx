@@ -327,6 +327,7 @@ export default function ResetPassword() {
                                             placeholder="ornek@sirket.com"
                                             value={manualEmail}
                                             onChange={(e) => setManualEmail(e.target.value)}
+                                            maxLength={100}
                                             required
                                         />
                                     </div>
@@ -401,6 +402,7 @@ export default function ResetPassword() {
                                             placeholder="En az 6 karakter"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
+                                            maxLength={64}
                                             autoComplete="new-password"
                                             required
                                         />
@@ -448,6 +450,7 @@ export default function ResetPassword() {
                                             placeholder="Şifrenizi tekrar girin"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
+                                            maxLength={64}
                                             autoComplete="new-password"
                                             required
                                         />

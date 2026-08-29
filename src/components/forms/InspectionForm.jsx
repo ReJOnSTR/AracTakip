@@ -187,6 +187,7 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
                             onChange={field.onChange}
                             placeholder="0.00"
                             error={errors.cost?.message}
+                            maxLength={12}
                         />
                     )}
                 />
@@ -204,6 +205,7 @@ export default function InspectionForm({ initialData, onSubmit, onCancel, vehicl
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                            maxLength={500}
                         />
                     )}
                 />

@@ -248,6 +248,7 @@ export default function MealTicketSettings() {
                             placeholder="Örn: 250.00"
                             autoFocus
                             required
+                            maxLength={10}
                         />
 
                         <CustomInput

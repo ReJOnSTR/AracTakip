@@ -125,6 +125,7 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                             onChange={field.onChange}
                             format="title"
                             error={errors.company?.message}
+                            maxLength={100}
                         />
                     )}
                 />
@@ -157,6 +158,7 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                                 onChange={field.onChange}
                                 format="uppercase"
                                 error={errors.policyNo?.message}
+                                maxLength={50}
                             />
                         )}
                     />
@@ -210,6 +212,7 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                             onChange={field.onChange}
                             placeholder="0.00"
                             error={errors.premium?.message}
+                            maxLength={12}
                         />
                     )}
                 />
@@ -227,6 +230,7 @@ export default function InsuranceForm({ initialData, onSubmit, onCancel, vehicle
                             multiline={true}
                             rows={3}
                             error={errors.notes?.message}
+                            maxLength={500}
                         />
                     )}
                 />
