@@ -15,7 +15,8 @@ export default function CustomSelect({
     icon: Icon,
     disabled = false,
     style,
-    creatable = false
+    creatable = false,
+    hidePlaceholderOption = false
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -193,7 +194,7 @@ export default function CustomSelect({
 
                 {isOpen && createPortal(
                     <div className={`custom-select-dropdown placement-${placement}`} style={{ ...dropdownStyle, maxHeight: '250px', overflowY: 'auto' }}>
-                        {!required && placeholder && !searchTerm && (
+                        {!required && placeholder && !searchTerm && !hidePlaceholderOption && !className.includes('filter-select-custom') && !className.includes('page-select-custom') && (
                             <div
                                 className={`custom-select-option ${!value ? 'selected' : ''}`}
                                 onClick={() => handleSelect('')}
