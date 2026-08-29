@@ -2493,7 +2493,14 @@ export default function EmployeeDetail() {
                             
                             const carryOverAmount = monthlySalaries.filter(s => s.period === 'carryover' && s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             
-                            const netTarget = baseSalaryTarget + totalOtTarget + carryOverAmount
+                            // Extra Earnings Target (Bonus, Expense, Other)
+                            const totalBonusTarget = monthlySalaries.filter(s => s.period === 'bonus').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const totalExpenseTarget = monthlySalaries.filter(s => s.period === 'expense').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const totalOtherTarget = monthlySalaries.filter(s => s.period === 'other').reduce((sum, s) => sum + (s.net_salary || 0), 0)
+                            const extraEarningsTarget = totalBonusTarget + totalExpenseTarget + totalOtherTarget
+
+                            // Net Payable Target (Base Salary + Overtime + Carryover + Extra Earnings/Other)
+                            const netTarget = baseSalaryTarget + totalOtTarget + carryOverAmount + extraEarningsTarget
 
                             const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
                             const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
@@ -2505,14 +2512,11 @@ export default function EmployeeDetail() {
                             
                             const totalPaid = paidSalary + paidOt + paidAdvance + paidBonus + paidExpense + paidOther + paidLoanDeduction
 
-                            const remainingSalary = baseSalaryTarget - paidSalary - paidAdvance - paidLoanDeduction - paidOther
-                            const remainingOt = totalOtTarget - paidOt
-                            
                             const nextMonthForDevir = getNextMonth(selectedMonth)
                             const outboundCarryOver = salaries.find(s => s.salary_month === nextMonthForDevir && s.period === 'carryover')
                             const outboundCarryOverAmount = outboundCarryOver ? (outboundCarryOver.net_salary || 0) : 0
 
-                            const netRemaining = remainingSalary + remainingOt + carryOverAmount - outboundCarryOverAmount
+                            const netRemaining = Math.max(0, netTarget - totalPaid - outboundCarryOverAmount)
 
                             const lastPaidDate = (() => {
                                 const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
@@ -2521,7 +2525,7 @@ export default function EmployeeDetail() {
                             })()
 
                             const pendingCount = monthlySalaries.filter(s => s.status === 'pending').length
-                            const progress = netTarget > 0 ? Math.round((totalPaid / netTarget) * 100) : 0
+                            const progress = netTarget > 0 ? Math.min(100, Math.round((totalPaid / netTarget) * 100)) : 0
 
                             // Active Loan Calculation (Only currently unclosed debt cycle)
                             const sortedLoans = salaries
@@ -2552,14 +2556,20 @@ export default function EmployeeDetail() {
                                 <div style={{ display: 'grid', gridTemplateColumns: hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                                     {/* Ödenecek Tutar */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai+Devir)</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai+Ek Haklar)</div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
                                             {formatCurrency(netTarget)}
                                         </div>
-                                        <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                                        <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500, flexWrap: 'wrap' }}>
                                             <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(baseSalaryTarget)}
                                             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
                                             <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(totalOtTarget)}
+                                            {extraEarningsTarget !== 0 && (
+                                                <>
+                                                    <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
+                                                    <span style={{ opacity: 0.8 }}>Ek/Diğer:</span> {formatCurrency(extraEarningsTarget)}
+                                                </>
+                                            )}
                                             {carryOverAmount !== 0 && (
                                                 <>
                                                     <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
@@ -2571,7 +2581,7 @@ export default function EmployeeDetail() {
 
                                     {/* Ödenen */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenen (Maaş+Avans)</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Toplam Ödenen</div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>
                                             {formatCurrency(totalPaid)}
                                         </div>
