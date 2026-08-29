@@ -19,6 +19,7 @@ import DocumentGeneratorModal from '../components/DocumentGeneratorModal'
 import DocumentPreviewModal from '../components/DocumentPreviewModal'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 import { formatCurrency, formatDate, getHistoricalBaseSalary, getHistoricalFullSalary, formatDateForInput, formatDateTime, calculateLeaveDays, calculateLeaveEndDate, checkDateHolidayStatus, getLeaveBreakdown } from '../utils/helpers'
+import { calculateEmployeeMonthlyPayroll } from '../utils/payrollCalculator'
 import {
     Pencil, Trash2, Plus, AlertCircle, Users,
     Banknote, CalendarOff, Clock, Package, FileText, Settings,
@@ -2483,97 +2484,40 @@ export default function EmployeeDetail() {
                 {activeTab === 'salary' && (
                     <div className="tab-pane">
                         {(() => {
-                            const monthlyOvertimes = overtimes.filter(o => 
-                                o.date && 
-                                o.date.startsWith(selectedMonth) && 
-                                (!o.notes || !o.notes.includes('[İZİN OLARAK KULLANILDI]'))
-                            )
-                            const totalOtTarget = monthlyOvertimes.reduce((sum, o) => sum + (o.amount || 0), 0)
-                            const baseSalaryTarget = getHistoricalBaseSalary(employee, selectedMonth) || 0
-                            
-                            const carryOverAmount = monthlySalaries.filter(s => s.period === 'carryover' && s.status === 'paid').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            
-                            // Extra Earnings Target (Bonus, Expense, Other)
-                            const totalBonusTarget = monthlySalaries.filter(s => s.period === 'bonus').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const totalExpenseTarget = monthlySalaries.filter(s => s.period === 'expense').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const totalOtherTarget = monthlySalaries.filter(s => s.period === 'other').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const extraEarningsTarget = totalBonusTarget + totalExpenseTarget + totalOtherTarget
-
-                            // Net Payable Target (Base Salary + Overtime + Carryover + Extra Earnings/Other)
-                            const netTarget = baseSalaryTarget + totalOtTarget + carryOverAmount + extraEarningsTarget
-
-                            const paidSalary = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'salary').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidOt = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'overtime_pay').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidAdvance = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'advance').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidBonus = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'bonus').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidExpense = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'expense').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidOther = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'other').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            const paidLoanDeduction = monthlySalaries.filter(s => s.status === 'paid' && s.period === 'loan_payment' && s.payment_method === 'salary_deduction').reduce((sum, s) => sum + (s.net_salary || 0), 0)
-                            
-                            const totalPaid = paidSalary + paidOt + paidAdvance + paidBonus + paidExpense + paidOther + paidLoanDeduction
-
                             const nextMonthForDevir = getNextMonth(selectedMonth)
                             const outboundCarryOver = salaries.find(s => s.salary_month === nextMonthForDevir && s.period === 'carryover')
                             const outboundCarryOverAmount = outboundCarryOver ? (outboundCarryOver.net_salary || 0) : 0
 
-                            const netRemaining = Math.max(0, netTarget - totalPaid - outboundCarryOverAmount)
-
-                            const lastPaidDate = (() => {
-                                const paidRecords = monthlySalaries.filter(s => s.status === 'paid' && (s.payment_date || s.created_at))
-                                if (paidRecords.length === 0) return null
-                                return new Date(Math.max(...paidRecords.map(r => new Date(r.payment_date || r.created_at))))
-                            })()
-
-                            const pendingCount = monthlySalaries.filter(s => s.status === 'pending').length
-                            const progress = netTarget > 0 ? Math.min(100, Math.round((totalPaid / netTarget) * 100)) : 0
-
-                            // Active Loan Calculation (Only currently unclosed debt cycle)
-                            const sortedLoans = salaries
-                                .filter(s => s.status === 'paid' && (s.period === 'loan' || s.period === 'loan_payment'))
-                                .sort((a, b) => new Date(a.payment_date || a.created_at) - new Date(b.payment_date || b.created_at));
-
-                            let activeLoanTaken = 0;
-                            let activeLoanPaid = 0;
-
-                            for (const s of sortedLoans) {
-                                if (s.period === 'loan') {
-                                    activeLoanTaken += (s.net_salary || 0);
-                                } else if (s.period === 'loan_payment') {
-                                    activeLoanPaid += (s.net_salary || 0);
-                                }
-                                
-                                // If debt is fully paid, close the cycle
-                                if (activeLoanTaken > 0 && (activeLoanTaken - activeLoanPaid) <= 0) {
-                                    activeLoanTaken = 0;
-                                    activeLoanPaid = 0;
-                                }
-                            }
-
-                            const activeRemainingLoan = activeLoanTaken - activeLoanPaid;
-                            const hasLoanHistory = sortedLoans.length > 0;
+                            const calc = calculateEmployeeMonthlyPayroll(
+                                employee,
+                                combinedSalaries,
+                                combinedOvertimes,
+                                selectedMonth,
+                                outboundCarryOverAmount
+                            )
 
                             return (
-                                <div style={{ display: 'grid', gridTemplateColumns: hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: calc.hasLoanHistory ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                                     {/* Ödenecek Tutar */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Ödenecek Tutar (Maaş+Mesai+Ek Haklar)</div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
-                                            {formatCurrency(netTarget)}
+                                            {formatCurrency(calc.netTarget)}
                                         </div>
                                         <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500, flexWrap: 'wrap' }}>
-                                            <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(baseSalaryTarget)}
+                                            <span style={{ opacity: 0.8 }}>Maaş:</span> {formatCurrency(calc.baseSalaryTarget)}
                                             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                            <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(totalOtTarget)}
-                                            {extraEarningsTarget !== 0 && (
+                                            <span style={{ opacity: 0.8 }}>Mesai:</span> {formatCurrency(calc.totalOtTarget)}
+                                            {calc.extraEarningsTarget !== 0 && (
                                                 <>
                                                     <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                    <span style={{ opacity: 0.8 }}>Ek/Diğer:</span> {formatCurrency(extraEarningsTarget)}
+                                                    <span style={{ opacity: 0.8 }}>Ek/Diğer:</span> {formatCurrency(calc.extraEarningsTarget)}
                                                 </>
                                             )}
-                                            {carryOverAmount !== 0 && (
+                                            {calc.incomingCarryover !== 0 && (
                                                 <>
                                                     <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                    <span style={{ opacity: 0.8 }}>Devir:</span> {formatCurrency(carryOverAmount)}
+                                                    <span style={{ opacity: 0.8 }}>Devir:</span> {formatCurrency(calc.incomingCarryover)}
                                                 </>
                                             )}
                                         </div>
@@ -2583,26 +2527,26 @@ export default function EmployeeDetail() {
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Toplam Ödenen</div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--success)' }}>
-                                            {formatCurrency(totalPaid)}
+                                            {formatCurrency(calc.totalPaid)}
                                         </div>
                                         <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                            <span>{monthlySalaries.filter(s => s.status === 'paid').length} İşlem</span>
+                                            <span>{calc.monthlySalaries.filter(s => s.status === 'paid').length} İşlem</span>
                                             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                            <span>{lastPaidDate ? `Son: ${formatDate(lastPaidDate)}` : 'Ödeme Yok'}</span>
+                                            <span>{calc.lastPaidDate ? `Son: ${formatDate(calc.lastPaidDate)}` : 'Ödeme Yok'}</span>
                                         </div>
                                     </div>
 
                                     {/* Kalan Bakiye */}
                                     <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Maaş Bakiyesi</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Kalan Net Bakiye</div>
                                             {(() => {
                                                 const nextMonth = getNextMonth(selectedMonth)
                                                 const hasCarryOver = salaries.some(s => s.salary_month === nextMonth && s.period === 'carryover')
                                                 return (
                                                     <button 
                                                         style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-primary)', padding: '2px 8px', fontSize: '11px', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, borderRadius: '4px' }}
-                                                        onClick={() => handleCarryOver(netRemaining)}
+                                                        onClick={() => handleCarryOver(calc.netRemaining)}
                                                     >
                                                         {hasCarryOver ? 'Devri İptal Et' : 'Devret'}
                                                     </button>
@@ -2610,34 +2554,29 @@ export default function EmployeeDetail() {
                                             })()}
                                         </div>
                                         <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--warning)' }}>
-                                            {formatCurrency(netRemaining)}
+                                            {formatCurrency(calc.netRemaining)}
                                         </div>
                                         <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                            <span style={{ color: progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{progress} Ödendi</span>
+                                            <span style={{ color: calc.progress >= 100 ? 'var(--success)' : 'var(--warning)' }}>%{calc.progress} Ödendi</span>
                                             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                            <span>{pendingCount} Kayıt Bekliyor</span>
+                                            <span>{calc.pendingCount} Kayıt Bekliyor</span>
                                         </div>
                                     </div>
 
                                     {/* Borç Bakiyesi (Conditional) */}
-                                    {hasLoanHistory && (
+                                    {calc.hasLoanHistory && (
                                         <div className="card" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Güncel Borç Bakiyesi</div>
-                                                <button 
-                                                    style={{ background: 'none', border: 'none', padding: '2px 6px', fontSize: '10px', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, borderRadius: '4px' }}
-                                                    onClick={() => setShowLoanHistory(true)}
-                                                >
-                                                    Geçmiş
-                                                </button>
+                                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Borç / Avans Bakiyesi</div>
+                                                <span className={`badge badge-${calc.activeRemainingLoan > 0 ? 'warning' : 'success'}`} style={{ fontSize: '10px' }}>
+                                                    {calc.activeRemainingLoan > 0 ? 'Açık Borç Var' : 'Borcu Yok'}
+                                                </span>
                                             </div>
-                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: 'var(--text-primary)' }}>
-                                                {formatCurrency(activeRemainingLoan > 0 ? activeRemainingLoan : 0)}
+                                            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '4px', color: calc.activeRemainingLoan > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>
+                                                {formatCurrency(calc.activeRemainingLoan)}
                                             </div>
                                             <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
-                                                <span style={{ opacity: 0.8 }}>Alınan:</span> {formatCurrency(activeLoanTaken)}
-                                                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--border-color)' }}></span>
-                                                <span style={{ opacity: 0.8 }}>Ödenen:</span> {formatCurrency(activeLoanPaid)}
+                                                <span>{calc.activeRemainingLoan > 0 ? 'Ödenmesi Bekleniyor' : 'Tüm Borçlar Kapandı'}</span>
                                             </div>
                                         </div>
                                     )}

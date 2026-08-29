@@ -11,6 +11,8 @@ import MonthFilter from '../components/MonthFilter'
 import { formatCurrency, getHistoricalBaseSalary, formatDateForInput } from '../utils/helpers'
 import { Banknote, Users, Building2, Wallet, Clock, X, Plus, ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
 
+import { calculateEmployeeMonthlyPayroll } from '../utils/payrollCalculator'
+
 const paymentTypes = [
     { value: 'salary', label: 'Maaş' },
     { value: 'bonus', label: 'Prim' },
@@ -84,11 +86,13 @@ export default function PayrollDashboard() {
         return displayData.reduce((acc, item) => ({
             totalCurrentSalary: acc.totalCurrentSalary + (item.calc_base || 0),
             totalOvertimes: acc.totalOvertimes + (item.calc_overtimes || 0),
+            totalExtra: acc.totalExtra + (item.calc_extra || 0),
+            totalRequired: acc.totalRequired + (item.calc_required || 0),
             totalPaid: acc.totalPaid + (item.calc_paid || 0),
             totalPending: acc.totalPending + (item.calc_remaining || 0),
             totalIncomingCarryover: acc.totalIncomingCarryover + (item.calc_incoming_carryover || 0),
             totalOutboundCarryover: acc.totalOutboundCarryover + (item.calc_outbound_carryover || 0)
-        }), { totalCurrentSalary: 0, totalOvertimes: 0, totalPaid: 0, totalPending: 0, totalIncomingCarryover: 0, totalOutboundCarryover: 0 })
+        }), { totalCurrentSalary: 0, totalOvertimes: 0, totalExtra: 0, totalRequired: 0, totalPaid: 0, totalPending: 0, totalIncomingCarryover: 0, totalOutboundCarryover: 0 })
     }, [displayData])
 
     useEffect(() => {
@@ -199,37 +203,25 @@ export default function PayrollDashboard() {
                 }
 
                 const processedData = result.data.map(emp => {
-                    const historicalBase = getHistoricalBaseSalary(emp, selectedMonth);
-                    const otAmount = (emp.overtimes || [])
-                        .filter(o => !(o.notes && o.notes.includes('[İZİN OLARAK KULLANILDI]')))
-                        .reduce((sum, o) => sum + (o.amount || 0), 0);
-                    
-                    // Incoming carryover (devir from previous month into this month)
-                    const incomingCarryover = (emp.salaries || [])
-                        .filter(s => s.period === 'carryover' && s.status === 'paid')
-                        .reduce((sum, s) => sum + (s.net_salary || 0), 0)
-
-                    const requiredPay = historicalBase + otAmount + incomingCarryover;
-                    
-                    const paidAmount = (emp.salaries || [])
-                        .filter(s => s.status === 'paid')
-                        .filter(s => s.period !== 'loan' && s.period !== 'salary_accrual')
-                        .reduce((sum, s) => sum + (s.net_salary || 0), 0);
-                    
-                    // Outbound carryover (devir to next month)
                     const outboundCarryover = nextMonthCarryoverMap[emp.id] || 0
-
-                    const remainingPay = requiredPay - paidAmount - outboundCarryover;
+                    const calc = calculateEmployeeMonthlyPayroll(
+                        emp,
+                        emp.salaries || [],
+                        emp.overtimes || [],
+                        selectedMonth,
+                        outboundCarryover
+                    )
 
                     return {
                         ...emp,
-                        calc_base: historicalBase,
-                        calc_overtimes: otAmount,
-                        calc_incoming_carryover: incomingCarryover,
+                        calc_base: calc.baseSalaryTarget,
+                        calc_overtimes: calc.totalOtTarget,
+                        calc_extra: calc.extraEarningsTarget,
+                        calc_incoming_carryover: calc.incomingCarryover,
                         calc_outbound_carryover: outboundCarryover,
-                        calc_required: requiredPay,
-                        calc_paid: paidAmount,
-                        calc_remaining: remainingPay
+                        calc_required: calc.netTarget,
+                        calc_paid: calc.totalPaid,
+                        calc_remaining: calc.netRemaining
                     };
                 });
 
@@ -541,12 +533,12 @@ export default function PayrollDashboard() {
             {/* Top Summaries */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '30px' }}>
                 <StatCard 
-                    title="Seçili Net Maaş" 
-                    value={formatCurrency(displayStats.totalCurrentSalary)} 
+                    title="Toplam Hak Ediş" 
+                    value={formatCurrency(displayStats.totalRequired)} 
                     icon={Users} 
                     color="var(--accent-primary)" 
                     bgColor="var(--accent-subtle)"
-                    subtitle={displayStats.totalIncomingCarryover > 0 ? `Gelen Devir: +${formatCurrency(displayStats.totalIncomingCarryover)}` : null}
+                    subtitle={`Baz Maaş: ${formatCurrency(displayStats.totalCurrentSalary)}${displayStats.totalExtra > 0 ? ` • Ek: +${formatCurrency(displayStats.totalExtra)}` : ''}`}
                 />
                 <StatCard 
                     title="Seçili Mesai" 
@@ -554,6 +546,7 @@ export default function PayrollDashboard() {
                     icon={Clock} 
                     color="var(--info)" 
                     bgColor="var(--info-bg)"
+                    subtitle={displayStats.totalIncomingCarryover > 0 ? `Gelen Devir: +${formatCurrency(displayStats.totalIncomingCarryover)}` : null}
                 />
                 <StatCard 
                     title="Seçili Ödenen" 
@@ -564,13 +557,12 @@ export default function PayrollDashboard() {
                     subtitle={displayStats.totalOutboundCarryover > 0 ? `Giden Devir: ${formatCurrency(displayStats.totalOutboundCarryover)}` : null}
                 />
                 <StatCard 
-                    title="Seçili Kalan" 
+                    title="Seçili Kalan Bakiye" 
                     value={formatCurrency(displayStats.totalPending)} 
                     icon={Banknote} 
                     color="var(--warning)" 
                     bgColor="var(--warning-bg)"
                     isDanger={displayStats.totalPending > 0}
-                    subtitle={displayStats.totalOutboundCarryover > 0 ? `Aktarılan: ${formatCurrency(displayStats.totalOutboundCarryover)}` : null}
                 />
                 <StatCard 
                     title="Toplam Avans"
