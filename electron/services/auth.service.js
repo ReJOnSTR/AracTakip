@@ -22,6 +22,35 @@ const { supabaseAdmin } = require('./supabase.service');
 
 const prisma = getPrismaClient();
 
+// Auto-purge abandoned unverified registrations (> 48 hours)
+async function purgeExpiredUnverifiedSignups() {
+    try {
+        const threshold = new Date(Date.now() - 48 * 60 * 60 * 1000); // 48 hours ago
+        const expiredUsers = await prisma.users.findMany({
+            where: {
+                is_active: 0,
+                role: 'company_admin',
+                created_at: { lt: threshold }
+            }
+        });
+
+        if (expiredUsers && expiredUsers.length > 0) {
+            log.info(`[Auto-Purge] Found ${expiredUsers.length} abandoned unverified signup(s). Purging...`);
+            for (const expUser of expiredUsers) {
+                await prisma.companies.deleteMany({
+                    where: { user_id: expUser.id }
+                }).catch(() => {});
+                await prisma.users.delete({
+                    where: { id: expUser.id }
+                }).catch(() => {});
+                log.info(`[Auto-Purge] Cleaned abandoned draft: ${expUser.username} (${expUser.email})`);
+            }
+        }
+    } catch (e) {
+        log.warn('[Auto-Purge] notice:', e.message);
+    }
+}
+
 async function registerUser(userData) {
     try {
         const { username, password, email, companyName, fullName } = userData;
@@ -31,41 +60,120 @@ async function registerUser(userData) {
         }
 
         const cleanEmail = email.toLowerCase().trim();
-        const existingUser = await prisma.users.findFirst({
-            where: {
-                OR: [
-                    { username },
-                    { email: cleanEmail }
-                ]
-            }
+        const cleanUsername = username.trim();
+        const finalCompName = (companyName || '').trim() || (cleanUsername + ' Filo');
+
+        // 1. Run automatic purge of expired abandoned registrations (> 48 hours)
+        await purgeExpiredUnverifiedSignups();
+
+        // 2. Check existing user by email
+        const existingEmailUser = await prisma.users.findFirst({
+            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
         });
 
-        if (existingUser) {
-            return { success: false, error: 'Bu kullanıcı adı veya e-posta zaten kullanımda' };
-        }
+        // 3. Check existing user by username
+        const existingUsernameUser = await prisma.users.findFirst({
+            where: { username: { equals: cleanUsername, mode: 'insensitive' } }
+        });
 
+        let targetUserId = null;
         const password_hash = bcrypt.hashSync(password, 10);
 
-        const result = await prisma.users.create({
-            data: {
-                username,
-                email: cleanEmail,
-                full_name: fullName || username,
-                password_hash,
-                role: 'company_admin',
-                must_change_password: 0,
-                is_active: 0 // Inactive until email is confirmed
+        if (existingEmailUser) {
+            // Case A: Email exists and is ALREADY ACTIVE
+            if (existingEmailUser.is_active === 1) {
+                return {
+                    success: false,
+                    error: 'Bu e-posta adresiyle kayıtlı aktif bir hesap bulunmaktadır. Lütfen giriş yapın veya şifrenizi sıfırlayın.'
+                };
             }
-        });
 
-        // Create a new fresh company for this new admin user
-        const finalCompName = (companyName || '').trim() || (username + ' Filo');
-        await prisma.companies.create({
-            data: {
-                name: finalCompName,
-                user_id: result.id
+            // Case B: Email exists and is SUSPENDED / REJECTED
+            if (existingEmailUser.is_active === -1) {
+                return {
+                    success: false,
+                    error: 'Bu e-posta adresine ait hesap askıya alınmıştır. Lütfen destek ekibi ile iletişime geçin.'
+                };
             }
-        }).catch(e => console.warn('Company auto-create notice:', e.message));
+
+            // Case C: Email exists and is UNVERIFIED DRAFT (is_active === 0) -> SMART UPSERT
+            log.info(`[Register] Smart re-registration: Refreshing unverified draft for ${cleanEmail}`);
+
+            // If new username is different, check if another ACTIVE user has that username
+            if (existingUsernameUser && existingUsernameUser.id !== existingEmailUser.id) {
+                if (existingUsernameUser.is_active === 1) {
+                    return {
+                        success: false,
+                        error: 'Bu kullanıcı adı aktif başka bir kullanıcı tarafından kullanılmaktadır. Lütfen farklı bir kullanıcı adı seçin.'
+                    };
+                } else {
+                    // Another unverified draft had this username, delete that orphaned draft
+                    await prisma.companies.deleteMany({ where: { user_id: existingUsernameUser.id } }).catch(() => {});
+                    await prisma.users.delete({ where: { id: existingUsernameUser.id } }).catch(() => {});
+                }
+            }
+
+            // Update the existing unverified user record with new credentials & company
+            await prisma.users.update({
+                where: { id: existingEmailUser.id },
+                data: {
+                    username: cleanUsername,
+                    full_name: fullName || cleanUsername,
+                    password_hash,
+                    is_active: 0,
+                    created_at: new Date() // Reset expiry clock
+                }
+            });
+
+            // Update or create linked draft company
+            const linkedCompany = await prisma.companies.findFirst({ where: { user_id: existingEmailUser.id } });
+            if (linkedCompany) {
+                await prisma.companies.update({
+                    where: { id: linkedCompany.id },
+                    data: { name: finalCompName }
+                });
+            } else {
+                await prisma.companies.create({
+                    data: { name: finalCompName, user_id: existingEmailUser.id }
+                }).catch(() => {});
+            }
+
+            targetUserId = existingEmailUser.id;
+        } else {
+            // New email registration
+            if (existingUsernameUser) {
+                if (existingUsernameUser.is_active === 1) {
+                    return {
+                        success: false,
+                        error: 'Bu kullanıcı adı zaten kullanımda. Lütfen farklı bir kullanıcı adı seçin.'
+                    };
+                } else {
+                    // Username belonged to an abandoned unverified registration with another email. Delete orphaned draft:
+                    log.info(`[Register] Overriding abandoned unverified username "${cleanUsername}"`);
+                    await prisma.companies.deleteMany({ where: { user_id: existingUsernameUser.id } }).catch(() => {});
+                    await prisma.users.delete({ where: { id: existingUsernameUser.id } }).catch(() => {});
+                }
+            }
+
+            // Create fresh unverified user
+            const newUser = await prisma.users.create({
+                data: {
+                    username: cleanUsername,
+                    email: cleanEmail,
+                    full_name: fullName || cleanUsername,
+                    password_hash,
+                    role: 'company_admin',
+                    must_change_password: 0,
+                    is_active: 0
+                }
+            });
+
+            await prisma.companies.create({
+                data: { name: finalCompName, user_id: newUser.id }
+            }).catch(() => {});
+
+            targetUserId = newUser.id;
+        }
 
         // Provision user in Supabase Auth & trigger direct SMTP confirmation email
         const { supabaseAdmin } = require('./supabase.service');
@@ -77,13 +185,29 @@ async function registerUser(userData) {
                         password: password,
                         email_confirm: false,
                         user_metadata: {
-                            username,
-                            full_name: fullName || username,
+                            username: cleanUsername,
+                            full_name: fullName || cleanUsername,
                             role: 'company_admin'
                         }
                     });
                 } catch (createErr) {
-                    log.warn('Supabase auth signup notice:', createErr.message);
+                    // If user already exists in auth.users, update password & metadata
+                    try {
+                        const { data: supaUsers } = await supabaseAdmin.auth.admin.listUsers();
+                        const existingSupa = supaUsers?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
+                        if (existingSupa) {
+                            await supabaseAdmin.auth.admin.updateUserById(existingSupa.id, {
+                                password: password,
+                                user_metadata: {
+                                    username: cleanUsername,
+                                    full_name: fullName || cleanUsername,
+                                    role: 'company_admin'
+                                }
+                            });
+                        }
+                    } catch (updateErr) {
+                        log.warn('Supabase auth update notice:', updateErr.message);
+                    }
                 }
 
                 // Generate signup confirmation link & OTP
@@ -107,6 +231,15 @@ async function registerUser(userData) {
                         if (linkData.properties.email_otp) {
                             rawOtpCode = String(linkData.properties.email_otp);
                             otpToken = rawOtpCode.length === 6 ? `${rawOtpCode.slice(0, 3)} ${rawOtpCode.slice(3)}` : rawOtpCode;
+                        }
+                    } else {
+                        // Fallback to magiclink if signup link generation fails
+                        const { data: magicData } = await supabaseAdmin.auth.admin.generateLink({
+                            type: 'magiclink',
+                            email: cleanEmail
+                        });
+                        if (magicData?.properties?.action_link) {
+                            actionLink = magicData.properties.action_link;
                         }
                     }
                 } catch (genErr) {
@@ -134,7 +267,7 @@ async function registerUser(userData) {
                         .replace(/\{\{\s*\.Token\s*\}\}/g, otpToken)
                         .replace(/\{\{\s*\.Email\s*\}\}/g, cleanEmail)
                         .replace(/\{\{\s*\.SiteURL\s*\}\}/g, 'https://kontrol-app.com')
-                        .replace(/\{\{\s*\.Data\.username\s*\}\}/g, username)
+                        .replace(/\{\{\s*\.Data\.username\s*\}\}/g, cleanUsername)
                         .replace(/\{\{\s*\.Data\.company_name\s*\}\}/g, finalCompName);
 
                     const mailRes = await sendCustomHtmlEmail({
@@ -160,13 +293,13 @@ async function registerUser(userData) {
             requireVerification: true,
             email: cleanEmail,
             user: { 
-                id: result.id, 
-                username: result.username, 
-                email: result.email,
-                full_name: result.full_name,
-                role: result.role
+                id: targetUserId, 
+                username: cleanUsername, 
+                email: cleanEmail,
+                full_name: fullName || cleanUsername,
+                role: 'company_admin'
             },
-            message: 'Kayıt başarılı! Lütfen e-posta adresinize gönderilen doğrulama linkine tıklayarak hesabınızı aktifleştirin.'
+            message: 'Kayıt başarılı! Lütfen e-posta adresinize gönderilen 6 haneli doğrulama kodunu girerek başvurunuzu tamamlayın.'
         };
 
     } catch (error) {
