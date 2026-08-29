@@ -10,6 +10,7 @@ import CustomSelect from '../components/CustomSelect'
 import TopProgressBar from '../components/TopProgressBar'
 import TableActionMenu from '../components/TableActionMenu'
 import EmailTemplatesManager from '../components/EmailTemplatesManager'
+import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import { 
     Building2, 
     Users, 
@@ -150,7 +151,8 @@ export default function PlatformAdmin({ section }) {
         role: 'company_admin',
         position: 'Şirket Yöneticisi',
         phone: '',
-        companyId: ''
+        companyId: '',
+        permissions: ROLE_PRESETS[0]?.levels || {}
     })
     const [createUserLoading, setCreateUserLoading] = useState(false)
 
@@ -1849,46 +1851,58 @@ export default function PlatformAdmin({ section }) {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                             <CustomSelect
-                                label="Hesap Rolü & Türü"
-                                value={newUserForm.role}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, role: getVal(val) }))}
-                                options={[
-                                    { value: 'company_admin', label: '🏢 Şirket Yöneticisi (Admin)' },
-                                    { value: 'manager', label: '💼 Operasyon Sorumlusu' },
-                                    { value: 'personnel', label: '🚗 Şoför / Saha Personeli' },
-                                    { value: 'superadmin', label: '👑 Platform Süper Yöneticisi' }
-                                ]}
-                            />
-
-                            <CustomSelect
                                 label="Bağlanacağı Şirket"
                                 value={newUserForm.companyId}
                                 onChange={(val) => setNewUserForm(prev => ({ ...prev, companyId: getVal(val) }))}
                                 options={[
-                                    { value: '', label: 'Şirket Seçin...' },
+                                    { value: '', label: 'Şirketsiz / Sistem Kullanıcısı' },
                                     ...tenantCompanies.map(c => ({ value: String(c.id), label: `🏢 ${c.name}` }))
                                 ]}
                             />
+
+                            {newUserForm.role === 'personnel' ? (
+                                <CustomInput
+                                    label="Personel Görevi / Pozisyonu"
+                                    value={newUserForm.position}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, position: getVal(val) }))}
+                                    placeholder="Örn: Ağır Vasıta Şoförü"
+                                    maxLength={50}
+                                />
+                            ) : (
+                                <CustomInput
+                                    label="Telefon Numarası"
+                                    value={newUserForm.phone}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: getVal(val) }))}
+                                    placeholder="05XX XXX XX XX"
+                                    format="phone"
+                                    maxLength={14}
+                                />
+                            )}
                         </div>
 
-                        {newUserForm.role === 'personnel' && (
-                            <CustomInput
-                                label="Personel Görevi / Pozisyonu"
-                                value={newUserForm.position}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, position: getVal(val) }))}
-                                placeholder="Örn: Ağır Vasıta Şoförü"
-                                maxLength={50}
+                        {/* ── 3-LEVEL PERMISSION MATRIX ── */}
+                        <div style={{ marginTop: '6px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                            <PermissionMatrix
+                                selectedPreset={newUserForm.role}
+                                onPresetChange={(presetId, levels) => {
+                                    setNewUserForm(prev => ({
+                                        ...prev,
+                                        role: presetId,
+                                        permissions: levels
+                                    }))
+                                }}
+                                permissionLevels={newUserForm.permissions || {}}
+                                onLevelChange={(moduleKey, level) => {
+                                    setNewUserForm(prev => ({
+                                        ...prev,
+                                        permissions: {
+                                            ...(prev.permissions || {}),
+                                            [moduleKey]: level
+                                        }
+                                    }))
+                                }}
                             />
-                        )}
-
-                        <CustomInput
-                            label="Telefon Numarası"
-                            value={newUserForm.phone}
-                            onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: getVal(val) }))}
-                            placeholder="05XX XXX XX XX"
-                            format="phone"
-                            maxLength={14}
-                        />
+                        </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setCreateUserModal(false)}>
