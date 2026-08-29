@@ -328,7 +328,11 @@ ipcMain.handle('notification:show', (event, { title, body }) => {
 })
 
 app.whenReady().then(async () => {
-    // Initialize Database
+    // 1. Open the UI Window immediately (instant launch)
+    createWindow()
+    log.info('Application window created')
+
+    // 2. Initialize Database & Services
     try {
         if (db.initializeDatabase) db.initializeDatabase()
         log.info('Database initialized')
@@ -339,13 +343,12 @@ app.whenReady().then(async () => {
         startAdminServer(getPrismaClient(), notifyDbUpdate)
     } catch (err) {
         log.error('Failed to initialize database:', err)
-        dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)
-        app.quit()
-        return
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)
+        }
     }
 
     log.info('Application started')
-    createWindow()
 
     // Global Shortcut for DevTools (F12)
     globalShortcut.register('F12', () => {
