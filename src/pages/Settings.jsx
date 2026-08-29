@@ -5,13 +5,13 @@ import { useCompany } from '../context/CompanyContext'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import Modal from '../components/Modal'
+import TableActionMenu from '../components/TableActionMenu'
 import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Users, Wallet, 
     Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock, CheckCircle,
-    UserPlus, Key, Unlock, Trash2, Edit2, ShieldAlert, Check, X, Building2,
-    Search, SlidersHorizontal, Mail, Phone, Briefcase, ShieldCheck
+    UserPlus, Key, Unlock, Trash2, Edit2, ShieldAlert, Check, X, Building2
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 
@@ -67,8 +67,6 @@ export default function Settings() {
     // ── COMPANY USERS & PERMISSION MANAGEMENT STATE ──
     const [companyUsers, setCompanyUsers] = useState([])
     const [loadingUsers, setLoadingUsers] = useState(false)
-    const [userSearchQuery, setUserSearchQuery] = useState('')
-    const [userRoleFilter, setUserRoleFilter] = useState('ALL')
     const [employeesList, setEmployeesList] = useState([])
     const [createUserModal, setCreateUserModal] = useState(false)
     const [createUserLoading, setCreateUserLoading] = useState(false)
@@ -634,39 +632,17 @@ export default function Settings() {
                     )}
 
                     {activeTab === 'users' && (
-                        <div className="tab-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            
-                            {/* Header & Actions Banner */}
-                            <div className="settings-card" style={{ padding: '24px', margin: 0 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                        <div style={{
-                                            width: '44px',
-                                            height: '44px',
-                                            borderRadius: '12px',
-                                            background: 'rgba(20, 184, 166, 0.1)',
-                                            color: 'var(--accent-primary)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Users size={22} />
-                                        </div>
-                                        <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <h2 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                                                    Kullanıcılar & Yetki Yönetimi
-                                                </h2>
-                                                <span className="badge badge-primary" style={{ fontSize: '11.5px', padding: '3px 8px' }}>
-                                                    {companyUsers.length} Kullanıcı
-                                                </span>
-                                            </div>
-                                            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '3px', margin: 0 }}>
-                                                Şirketinize ait kullanıcı hesaplarını, şifrelerini ve 3 seviyeli modül yetkilerini yönetin.
-                                            </p>
-                                        </div>
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                                    <div>
+                                        <h2 className="settings-card-title" style={{ margin: 0 }}>
+                                            <Users size={20} className="text-primary" /> Kullanıcılar & Yetki Yönetimi
+                                        </h2>
+                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                            Şirketinize ait kullanıcı hesaplarını, şifrelerini ve 3 seviyeli modül yetkilerini yönetin.
+                                        </p>
                                     </div>
-
                                     <button 
                                         type="button" 
                                         className="btn btn-primary" 
@@ -684,224 +660,156 @@ export default function Settings() {
                                             })
                                             setCreateUserModal(true)
                                         }}
-                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 18px', fontWeight: 600 }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                     >
-                                        <UserPlus size={16} />
+                                        <UserPlus size={15} />
                                         <span>Yeni Kullanıcı Ekle</span>
                                     </button>
                                 </div>
 
-                                {/* Search & Filter Bar */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
-                                    <div style={{ position: 'relative', flex: 1, maxWidth: '360px' }}>
-                                        <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="Kullanıcı adı, e-posta veya personel ara..."
-                                            value={userSearchQuery}
-                                            onChange={(e) => setUserSearchQuery(e.target.value)}
-                                            style={{ paddingLeft: '36px', height: '38px', fontSize: '13px' }}
-                                        />
-                                    </div>
-
-                                    <div style={{ width: '220px' }}>
-                                        <CustomSelect
-                                            placeholder="Rol Filtrele"
-                                            options={[
-                                                { value: 'ALL', label: 'Tüm Roller' },
-                                                { value: 'company_admin', label: 'Şirket Yöneticisi' },
-                                                { value: 'manager', label: 'Operasyon & Puantör' },
-                                                { value: 'accountant', label: 'Ön Muhasebe & Finans' },
-                                                { value: 'maintenance', label: 'Kademe & Bakım Şefi' },
-                                                { value: 'personnel', label: 'Saha Personeli' }
-                                            ]}
-                                            value={userRoleFilter}
-                                            onChange={(val) => setUserRoleFilter(val)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Users Table Card */}
-                            <div className="settings-card" style={{ padding: 0, overflow: 'hidden', margin: 0 }}>
                                 {loadingUsers ? (
-                                    <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                    <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontSize: '13px' }}>
                                         Kullanıcılar yükleniyor...
                                     </div>
                                 ) : companyUsers.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--bg-secondary)' }}>
-                                        <Users size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 10px', display: 'block', opacity: 0.4 }} />
-                                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Şirket kullanıcısı bulunamadı</div>
-                                        <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                    <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--bg-tertiary)', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+                                        <Users size={32} style={{ color: 'var(--text-muted)', margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Şirket kullanıcısı bulunamadı</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                                             Personellerinize sistem erişimi vermek için yukarıdaki "+ Yeni Kullanıcı Ekle" butonunu kullanabilirsiniz.
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0, background: 'var(--bg-secondary)' }}>
+                                    <div style={{ overflowX: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)' }}>
                                         <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
                                                 <tr>
-                                                    <th style={{ padding: '14px 18px', textAlign: 'left', minWidth: '220px' }}>Kullanıcı</th>
-                                                    <th style={{ padding: '14px 18px', textAlign: 'left', minWidth: '180px' }}>Personel / Görev</th>
-                                                    <th style={{ padding: '14px 18px', textAlign: 'left', minWidth: '200px' }}>İletişim</th>
-                                                    <th style={{ padding: '14px 18px', textAlign: 'center', minWidth: '170px' }}>Yetki Rolü</th>
-                                                    <th style={{ padding: '14px 18px', textAlign: 'center', minWidth: '110px' }}>Durum</th>
-                                                    <th style={{ padding: '14px 18px', textAlign: 'center', width: '160px' }}>İşlemler</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>Kullanıcı</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>Personel / Görev</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>İletişim</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>Yetki Rolü</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>Durum</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center', width: '140px' }}>İşlemler</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {companyUsers
-                                                    .filter(u => {
-                                                        if (userRoleFilter !== 'ALL' && u.role !== userRoleFilter) return false
-                                                        if (!userSearchQuery) return true
-                                                        const q = userSearchQuery.toLowerCase()
-                                                        const name = (u.fullName || u.full_name || u.username || '').toLowerCase()
-                                                        const email = (u.email || '').toLowerCase()
-                                                        const emp = (u.employee ? `${u.employee.fullName || u.employee.first_name || ''} ${u.employee.last_name || ''}` : '').toLowerCase()
-                                                        return name.includes(q) || email.includes(q) || emp.includes(q)
-                                                    })
-                                                    .map((u) => {
-                                                        const rolePreset = ROLE_PRESETS.find(r => r.id === u.role)
-                                                        const roleLabel = rolePreset ? rolePreset.label : (u.role === 'company_admin' ? 'Şirket Yöneticisi' : (u.role || 'Özel Yetki'))
-                                                        const badgeClass = rolePreset ? rolePreset.badgeColor : (u.role === 'company_admin' ? 'badge-primary' : 'badge-neutral')
-                                                        const isSelf = u.id === user?.id
-                                                        const isActive = u.isActive !== undefined ? u.isActive : (u.rawStatus === 1 || u.is_active === 1 || u.is_active === true)
+                                                {companyUsers.map((u) => {
+                                                    const rolePreset = ROLE_PRESETS.find(r => r.id === u.role)
+                                                    const roleLabel = rolePreset ? rolePreset.label : (u.role === 'company_admin' ? 'Şirket Yöneticisi' : (u.role || 'Özel Yetki'))
+                                                    const badgeClass = rolePreset ? rolePreset.badgeColor : (u.role === 'company_admin' ? 'badge-primary' : 'badge-neutral')
+                                                    const isSelf = u.id === user?.id
+                                                    const isActive = u.is_active === 1 || u.is_active === true
 
-                                                        return (
-                                                            <tr key={u.id} style={{ borderTop: '1px solid var(--border-color)' }}>
-                                                                <td style={{ padding: '12px 18px' }}>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                        <div style={{
-                                                                            width: '36px',
-                                                                            height: '36px',
-                                                                            borderRadius: '50%',
-                                                                            background: 'linear-gradient(135deg, var(--accent-primary) 0%, #0d9488 100%)',
-                                                                            color: '#ffffff',
-                                                                            display: 'flex',
-                                                                            alignItems: 'center',
-                                                                            justifyContent: 'center',
-                                                                            fontWeight: 700,
-                                                                            fontSize: '13px',
-                                                                            flexShrink: 0,
-                                                                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                                                                        }}>
-                                                                            {(u.fullName || u.full_name || u.username || 'U').charAt(0).toUpperCase()}
-                                                                        </div>
-                                                                        <div>
-                                                                            <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                                <span>{u.fullName || u.full_name || u.username}</span>
-                                                                                {isSelf && (
-                                                                                    <span style={{ fontSize: '10.5px', color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                                                                                        Siz
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-                                                                            <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                                                                @{u.username}
-                                                                            </div>
-                                                                        </div>
+                                                    return (
+                                                        <tr key={u.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                                            <td style={{ padding: '10px 14px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                    <div style={{
+                                                                        width: '32px',
+                                                                        height: '32px',
+                                                                        borderRadius: '50%',
+                                                                        background: 'linear-gradient(135deg, var(--accent-primary) 0%, #0d9488 100%)',
+                                                                        color: '#ffffff',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        fontWeight: 700,
+                                                                        fontSize: '12px',
+                                                                        flexShrink: 0
+                                                                    }}>
+                                                                        {(u.full_name || u.username || 'U').charAt(0).toUpperCase()}
                                                                     </div>
-                                                                </td>
-                                                                <td style={{ padding: '12px 18px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                                                                    {u.employee ? (
-                                                                        <div>
-                                                                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>
-                                                                                {u.employee.fullName || `${u.employee.first_name || ''} ${u.employee.last_name || ''}`}
-                                                                            </div>
-                                                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                                                                {u.employee.position || 'Personel'}
-                                                                            </div>
+                                                                    <div>
+                                                                        <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                                                                            {u.full_name || u.username}
+                                                                            {isSelf && <span style={{ marginLeft: '6px', fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600 }}>(Siz)</span>}
                                                                         </div>
-                                                                    ) : (
-                                                                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                                                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{u.username}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                                                {u.employee ? (
+                                                                    <div>
+                                                                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{u.employee.first_name} {u.employee.last_name}</div>
+                                                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.employee.position || 'Personel'}</div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span style={{ color: 'var(--text-muted)' }}>—</span>
+                                                                )}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                                                <div>{u.email}</div>
+                                                                {u.phone && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.phone}</div>}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                <span className={`badge ${badgeClass}`} style={{ fontSize: '11px' }}>
+                                                                    {roleLabel}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                <span className={`badge ${isActive ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '11px' }}>
+                                                                    {isActive ? 'Aktif' : 'Kilitli'}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                <TableActionMenu>
+                                                                    <button
+                                                                        className="action-icon-btn"
+                                                                        title="Yetkileri Düzenle"
+                                                                        onClick={() => {
+                                                                            setEditingUser({
+                                                                                id: u.id,
+                                                                                username: u.username,
+                                                                                fullName: u.full_name || u.username,
+                                                                                email: u.email,
+                                                                                role: u.role || 'manager',
+                                                                                is_active: u.is_active,
+                                                                                permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions || '{}') : (u.permissions || {})
+                                                                            })
+                                                                            setEditUserModal(true)
+                                                                        }}
+                                                                    >
+                                                                        <Edit2 size={13} />
+                                                                        <span>Yetkileri Düzenle</span>
+                                                                    </button>
+                                                                    <button
+                                                                        className="action-icon-btn"
+                                                                        title="Şifre Sıfırla"
+                                                                        onClick={() => {
+                                                                            setResetPasswordData({ userId: u.id, username: u.username, newPassword: '' })
+                                                                            setResetPasswordModal(true)
+                                                                        }}
+                                                                    >
+                                                                        <Key size={13} />
+                                                                        <span>Şifre Sıfırla</span>
+                                                                    </button>
+                                                                    {!isSelf && (
+                                                                        <>
+                                                                            <button
+                                                                                className="action-icon-btn"
+                                                                                title={isActive ? 'Hesabı Kilitle' : 'Kilidi Aç'}
+                                                                                style={isActive ? { color: '#f59e0b' } : { color: '#10b981' }}
+                                                                                onClick={() => handleToggleUserStatus(u.id, u.is_active)}
+                                                                            >
+                                                                                {isActive ? <Lock size={13} /> : <Unlock size={13} />}
+                                                                                <span>{isActive ? 'Hesabı Kilitle' : 'Kilidi Aç'}</span>
+                                                                            </button>
+                                                                            <button
+                                                                                className="action-icon-btn danger"
+                                                                                title="Kullanıcıyı Sil"
+                                                                                onClick={() => handleDeleteUser(u)}
+                                                                            >
+                                                                                <Trash2 size={13} />
+                                                                                <span>Kullanıcıyı Sil</span>
+                                                                            </button>
+                                                                        </>
                                                                     )}
-                                                                </td>
-                                                                <td style={{ padding: '12px 18px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                        <Mail size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                                                                        <span>{u.email}</span>
-                                                                    </div>
-                                                                    {u.phone && (
-                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
-                                                                            <Phone size={11} style={{ flexShrink: 0 }} />
-                                                                            <span>{u.phone}</span>
-                                                                        </div>
-                                                                    )}
-                                                                </td>
-                                                                <td style={{ padding: '12px 18px', textAlign: 'center' }}>
-                                                                    <span className={`badge ${badgeClass}`} style={{ fontSize: '11.5px', padding: '4px 10px', whiteSpace: 'nowrap' }}>
-                                                                        {roleLabel}
-                                                                    </span>
-                                                                </td>
-                                                                <td style={{ padding: '12px 18px', textAlign: 'center' }}>
-                                                                    <span className={`badge ${isActive ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '11.5px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                                                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isActive ? 'var(--success)' : 'var(--danger)' }}></span>
-                                                                        {isActive ? 'Aktif' : 'Kilitli'}
-                                                                    </span>
-                                                                </td>
-                                                                <td style={{ padding: '12px 18px', textAlign: 'center' }}>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                                                        <button
-                                                                            type="button"
-                                                                            className="btn btn-sm btn-secondary"
-                                                                            title="Yetkileri Düzenle"
-                                                                            style={{ padding: '4px 8px', height: '30px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                                            onClick={() => {
-                                                                                setEditingUser({
-                                                                                    id: u.id,
-                                                                                    username: u.username,
-                                                                                    fullName: u.fullName || u.full_name || u.username,
-                                                                                    email: u.email,
-                                                                                    role: u.role || 'manager',
-                                                                                    is_active: isActive ? 1 : 0,
-                                                                                    permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions || '{}') : (u.permissions || {})
-                                                                                })
-                                                                                setEditUserModal(true)
-                                                                            }}
-                                                                        >
-                                                                            <SlidersHorizontal size={13} />
-                                                                            <span>Yetkiler</span>
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            className="btn btn-sm btn-ghost"
-                                                                            title="Şifre Sıfırla"
-                                                                            style={{ padding: '4px 6px', height: '30px', color: 'var(--text-secondary)' }}
-                                                                            onClick={() => {
-                                                                                setResetPasswordData({ userId: u.id, username: u.username, newPassword: '' })
-                                                                                setResetPasswordModal(true)
-                                                                            }}
-                                                                        >
-                                                                            <Key size={14} />
-                                                                        </button>
-                                                                        {!isSelf && (
-                                                                            <>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    className="btn btn-sm btn-ghost"
-                                                                                    title={isActive ? 'Hesabı Kilitle' : 'Kilidi Aç'}
-                                                                                    style={{ padding: '4px 6px', height: '30px', color: isActive ? 'var(--warning)' : 'var(--success)' }}
-                                                                                    onClick={() => handleToggleUserStatus(u.id, isActive ? 1 : 0)}
-                                                                                >
-                                                                                    {isActive ? <Lock size={14} /> : <Unlock size={14} />}
-                                                                                </button>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    className="btn btn-sm btn-ghost"
-                                                                                    title="Kullanıcıyı Sil"
-                                                                                    style={{ padding: '4px 6px', height: '30px', color: 'var(--danger)' }}
-                                                                                    onClick={() => handleDeleteUser(u)}
-                                                                                >
-                                                                                    <Trash2 size={14} />
-                                                                                </button>
-                                                                            </>
-                                                                        )}
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })}
+                                                                </TableActionMenu>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1438,97 +1346,103 @@ export default function Settings() {
                     size="xl"
                 >
                     <form onSubmit={handleCreateUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {employeesList.length > 0 && (
-                            <div>
-                                <CustomSelect
-                                    label="Personelden Otomatik Doldur (İsteğe Bağlı)"
-                                    placeholder="Personel seçiniz..."
-                                    options={[
-                                        { value: '', label: 'Personel Seçmeden Manuel Oluştur' },
-                                        ...employeesList.map(e => ({
-                                            value: String(e.id),
-                                            label: `${e.first_name} ${e.last_name} (${e.position || 'Personel'})`
-                                        }))
-                                    ]}
-                                    value={selectedEmployeeId}
-                                    onChange={(val) => handleEmployeeSelect(val)}
+                        {/* Top Section: User Details Card */}
+                        <div style={{
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '10px',
+                            padding: '16px'
+                        }}>
+                            {employeesList.length > 0 && (
+                                <div style={{ marginBottom: '12px' }}>
+                                    <CustomSelect
+                                        label="Personelden Otomatik Doldur (İsteğe Bağlı)"
+                                        placeholder="Personel seçiniz..."
+                                        options={[
+                                            { value: '', label: 'Personel Seçmeden Manuel Oluştur' },
+                                            ...employeesList.map(e => ({
+                                                value: String(e.id),
+                                                label: `${e.first_name} ${e.last_name} (${e.position || 'Personel'})`
+                                            }))
+                                        ]}
+                                        value={selectedEmployeeId}
+                                        onChange={(val) => handleEmployeeSelect(val)}
+                                    />
+                                </div>
+                            )}
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                                <CustomInput
+                                    label="Kullanıcı Adı"
+                                    value={newUserForm.username}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, username: val.toLowerCase().trim() }))}
+                                    required
+                                    placeholder="ornek.kullanici"
+                                />
+
+                                <CustomInput
+                                    type="email"
+                                    label="E-Posta Adresi"
+                                    value={newUserForm.email}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
+                                    required
+                                    placeholder="ornek@sirket.com"
+                                />
+
+                                <CustomInput
+                                    type="password"
+                                    label="Giriş Şifresi"
+                                    value={newUserForm.password}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, password: val }))}
+                                    required
+                                    placeholder="••••••••"
+                                />
+
+                                <CustomInput
+                                    label="Ad Soyad"
+                                    value={newUserForm.fullName}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: val }))}
+                                    placeholder="Örn: Ahmet Yılmaz"
+                                />
+
+                                <CustomInput
+                                    label="Telefon Numarası"
+                                    value={newUserForm.phone}
+                                    onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: val }))}
+                                    placeholder="05XX XXX XX XX"
+                                    format="phone"
+                                    maxLength={14}
                                 />
                             </div>
-                        )}
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-                            <CustomInput
-                                label="Kullanıcı Adı"
-                                value={newUserForm.username}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, username: val.toLowerCase().trim() }))}
-                                required
-                                placeholder="ornek.kullanici"
-                            />
-
-                            <CustomInput
-                                type="email"
-                                label="E-Posta Adresi"
-                                value={newUserForm.email}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
-                                required
-                                placeholder="ornek@sirket.com"
-                            />
-
-                            <CustomInput
-                                type="password"
-                                label="Giriş Şifresi"
-                                value={newUserForm.password}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, password: val }))}
-                                required
-                                placeholder="••••••••"
-                            />
-
-                            <CustomInput
-                                label="Ad Soyad"
-                                value={newUserForm.fullName}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: val }))}
-                                placeholder="Örn: Ahmet Yılmaz"
-                            />
-
-                            <CustomInput
-                                label="Telefon Numarası"
-                                value={newUserForm.phone}
-                                onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: val }))}
-                                placeholder="05XX XXX XX XX"
-                                format="phone"
-                                maxLength={14}
-                            />
                         </div>
 
-                        {/* 3-Level Permission Matrix */}
-                        <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                            <PermissionMatrix
-                                selectedPreset={newUserForm.role}
-                                onPresetChange={(presetId, levels) => {
-                                    setNewUserForm(prev => ({
-                                        ...prev,
-                                        role: presetId,
-                                        permissions: levels
-                                    }))
-                                }}
-                                permissionLevels={newUserForm.permissions || {}}
-                                onLevelChange={(moduleKey, level) => {
-                                    setNewUserForm(prev => ({
-                                        ...prev,
-                                        permissions: {
-                                            ...(prev.permissions || {}),
-                                            [moduleKey]: level
-                                        }
-                                    }))
-                                }}
-                            />
-                        </div>
+                        {/* 3-Level Permission Matrix (Wide 2-Column Split Layout) */}
+                        <PermissionMatrix
+                            selectedPreset={newUserForm.role}
+                            onPresetChange={(presetId, levels) => {
+                                setNewUserForm(prev => ({
+                                    ...prev,
+                                    role: presetId,
+                                    permissions: levels
+                                }))
+                            }}
+                            permissionLevels={newUserForm.permissions || {}}
+                            onLevelChange={(moduleKey, level) => {
+                                setNewUserForm(prev => ({
+                                    ...prev,
+                                    permissions: {
+                                        ...(prev.permissions || {}),
+                                        [moduleKey]: level
+                                    }
+                                }))
+                            }}
+                        />
 
-                        <div className="modal-footer" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <div className="modal-footer" style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => setCreateUserModal(false)}>
                                 İptal
                             </button>
-                            <button type="submit" className="btn btn-primary" disabled={createUserLoading} style={{ minWidth: '140px' }}>
+                            <button type="submit" className="btn btn-primary" disabled={createUserLoading}>
                                 {createUserLoading ? 'Ekleniyor...' : 'Kullanıcıyı Oluştur'}
                             </button>
                         </div>
@@ -1545,7 +1459,17 @@ export default function Settings() {
                     size="xl"
                 >
                     <form onSubmit={handleUpdateUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+                        {/* Top Section: User Summary & Inputs */}
+                        <div style={{
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '10px',
+                            padding: '14px 16px',
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '14px',
+                            alignItems: 'center'
+                        }}>
                             <CustomInput
                                 label="Ad Soyad"
                                 value={editingUser.fullName || ''}
@@ -1562,35 +1486,33 @@ export default function Settings() {
                             />
                         </div>
 
-                        {/* 3-Level Permission Matrix */}
-                        <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                            <PermissionMatrix
-                                selectedPreset={editingUser.role}
-                                onPresetChange={(presetId, levels) => {
-                                    setEditingUser(prev => ({
-                                        ...prev,
-                                        role: presetId,
-                                        permissions: levels
-                                    }))
-                                }}
-                                permissionLevels={editingUser.permissions || {}}
-                                onLevelChange={(moduleKey, level) => {
-                                    setEditingUser(prev => ({
-                                        ...prev,
-                                        permissions: {
-                                            ...(prev.permissions || {}),
-                                            [moduleKey]: level
-                                        }
-                                    }))
-                                }}
-                            />
-                        </div>
+                        {/* 3-Level Permission Matrix (Wide 2-Column Split Layout) */}
+                        <PermissionMatrix
+                            selectedPreset={editingUser.role}
+                            onPresetChange={(presetId, levels) => {
+                                setEditingUser(prev => ({
+                                    ...prev,
+                                    role: presetId,
+                                    permissions: levels
+                                }))
+                            }}
+                            permissionLevels={editingUser.permissions || {}}
+                            onLevelChange={(moduleKey, level) => {
+                                setEditingUser(prev => ({
+                                    ...prev,
+                                    permissions: {
+                                        ...(prev.permissions || {}),
+                                        [moduleKey]: level
+                                    }
+                                }))
+                            }}
+                        />
 
-                        <div className="modal-footer" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <div className="modal-footer" style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             <button type="button" className="btn btn-secondary" onClick={() => { setEditUserModal(false); setEditingUser(null); }}>
                                 İptal
                             </button>
-                            <button type="submit" className="btn btn-primary" disabled={editUserLoading} style={{ minWidth: '140px' }}>
+                            <button type="submit" className="btn btn-primary" disabled={editUserLoading}>
                                 {editUserLoading ? 'Kaydediliyor...' : 'Yetkileri Kaydet'}
                             </button>
                         </div>

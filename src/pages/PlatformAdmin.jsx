@@ -1788,6 +1788,7 @@ export default function PlatformAdmin({ section }) {
                     isOpen={createUserModal}
                     onClose={() => setCreateUserModal(false)}
                     title="Platforma Yeni Kullanıcı Ekle"
+                    size="xl"
                 >
                     <form onSubmit={handleCreateUserSubmit} className="modal-form-grid">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
