@@ -162,22 +162,14 @@ export default function Customers() {
     const columns = [
         {
             key: 'name',
-            label: 'Müşteri Adı',
-            render: (v) => <span style={{ fontWeight: 600 }}>{v}</span>
-        },
-        {
-            key: 'contact',
-            label: 'İletişim',
-            render: (_, row) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                    {row.phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                            <Phone size={12} /> <span>{row.phone}</span>
-                        </div>
-                    )}
-                    {row.email && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                            <Mail size={12} /> <span>{row.email}</span>
+            label: 'Müşteri Adı & İletişim',
+            render: (v, row) => (
+                <div>
+                    <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>{v}</div>
+                    {(row.phone || row.email) && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'flex', gap: '8px' }}>
+                            {row.phone && <span>Tel: {row.phone}</span>}
+                            {row.email && <span>{row.phone ? '• ' : ''}{row.email}</span>}
                         </div>
                     )}
                 </div>
@@ -185,18 +177,29 @@ export default function Customers() {
         },
         {
             key: 'work_count',
-            label: 'Toplam İş Sayısı',
+            label: 'Toplam İş',
+            width: '110px',
             render: (v) => <span className="badge badge-neutral">{v || 0} İş</span>
         },
         {
             key: 'total_volume',
             label: 'Bu Ayki Hacim',
-            render: (v) => <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{formatCurrency(v || 0)}</span>
+            align: 'right',
+            render: (v) => <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>{formatCurrency(v || 0)}</span>
         },
         {
             key: 'total_receivable',
             label: 'Açık Bakiye',
-            render: (v) => <span className="font-semibold" style={{ color: v > 0 ? 'var(--danger)' : 'var(--success)' }}>{formatCurrency(v || 0)}</span>
+            align: 'right',
+            render: (v) => (
+                <span style={{ 
+                    fontFamily: 'var(--font-mono)', 
+                    fontWeight: 600, 
+                    color: v > 0 ? '#f87171' : (v < 0 ? '#34d399' : 'var(--text-muted)') 
+                }}>
+                    {formatCurrency(v || 0)}
+                </span>
+            )
         }
     ]
 

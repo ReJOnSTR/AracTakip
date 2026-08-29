@@ -194,20 +194,37 @@ export default function Employees() {
     const columns = [
         {
             key: 'full_name',
-            label: 'Ad Soyad',
-            render: (_, row) => `${row.first_name} ${row.last_name}`
+            label: 'Ad Soyad & TC',
+            render: (_, row) => (
+                <div>
+                    <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>
+                        {row.first_name} {row.last_name}
+                    </div>
+                    {row.tc_no && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            TC: {row.tc_no}
+                        </div>
+                    )}
+                </div>
+            )
         },
         { key: 'position', label: 'Pozisyon' },
         { key: 'department', label: 'Departman' },
-        { key: 'phone', label: 'Telefon' },
+        { 
+            key: 'phone', 
+            label: 'Telefon',
+            render: (val) => val ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{val}</span> : '-'
+        },
         {
             key: 'salary',
             label: 'Maaş',
-            render: (value) => value ? formatCurrency(value) : '-'
+            align: 'right',
+            render: (value) => value ? <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>{formatCurrency(value)}</span> : '-'
         },
         {
             key: 'status',
             label: 'Durum',
+            width: '100px',
             render: (value) => {
                 const status = getEmployeeStatusInfo(value)
                 return <span className={`badge badge-${status.color}`}>{status.label}</span>

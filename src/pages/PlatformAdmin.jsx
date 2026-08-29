@@ -718,23 +718,23 @@ export default function PlatformAdmin({ section }) {
     const userColumns = [
         { key: 'username', label: 'Kullanıcı Adı & E-Posta', render: (val, r) => (
             <div>
-                <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{val}</strong>
-                {r.fullName && r.fullName !== val && (
-                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>({r.fullName})</span>
-                )}
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{r.email}</div>
+                <div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '12.5px' }}>
+                    {val} {r.fullName && r.fullName !== val && (
+                        <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({r.fullName})</span>
+                    )}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{r.email}</div>
             </div>
         )},
         { key: 'company', label: 'Bağlı Şirket & İlişki', render: (_, r) => (
             <div>
-                <div className="company-affil-badge">
-                    <Building2 size={12} />
+                <div style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Building2 size={13} style={{ color: 'var(--text-muted)' }} />
                     <span>{r.company?.name || 'Sistem / Genel'}</span>
                 </div>
                 {r.employee && (
-                    <div className="employee-link-tag">
-                        <BadgeCheck size={12} />
-                        <span>Personel: <strong>{r.employee.fullName}</strong> ({r.employee.position})</span>
+                    <div style={{ fontSize: '11px', color: '#10b981', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>Personel: {r.employee.fullName} • {r.employee.position}</span>
                     </div>
                 )}
             </div>
@@ -746,7 +746,9 @@ export default function PlatformAdmin({ section }) {
                     r.accountType === 'company_owner' ? 'badge-primary' : 
                     r.accountType === 'employee' ? 'badge-success' : 'badge-info'
                 }`}>
-                    {r.accountBadge}
+                    {r.accountType === 'superadmin' ? '👑 Süper Yönetici' :
+                     r.accountType === 'company_owner' ? '🏢 Şirket Sahibi' :
+                     r.accountType === 'employee' ? '👤 Personel' : r.accountBadge}
                 </span>
                 {r.customRole && (
                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -757,7 +759,7 @@ export default function PlatformAdmin({ section }) {
         )},
         { key: 'two_factor_enabled', label: '2FA', render: (val, r) => (
             r.two_factor_enabled === 1 ? (
-                <span className="badge badge-success" style={{ fontSize: '10.5px' }}>🛡️ Açık</span>
+                <span className="badge badge-success">2FA Açık</span>
             ) : (
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kapalı</span>
             )
@@ -765,15 +767,15 @@ export default function PlatformAdmin({ section }) {
         { key: 'status', label: 'Durum', render: (_, r) => {
             if (r.isPending) {
                 return (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', fontSize: '11.5px', fontWeight: 600, border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+                    <span className="badge badge-warning">
                         ⏳ Onay Bekliyor
                     </span>
                 )
             }
             if (r.isActive) {
-                return <span className="status-badge-active"><CheckCircle2 size={11} /> Aktif</span>
+                return <span className="badge badge-success">• Aktif</span>
             }
-            return <span className="status-badge-suspended"><XCircle size={11} /> Kilitli</span>
+            return <span className="badge badge-danger">• Kilitli</span>
         }},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
         { key: 'actions', label: 'İşlemler', width: '150px', render: (_, r) => (
@@ -833,20 +835,20 @@ export default function PlatformAdmin({ section }) {
     const tenantColumns = [
         { key: 'name', label: 'Şirket Adı & İletişim', render: (val, r) => (
             <div>
-                <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{val}</strong>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>VN: {r.tax_number || '-'} | Tel: {r.phone || '-'}</div>
+                <div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '12.5px' }}>{val}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>VN: {r.tax_number || '-'} • Tel: {r.phone || '-'}</div>
             </div>
         )},
         { key: 'owner', label: 'Yönetici / Kurucu', render: (_, r) => (
             r.owner ? (
                 <div>
-                    <span style={{ fontWeight: 600, fontSize: '12px' }}>{r.owner.username}</span>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{r.owner.email}</div>
+                    <div style={{ fontWeight: 600, fontSize: '12px', color: 'var(--text-primary)' }}>{r.owner.username}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{r.owner.email}</div>
                 </div>
-            ) : <span style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>Atanmamış</span>
+            ) : <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Atanmamış</span>
         )},
         { key: 'counts', label: 'Kullanım Özeti', render: (val) => (
-            <div style={{ display: 'flex', gap: '6px', fontSize: '11.5px' }}>
+            <div style={{ display: 'flex', gap: '5px', fontSize: '11px' }}>
                 <span className="badge badge-info">{val?.vehicles || 0} Araç</span>
                 <span className="badge badge-warning">{val?.employees || 0} Personel</span>
                 <span className="badge badge-success">{val?.works || 0} İş</span>
@@ -880,11 +882,11 @@ export default function PlatformAdmin({ section }) {
             const meta = announcementTypeMeta[r.type] || { color: '#3b82f6' }
             return (
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{val}</strong>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '12.5px' }}>{val}</span>
                     </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px', lineHeight: 1.4, paddingLeft: '16px' }}>
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px', lineHeight: 1.4, paddingLeft: '12px' }}>
                         {r.message}
                     </div>
                 </div>
@@ -898,32 +900,32 @@ export default function PlatformAdmin({ section }) {
         { key: 'type', label: 'Duyuru Türü', render: (val) => {
             const meta = announcementTypeMeta[val] || { label: val, color: '#94a3b8' }
             return (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ fontSize: '12.5px', fontWeight: 500, color: 'var(--text-primary)' }}>{meta.label}</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>{meta.label}</span>
                 </div>
             )
         }},
         { key: 'is_dismissible', label: 'Kapatma Kuralı', render: (val) => {
             const mode = val !== undefined && val !== null ? Number(val) : 1
             if (mode === 0) {
-                return <span className="badge badge-danger" style={{ fontSize: '11px' }}>🔒 Sabit (Kapatılamaz)</span>
+                return <span className="badge badge-danger">🔒 Sabit</span>
             } else if (mode === 2) {
-                return <span className="badge badge-info" style={{ fontSize: '11px' }}>👁️ Kalıcı Kapatılabilir</span>
+                return <span className="badge badge-info">👁️ Kalıcı Kapatılabilir</span>
             }
-            return <span className="badge badge-warning" style={{ fontSize: '11px' }}>🔄 Her Girişte Göster</span>
+            return <span className="badge badge-warning">🔄 Her Girişte Göster</span>
         }},
         { key: 'status', label: 'Yayın Durumu', render: (_, r) => {
             if (r.isExpired) {
-                return <span className="status-badge-suspended"><Clock size={11} /> Süresi Doldu</span>
+                return <span className="badge badge-neutral"><Clock size={11} /> Süresi Doldu</span>
             }
             return r.isActive ? (
-                <span className="status-badge-active"><CheckCircle2 size={11} /> Yayında</span>
+                <span className="badge badge-success"><CheckCircle2 size={11} /> Yayında</span>
             ) : (
-                <span className="status-badge-suspended"><XCircle size={11} /> Durduruldu</span>
+                <span className="badge badge-danger"><XCircle size={11} /> Durduruldu</span>
             )
         }},
-        { key: 'expires_at', label: 'Bitiş Tarihi', render: (val) => val ? formatDate(val) : <span style={{ color: 'var(--text-muted)' }}>Süresiz</span> },
+        { key: 'expires_at', label: 'Bitiş Tarihi', render: (val) => val ? formatDate(val) : <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Süresiz</span> },
         { key: 'actions', label: 'İşlemler', width: '90px', render: (_, r) => (
             <TableActionMenu>
                 <button
@@ -948,40 +950,48 @@ export default function PlatformAdmin({ section }) {
     // ── AUDIT TRAIL COLUMNS ──
     const auditColumns = [
         { key: 'createdAt', label: 'Zaman Damgası', width: '160px', render: (val) => (
-            <div style={{ fontFamily: 'monospace', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)' }}>
                 {val ? new Date(val).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}
             </div>
         )},
         { key: 'companyName', label: 'Şirket', width: '160px', render: (val) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Building2 size={12} style={{ color: 'var(--accent-primary, #3b82f6)' }} />
-                <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{val || 'Sistem / Platform'}</strong>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Building2 size={12} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>{val || 'Sistem / Platform'}</span>
             </div>
         )},
         { key: 'username', label: 'Kullanıcı & Rol', width: '150px', render: (val, r) => (
             <div>
                 <span style={{ fontWeight: 600, fontSize: '12px' }}>{val || 'Sistem'}</span>
                 {r.userRole && (
-                    <span className="badge" style={{ marginLeft: '6px', fontSize: '10px', background: 'rgba(255,255,255,0.08)' }}>
+                    <span className="badge badge-neutral" style={{ marginLeft: '5px', fontSize: '10px' }}>
                         {r.userRole}
                     </span>
                 )}
             </div>
         )},
         { key: 'action', label: 'İşlem Türü', width: '130px', render: (val) => {
-            const actionStyles = {
-                CREATE: { label: '🟢 Ekleme', bg: 'rgba(16, 185, 129, 0.15)', color: '#10b981' },
-                UPDATE: { label: '🟡 Güncelleme', bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' },
-                DELETE: { label: '🔴 Silme', bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' },
-                LOGIN_SUCCESS: { label: '🔑 Başarılı Giriş', bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' },
-                LOGIN_FAILED: { label: '🚨 Hatalı Giriş', bg: 'rgba(239, 68, 68, 0.2)', color: '#f87171' },
-                IMPERSONATE: { label: '👑 Şirkete Geçiş', bg: 'rgba(168, 85, 247, 0.15)', color: '#a855f7' },
-                SECURITY: { label: '🛡️ Güvenlik', bg: 'rgba(234, 179, 8, 0.15)', color: '#eab308' },
+            const actionBadges = {
+                CREATE: 'badge badge-success',
+                UPDATE: 'badge badge-warning',
+                DELETE: 'badge badge-danger',
+                LOGIN_SUCCESS: 'badge badge-info',
+                LOGIN_FAILED: 'badge badge-danger',
+                IMPERSONATE: 'badge badge-primary',
+                SECURITY: 'badge badge-warning'
             }
-            const s = actionStyles[val] || { label: val, bg: 'rgba(255,255,255,0.08)', color: 'var(--text-primary)' }
+            const actionLabels = {
+                CREATE: 'Ekleme',
+                UPDATE: 'Güncelleme',
+                DELETE: 'Silme',
+                LOGIN_SUCCESS: 'Giriş',
+                LOGIN_FAILED: 'Hatalı Giriş',
+                IMPERSONATE: 'Şirkete Geçiş',
+                SECURITY: 'Güvenlik'
+            }
             return (
-                <span style={{ background: s.bg, color: s.color, padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, display: 'inline-block' }}>
-                    {s.label}
+                <span className={actionBadges[val] || 'badge badge-neutral'}>
+                    {actionLabels[val] || val}
                 </span>
             )
         }},

@@ -247,18 +247,35 @@ export default function Vehicles() {
     }
 
     const columns = [
-        { key: 'plate', label: 'Plaka' },
+        { 
+            key: 'plate', 
+            label: 'Plaka & Marka',
+            render: (val, r) => (
+                <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '12px', color: 'var(--text-primary)', background: 'rgba(255, 255, 255, 0.05)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        {val}
+                    </span>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {r.brand || '-'} {r.model || ''}
+                    </div>
+                </div>
+            )
+        },
         {
             key: 'type',
             label: 'Tür',
             render: (value) => getVehicleTypeLabel(value)
         },
-        { key: 'brand', label: 'Marka' },
-        { key: 'model', label: 'Model' },
-        { key: 'year', label: 'Yıl' },
+        { 
+            key: 'year', 
+            label: 'Yıl',
+            width: '90px',
+            render: (val) => val ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{val}</span> : '-'
+        },
         {
             key: 'status',
             label: 'Durum',
+            width: '110px',
             render: (value) => {
                 const status = getVehicleStatusInfo(value)
                 return <span className={`badge badge-${status.color}`}>{status.label}</span>
