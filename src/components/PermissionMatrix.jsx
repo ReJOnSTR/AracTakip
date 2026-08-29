@@ -166,15 +166,15 @@ export default function PermissionMatrix({
     return (
         <div className="permission-matrix-split-container" style={{
             display: 'grid',
-            gridTemplateColumns: '260px 1fr',
-            gap: '18px',
+            gridTemplateColumns: '270px 1fr',
+            gap: '16px',
             alignItems: 'start'
         }}>
             {/* Left Column: Role Preset Cards */}
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '10px',
+                borderRadius: 'var(--radius-md)',
                 padding: '14px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -191,7 +191,7 @@ export default function PermissionMatrix({
                     alignItems: 'center',
                     gap: '6px'
                 }}>
-                    <Shield size={13} className="text-primary" />
+                    <Shield size={13} style={{ color: 'var(--accent-primary)' }} />
                     <span>Hazır Rol Şablonları</span>
                 </div>
 
@@ -208,14 +208,15 @@ export default function PermissionMatrix({
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'flex-start',
-                                    padding: '9px 11px',
-                                    borderRadius: '8px',
-                                    border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                                    background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-tertiary)',
+                                    padding: '9px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                    borderLeft: isSelected ? '3.5px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                    background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
                                     cursor: readOnly ? 'default' : 'pointer',
                                     textAlign: 'left',
-                                    transition: 'all 0.15s ease',
-                                    boxShadow: isSelected ? '0 0 0 1px var(--accent-primary)' : 'none'
+                                    transition: 'all var(--transition-fast)',
+                                    boxShadow: isSelected ? '0 0 12px var(--accent-glow)' : 'none'
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '2px' }}>
@@ -226,7 +227,7 @@ export default function PermissionMatrix({
                                     }}>
                                         {preset.label}
                                     </span>
-                                    {isSelected && <CheckCircle2 size={13} color="var(--accent-primary)" />}
+                                    {isSelected && <CheckCircle2 size={13} style={{ color: 'var(--accent-primary)' }} />}
                                 </div>
                                 <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: 1.3 }}>
                                     {preset.subtext}
@@ -241,13 +242,13 @@ export default function PermissionMatrix({
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '10px',
+                borderRadius: 'var(--radius-md)',
                 overflow: 'hidden'
             }}>
                 <div style={{
                     padding: '12px 16px',
                     borderBottom: '1px solid var(--border-color)',
-                    background: 'var(--bg-card)',
+                    background: 'var(--bg-tertiary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
@@ -261,17 +262,17 @@ export default function PermissionMatrix({
                     }}>
                         Modül Yetki Seviyeleri
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#71717a' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--text-muted)' }} />
                             Yok
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }} />
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--info)' }} />
                             Okuyucu
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-primary)' }} />
                             Düzenleyici
                         </span>
                     </div>
@@ -289,8 +290,8 @@ export default function PermissionMatrix({
                                         key={mod.key}
                                         style={{ 
                                             borderTop: idx !== 0 ? '1px solid var(--border-color)' : 'none',
-                                            background: currentLevel === 'editor' ? 'rgba(16, 185, 129, 0.03)' : (currentLevel === 'viewer' ? 'rgba(59, 130, 246, 0.03)' : 'transparent'),
-                                            transition: 'background 0.15s ease'
+                                            background: currentLevel === 'editor' ? 'var(--accent-subtle)' : (currentLevel === 'viewer' ? 'var(--info-bg)' : 'transparent'),
+                                            transition: 'background var(--transition-fast)'
                                         }}
                                     >
                                         {/* Module Info */}
@@ -299,21 +300,22 @@ export default function PermissionMatrix({
                                                 <div style={{
                                                     width: '28px',
                                                     height: '28px',
-                                                    borderRadius: '7px',
+                                                    borderRadius: 'var(--radius-xs)',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    background: `${mod.color}18`,
-                                                    color: mod.color,
+                                                    background: currentLevel === 'editor' ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                                                    color: currentLevel === 'editor' ? 'var(--accent-primary)' : (currentLevel === 'viewer' ? 'var(--info)' : 'var(--text-secondary)'),
+                                                    border: '1px solid var(--border-color)',
                                                     flexShrink: 0
                                                 }}>
-                                                    <Icon size={15} />
+                                                    <Icon size={14} />
                                                 </div>
                                                 <div>
                                                     <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '12.5px' }}>
                                                         {mod.label}
                                                     </div>
-                                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
                                                         {mod.description}
                                                     </div>
                                                 </div>
@@ -321,14 +323,14 @@ export default function PermissionMatrix({
                                         </td>
 
                                         {/* Segmented Pill Switcher */}
-                                        <td style={{ padding: '10px 16px', textAlign: 'right', width: '250px' }}>
+                                        <td style={{ padding: '10px 16px', textAlign: 'right', width: '240px' }}>
                                             <div style={{
                                                 display: 'inline-flex',
-                                                background: 'var(--bg-tertiary)',
+                                                background: 'var(--bg-primary)',
                                                 border: '1px solid var(--border-color)',
-                                                borderRadius: '7px',
-                                                padding: '2px',
-                                                gap: '2px'
+                                                borderRadius: 'var(--radius-sm)',
+                                                padding: '2.5px',
+                                                gap: '3px'
                                             }}>
                                                 {/* None */}
                                                 <button
@@ -336,16 +338,16 @@ export default function PermissionMatrix({
                                                     disabled={readOnly}
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'none')}
                                                     style={{
-                                                        border: 'none',
+                                                        border: currentLevel === 'none' ? '1px solid var(--border-light)' : '1px solid transparent',
                                                         borderRadius: '5px',
-                                                        padding: '4px 9px',
+                                                        padding: '4px 10px',
                                                         fontSize: '11px',
                                                         fontWeight: currentLevel === 'none' ? 600 : 500,
-                                                        background: currentLevel === 'none' ? 'var(--bg-card)' : 'transparent',
+                                                        background: currentLevel === 'none' ? 'var(--bg-tertiary)' : 'transparent',
                                                         color: currentLevel === 'none' ? 'var(--text-primary)' : 'var(--text-muted)',
-                                                        boxShadow: currentLevel === 'none' ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                                                        boxShadow: currentLevel === 'none' ? 'var(--shadow-sm)' : 'none',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all var(--transition-fast)'
                                                     }}
                                                 >
                                                     Yok
@@ -357,16 +359,16 @@ export default function PermissionMatrix({
                                                     disabled={readOnly}
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'viewer')}
                                                     style={{
-                                                        border: 'none',
+                                                        border: '1px solid transparent',
                                                         borderRadius: '5px',
-                                                        padding: '4px 9px',
+                                                        padding: '4px 10px',
                                                         fontSize: '11px',
                                                         fontWeight: currentLevel === 'viewer' ? 700 : 500,
-                                                        background: currentLevel === 'viewer' ? '#3b82f6' : 'transparent',
+                                                        background: currentLevel === 'viewer' ? 'var(--info)' : 'transparent',
                                                         color: currentLevel === 'viewer' ? '#ffffff' : 'var(--text-muted)',
-                                                        boxShadow: currentLevel === 'viewer' ? '0 1px 3px rgba(59,130,246,0.4)' : 'none',
+                                                        boxShadow: currentLevel === 'viewer' ? '0 2px 8px var(--info-bg)' : 'none',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all var(--transition-fast)'
                                                     }}
                                                 >
                                                     Okuyucu
@@ -378,16 +380,16 @@ export default function PermissionMatrix({
                                                     disabled={readOnly}
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'editor')}
                                                     style={{
-                                                        border: 'none',
+                                                        border: '1px solid transparent',
                                                         borderRadius: '5px',
-                                                        padding: '4px 9px',
+                                                        padding: '4px 10px',
                                                         fontSize: '11px',
                                                         fontWeight: currentLevel === 'editor' ? 700 : 500,
-                                                        background: currentLevel === 'editor' ? '#10b981' : 'transparent',
+                                                        background: currentLevel === 'editor' ? 'var(--accent-gradient)' : 'transparent',
                                                         color: currentLevel === 'editor' ? '#ffffff' : 'var(--text-muted)',
-                                                        boxShadow: currentLevel === 'editor' ? '0 1px 3px rgba(16,185,129,0.4)' : 'none',
+                                                        boxShadow: currentLevel === 'editor' ? '0 2px 10px var(--accent-glow)' : 'none',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all var(--transition-fast)'
                                                     }}
                                                 >
                                                     Düzenleyici

@@ -1459,31 +1459,71 @@ export default function Settings() {
                     size="xl"
                 >
                     <form onSubmit={handleUpdateUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {/* Top Section: User Summary & Inputs */}
+                        {/* Top Section: User Identity & Edit Inputs */}
                         <div style={{
                             background: 'var(--bg-secondary)',
                             border: '1px solid var(--border-color)',
-                            borderRadius: '10px',
-                            padding: '14px 16px',
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '14px',
-                            alignItems: 'center'
+                            borderRadius: 'var(--radius-md)',
+                            padding: '14px 18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '16px'
                         }}>
-                            <CustomInput
-                                label="Ad Soyad"
-                                value={editingUser.fullName || ''}
-                                onChange={(val) => setEditingUser(prev => ({ ...prev, fullName: val }))}
-                                placeholder="Örn: Ahmet Yılmaz"
-                            />
+                            {/* User Avatar & Identity info */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <div style={{
+                                    width: '42px',
+                                    height: '42px',
+                                    borderRadius: '50%',
+                                    background: 'var(--accent-gradient)',
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: 700,
+                                    fontSize: '16px',
+                                    boxShadow: '0 4px 12px var(--accent-glow)',
+                                    flexShrink: 0
+                                }}>
+                                    {(editingUser.fullName || editingUser.username || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            {editingUser.fullName || editingUser.username}
+                                        </h3>
+                                        <span className="badge badge-primary" style={{ fontSize: '10.5px' }}>
+                                            {ROLE_PRESETS.find(r => r.id === editingUser.role)?.label || editingUser.role}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                        @{editingUser.username}
+                                    </div>
+                                </div>
+                            </div>
 
-                            <CustomInput
-                                type="email"
-                                label="E-Posta Adresi"
-                                value={editingUser.email || ''}
-                                onChange={(val) => setEditingUser(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
-                                required
-                            />
+                            {/* Edit inputs */}
+                            <div style={{ display: 'flex', gap: '12px', flex: '1', maxWidth: '480px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <CustomInput
+                                        label="Ad Soyad"
+                                        value={editingUser.fullName || ''}
+                                        onChange={(val) => setEditingUser(prev => ({ ...prev, fullName: val }))}
+                                        placeholder="Örn: Ahmet Yılmaz"
+                                    />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <CustomInput
+                                        type="email"
+                                        label="E-Posta Adresi"
+                                        value={editingUser.email || ''}
+                                        onChange={(val) => setEditingUser(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
+                                        required
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         {/* 3-Level Permission Matrix (Wide 2-Column Split Layout) */}
