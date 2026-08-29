@@ -230,6 +230,7 @@ export default function EmployeeForm({ initialData, onSubmit, onCancel, saving, 
                         format="currency"
                         value={form.salary}
                         onChange={(val) => handleChange('salary', val)}
+                        maxLength={12}
                     />
                 )}
                 {salaryChanged && (
