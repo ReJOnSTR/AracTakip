@@ -4,10 +4,13 @@ import { useAuth } from '../context/AuthContext'
 import { useCompany } from '../context/CompanyContext'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
+import Modal from '../components/Modal'
+import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
     Bell, Zap, Download, Upload, RefreshCw, Folder, User, Users, Wallet, 
-    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock, CheckCircle
+    Wrench, FileSearch, ClipboardCheck, Layout, Cog, Eye, EyeOff, Clock, CheckCircle,
+    UserPlus, Key, Unlock, Trash2, Edit2, ShieldAlert, Check, X, Building2
 } from 'lucide-react'
 import TopProgressBar from '../components/TopProgressBar'
 
@@ -59,6 +62,202 @@ export default function Settings() {
     const [postgresUrl, setPostgresUrl] = useState(() => localStorage.getItem('aractakip_postgres_migration_url') || '')
     const [migrating, setMigrating] = useState(false)
     const [migrationLogs, setMigrationLogs] = useState([])
+
+    // ── COMPANY USERS & PERMISSION MANAGEMENT STATE ──
+    const [companyUsers, setCompanyUsers] = useState([])
+    const [loadingUsers, setLoadingUsers] = useState(false)
+    const [employeesList, setEmployeesList] = useState([])
+    const [createUserModal, setCreateUserModal] = useState(false)
+    const [createUserLoading, setCreateUserLoading] = useState(false)
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
+    const [editUserModal, setEditUserModal] = useState(false)
+    const [editingUser, setEditingUser] = useState(null)
+    const [editUserLoading, setEditUserLoading] = useState(false)
+    const [resetPasswordModal, setResetPasswordModal] = useState(false)
+    const [resetPasswordData, setResetPasswordData] = useState({ userId: null, username: '', newPassword: '' })
+    const [resetPasswordLoading, setResetPasswordLoading] = useState(false)
+
+    const [newUserForm, setNewUserForm] = useState({
+        username: '',
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'manager',
+        position: 'Operasyon & Puantör',
+        phone: '',
+        permissions: ROLE_PRESETS[1]?.levels || {}
+    })
+
+    const loadCompanyUsers = async () => {
+        if (!currentCompany?.id) return
+        setLoadingUsers(true)
+        try {
+            const [usersRes, empsRes] = await Promise.all([
+                window.electronAPI?.getCompanyUsers ? window.electronAPI.getCompanyUsers(currentCompany.id) : window.electronAPI?.getPlatformUsers(),
+                window.electronAPI?.getEmployees ? window.electronAPI.getEmployees(currentCompany.id, 0) : { success: true, data: [] }
+            ])
+            
+            if (usersRes?.success && usersRes?.data) {
+                setCompanyUsers(usersRes.data)
+            } else if (Array.isArray(usersRes)) {
+                setCompanyUsers(usersRes.filter(u => u.company?.id === currentCompany.id))
+            } else if (usersRes?.data && Array.isArray(usersRes.data)) {
+                setCompanyUsers(usersRes.data)
+            }
+
+            if (empsRes?.success && empsRes?.data) {
+                setEmployeesList(empsRes.data)
+            } else if (Array.isArray(empsRes)) {
+                setEmployeesList(empsRes)
+            }
+        } catch (err) {
+            console.error('loadCompanyUsers error:', err)
+        } finally {
+            setLoadingUsers(false)
+        }
+    }
+
+    useEffect(() => {
+        if (activeTab === 'users' && currentCompany?.id) {
+            loadCompanyUsers()
+        }
+    }, [activeTab, currentCompany?.id])
+
+    const handleEmployeeSelect = (empId) => {
+        setSelectedEmployeeId(empId)
+        if (!empId) return
+        const emp = employeesList.find(e => String(e.id) === String(empId))
+        if (emp) {
+            const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
+            const genUsername = (emp.first_name || 'kullanici').toLowerCase().replace(/[^a-z0-9]/g, '') + emp.id
+            setNewUserForm(prev => ({
+                ...prev,
+                fullName,
+                username: prev.username || genUsername,
+                email: emp.email || prev.email || `${genUsername}@sirket.local`,
+                phone: emp.phone || prev.phone || '',
+                position: emp.position || 'Personel'
+            }))
+        }
+    }
+
+    const handleCreateUserSubmit = async (e) => {
+        e.preventDefault()
+        if (!newUserForm.username || !newUserForm.email || !newUserForm.password) {
+            alert('Kullanıcı adı, e-posta ve şifre zorunludur')
+            return
+        }
+        setCreateUserLoading(true)
+        try {
+            const res = await window.electronAPI?.createPlatformUser({
+                ...newUserForm,
+                companyId: currentCompany.id
+            })
+            if (res?.success) {
+                setCreateUserModal(false)
+                setSelectedEmployeeId('')
+                setNewUserForm({
+                    username: '',
+                    email: '',
+                    password: '',
+                    fullName: '',
+                    role: 'manager',
+                    position: 'Operasyon & Puantör',
+                    phone: '',
+                    permissions: ROLE_PRESETS[1]?.levels || {}
+                })
+                await loadCompanyUsers()
+            } else {
+                alert('Kullanıcı oluşturulamadı: ' + (res?.error || 'Bilinmeyen hata'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        } finally {
+            setCreateUserLoading(false)
+        }
+    }
+
+    const handleUpdateUserSubmit = async (e) => {
+        e.preventDefault()
+        if (!editingUser) return
+        setEditUserLoading(true)
+        try {
+            const res = await window.electronAPI?.updatePlatformUser(editingUser.id, {
+                fullName: editingUser.full_name || editingUser.fullName,
+                email: editingUser.email,
+                role: editingUser.role,
+                isActive: editingUser.is_active
+            })
+            if (res?.success) {
+                setEditUserModal(false)
+                setEditingUser(null)
+                await loadCompanyUsers()
+            } else {
+                alert('Güncelleme hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        } finally {
+            setEditUserLoading(false)
+        }
+    }
+
+    const handleToggleUserStatus = async (userId, currentStatus) => {
+        try {
+            const newStatus = (currentStatus === 1 || currentStatus === true) ? 0 : 1
+            const res = await window.electronAPI?.toggleUserStatus(userId, newStatus)
+            if (res?.success) {
+                await loadCompanyUsers()
+            } else {
+                alert('Durum değiştirilemedi: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        }
+    }
+
+    const handleResetPasswordSubmit = async (e) => {
+        e.preventDefault()
+        if (!resetPasswordData.newPassword || resetPasswordData.newPassword.length < 4) {
+            alert('Şifre en az 4 karakter olmalıdır')
+            return
+        }
+        setResetPasswordLoading(true)
+        try {
+            const res = await window.electronAPI?.resetPlatformUserPassword(resetPasswordData.userId, resetPasswordData.newPassword)
+            if (res?.success) {
+                alert('Şifre başarıyla güncellendi')
+                setResetPasswordModal(false)
+                setResetPasswordData({ userId: null, username: '', newPassword: '' })
+            } else {
+                alert('Şifre sıfırlama hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        } finally {
+            setResetPasswordLoading(false)
+        }
+    }
+
+    const handleDeleteUser = async (userToDelete) => {
+        if (userToDelete.id === user?.id) {
+            alert('Kendi oturum açtığınız hesabı silemezsiniz')
+            return
+        }
+        if (!window.confirm(`"${userToDelete.username}" kullanıcısını silmek istediğinize emin misiniz?`)) {
+            return
+        }
+        try {
+            const res = await window.electronAPI?.deletePlatformUser(userToDelete.id)
+            if (res?.success) {
+                await loadCompanyUsers()
+            } else {
+                alert('Silme hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        }
+    }
 
     const handlePostgresMigration = async () => {
         if (!postgresUrl) return
@@ -284,6 +483,7 @@ export default function Settings() {
 
     const sidebarItems = [
         { id: 'general', label: 'Genel', icon: <Cog size={18} /> },
+        { id: 'users', label: 'Kullanıcılar & Yetkiler', icon: <Users size={18} /> },
         { id: 'appearance', label: 'Görünüm', icon: <Palette size={18} /> },
         { id: 'security', label: 'Güvenlik', icon: <Shield size={18} /> },
         { id: 'notifications', label: 'Bildirimler', icon: <Bell size={18} /> },
@@ -418,6 +618,196 @@ export default function Settings() {
                                         <span className="badge badge-success">BAĞLI</span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'users' && (
+                        <div className="tab-fade-in">
+                            <div className="settings-card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                                    <div>
+                                        <h2 className="settings-card-title" style={{ margin: 0 }}>
+                                            <Users size={20} className="text-primary" /> Kullanıcılar & Yetki Yönetimi
+                                        </h2>
+                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                            Şirketinize ait kullanıcı hesaplarını, şifrelerini ve 3 seviyeli modül yetkilerini yönetin.
+                                        </p>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-primary" 
+                                        onClick={() => {
+                                            setSelectedEmployeeId('')
+                                            setNewUserForm({
+                                                username: '',
+                                                email: '',
+                                                password: '',
+                                                fullName: '',
+                                                role: 'manager',
+                                                position: 'Operasyon & Puantör',
+                                                phone: '',
+                                                permissions: ROLE_PRESETS[1]?.levels || {}
+                                            })
+                                            setCreateUserModal(true)
+                                        }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        <UserPlus size={15} />
+                                        <span>Yeni Kullanıcı Ekle</span>
+                                    </button>
+                                </div>
+
+                                {loadingUsers ? (
+                                    <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                        Kullanıcılar yükleniyor...
+                                    </div>
+                                ) : companyUsers.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--bg-tertiary)', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+                                        <Users size={32} style={{ color: 'var(--text-muted)', margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Şirket kullanıcısı bulunamadı</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                            Personellerinize sistem erişimi vermek için yukarıdaki "+ Yeni Kullanıcı Ekle" butonunu kullanabilirsiniz.
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ overflowX: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)' }}>
+                                        <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>Kullanıcı</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>Personel / Görev</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>İletişim</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>Yetki Rolü</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>Durum</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center', width: '140px' }}>İşlemler</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {companyUsers.map((u) => {
+                                                    const rolePreset = ROLE_PRESETS.find(r => r.id === u.role)
+                                                    const roleLabel = rolePreset ? rolePreset.label : (u.role === 'company_admin' ? 'Şirket Yöneticisi' : (u.role || 'Özel Yetki'))
+                                                    const badgeClass = rolePreset ? rolePreset.badgeColor : (u.role === 'company_admin' ? 'badge-primary' : 'badge-neutral')
+                                                    const isSelf = u.id === user?.id
+                                                    const isActive = u.is_active === 1 || u.is_active === true
+
+                                                    return (
+                                                        <tr key={u.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                                            <td style={{ padding: '10px 14px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                    <div style={{
+                                                                        width: '32px',
+                                                                        height: '32px',
+                                                                        borderRadius: '50%',
+                                                                        background: 'linear-gradient(135deg, var(--accent-primary) 0%, #0d9488 100%)',
+                                                                        color: '#ffffff',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        fontWeight: 700,
+                                                                        fontSize: '12px',
+                                                                        flexShrink: 0
+                                                                    }}>
+                                                                        {(u.full_name || u.username || 'U').charAt(0).toUpperCase()}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                                                                            {u.full_name || u.username}
+                                                                            {isSelf && <span style={{ marginLeft: '6px', fontSize: '10px', color: 'var(--accent-primary)', fontWeight: 600 }}>(Siz)</span>}
+                                                                        </div>
+                                                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{u.username}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                                                {u.employee ? (
+                                                                    <div>
+                                                                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{u.employee.first_name} {u.employee.last_name}</div>
+                                                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.employee.position || 'Personel'}</div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span style={{ color: 'var(--text-muted)' }}>—</span>
+                                                                )}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                                                <div>{u.email}</div>
+                                                                {u.phone && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.phone}</div>}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                <span className={`badge ${badgeClass}`} style={{ fontSize: '11px' }}>
+                                                                    {roleLabel}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                <span className={`badge ${isActive ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '11px' }}>
+                                                                    {isActive ? 'Aktif' : 'Kilitli'}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-ghost"
+                                                                        title="Yetkileri Düzenle"
+                                                                        style={{ padding: '4px 6px', height: '28px', color: 'var(--text-secondary)' }}
+                                                                        onClick={() => {
+                                                                            setEditingUser({
+                                                                                id: u.id,
+                                                                                username: u.username,
+                                                                                fullName: u.full_name || u.username,
+                                                                                email: u.email,
+                                                                                role: u.role || 'manager',
+                                                                                is_active: u.is_active,
+                                                                                permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions || '{}') : (u.permissions || {})
+                                                                            })
+                                                                            setEditUserModal(true)
+                                                                        }}
+                                                                    >
+                                                                        <Edit2 size={13} />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-ghost"
+                                                                        title="Şifre Sıfırla"
+                                                                        style={{ padding: '4px 6px', height: '28px', color: 'var(--text-secondary)' }}
+                                                                        onClick={() => {
+                                                                            setResetPasswordData({ userId: u.id, username: u.username, newPassword: '' })
+                                                                            setResetPasswordModal(true)
+                                                                        }}
+                                                                    >
+                                                                        <Key size={13} />
+                                                                    </button>
+                                                                    {!isSelf && (
+                                                                        <>
+                                                                            <button
+                                                                                type="button"
+                                                                                className="btn btn-sm btn-ghost"
+                                                                                title={isActive ? 'Hesabı Kilitle' : 'Kilidi Aç'}
+                                                                                style={{ padding: '4px 6px', height: '28px', color: isActive ? 'var(--warning)' : 'var(--success)' }}
+                                                                                onClick={() => handleToggleUserStatus(u.id, u.is_active)}
+                                                                            >
+                                                                                {isActive ? <Lock size={13} /> : <Unlock size={13} />}
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                className="btn btn-sm btn-ghost"
+                                                                                title="Kullanıcıyı Sil"
+                                                                                style={{ padding: '4px 6px', height: '28px', color: 'var(--danger)' }}
+                                                                                onClick={() => handleDeleteUser(u)}
+                                                                            >
+                                                                                <Trash2 size={13} />
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -940,6 +1330,206 @@ export default function Settings() {
 
                 </div>
             </div>
+
+            {/* Create User Modal */}
+            {createUserModal && (
+                <Modal
+                    isOpen={createUserModal}
+                    onClose={() => setCreateUserModal(false)}
+                    title="Şirkete Yeni Kullanıcı Ekle"
+                    size="lg"
+                >
+                    <form onSubmit={handleCreateUserSubmit} className="modal-form-grid">
+                        {employeesList.length > 0 && (
+                            <div style={{ gridColumn: '1 / -1', marginBottom: '8px' }}>
+                                <CustomSelect
+                                    label="Personelden Otomatik Doldur (İsteğe Bağlı)"
+                                    placeholder="Personel seçiniz..."
+                                    options={[
+                                        { value: '', label: 'Personel Seçmeden Manuel Oluştur' },
+                                        ...employeesList.map(e => ({
+                                            value: String(e.id),
+                                            label: `${e.first_name} ${e.last_name} (${e.position || 'Personel'})`
+                                        }))
+                                    ]}
+                                    value={selectedEmployeeId}
+                                    onChange={(val) => handleEmployeeSelect(val)}
+                                />
+                            </div>
+                        )}
+
+                        <CustomInput
+                            label="Kullanıcı Adı"
+                            value={newUserForm.username}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, username: val.toLowerCase().trim() }))}
+                            required
+                            placeholder="ornek.kullanici"
+                        />
+
+                        <CustomInput
+                            type="email"
+                            label="E-Posta Adresi"
+                            value={newUserForm.email}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
+                            required
+                            placeholder="ornek@sirket.com"
+                        />
+
+                        <CustomInput
+                            type="password"
+                            label="Giriş Şifresi"
+                            value={newUserForm.password}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, password: val }))}
+                            required
+                            placeholder="••••••••"
+                        />
+
+                        <CustomInput
+                            label="Ad Soyad"
+                            value={newUserForm.fullName}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, fullName: val }))}
+                            placeholder="Örn: Ahmet Yılmaz"
+                        />
+
+                        <CustomInput
+                            label="Telefon Numarası"
+                            value={newUserForm.phone}
+                            onChange={(val) => setNewUserForm(prev => ({ ...prev, phone: val }))}
+                            placeholder="05XX XXX XX XX"
+                            format="phone"
+                            maxLength={14}
+                        />
+
+                        {/* 3-Level Permission Matrix */}
+                        <div style={{ gridColumn: '1 / -1', marginTop: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '14px' }}>
+                            <PermissionMatrix
+                                selectedPreset={newUserForm.role}
+                                onPresetChange={(presetId, levels) => {
+                                    setNewUserForm(prev => ({
+                                        ...prev,
+                                        role: presetId,
+                                        permissions: levels
+                                    }))
+                                }}
+                                permissionLevels={newUserForm.permissions || {}}
+                                onLevelChange={(moduleKey, level) => {
+                                    setNewUserForm(prev => ({
+                                        ...prev,
+                                        permissions: {
+                                            ...(prev.permissions || {}),
+                                            [moduleKey]: level
+                                        }
+                                    }))
+                                }}
+                            />
+                        </div>
+
+                        <div className="modal-footer" style={{ gridColumn: '1 / -1', marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setCreateUserModal(false)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={createUserLoading}>
+                                {createUserLoading ? 'Ekleniyor...' : 'Kullanıcıyı Oluştur'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Edit User & Permissions Modal */}
+            {editUserModal && editingUser && (
+                <Modal
+                    isOpen={editUserModal}
+                    onClose={() => { setEditUserModal(false); setEditingUser(null); }}
+                    title={`Yetkileri Düzenle: ${editingUser.fullName || editingUser.username}`}
+                    size="lg"
+                >
+                    <form onSubmit={handleUpdateUserSubmit} className="modal-form-grid">
+                        <CustomInput
+                            label="Ad Soyad"
+                            value={editingUser.fullName || ''}
+                            onChange={(val) => setEditingUser(prev => ({ ...prev, fullName: val }))}
+                            placeholder="Örn: Ahmet Yılmaz"
+                        />
+
+                        <CustomInput
+                            type="email"
+                            label="E-Posta Adresi"
+                            value={editingUser.email || ''}
+                            onChange={(val) => setEditingUser(prev => ({ ...prev, email: val.toLowerCase().trim() }))}
+                            required
+                        />
+
+                        {/* 3-Level Permission Matrix */}
+                        <div style={{ gridColumn: '1 / -1', marginTop: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '14px' }}>
+                            <PermissionMatrix
+                                selectedPreset={editingUser.role}
+                                onPresetChange={(presetId, levels) => {
+                                    setEditingUser(prev => ({
+                                        ...prev,
+                                        role: presetId,
+                                        permissions: levels
+                                    }))
+                                }}
+                                permissionLevels={editingUser.permissions || {}}
+                                onLevelChange={(moduleKey, level) => {
+                                    setEditingUser(prev => ({
+                                        ...prev,
+                                        permissions: {
+                                            ...(prev.permissions || {}),
+                                            [moduleKey]: level
+                                        }
+                                    }))
+                                }}
+                            />
+                        </div>
+
+                        <div className="modal-footer" style={{ gridColumn: '1 / -1', marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => { setEditUserModal(false); setEditingUser(null); }}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={editUserLoading}>
+                                {editUserLoading ? 'Kaydediliyor...' : 'Yetkileri Kaydet'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Reset Password Modal */}
+            {resetPasswordModal && (
+                <Modal
+                    isOpen={resetPasswordModal}
+                    onClose={() => setResetPasswordModal(false)}
+                    title={`Şifre Sıfırla: ${resetPasswordData.username}`}
+                    size="default"
+                >
+                    <form onSubmit={handleResetPasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                            <strong>@{resetPasswordData.username}</strong> kullanıcısı için yeni bir giriş şifresi belirleyin.
+                        </p>
+
+                        <CustomInput
+                            type="password"
+                            label="Yeni Şifre"
+                            value={resetPasswordData.newPassword}
+                            onChange={(val) => setResetPasswordData(prev => ({ ...prev, newPassword: val }))}
+                            required
+                            placeholder="Yeni şifre giriniz..."
+                            minLength={4}
+                        />
+
+                        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                            <button type="button" className="btn btn-secondary" onClick={() => setResetPasswordModal(false)}>
+                                İptal
+                            </button>
+                            <button type="submit" className="btn btn-primary" disabled={resetPasswordLoading || !resetPasswordData.newPassword}>
+                                {resetPasswordLoading ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
 
         </div>
     )

@@ -2722,6 +2722,9 @@ ipcMain.handle('platform:getOverview', async () => {
 ipcMain.handle('platform:getUsers', async () => {
     return await db.getPlatformUsers();
 });
+ipcMain.handle('platform:getCompanyUsers', async (event, companyId) => {
+    return await db.getCompanyUsers(companyId);
+});
 ipcMain.handle('platform:resetUserPassword', async (event, userId, newPassword) => {
     return await db.resetPlatformUserPassword(userId, newPassword);
 });
@@ -2730,6 +2733,9 @@ ipcMain.handle('platform:impersonateUser', async (event, userId) => {
 });
 ipcMain.handle('platform:createUser', async (event, userData) => {
     return await db.createPlatformUser(userData);
+});
+ipcMain.handle('platform:updateUser', async (event, userId, userData) => {
+    return await db.updatePlatformUser(userId, userData);
 });
 ipcMain.handle('platform:deleteUser', async (event, userId) => {
     return await db.deletePlatformUser(userId);

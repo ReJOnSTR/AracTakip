@@ -853,17 +853,69 @@ async function deletePlatformCompany(companyId) {
 
         return { success: true, message: 'Şirket başarıyla silindi' };
     } catch (error) {
-        console.error('deletePlatformCompany error:', error);
+/**
+ * Update user role and permissions
+ */
+async function updatePlatformUser(userId, userData) {
+    try {
+        const uid = parseInt(userId, 10);
+        const updateData = {};
+        if (userData.fullName !== undefined) updateData.full_name = userData.fullName;
+        if (userData.email !== undefined) updateData.email = userData.email.toLowerCase().trim();
+        if (userData.role !== undefined) updateData.role = userData.role;
+        if (userData.isActive !== undefined) updateData.is_active = (userData.isActive === 1 || userData.isActive === true) ? 1 : 0;
+        
+        const updated = await prisma.users.update({
+            where: { id: uid },
+            data: updateData
+        });
+
+        logAudit({
+            companyId: updated.company_id,
+            userId: updated.id,
+            username: updated.username,
+            userRole: updated.role,
+            action: 'UPDATE',
+            entityType: 'user',
+            entityId: String(updated.id),
+            entityName: updated.username,
+            description: `"${updated.username}" kullanıcısının rolü ve bilgileri güncellendi (${updated.role})`,
+            severity: 'info'
+        });
+
+        return { success: true, user: updated };
+    } catch (error) {
+        console.error('updatePlatformUser error:', error);
         return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Get users belonging to a specific company
+ */
+async function getCompanyUsers(companyId) {
+    try {
+        const compId = parseInt(companyId, 10);
+        if (!compId) return { success: true, data: [] };
+
+        const allUsers = await getPlatformUsers();
+        // Filter users that belong to this company
+        const companyUsers = allUsers.filter(u => u.company?.id === compId);
+        return { success: true, data: companyUsers };
+    } catch (error) {
+        console.error('getCompanyUsers error:', error);
+        return { success: false, error: error.message, data: [] };
     }
 }
 
 module.exports = {
     getPlatformOverview,
     getPlatformUsers,
+    getCompanyUsers,
     resetPlatformUserPassword,
     impersonatePlatformUser,
     createPlatformUser,
+    updatePlatformUser,
     deletePlatformUser,
     toggleCompanyStatus,
     toggleUserStatus,
