@@ -181,34 +181,34 @@ export default function PermissionMatrix({
     return (
         <div className="permission-matrix-split-container" style={{
             display: 'grid',
-            gridTemplateColumns: '250px 1fr',
-            gap: '14px',
+            gridTemplateColumns: '290px 1fr',
+            gap: '16px',
             alignItems: 'stretch'
         }}>
             {/* Left Column: Role Preset Cards */}
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '10px',
+                borderRadius: '10px',
+                padding: '12px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '6px'
+                gap: '8px'
             }}>
                 <div style={{
-                    fontSize: '11px',
+                    fontSize: '12px',
                     fontWeight: 700,
                     color: 'var(--text-muted)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    padding: '2px 4px 6px 4px',
+                    padding: '2px 4px 8px 4px',
                     borderBottom: '1px solid var(--border-color)',
-                    marginBottom: '2px'
+                    marginBottom: '4px'
                 }}>
                     Rol Şablonları
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {ROLE_PRESETS.map((preset) => {
                         const isSelected = selectedPreset === preset.id
                         const PresetIcon = preset.icon || Shield
@@ -221,10 +221,10 @@ export default function PermissionMatrix({
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '10px',
-                                    padding: '8px 10px',
-                                    borderRadius: '6px',
-                                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                    gap: '12px',
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-color)',
                                     background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-primary)',
                                     cursor: readOnly ? 'default' : 'pointer',
                                     textAlign: 'left',
@@ -233,9 +233,9 @@ export default function PermissionMatrix({
                                 }}
                             >
                                 <div style={{
-                                    width: '24px',
-                                    height: '24px',
-                                    borderRadius: '5px',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '8px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -243,12 +243,12 @@ export default function PermissionMatrix({
                                     color: isSelected ? '#ffffff' : 'var(--text-muted)',
                                     flexShrink: 0
                                 }}>
-                                    <PresetIcon size={13} />
+                                    <PresetIcon size={16} />
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{
-                                        fontSize: '12px',
-                                        fontWeight: isSelected ? 700 : 500,
+                                        fontSize: '13.5px',
+                                        fontWeight: isSelected ? 700 : 600,
                                         color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
@@ -257,17 +257,18 @@ export default function PermissionMatrix({
                                         {preset.label}
                                     </div>
                                     <div style={{
-                                        fontSize: '10px',
+                                        fontSize: '12px',
                                         color: 'var(--text-muted)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
+                                        textOverflow: 'ellipsis',
+                                        marginTop: '1px'
                                     }}>
                                         {preset.subtext}
                                     </div>
                                 </div>
                                 {isSelected && (
-                                    <CheckCircle2 size={13} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+                                    <CheckCircle2 size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
                                 )}
                             </button>
                         )
@@ -279,13 +280,13 @@ export default function PermissionMatrix({
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column'
             }}>
                 <div style={{
-                    padding: '8px 14px',
+                    padding: '10px 16px',
                     borderBottom: '1px solid var(--border-color)',
                     background: 'var(--bg-card)',
                     display: 'flex',
@@ -293,7 +294,7 @@ export default function PermissionMatrix({
                     justifyContent: 'space-between'
                 }}>
                     <div style={{
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 700,
                         color: 'var(--text-muted)',
                         textTransform: 'uppercase',
@@ -301,7 +302,7 @@ export default function PermissionMatrix({
                     }}>
                         Modül Yetkileri
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
                         <span>• Yok: Kapalı</span>
                         <span>• Oku: Salt Okunur</span>
                         <span>• Düzenle: Tam Yetki</span>
@@ -309,7 +310,7 @@ export default function PermissionMatrix({
                 </div>
 
                 <div style={{ overflowX: 'auto', flex: 1 }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <tbody>
                             {MODULE_DEFINITIONS.map((mod, idx) => {
                                 const Icon = mod.icon
@@ -325,12 +326,12 @@ export default function PermissionMatrix({
                                         }}
                                     >
                                         {/* Module Info */}
-                                        <td style={{ padding: '7px 12px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                                        <td style={{ padding: '9px 16px', verticalAlign: 'middle' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                 <div style={{
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    borderRadius: '5px',
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '8px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -338,13 +339,13 @@ export default function PermissionMatrix({
                                                     color: mod.color,
                                                     flexShrink: 0
                                                 }}>
-                                                    <Icon size={13} />
+                                                    <Icon size={16} />
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '12px' }}>
+                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px' }}>
                                                         {mod.label}
                                                     </div>
-                                                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '1px' }}>
                                                         {mod.description}
                                                     </div>
                                                 </div>
@@ -352,14 +353,16 @@ export default function PermissionMatrix({
                                         </td>
 
                                         {/* Segmented Pill Switcher */}
-                                        <td style={{ padding: '7px 12px', textAlign: 'right', width: '210px' }}>
+                                        <td style={{ padding: '9px 16px', textAlign: 'right', verticalAlign: 'middle', width: '240px' }}>
                                             <div style={{
                                                 display: 'inline-flex',
+                                                alignItems: 'center',
                                                 background: 'var(--bg-primary)',
                                                 border: '1px solid var(--border-color)',
-                                                borderRadius: '6px',
-                                                padding: '2px',
-                                                gap: '2px'
+                                                borderRadius: '8px',
+                                                padding: '3px',
+                                                gap: '3px',
+                                                height: '34px'
                                             }}>
                                                 {/* None */}
                                                 <button
@@ -368,14 +371,18 @@ export default function PermissionMatrix({
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'none')}
                                                     style={{
                                                         border: 'none',
-                                                        borderRadius: '4px',
-                                                        padding: '3px 8px',
-                                                        fontSize: '11px',
-                                                        fontWeight: currentLevel === 'none' ? 600 : 400,
+                                                        borderRadius: '6px',
+                                                        padding: '0 12px',
+                                                        height: '100%',
+                                                        fontSize: '12px',
+                                                        fontWeight: currentLevel === 'none' ? 600 : 500,
                                                         background: currentLevel === 'none' ? 'var(--bg-tertiary)' : 'transparent',
                                                         color: currentLevel === 'none' ? 'var(--text-primary)' : 'var(--text-muted)',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all 0.15s ease',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
                                                     }}
                                                 >
                                                     Yok
@@ -388,14 +395,18 @@ export default function PermissionMatrix({
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'viewer')}
                                                     style={{
                                                         border: 'none',
-                                                        borderRadius: '4px',
-                                                        padding: '3px 8px',
-                                                        fontSize: '11px',
-                                                        fontWeight: currentLevel === 'viewer' ? 600 : 400,
+                                                        borderRadius: '6px',
+                                                        padding: '0 12px',
+                                                        height: '100%',
+                                                        fontSize: '12px',
+                                                        fontWeight: currentLevel === 'viewer' ? 600 : 500,
                                                         background: currentLevel === 'viewer' ? '#3b82f6' : 'transparent',
                                                         color: currentLevel === 'viewer' ? '#ffffff' : 'var(--text-muted)',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all 0.15s ease',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
                                                     }}
                                                 >
                                                     Oku
@@ -408,14 +419,18 @@ export default function PermissionMatrix({
                                                     onClick={() => onLevelChange && onLevelChange(mod.key, 'editor')}
                                                     style={{
                                                         border: 'none',
-                                                        borderRadius: '4px',
-                                                        padding: '3px 8px',
-                                                        fontSize: '11px',
-                                                        fontWeight: currentLevel === 'editor' ? 600 : 400,
+                                                        borderRadius: '6px',
+                                                        padding: '0 12px',
+                                                        height: '100%',
+                                                        fontSize: '12px',
+                                                        fontWeight: currentLevel === 'editor' ? 600 : 500,
                                                         background: currentLevel === 'editor' ? '#10b981' : 'transparent',
                                                         color: currentLevel === 'editor' ? '#ffffff' : 'var(--text-muted)',
                                                         cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease'
+                                                        transition: 'all 0.15s ease',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
                                                     }}
                                                 >
                                                     Düzenle
