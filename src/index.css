@@ -1905,36 +1905,45 @@ textarea,
   }
 }
 
+/* ============================================
+   SUPABASE-STYLE MINIMALIST DATA TABLE
+   ============================================ */
+
 .data-table {
   width: auto;
   min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
+  font-variant-numeric: tabular-nums;
 }
 
 .data-table th {
   text-align: left;
-  padding: 11px 16px;
+  padding: 10px 14px;
   background: var(--bg-secondary);
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   white-space: nowrap;
   position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
   border-bottom: 1px solid var(--border-color);
-  border-top: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Remove border from last header */
+.data-table th:last-child {
   border-right: none;
-  user-select: none;
 }
 
 .data-table th.sortable {
   cursor: pointer;
-  transition: color 0.15s, background-color 0.15s;
+  user-select: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .data-table th.sortable:hover {
@@ -1953,110 +1962,89 @@ textarea,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   line-height: 0;
 }
 
 .th-checkbox,
 .td-checkbox {
-  width: 40px;
-  min-width: 40px;
-  max-width: 40px;
+  width: 38px;
+  min-width: 38px;
+  max-width: 38px;
   text-align: center;
   vertical-align: middle;
   padding: 0 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .th-num,
 .td-num {
-  width: 50px;
+  width: 46px;
+  min-width: 46px;
+  max-width: 46px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  opacity: 0.7;
 }
 
 .th-actions {
-  width: 76px;
-  min-width: 76px;
+  width: 90px;
+  min-width: 90px;
   text-align: center;
   position: sticky !important;
   right: 0;
   background: var(--bg-secondary);
   z-index: 22;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.08);
 }
 
-/* Base Actions Column - Background handled specifically for sticky support */
+/* Base Actions Column */
 .td-actions {
-  width: 76px;
-  min-width: 76px;
+  width: 90px;
+  min-width: 90px;
   text-align: center;
   position: sticky !important;
   right: 0;
   z-index: 21;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: var(--bg-secondary);
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-card);
+  transition: background-color 0.12s ease;
 }
 
-/* Hover/Selected states for sticky Actions column matching Linear/Stripe style */
+/* Hover/Selected states for sticky Actions column */
 .data-table tbody tr:hover td.td-actions {
-  background: #19191d !important;
+  background: var(--bg-tertiary) !important;
 }
 
 .data-table tbody tr.clickable:hover td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-secondary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-secondary)) !important;
 }
 
 .data-table tbody tr.selected td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 16%, var(--bg-secondary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary)) !important;
 }
 
 .data-table tbody tr.focused td.td-actions {
-  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-secondary)) !important;
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-secondary)) !important;
 }
 
 .data-table td {
-  padding: 13px 16px;
+  padding: 9px 14px;
   color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 400;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  border-top: none;
-  border-right: none;
+  font-size: 12.5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  text-transform: none; /* Modern, crisp case rendering */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  vertical-align: middle;
-  line-height: 1.45;
+  border-right: 1px solid rgba(255, 255, 255, 0.025);
 }
 
-/* Tabular numbers for currencies, amounts, and dates */
-.data-table td.text-right,
-.data-table th.text-right,
-.data-table td[style*="text-align: right"],
-.data-table th[style*="text-align: right"],
-.data-table td[style*="text-align:right"],
-.data-table th[style*="text-align:right"] {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
-}
-
-/* Cell typography helpers */
-.data-table .cell-title {
-  font-weight: 500;
-  color: var(--text-primary);
-  font-size: 13px;
-}
-
-.data-table .cell-subtitle {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  margin-top: 1px;
+/* Remove border from last cell */
+.data-table td:last-child {
+  border-right: none;
 }
 
 /* Resize Handle */
@@ -2079,8 +2067,8 @@ textarea,
   top: 0;
   bottom: 0;
   width: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.12);
+  transition: all 0.15s;
   pointer-events: none;
 }
 
@@ -2095,7 +2083,7 @@ textarea,
 }
 
 .data-table tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.032);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .data-table tbody tr.clickable {
@@ -2103,7 +2091,7 @@ textarea,
 }
 
 .data-table tbody tr.clickable:hover td {
-  background: rgba(99, 102, 241, 0.065);
+  background: rgba(99, 102, 241, 0.06);
 }
 
 .row-details-btn {
@@ -2112,18 +2100,16 @@ textarea,
   color: var(--text-muted);
   box-shadow: none !important;
   transition: all 0.15s ease;
-  opacity: 0;
-  transform: translateX(-4px);
+  opacity: 0.4;
 }
 
 .data-table tbody tr.clickable:hover .row-details-btn {
   color: var(--accent-primary);
   opacity: 1;
-  transform: translateX(0);
 }
 
 .data-table tbody tr.selected td {
-  background: rgba(99, 102, 241, 0.1) !important;
+  background: rgba(99, 102, 241, 0.09) !important;
 }
 
 .data-table tbody tr.focused td {
@@ -2137,9 +2123,8 @@ textarea,
   left: 0;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 2px;
   background: var(--accent-primary);
-  border-radius: 0 2px 2px 0;
 }
 
 /* Pazar Row Highlighting */
@@ -2148,39 +2133,39 @@ textarea,
 }
 .data-table tbody tr.pazar-row:hover td,
 .data-table tbody tr.clickable.pazar-row:hover td {
-  background: rgba(239, 68, 68, 0.09);
+  background: rgba(239, 68, 68, 0.08);
 }
 .data-table tbody tr.selected.pazar-row td {
-  background: rgba(239, 68, 68, 0.16) !important;
+  background: rgba(239, 68, 68, 0.14) !important;
 }
 
 .data-table tbody tr.pazar-row td.td-actions {
-  background: color-mix(in srgb, var(--danger) 5%, var(--bg-secondary));
+  background: color-mix(in srgb, var(--danger) 4%, var(--bg-card));
 }
 .data-table tbody tr.pazar-row:hover td.td-actions,
 .data-table tbody tr.clickable.pazar-row:hover td.td-actions {
-  background: color-mix(in srgb, var(--danger) 10%, var(--bg-tertiary)) !important;
+  background: color-mix(in srgb, var(--danger) 8%, var(--bg-tertiary));
 }
 .data-table tbody tr.selected.pazar-row td.td-actions {
-  background: color-mix(in srgb, var(--danger) 16%, var(--bg-tertiary)) !important;
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg-tertiary));
 }
 
-/* Custom Row Colors (Orange, Blue, Green, Purple) with subtle tints */
-.data-table tbody tr.orange-row td { background: rgba(245, 158, 11, 0.05); }
-.data-table tbody tr.orange-row:hover td, .data-table tbody tr.clickable.orange-row:hover td { background: rgba(245, 158, 11, 0.1); }
-.data-table tbody tr.orange-row td.td-actions { background: color-mix(in srgb, #f59e0b 6%, var(--bg-secondary)); }
+/* Subtle Custom Row Accents */
+.data-table tbody tr.orange-row td { background: rgba(245, 158, 11, 0.04); }
+.data-table tbody tr.orange-row:hover td, .data-table tbody tr.clickable.orange-row:hover td { background: rgba(245, 158, 11, 0.09); }
+.data-table tbody tr.orange-row td.td-actions { background: color-mix(in srgb, #f59e0b 4%, var(--bg-card)); }
 
-.data-table tbody tr.blue-row td { background: rgba(59, 130, 246, 0.05); }
-.data-table tbody tr.blue-row:hover td, .data-table tbody tr.clickable.blue-row:hover td { background: rgba(59, 130, 246, 0.1); }
-.data-table tbody tr.blue-row td.td-actions { background: color-mix(in srgb, #3b82f6 6%, var(--bg-secondary)); }
+.data-table tbody tr.blue-row td { background: rgba(59, 130, 246, 0.04); }
+.data-table tbody tr.blue-row:hover td, .data-table tbody tr.clickable.blue-row:hover td { background: rgba(59, 130, 246, 0.09); }
+.data-table tbody tr.blue-row td.td-actions { background: color-mix(in srgb, #3b82f6 4%, var(--bg-card)); }
 
-.data-table tbody tr.green-row td { background: rgba(16, 185, 129, 0.05); }
-.data-table tbody tr.green-row:hover td, .data-table tbody tr.clickable.green-row:hover td { background: rgba(16, 185, 129, 0.1); }
-.data-table tbody tr.green-row td.td-actions { background: color-mix(in srgb, #10b981 6%, var(--bg-secondary)); }
+.data-table tbody tr.green-row td { background: rgba(16, 185, 129, 0.04); }
+.data-table tbody tr.green-row:hover td, .data-table tbody tr.clickable.green-row:hover td { background: rgba(16, 185, 129, 0.09); }
+.data-table tbody tr.green-row td.td-actions { background: color-mix(in srgb, #10b981 4%, var(--bg-card)); }
 
-.data-table tbody tr.purple-row td { background: rgba(139, 92, 246, 0.05); }
-.data-table tbody tr.purple-row:hover td, .data-table tbody tr.clickable.purple-row:hover td { background: rgba(139, 92, 246, 0.1); }
-.data-table tbody tr.purple-row td.td-actions { background: color-mix(in srgb, #8b5cf6 6%, var(--bg-secondary)); }
+.data-table tbody tr.purple-row td { background: rgba(139, 92, 246, 0.04); }
+.data-table tbody tr.purple-row:hover td, .data-table tbody tr.clickable.purple-row:hover td { background: rgba(139, 92, 246, 0.09); }
+.data-table tbody tr.purple-row td.td-actions { background: color-mix(in srgb, #8b5cf6 4%, var(--bg-card)); }
 
 /* Vehicle Type Tabs - Matches VehicleDetail underline style */
 .vehicle-tabs {
@@ -2657,52 +2642,62 @@ textarea,
 }
 
 /* ============================================
-   BADGES
+   BADGES (SUPABASE / LINEAR STYLE)
    ============================================ */
 
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  border-radius: var(--radius-full);
-  letter-spacing: 0.2px;
+  gap: 5px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .badge-success {
-  background: var(--success-bg);
-  color: var(--success);
+  background: rgba(16, 185, 129, 0.08);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .badge-warning {
-  background: var(--warning-bg);
-  color: var(--warning);
+  background: rgba(245, 158, 11, 0.08);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .badge-danger {
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .badge-danger-light {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.06);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.15);
 }
 
 .badge-info {
-  background: var(--info-bg);
-  color: var(--info);
+  background: rgba(59, 130, 246, 0.08);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .badge-primary {
-  background: var(--primary-bg, rgba(37, 99, 235, 0.12));
-  color: var(--primary, #3b82f6);
+  background: rgba(99, 102, 241, 0.08);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .badge-neutral {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  color: #a1a1aa;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================
