@@ -117,28 +117,36 @@ export default function Register() {
         try {
             let verified = false
 
-            const { data, error: verifyErr } = await supabase.auth.verifyOtp({
-                email: registeredEmail,
-                token: cleanCode,
-                type: 'signup'
-            })
-
-            if (!verifyErr) {
-                verified = true
+            // Try direct Electron/Node memory verification first
+            if (window.electronAPI?.verifyRecoveryOtp) {
+                try {
+                    const vRes = await window.electronAPI.verifyRecoveryOtp({ email: registeredEmail, otp: cleanCode })
+                    if (vRes?.success && vRes?.verified) {
+                        verified = true
+                    }
+                } catch (e) {}
             }
 
-            // Local database activate check
-            if (window.electronAPI?.activateUserByEmail) {
-                const res = await window.electronAPI.activateUserByEmail({ email: registeredEmail })
-                if (res?.success) {
-                    verified = true
-                }
+            // Fallback to Supabase Auth client verify
+            if (!verified) {
+                try {
+                    const { error: verifyErr } = await supabase.auth.verifyOtp({
+                        email: registeredEmail,
+                        token: cleanCode,
+                        type: 'signup'
+                    })
+                    if (!verifyErr) verified = true
+                } catch (e) {}
             }
 
             if (verified) {
+                // Record email confirmation in local database
+                if (window.electronAPI?.activateUserByEmail) {
+                    await window.electronAPI.activateUserByEmail({ email: registeredEmail })
+                }
                 setIsPendingApproval(true)
             } else {
-                setOtpError('Geçersiz veya süresi dolmuş kod.')
+                setOtpError('Geçersiz veya süresi dolmuş doğrulama kodu.')
                 setVerifyingOtp(false)
             }
         } catch (err) {
