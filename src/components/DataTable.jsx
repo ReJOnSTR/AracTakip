@@ -1153,15 +1153,17 @@ export default function DataTable({
                 sortedData.length > 0 && (
                     <div className="table-footer">
                         <div className="footer-left">
-                            <CustomSelect
+                            <select
+                                className="page-size-selector"
                                 value={pageSize}
-                                onChange={(value) => { setPageSize(Number(value)); setCurrentPage(1) }}
-                                options={pageSizeOptions}
-                                className="page-select-custom"
-                                placeholder=""
-                                floatingLabel={false}
-                            />
-                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length}</span>
+                                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
+                            >
+                                <option value={10}>10 / sayfa</option>
+                                <option value={25}>25 / sayfa</option>
+                                <option value={50}>50 / sayfa</option>
+                                <option value={100}>100 / sayfa</option>
+                            </select>
+                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length} kayıt</span>
                         </div>
 
                         <div className="pagination">
