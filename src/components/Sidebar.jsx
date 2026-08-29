@@ -75,22 +75,6 @@ export default function Sidebar({ collapsed, onToggle }) {
             </nav>
 
             <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* Portal / Platform Quick Switches (Hidden for standalone SuperAdmin in main window) */}
-                {isImpersonating && (
-                    <div style={{
-                        padding: collapsed ? '8px 4px' : '6px 10px',
-                        background: 'rgba(245, 158, 11, 0.15)',
-                        border: '1px solid rgba(245, 158, 11, 0.3)',
-                        borderRadius: '6px',
-                        fontSize: '11px',
-                        color: '#f59e0b',
-                        fontWeight: 600,
-                        textAlign: 'center'
-                    }}>
-                        {collapsed ? '👁️' : '👁️ Gözlemci Modu'}
-                    </div>
-                )}
-
                 <button className="sidebar-toggle" onClick={onToggle}>
                     {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                     {!collapsed && <span>Daralt</span>}
