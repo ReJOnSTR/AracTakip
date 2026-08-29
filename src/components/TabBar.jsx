@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus, ArrowLeft, ArrowRight, Crown } from 'lucide-react'
+import { X, GripVertical, Building2, ChevronDown, User, LogOut, Settings, Plus, ArrowLeft, ArrowRight, Crown, Eye } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTabs } from '../context/TabContext'
 import { useAuth } from '../context/AuthContext'
@@ -216,7 +216,33 @@ export default function TabBar() {
                     {/* Company Selector - Hidden for Standalone SuperAdmin in Main Window */}
                     {!(isSuperAdmin && !isImpersonating) && (
                         <div className="company-selector">
-                            {user?.role === 'personnel' || isImpersonating ? (
+                            {isImpersonating ? (
+                                <div
+                                    className="company-selector-btn"
+                                    style={{
+                                        cursor: 'default',
+                                        background: 'rgba(245, 158, 11, 0.12)',
+                                        border: '1px solid rgba(245, 158, 11, 0.35)',
+                                        color: '#fbbf24',
+                                        gap: '7px',
+                                        padding: '4px 10px',
+                                        borderRadius: '8px'
+                                    }}
+                                >
+                                    <Eye size={14} style={{ color: '#f59e0b' }} />
+                                    <span style={{ fontWeight: 600, fontSize: '12px' }}>{currentCompany?.name || ''}</span>
+                                    <span style={{
+                                        background: 'rgba(245, 158, 11, 0.25)',
+                                        padding: '1px 5px',
+                                        borderRadius: '4px',
+                                        fontSize: '9.5px',
+                                        fontWeight: 700,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.4px',
+                                        color: '#fef3c7'
+                                    }}>Gözlemci</span>
+                                </div>
+                            ) : user?.role === 'personnel' ? (
                                 <div
                                     className="company-selector-btn"
                                     style={{ cursor: 'default', opacity: 0.9, pointerEvents: 'none' }}

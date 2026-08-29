@@ -88,7 +88,7 @@ export function CompanyProvider({ children }) {
                         name: impName ? decodeURIComponent(impName) : `Şirket #${numericImpId}`
                     }
                     setCurrentCompany(targetComp)
-                    localStorage.setItem('aractakip_company', String(numericImpId))
+                    // Note: In observer mode, do NOT write to localStorage to prevent polluting SuperAdmin's session
                 } else {
                     // Restore last selected company or select first
                     const storedCompanyId = localStorage.getItem('aractakip_company')
@@ -110,7 +110,9 @@ export function CompanyProvider({ children }) {
 
     const selectCompany = (company) => {
         setCurrentCompany(company)
-        localStorage.setItem('aractakip_company', company.id)
+        if (!isImpersonating) {
+            localStorage.setItem('aractakip_company', company.id)
+        }
     }
 
     const createCompany = async (data) => {
