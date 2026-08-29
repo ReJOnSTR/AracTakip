@@ -181,7 +181,7 @@ export default function PermissionMatrix({
     return (
         <div className="permission-matrix-split-container" style={{
             display: 'grid',
-            gridTemplateColumns: '290px 1fr',
+            gridTemplateColumns: '270px 1fr',
             gap: '16px',
             alignItems: 'stretch'
         }}>
@@ -189,26 +189,26 @@ export default function PermissionMatrix({
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '10px',
-                padding: '12px',
+                borderRadius: '8px',
+                padding: '8px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px'
+                gap: '4px'
             }}>
                 <div style={{
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 700,
                     color: 'var(--text-muted)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    padding: '2px 4px 8px 4px',
+                    padding: '6px 8px 8px 8px',
                     borderBottom: '1px solid var(--border-color)',
                     marginBottom: '4px'
                 }}>
-                    Rol Şablonları
+                    Rol Şablonu
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     {ROLE_PRESETS.map((preset) => {
                         const isSelected = selectedPreset === preset.id
                         const PresetIcon = preset.icon || Shield
@@ -221,11 +221,12 @@ export default function PermissionMatrix({
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '12px',
-                                    padding: '9px 12px',
-                                    borderRadius: '8px',
-                                    border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                                    background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-primary)',
+                                    gap: '10px',
+                                    padding: '8px 10px',
+                                    borderRadius: '6px',
+                                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid transparent',
+                                    borderLeft: isSelected ? '3px solid var(--accent-primary)' : '3px solid transparent',
+                                    background: isSelected ? 'var(--bg-card)' : 'transparent',
                                     cursor: readOnly ? 'default' : 'pointer',
                                     textAlign: 'left',
                                     transition: 'all 0.15s ease',
@@ -233,23 +234,23 @@ export default function PermissionMatrix({
                                 }}
                             >
                                 <div style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '8px',
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '6px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: isSelected ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                                    color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                                    background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-tertiary)',
+                                    color: isSelected ? 'var(--accent-primary)' : 'var(--text-muted)',
                                     flexShrink: 0
                                 }}>
-                                    <PresetIcon size={16} />
+                                    <PresetIcon size={14} />
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{
-                                        fontSize: '13.5px',
-                                        fontWeight: isSelected ? 700 : 600,
-                                        color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)',
+                                        fontSize: '13px',
+                                        fontWeight: isSelected ? 600 : 500,
+                                        color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis'
@@ -257,192 +258,185 @@ export default function PermissionMatrix({
                                         {preset.label}
                                     </div>
                                     <div style={{
-                                        fontSize: '12px',
+                                        fontSize: '11px',
                                         color: 'var(--text-muted)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        marginTop: '1px'
+                                        textOverflow: 'ellipsis'
                                     }}>
                                         {preset.subtext}
                                     </div>
                                 </div>
-                                {isSelected && (
-                                    <CheckCircle2 size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
-                                )}
                             </button>
                         )
                     })}
                 </div>
             </div>
 
-            {/* Right Column: Permission Matrix Table with Segmented Controls */}
+            {/* Right Column: Permission Matrix Table with Exact Headers & Unified Segmented Controls */}
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column'
             }}>
-                <div style={{
-                    padding: '10px 16px',
-                    borderBottom: '1px solid var(--border-color)',
-                    background: 'var(--bg-card)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                }}>
-                    <div style={{
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: 'var(--text-muted)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
-                    }}>
-                        Modül Yetkileri
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        <span>• Yok: Kapalı</span>
-                        <span>• Oku: Salt Okunur</span>
-                        <span>• Düzenle: Tam Yetki</span>
-                    </div>
-                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{
+                            borderBottom: '1px solid var(--border-color)',
+                            background: 'var(--bg-card)'
+                        }}>
+                            <th style={{
+                                padding: '10px 16px',
+                                textAlign: 'left',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: 'var(--text-muted)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                            }}>
+                                Modül
+                            </th>
+                            <th style={{
+                                padding: '10px 16px',
+                                textAlign: 'right',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: 'var(--text-muted)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                width: '220px'
+                            }}>
+                                Erişim Seviyesi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {MODULE_DEFINITIONS.map((mod, idx) => {
+                            const Icon = mod.icon
+                            const currentLevel = permissionLevels[mod.key] || 'none'
 
-                <div style={{ overflowX: 'auto', flex: 1 }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <tbody>
-                            {MODULE_DEFINITIONS.map((mod, idx) => {
-                                const Icon = mod.icon
-                                const currentLevel = permissionLevels[mod.key] || 'none'
-
-                                return (
-                                    <tr 
-                                        key={mod.key}
-                                        style={{ 
-                                            borderTop: idx !== 0 ? '1px solid var(--border-color)' : 'none',
-                                            background: currentLevel === 'editor' ? 'rgba(16, 185, 129, 0.03)' : (currentLevel === 'viewer' ? 'rgba(59, 130, 246, 0.03)' : 'transparent'),
-                                            transition: 'background 0.15s ease'
-                                        }}
-                                    >
-                                        {/* Module Info */}
-                                        <td style={{ padding: '9px 16px', verticalAlign: 'middle' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    borderRadius: '8px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    background: `${mod.color}15`,
-                                                    color: mod.color,
-                                                    flexShrink: 0
-                                                }}>
-                                                    <Icon size={16} />
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px' }}>
-                                                        {mod.label}
-                                                    </div>
-                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '1px' }}>
-                                                        {mod.description}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {/* Segmented Pill Switcher */}
-                                        <td style={{ padding: '9px 16px', textAlign: 'right', verticalAlign: 'middle', width: '240px' }}>
+                            return (
+                                <tr 
+                                    key={mod.key}
+                                    style={{ 
+                                        borderTop: idx !== 0 ? '1px solid var(--border-color)' : 'none',
+                                        transition: 'background 0.15s ease'
+                                    }}
+                                >
+                                    {/* Module Info */}
+                                    <td style={{ padding: '8px 16px', verticalAlign: 'middle' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                             <div style={{
-                                                display: 'inline-flex',
+                                                width: '28px',
+                                                height: '28px',
+                                                borderRadius: '6px',
+                                                display: 'flex',
                                                 alignItems: 'center',
-                                                background: 'var(--bg-primary)',
-                                                border: '1px solid var(--border-color)',
-                                                borderRadius: '8px',
-                                                padding: '3px',
-                                                gap: '3px',
-                                                height: '34px'
+                                                justifyContent: 'center',
+                                                background: 'var(--bg-tertiary)',
+                                                color: 'var(--text-secondary)',
+                                                flexShrink: 0
                                             }}>
-                                                {/* None */}
-                                                <button
-                                                    type="button"
-                                                    disabled={readOnly}
-                                                    onClick={() => onLevelChange && onLevelChange(mod.key, 'none')}
-                                                    style={{
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        padding: '0 12px',
-                                                        height: '100%',
-                                                        fontSize: '12px',
-                                                        fontWeight: currentLevel === 'none' ? 600 : 500,
-                                                        background: currentLevel === 'none' ? 'var(--bg-tertiary)' : 'transparent',
-                                                        color: currentLevel === 'none' ? 'var(--text-primary)' : 'var(--text-muted)',
-                                                        cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    Yok
-                                                </button>
-
-                                                {/* Viewer */}
-                                                <button
-                                                    type="button"
-                                                    disabled={readOnly}
-                                                    onClick={() => onLevelChange && onLevelChange(mod.key, 'viewer')}
-                                                    style={{
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        padding: '0 12px',
-                                                        height: '100%',
-                                                        fontSize: '12px',
-                                                        fontWeight: currentLevel === 'viewer' ? 600 : 500,
-                                                        background: currentLevel === 'viewer' ? '#3b82f6' : 'transparent',
-                                                        color: currentLevel === 'viewer' ? '#ffffff' : 'var(--text-muted)',
-                                                        cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    Oku
-                                                </button>
-
-                                                {/* Editor */}
-                                                <button
-                                                    type="button"
-                                                    disabled={readOnly}
-                                                    onClick={() => onLevelChange && onLevelChange(mod.key, 'editor')}
-                                                    style={{
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        padding: '0 12px',
-                                                        height: '100%',
-                                                        fontSize: '12px',
-                                                        fontWeight: currentLevel === 'editor' ? 600 : 500,
-                                                        background: currentLevel === 'editor' ? '#10b981' : 'transparent',
-                                                        color: currentLevel === 'editor' ? '#ffffff' : 'var(--text-muted)',
-                                                        cursor: readOnly ? 'default' : 'pointer',
-                                                        transition: 'all 0.15s ease',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    Düzenle
-                                                </button>
+                                                <Icon size={14} />
                                             </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                                            <div>
+                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>
+                                                    {mod.label}
+                                                </div>
+                                                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
+                                                    {mod.description}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {/* Unified Segmented Pill Switcher */}
+                                    <td style={{ padding: '8px 16px', textAlign: 'right', verticalAlign: 'middle', width: '220px' }}>
+                                        <div style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            background: 'var(--bg-primary)',
+                                            border: '1px solid var(--border-color)',
+                                            borderRadius: '6px',
+                                            padding: '2px',
+                                            gap: '2px',
+                                            height: '32px'
+                                        }}>
+                                            {/* None */}
+                                            <button
+                                                type="button"
+                                                disabled={readOnly}
+                                                onClick={() => onLevelChange && onLevelChange(mod.key, 'none')}
+                                                style={{
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    padding: '0 12px',
+                                                    height: '100%',
+                                                    fontSize: '12px',
+                                                    fontWeight: currentLevel === 'none' ? 600 : 400,
+                                                    background: currentLevel === 'none' ? 'var(--bg-card)' : 'transparent',
+                                                    color: currentLevel === 'none' ? 'var(--text-primary)' : 'var(--text-muted)',
+                                                    boxShadow: currentLevel === 'none' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                                                    cursor: readOnly ? 'default' : 'pointer',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                            >
+                                                Yok
+                                            </button>
+
+                                            {/* Viewer */}
+                                            <button
+                                                type="button"
+                                                disabled={readOnly}
+                                                onClick={() => onLevelChange && onLevelChange(mod.key, 'viewer')}
+                                                style={{
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    padding: '0 12px',
+                                                    height: '100%',
+                                                    fontSize: '12px',
+                                                    fontWeight: currentLevel === 'viewer' ? 600 : 400,
+                                                    background: currentLevel === 'viewer' ? 'var(--accent-primary)' : 'transparent',
+                                                    color: currentLevel === 'viewer' ? '#ffffff' : 'var(--text-muted)',
+                                                    boxShadow: currentLevel === 'viewer' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                                                    cursor: readOnly ? 'default' : 'pointer',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                            >
+                                                Oku
+                                            </button>
+
+                                            {/* Editor */}
+                                            <button
+                                                type="button"
+                                                disabled={readOnly}
+                                                onClick={() => onLevelChange && onLevelChange(mod.key, 'editor')}
+                                                style={{
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    padding: '0 12px',
+                                                    height: '100%',
+                                                    fontSize: '12px',
+                                                    fontWeight: currentLevel === 'editor' ? 600 : 400,
+                                                    background: currentLevel === 'editor' ? 'var(--accent-primary)' : 'transparent',
+                                                    color: currentLevel === 'editor' ? '#ffffff' : 'var(--text-muted)',
+                                                    boxShadow: currentLevel === 'editor' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                                                    cursor: readOnly ? 'default' : 'pointer',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                            >
+                                                Düzenle
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
             </div>
         </div>
     )
