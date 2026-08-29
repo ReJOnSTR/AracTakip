@@ -15,29 +15,31 @@
     box-sizing: border-box;
 }
 
-/* Outer Container - Fixed Dimensions & Steady Frame */
+/* Outer Container - Locked Dimensions & Fixed Frame */
 .modern-auth-container {
-    width: 100%;
-    max-width: 960px;
-    min-height: 540px;
+    width: 860px;
+    max-width: 100%;
+    min-height: 520px;
     background: var(--bg-secondary, #161922);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
+    border-radius: 20px;
     box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6),
                 0 0 0 1px rgba(255, 255, 255, 0.05);
     display: grid;
-    grid-template-columns: 1fr 1.15fr;
+    grid-template-columns: 320px 1fr;
     overflow: hidden;
-    /* Card remains completely stable - no scale/jump */
+    box-sizing: border-box;
 }
 
-/* ── LEFT BRAND PANEL ── */
+/* ── LEFT BRAND PANEL (CLEAN & MINIMALIST) ── */
 .auth-brand-panel {
-    background: linear-gradient(145deg, #181d2a 0%, #11141e 100%);
-    padding: 40px 36px;
+    background: linear-gradient(160deg, #181d2a 0%, #10131c 100%);
+    padding: 40px 32px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    align-items: center;
+    text-align: center;
     border-right: 1px solid rgba(255, 255, 255, 0.06);
     position: relative;
     overflow: hidden;
@@ -46,83 +48,75 @@
 .auth-brand-panel::before {
     content: '';
     position: absolute;
-    top: -50px;
-    left: -50px;
-    width: 220px;
-    height: 220px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, transparent 70%);
+    top: -40px;
+    left: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
 }
 
-.brand-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.brand-logo-img {
-    height: 36px;
-    width: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-}
-
-.brand-hero-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: #f8fafc;
-    line-height: 1.35;
-    margin: 0 0 10px 0;
-    letter-spacing: -0.02em;
-}
-
-.brand-hero-desc {
-    font-size: 13px;
-    color: #94a3b8;
-    line-height: 1.55;
-    margin: 0 0 20px 0;
-}
-
-.brand-feature-list {
+.brand-panel-inner {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-}
-
-.brand-feature-item {
-    display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: #cbd5e1;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 9px 13px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    justify-content: center;
+    margin: auto 0;
 }
 
-.brand-feature-icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+.brand-logo-container {
+    width: 84px;
+    height: 84px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.brand-footer-trust {
-    margin-top: 24px;
+.brand-logo-img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(59, 130, 246, 0.3));
+}
+
+.brand-title-clean {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.06em;
+    margin: 0 0 6px 0;
+}
+
+.brand-subtitle-clean {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #94a3b8;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.brand-footer-clean {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
     color: #64748b;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.brand-shield-icon {
+    color: #3b82f6;
 }
 
 /* ── RIGHT FORM PANEL ── */

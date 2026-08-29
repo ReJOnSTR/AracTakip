@@ -267,32 +267,19 @@ export default function ResetPassword() {
         <div className="modern-auth-page">
             <div className="modern-auth-container">
                 {/* ── LEFT BRANDING PANEL ── */}
+                {/* ── LEFT SIDE: BRANDING & MINIMAL IDENTITY ── */}
                 <div className="auth-brand-panel">
-                    <div>
-                        <div className="brand-header">
+                    <div className="brand-panel-inner">
+                        <div className="brand-logo-container">
                             <img src={logo} alt="Kontrol Logo" className="brand-logo-img" />
                         </div>
-                        <div className="brand-hero">
-                            <h1 className="brand-hero-title">
-                                Güvenli Hesap <br />
-                                <span>Şifre Sıfırlama</span>
-                            </h1>
-                            <p className="brand-hero-subtitle">
-                                Hesabınızın güvenliği için yeni ve güçlü bir şifre belirleyin.
-                            </p>
-                        </div>
+                        <h1 className="brand-title-clean">KONTROL</h1>
+                        <p className="brand-subtitle-clean">Filo & Yönetim Platformu</p>
                     </div>
 
-                    <div className="brand-footer-features">
-                        <div className="feature-item">
-                            <div className="feature-icon-box">
-                                <ShieldCheck size={16} />
-                            </div>
-                            <div className="feature-text">
-                                <strong>Uçtan Uca Güvenlik</strong>
-                                <span>256-bit şifreleme ve güvenli oturum doğrulama</span>
-                            </div>
-                        </div>
+                    <div className="brand-footer-clean">
+                        <ShieldCheck size={14} className="brand-shield-icon" />
+                        <span>Güvenli Şifre Yenileme</span>
                     </div>
                 </div>
 

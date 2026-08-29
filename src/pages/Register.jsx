@@ -184,46 +184,20 @@ export default function Register() {
 
     return (
         <div className="modern-auth-page">
-            <div className="modern-auth-container register-layout">
-                {/* ── LEFT SIDE: BRANDING & HIGHLIGHTS ── */}
+            <div className="modern-auth-container">
+                {/* ── LEFT SIDE: BRANDING & MINIMAL IDENTITY ── */}
                 <div className="auth-brand-panel">
-                    <div>
-                        <div className="brand-header">
+                    <div className="brand-panel-inner">
+                        <div className="brand-logo-container">
                             <img src={logo} alt="Kontrol Logo" className="brand-logo-img" />
                         </div>
-                        <h1 className="brand-hero-title">
-                            Filo ve Şirketinizi <br />
-                            <span style={{ color: 'var(--accent-primary, #3b82f6)' }}>Dakikalar İçinde</span> Kurun.
-                        </h1>
-                        <p className="brand-hero-desc">
-                            Şirket hesabınızı oluşturun, araçlarınızı ve personellerinizi ekleyerek operasyonlarınızı anında dijitalleştirin.
-                        </p>
-
-                        <div className="brand-feature-list">
-                            <div className="brand-feature-item">
-                                <div className="brand-feature-icon">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                                <span>Sınırsız Araç ve Ekipman Tanımlama</span>
-                            </div>
-                            <div className="brand-feature-item">
-                                <div className="brand-feature-icon">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                                <span>Rol Bazlı Yönetici ve Şoför Yetkilendirmesi</span>
-                            </div>
-                            <div className="brand-feature-item">
-                                <div className="brand-feature-icon">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                                <span>Anlık Bulut Senkronizasyonu ve Yedekleme</span>
-                            </div>
-                        </div>
+                        <h1 className="brand-title-clean">KONTROL</h1>
+                        <p className="brand-subtitle-clean">Filo & Yönetim Platformu</p>
                     </div>
 
-                    <div className="brand-footer-trust">
-                        <ShieldCheck size={16} style={{ color: '#10b981' }} />
-                        <span>Güvenli Bulut Altyapısı ve KVKK / GDPR Uyumu</span>
+                    <div className="brand-footer-clean">
+                        <ShieldCheck size={14} className="brand-shield-icon" />
+                        <span>Güvenli Kurumsal Kayıt</span>
                     </div>
                 </div>
 
