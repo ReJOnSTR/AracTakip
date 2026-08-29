@@ -77,8 +77,8 @@ export const ROLE_PRESETS = [
         id: 'company_admin',
         label: 'Şirket Yöneticisi',
         icon: Crown,
+        color: '#f59e0b',
         subtext: 'Tüm modüllerde tam silme, düzenleme ve yönetim yetkisi',
-        badgeColor: 'badge-primary',
         levels: {
             works: 'editor',
             employees: 'editor',
@@ -93,8 +93,8 @@ export const ROLE_PRESETS = [
         id: 'manager',
         label: 'Operasyon & Puantör',
         icon: Briefcase,
+        color: '#0ea5e9',
         subtext: 'Saha işleri ve araç operasyonu (Kasa ve Şirket ayarları kapalı)',
-        badgeColor: 'badge-info',
         levels: {
             works: 'editor',
             employees: 'viewer',
@@ -109,8 +109,8 @@ export const ROLE_PRESETS = [
         id: 'accountant',
         label: 'Ön Muhasebe & Finans',
         icon: Calculator,
+        color: '#10b981',
         subtext: 'Kasa, cari, çek, tahsilat, fatura ve personel bordroları',
-        badgeColor: 'badge-warning',
         levels: {
             works: 'viewer',
             employees: 'editor',
@@ -125,8 +125,8 @@ export const ROLE_PRESETS = [
         id: 'maintenance',
         label: 'Kademe & Bakım Şefi',
         icon: Wrench,
+        color: '#f97316',
         subtext: 'Araç bakımı, muayene, sigorta ve arıza yönetimi',
-        badgeColor: 'badge-warning',
         levels: {
             works: 'none',
             employees: 'none',
@@ -141,8 +141,8 @@ export const ROLE_PRESETS = [
         id: 'auditor',
         label: 'Mali Müşavir / Denetçi',
         icon: FileSearch,
+        color: '#a855f7',
         subtext: 'Tüm modülleri sadece inceler (Silme/Değiştirme kapalı)',
-        badgeColor: 'badge-neutral',
         levels: {
             works: 'viewer',
             employees: 'viewer',
@@ -157,8 +157,8 @@ export const ROLE_PRESETS = [
         id: 'personnel',
         label: 'Saha Personeli / Şoför',
         icon: UserCheck,
+        color: '#06b6d4',
         subtext: 'Sadece kendine atanan işleri ve izinlerini görür',
-        badgeColor: 'badge-success',
         levels: {
             works: 'none',
             employees: 'none',
@@ -181,8 +181,8 @@ export default function PermissionMatrix({
     return (
         <div className="permission-matrix-split-container" style={{
             display: 'grid',
-            gridTemplateColumns: '270px 1fr',
-            gap: '16px',
+            gridTemplateColumns: '275px 1fr',
+            gap: '14px',
             alignItems: 'stretch'
         }}>
             {/* Left Column: Role Preset Cards */}
@@ -208,7 +208,7 @@ export default function PermissionMatrix({
                     Rol Şablonu
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {ROLE_PRESETS.map((preset) => {
                         const isSelected = selectedPreset === preset.id
                         const PresetIcon = preset.icon || Shield
@@ -223,33 +223,34 @@ export default function PermissionMatrix({
                                     alignItems: 'center',
                                     gap: '10px',
                                     padding: '8px 10px',
-                                    borderRadius: '6px',
-                                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid transparent',
-                                    borderLeft: isSelected ? '3px solid var(--accent-primary)' : '3px solid transparent',
+                                    borderRadius: '7px',
+                                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
                                     background: isSelected ? 'var(--bg-card)' : 'transparent',
                                     cursor: readOnly ? 'default' : 'pointer',
                                     textAlign: 'left',
                                     transition: 'all 0.15s ease',
-                                    width: '100%'
+                                    width: '100%',
+                                    boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'
                                 }}
                             >
                                 <div style={{
-                                    width: '28px',
-                                    height: '28px',
+                                    width: '30px',
+                                    height: '30px',
                                     borderRadius: '6px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-tertiary)',
-                                    color: isSelected ? 'var(--accent-primary)' : 'var(--text-muted)',
-                                    flexShrink: 0
+                                    background: isSelected ? `${preset.color}20` : 'var(--bg-tertiary)',
+                                    color: isSelected ? preset.color : 'var(--text-muted)',
+                                    flexShrink: 0,
+                                    transition: 'all 0.15s ease'
                                 }}>
-                                    <PresetIcon size={14} />
+                                    <PresetIcon size={15} />
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{
                                         fontSize: '13px',
-                                        fontWeight: isSelected ? 600 : 500,
+                                        fontWeight: isSelected ? 700 : 500,
                                         color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
@@ -267,13 +268,35 @@ export default function PermissionMatrix({
                                         {preset.subtext}
                                     </div>
                                 </div>
+                                {/* Clean Radio Dot */}
+                                <div style={{
+                                    width: '15px',
+                                    height: '15px',
+                                    borderRadius: '50%',
+                                    border: isSelected ? '1.5px solid var(--accent-primary)' : '1.5px solid var(--border-color)',
+                                    background: isSelected ? 'var(--accent-primary)' : 'transparent',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    transition: 'all 0.15s ease'
+                                }}>
+                                    {isSelected && (
+                                        <div style={{
+                                            width: '5px',
+                                            height: '5px',
+                                            borderRadius: '50%',
+                                            background: '#ffffff'
+                                        }} />
+                                    )}
+                                </div>
                             </button>
                         )
                     })}
                 </div>
             </div>
 
-            {/* Right Column: Permission Matrix Table with Exact Headers & Unified Segmented Controls */}
+            {/* Right Column: Permission Matrix Table with Exact Headers & Subtle Semantic Controls */}
             <div style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
@@ -336,8 +359,8 @@ export default function PermissionMatrix({
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                background: 'var(--bg-tertiary)',
-                                                color: 'var(--text-secondary)',
+                                                background: `${mod.color}15`,
+                                                color: mod.color,
                                                 flexShrink: 0
                                             }}>
                                                 <Icon size={14} />
@@ -353,27 +376,27 @@ export default function PermissionMatrix({
                                         </div>
                                     </td>
 
-                                    {/* Unified Segmented Pill Switcher */}
+                                    {/* Tactile Segmented Pill Switcher with Subtle Semantic Tones */}
                                     <td style={{ padding: '8px 16px', textAlign: 'right', verticalAlign: 'middle', width: '220px' }}>
                                         <div style={{
                                             display: 'inline-flex',
                                             alignItems: 'center',
-                                            background: 'var(--bg-primary)',
+                                            background: 'var(--bg-tertiary)',
                                             border: '1px solid var(--border-color)',
-                                            borderRadius: '6px',
+                                            borderRadius: '7px',
                                             padding: '2px',
                                             gap: '2px',
                                             height: '32px'
                                         }}>
-                                            {/* None */}
+                                            {/* None (Yok) */}
                                             <button
                                                 type="button"
                                                 disabled={readOnly}
                                                 onClick={() => onLevelChange && onLevelChange(mod.key, 'none')}
                                                 style={{
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    padding: '0 12px',
+                                                    border: currentLevel === 'none' ? '1px solid var(--border-color)' : '1px solid transparent',
+                                                    borderRadius: '5px',
+                                                    padding: '0 11px',
                                                     height: '100%',
                                                     fontSize: '12px',
                                                     fontWeight: currentLevel === 'none' ? 600 : 400,
@@ -387,21 +410,21 @@ export default function PermissionMatrix({
                                                 Yok
                                             </button>
 
-                                            {/* Viewer */}
+                                            {/* Viewer (Oku) - Soft Sky/Blue */}
                                             <button
                                                 type="button"
                                                 disabled={readOnly}
                                                 onClick={() => onLevelChange && onLevelChange(mod.key, 'viewer')}
                                                 style={{
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    padding: '0 12px',
+                                                    border: currentLevel === 'viewer' ? '1px solid rgba(14, 165, 233, 0.4)' : '1px solid transparent',
+                                                    borderRadius: '5px',
+                                                    padding: '0 11px',
                                                     height: '100%',
                                                     fontSize: '12px',
                                                     fontWeight: currentLevel === 'viewer' ? 600 : 400,
-                                                    background: currentLevel === 'viewer' ? 'var(--accent-primary)' : 'transparent',
-                                                    color: currentLevel === 'viewer' ? '#ffffff' : 'var(--text-muted)',
-                                                    boxShadow: currentLevel === 'viewer' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                                                    background: currentLevel === 'viewer' ? 'rgba(14, 165, 233, 0.18)' : 'transparent',
+                                                    color: currentLevel === 'viewer' ? '#38bdf8' : 'var(--text-muted)',
+                                                    boxShadow: currentLevel === 'viewer' ? '0 1px 3px rgba(14,165,233,0.15)' : 'none',
                                                     cursor: readOnly ? 'default' : 'pointer',
                                                     transition: 'all 0.15s ease'
                                                 }}
@@ -409,21 +432,21 @@ export default function PermissionMatrix({
                                                 Oku
                                             </button>
 
-                                            {/* Editor */}
+                                            {/* Editor (Düzenle) - Soft Emerald */}
                                             <button
                                                 type="button"
                                                 disabled={readOnly}
                                                 onClick={() => onLevelChange && onLevelChange(mod.key, 'editor')}
                                                 style={{
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    padding: '0 12px',
+                                                    border: currentLevel === 'editor' ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid transparent',
+                                                    borderRadius: '5px',
+                                                    padding: '0 11px',
                                                     height: '100%',
                                                     fontSize: '12px',
                                                     fontWeight: currentLevel === 'editor' ? 600 : 400,
-                                                    background: currentLevel === 'editor' ? 'var(--accent-primary)' : 'transparent',
-                                                    color: currentLevel === 'editor' ? '#ffffff' : 'var(--text-muted)',
-                                                    boxShadow: currentLevel === 'editor' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                                                    background: currentLevel === 'editor' ? 'rgba(34, 197, 94, 0.18)' : 'transparent',
+                                                    color: currentLevel === 'editor' ? '#4ade80' : 'var(--text-muted)',
+                                                    boxShadow: currentLevel === 'editor' ? '0 1px 3px rgba(34,197,94,0.15)' : 'none',
                                                     cursor: readOnly ? 'default' : 'pointer',
                                                     transition: 'all 0.15s ease'
                                                 }}
