@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import DataTable from '../components/DataTable'
@@ -10,6 +11,7 @@ import { formatCurrency, formatDate } from '../utils/helpers'
 
 export default function Checks() {
     const { currentCompany } = useCompany()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [checks, setChecks] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -18,6 +20,14 @@ export default function Checks() {
     const [editingTx, setEditingTx] = useState(null)
     const [saving, setSaving] = useState(false)
     const [showArchived, setShowArchived] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
     const [stats, setStats] = useState({
         approaching: 0,
         unpaid: 0,

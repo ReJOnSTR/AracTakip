@@ -37,7 +37,6 @@ import {
     Area
 } from 'recharts'
 import Modal from '../components/Modal'
-import EmployeeForm from '../components/forms/EmployeeForm'
 
 export default function PersonelDashboard() {
     const { currentCompany } = useCompany()
@@ -45,8 +44,6 @@ export default function PersonelDashboard() {
     const [loading, setLoading] = useState(true)
     const [employees, setEmployees] = useState([])
     const [upcomingDocs, setUpcomingDocs] = useState([])
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-    const [saving, setSaving] = useState(false)
 
     useEffect(() => {
         if (currentCompany) {
@@ -173,12 +170,14 @@ export default function PersonelDashboard() {
     }, [employees])
 
     const allActions = useMemo(() => [
-        { id: 'add-employee', label: 'Yeni Personel', icon: 'PlusCircle', path: '/employees', default: true },
+        { id: 'add-employee', label: 'Yeni Personel', icon: 'PlusCircle', path: '/employees?action=new', default: true },
         { id: 'employee-list', label: 'Personel Listesi', icon: 'Users', path: '/employees', default: true },
+        { id: 'add-leave', label: 'Yeni İzin Talebi', icon: 'Calendar', path: '/leaves?action=new', default: true },
+        { id: 'add-overtime', label: 'Yeni Mesai Ekle', icon: 'Clock', path: '/overtimes?action=new', default: true },
         { id: 'payroll', label: 'Maaş & Ödemeler', icon: 'Wallet', path: '/payroll', default: true },
-        { id: 'search-employee', label: 'Personel Ara', icon: 'Search', path: '/employees', default: true },
-        { id: 'reports', label: 'İK Raporları', icon: 'FileText', path: '/reports', default: false },
-        { id: 'add-payment', label: 'Yeni Ödeme', icon: 'Banknote', path: '/payroll', default: false },
+        { id: 'search-employee', label: 'Personel Ara', icon: 'Search', path: '/employees', default: false },
+        { id: 'reports', label: 'İK Raporları', icon: 'FileText', path: '/reports?tab=hr', default: false },
+        { id: 'add-payment', label: 'Yeni Ödeme', icon: 'Banknote', path: '/payroll?action=new', default: false },
     ], [])
 
     const actionIconMap = {
@@ -187,7 +186,9 @@ export default function PersonelDashboard() {
         'Wallet': <Wallet size={18} />,
         'Search': <Search size={18} />,
         'FileText': <FileText size={18} />,
-        'Banknote': <Banknote size={18} />
+        'Banknote': <Banknote size={18} />,
+        'Calendar': <Calendar size={18} />,
+        'Clock': <Clock size={18} />
     }
 
     const [visibleActions, setVisibleActions] = useState(allActions.filter(a => a.default))
@@ -247,28 +248,8 @@ export default function PersonelDashboard() {
     }
 
     const triggerAction = (action) => {
-        if (action.id === 'add-employee') {
-            setIsAddModalOpen(true)
-        } else {
+        if (action.path) {
             navigate(action.path)
-        }
-    }
-
-    const handleAddSubmit = async (formData) => {
-        setSaving(true)
-        try {
-            const res = await window.electronAPI.createEmployee({
-                companyId: currentCompany.id,
-                ...formData
-            })
-            if (res.success) {
-                setIsAddModalOpen(false)
-                loadData()
-            }
-        } catch (error) {
-            console.error(error)
-        } finally {
-            setSaving(false)
         }
     }
 
@@ -617,11 +598,6 @@ export default function PersonelDashboard() {
                     </div>
                 </div>
             </div>
-
-            {/* Quick Action Modal */}
-            <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Yeni Personel Kaydı" size="xl">
-                <EmployeeForm onSubmit={handleAddSubmit} onCancel={() => setIsAddModalOpen(false)} loading={saving} />
-            </Modal>
 
             {/* Customization Modal */}
             <Modal

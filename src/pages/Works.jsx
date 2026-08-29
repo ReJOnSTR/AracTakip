@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react' // Trigger recompilation
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -13,6 +13,7 @@ export default function Works() {
     const { currentCompany } = useCompany()
     const { openNewTab } = useTabs()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [works, setWorks] = useState([])
     const [customers, setCustomers] = useState([])
     const [loading, setLoading] = useState(true)
@@ -21,6 +22,15 @@ export default function Works() {
     const [saving, setSaving] = useState(false)
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            setEditingWork(null)
+            setIsModalOpen(true)
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     useEffect(() => {
         if (currentCompany) {

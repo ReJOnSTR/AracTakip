@@ -1,5 +1,6 @@
 import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -24,6 +25,7 @@ import BatchOperationModal from '../components/BatchOperationModal'
 
 export default function Maintenance() {
     const { currentCompany } = useCompany()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [maintenances, setMaintenances] = useState([])
     const [vehicles, setVehicles] = useState([])
     const [loading, setLoading] = useState(true)
@@ -43,6 +45,14 @@ export default function Maintenance() {
     const [documents, setDocuments] = useState([])
     const [previewDoc, setPreviewDoc] = useState(null)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     useEffect(() => {
         if (currentCompany) {

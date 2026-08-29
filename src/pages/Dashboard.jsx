@@ -22,11 +22,6 @@ import { DashboardSkeleton } from '../components/Skeleton'
 import Modal from '../components/Modal'
 import { Settings, Save, GripVertical } from 'lucide-react'
 import { ScrollableList } from '../components/DashboardComponents'
-import VehicleForm from '../components/VehicleForm'
-import MaintenanceForm from '../components/forms/MaintenanceForm'
-import ServiceForm from '../components/forms/ServiceForm'
-import InspectionForm from '../components/forms/InspectionForm'
-import InsuranceForm from '../components/forms/InsuranceForm'
 
 
 
@@ -119,13 +114,13 @@ export default function Dashboard() {
 
     // --- Quick Actions Logic ---
     const allActions = [
-        { id: 'add-vehicle', label: 'Araç Ekle', path: '/vehicles', icon: 'Car', default: true },
-        { id: 'add-maintenance', label: 'Bakım Ekle', path: '/maintenance', icon: 'Wrench', default: true },
-        { id: 'add-service', label: 'Servis Ekle', path: '/services', icon: 'Hammer', default: true },
-        { id: 'get-report', label: 'Rapor Al', path: '/reports', icon: 'FileText', default: true },
-        { id: 'add-inspection', label: 'Muayene Ekle', path: '/inspections', icon: 'Clipboard', default: false },
-        { id: 'add-insurance', label: 'Sigorta Ekle', path: '/insurance', icon: 'Shield', default: false },
-        { id: 'periodic', label: 'Periyodik Kontrol', path: '/periodic-inspections', icon: 'Clock', default: false },
+        { id: 'add-vehicle', label: 'Araç Ekle', path: '/vehicles?action=new', icon: 'Car', default: true },
+        { id: 'add-maintenance', label: 'Bakım Ekle', path: '/maintenance?action=new', icon: 'Wrench', default: true },
+        { id: 'add-service', label: 'Servis Ekle', path: '/services?action=new', icon: 'Hammer', default: true },
+        { id: 'get-report', label: 'Rapor Al', path: '/reports?tab=fleet', icon: 'FileText', default: true },
+        { id: 'add-inspection', label: 'Muayene Ekle', path: '/inspections?action=new', icon: 'Clipboard', default: false },
+        { id: 'add-insurance', label: 'Sigorta Ekle', path: '/insurance?action=new', icon: 'Shield', default: false },
+        { id: 'periodic', label: 'Periyodik Kontrol', path: '/periodic-inspections?action=new', icon: 'Clock', default: false },
     ]
 
     const actionIconMap = {
@@ -143,79 +138,9 @@ export default function Dashboard() {
     const [tempActions, setTempActions] = useState([])
     const [draggedItemIndex, setDraggedItemIndex] = useState(null)
 
-    // Modal states for Quick Actions
-    const [activeModal, setActiveModal] = useState(null)
-    const [actionVehicles, setActionVehicles] = useState([])
-    const [actionLoading, setActionLoading] = useState(false)
-
-    const triggerAction = async (action) => {
-        if (action.id === 'get-report' || action.id === 'periodic') {
+    const triggerAction = (action) => {
+        if (action.path) {
             navigate(action.path)
-            return
-        }
-
-        // Fetch vehicles if needed for these actions
-        if (['add-maintenance', 'add-service', 'add-inspection', 'add-insurance'].includes(action.id)) {
-            if (actionVehicles.length === 0) {
-                const res = await window.electronAPI.getVehicles(currentCompany.id)
-                if (res?.success) setActionVehicles(res.data)
-            }
-        }
-        setActiveModal(action.id)
-    }
-
-    const handleActionSubmit = async (data) => {
-        setActionLoading(true)
-        let result = { success: false, error: 'Bilinmeyen işlem' }
-
-        try {
-            if (activeModal === 'add-vehicle') {
-                result = await window.electronAPI.createVehicle({
-                    companyId: currentCompany.id,
-                    ...data,
-                    year: data.year ? parseInt(data.year) : null
-                })
-            } else if (activeModal === 'add-maintenance') {
-                result = await window.electronAPI.createMaintenance({
-                    ...data,
-                    companyId: currentCompany.id,
-                    vehicleId: parseInt(data.vehicleId),
-                    cost: data.cost ? parseFloat(data.cost) : null,
-                    nextKm: data.nextKm ? parseInt(data.nextKm) : null
-                })
-            } else if (activeModal === 'add-service') {
-                result = await window.electronAPI.createService({
-                    ...data,
-                    vehicleId: parseInt(data.vehicleId),
-                    km: data.km ? parseInt(data.km) : null,
-                    cost: data.cost ? parseFloat(data.cost) : 0
-                })
-            } else if (activeModal === 'add-inspection') {
-                result = await window.electronAPI.createInspection({
-                    ...data,
-                    vehicleId: parseInt(data.vehicleId),
-                    cost: data.cost ? parseFloat(data.cost) : 0,
-                    type: data.type || 'traffic'
-                })
-            } else if (activeModal === 'add-insurance') {
-                result = await window.electronAPI.createInsurance({
-                    ...data,
-                    vehicleId: parseInt(data.vehicleId),
-                    cost: data.cost ? parseFloat(data.cost) : 0
-                })
-            }
-        } catch (error) {
-            result = { success: false, error: error.message }
-        }
-
-        setActionLoading(false)
-
-        if (result?.success) {
-            setActiveModal(null)
-            loadDashboardData(true)
-        } else {
-            console.error(result?.error)
-            alert(result?.error || 'Bir hata oluştu')
         }
     }
 
@@ -661,23 +586,6 @@ export default function Dashboard() {
 
                     </div>
                 </div>
-
-                {/* Quick Action Modals */}
-                <Modal isOpen={activeModal === 'add-vehicle'} onClose={() => setActiveModal(null)} title="Yeni Araç Ekle" size="xl">
-                    <VehicleForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} loading={actionLoading} />
-                </Modal>
-                <Modal isOpen={activeModal === 'add-maintenance'} onClose={() => setActiveModal(null)} title="Yeni Bakım Ekle" size="lg">
-                    <MaintenanceForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
-                </Modal>
-                <Modal isOpen={activeModal === 'add-service'} onClose={() => setActiveModal(null)} title="Yeni Servis Kaydı Ekle" size="lg">
-                    <ServiceForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
-                </Modal>
-                <Modal isOpen={activeModal === 'add-inspection'} onClose={() => setActiveModal(null)} title="Yeni Muayene Kaydı Ekle" size="lg">
-                    <InspectionForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
-                </Modal>
-                <Modal isOpen={activeModal === 'add-insurance'} onClose={() => setActiveModal(null)} title="Yeni Sigorta Poliçesi Ekle" size="lg">
-                    <InsuranceForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} vehicles={actionVehicles} loading={actionLoading} />
-                </Modal>
 
                 {/* Customization Modal */}
                 <Modal

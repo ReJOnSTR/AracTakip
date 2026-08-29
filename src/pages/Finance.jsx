@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import Modal from '../components/Modal'
@@ -10,6 +11,7 @@ import { Plus, Wallet, Banknote, FileSignature, ArrowDownRight, Trash2, Pencil, 
 
 export default function Finance() {
     const { currentCompany } = useCompany()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [transactions, setTransactions] = useState([])
     const [stats, setStats] = useState({
         totalBalance: 0,
@@ -26,6 +28,14 @@ export default function Finance() {
     const [showArchived, setShowArchived] = useState(false)
     const [filteredTransactions, setFilteredTransactions] = useState([])
     const [selectedIds, setSelectedIds] = useState([])
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     const filteredTotal = useMemo(() => {
         return filteredTransactions.reduce((sum, tx) => {

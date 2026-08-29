@@ -1,6 +1,6 @@
 import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import DataTable from '../components/DataTable'
@@ -49,6 +49,7 @@ const checkIsSundayRecord = (row) => {
 export default function Overtimes() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
     const { openNewTab } = useTabs()
     const { showToast } = useToast()
 
@@ -81,6 +82,14 @@ export default function Overtimes() {
     })
 
     const [overtimeModalOpen, setOvertimeModalOpen] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            handleOpenOvertimeModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
     const [overtimeModalStep, setOvertimeModalStep] = useState(1) // 1: Select, 2: Process Queue
     const [overtimeQueue, setOvertimeQueue] = useState([]) // Array of formData objects
     const [overtimeQueueIndex, setOvertimeQueueIndex] = useState(0)

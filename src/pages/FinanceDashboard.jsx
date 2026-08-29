@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import Modal from '../components/Modal'
-import TransactionForm from '../components/forms/TransactionForm'
 import { Wallet, Banknote, FileSignature, ArrowDownRight, PlusCircle, PenTool, GripVertical, Settings, Save, FileText, TrendingUp, TrendingDown, Clock, AlertTriangle } from 'lucide-react'
 import { formatCurrency } from '../utils/helpers'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -16,13 +15,10 @@ export default function FinanceDashboard() {
 
     // Quick Action States
     const navigate = useNavigate()
-    const [activeModal, setActiveModal] = useState(null)
-    const [actionLoading, setActionLoading] = useState(false)
-    const [error, setError] = useState('')
 
     const allActions = [
-        { id: 'add-transaction', label: 'Gelir / Gider Ekle', icon: 'PlusCircle', default: true },
-        { id: 'add-check', label: 'Çek / Senet Ekle', icon: 'PenTool', default: true },
+        { id: 'add-transaction', label: 'Gelir / Gider Ekle', path: '/finance?action=new', icon: 'PlusCircle', default: true },
+        { id: 'add-check', label: 'Çek / Senet Ekle', path: '/checks?action=new', icon: 'PenTool', default: true },
         { id: 'go-finance', label: 'Kasa Defterine Git', path: '/finance', icon: 'Banknote', default: true },
         { id: 'go-checks', label: 'Portföy\'e Git', path: '/checks', icon: 'FileSignature', default: true },
         { id: 'go-reports', label: 'Finans Raporu Al', path: '/reports?tab=finance', icon: 'FileText', default: false }
@@ -41,41 +37,10 @@ export default function FinanceDashboard() {
     const [tempActions, setTempActions] = useState([])
     const [draggedItemIndex, setDraggedItemIndex] = useState(null)
 
-    const handleActionSubmit = async (data) => {
-        setError('')
-        setActionLoading(true)
-        try {
-            const payload = {
-                companyId: currentCompany.id,
-                type: data.type,
-                method: data.method,
-                amount: parseFloat(data.amount),
-                currency: data.currency || 'TRY',
-                date: data.date,
-                description: data.description,
-                checkNumber: data.checkNumber || null,
-                checkDueDate: data.checkDueDate || null,
-                status: data.method === 'CHECK' ? 'PENDING' : 'COMPLETED'
-            }
-            const result = await window.electronAPI.createFinance(payload)
-            if (result.success) {
-                setActiveModal(null)
-                loadData()
-            } else {
-                setError(result.error || 'İşlem eklenirken bir hata oluştu.')
-            }
-        } catch (err) {
-            setError('Beklenmeyen hata: ' + err.message)
-        }
-        setActionLoading(false)
-    }
-
     const triggerAction = (action) => {
         if (action.path) {
             navigate(action.path)
-            return
         }
-        setActiveModal(action.id)
     }
 
     const loadActionPreferences = () => {
@@ -516,16 +481,6 @@ export default function FinanceDashboard() {
                     )}
                 </div>
             </div>
-
-            <Modal isOpen={activeModal === 'add-transaction'} onClose={() => { setActiveModal(null); setError('') }} title="Yeni İşlem Ekle">
-                {error && <div className="error-message" style={{ marginBottom: '16px' }}>{error}</div>}
-                <TransactionForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} loading={actionLoading} hideCheck={true} />
-            </Modal>
-
-            <Modal isOpen={activeModal === 'add-check'} onClose={() => { setActiveModal(null); setError('') }} title="Yeni Çek / Senet Ekle">
-                {error && <div className="error-message" style={{ marginBottom: '16px' }}>{error}</div>}
-                <TransactionForm onSubmit={handleActionSubmit} onCancel={() => setActiveModal(null)} loading={actionLoading} onlyCheck={true} />
-            </Modal>
 
             {/* Customization Modal */}
             <Modal

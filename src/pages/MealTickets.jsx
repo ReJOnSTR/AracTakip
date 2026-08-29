@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
 import DataTable from '../components/DataTable'
@@ -9,6 +10,7 @@ import { UtensilsCrossed, Users, CalendarDays, Plus, Pencil, Trash2, Settings, T
 
 export default function MealTickets() {
     const { currentCompany } = useCompany()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [tickets, setTickets] = useState([])
     const [stats, setStats] = useState({ totalThisMonth: 0, todayCount: 0, ticketCountThisMonth: 0, pricePerPerson: 0, totalCostThisMonth: 0 })
     const [loading, setLoading] = useState(true)
@@ -16,6 +18,18 @@ export default function MealTickets() {
     const [editingTicket, setEditingTicket] = useState(null)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            setEditingTicket(null)
+            setFormDate(new Date().toISOString().split('T')[0])
+            setFormCount('')
+            setFormNotes('')
+            setShowModal(true)
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     // Delete confirm
     const [confirmModal, setConfirmModal] = useState(null)

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Users, Pencil, Trash2, Building2, Phone, Mail, MapPin, DollarSign } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import DataTable from '../components/DataTable'
@@ -13,6 +13,7 @@ export default function Customers() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
     const { openNewTab } = useTabs()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [customers, setCustomers] = useState([])
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -20,6 +21,15 @@ export default function Customers() {
     const [saving, setSaving] = useState(false)
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            setEditingCustomer(null)
+            setIsModalOpen(true)
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     useEffect(() => {
         if (currentCompany) {

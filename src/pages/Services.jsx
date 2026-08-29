@@ -1,5 +1,6 @@
 import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -16,6 +17,7 @@ import BatchOperationModal from '../components/BatchOperationModal'
 
 export default function Services() {
     const { currentCompany } = useCompany()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [services, setServices] = useState([])
     const [vehicles, setVehicles] = useState([])
     const [loading, setLoading] = useState(true)
@@ -44,6 +46,14 @@ export default function Services() {
         { value: 'Periyodik', label: 'Periyodik Bakım' },
         { value: 'Diğer', label: 'Diğer' }
     ]
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     useEffect(() => {
         if (currentCompany) {

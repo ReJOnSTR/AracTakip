@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
     Calendar, 
     Plus, 
@@ -29,12 +30,22 @@ export default function Leaves() {
     const { currentCompany } = useCompany();
     const { addTab } = useTabs();
     const { showToast } = useToast();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [leaves, setLeaves] = useState([]);
     const [employees, setEmployees] = useState([]);
     
     // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            setEditingLeave(null);
+            setIsModalOpen(true);
+            searchParams.delete('action');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams]);
     const [editingLeave, setEditingLeave] = useState(null);
     const [formData, setFormData] = useState({
         employeeId: '',

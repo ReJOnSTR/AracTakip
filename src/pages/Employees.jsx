@@ -1,6 +1,6 @@
 import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import DataTable from '../components/DataTable'
@@ -22,6 +22,7 @@ export default function Employees() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
     const { openNewTab } = useTabs()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [employees, setEmployees] = useState([])
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -35,6 +36,14 @@ export default function Employees() {
     const departmentOptions = departments
         .filter(d => d.status !== 'passive')
         .map(d => ({ value: d.name, label: d.name }))
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     useEffect(() => {
         if (currentCompany) {

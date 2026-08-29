@@ -1,6 +1,6 @@
 import TopProgressBar from '../components/TopProgressBar'
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import Modal from '../components/Modal'
@@ -22,6 +22,7 @@ export default function Vehicles() {
     const navigate = useNavigate()
     const { currentCompany } = useCompany()
     const { openNewTab } = useTabs()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [vehicles, setVehicles] = useState([])
     const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -36,6 +37,14 @@ export default function Vehicles() {
 
     // Archive State
     const [showArchived, setShowArchived] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
 
     useEffect(() => {
         if (currentCompany) {
