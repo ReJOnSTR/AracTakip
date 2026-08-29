@@ -294,17 +294,17 @@ async function createPlatformUser(userData) {
 
         const password_hash = bcrypt.hashSync(password, 10);
         let userRole = role || 'admin';
-        let employeeId = null;
+        let employeeId = userData.employeeId ? parseInt(userData.employeeId, 10) : null;
 
-        // If creating as personnel / employee with a company
-        if ((userRole === 'personnel' || userRole === 'employee') && companyId) {
+        // If creating for a company without an explicit employee selection
+        if (!employeeId && companyId && userRole !== 'company_admin') {
             const compId = parseInt(companyId, 10);
             const employee = await prisma.employees.create({
                 data: {
                     company_id: compId,
                     first_name: fullName?.split(' ')?.[0] || username,
                     last_name: fullName?.split(' ')?.slice(1)?.join(' ') || '',
-                    position: position || 'Şoför / Saha Personeli',
+                    position: position || (userRole === 'manager' ? 'Operasyon & Puantör' : (userRole === 'accountant' ? 'Ön Muhasebe' : 'Şirket Personeli')),
                     phone: phone || null,
                     email: cleanEmail,
                     start_date: new Date(),
@@ -312,7 +312,6 @@ async function createPlatformUser(userData) {
                 }
             });
             employeeId = employee.id;
-            userRole = 'personnel';
         }
 
         const newUser = await prisma.users.create({
@@ -898,9 +897,15 @@ async function getCompanyUsers(companyId) {
         const compId = parseInt(companyId, 10);
         if (!compId) return { success: true, data: [] };
 
-        const allUsers = await getPlatformUsers();
-        // Filter users that belong to this company
-        const companyUsers = allUsers.filter(u => u.company?.id === compId);
+        const allUsersRes = await getPlatformUsers();
+        const allUsers = allUsersRes?.data || [];
+        
+        // Strict company isolation: Never return superadmins or users from other companies
+        const companyUsers = allUsers.filter(u => {
+            if (u.role === 'superadmin' || u.accountType === 'superadmin') return false;
+            return u.company?.id === compId;
+        });
+
         return { success: true, data: companyUsers };
     } catch (error) {
         console.error('getCompanyUsers error:', error);

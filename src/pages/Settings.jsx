@@ -93,17 +93,24 @@ export default function Settings() {
         setLoadingUsers(true)
         try {
             const [usersRes, empsRes] = await Promise.all([
-                window.electronAPI?.getCompanyUsers ? window.electronAPI.getCompanyUsers(currentCompany.id) : window.electronAPI?.getPlatformUsers(),
+                window.electronAPI?.getCompanyUsers ? window.electronAPI.getCompanyUsers(currentCompany.id) : { success: true, data: [] },
                 window.electronAPI?.getEmployees ? window.electronAPI.getEmployees(currentCompany.id, 0) : { success: true, data: [] }
             ])
             
-            if (usersRes?.success && usersRes?.data) {
-                setCompanyUsers(usersRes.data)
+            let rawList = []
+            if (usersRes?.success && Array.isArray(usersRes?.data)) {
+                rawList = usersRes.data
             } else if (Array.isArray(usersRes)) {
-                setCompanyUsers(usersRes.filter(u => u.company?.id === currentCompany.id))
-            } else if (usersRes?.data && Array.isArray(usersRes.data)) {
-                setCompanyUsers(usersRes.data)
+                rawList = usersRes
             }
+
+            // Strict company isolation: only show users strictly belonging to active company
+            const strictlyCompanyUsers = rawList.filter(u => {
+                if (u.role === 'superadmin' || u.accountType === 'superadmin') return false
+                return u.company?.id === currentCompany.id
+            })
+
+            setCompanyUsers(strictlyCompanyUsers)
 
             if (empsRes?.success && empsRes?.data) {
                 setEmployeesList(empsRes.data)
@@ -151,6 +158,7 @@ export default function Settings() {
         try {
             const res = await window.electronAPI?.createPlatformUser({
                 ...newUserForm,
+                employeeId: selectedEmployeeId || undefined,
                 companyId: currentCompany.id
             })
             if (res?.success) {
