@@ -172,7 +172,9 @@ function getPrismaClient() {
                         connectionString: dbUrl,
                         connectionTimeoutMillis: 5000,
                         idleTimeoutMillis: 30000,
-                        max: 10
+                        max: 20,
+                        keepAlive: true,
+                        keepAliveInitialDelayMillis: 10000
                     });
                     const adapter = new PrismaPg(pool);
                     prisma = new PrismaClient({ adapter });
