@@ -154,15 +154,17 @@ function createWindow() {
     if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
         const devUrl = 'http://127.0.0.1:5173'
         mainWindow.loadURL(devUrl)
-        mainWindow.webContents.openDevTools()
+        if (process.env.DEV_TOOLS === 'true') {
+            mainWindow.webContents.openDevTools({ mode: 'detach' })
+        }
 
         mainWindow.webContents.on('did-fail-load', () => {
-            log.warn('Dev server loading failed, retrying in 1s...')
+            log.warn('Dev server loading failed, retrying in 500ms...')
             setTimeout(() => {
                 if (mainWindow && !mainWindow.isDestroyed()) {
                     mainWindow.loadURL(devUrl)
                 }
-            }, 1000)
+            }, 500)
         })
     } else {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
@@ -328,31 +330,34 @@ ipcMain.handle('notification:show', (event, { title, body }) => {
 })
 
 app.whenReady().then(async () => {
-    // Initialize Database
-    try {
-        if (db.initializeDatabase) db.initializeDatabase()
-        log.info('Database initialized')
-
-        // Run schema migrations (add missing columns to older DBs)
-        await runAutoMigrations()
-
-        startAdminServer(getPrismaClient(), notifyDbUpdate)
-    } catch (err) {
-        log.error('Failed to initialize database:', err)
-        dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)
-        app.quit()
-        return
-    }
-
-    log.info('Application started')
+    // 1. Instant zero-blocking window presentation (0ms delay)
     createWindow()
+    log.info('Application window presented')
 
-    // Global Shortcut for DevTools (F12)
+    // 2. Global Shortcut for DevTools (F12)
     globalShortcut.register('F12', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
+        } else if (mainWindow && mainWindow.webContents) {
+            mainWindow.webContents.toggleDevTools()
         }
     })
+
+    // 3. Initialize Database and API server asynchronously in background
+    (async () => {
+        try {
+            if (db.initializeDatabase) db.initializeDatabase()
+            log.info('Database initialized')
+
+            // Run schema migrations
+            await runAutoMigrations()
+
+            startAdminServer(getPrismaClient(), notifyDbUpdate)
+            log.info('Background services initialized successfully')
+        } catch (err) {
+            log.error('Failed to initialize background database services:', err)
+        }
+    })()
 })
 
 app.on('browser-window-focus', (event, win) => {

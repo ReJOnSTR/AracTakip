@@ -188,9 +188,7 @@ function AppRoutes() {
 
                     <Route element={
                         <ProtectedRoute>
-                            <CompanyProvider>
-                                <MainLayoutWrapper />
-                            </CompanyProvider>
+                            <MainLayoutWrapper />
                         </ProtectedRoute>
                     }>
                         <Route path="/" element={

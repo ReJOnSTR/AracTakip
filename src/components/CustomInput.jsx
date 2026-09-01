@@ -23,6 +23,10 @@ export default function CustomInput({
     const handleChange = (e) => {
         let val = e.target.value
 
+        if (props.maxLength && typeof val === 'string' && val.length > props.maxLength) {
+            val = val.slice(0, props.maxLength)
+        }
+
         if (format === 'uppercase') {
             val = val.toUpperCase()
         } else if (format === 'title') {
@@ -62,10 +66,16 @@ export default function CustomInput({
             val = tr + (parts.length > 0 ? ' ' + parts.join(' ') : '')
         } else if (format === 'numeric') {
             val = val.replace(/\D/g, '')
+            if (props.maxLength && val.length > props.maxLength) {
+                val = val.slice(0, props.maxLength)
+            }
         } else if (format === 'lowercase') {
             val = val.toLowerCase()
         } else if (format === 'alphanumeric') {
             val = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
+            if (props.maxLength && val.length > props.maxLength) {
+                val = val.slice(0, props.maxLength)
+            }
         } else if (format === 'phone') {
             val = val.replace(/\D/g, '')
             if (val.length > 10) val = val.slice(0, 10)
@@ -98,10 +108,18 @@ export default function CustomInput({
                 clean = parts[0] + ',' + parts[1].substring(0, 2)
             }
 
+            if (props.maxLength && clean.length > props.maxLength) {
+                clean = clean.slice(0, props.maxLength)
+            }
+
             // Convert '1234,56' to standard float '1234.56' for the parent
             const standardFloatVal = clean.replace(',', '.')
             onChange(standardFloatVal === '' ? '' : standardFloatVal)
             return // Skip normal onChange
+        }
+
+        if (props.maxLength && typeof val === 'string' && val.length > props.maxLength) {
+            val = val.slice(0, props.maxLength)
         }
 
         onChange(val)

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Modal from './Modal'
 import CustomInput from './CustomInput'
+import { CheckCircle, AlertCircle, Loader2, Send, Clock } from 'lucide-react'
 import './EmailTemplatesManager.css'
 
 export default function EmailTemplatesManager() {
@@ -27,6 +28,7 @@ export default function EmailTemplatesManager() {
     const [testModalOpen, setTestModalOpen] = useState(false)
     const [testTargetEmail, setTestTargetEmail] = useState('')
     const [sendingTest, setSendingTest] = useState(false)
+    const [testResult, setTestResult] = useState(null)
 
     // SMTP Settings State
     const [smtpHost, setSmtpHost] = useState('')
@@ -199,12 +201,17 @@ export default function EmailTemplatesManager() {
     }
 
     const handleSendTestEmail = async () => {
+        setTestResult(null)
         if (!testTargetEmail || !testTargetEmail.includes('@')) {
-            showToast('Lütfen geçerli bir test e-posta adresi giriniz', 'error')
+            setTestResult({
+                success: false,
+                message: 'Lütfen geçerli bir test e-posta adresi giriniz (Örn: adiniz@sirket.com).'
+            })
             return
         }
 
         setSendingTest(true)
+        const startTime = Date.now()
         try {
             const res = await window.electronAPI?.sendTestEmail({
                 type: activeType,
@@ -214,14 +221,29 @@ export default function EmailTemplatesManager() {
                 htmlContent: currentHtml
             })
 
+            const durationMs = Date.now() - startTime
+
             if (res?.success) {
-                showToast(res.message || 'Test e-postası başarıyla gönderildi!', 'success')
-                setTestModalOpen(false)
+                setTestResult({
+                    success: true,
+                    message: res.message || 'Test e-postası başarıyla iletildi.',
+                    email: testTargetEmail.trim().toLowerCase(),
+                    latency: `${durationMs}ms`,
+                    timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                })
             } else {
-                showToast(res?.error || 'Test e-postası gönderilemedi', 'error')
+                setTestResult({
+                    success: false,
+                    message: res?.error || 'Test e-postası sunucu tarafından reddedildi veya gönderilemedi.',
+                    email: testTargetEmail.trim().toLowerCase()
+                })
             }
         } catch (err) {
-            showToast(err.message || 'Test gönderim hatası', 'error')
+            setTestResult({
+                success: false,
+                message: err.message || 'Test e-postası gönderilirken beklenmeyen bir hata oluştu.',
+                email: testTargetEmail.trim().toLowerCase()
+            })
         } finally {
             setSendingTest(false)
         }
@@ -400,6 +422,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-input"
                                             value={currentSenderName}
                                             onChange={handleSenderNameChange}
+                                            maxLength={100}
                                             placeholder="Örn: Kontrol"
                                         />
                                     </div>
@@ -410,6 +433,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-input"
                                             value={currentSubject}
                                             onChange={handleSubjectChange}
+                                            maxLength={150}
                                             placeholder="Subject heading..."
                                         />
                                     </div>
@@ -452,6 +476,7 @@ export default function EmailTemplatesManager() {
                                             className="supabase-code-area"
                                             value={currentHtml}
                                             onChange={handleHtmlChange}
+                                            maxLength={20000}
                                             placeholder="<h2>Confirm your signup</h2>..."
                                             spellCheck="false"
                                         />
@@ -550,6 +575,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpHost}
                                         onChange={(e) => setSmtpHost(e.target.value)}
+                                        maxLength={100}
                                         placeholder="e.g. 45.147.47.56 or smtp.gmail.com"
                                     />
                                 </div>
@@ -560,6 +586,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpPort}
                                         onChange={(e) => setSmtpPort(e.target.value)}
+                                        maxLength={5}
                                         placeholder="587 / 465 / 25"
                                     />
                                 </div>
@@ -573,6 +600,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpUser}
                                         onChange={(e) => setSmtpUser(e.target.value)}
+                                        maxLength={100}
                                         placeholder="admin@kontrol-app.com"
                                     />
                                 </div>
@@ -583,6 +611,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={smtpPass}
                                         onChange={(e) => setSmtpPass(e.target.value)}
+                                        maxLength={100}
                                         placeholder={hasPass ? '••••••••' : 'Password'}
                                     />
                                 </div>
@@ -596,6 +625,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={defaultSenderName}
                                         onChange={(e) => setDefaultSenderName(e.target.value)}
+                                        maxLength={100}
                                         placeholder="Kontrol"
                                     />
                                 </div>
@@ -606,6 +636,7 @@ export default function EmailTemplatesManager() {
                                         className="supabase-input"
                                         value={defaultSenderEmail}
                                         onChange={(e) => setDefaultSenderEmail(e.target.value)}
+                                        maxLength={100}
                                         placeholder="noreply@kontrol-app.com"
                                     />
                                 </div>
@@ -643,40 +674,109 @@ export default function EmailTemplatesManager() {
             {/* Test Email Send Modal */}
             <Modal
                 isOpen={testModalOpen}
-                onClose={() => setTestModalOpen(false)}
-                title="Send Test Email"
+                onClose={() => {
+                    setTestModalOpen(false)
+                    setTestResult(null)
+                }}
+                title="Test E-Postası Gönder"
                 size="small"
             >
-                <div className="test-email-modal-body">
-                    <p className="test-modal-desc">
-                        Send a test email to verify your template layout and delivery.
+                <div className="test-email-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <p className="test-modal-desc" style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                        Hazırladığınız e-posta şablonunun gelen kutusundaki görünümünü ve SMTP teslimatını doğrulamak için bir test gönderin.
                     </p>
 
                     <div className="test-input-wrap">
-                        <label className="supabase-label">Recipient Email Address:</label>
+                        <label className="supabase-label">Alıcı E-Posta Adresi:</label>
                         <CustomInput
                             type="email"
                             placeholder="yourname@gmail.com"
                             value={testTargetEmail}
-                            onChange={(e) => setTestTargetEmail(e.target ? e.target.value : e)}
+                            onChange={(e) => {
+                                setTestTargetEmail(e.target ? e.target.value : e)
+                                if (testResult) setTestResult(null)
+                            }}
+                            maxLength={100}
                             autoFocus
                         />
                     </div>
 
-                    <div className="modal-actions-custom" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    {/* In-Modal Status / Delivery Result Card */}
+                    {testResult && (
+                        <div style={{
+                            padding: '14px 16px',
+                            borderRadius: '12px',
+                            backgroundColor: testResult.success ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                            border: `1px solid ${testResult.success ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: testResult.success ? '#10b981' : '#ef4444', fontWeight: 600, fontSize: '13px' }}>
+                                    {testResult.success ? <CheckCircle size={17} /> : <AlertCircle size={17} />}
+                                    <span>{testResult.success ? 'Test E-Postası Başarıyla İletildi' : 'Gönderim Başarısız'}</span>
+                                </div>
+                                {testResult.latency && (
+                                    <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                                        {testResult.latency}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.45' }}>
+                                {testResult.success ? (
+                                    <>
+                                        <strong>{testResult.email}</strong> adresine test şablonu ulaştırıldı. Gelen kutunuzu (ve Spam klasörünü) kontrol edebilirsiniz.
+                                    </>
+                                ) : (
+                                    <span>{testResult.message}</span>
+                                )}
+                            </div>
+
+                            {testResult.timestamp && (
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                    <Clock size={12} />
+                                    <span>İletim Zamanı: {testResult.timestamp}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="modal-actions-custom" style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                         <button 
+                            type="button"
                             className="btn btn-secondary"
-                            onClick={() => setTestModalOpen(false)}
+                            onClick={() => {
+                                setTestModalOpen(false)
+                                setTestResult(null)
+                            }}
                             disabled={sendingTest}
                         >
-                            Cancel
+                            Kapat
                         </button>
                         <button 
+                            type="button"
                             className="btn btn-primary"
                             onClick={handleSendTestEmail}
                             disabled={sendingTest || !testTargetEmail}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
                         >
-                            {sendingTest ? 'Sending...' : 'Send Test'}
+                            {sendingTest ? (
+                                <>
+                                    <Loader2 size={15} className="animate-spin" />
+                                    <span>Gönderiliyor...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={15} />
+                                    <span>{testResult?.success ? 'Tekrar Gönder' : 'Test Gönder'}</span>
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

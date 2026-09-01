@@ -15,7 +15,8 @@ export default function CustomSelect({
     icon: Icon,
     disabled = false,
     style,
-    creatable = false
+    creatable = false,
+    hidePlaceholderOption = false
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -46,12 +47,26 @@ export default function CustomSelect({
         }
         setPlacement(newPlacement)
 
+        // Smart width: auto-expand for table filters so long company/role names are readable
+        const isCompact = className.includes('filter-select-custom') || className.includes('page-select-custom')
+        const isPageSelect = className.includes('page-select-custom')
+        const popupMinWidth = isPageSelect ? rect.width : Math.max(rect.width, 220)
+        const popupMaxWidth = 360
+
+        // Prevent overflow beyond right edge of viewport
+        let left = rect.left
+        if (left + popupMinWidth > window.innerWidth - 12) {
+            left = Math.max(12, window.innerWidth - popupMinWidth - 12)
+        }
+
         setDropdownStyle({
             position: 'fixed',
-            top: newPlacement === 'bottom' ? rect.bottom + 6 : 'auto',
-            bottom: newPlacement === 'top' ? (window.innerHeight - rect.top) + 6 : 'auto',
-            left: rect.left,
-            width: rect.width,
+            top: newPlacement === 'bottom' ? rect.bottom + 4 : 'auto',
+            bottom: newPlacement === 'top' ? (window.innerHeight - rect.top) + 4 : 'auto',
+            left: left,
+            minWidth: `${popupMinWidth}px`,
+            maxWidth: `${popupMaxWidth}px`,
+            width: 'max-content',
             zIndex: 99999
         })
     }
@@ -140,9 +155,7 @@ export default function CustomSelect({
                         justifyContent: 'space-between',
                         cursor: disabled ? 'not-allowed' : 'pointer',
                         opacity: disabled ? 0.6 : 1,
-                        background: disabled ? 'var(--bg-tertiary)' : 'var(--bg-primary)',
-                        paddingLeft: Icon ? '40px' : '14px',
-                        minHeight: '44px',
+                        paddingLeft: Icon ? '40px' : undefined,
                         userSelect: 'none'
                     }}
                 >
@@ -181,7 +194,7 @@ export default function CustomSelect({
 
                 {isOpen && createPortal(
                     <div className={`custom-select-dropdown placement-${placement}`} style={{ ...dropdownStyle, maxHeight: '250px', overflowY: 'auto' }}>
-                        {!required && placeholder && !searchTerm && (
+                        {!required && placeholder && !searchTerm && !hidePlaceholderOption && !className.includes('filter-select-custom') && !className.includes('page-select-custom') && (
                             <div
                                 className={`custom-select-option ${!value ? 'selected' : ''}`}
                                 onClick={() => handleSelect('')}
@@ -190,7 +203,7 @@ export default function CustomSelect({
                             </div>
                         )}
                         {filteredOptions.length === 0 && !creatable && (
-                            <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                            <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
                                 Sonuç bulunamadı
                             </div>
                         )}
@@ -199,9 +212,12 @@ export default function CustomSelect({
                                 key={opt.value}
                                 className={`custom-select-option ${value === opt.value ? 'selected' : ''}`}
                                 onClick={() => handleSelect(opt.value)}
+                                title={typeof opt.label === 'string' ? opt.label : undefined}
                             >
-                                <span>{opt.label}</span>
-                                {value === opt.value && <Check size={14} />}
+                                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {opt.label}
+                                </span>
+                                {value === opt.value && <Check size={13} style={{ flexShrink: 0, color: 'var(--accent-primary)', marginLeft: '6px' }} />}
                             </div>
                         ))}
                         {creatable && searchTerm && !hasExactMatch && (

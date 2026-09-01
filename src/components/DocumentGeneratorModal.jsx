@@ -308,6 +308,7 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                                     type={p.type || 'text'}
                                     value={placeholders[p.key] || ''}
                                     onChange={(val) => setPlaceholders(prev => ({ ...prev, [p.key]: val }))}
+                                    maxLength={200}
                                     style={{ marginBottom: 0 }}
                                 />
                             ))}
@@ -336,6 +337,7 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                                 <input 
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
+                                    maxLength={120}
                                     style={{
                                         width: '100%',
                                         textAlign: 'center',
@@ -353,6 +355,7 @@ export default function DocumentGeneratorModal({ isOpen, onClose, employee, comp
                                 <textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
+                                    maxLength={10000}
                                     style={{
                                         width: '100%',
                                         minHeight: '280px',

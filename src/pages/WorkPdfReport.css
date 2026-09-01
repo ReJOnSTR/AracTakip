@@ -1,0 +1,791 @@
+/* WorkPdfReport.css */
+ 
+.pdf-viewer-layout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--bg-tertiary);
+    padding: 40px 20px;
+    min-height: 100%;
+}
+
+.pdf-pages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    align-items: center;
+    width: 100%;
+}
+
+/* Standard A4 Report Container */
+.pdf-report-container {
+    width: 210mm;
+    min-height: 297mm;
+    height: 297mm;
+    padding: 0;
+    margin: 0 auto;
+    background: white;
+    position: relative;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
+    overflow: hidden;
+    page-break-after: always;
+    break-after: page;
+}
+
+.pdf-report-container.is-landscape {
+    width: 297mm;
+    min-width: 297mm;
+    max-width: 297mm;
+    min-height: 210mm;
+    height: 210mm;
+    max-height: 210mm;
+}
+
+.pdf-content-wrapper {
+    padding: 6mm 8mm 2mm 8mm;
+    box-sizing: border-box;
+    width: 100%;
+    height: calc(100% - 15mm);
+    max-height: calc(100% - 15mm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pdf-report-container.is-preview {
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    border: 1px solid #cbd5e1;
+    position: relative;
+    background: #ffffff;
+}
+
+.pdf-report-container.is-preview.is-landscape {
+    width: 297mm;
+    height: 210mm;
+    min-height: 210mm;
+}
+
+.pdf-page-header-badge {
+    position: absolute;
+    top: -24px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    padding: 0 4px;
+}
+
+/* Standard Header Classes */
+.pdf-header-standard {
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.pdf-title-standard {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    color: #000;
+    letter-spacing: 0.3px;
+}
+
+.pdf-company-standard {
+    font-size: 12px;
+    color: #1e293b;
+    margin-top: 4px;
+}
+
+.pdf-date-standard {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.pdf-date-label {
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+.pdf-date-value {
+    font-weight: bold;
+    font-size: 12.5px;
+    color: #000;
+}
+
+.pdf-footer-pinned {
+    position: absolute;
+    bottom: 6mm;
+    left: 8mm;
+    right: 8mm;
+    height: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #cbd5e1;
+    background: #ffffff;
+    z-index: 10;
+    font-size: 9px;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.5px;
+}
+
+.pdf-footer-standard {
+    display: none;
+}
+
+.pdf-vehicle-group {
+    margin-bottom: 25px;
+    background: transparent;
+    padding: 0;
+    border: none;
+}
+
+.pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    background: #fff;
+    border-radius: 0;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.pdf-table thead {
+    display: table-header-group;
+}
+
+.pdf-table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdf-table th,
+.pdf-table td {
+    padding: 3px 5.5px;
+    line-height: 1.25;
+    border: 1px solid #cbd5e1;
+}
+
+/* Remove striped rows for a minimalist formal paper look */
+.pdf-table tbody tr:nth-child(even) {
+    background-color: transparent;
+}
+
+.pdf-table th {
+    font-size: 9.5px;
+    font-weight: bold;
+    text-align: left;
+    vertical-align: middle;
+    color: #000;
+    background-color: #eee;
+    padding: 2.5px 5px;
+}
+
+.pdf-table td {
+    font-size: 9.5px;
+    color: #000;
+}
+
+.pdf-row-pazar td,
+.pdf-row-red td {
+    background-color: #fcebeb !important; 
+    color: #000;
+    font-weight: 400;
+}
+.pdf-row-orange td {
+    background-color: #fef3c7 !important; 
+    color: #000;
+}
+.pdf-row-blue td {
+    background-color: #eff6ff !important; 
+    color: #000;
+}
+.pdf-row-green td {
+    background-color: #ecfdf5 !important; 
+    color: #000;
+}
+.pdf-row-purple td {
+    background-color: #f5f3ff !important; 
+    color: #000;
+}
+
+/* Summary Block */
+.pdf-summary-block {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    width: 100%;
+    padding: 0 !important;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Grand Total Summary */
+.pdf-grand-total {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding: 0 !important;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdf-summary-table {
+    border-collapse: collapse;
+    width: 520px;
+    max-width: 520px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1; 
+    table-layout: fixed;
+    box-sizing: border-box;
+    margin: 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.pdf-report-container.is-landscape .pdf-summary-table {
+    width: 720px;
+    max-width: 720px;
+}
+
+.pdf-summary-table th,
+.pdf-summary-table td {
+    padding: 3px 6px;
+    line-height: 1.2;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+}
+
+.pdf-summary-table td {
+    font-size: 8.5px;
+    color: #000;
+}
+
+.pdf-grand-total .pdf-summary-table {
+    border: 1px solid #cbd5e1;
+    margin: 0;
+}
+
+.pdf-grand-total td {
+    padding: 3px 6px;
+    font-size: 8.5px;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+}
+
+.pdf-footer-note {
+    background: #f8fafc;
+    border-left: 3px solid #cbd5e1;
+    padding: 8px 12px;
+    margin-top: 30px;
+    font-size: 9px;
+    color: #64748b;
+    page-break-inside: avoid;
+    border-radius: 0 4px 4px 0;
+}
+
+@media print {
+    :root, html, body, #root, .app-container, .main-content, .page-content, .pdf-viewer-layout, .print-body {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        color-scheme: light !important;
+    }
+
+    /* Hide non-report elements */
+    .pdf-actions-bar,
+    .sidebar,
+    .header,
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Ensure layout doesn't interfere */
+    .pdf-viewer-layout {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        display: block !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    /* Reset some body/html styles for print */
+    body, html {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-scheme: light !important;
+    }
+
+    .pdf-report-container {
+        width: 100% !important;
+        max-width: 210mm !important;
+        min-height: auto !important;
+        margin: 0 auto !important; /* Centered horizontally */
+        padding: 0 !important; /* Equal top/bottom margins handled by @page for ALL pages */
+        box-shadow: none !important;
+        border: none !important;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        zoom: 1;
+    }
+
+    .pdf-report-container.with-kdv {
+        zoom: 1;
+    }
+
+    .pdf-header-standard {
+        margin-bottom: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .pdf-vehicle-group {
+        border: none;
+        margin-top: 0 !important;
+        margin-bottom: 15px !important;
+    }
+
+    .pdf-table {
+        margin-bottom: 10px !important;
+    }
+
+    .pdf-footer-note {
+        margin-top: 10px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none;
+        border-bottom: 1px solid #eee;
+        border-radius: 0;
+    }
+    
+    .pdf-vehicle-group:last-of-type {
+        border-bottom: none;
+    }
+
+    @page {
+        margin: 12mm 10mm; /* Consistent 12mm top/bottom page margin on all printed pages */
+        size: A4 portrait;
+    }
+}
+
+.pdf-actions-bar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px 20px;
+    background: #34495e;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    width: 210mm;
+    margin: 0 auto 20px auto;
+    border-radius: 0 0 8px 8px;
+}
+
+.pdf-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    color: white;
+}
+
+.pdf-btn.print {
+    background-color: #27ae60;
+}
+.pdf-btn.print:hover {
+    background-color: #219653;
+    transform: translateY(-2px);
+}
+
+.pdf-btn.save {
+    background-color: #2980b9;
+}
+.pdf-btn.save:hover {
+    background-color: #2471a3;
+    transform: translateY(-2px);
+}
+
+.pdf-btn.close {
+    background-color: #e74c3c;
+}
+.pdf-btn.close:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+.pdf-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+    transform: none;
+}
+
+/* PDF Generation State Overrides */
+html:has(.is-generating-pdf),
+body:has(.is-generating-pdf),
+.is-generating-pdf,
+.is-generating-pdf * {
+    color-scheme: light !important;
+}
+
+html:has(.is-generating-pdf),
+body:has(.is-generating-pdf),
+.is-generating-pdf {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.is-generating-pdf .pdf-actions-bar {
+    display: none !important;
+}
+
+.is-generating-pdf .pdf-report-container {
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 12mm 10mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+}
+
+@media print {
+    .pdf-actions-bar {
+        display: none !important;
+    }
+}
+
+/* Compact Fit-to-Page Mode */
+.pdf-report-container.pdf-fit-page {
+    padding: 8mm 6mm !important;
+    font-size: 7.5px !important;
+}
+
+.pdf-fit-page .pdf-title-standard {
+    font-size: 15px !important;
+}
+
+.pdf-fit-page .pdf-header-standard {
+    padding-bottom: 6px !important;
+    margin-bottom: 8px !important;
+}
+
+.pdf-fit-page .pdf-date-label {
+    font-size: 9px !important;
+}
+
+.pdf-fit-page .pdf-date-value {
+    font-size: 10px !important;
+}
+
+.pdf-fit-page .pdf-vehicle-group {
+    margin-bottom: 8px !important;
+}
+
+.pdf-fit-page .pdf-vehicle-group h3 {
+    font-size: 9.5px !important;
+    margin-top: 6px !important;
+    margin-bottom: 4px !important;
+    padding-bottom: 2px !important;
+}
+
+.pdf-fit-page .pdf-table {
+    margin-bottom: 6px !important;
+}
+
+.pdf-fit-page .pdf-table th,
+.pdf-fit-page .pdf-table td {
+    padding: 1px 3px !important;
+    font-size: 7.5px !important;
+    line-height: 1.1 !important;
+}
+
+.pdf-fit-page .pdf-summary-block {
+    margin-top: 4px !important;
+}
+
+.pdf-fit-page .pdf-summary-table {
+    width: 100% !important;
+    max-width: 440px !important;
+}
+
+.pdf-fit-page .pdf-summary-table td {
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
+    line-height: 1.1 !important;
+}
+
+.pdf-fit-page .pdf-grand-total {
+    margin-top: 6px !important;
+    padding: 0 !important;
+}
+
+.pdf-fit-page .pdf-grand-total table td {
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
+}
+
+.pdf-fit-page .pdf-footer-standard {
+    margin-top: 6px !important;
+    padding-top: 4px !important;
+    font-size: 7px !important;
+}
+
+@media print {
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .pdf-viewer-layout {
+        padding: 0 !important;
+        margin: 0 auto !important;
+        background: #ffffff !important;
+        min-height: 100% !important;
+        width: 100% !important;
+        align-items: center !important;
+    }
+    .pdf-pages-container {
+        gap: 0 !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        align-items: center !important;
+    }
+    .pdf-report-container {
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        position: relative !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: #ffffff !important;
+    }
+    .pdf-report-container.is-landscape {
+        width: 297mm !important;
+        min-width: 297mm !important;
+        max-width: 297mm !important;
+        height: 210mm !important;
+        min-height: 210mm !important;
+        max-height: 210mm !important;
+        margin: 0 auto !important;
+    }
+    .pdf-report-container:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+    .pdf-report-container.pdf-fit-page {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
+    }
+    .pdf-report-container.is-landscape.pdf-fit-page {
+        width: 297mm !important;
+        min-width: 297mm !important;
+        max-width: 297mm !important;
+        height: 210mm !important;
+        min-height: 210mm !important;
+        max-height: 210mm !important;
+        margin: 0 auto !important;
+    }
+    .pdf-footer-pinned {
+        position: absolute !important;
+        bottom: 5mm !important;
+        left: 8mm !important;
+        right: 8mm !important;
+        height: 20px !important;
+        border-top: 1px solid #cbd5e1 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        background: #ffffff !important;
+        z-index: 100 !important;
+    }
+}
+
+/* Compact Density Styling */
+.pdf-report-container.is-compact .pdf-content-wrapper {
+    padding: 4mm 6mm 2mm 6mm;
+}
+
+.pdf-report-container.is-compact .pdf-table th {
+    padding: 2.5px 3px !important;
+    font-size: 8px !important;
+    height: 18px !important;
+}
+
+.pdf-report-container.is-compact .pdf-table td {
+    padding: 1.5px 3px !important;
+    font-size: 7.5px !important;
+    line-height: 1.1 !important;
+}
+
+.pdf-report-container.is-compact .pdf-summary-block {
+    margin-top: 4px !important;
+}
+
+.pdf-report-container.is-compact .pdf-summary-table {
+    width: 100% !important;
+    max-width: 480px !important;
+}
+
+.pdf-report-container.is-compact .pdf-summary-table td {
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
+    line-height: 1.1 !important;
+}
+
+.pdf-report-container.is-compact .pdf-grand-total {
+    margin-top: 5px !important;
+    padding: 0 !important;
+}
+
+.pdf-report-container.is-compact .pdf-grand-total table td {
+    padding: 1.5px 4px !important;
+    font-size: 7.5px !important;
+}
+
+/* Smart Overflow Badge on Preview */
+.pdf-overflow-smart-pill {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 12px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+    white-space: nowrap;
+    z-index: 20;
+}
+
+/* Page break rules */
+.pdf-break-per-vehicle {
+    page-break-before: always;
+    break-before: page;
+}
+
+tr.pdf-page-break-row {
+    page-break-before: always;
+    break-before: page;
+}
+
+tr.pdf-page-break-row td {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    font-weight: 700;
+    text-align: center;
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    border-top: 2px dashed #3b82f6 !important;
+    border-bottom: 2px dashed #3b82f6 !important;
+    transition: all 0.2s ease;
+}
+
+tr.pdf-page-break-row:hover td {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+}
+
+.pdf-has-manual-break {
+    border-bottom: 2px solid #3b82f6 !important;
+}
+
+.pdf-manual-break-btn {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    color: #475569;
+    cursor: pointer;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-right: 4px;
+    vertical-align: middle;
+    transition: all 0.15s ease;
+}
+
+.pdf-manual-break-btn:hover {
+    border-color: #2563eb;
+    color: #1d4ed8;
+    background: #eff6ff;
+    transform: scale(1.05);
+}
+
+.pdf-manual-break-btn.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+
+/* Hide indicators during print and PDF download */
+.is-generating-pdf tr.pdf-page-break-row td,
+.is-generating-pdf .pdf-overflow-smart-pill,
+@media print {
+    tr.pdf-page-break-row td {
+        border: none !important;
+        background: transparent !important;
+        color: transparent !important;
+        font-size: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+        line-height: 0 !important;
+    }
+    .pdf-manual-break-btn,
+    .pdf-overflow-smart-pill {
+        display: none !important;
+    }
+}

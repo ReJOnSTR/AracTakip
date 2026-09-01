@@ -1,0 +1,435 @@
+import TopProgressBar from '../components/TopProgressBar'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useCompany } from '../context/CompanyContext'
+import { useTabs } from '../context/TabContext'
+import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
+import DataTable from '../components/DataTable'
+import CustomSelect from '../components/CustomSelect'
+import CustomInput from '../components/CustomInput'
+import {
+    vehicleTypes,
+    vehicleStatuses,
+    getVehicleTypeLabel,
+    getVehicleStatusInfo
+} from '../utils/helpers'
+import { Plus, Pencil, Trash2, Car, Building2, AlertCircle } from 'lucide-react'
+import VehicleForm from '../components/VehicleForm'
+import { usePersistentTab } from '../hooks/usePersistentTab'
+
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+
+export default function Vehicles() {
+    const navigate = useNavigate()
+    const { currentCompany } = useCompany()
+    const { openNewTab } = useTabs()
+    const [searchParams, setSearchParams] = useSearchParams()
+    const queryClient = useQueryClient()
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [editingVehicle, setEditingVehicle] = useState(null)
+    const [saving, setSaving] = useState(false)
+    const [activeTab, setActiveTab] = usePersistentTab('Vehicles', 'all')
+    const [error, setError] = useState('')
+    const [confirmModal, setConfirmModal] = useState(null) // { type: 'single'|'bulk', item, ids, title, message }
+    
+    // Seen Vehicle Types for Tabs History
+    const [seenTypes, setSeenTypes] = useState(new Set())
+
+    // Archive State
+    const [showArchived, setShowArchived] = useState(false)
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'new') {
+            openCreateModal()
+            searchParams.delete('action')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams])
+
+    const {
+        data: vehicles = [],
+        isLoading: loading,
+        refetch: loadVehicles
+    } = useQuery({
+        queryKey: ['vehicles', currentCompany?.id, showArchived ? 1 : 0],
+        queryFn: async () => {
+            if (!currentCompany?.id) return []
+            const result = await window.electronAPI.getVehicles(currentCompany.id, showArchived ? 1 : 0)
+            if (result.success) {
+                if (result.data.length > 0) {
+                    setSeenTypes(prev => {
+                        const next = new Set(prev)
+                        result.data.forEach(v => {
+                            if (v.type) next.add(v.type)
+                        })
+                        return next
+                    })
+                }
+                return result.data
+            }
+            return []
+        },
+        enabled: !!currentCompany?.id,
+        staleTime: 1000 * 60 * 5,
+    })
+
+    // Real-time synchronization listener
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if ([
+                'vehicles', 'maintenances', 'inspections', 'insurances',
+                'services', 'assignments'
+            ].includes(change?.table)) {
+                console.log(`[RealTime] Vehicles reloading for change in ${change.table}`)
+                queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany, queryClient])
+
+    const resetForm = () => {
+        setEditingVehicle(null)
+        setError('')
+    }
+
+    const openCreateModal = () => {
+        resetForm()
+        setIsModalOpen(true)
+    }
+
+    const openEditModal = (vehicle) => {
+        setEditingVehicle(vehicle)
+        setIsModalOpen(true)
+    }
+
+    const closeModal = () => {
+        setIsModalOpen(false)
+        resetForm()
+    }
+
+    const handleSubmit = async (formData) => {
+        setSaving(true)
+        setError('')
+
+        // No need to validate here as VehicleForm handles it
+        // and only calls onSubmit if valid.
+
+        setSaving(true)
+
+        let result
+        if (editingVehicle) {
+            result = await window.electronAPI.updateVehicle({
+                id: editingVehicle.id,
+                ...formData,
+                year: formData.year ? parseInt(formData.year) : null
+            })
+        } else {
+            result = await window.electronAPI.createVehicle({
+                companyId: currentCompany.id,
+                ...formData,
+                year: formData.year ? parseInt(formData.year) : null
+            })
+        }
+
+        setSaving(false)
+
+        if (result.success) {
+            closeModal()
+            loadVehicles()
+        } else {
+            setError(result.error)
+        }
+    }
+
+    const handleDeleteClick = (vehicle) => {
+        setConfirmModal({
+            type: 'single',
+            item: vehicle,
+            title: 'Araç Silme',
+            message: `"${vehicle.plate}" plakalı aracı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleBulkDeleteClick = (ids) => {
+        setConfirmModal({
+            type: 'bulk',
+            ids: ids,
+            title: 'Toplu Silme',
+            message: `${ids.length} aracı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        })
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal) return
+
+        if (confirmModal.type === 'single') {
+            await window.electronAPI.deleteVehicle(confirmModal.item.id)
+        } else if (confirmModal.type === 'bulk') {
+            for (const id of confirmModal.ids) {
+                await window.electronAPI.deleteVehicle(id)
+            }
+        }
+
+        setConfirmModal(null)
+        loadVehicles()
+    }
+
+    const handleBulkArchive = async (ids) => {
+        if (!ids || ids.length === 0) return
+
+        const newStatus = showArchived ? 0 : 1
+
+        for (const id of ids) {
+            await window.electronAPI.archiveItem('vehicles', id, newStatus)
+        }
+        loadVehicles()
+    }
+
+    // PC Context Menu Listener
+    useEffect(() => {
+        const handleContextAction = (action) => {
+            // action format: "edit:123" or "delete:123"
+            if (!action) return
+            const [type, id] = action.split(':')
+            const vehicle = vehicles.find(v => v.id == id)
+            if (!vehicle) return
+
+            if (type === 'edit') {
+                openEditModal(vehicle)
+            } else if (type === 'delete') {
+                handleDeleteClick(vehicle)
+            }
+        }
+
+        if (window.electronAPI && window.electronAPI.onContextAction) {
+            window.electronAPI.onContextAction(handleContextAction)
+        }
+
+        return () => {
+            if (window.electronAPI && window.electronAPI.removePCListeners) {
+                window.electronAPI.removePCListeners() // Warning: this removes ALL pc listeners including dashboard ones if shared. 
+                // Better implementation would be granular, but for now it's okay if pages are unmounted.
+                // Actually invoke removePCListeners only removes listeners from ipcRenderer, which is fine as component unmounts.
+            }
+        }
+    }, [vehicles])
+
+    const handleContextMenu = (e, vehicle) => {
+        // Define menu items
+        const menuItems = [
+            { label: `${vehicle.plate} - ${vehicle.brand} ${vehicle.model}`, enabled: false },
+            { type: 'separator' },
+            { id: `edit:${vehicle.id}`, label: 'Düzenle' },
+            { id: `delete:${vehicle.id}`, label: 'Sil' },
+            { type: 'separator' },
+            { id: `detail:${vehicle.id}`, label: 'Detayları Gör', click: () => navigate(`/vehicles/${vehicle.id}`) }
+        ]
+
+        // This 'click' property won't work over IPC for `detail`.
+        // We need to handle `detail` in handleContextAction on main or renderer.
+        // Actually IPC menu click sends back 'context-action' event with ID.
+        // So we should handle 'detail:...' in handleContextAction above.
+
+        if (window.electronAPI && window.electronAPI.showContextMenu) {
+            window.electronAPI.showContextMenu(menuItems)
+        }
+    }
+
+    const columns = [
+        { 
+            key: 'plate', 
+            label: 'Plaka & Marka',
+            render: (val, r) => (
+                <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '12px', color: 'var(--text-primary)', background: 'rgba(255, 255, 255, 0.05)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        {val}
+                    </span>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {r.brand || '-'} {r.model || ''}
+                    </div>
+                </div>
+            )
+        },
+        {
+            key: 'type',
+            label: 'Tür',
+            render: (value) => getVehicleTypeLabel(value)
+        },
+        { 
+            key: 'year', 
+            label: 'Yıl',
+            width: '90px',
+            render: (val) => val ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{val}</span> : '-'
+        },
+        {
+            key: 'status',
+            label: 'Durum',
+            width: '110px',
+            render: (value) => {
+                const status = getVehicleStatusInfo(value)
+                return <span className={`badge badge-${status.color}`}>{status.label}</span>
+            }
+        }
+    ]
+
+    if (!currentCompany) {
+        return (
+            <div className="empty-state">
+                <div className="empty-state-icon">
+                    <Building2 />
+                </div>
+                <h2 className="empty-state-title">Şirket Seçilmedi</h2>
+                <p className="empty-state-desc">
+                    Araçları görüntülemek için lütfen bir şirket seçin.
+                </p>
+            </div>
+        )
+    }
+
+
+    return (
+        <div>
+            <TopProgressBar loading={loading} />
+            <div className="page-header">
+                <div>
+                    <h1 className="page-title">Araçlar</h1>
+                    <p style={{ marginTop: '5px', color: '#666' }}>Araç filosu yönetimi ve detayları.</p>
+                </div>
+                <div className="page-actions">
+                    <button className="btn btn-primary" onClick={openCreateModal}>
+                        <Plus size={18} />
+                        Yeni Araç
+                    </button>
+                </div>
+            </div>
+
+            {/* Dynamic Vehicle Type Tabs */}
+            {seenTypes.size > 0 && (() => {
+                const existingTypes = Array.from(seenTypes)
+                const tabs = existingTypes.map(t => ({ value: t, label: getVehicleTypeLabel(t), count: vehicles.filter(v => v.type === t).length }));
+                return (
+                    <div className="vehicle-tabs">
+                        <button
+                            className={`vehicle-tab${activeTab === 'all' ? ' active' : ''}`}
+                            onClick={() => setActiveTab('all')}
+                        >
+                            Tümü <span className="vehicle-tab-count">{vehicles.length}</span>
+                        </button>
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.value}
+                                className={`vehicle-tab${activeTab === tab.value ? ' active' : ''}`}
+                                onClick={() => setActiveTab(tab.value)}
+                            >
+                                {tab.label} <span className="vehicle-tab-count">{tab.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                );
+            })()}
+
+            <DataTable persistenceKey={`Vehicles_table_${activeTab}`}
+                columns={columns}
+                data={activeTab === 'all' ? vehicles : vehicles.filter(v => v.type === activeTab)}
+                showSearch={true}
+                showCheckboxes={true}
+                onBulkArchive={handleBulkArchive}
+                isArchiveView={showArchived}
+                onToggleArchiveView={setShowArchived}
+                emptyMessage={showArchived ? "Arşivlenmiş araç bulunmuyor." : "Bu kategoride henüz araç bulunmuyor."}
+                searchPlaceholder="Plaka veya marka ara..."
+                searchKeys={['plate', 'brand', 'model', 'year']}
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'Durum',
+                        options: [
+                            { value: 'active', label: 'Aktif' },
+                            { value: 'maintenance', label: 'Bakımda' },
+                            { value: 'inactive', label: 'Pasif' }
+                        ]
+                    }
+                ]}
+                onRowClick={(vehicle, e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        openNewTab(`/vehicles/${vehicle.id}`, true, `${vehicle.plate} ${vehicle.brand} ${vehicle.model}`)
+                    } else {
+                        navigate(`/vehicles/${vehicle.id}`)
+                    }
+                }}
+                onBulkDelete={handleBulkDeleteClick}
+                onContextMenu={handleContextMenu}
+                actions={(vehicle) => (
+                    <>
+                        <button title="Düzenle" onClick={() => openEditModal(vehicle)}>
+                            <Pencil size={16} />
+                        </button>
+                        <button title="Sil" className="danger" onClick={() => handleDeleteClick(vehicle)}>
+                            <Trash2 size={16} />
+                        </button>
+                    </>
+                )}
+            />
+
+            {vehicles.length === 0 && !loading && !showArchived && seenTypes.size === 0 && (
+                <div className="empty-state" style={{ marginTop: '40px', border: 'none', background: 'transparent' }}>
+                    <div className="empty-state-icon">
+                        <Car />
+                    </div>
+                    <h2 className="empty-state-title">Henüz Araç Yok</h2>
+                    <p className="empty-state-desc">
+                        Bu şirkete ait araç bulunmuyor. İlk aracınızı ekleyin.
+                    </p>
+                    <button className="btn btn-primary" onClick={openCreateModal}>
+                        <Plus size={18} />
+                        Araç Ekle
+                    </button>
+                </div>
+            )}
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                title={editingVehicle ? 'Araç Düzenle' : 'Yeni Araç'}
+                size="xl"
+                footer={null}
+            >
+                {error && (
+                    <div style={{
+                        backgroundColor: 'var(--danger-bg)',
+                        color: 'var(--danger)',
+                        border: '1px solid var(--danger)',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontSize: '14px',
+                        marginBottom: '20px'
+                    }}>
+                        <AlertCircle size={20} />
+                        <span>{error}</span>
+                    </div>
+                )}
+                <VehicleForm
+                    initialData={editingVehicle}
+                    onSubmit={handleSubmit}
+                    onCancel={closeModal}
+                    loading={saving}
+                />
+
+
+            </Modal>
+
+            <ConfirmModal
+                isOpen={!!confirmModal}
+                onClose={() => setConfirmModal(null)}
+                onConfirm={handleConfirmDelete}
+                title={confirmModal?.title}
+                message={confirmModal?.message}
+            />
+        </div>
+    )
+}

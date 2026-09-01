@@ -807,12 +807,13 @@ export default function DataTable({
                             {filters.map(filter => (
                                 <CustomSelect
                                     key={filter.key}
-                                    label={filter.label}
+                                    label=""
                                     value={activeFilters[filter.key] || ''}
                                     onChange={(value) => handleFilterChange(filter.key, value)}
                                     options={filter.options}
                                     placeholder={filter.label}
                                     className="filter-select-custom"
+                                    floatingLabel={false}
                                 />
                             ))}
                         </div>
@@ -836,14 +837,18 @@ export default function DataTable({
 
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                         {/* Column Toggle */}
-                        <div className="filter-clear" style={{ position: 'relative', padding: '0', border: 'none', background: 'transparent' }} ref={columnMenuRef}>
+                        <div style={{ position: 'relative' }} ref={columnMenuRef}>
                             <button
-                                className="filter-clear"
+                                className={`filter-clear ${showColumnMenu ? 'active' : ''}`}
+                                style={{
+                                    borderColor: showColumnMenu ? 'var(--accent-primary)' : undefined,
+                                    background: showColumnMenu ? 'var(--bg-tertiary)' : undefined,
+                                    color: showColumnMenu ? 'var(--text-primary)' : undefined
+                                }}
                                 onClick={(e) => {
                                     if (!showColumnMenu) {
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         const spaceBelow = window.innerHeight - rect.bottom;
-                                        // Estimate max height of dropdown (around 300px with padding/title)
                                         if (spaceBelow < 300 && rect.top > 300) {
                                             setDropdownPosition('top');
                                         } else {
@@ -854,101 +859,134 @@ export default function DataTable({
                                 }}
                                 title="Sütunları Düzenle"
                             >
-                                <Check size={14} />
+                                <Check size={13} style={{ color: 'var(--accent-primary)' }} />
                                 Sütunlar
                             </button>
                             {showColumnMenu && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: dropdownPosition === 'bottom' ? '100%' : 'auto',
-                                    bottom: dropdownPosition === 'top' ? '100%' : 'auto',
-                                    right: 0,
-                                    background: 'var(--bg-elevated)',
-                                    border: '1px solid var(--border-color)',
-                                    borderRadius: '6px',
-                                    padding: '8px 10px',
-                                    zIndex: 1000,
-                                    width: '180px',
-                                    marginTop: dropdownPosition === 'bottom' ? '6px' : '0',
-                                    marginBottom: dropdownPosition === 'top' ? '6px' : '0',
-                                    boxShadow: 'var(--shadow-lg)',
-                                    animation: dropdownPosition === 'bottom' ? 'dropdownIn 0.15s ease' : 'dropdownUp 0.15s ease'
-                                }}>
-                                    <div style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', paddingBottom: '4px', borderBottom: '1px solid var(--border-light)' }}>
-                                        Görünür Sütunlar
+                                <div 
+                                    className={`custom-select-dropdown placement-${dropdownPosition}`}
+                                    style={{
+                                        position: 'absolute',
+                                        top: dropdownPosition === 'bottom' ? 'calc(100% + 4px)' : 'auto',
+                                        bottom: dropdownPosition === 'top' ? 'calc(100% + 4px)' : 'auto',
+                                        right: 0,
+                                        left: 'auto',
+                                        width: '210px',
+                                        padding: '4px',
+                                        maxHeight: '280px',
+                                        zIndex: 1000
+                                    }}
+                                >
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '6px 8px',
+                                        borderBottom: '1px solid var(--border-color)',
+                                        marginBottom: '4px'
+                                    }}>
+                                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            Sütunlar
+                                        </span>
+                                        <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)' }}>
+                                            {orderedColumns.filter(c => visibleColumns instanceof Set ? visibleColumns.has(c.key) : new Set(visibleColumns).has(c.key)).length}/{orderedColumns.length}
+                                        </span>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '250px', overflowY: 'auto' }}>
-                                        {orderedColumns.map((col, index) => (
-                                            <div
-                                                key={col.key}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between',
-                                                    gap: '8px',
-                                                    fontSize: '12px',
-                                                    padding: '6px 8px',
-                                                    borderRadius: hoveredColumn === col.key ? '4px' : '0px',
-                                                    background: hoveredColumn === col.key ? 'var(--bg-tertiary)' : 'transparent',
-                                                    borderBottom: index !== orderedColumns.length - 1 ? '1px solid var(--border-light)' : 'none',
-                                                    transition: 'background 0.2s',
-                                                }}
-                                                onMouseEnter={() => setHoveredColumn(col.key)}
-                                                onMouseLeave={() => setHoveredColumn(null)}
-                                            >
-                                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, margin: 0, fontWeight: 500, userSelect: 'none' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={visibleColumns instanceof Set ? visibleColumns.has(col.key) : new Set(visibleColumns).has(col.key)}
-                                                        onChange={() => toggleColumn(col.key)}
-                                                        style={{ accentColor: 'var(--accent-primary)', width: '12px', height: '12px', cursor: 'pointer' }}
-                                                    />
-                                                    <span style={{ color: visibleColumns instanceof Set ? (visibleColumns.has(col.key) ? 'var(--text-primary)' : 'var(--text-muted)') : (new Set(visibleColumns).has(col.key) ? 'var(--text-primary)' : 'var(--text-muted)'), transition: 'color 0.2s' }}>
-                                                        {col.label}
-                                                    </span>
-                                                </label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', maxHeight: '230px', overflowY: 'auto' }}>
+                                        {orderedColumns.map((col, index) => {
+                                            const isVisible = visibleColumns instanceof Set ? visibleColumns.has(col.key) : new Set(visibleColumns).has(col.key);
+                                            return (
+                                                <div
+                                                    key={col.key}
+                                                    className="custom-select-option"
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                        gap: '6px',
+                                                        padding: '6px 8px',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onMouseEnter={() => setHoveredColumn(col.key)}
+                                                    onMouseLeave={() => setHoveredColumn(null)}
+                                                    onClick={() => toggleColumn(col.key)}
+                                                >
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, margin: 0, userSelect: 'none', minWidth: 0 }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isVisible}
+                                                            onChange={() => {}} // Handled by row onClick
+                                                            style={{ accentColor: 'var(--accent-primary)', width: '13px', height: '13px', cursor: 'pointer', margin: 0, flexShrink: 0 }}
+                                                        />
+                                                        <span style={{
+                                                            color: isVisible ? 'var(--text-primary)' : 'var(--text-muted)',
+                                                            fontWeight: isVisible ? 500 : 400,
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap',
+                                                            fontSize: '12px'
+                                                        }}>
+                                                            {col.label}
+                                                        </span>
+                                                    </label>
 
-                                                <div style={{
-                                                    display: 'flex',
-                                                    gap: '2px',
-                                                    opacity: hoveredColumn === col.key ? 1 : 0,
-                                                    pointerEvents: hoveredColumn === col.key ? 'auto' : 'none',
-                                                    transition: 'opacity 0.2s',
-                                                    alignItems: 'center'
-                                                }}>
-                                                    <button
-                                                        className="filter-clear"
-                                                        style={{
-                                                            padding: '2px', border: 'none', background: 'transparent', borderRadius: '4px',
-                                                            opacity: index === 0 ? 0.2 : 0.8, cursor: index === 0 ? 'default' : 'pointer',
-                                                            transition: 'opacity 0.2s'
-                                                        }}
-                                                        onMouseEnter={(e) => { if (index !== 0) e.currentTarget.style.opacity = '1' }}
-                                                        onMouseLeave={(e) => { if (index !== 0) e.currentTarget.style.opacity = '0.8' }}
-                                                        onClick={(e) => { e.stopPropagation(); moveColumnUp(col.key); }}
-                                                        disabled={index === 0}
-                                                        title="Yukarı Taşı"
-                                                    >
-                                                        <ArrowUp size={12} color="var(--text-primary)" />
-                                                    </button>
-                                                    <button
-                                                        className="filter-clear"
-                                                        style={{
-                                                            padding: '2px', border: 'none', background: 'transparent', borderRadius: '4px',
-                                                            opacity: index === orderedColumns.length - 1 ? 0.2 : 0.8, cursor: index === orderedColumns.length - 1 ? 'default' : 'pointer',
-                                                            transition: 'opacity 0.2s'
-                                                        }}
-                                                        onMouseEnter={(e) => { if (index !== orderedColumns.length - 1) e.currentTarget.style.opacity = '1' }}
-                                                        onMouseLeave={(e) => { if (index !== orderedColumns.length - 1) e.currentTarget.style.opacity = '0.8' }}
-                                                        onClick={(e) => { e.stopPropagation(); moveColumnDown(col.key); }}
-                                                        disabled={index === orderedColumns.length - 1}
-                                                        title="Aşağı Taşı"
-                                                    >
-                                                        <ArrowDown size={12} color="var(--text-primary)" />
-                                                    </button>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        gap: '2px',
+                                                        opacity: hoveredColumn === col.key ? 1 : 0,
+                                                        pointerEvents: hoveredColumn === col.key ? 'auto' : 'none',
+                                                        transition: 'opacity 0.12s',
+                                                        alignItems: 'center'
+                                                    }}>
+                                                        <button
+                                                            type="button"
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                width: '18px',
+                                                                height: '18px',
+                                                                padding: 0,
+                                                                border: 'none',
+                                                                background: 'transparent',
+                                                                borderRadius: '3px',
+                                                                color: 'var(--text-muted)',
+                                                                opacity: index === 0 ? 0.2 : 0.8,
+                                                                cursor: index === 0 ? 'default' : 'pointer'
+                                                            }}
+                                                            onClick={(e) => { e.stopPropagation(); moveColumnUp(col.key); }}
+                                                            disabled={index === 0}
+                                                            title="Yukarı Taşı"
+                                                        >
+                                                            <ArrowUp size={11} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                width: '18px',
+                                                                height: '18px',
+                                                                padding: 0,
+                                                                border: 'none',
+                                                                background: 'transparent',
+                                                                borderRadius: '3px',
+                                                                color: 'var(--text-muted)',
+                                                                opacity: index === orderedColumns.length - 1 ? 0.2 : 0.8,
+                                                                cursor: index === orderedColumns.length - 1 ? 'default' : 'pointer'
+                                                            }}
+                                                            onClick={(e) => { e.stopPropagation(); moveColumnDown(col.key); }}
+                                                            disabled={index === orderedColumns.length - 1}
+                                                            title="Aşağı Taşı"
+                                                        >
+                                                            <ArrowDown size={11} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -1161,7 +1199,7 @@ export default function DataTable({
                                 placeholder=""
                                 floatingLabel={false}
                             />
-                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length}</span>
+                            <span className="footer-info">{startRecord}-{endRecord} / {sortedData.length} kayıt</span>
                         </div>
 
                         <div className="pagination">
