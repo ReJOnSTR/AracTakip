@@ -9,17 +9,12 @@ import TransactionForm from '../components/forms/TransactionForm'
 import { formatCurrency, formatDate } from '../utils/helpers'
 import { Plus, Wallet, Banknote, FileSignature, ArrowDownRight, Trash2, Pencil, Check } from 'lucide-react'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+
 export default function Finance() {
     const { currentCompany } = useCompany()
     const [searchParams, setSearchParams] = useSearchParams()
-    const [transactions, setTransactions] = useState([])
-    const [stats, setStats] = useState({
-        totalBalance: 0,
-        cashBalance: 0,
-        pendingChecks: 0,
-        currentMonthOut: 0
-    })
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingTx, setEditingTx] = useState(null)
     const [saving, setSaving] = useState(false)
@@ -37,62 +32,38 @@ export default function Finance() {
         }
     }, [searchParams])
 
-    const filteredTotal = useMemo(() => {
-        return filteredTransactions.reduce((sum, tx) => {
-            return sum + (tx.type === 'IN' ? tx.amount : -tx.amount)
-        }, 0)
-    }, [filteredTransactions])
-
-    const selectedTotal = useMemo(() => {
-        const selectedTxs = transactions.filter(tx => selectedIds.includes(tx.id))
-        return selectedTxs.reduce((sum, tx) => {
-            return sum + (tx.type === 'IN' ? tx.amount : -tx.amount)
-        }, 0)
-    }, [selectedIds, transactions])
-
-    const isFiltered = filteredTransactions.length > 0 && filteredTransactions.length < transactions.length
-
-    useEffect(() => {
-        if (currentCompany) {
-            loadData()
-        } else {
-            setTransactions([])
-            setStats({ totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 })
-            setLoading(false)
-        }
-    }, [currentCompany, showArchived])
+    const {
+        data: { transactions = [], stats = { totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 } } = {},
+        isLoading: loading,
+        refetch: loadData
+    } = useQuery({
+        queryKey: ['finance', currentCompany?.id, showArchived ? 1 : 0],
+        queryFn: async () => {
+            if (!currentCompany?.id) return { transactions: [], stats: { totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 } }
+            const [txRes, statsRes] = await Promise.all([
+                window.electronAPI.getAllFinance(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getFinanceStats(currentCompany.id)
+            ])
+            return {
+                transactions: txRes.success ? txRes.data : [],
+                stats: statsRes.success ? statsRes.data : { totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 }
+            }
+        },
+        enabled: !!currentCompany?.id,
+        staleTime: 1000 * 60 * 5,
+    })
 
     // Real-time synchronization listener
-    const loadDataRef = useRef(null)
-    useEffect(() => {
-        loadDataRef.current = loadData
-    })
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
             if (['transactions', 'recurring_transactions'].includes(change?.table)) {
                 console.log(`[RealTime] Finance reloading for change in ${change.table}`)
-                loadDataRef.current(true)
+                queryClient.invalidateQueries({ queryKey: ['finance'] })
             }
         })
         return () => { if (unsub) unsub() }
-    }, [currentCompany])
-
-    const loadData = async (isBackground = false) => {
-        if (!isBackground) setLoading(true)
-        try {
-            const [txRes, statsRes] = await Promise.all([
-                window.electronAPI.getAllFinance(currentCompany.id, showArchived ? 1 : 0),
-                window.electronAPI.getFinanceStats(currentCompany.id)
-            ])
-
-            if (txRes.success) setTransactions(txRes.data)
-            if (statsRes.success) setStats(statsRes.data)
-        } catch (error) {
-            console.error('Failed to load finance data:', error)
-        }
-        if (!isBackground) setLoading(false)
-    }
+    }, [currentCompany, queryClient])
 
     const resetForm = () => {
         setEditingTx(null)
