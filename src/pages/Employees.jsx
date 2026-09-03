@@ -267,7 +267,13 @@ export default function Employees() {
                 <div style={{ marginBottom: '25px' }}>
                     {(() => {
                         const { upcomingEvents } = useCompany()
-                        const empEvents = (upcomingEvents || []).filter(e => e.eventType === 'employee_document')
+                        const empEvents = (upcomingEvents || []).filter(e => {
+                            if (e.eventType !== 'employee_document') return false
+                            // If employees list is loaded, filter out any archived or non-active employee
+                            const emp = employees.find(x => x.id === e.employeeId)
+                            if (emp && (emp.is_archived === 1 || emp.status !== 'active')) return false
+                            return true
+                        })
                         const overdue = empEvents.filter(e => {
                             const d = Math.ceil((new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24))
                             return d < 0

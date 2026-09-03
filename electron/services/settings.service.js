@@ -108,10 +108,10 @@ async function getUpcomingEvents(companyId) {
         // 1. Get Inspections
         try {
             const inspections = await prisma.inspections.findMany({
-                where: { vehicles: { company_id: cid }, next_inspection: { lte: futureDate }, is_archived: 0 },
+                where: { vehicles: { company_id: cid, is_archived: 0 }, next_inspection: { lte: futureDate }, is_archived: 0 },
                 include: { vehicles: true }
             });
-            inspections.forEach(i => {
+            inspections.filter(i => i.vehicles && i.vehicles.is_archived !== 1).forEach(i => {
                 if (i.next_inspection) {
                     events.push({
                         id: i.id,
@@ -130,10 +130,10 @@ async function getUpcomingEvents(companyId) {
         // 2. Get Insurances
         try {
             const insurances = await prisma.insurances.findMany({
-                where: { vehicles: { company_id: cid }, end_date: { lte: futureDate }, is_archived: 0 },
+                where: { vehicles: { company_id: cid, is_archived: 0 }, end_date: { lte: futureDate }, is_archived: 0 },
                 include: { vehicles: true }
             });
-            insurances.forEach(i => {
+            insurances.filter(i => i.vehicles && i.vehicles.is_archived !== 1).forEach(i => {
                 if (i.end_date) {
                     events.push({
                         id: i.id,
@@ -152,10 +152,10 @@ async function getUpcomingEvents(companyId) {
         // 3. Get Maintenances
         try {
             const maintenances = await prisma.maintenances.findMany({
-                where: { vehicles: { company_id: cid }, next_date: { lte: futureDate }, is_archived: 0 },
+                where: { vehicles: { company_id: cid, is_archived: 0 }, next_date: { lte: futureDate }, is_archived: 0 },
                 include: { vehicles: true }
             });
-            maintenances.forEach(m => {
+            maintenances.filter(m => m.vehicles && m.vehicles.is_archived !== 1).forEach(m => {
                 if (m.next_date) {
                     events.push({
                         id: m.id,
@@ -175,22 +175,28 @@ async function getUpcomingEvents(companyId) {
         try {
             const empDocs = await prisma.employee_documents.findMany({
                 where: {
-                    employees: { company_id: cid },
+                    employees: { 
+                        company_id: cid,
+                        status: 'active',
+                        is_archived: { not: 1 }
+                    },
                     expiry_date: { lte: futureDate, not: null },
                     is_archived: 0
                 },
                 include: { employees: true }
             });
-            empDocs.forEach(d => {
-                events.push({
-                    id: d.id,
-                    eventType: 'employee_document',
-                    type: `Belge Süresi: ${d.category || 'Döküman'}`,
-                    date: d.expiry_date,
-                    employeeId: d.employee_id,
-                    employeeName: `${d.employees?.first_name} ${d.employees?.last_name}`
+            empDocs
+                .filter(d => d.employees && d.employees.status === 'active' && d.employees.is_archived !== 1)
+                .forEach(d => {
+                    events.push({
+                        id: d.id,
+                        eventType: 'employee_document',
+                        type: `Belge Süresi: ${d.category || 'Döküman'}`,
+                        date: d.expiry_date,
+                        employeeId: d.employee_id,
+                        employeeName: `${d.employees?.first_name} ${d.employees?.last_name}`
+                    });
                 });
-            });
         } catch (e) { console.error('getUpcomingEvents employee docs error:', e.message); }
 
         // 5. Get Upcoming Checks / Notes

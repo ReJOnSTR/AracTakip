@@ -383,7 +383,9 @@ async function getUpcomingDocuments(companyId) {
         const docs = await prisma.employee_documents.findMany({
             where: {
                 employees: {
-                    company_id: parseInt(companyId)
+                    company_id: parseInt(companyId),
+                    status: 'active',
+                    is_archived: { not: 1 }
                 },
                 is_archived: 0,
                 expiry_date: {
@@ -396,7 +398,9 @@ async function getUpcomingDocuments(companyId) {
                     select: {
                         first_name: true,
                         last_name: true,
-                        id: true
+                        id: true,
+                        status: true,
+                        is_archived: true
                     }
                 }
             },
@@ -405,7 +409,10 @@ async function getUpcomingDocuments(companyId) {
             }
         });
 
-        return { success: true, data: JSON.parse(JSON.stringify(docs)) };
+        // Filter out any documents where employees is missing or archived
+        const filteredDocs = docs.filter(d => d.employees && d.employees.status === 'active' && d.employees.is_archived !== 1);
+
+        return { success: true, data: JSON.parse(JSON.stringify(filteredDocs)) };
     } catch (error) { return { success: false, error: error.message }; }
 }
 

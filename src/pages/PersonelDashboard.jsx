@@ -81,7 +81,14 @@ export default function PersonelDashboard() {
             if (passiveEmpRes.success) allEmps = [...allEmps, ...(passiveEmpRes.data || [])]
 
             setEmployees(allEmps)
-            if (docRes.success) setUpcomingDocs(docRes.data || [])
+            if (docRes.success) {
+                const activeDocs = (docRes.data || []).filter(d => {
+                    if (!d.employees) return false
+                    if (d.employees.is_archived === 1 || (d.employees.status && d.employees.status !== 'active')) return false
+                    return true
+                })
+                setUpcomingDocs(activeDocs)
+            }
         } catch (error) {
             console.error(error)
         } finally {
@@ -91,7 +98,7 @@ export default function PersonelDashboard() {
 
     // --- Computed Stats ---
     const stats = useMemo(() => {
-        const active = employees.filter(e => e.status === 'active')
+        const active = employees.filter(e => e.status === 'active' && e.is_archived !== 1)
         const totalSalary = active.reduce((sum, e) => sum + (parseFloat(e.salary) || 0), 0)
 
         // Upcoming Birthdays (Next 30 days)
@@ -99,7 +106,7 @@ export default function PersonelDashboard() {
         today.setHours(0, 0, 0, 0)
 
         const birthdays = employees
-            .filter(e => e.birth_date && e.status === 'active')
+            .filter(e => e.birth_date && e.status === 'active' && e.is_archived !== 1)
             .map(e => {
                 const bDate = new Date(e.birth_date)
                 const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate())
