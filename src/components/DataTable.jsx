@@ -1157,7 +1157,15 @@ export default function DataTable({
                                         const titleContent = typeof cellContent === 'string' || typeof cellContent === 'number' ? cellContent : ''
 
                                         return (
-                                            <td key={col.key} style={{ textAlign: col.align || 'left' }} title={String(titleContent)}>
+                                            <td 
+                                                key={col.key} 
+                                                style={{ 
+                                                    textAlign: col.align || 'left',
+                                                    ...(col.wrap ? { whiteSpace: 'normal', wordBreak: 'break-word', overflowWrap: 'anywhere' } : {}),
+                                                    ...(col.tdStyle || {})
+                                                }} 
+                                                title={String(titleContent)}
+                                            >
                                                 {cellContent}
                                             </td>
                                         )

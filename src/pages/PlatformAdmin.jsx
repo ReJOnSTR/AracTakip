@@ -779,14 +779,14 @@ export default function PlatformAdmin({ section }) {
             return <span className="badge badge-danger">• Kilitli</span>
         }},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'İşlemler', width: '150px', render: (_, r) => (
-            <div className="action-btns" style={{ display: 'inline-flex', gap: '5px', alignItems: 'center' }}>
+        { key: 'actions', label: 'İşlemler', width: '220px', tdStyle: { overflow: 'visible', whiteSpace: 'nowrap' }, render: (_, r) => (
+            <div className="action-btns" style={{ display: 'inline-flex', gap: '5px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                 {r.isPending && (
                     <button
                         className="ghost-btn"
                         onClick={() => handleToggleUser(r)}
                         title="Başvuruyu Onayla & Hesabı Aktif Et"
-                        style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.1)', fontWeight: 600 }}
+                        style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.1)', fontWeight: 600, whiteSpace: 'nowrap' }}
                     >
                         <Check size={13} />
                         <span>Onayla</span>
@@ -856,12 +856,13 @@ export default function PlatformAdmin({ section }) {
             </div>
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'Yönetim & İşlemler', width: '140px', render: (_, r) => (
-            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+        { key: 'actions', label: 'Yönetim & İşlemler', width: '210px', tdStyle: { overflow: 'visible', whiteSpace: 'nowrap' }, render: (_, r) => (
+            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateCompany(r)}
                     title="Şirkete Giriş Yap (Ana Portal)"
+                    style={{ whiteSpace: 'nowrap' }}
                 >
                     <ExternalLink size={12} />
                     <span>Şirkete Giriş Yap</span>
@@ -879,10 +880,10 @@ export default function PlatformAdmin({ section }) {
 
     // ── ANNOUNCEMENTS TABLE COLUMNS ──
     const announcementColumns = [
-        { key: 'title', label: 'Duyuru Başlığı & İçerik', render: (val, r) => {
+        { key: 'title', label: 'Duyuru Başlığı & İçerik', wrap: true, render: (val, r) => {
             const meta = announcementTypeMeta[r.type] || { color: '#3b82f6' }
             return (
-                <div>
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: meta.color, display: 'inline-block', flexShrink: 0 }} />
                         <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '12.5px' }}>{val}</span>
@@ -927,8 +928,8 @@ export default function PlatformAdmin({ section }) {
             )
         }},
         { key: 'expires_at', label: 'Bitiş Tarihi', render: (val) => val ? formatDate(val) : <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Süresiz</span> },
-        { key: 'actions', label: 'İşlemler', width: '90px', render: (_, r) => (
-            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+        { key: 'actions', label: 'İşlemler', width: '100px', tdStyle: { overflow: 'visible', whiteSpace: 'nowrap' }, render: (_, r) => (
+            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                 <button
                     className="action-icon-btn"
                     onClick={() => handleToggleAnnouncement(r)}
@@ -996,25 +997,32 @@ export default function PlatformAdmin({ section }) {
                 </span>
             )
         }},
-        { key: 'entityName', label: 'Hedef / Varlık', width: '180px', render: (val, r) => (
-            <div>
+        { key: 'entityName', label: 'Hedef / Varlık', width: '180px', wrap: true, render: (val, r) => (
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                 <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{val || '-'}</strong>
                 {r.entityType && (
                     <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Modül: {r.entityType}</div>
                 )}
             </div>
         )},
-        { key: 'description', label: 'İşlem Açıklaması', render: (val) => (
-            <div style={{ fontSize: '12px', color: 'var(--text-primary)' }}>
-                {val}
+        { key: 'description', label: 'İşlem Nedeni & Açıklaması', minWidth: '220px', wrap: true, render: (val) => (
+            <div style={{ 
+                fontSize: '12px', 
+                color: 'var(--text-primary)', 
+                lineHeight: 1.45, 
+                whiteSpace: 'normal', 
+                wordBreak: 'break-word', 
+                overflowWrap: 'anywhere' 
+            }}>
+                {val || '-'}
             </div>
         )},
-        { key: 'actions', label: 'Detay', width: '80px', render: (_, r) => (
+        { key: 'actions', label: 'Detay', width: '90px', tdStyle: { overflow: 'visible' }, render: (_, r) => (
             <button
                 className="ghost-btn"
                 onClick={() => { setSelectedAuditDetail(r); setAuditDetailModal(true); setCopiedDetailJson(false); }}
                 title="İşlem Detayını Görüntüle"
-                style={{ padding: '4px 8px', fontSize: '11.5px' }}
+                style={{ padding: '4px 8px', fontSize: '11.5px', whiteSpace: 'nowrap' }}
             >
                 <Eye size={12} />
                 <span>İncele</span>
