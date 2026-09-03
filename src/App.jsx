@@ -173,7 +173,13 @@ function AppRoutes() {
     const isPrintRoute = location.pathname === '/print' || location.pathname === '/print-document' || location.pathname.startsWith('/work-report')
 
     const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''))
-    const isImpersonating = !!(urlParams.get('impersonate_company_id') || sessionStorage.getItem('aractakip_impersonate_company_id'))
+    const impIdFromUrl = urlParams.get('impersonate_company_id')
+    if (impIdFromUrl && !sessionStorage.getItem('aractakip_impersonate_company_id')) {
+        sessionStorage.setItem('aractakip_impersonate_company_id', impIdFromUrl)
+        const impNameFromUrl = urlParams.get('impersonate_company_name')
+        if (impNameFromUrl) sessionStorage.setItem('aractakip_impersonate_company_name', decodeURIComponent(impNameFromUrl))
+    }
+    const isImpersonating = !!(impIdFromUrl || sessionStorage.getItem('aractakip_impersonate_company_id'))
     const isStandaloneSuperAdmin = user?.role === 'superadmin' && !isImpersonating
 
     return (

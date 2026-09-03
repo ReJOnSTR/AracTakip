@@ -364,27 +364,33 @@ export default function PlatformAdmin({ section }) {
     }
 
     // Impersonate Company (Dedicated Window -> opens Main Portal)
-    const handleImpersonateCompany = async (company) => {
+    const handleImpersonateCompany = (company) => {
         try {
-            if (window.electronAPI?.openImpersonateWindow) {
-                await window.electronAPI.openImpersonateWindow({
+            const isElectron = typeof window !== 'undefined' && 
+                (window.navigator?.userAgent?.includes('Electron') || !!window.process?.versions?.electron);
+
+            if (isElectron && window.electronAPI?.openImpersonateWindow) {
+                window.electronAPI.openImpersonateWindow({
                     companyId: company.id,
                     companyName: company.name
-                })
-            } else {
-                const queryStr = `impersonate_company_id=${company.id}&impersonate_company_name=${encodeURIComponent(company.name)}`
-                const baseUrl = window.location.origin + window.location.pathname
-                const url = `${baseUrl}?${queryStr}#/portal`
-                const winFeatures = 'width=1400,height=900,left=100,top=100,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes'
-                const newWin = window.open(url, '_blank', winFeatures)
-                if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-                    window.open(url, '_blank')
-                }
+                });
+                return;
+            }
+
+            // Web mode (Edge, Chrome, Safari, etc.): Must execute synchronously to avoid popup blockers
+            const queryStr = `impersonate_company_id=${company.id}&impersonate_company_name=${encodeURIComponent(company.name)}`;
+            const baseUrl = window.location.origin + window.location.pathname;
+            const url = `${baseUrl}#/portal?${queryStr}`;
+
+            const winFeatures = 'width=1400,height=900,left=100,top=100,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+            const newWin = window.open(url, '_blank', winFeatures);
+            if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+                window.open(url, '_blank');
             }
         } catch (err) {
-            console.error('handleImpersonateCompany error:', err)
-            selectCompany(company)
-            navigate('/portal')
+            console.error('handleImpersonateCompany error:', err);
+            selectCompany(company);
+            navigate('/portal');
         }
     }
 

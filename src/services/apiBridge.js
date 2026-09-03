@@ -27,6 +27,10 @@ if (typeof window !== 'undefined' && !window.electronAPI) {
                 return () => {};
             }
 
+            if (prop === 'openImpersonateWindow') {
+                return undefined;
+            }
+
             if (prop === 'getPlatform') {
                 return async () => (navigator.platform || 'web').toLowerCase();
             }

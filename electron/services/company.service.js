@@ -11,7 +11,11 @@ async function getCompanies(userId) {
             }).catch(() => null);
 
             if (user) {
-                if (user.role === 'personnel' && user.employee_id) {
+                if (user.role === 'superadmin') {
+                    companies = await prisma.companies.findMany({
+                        orderBy: { name: 'asc' }
+                    });
+                } else if (user.role === 'personnel' && user.employee_id) {
                     const emp = await prisma.employees.findUnique({
                         where: { id: user.employee_id }
                     }).catch(() => null);
