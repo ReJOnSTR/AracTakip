@@ -2359,6 +2359,15 @@ textarea,
   transition: all 0.1s;
 }
 
+.action-btns button.ghost-btn,
+.action-btns button:has(span),
+.action-btns .ghost-btn {
+  width: auto !important;
+  min-width: fit-content !important;
+  padding: 4px 10px !important;
+  white-space: nowrap !important;
+}
+
 .action-btns button:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);

@@ -373,8 +373,13 @@ export default function PlatformAdmin({ section }) {
                 })
             } else {
                 const queryStr = `impersonate_company_id=${company.id}&impersonate_company_name=${encodeURIComponent(company.name)}`
-                const url = `${window.location.origin}/?${queryStr}#/portal`
-                window.open(url, '_blank', 'width=1400,height=900,menubar=no,toolbar=no')
+                const baseUrl = window.location.origin + window.location.pathname
+                const url = `${baseUrl}?${queryStr}#/portal`
+                const winFeatures = 'width=1400,height=900,left=100,top=100,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes'
+                const newWin = window.open(url, '_blank', winFeatures)
+                if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+                    window.open(url, '_blank')
+                }
             }
         } catch (err) {
             console.error('handleImpersonateCompany error:', err)
@@ -856,13 +861,13 @@ export default function PlatformAdmin({ section }) {
             </div>
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
-        { key: 'actions', label: 'Yönetim & İşlemler', width: '210px', tdStyle: { overflow: 'visible', whiteSpace: 'nowrap' }, render: (_, r) => (
-            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
+        { key: 'actions', label: 'Yönetim & İşlemler', width: '220px', tdStyle: { overflow: 'visible', whiteSpace: 'nowrap' }, render: (_, r) => (
+            <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateCompany(r)}
-                    title="Şirkete Giriş Yap (Ana Portal)"
-                    style={{ whiteSpace: 'nowrap' }}
+                    title="Şirkete Giriş Yap (Ayrı Pencerede Aç)"
+                    style={{ whiteSpace: 'nowrap', width: 'auto', minWidth: 'fit-content' }}
                 >
                     <ExternalLink size={12} />
                     <span>Şirkete Giriş Yap</span>
@@ -871,6 +876,7 @@ export default function PlatformAdmin({ section }) {
                     className="action-icon-btn danger"
                     onClick={() => handleDeleteCompany(r)}
                     title="Şirketi ve Tüm Verilerini Sil"
+                    style={{ width: '28px', height: '28px', minWidth: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Trash2 size={13} />
                 </button>
