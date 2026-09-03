@@ -769,13 +769,16 @@ export default function PlatformAdmin({ section }) {
                 )}
             </div>
         )},
-        { key: 'two_factor_enabled', label: '2FA', render: (val, r) => (
-            r.two_factor_enabled === 1 ? (
-                <span className="badge badge-success">2FA Açık</span>
+        { key: 'two_factor_enabled', label: '2FA', render: (val, r) => {
+            const is2FA = r.two_factor_enabled === 1 || r.two_factor_enabled === true || r.has2FA;
+            return is2FA ? (
+                <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
+                    <Shield size={11} /> 2FA Açık
+                </span>
             ) : (
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kapalı</span>
-            )
-        )},
+            );
+        }},
         { key: 'status', label: 'Durum', render: (_, r) => {
             if (r.isPending) {
                 return (
@@ -810,7 +813,7 @@ export default function PlatformAdmin({ section }) {
                 >
                     <KeyRound size={13} />
                 </button>
-                {r.two_factor_enabled === 1 && (
+                {(r.two_factor_enabled === 1 || r.two_factor_enabled === true || r.has2FA) && (
                     <button
                         className="action-icon-btn"
                         onClick={() => handleResetUser2FA(r)}

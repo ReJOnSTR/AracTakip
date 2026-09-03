@@ -137,6 +137,8 @@ async function getPlatformUsers() {
                 accountBadge = 'Şirket Yöneticisi';
             }
 
+            const is2FA = Boolean(u.two_factor_enabled === 1 || u.two_factor_enabled === true || Boolean(u.two_factor_secret));
+
             return {
                 id: u.id,
                 username: u.username,
@@ -150,6 +152,8 @@ async function getPlatformUsers() {
                 isPending: u.is_active === 0,
                 rawStatus: u.is_active,
                 mustChangePassword: u.must_change_password === 1,
+                two_factor_enabled: is2FA ? 1 : 0,
+                has2FA: is2FA,
                 company: linkedCompany ? {
                     id: linkedCompany.id,
                     name: linkedCompany.name,

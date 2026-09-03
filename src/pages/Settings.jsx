@@ -222,6 +222,21 @@ export default function Settings() {
         } catch (err) {
             alert('Hata: ' + err.message)
         }
+    const handleResetUser2FA = async (targetUser) => {
+        if (!window.confirm(`"${targetUser.username}" kullanıcısının İki Adımlı Doğrulama (2FA) kilidini sıfırlamak istediğinize emin misiniz?`)) {
+            return
+        }
+        try {
+            const res = await window.electronAPI?.disableMfa(targetUser.id)
+            if (res?.success) {
+                alert(`"${targetUser.username}" kullanıcısının 2FA kilidi başarıyla sıfırlandı.`)
+                await loadCompanyUsers()
+            } else {
+                alert('2FA sıfırlama hatası: ' + (res?.error || 'Bilinmiyor'))
+            }
+        } catch (err) {
+            alert('Hata: ' + err.message)
+        }
     }
 
     const handleResetPasswordSubmit = async (e) => {
@@ -687,8 +702,9 @@ export default function Settings() {
                                                     <th style={{ padding: '10px 14px', textAlign: 'left' }}>Personel / Görev</th>
                                                     <th style={{ padding: '10px 14px', textAlign: 'left' }}>İletişim</th>
                                                     <th style={{ padding: '10px 14px', textAlign: 'center' }}>Yetki Rolü</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>2FA</th>
                                                     <th style={{ padding: '10px 14px', textAlign: 'center' }}>Durum</th>
-                                                    <th style={{ padding: '10px 14px', textAlign: 'center', width: '140px' }}>İşlemler</th>
+                                                    <th style={{ padding: '10px 14px', textAlign: 'center', width: '150px' }}>İşlemler</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -698,6 +714,7 @@ export default function Settings() {
                                                     const badgeClass = rolePreset ? rolePreset.badgeColor : (u.role === 'company_admin' ? 'badge-primary' : 'badge-neutral')
                                                     const isSelf = u.id === user?.id
                                                     const isActive = u.is_active === 1 || u.is_active === true
+                                                    const is2FA = Boolean(u.two_factor_enabled === 1 || u.two_factor_enabled === true || u.has2FA)
 
                                                     return (
                                                         <tr key={u.id} style={{ borderTop: '1px solid var(--border-color)' }}>
@@ -747,6 +764,15 @@ export default function Settings() {
                                                                 </span>
                                                             </td>
                                                             <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                                {is2FA ? (
+                                                                    <span className="badge badge-success" style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                                        <Shield size={11} /> Açık
+                                                                    </span>
+                                                                ) : (
+                                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Kapalı</span>
+                                                                )}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                                                                 <span className={`badge ${isActive ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '11px' }}>
                                                                     {isActive ? 'Aktif' : 'Kilitli'}
                                                                 </span>
@@ -781,6 +807,16 @@ export default function Settings() {
                                                                     >
                                                                         <Key size={14} />
                                                                     </button>
+                                                                    {is2FA && (
+                                                                        <button
+                                                                            className="action-icon-btn"
+                                                                            title="2FA Kilidini Sıfırla"
+                                                                            onClick={() => handleResetUser2FA(u)}
+                                                                            style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.4)' }}
+                                                                        >
+                                                                            <Shield size={14} />
+                                                                        </button>
+                                                                    )}
                                                                     {!isSelf && (
                                                                         <>
                                                                             <button
