@@ -19,6 +19,7 @@ reproduce_issue.js
 database.sqlite
 
 /src/generated/prisma
+electron/prisma/client
 scratch/
 backups/
 data/
