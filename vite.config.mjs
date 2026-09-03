@@ -28,12 +28,15 @@ export default defineConfig({
     strictPort: false,
     watch: {
       ignored: [
-        '**/.env*',
-        '**/vite.config.*',
-        '**/prisma/**',
+        '**/electron/**',
+        '**/dist/**',
         '**/dist-electron/**',
+        '**/prisma/**',
+        '**/.git/**',
+        '**/backups/**',
         '**/scratch/**',
-        '**/backups/**'
+        '**/*.log',
+        '**/.env*'
       ]
     },
     proxy: {

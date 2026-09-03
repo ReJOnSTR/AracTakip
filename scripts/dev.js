@@ -16,7 +16,7 @@ const vite = spawn(process.execPath, [viteEntry], {
     cwd: rootDir
 });
 
-// 3. Poll http://127.0.0.1:5173 until ready, then launch Electron directly
+// 3. Launch Electron immediately upon Vite's readiness
 let electronLaunched = false;
 let electronProcess = null;
 
@@ -24,6 +24,7 @@ function waitForVite() {
     if (electronLaunched) return;
 
     const req = http.get('http://127.0.0.1:5173/', (res) => {
+        res.resume();
         if (!electronLaunched) {
             electronLaunched = true;
             console.log('⚡ Vite dev server is ready! Launching Electron desktop window...');
@@ -32,7 +33,9 @@ function waitForVite() {
     });
 
     req.on('error', () => {
-        setTimeout(waitForVite, 150);
+        if (!electronLaunched) {
+            setTimeout(waitForVite, 40);
+        }
     });
 }
 
@@ -68,4 +71,4 @@ process.on('SIGTERM', () => {
 });
 
 // Start polling for Vite immediately
-setTimeout(waitForVite, 100);
+setTimeout(waitForVite, 20);

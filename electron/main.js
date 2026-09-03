@@ -4,7 +4,6 @@ const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto')
 const Store = require('electron-store')
-const AdmZip = require('adm-zip')
 const db = require('./prismaService')
 const { getPrismaClient, runAutoMigrations } = require('./prismaClient')
 const log = require('./logger') // Import logger
@@ -83,8 +82,6 @@ function migrateLegacyAppData() {
         log.error('Failed to migrate legacy app data:', err);
     }
 }
-
-migrateLegacyAppData()
 
 const store = new Store()
 
@@ -351,6 +348,9 @@ app.whenReady().then(async () => {
     // 3. Initialize Database and API server asynchronously in background
     (async () => {
         try {
+            // Asynchronously migrate legacy data without blocking window
+            try { migrateLegacyAppData(); } catch (e) { log.warn('Legacy migration error:', e); }
+
             if (db.initializeDatabase) db.initializeDatabase()
             log.info('Database initialized')
 
@@ -1274,6 +1274,7 @@ ipcMain.handle('data:import', async (event, userId) => {
             return { success: false, error: 'Dosya seçilmedi' }
         }
 
+        const AdmZip = require('adm-zip')
         const zip = new AdmZip(filePaths[0])
         const zipEntries = zip.getEntries()
 
@@ -1410,6 +1411,7 @@ function decryptData(text, key) {
 // Helper for ZIP creation
 function createBackupZip(outputPath) {
     try {
+        const AdmZip = require('adm-zip')
         const zip = new AdmZip()
         const userDataPath = app.getPath('userData')
 
