@@ -65,14 +65,19 @@ export default function WorkDetails(props) {
     const [selectedIds, setSelectedIds] = useState([])
     const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false)
     const [bulkEditFormData, setBulkEditFormData] = useState({
+        date: '',
         receiptNo: '',
         vehicleId: '',
         employeeId: '',
+        startTime: '',
+        endTime: '',
         hours: '',
         overtimeHours: '',
         pricingType: '',
         unitPrice: '',
-        description: ''
+        description: '',
+        _manualHours: false,
+        _manualOvertime: false
     })
     const [showKdv, setShowKdv] = useState(false)
     const [kdvRate, setKdvRate] = useState(20)
@@ -229,6 +234,19 @@ export default function WorkDetails(props) {
         const result = calculateAutoHours(bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType);
         setBulkFormData(prev => ({ ...prev, ...result }));
     }, [bulkFormData.startTime, bulkFormData.endTime, bulkFormData.pricingType, isBulkModalOpen, work])
+
+    // Auto-calculate hours for bulk edit modal
+    useEffect(() => {
+        if (!isBulkEditModalOpen) return;
+        if (bulkEditFormData.startTime && bulkEditFormData.endTime) {
+            const result = calculateAutoHours(bulkEditFormData.startTime, bulkEditFormData.endTime, bulkEditFormData.pricingType);
+            setBulkEditFormData(prev => ({
+                ...prev,
+                hours: prev._manualHours ? prev.hours : String(result.hours),
+                overtimeHours: prev._manualOvertime ? prev.overtimeHours : String(result.overtimeHours)
+            }));
+        }
+    }, [bulkEditFormData.startTime, bulkEditFormData.endTime, bulkEditFormData.pricingType, isBulkEditModalOpen, work])
 
 
 
@@ -409,14 +427,19 @@ export default function WorkDetails(props) {
 
     const openBulkEditModal = () => {
         setBulkEditFormData({
+            date: '',
             receiptNo: '',
             vehicleId: '',
             employeeId: '',
+            startTime: '',
+            endTime: '',
             hours: '',
             overtimeHours: '',
             pricingType: '',
             unitPrice: '',
-            description: ''
+            description: '',
+            _manualHours: false,
+            _manualOvertime: false
         })
         setModalError('')
         setIsBulkEditModalOpen(true)
@@ -719,6 +742,12 @@ export default function WorkDetails(props) {
         }
         if (bulkEditFormData.startTime && bulkEditFormData.startTime !== '') updates.startTime = bulkEditFormData.startTime
         if (bulkEditFormData.endTime && bulkEditFormData.endTime !== '') updates.endTime = bulkEditFormData.endTime
+        if (bulkEditFormData.hours !== '' && bulkEditFormData.hours !== undefined && bulkEditFormData.hours !== null) {
+            updates.hours = parseFloat(bulkEditFormData.hours)
+        }
+        if (bulkEditFormData.overtimeHours !== '' && bulkEditFormData.overtimeHours !== undefined && bulkEditFormData.overtimeHours !== null) {
+            updates.overtimeHours = parseFloat(bulkEditFormData.overtimeHours)
+        }
         if (bulkEditFormData.pricingType !== '') updates.pricingType = bulkEditFormData.pricingType
         if (bulkEditFormData.unitPrice !== '') updates.unitPrice = parseFloat(bulkEditFormData.unitPrice)
         if (bulkEditFormData.description !== '') updates.description = bulkEditFormData.description
@@ -744,16 +773,38 @@ export default function WorkDetails(props) {
                     }
                 }
 
+                const itemPricingType = updates.pricingType || (itemDesc.includes('[SAATLİK]') || existingItem.pricingType === 'hourly' ? 'hourly' : (itemDesc.includes('[AYLIK]') || existingItem.pricingType === 'monthly' ? 'monthly' : 'daily'));
+
+                const finalStartTime = updates.startTime !== undefined ? updates.startTime : existingItem.start_time;
+                const finalEndTime = updates.endTime !== undefined ? updates.endTime : existingItem.end_time;
+
+                let finalHours = existingItem.hours;
+                let finalOvertime = existingItem.overtime_hours;
+
+                if (updates.hours !== undefined) {
+                    finalHours = updates.hours;
+                } else if (updates.startTime !== undefined || updates.endTime !== undefined) {
+                    const autoH = calculateAutoHours(finalStartTime, finalEndTime, itemPricingType);
+                    finalHours = autoH.hours;
+                }
+
+                if (updates.overtimeHours !== undefined) {
+                    finalOvertime = updates.overtimeHours;
+                } else if (updates.startTime !== undefined || updates.endTime !== undefined) {
+                    const autoH = calculateAutoHours(finalStartTime, finalEndTime, itemPricingType);
+                    finalOvertime = autoH.overtimeHours;
+                }
+
                 const finalPayload = {
                     id: id,
                     date: updates.date !== undefined ? updates.date : existingItem.date,
                     receiptNo: updates.receiptNo !== undefined ? updates.receiptNo : existingItem.receipt_no,
                     vehicleId: updates.vehicleId !== undefined ? updates.vehicleId : (existingItem.vehicle_id || existingItem.custom_vehicle),
                     employeeId: updates.employeeId !== undefined ? updates.employeeId : (existingItem.employee_id || existingItem.custom_employee),
-                    startTime: updates.startTime !== undefined ? updates.startTime : existingItem.start_time,
-                    endTime: updates.endTime !== undefined ? updates.endTime : existingItem.end_time,
-                    hours: existingItem.hours,
-                    overtimeHours: existingItem.overtime_hours,
+                    startTime: finalStartTime,
+                    endTime: finalEndTime,
+                    hours: finalHours,
+                    overtimeHours: finalOvertime,
                     unitPrice: updates.unitPrice !== undefined ? updates.unitPrice : existingItem.unit_price,
                     travelPrice: existingItem.travel_price,
                     description: itemDesc
@@ -2089,8 +2140,8 @@ export default function WorkDetails(props) {
                         <CustomInput
                             label="Tarih"
                             type="date"
-                            value=""
-                            disabled={true}
+                            value={bulkEditFormData.date}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, date: val })}
                         />
                         <CustomInput
                             label="Fiş No"
@@ -2107,7 +2158,7 @@ export default function WorkDetails(props) {
                             value={bulkEditFormData.vehicleId}
                             onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, vehicleId: val })}
                             options={[
-                                { value: '', label: 'Seçiniz' },
+                                { value: '', label: 'Değiştirme (Mevcut kalsın)' },
                                 ...vehicles.map(v => ({ value: v.id, label: `${v.plate} (${v.brand})` }))
                             ]}
                             creatable={true}
@@ -2117,50 +2168,74 @@ export default function WorkDetails(props) {
                             value={bulkEditFormData.employeeId}
                             onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, employeeId: val })}
                             options={[
-                                { value: '', label: 'Seçiniz' },
+                                { value: '', label: 'Değiştirme (Mevcut kalsın)' },
                                 ...employees.map(e => ({ value: e.id, label: `${e.first_name} ${e.last_name}` }))
                             ]}
                             creatable={true}
                         />
                     </div>
 
+                    {/* Çalışma Saatleri (Başlangıç - Bitiş) */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <CustomInput
-                                type="time"
-                                label="B. Saati"
-                                value=""
-                                disabled={true}
-                            />
-                            <CustomInput
-                                type="time"
-                                label="B. Saati"
-                                value=""
-                                disabled={true}
-                            />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <CustomSelect
-                                label="Fiyatlandırma"
-                                value={bulkEditFormData.pricingType}
-                                onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, pricingType: val })}
-                                options={[
-                                    { value: '', label: 'Seçiniz' },
-                                    { value: 'daily', label: 'Günlük' },
-                                    { value: 'hourly', label: 'Saatlik' },
-                                    { value: 'monthly', label: 'Aylık' }
-                                ]}
-                            />
-                            <CustomInput
-                                label="Birim Fiyat"
-                                type="number"
-                                min={0}
-                                max={999999999}
-                                maxLength={12}
-                                value={bulkEditFormData.unitPrice}
-                                onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, unitPrice: val })}
-                            />
-                        </div>
+                        <CustomInput
+                            type="time"
+                            label="Başlangıç Saati"
+                            value={bulkEditFormData.startTime}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, startTime: val, _manualHours: false, _manualOvertime: false })}
+                        />
+                        <CustomInput
+                            type="time"
+                            label="Bitiş Saati"
+                            value={bulkEditFormData.endTime}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, endTime: val, _manualHours: false, _manualOvertime: false })}
+                        />
+                    </div>
+
+                    {/* Süre / Gün & Fazla Mesai Saati */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <CustomInput
+                            type="number"
+                            step="any"
+                            min={0}
+                            label="Çalışma Saati / Gün Sayısı"
+                            placeholder="Değiştirme (Boş bırakılabilir)"
+                            value={bulkEditFormData.hours}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, hours: val, _manualHours: true })}
+                        />
+                        <CustomInput
+                            type="number"
+                            step="any"
+                            min={0}
+                            label="Fazla Mesai (Saat)"
+                            placeholder="Değiştirme (Boş bırakılabilir)"
+                            value={bulkEditFormData.overtimeHours}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, overtimeHours: val, _manualOvertime: true })}
+                        />
+                    </div>
+
+                    {/* Fiyatlandırma & Birim Fiyat */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <CustomSelect
+                            label="Fiyatlandırma"
+                            value={bulkEditFormData.pricingType}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, pricingType: val })}
+                            options={[
+                                { value: '', label: 'Değiştirme (Mevcut kalsın)' },
+                                { value: 'daily', label: 'Günlük' },
+                                { value: 'hourly', label: 'Saatlik' },
+                                { value: 'monthly', label: 'Aylık' }
+                            ]}
+                        />
+                        <CustomInput
+                            label="Birim Fiyat"
+                            type="number"
+                            min={0}
+                            max={999999999}
+                            maxLength={12}
+                            placeholder="Değiştirme"
+                            value={bulkEditFormData.unitPrice}
+                            onChange={(val) => setBulkEditFormData({ ...bulkEditFormData, unitPrice: val })}
+                        />
                     </div>
 
                     {/* Ek Ödemeler (Disabled representation) */}
