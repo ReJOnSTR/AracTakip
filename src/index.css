@@ -2364,9 +2364,15 @@ textarea,
   color: var(--text-primary);
 }
 
-.action-btns button.danger:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
+.action-btns button.danger,
+.action-btns button.text-danger {
+  color: var(--danger, #ef4444);
+}
+
+.action-btns button.danger:hover,
+.action-btns button.text-danger:hover {
+  background: var(--danger-bg, rgba(239, 68, 68, 0.15));
+  color: #ef4444;
 }
 
 .action-btns button.success:hover {

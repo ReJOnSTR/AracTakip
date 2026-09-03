@@ -168,7 +168,14 @@ function getPrismaClient() {
             if (isPostgres) {
                 log.info(`Initializing Prisma Client with PostgreSQL (${dbUrl.split('@')[1] || 'remote'})`);
                 if (PrismaPg && pg) {
-                    const pool = new pg.Pool({ connectionString: dbUrl });
+                    const pool = new pg.Pool({
+                        connectionString: dbUrl,
+                        connectionTimeoutMillis: 5000,
+                        idleTimeoutMillis: 30000,
+                        max: 20,
+                        keepAlive: true,
+                        keepAliveInitialDelayMillis: 10000
+                    });
                     const adapter = new PrismaPg(pool);
                     prisma = new PrismaClient({ adapter });
                 } else {

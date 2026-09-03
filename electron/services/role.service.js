@@ -127,6 +127,9 @@ async function assignUserRoleAndEmployee(data) {
         if (roleId !== undefined) updateData.role_id = roleId ? Number(roleId) : null;
         if (employeeId !== undefined) updateData.employee_id = employeeId ? Number(employeeId) : null;
         if (isActive !== undefined) updateData.is_active = isActive ? 1 : 0;
+        if (data.permissions !== undefined) {
+            updateData.permissions = data.permissions ? (typeof data.permissions === 'string' ? data.permissions : JSON.stringify(data.permissions)) : null;
+        }
 
         const updatedUser = await prisma.users.update({
             where: { id: Number(userId) },

@@ -6,7 +6,6 @@ import './index.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HashRouter as Router } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { CompanyProvider } from './context/CompanyContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 
@@ -66,9 +65,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 <ThemeProvider>
                     <ToastProvider>
                         <AuthProvider>
-                            <CompanyProvider>
-                                <App />
-                            </CompanyProvider>
+                            <App />
                         </AuthProvider>
                     </ToastProvider>
                 </ThemeProvider>

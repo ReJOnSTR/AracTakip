@@ -7,14 +7,7 @@ const CompanyContext = createContext(null)
 export function CompanyProvider({ children }) {
     const { user } = useAuth()
     const [companies, setCompanies] = useState([])
-    const [currentCompany, setCurrentCompany] = useState(() => {
-        try {
-            const cached = localStorage.getItem('aractakip_cached_company')
-            return cached ? JSON.parse(cached) : null
-        } catch {
-            return null
-        }
-    })
+    const [currentCompany, setCurrentCompany] = useState(null)
     const [loading, setLoading] = useState(true)
     const [upcomingEvents, setUpcomingEvents] = useState([])
     const [isImpersonating, setIsImpersonating] = useState(() => {
@@ -103,11 +96,9 @@ export function CompanyProvider({ children }) {
 
                     if (storedCompany) {
                         setCurrentCompany(storedCompany)
-                        localStorage.setItem('aractakip_cached_company', JSON.stringify(storedCompany))
                     } else if (result.data.length > 0) {
                         setCurrentCompany(result.data[0])
                         localStorage.setItem('aractakip_company', result.data[0].id)
-                        localStorage.setItem('aractakip_cached_company', JSON.stringify(result.data[0]))
                     }
                 }
             }
@@ -121,7 +112,6 @@ export function CompanyProvider({ children }) {
         setCurrentCompany(company)
         if (!isImpersonating) {
             localStorage.setItem('aractakip_company', company.id)
-            localStorage.setItem('aractakip_cached_company', JSON.stringify(company))
         }
     }
 
@@ -187,50 +177,6 @@ export function CompanyProvider({ children }) {
         }
     }
 
-    // Company module licensing & gating
-    const companyModules = (() => {
-        if (!currentCompany) return null;
-        if (!currentCompany.modules) return null; // all enabled by default if null
-        try {
-            return typeof currentCompany.modules === 'string' 
-                ? JSON.parse(currentCompany.modules) 
-                : currentCompany.modules;
-        } catch {
-            return null;
-        }
-    })();
-
-    const companyLimits = (() => {
-        if (!currentCompany) return null;
-        if (!currentCompany.limits) return null;
-        try {
-            return typeof currentCompany.limits === 'string' 
-                ? JSON.parse(currentCompany.limits) 
-                : currentCompany.limits;
-        } catch {
-            return null;
-        }
-    })();
-
-    const isModuleEnabled = (moduleKey) => {
-        if (!currentCompany) return true;
-        if (!companyModules) return true; // full access if unconfigured
-        return companyModules[moduleKey] !== false;
-    };
-
-    const updateCompanyLicense = async (companyId, { plan, modules, limits }) => {
-        try {
-            const result = await companyService.updateLicense(companyId, { plan, modules, limits });
-            if (result.success) {
-                await loadCompanies();
-                return { success: true };
-            }
-            return { success: false, error: result.error };
-        } catch (error) {
-            return { success: false, error: 'Lisans güncellenemedi' };
-        }
-    };
-
     return (
         <CompanyContext.Provider value={{
             companies,
@@ -244,11 +190,7 @@ export function CompanyProvider({ children }) {
             upcomingEvents,
             loadUpcomingEvents,
             isImpersonating,
-            impersonatedCompanyName,
-            companyModules,
-            companyLimits,
-            isModuleEnabled,
-            updateCompanyLicense
+            impersonatedCompanyName
         }}>
             {children}
         </CompanyContext.Provider>

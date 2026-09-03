@@ -18,21 +18,24 @@ const statusOptions = [
     { value: 'inactive', label: 'Pasif' }
 ]
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-
 export default function Employees() {
     const { currentCompany } = useCompany()
     const navigate = useNavigate()
     const { openNewTab } = useTabs()
     const [searchParams, setSearchParams] = useSearchParams()
-    const queryClient = useQueryClient()
+    const [employees, setEmployees] = useState([])
+    const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingEmployee, setEditingEmployee] = useState(null)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [confirmModal, setConfirmModal] = useState(null)
     const [showArchived, setShowArchived] = useState(false)
+    const [departments, setDepartments] = useState([])
     const [createLoginEmp, setCreateLoginEmp] = useState(null)
+    const departmentOptions = departments
+        .filter(d => d.status !== 'passive')
+        .map(d => ({ value: d.name, label: d.name }))
 
     useEffect(() => {
         if (searchParams.get('action') === 'new') {
@@ -42,46 +45,55 @@ export default function Employees() {
         }
     }, [searchParams])
 
-    const {
-        data: { employees = [], departments = [] } = {},
-        isLoading: loading,
-        refetch: loadEmployees
-    } = useQuery({
-        queryKey: ['employees', currentCompany?.id, showArchived ? 1 : 0],
-        queryFn: async () => {
-            if (!currentCompany?.id) return { employees: [], departments: [] }
-            const [empRes, deptRes] = await Promise.all([
-                employeeService.getAll(currentCompany.id, showArchived ? 1 : 0),
-                window.electronAPI.getDepartments(currentCompany.id)
-            ])
-            const formattedData = empRes.success ? (empRes.data || []).map(emp => ({
-                ...emp,
-                full_name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
-            })) : []
-            return {
-                employees: formattedData,
-                departments: deptRes.success ? (deptRes.data || []) : []
-            }
-        },
-        enabled: !!currentCompany?.id,
-        staleTime: 1000 * 60 * 5,
-    })
-
-    const departmentOptions = departments
-        .filter(d => d.status !== 'passive')
-        .map(d => ({ value: d.name, label: d.name }))
+    useEffect(() => {
+        if (currentCompany) {
+            loadEmployees()
+        } else {
+            setEmployees([])
+            setLoading(false)
+        }
+    }, [currentCompany, showArchived])
 
     // Real-time synchronization listener
+    const loadEmployeesRef = useRef(null)
+    useEffect(() => {
+        loadEmployeesRef.current = loadEmployees
+    })
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
             if (change?.table === 'employees') {
                 console.log(`[RealTime] Employees reloading for change in ${change.table}`)
-                queryClient.invalidateQueries({ queryKey: ['employees'] })
+                loadEmployeesRef.current(true)
             }
         })
         return () => { if (unsub) unsub() }
-    }, [currentCompany, queryClient])
+    }, [currentCompany])
+
+    const loadEmployees = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
+        try {
+            const [empRes, deptRes] = await Promise.all([
+                employeeService.getAll(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getDepartments(currentCompany.id)
+            ])
+
+            if (empRes.success) {
+                const formattedData = (empRes.data || []).map(emp => ({
+                    ...emp,
+                    full_name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim()
+                }))
+                setEmployees(formattedData)
+            }
+
+            if (deptRes.success) {
+                setDepartments(deptRes.data || [])
+            }
+        } catch (err) {
+            console.error('Failed to load employees:', err)
+        }
+        if (!isBackground) setLoading(false)
+    }
 
     const [isBulkDocModalOpen, setIsBulkDocModalOpen] = useState(false)
     const [selectedEmpsForBulk, setSelectedEmpsForBulk] = useState([])

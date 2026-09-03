@@ -1,44 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath } from 'url'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   base: './',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
+  },
   resolve: {
     alias: {
-      'use-sync-external-store/shim/with-selector': 'use-sync-external-store/shim/with-selector.js'
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  },
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      '@tanstack/react-query',
-      'lucide-react',
-      'recharts',
-      'xlsx',
-      'canvas-confetti'
-    ]
   },
   server: {
     host: '127.0.0.1',
     port: 5173,
-    strictPort: false,
-    watch: {
-      ignored: [
-        '**/electron/**',
-        '**/dist/**',
-        '**/dist-electron/**',
-        '**/prisma/**',
-        '**/.git/**',
-        '**/backups/**',
-        '**/scratch/**',
-        '**/*.log',
-        '**/.env*'
-      ]
-    },
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:9999',

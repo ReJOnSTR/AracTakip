@@ -5,7 +5,6 @@ import { useCompany } from '../context/CompanyContext'
 import CustomSelect from '../components/CustomSelect'
 import CustomInput from '../components/CustomInput'
 import Modal from '../components/Modal'
-import TableActionMenu from '../components/TableActionMenu'
 import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import { 
     Sun, Moon, Shield, Database, Palette, HardDrive, Lock, Globe, 
@@ -753,7 +752,7 @@ export default function Settings() {
                                                                 </span>
                                                             </td>
                                                             <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                                                <TableActionMenu>
+                                                                <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', justifyContent: 'center' }}>
                                                                     <button
                                                                         className="action-icon-btn"
                                                                         title="Yetkileri Düzenle"
@@ -770,8 +769,7 @@ export default function Settings() {
                                                                             setEditUserModal(true)
                                                                         }}
                                                                     >
-                                                                        <Edit2 size={13} />
-                                                                        <span>Yetkileri Düzenle</span>
+                                                                        <Edit2 size={14} />
                                                                     </button>
                                                                     <button
                                                                         className="action-icon-btn"
@@ -781,8 +779,7 @@ export default function Settings() {
                                                                             setResetPasswordModal(true)
                                                                         }}
                                                                     >
-                                                                        <Key size={13} />
-                                                                        <span>Şifre Sıfırla</span>
+                                                                        <Key size={14} />
                                                                     </button>
                                                                     {!isSelf && (
                                                                         <>
@@ -792,20 +789,18 @@ export default function Settings() {
                                                                                 style={isActive ? { color: '#f59e0b' } : { color: '#10b981' }}
                                                                                 onClick={() => handleToggleUserStatus(u.id, u.is_active)}
                                                                             >
-                                                                                {isActive ? <Lock size={13} /> : <Unlock size={13} />}
-                                                                                <span>{isActive ? 'Hesabı Kilitle' : 'Kilidi Aç'}</span>
+                                                                                {isActive ? <Lock size={14} /> : <Unlock size={14} />}
                                                                             </button>
                                                                             <button
                                                                                 className="action-icon-btn danger"
                                                                                 title="Kullanıcıyı Sil"
                                                                                 onClick={() => handleDeleteUser(u)}
                                                                             >
-                                                                                <Trash2 size={13} />
-                                                                                <span>Kullanıcıyı Sil</span>
+                                                                                <Trash2 size={14} />
                                                                             </button>
                                                                         </>
                                                                     )}
-                                                                </TableActionMenu>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     )

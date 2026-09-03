@@ -123,18 +123,18 @@ async function getPlatformUsers() {
 
             if (u.role === 'superadmin') {
                 accountType = 'superadmin';
-                accountBadge = '👑 Süper Yönetici';
+                accountBadge = 'Süper Yönetici';
             } else if (u.companies && u.companies.length > 0) {
                 accountType = 'company_owner';
-                accountBadge = '🏢 Şirket Yöneticisi';
+                accountBadge = 'Şirket Yöneticisi';
                 linkedCompany = u.companies[0];
             } else if (u.employee) {
                 accountType = 'employee';
-                accountBadge = '👤 Personel / Şoför';
+                accountBadge = 'Personel / Şoför';
                 linkedCompany = u.employee.companies || null;
             } else if (u.role === 'company_admin' || u.role === 'admin') {
                 accountType = 'company_admin';
-                accountBadge = '🏢 Şirket Yöneticisi';
+                accountBadge = 'Şirket Yöneticisi';
             }
 
             return {
@@ -294,17 +294,17 @@ async function createPlatformUser(userData) {
 
         const password_hash = bcrypt.hashSync(password, 10);
         let userRole = role || 'admin';
-        let employeeId = null;
+        let employeeId = userData.employeeId ? parseInt(userData.employeeId, 10) : null;
 
-        // If creating as personnel / employee with a company
-        if ((userRole === 'personnel' || userRole === 'employee') && companyId) {
+        // If creating for a company without an explicit employee selection
+        if (!employeeId && companyId && userRole !== 'company_admin') {
             const compId = parseInt(companyId, 10);
             const employee = await prisma.employees.create({
                 data: {
                     company_id: compId,
                     first_name: fullName?.split(' ')?.[0] || username,
                     last_name: fullName?.split(' ')?.slice(1)?.join(' ') || '',
-                    position: position || 'Şoför / Saha Personeli',
+                    position: position || (userRole === 'manager' ? 'Operasyon & Puantör' : (userRole === 'accountant' ? 'Ön Muhasebe' : 'Şirket Personeli')),
                     phone: phone || null,
                     email: cleanEmail,
                     start_date: new Date(),
@@ -312,7 +312,6 @@ async function createPlatformUser(userData) {
                 }
             });
             employeeId = employee.id;
-            userRole = 'personnel';
         }
 
         const newUser = await prisma.users.create({
@@ -858,12 +857,75 @@ async function deletePlatformCompany(companyId) {
     }
 }
 
+/**
+ * Update user role and permissions
+ */
+async function updatePlatformUser(userId, userData) {
+    try {
+        const uid = parseInt(userId, 10);
+        const updateData = {};
+        if (userData.fullName !== undefined) updateData.full_name = userData.fullName;
+        if (userData.email !== undefined) updateData.email = userData.email.toLowerCase().trim();
+        if (userData.role !== undefined) updateData.role = userData.role;
+        if (userData.isActive !== undefined) updateData.is_active = (userData.isActive === 1 || userData.isActive === true) ? 1 : 0;
+        
+        const updated = await prisma.users.update({
+            where: { id: uid },
+            data: updateData
+        });
+
+        logAudit({
+            companyId: updated.company_id,
+            userId: updated.id,
+            username: updated.username,
+            userRole: updated.role,
+            action: 'UPDATE',
+            entityType: 'user',
+            entityId: String(updated.id),
+            entityName: updated.username,
+            description: `"${updated.username}" kullanıcısının rolü ve bilgileri güncellendi (${updated.role})`,
+            severity: 'info'
+        });
+
+        return { success: true, user: updated };
+    } catch (error) {
+        console.error('updatePlatformUser error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Get users belonging to a specific company
+ */
+async function getCompanyUsers(companyId) {
+    try {
+        const compId = parseInt(companyId, 10);
+        if (!compId) return { success: true, data: [] };
+
+        const allUsersRes = await getPlatformUsers();
+        const allUsers = allUsersRes?.data || [];
+        
+        // Strict company isolation: Never return superadmins or users from other companies
+        const companyUsers = allUsers.filter(u => {
+            if (u.role === 'superadmin' || u.accountType === 'superadmin') return false;
+            return u.company?.id === compId;
+        });
+
+        return { success: true, data: companyUsers };
+    } catch (error) {
+        console.error('getCompanyUsers error:', error);
+        return { success: false, error: error.message, data: [] };
+    }
+}
+
 module.exports = {
     getPlatformOverview,
     getPlatformUsers,
+    getCompanyUsers,
     resetPlatformUserPassword,
     impersonatePlatformUser,
     createPlatformUser,
+    updatePlatformUser,
     deletePlatformUser,
     toggleCompanyStatus,
     toggleUserStatus,

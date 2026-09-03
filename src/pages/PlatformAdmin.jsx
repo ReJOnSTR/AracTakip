@@ -8,7 +8,6 @@ import Modal from '../components/Modal'
 import CustomInput from '../components/CustomInput'
 import CustomSelect from '../components/CustomSelect'
 import TopProgressBar from '../components/TopProgressBar'
-import TableActionMenu from '../components/TableActionMenu'
 import EmailTemplatesManager from '../components/EmailTemplatesManager'
 import PermissionMatrix, { ROLE_PRESETS } from '../components/PermissionMatrix'
 import { 
@@ -781,7 +780,7 @@ export default function PlatformAdmin({ section }) {
         }},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
         { key: 'actions', label: 'İşlemler', width: '150px', render: (_, r) => (
-            <TableActionMenu>
+            <div className="action-btns" style={{ display: 'inline-flex', gap: '5px', alignItems: 'center' }}>
                 {r.isPending && (
                     <button
                         className="ghost-btn"
@@ -829,7 +828,7 @@ export default function PlatformAdmin({ section }) {
                         <Trash2 size={13} />
                     </button>
                 )}
-            </TableActionMenu>
+            </div>
         )}
     ]
 
@@ -858,7 +857,7 @@ export default function PlatformAdmin({ section }) {
         )},
         { key: 'created_at', label: 'Kayıt Tarihi', render: (val) => formatDate(val) },
         { key: 'actions', label: 'Yönetim & İşlemler', width: '140px', render: (_, r) => (
-            <TableActionMenu>
+            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
                 <button
                     className="ghost-btn"
                     onClick={() => handleImpersonateCompany(r)}
@@ -874,7 +873,7 @@ export default function PlatformAdmin({ section }) {
                 >
                     <Trash2 size={13} />
                 </button>
-            </TableActionMenu>
+            </div>
         )}
     ]
 
@@ -929,7 +928,7 @@ export default function PlatformAdmin({ section }) {
         }},
         { key: 'expires_at', label: 'Bitiş Tarihi', render: (val) => val ? formatDate(val) : <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Süresiz</span> },
         { key: 'actions', label: 'İşlemler', width: '90px', render: (_, r) => (
-            <TableActionMenu>
+            <div className="action-btns" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
                 <button
                     className="action-icon-btn"
                     onClick={() => handleToggleAnnouncement(r)}
@@ -945,7 +944,7 @@ export default function PlatformAdmin({ section }) {
                 >
                     <Trash2 size={13} />
                 </button>
-            </TableActionMenu>
+            </div>
         )}
     ]
 

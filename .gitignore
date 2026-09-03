@@ -1,4 +1,5 @@
 node_modules
+node_modules.nosync
 dist
 dist-electron
 release
@@ -18,7 +19,6 @@ reproduce_issue.js
 database.sqlite
 
 /src/generated/prisma
-electron/prisma/
 scratch/
 backups/
 data/
@@ -28,9 +28,3 @@ files/
 *.key
 *.pem
 *.timestamp-*.mjs
-
-# Duplicate macOS files
-* 2*
-* (1)*
-* (2)*
-* (1) 2.*

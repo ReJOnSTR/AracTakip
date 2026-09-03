@@ -4,7 +4,6 @@ import * as XLSX from 'xlsx'
 import CustomSelect from './CustomSelect'
 import CustomDatePicker from './CustomDatePicker'
 import { TableVirtuoso } from 'react-virtuoso'
-import TableActionMenu from './TableActionMenu'
 
 export default function DataTable({
     columns,
@@ -1165,7 +1164,7 @@ export default function DataTable({
                                     })}
                                     {(actions || onRowClick) && (
                                         <td className="td-actions" onClick={(e) => e.stopPropagation()}>
-                                            <TableActionMenu>
+                                            <div className="action-btns">
                                                 {actions && actions(row)}
                                                 {onRowClick && (
                                                     <button 
@@ -1176,7 +1175,7 @@ export default function DataTable({
                                                         <ChevronRight size={18} />
                                                     </button>
                                                 )}
-                                            </TableActionMenu>
+                                            </div>
                                         </td>
                                     )}
                                 </tr>

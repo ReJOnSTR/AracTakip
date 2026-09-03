@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto')
 const Store = require('electron-store')
+const AdmZip = require('adm-zip')
 const db = require('./prismaService')
 const { getPrismaClient, runAutoMigrations } = require('./prismaClient')
 const log = require('./logger') // Import logger
@@ -83,6 +84,8 @@ function migrateLegacyAppData() {
     }
 }
 
+migrateLegacyAppData()
+
 const store = new Store()
 
 let mainWindow
@@ -137,12 +140,8 @@ function createWindow() {
         },
         trafficLightPosition: { x: 12, y: 12 },
         backgroundColor: '#0f0f1a',
-        show: true
+        show: false
     })
-
-    // Immediate presentation without waiting for page parsing
-    mainWindow.show()
-    mainWindow.focus()
 
     // Save window state
     mainWindow.on('close', () => {
@@ -155,27 +154,24 @@ function createWindow() {
     if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
         const devUrl = 'http://127.0.0.1:5173'
         mainWindow.loadURL(devUrl)
-        if (process.env.DEV_TOOLS === 'true') {
-            mainWindow.webContents.openDevTools({ mode: 'detach' })
-        }
+        mainWindow.webContents.openDevTools()
 
         mainWindow.webContents.on('did-fail-load', () => {
-            log.warn('Dev server loading failed, retrying in 500ms...')
+            log.warn('Dev server loading failed, retrying in 1s...')
             setTimeout(() => {
                 if (mainWindow && !mainWindow.isDestroyed()) {
                     mainWindow.loadURL(devUrl)
                 }
-            }, 500)
+            }, 1000)
         })
     } else {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
     }
 
     mainWindow.once('ready-to-show', () => {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.focus()
-            if (mainWindow.webContents) mainWindow.webContents.focus()
-        }
+        mainWindow.show()
+        mainWindow.focus()
+        if (mainWindow.webContents) mainWindow.webContents.focus()
     })
 
     // Ensure webContents maintains first-responder keyboard focus
@@ -332,37 +328,34 @@ ipcMain.handle('notification:show', (event, { title, body }) => {
 })
 
 app.whenReady().then(async () => {
-    // 1. Instant zero-blocking window presentation (0ms delay)
+    // 1. Open the UI Window immediately (instant launch)
     createWindow()
-    log.info('Application window presented')
+    log.info('Application window created')
 
-    // 2. Global Shortcut for DevTools (F12)
+    // 2. Initialize Database & Services
+    try {
+        if (db.initializeDatabase) db.initializeDatabase()
+        log.info('Database initialized')
+
+        // Run schema migrations (add missing columns to older DBs)
+        await runAutoMigrations()
+
+        startAdminServer(getPrismaClient(), notifyDbUpdate)
+    } catch (err) {
+        log.error('Failed to initialize database:', err)
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            dialog.showErrorBox('Veritabanı Hatası', 'Veritabanı başlatılamadı.\n' + err.message)
+        }
+    }
+
+    log.info('Application started')
+
+    // Global Shortcut for DevTools (F12)
     globalShortcut.register('F12', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
-        } else if (mainWindow && mainWindow.webContents) {
-            mainWindow.webContents.toggleDevTools()
         }
     })
-
-    // 3. Initialize Database and API server asynchronously in background
-    (async () => {
-        try {
-            // Asynchronously migrate legacy data without blocking window
-            try { migrateLegacyAppData(); } catch (e) { log.warn('Legacy migration error:', e); }
-
-            if (db.initializeDatabase) db.initializeDatabase()
-            log.info('Database initialized')
-
-            // Run schema migrations
-            await runAutoMigrations()
-
-            startAdminServer(getPrismaClient(), notifyDbUpdate)
-            log.info('Background services initialized successfully')
-        } catch (err) {
-            log.error('Failed to initialize background database services:', err)
-        }
-    })()
 })
 
 app.on('browser-window-focus', (event, win) => {
@@ -1274,7 +1267,6 @@ ipcMain.handle('data:import', async (event, userId) => {
             return { success: false, error: 'Dosya seçilmedi' }
         }
 
-        const AdmZip = require('adm-zip')
         const zip = new AdmZip(filePaths[0])
         const zipEntries = zip.getEntries()
 
@@ -1411,7 +1403,6 @@ function decryptData(text, key) {
 // Helper for ZIP creation
 function createBackupZip(outputPath) {
     try {
-        const AdmZip = require('adm-zip')
         const zip = new AdmZip()
         const userDataPath = app.getPath('userData')
 
@@ -2699,7 +2690,7 @@ ipcMain.handle('database:migrateToPostgres', async (event, postgresUrl) => {
             webContents.send('migration-log', `[Storage Notu] Dosya senkronizasyonu: ${storageErr.message}`);
         }
 
-        webContents.send('migration-log', '🎉 Tebrikler! Tüm veritabanı ve dosyalar başarıyla Supabase bulutuna aktarıldı!');
+        webContents.send('migration-log', 'Tebrikler! Tüm veritabanı ve dosyalar başarıyla Supabase bulutuna aktarıldı!');
         return { success: true };
 
     } catch (migrationErr) {
@@ -2731,6 +2722,9 @@ ipcMain.handle('platform:getOverview', async () => {
 ipcMain.handle('platform:getUsers', async () => {
     return await db.getPlatformUsers();
 });
+ipcMain.handle('platform:getCompanyUsers', async (event, companyId) => {
+    return await db.getCompanyUsers(companyId);
+});
 ipcMain.handle('platform:resetUserPassword', async (event, userId, newPassword) => {
     return await db.resetPlatformUserPassword(userId, newPassword);
 });
@@ -2739,6 +2733,9 @@ ipcMain.handle('platform:impersonateUser', async (event, userId) => {
 });
 ipcMain.handle('platform:createUser', async (event, userData) => {
     return await db.createPlatformUser(userData);
+});
+ipcMain.handle('platform:updateUser', async (event, userId, userData) => {
+    return await db.updatePlatformUser(userId, userData);
 });
 ipcMain.handle('platform:deleteUser', async (event, userId) => {
     return await db.deletePlatformUser(userId);

@@ -18,14 +18,13 @@ import { Plus, Pencil, Trash2, Car, Building2, AlertCircle } from 'lucide-react'
 import VehicleForm from '../components/VehicleForm'
 import { usePersistentTab } from '../hooks/usePersistentTab'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-
 export default function Vehicles() {
     const navigate = useNavigate()
     const { currentCompany } = useCompany()
     const { openNewTab } = useTabs()
     const [searchParams, setSearchParams] = useSearchParams()
-    const queryClient = useQueryClient()
+    const [vehicles, setVehicles] = useState([])
+    const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingVehicle, setEditingVehicle] = useState(null)
     const [saving, setSaving] = useState(false)
@@ -47,16 +46,42 @@ export default function Vehicles() {
         }
     }, [searchParams])
 
-    const {
-        data: vehicles = [],
-        isLoading: loading,
-        refetch: loadVehicles
-    } = useQuery({
-        queryKey: ['vehicles', currentCompany?.id, showArchived ? 1 : 0],
-        queryFn: async () => {
-            if (!currentCompany?.id) return []
+    useEffect(() => {
+        if (currentCompany) {
+            loadVehicles()
+        } else {
+            setVehicles([])
+            setLoading(false)
+        }
+    }, [currentCompany, showArchived])
+
+    // Real-time synchronization listener
+    const loadVehiclesRef = useRef(null)
+    useEffect(() => {
+        loadVehiclesRef.current = loadVehicles
+    })
+    useEffect(() => {
+        if (!currentCompany) return
+        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
+            if ([
+                'vehicles', 'maintenances', 'inspections', 'insurances',
+                'services', 'assignments'
+            ].includes(change?.table)) {
+                console.log(`[RealTime] Vehicles reloading for change in ${change.table}`)
+                loadVehiclesRef.current(true)
+            }
+        })
+        return () => { if (unsub) unsub() }
+    }, [currentCompany])
+
+    const loadVehicles = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
+        try {
             const result = await window.electronAPI.getVehicles(currentCompany.id, showArchived ? 1 : 0)
             if (result.success) {
+                setVehicles(result.data)
+                
+                // Track newly seen vehicle types from the result data to persist tabs
                 if (result.data.length > 0) {
                     setSeenTypes(prev => {
                         const next = new Set(prev)
@@ -66,28 +91,12 @@ export default function Vehicles() {
                         return next
                     })
                 }
-                return result.data
             }
-            return []
-        },
-        enabled: !!currentCompany?.id,
-        staleTime: 1000 * 60 * 5,
-    })
-
-    // Real-time synchronization listener
-    useEffect(() => {
-        if (!currentCompany) return
-        const unsub = window.electronAPI?.onDbUpdate?.((change) => {
-            if ([
-                'vehicles', 'maintenances', 'inspections', 'insurances',
-                'services', 'assignments'
-            ].includes(change?.table)) {
-                console.log(`[RealTime] Vehicles reloading for change in ${change.table}`)
-                queryClient.invalidateQueries({ queryKey: ['vehicles'] })
-            }
-        })
-        return () => { if (unsub) unsub() }
-    }, [currentCompany, queryClient])
+        } catch (error) {
+            console.error('Failed to load vehicles:', error)
+        }
+        if (!isBackground) setLoading(false)
+    }
 
     const resetForm = () => {
         setEditingVehicle(null)

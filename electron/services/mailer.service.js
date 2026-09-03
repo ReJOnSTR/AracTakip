@@ -17,7 +17,7 @@ async function ensureEmailSettingsTable() {
                 smtp_secure BOOLEAN DEFAULT false,
                 smtp_user VARCHAR(255),
                 smtp_pass VARCHAR(255),
-                sender_name VARCHAR(150) DEFAULT '⚡ Kontrol Güvenlik Ekibi',
+                sender_name VARCHAR(150) DEFAULT 'Kontrol Güvenlik Ekibi',
                 sender_email VARCHAR(255) DEFAULT 'noreply@kontrol-app.com',
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
@@ -32,7 +32,7 @@ async function ensureEmailSettingsTable() {
                     smtp_secure INTEGER DEFAULT 0,
                     smtp_user TEXT,
                     smtp_pass TEXT,
-                    sender_name TEXT DEFAULT '⚡ Kontrol Güvenlik Ekibi',
+                    sender_name TEXT DEFAULT 'Kontrol Güvenlik Ekibi',
                     sender_email TEXT DEFAULT 'noreply@kontrol-app.com',
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
@@ -59,7 +59,7 @@ async function getEmailSettings() {
                 smtpUser: dbConfig?.smtp_user || process.env.SMTP_USER || '',
                 smtpPass: dbConfig?.smtp_pass ? '••••••••' : (process.env.SMTP_PASS ? '••••••••' : ''),
                 hasPass: !!(dbConfig?.smtp_pass || process.env.SMTP_PASS),
-                senderName: dbConfig?.sender_name || process.env.SMTP_SENDER_NAME || '⚡ Kontrol Güvenlik Ekibi',
+                senderName: dbConfig?.sender_name || process.env.SMTP_SENDER_NAME || 'Kontrol Güvenlik Ekibi',
                 senderEmail: dbConfig?.sender_email || process.env.SMTP_FROM || 'noreply@kontrol-app.com'
             }
         };
@@ -74,7 +74,7 @@ async function getEmailSettings() {
                 smtpUser: process.env.SMTP_USER || '',
                 smtpPass: '',
                 hasPass: !!process.env.SMTP_PASS,
-                senderName: process.env.SMTP_SENDER_NAME || '⚡ Kontrol Güvenlik Ekibi',
+                senderName: process.env.SMTP_SENDER_NAME || 'Kontrol Güvenlik Ekibi',
                 senderEmail: process.env.SMTP_FROM || 'noreply@kontrol-app.com'
             }
         };
@@ -180,7 +180,7 @@ async function sendCustomHtmlEmail({ to, subject, html, senderName, senderEmail 
         const smtpUser = cfg?.smtp_user || process.env.SMTP_USER || '';
         const smtpPass = cfg?.smtp_pass || process.env.SMTP_PASS || '';
 
-        const fromName = senderName || cfg?.sender_name || '⚡ Kontrol Güvenlik Ekibi';
+        const fromName = senderName || cfg?.sender_name || 'Kontrol Güvenlik Ekibi';
         const fromEmail = senderEmail || cfg?.sender_email || 'noreply@kontrol-app.com';
 
         const transportOptions = {

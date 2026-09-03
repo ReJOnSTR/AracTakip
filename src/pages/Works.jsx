@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react' // Trigger recompilation
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,14 +8,15 @@ import ConfirmModal from '../components/ConfirmModal'
 import WorkForm from '../components/forms/WorkForm'
 import { Plus, CheckCircle, Clock, AlertCircle, Calendar, Pencil, Trash2, MapPin, Truck, User, ArrowRight } from 'lucide-react'
 import { formatDate, formatCurrency, getWorkStatusLabel, getWorkStatusColor } from '../utils/helpers'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 export default function Works() {
     const { currentCompany } = useCompany()
     const { openNewTab } = useTabs()
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
-    const queryClient = useQueryClient()
+    const [works, setWorks] = useState([])
+    const [customers, setCustomers] = useState([])
+    const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingWork, setEditingWork] = useState(null)
     const [saving, setSaving] = useState(false)
@@ -31,38 +32,42 @@ export default function Works() {
         }
     }, [searchParams])
 
-    const {
-        data: { works = [], customers = [] } = {},
-        isLoading: loading,
-        refetch: loadData
-    } = useQuery({
-        queryKey: ['works', currentCompany?.id, showArchived ? 1 : 0],
-        queryFn: async () => {
-            if (!currentCompany?.id) return { works: [], customers: [] }
-            const [worksRes, customersRes] = await Promise.all([
-                window.electronAPI.getWorks(currentCompany.id, showArchived ? 1 : 0),
-                window.electronAPI.getCustomers(currentCompany.id)
-            ])
-            return {
-                works: worksRes.success ? (worksRes.data || []) : [],
-                customers: customersRes.success ? (customersRes.data || []) : []
-            }
-        },
-        enabled: !!currentCompany?.id,
-        staleTime: 1000 * 60 * 5,
-    })
+    useEffect(() => {
+        if (currentCompany) {
+            loadData()
+        }
+    }, [currentCompany, showArchived])
 
     // Real-time synchronization listener
+    const loadDataRef = useRef(null)
+    useEffect(() => {
+        loadDataRef.current = loadData
+    })
     useEffect(() => {
         if (!currentCompany) return
         const unsub = window.electronAPI?.onDbUpdate?.((change) => {
             if (['works', 'work_items', 'customers'].includes(change?.table)) {
                 console.log(`[RealTime] Works reloading for change in ${change.table}`)
-                queryClient.invalidateQueries({ queryKey: ['works'] })
+                loadDataRef.current(true)
             }
         })
         return () => { if (unsub) unsub() }
-    }, [currentCompany, queryClient])
+    }, [currentCompany])
+
+    const loadData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true)
+        try {
+            const [worksRes, customersRes] = await Promise.all([
+                window.electronAPI.getWorks(currentCompany.id, showArchived ? 1 : 0),
+                window.electronAPI.getCustomers(currentCompany.id)
+            ])
+            if (worksRes.success) setWorks(worksRes.data)
+            if (customersRes.success) setCustomers(customersRes.data)
+        } catch (error) {
+            console.error('Veri yüklenirken hata:', error)
+        }
+        if (!isBackground) setLoading(false)
+    }
 
     const handleFormSubmit = async (data) => {
         setSaving(true)

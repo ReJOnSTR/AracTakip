@@ -272,9 +272,9 @@ async function registerUser(userData) {
 
                     const mailRes = await sendCustomHtmlEmail({
                         to: cleanEmail,
-                        subject: template.subject || '⚡ Kontrol App - E-Posta Adresinizi Doğrulayın',
+                        subject: template.subject || 'Kontrol App - E-Posta Adresinizi Doğrulayın',
                         html: renderedHtml,
-                        senderName: template.senderName || '⚡ Kontrol Güvenlik Ekibi'
+                        senderName: template.senderName || 'Kontrol Güvenlik Ekibi'
                     });
 
                     if (mailRes.success) {
@@ -749,7 +749,7 @@ async function getUserPasswordHash(userId) {
 
 async function createEmployeeUser(data) {
     try {
-        const { employeeId, username, email, password, role, roleId } = data;
+        const { employeeId, username, email, password, role, roleId, permissions } = data;
 
         if (!employeeId || !username || !password || !email) {
             return { success: false, error: 'Personel, kullanıcı adı, e-posta ve şifre zorunludur' };
@@ -801,6 +801,7 @@ async function createEmployeeUser(data) {
                 role: role || 'personnel',
                 role_id: roleId ? Number(roleId) : null,
                 employee_id: empId,
+                permissions: permissions ? (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)) : null,
                 must_change_password: 1,
                 is_active: 1
             }
@@ -935,13 +936,13 @@ async function ensureSuperAdminExists() {
 
             const box = `
 ╔══════════════════════════════════════════════════════════════════════╗
-║             👑 KONTROL SAAS - SİSTEM YÖNETİCİSİ OLUŞTURULDU         ║
+║             KONTROL SAAS - SİSTEM YÖNETİCİSİ OLUŞTURULDU         ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║ Kullanıcı Adı : ${superAdmin.username.padEnd(52)}║
 ║ E-Posta       : ${superAdmin.email.padEnd(52)}║
 ║ Geçici Şifre  : ${initialPassword.padEnd(52)}║
 ║                                                                      ║
-║ ⚠️  Bu şifre rastgele üretilmiştir. Güvenli bir yere kaydediniz.     ║
+║ Bu şifre rastgele üretilmiştir. Güvenli bir yere kaydediniz.     ║
 ╚══════════════════════════════════════════════════════════════════════╝`;
             console.log(box);
             log.info('SuperAdmin auto-created:\n' + box);
@@ -1079,9 +1080,9 @@ async function requestPasswordReset(data) {
 
                 const mailRes = await sendCustomHtmlEmail({
                     to: cleanEmail,
-                    subject: template.subject || '⚡ Kontrol App - Şifre Sıfırlama Talebi',
+                    subject: template.subject || 'Kontrol App - Şifre Sıfırlama Talebi',
                     html: renderedHtml,
-                    senderName: template.senderName || '⚡ Kontrol Güvenlik Ekibi'
+                    senderName: template.senderName || 'Kontrol Güvenlik Ekibi'
                 });
 
                 if (mailRes.success) {
@@ -1264,9 +1265,9 @@ async function resendVerificationEmail(data) {
 
                 const mailRes = await sendCustomHtmlEmail({
                     to: cleanEmail,
-                    subject: template.subject || '⚡ Kontrol App - E-Posta Adresinizi Doğrulayın',
+                    subject: template.subject || 'Kontrol App - E-Posta Adresinizi Doğrulayın',
                     html: renderedHtml,
-                    senderName: template.senderName || '⚡ Kontrol Güvenlik Ekibi'
+                    senderName: template.senderName || 'Kontrol Güvenlik Ekibi'
                 });
 
                 if (mailRes.success) {

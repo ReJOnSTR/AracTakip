@@ -301,12 +301,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return () => ipcRenderer.removeListener('migration-log', subscription)
     },
 
-    // Platform Super Admin API
+    // Platform Super Admin & Company User Management API
     getPlatformOverview: () => ipcRenderer.invoke('platform:getOverview'),
     getPlatformUsers: () => ipcRenderer.invoke('platform:getUsers'),
+    getCompanyUsers: (companyId) => ipcRenderer.invoke('platform:getCompanyUsers', companyId),
     resetPlatformUserPassword: (userId, newPassword) => ipcRenderer.invoke('platform:resetUserPassword', userId, newPassword),
     impersonatePlatformUser: (userId) => ipcRenderer.invoke('platform:impersonateUser', userId),
     createPlatformUser: (userData) => ipcRenderer.invoke('platform:createUser', userData),
+    updatePlatformUser: (userId, userData) => ipcRenderer.invoke('platform:updateUser', userId, userData),
     deletePlatformUser: (userId) => ipcRenderer.invoke('platform:deleteUser', userId),
     toggleCompanyStatus: (companyId, isActive) => ipcRenderer.invoke('platform:toggleCompanyStatus', companyId, isActive),
     toggleUserStatus: (userId, isActive) => ipcRenderer.invoke('platform:toggleUserStatus', userId, isActive),
