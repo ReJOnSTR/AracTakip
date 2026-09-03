@@ -5,6 +5,23 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  resolve: {
+    alias: {
+      'use-sync-external-store/shim/with-selector': 'use-sync-external-store/shim/with-selector.js'
+    }
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'lucide-react',
+      'recharts',
+      'xlsx',
+      'canvas-confetti'
+    ]
+  },
   server: {
     host: '127.0.0.1',
     port: 5173,

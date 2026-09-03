@@ -140,8 +140,12 @@ function createWindow() {
         },
         trafficLightPosition: { x: 12, y: 12 },
         backgroundColor: '#0f0f1a',
-        show: false
+        show: true
     })
+
+    // Immediate presentation without waiting for page parsing
+    mainWindow.show()
+    mainWindow.focus()
 
     // Save window state
     mainWindow.on('close', () => {
@@ -171,9 +175,10 @@ function createWindow() {
     }
 
     mainWindow.once('ready-to-show', () => {
-        mainWindow.show()
-        mainWindow.focus()
-        if (mainWindow.webContents) mainWindow.webContents.focus()
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.focus()
+            if (mainWindow.webContents) mainWindow.webContents.focus()
+        }
     })
 
     // Ensure webContents maintains first-responder keyboard focus

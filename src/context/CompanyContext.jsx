@@ -7,7 +7,14 @@ const CompanyContext = createContext(null)
 export function CompanyProvider({ children }) {
     const { user } = useAuth()
     const [companies, setCompanies] = useState([])
-    const [currentCompany, setCurrentCompany] = useState(null)
+    const [currentCompany, setCurrentCompany] = useState(() => {
+        try {
+            const cached = localStorage.getItem('aractakip_cached_company')
+            return cached ? JSON.parse(cached) : null
+        } catch {
+            return null
+        }
+    })
     const [loading, setLoading] = useState(true)
     const [upcomingEvents, setUpcomingEvents] = useState([])
     const [isImpersonating, setIsImpersonating] = useState(() => {
@@ -96,9 +103,11 @@ export function CompanyProvider({ children }) {
 
                     if (storedCompany) {
                         setCurrentCompany(storedCompany)
+                        localStorage.setItem('aractakip_cached_company', JSON.stringify(storedCompany))
                     } else if (result.data.length > 0) {
                         setCurrentCompany(result.data[0])
                         localStorage.setItem('aractakip_company', result.data[0].id)
+                        localStorage.setItem('aractakip_cached_company', JSON.stringify(result.data[0]))
                     }
                 }
             }
@@ -112,6 +121,7 @@ export function CompanyProvider({ children }) {
         setCurrentCompany(company)
         if (!isImpersonating) {
             localStorage.setItem('aractakip_company', company.id)
+            localStorage.setItem('aractakip_cached_company', JSON.stringify(company))
         }
     }
 

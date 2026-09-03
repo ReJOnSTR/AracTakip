@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useCompany } from '../context/CompanyContext'
 import { useTabs } from '../context/TabContext'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import WorkForm from '../components/forms/WorkForm'
 import { Plus, CheckCircle, Clock, AlertCircle, Calendar, Pencil, Trash2, MapPin, Truck, User, ArrowRight } from 'lucide-react'
 import { formatDate, formatCurrency, getWorkStatusLabel, getWorkStatusColor } from '../utils/helpers'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 export default function Works() {
     const { currentCompany } = useCompany()
@@ -44,8 +44,8 @@ export default function Works() {
                 window.electronAPI.getCustomers(currentCompany.id)
             ])
             return {
-                works: worksRes.success ? worksRes.data : [],
-                customers: customersRes.success ? customersRes.data : []
+                works: worksRes.success ? (worksRes.data || []) : [],
+                customers: customersRes.success ? (customersRes.data || []) : []
             }
         },
         enabled: !!currentCompany?.id,

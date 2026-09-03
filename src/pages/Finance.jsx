@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCompany } from '../context/CompanyContext'
 import TopProgressBar from '../components/TopProgressBar'
@@ -8,7 +8,6 @@ import DataTable from '../components/DataTable'
 import TransactionForm from '../components/forms/TransactionForm'
 import { formatCurrency, formatDate } from '../utils/helpers'
 import { Plus, Wallet, Banknote, FileSignature, ArrowDownRight, Trash2, Pencil, Check } from 'lucide-react'
-
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 export default function Finance() {
@@ -45,13 +44,28 @@ export default function Finance() {
                 window.electronAPI.getFinanceStats(currentCompany.id)
             ])
             return {
-                transactions: txRes.success ? txRes.data : [],
-                stats: statsRes.success ? statsRes.data : { totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 }
+                transactions: txRes.success ? (txRes.data || []) : [],
+                stats: statsRes.success ? (statsRes.data || { totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 }) : { totalBalance: 0, cashBalance: 0, pendingChecks: 0, currentMonthOut: 0 }
             }
         },
         enabled: !!currentCompany?.id,
         staleTime: 1000 * 60 * 5,
     })
+
+    const filteredTotal = useMemo(() => {
+        return filteredTransactions.reduce((sum, tx) => {
+            return sum + (tx.type === 'IN' ? tx.amount : -tx.amount)
+        }, 0)
+    }, [filteredTransactions])
+
+    const selectedTotal = useMemo(() => {
+        const selectedTxs = transactions.filter(tx => selectedIds.includes(tx.id))
+        return selectedTxs.reduce((sum, tx) => {
+            return sum + (tx.type === 'IN' ? tx.amount : -tx.amount)
+        }, 0)
+    }, [selectedIds, transactions])
+
+    const isFiltered = filteredTransactions.length > 0 && filteredTransactions.length < transactions.length
 
     // Real-time synchronization listener
     useEffect(() => {
