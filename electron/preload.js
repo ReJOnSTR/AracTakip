@@ -136,6 +136,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Archive
     archiveItem: (table, id, isArchived) => ipcRenderer.invoke('archive:item', table, id, isArchived),
+    archiveItems: (table, ids, isArchived) => ipcRenderer.invoke('archive:items', table, ids, isArchived),
 
     // Dashboard
     getDashboardStats: (companyId) => ipcRenderer.invoke('dashboard:getStats', companyId),
@@ -253,6 +254,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createWork: (data) => ipcRenderer.invoke('works:create', data),
     updateWork: (data) => ipcRenderer.invoke('works:update', data),
     deleteWork: (id) => ipcRenderer.invoke('works:delete', id),
+    deleteWorks: (ids) => ipcRenderer.invoke('works:bulkDelete', ids),
+    archiveWorks: (ids, isArchived) => ipcRenderer.invoke('works:bulkArchive', ids, isArchived),
 
     // Customers API
     getCustomers: (companyId, isArchived) => ipcRenderer.invoke('customers:getAll', companyId, isArchived),

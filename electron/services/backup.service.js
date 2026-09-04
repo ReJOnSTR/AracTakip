@@ -1,29 +1,96 @@
 const { getPrismaClient } = require('../prismaClient');
-const prisma = getPrismaClient();
 
 async function archiveItem(table, id, isArchived = 1) {
     try {
-        // Prisma model names usually match table names, but let's be safe
+        const prisma = getPrismaClient();
         const mappedModel = table.toLowerCase();
 
         if (!prisma[mappedModel] || typeof prisma[mappedModel].update !== 'function') {
-            return { success: false, error: 'Invalid table for archiving' };
+            return { success: false, error: 'Invalid table for archiving: ' + table };
         }
+
+        const intId = parseInt(id);
+        const archiveVal = (isArchived === 1 || isArchived === true || isArchived === '1') ? 1 : 0;
 
         if (mappedModel === 'employees') {
             await prisma.employees.update({
-                where: { id: parseInt(id) },
+                where: { id: intId },
                 data: { 
-                    status: isArchived ? 'passive' : 'active',
-                    is_archived: isArchived ? 1 : 0
+                    status: archiveVal ? 'passive' : 'active',
+                    is_archived: archiveVal
                 }
             });
             return { success: true };
         }
 
+        if (mappedModel === 'works') {
+            await prisma.$transaction(async (tx) => {
+                await tx.works.update({
+                    where: { id: intId },
+                    data: { is_archived: archiveVal }
+                });
+                await tx.work_items.updateMany({
+                    where: { work_id: intId },
+                    data: { is_archived: archiveVal }
+                });
+            });
+            return { success: true };
+        }
+
         await prisma[mappedModel].update({
-            where: { id: parseInt(id) },
-            data: { is_archived: isArchived }
+            where: { id: intId },
+            data: { is_archived: archiveVal }
+        });
+
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+async function archiveItems(table, ids, isArchived = 1) {
+    try {
+        if (!ids || !Array.isArray(ids) || ids.length === 0) return { success: true };
+        const prisma = getPrismaClient();
+        const mappedModel = table.toLowerCase();
+
+        if (!prisma[mappedModel] || typeof prisma[mappedModel].updateMany !== 'function') {
+            return { success: false, error: 'Invalid table for bulk archiving: ' + table };
+        }
+
+        const intIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+        if (intIds.length === 0) return { success: true };
+
+        const archiveVal = (isArchived === 1 || isArchived === true || isArchived === '1') ? 1 : 0;
+
+        if (mappedModel === 'employees') {
+            await prisma.employees.updateMany({
+                where: { id: { in: intIds } },
+                data: { 
+                    status: archiveVal ? 'passive' : 'active',
+                    is_archived: archiveVal
+                }
+            });
+            return { success: true };
+        }
+
+        if (mappedModel === 'works') {
+            await prisma.$transaction(async (tx) => {
+                await tx.works.updateMany({
+                    where: { id: { in: intIds } },
+                    data: { is_archived: archiveVal }
+                });
+                await tx.work_items.updateMany({
+                    where: { work_id: { in: intIds } },
+                    data: { is_archived: archiveVal }
+                });
+            });
+            return { success: true };
+        }
+
+        await prisma[mappedModel].updateMany({
+            where: { id: { in: intIds } },
+            data: { is_archived: archiveVal }
         });
 
         return { success: true };
@@ -34,6 +101,7 @@ async function archiveItem(table, id, isArchived = 1) {
 
 async function getCompanyCompleteData(companyId) {
     try {
+        const prisma = getPrismaClient();
         const id = parseInt(companyId);
 
         const company = await prisma.companies.findUnique({ where: { id } });
@@ -96,6 +164,7 @@ async function importCompanyData(userId, backupData) {
             return { success: false, error: 'Geçersiz yedek dosyası formatı' };
         }
 
+        const prisma = getPrismaClient();
         const compData = backupData.company;
         const result = await prisma.$transaction(async (tx) => {
             const comp = await tx.companies.create({
@@ -175,6 +244,7 @@ async function importCompanyData(userId, backupData) {
 
 module.exports = {
     archiveItem,
+    archiveItems,
     getCompanyCompleteData,
     importCompanyData
 };

@@ -4,8 +4,12 @@ const { calculateWorkStats } = require('../utils/workCalculations')
 async function getCustomers(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
+        const archiveVal = (isArchived === 1 || isArchived === true || isArchived === '1') ? 1 : 0;
         const customersList = await prisma.customers.findMany({
-            where: { company_id: parseInt(companyId), is_archived: isArchived },
+            where: {
+                company_id: parseInt(companyId),
+                ...(archiveVal === 1 ? { is_archived: 1 } : { OR: [{ is_archived: 0 }, { is_archived: null }] })
+            },
             include: {
                 works: {
                     include: {

@@ -537,6 +537,33 @@ export default function CustomerDetail() {
         }
     }
 
+    const handleArchiveWork = async (workId, newArchivedState) => {
+        try {
+            const result = await window.electronAPI.archiveWorks([workId], newArchivedState);
+            if (result.success) {
+                loadCustomer();
+            } else {
+                alert(result.error || 'Arşivleme işlemi başarısız oldu');
+            }
+        } catch (error) {
+            console.error('Error archiving work:', error);
+        }
+    }
+
+    const handleDeleteWork = async (workId) => {
+        if (!window.confirm('Bu işi ve bağlı puantaj kayıtlarını kalıcı olarak silmek istediğinize emin misiniz?')) return;
+        try {
+            const result = await window.electronAPI.deleteWorks([workId]);
+            if (result.success) {
+                loadCustomer();
+            } else {
+                alert(result.error || 'Silme işlemi başarısız oldu');
+            }
+        } catch (error) {
+            console.error('Error deleting work:', error);
+        }
+    }
+
     const workColumns = [
         {
             key: 'status',
@@ -1065,6 +1092,26 @@ export default function CustomerDetail() {
                                         setIsWorkModalOpen(true); 
                                     }} title="Düzenle">
                                         <Pencil size={16} />
+                                    </button>
+                                    <button 
+                                        className="icon-btn" 
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            handleArchiveWork(row.id, !showArchived); 
+                                        }} 
+                                        title={showArchived ? "Arşivden Çıkar" : "Arşivle"}
+                                    >
+                                        {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                                    </button>
+                                    <button 
+                                        className="icon-btn danger" 
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            handleDeleteWork(row.id); 
+                                        }} 
+                                        title="Sil"
+                                    >
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             )}

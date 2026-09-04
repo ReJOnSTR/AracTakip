@@ -4,8 +4,15 @@ const { calculateWorkStats, calculateAutoHours } = require('../utils/workCalcula
 async function getWorks(companyId, isArchived = 0) {
     try {
         const prisma = getPrismaClient()
+        const archiveVal = (isArchived === 1 || isArchived === true || isArchived === '1') ? 1 : 0
         const works = await prisma.works.findMany({
-            where: { company_id: parseInt(companyId), is_archived: isArchived },
+            where: { 
+                company_id: parseInt(companyId), 
+                ...(archiveVal === 1 
+                    ? { is_archived: 1 } 
+                    : { OR: [{ is_archived: 0 }, { is_archived: null }] }
+                )
+            },
             include: {
                 work_items: true,
                 customers: true
@@ -191,6 +198,45 @@ async function deleteWork(id) {
         await prisma.$transaction(async (tx) => {
             await tx.work_items.deleteMany({ where: { work_id: wId } })
             await tx.works.delete({ where: { id: wId } })
+        })
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+async function deleteWorks(ids) {
+    try {
+        if (!ids || !Array.isArray(ids) || ids.length === 0) return { success: true }
+        const intIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id))
+        if (intIds.length === 0) return { success: true }
+        const prisma = getPrismaClient()
+        await prisma.$transaction(async (tx) => {
+            await tx.work_items.deleteMany({ where: { work_id: { in: intIds } } })
+            await tx.works.deleteMany({ where: { id: { in: intIds } } })
+        })
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+async function archiveWorks(ids, isArchived = 1) {
+    try {
+        if (!ids || !Array.isArray(ids) || ids.length === 0) return { success: true }
+        const intIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id))
+        if (intIds.length === 0) return { success: true }
+        const archiveVal = (isArchived === 1 || isArchived === true || isArchived === '1') ? 1 : 0
+        const prisma = getPrismaClient()
+        await prisma.$transaction(async (tx) => {
+            await tx.works.updateMany({
+                where: { id: { in: intIds } },
+                data: { is_archived: archiveVal }
+            })
+            await tx.work_items.updateMany({
+                where: { work_id: { in: intIds } },
+                data: { is_archived: archiveVal }
+            })
         })
         return { success: true }
     } catch (error) {
@@ -428,6 +474,8 @@ module.exports = {
     createWork,
     updateWork,
     deleteWork,
+    deleteWorks,
+    archiveWorks,
     addWorkItem,
     addBulkWorkItems,
     updateWorkItem,

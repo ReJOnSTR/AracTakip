@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import ConfirmModal from '../components/ConfirmModal'
 import WorkForm from '../components/forms/WorkForm'
-import { Plus, CheckCircle, Clock, AlertCircle, Calendar, Pencil, Trash2, MapPin, Truck, User, ArrowRight } from 'lucide-react'
+import { Plus, CheckCircle, Clock, AlertCircle, Calendar, Pencil, Trash2, MapPin, Truck, User, ArrowRight, Archive, ArchiveRestore } from 'lucide-react'
 import { formatDate, formatCurrency, getWorkStatusLabel, getWorkStatusColor } from '../utils/helpers'
 
 export default function Works() {
@@ -113,11 +113,13 @@ export default function Works() {
             title: 'Toplu Silme',
             message: `${ids.length} iş kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
             onConfirm: async () => {
-                for (const id of ids) {
-                    await window.electronAPI.deleteWork(id)
+                const res = await window.electronAPI.deleteWorks(ids)
+                if (res.success) {
+                    loadData()
+                    setConfirmModal(null)
+                } else {
+                    alert('Silme hatası: ' + res.error)
                 }
-                loadData()
-                setConfirmModal(null)
             }
         })
     }
@@ -125,10 +127,22 @@ export default function Works() {
     const handleBulkArchive = async (ids) => {
         if (!ids || ids.length === 0) return
         const newStatus = showArchived ? 0 : 1
-        for (const id of ids) {
-            await window.electronAPI.archiveItem('works', id, newStatus)
+        const res = await window.electronAPI.archiveWorks(ids, newStatus)
+        if (res.success) {
+            loadData()
+        } else {
+            alert('Arşivleme hatası: ' + res.error)
         }
-        loadData()
+    }
+
+    const handleArchiveClick = async (work) => {
+        const newStatus = showArchived ? 0 : 1
+        const res = await window.electronAPI.archiveWorks([work.id], newStatus)
+        if (res.success) {
+            loadData()
+        } else {
+            alert('Arşivleme hatası: ' + res.error)
+        }
     }
 
     const openCreateModal = () => {
@@ -335,6 +349,13 @@ export default function Works() {
                 actions={(item) => (
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
                         <button className="btn-icon" title="Düzenle" onClick={(e) => { e.stopPropagation(); openEditModal(item) }}><Pencil size={16} /></button>
+                        <button 
+                            className="btn-icon" 
+                            title={showArchived ? "Arşivden Çıkar" : "Arşivle"} 
+                            onClick={(e) => { e.stopPropagation(); handleArchiveClick(item) }}
+                        >
+                            {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                        </button>
                         <button className="btn-icon danger" title="Sil" onClick={(e) => { e.stopPropagation(); handleDeleteClick(item) }}><Trash2 size={16} /></button>
                     </div>
                 )}

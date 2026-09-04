@@ -6,8 +6,13 @@ const prisma = getPrismaClient();
 
 async function getVehicles(companyId, isArchived = 0) {
     try {
+        const prisma = getPrismaClient();
+        const archiveVal = (isArchived === 1 || isArchived === true || isArchived === '1') ? 1 : 0;
         const vehicles = await prisma.vehicles.findMany({
-            where: { company_id: parseInt(companyId), is_archived: isArchived ? 1 : 0 },
+            where: {
+                company_id: parseInt(companyId),
+                ...(archiveVal === 1 ? { is_archived: 1 } : { OR: [{ is_archived: 0 }, { is_archived: null }] })
+            },
             select: {
                 id: true,
                 company_id: true,

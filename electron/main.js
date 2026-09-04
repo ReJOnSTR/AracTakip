@@ -1154,6 +1154,9 @@ ipcMain.handle('global:search', async (event, companyId, query) => {
 ipcMain.handle('archive:item', async (event, table, id, isArchived) => {
     return await db.archiveItem(table, id, isArchived)
 })
+ipcMain.handle('archive:items', async (event, table, ids, isArchived) => {
+    return await db.archiveItems(table, ids, isArchived)
+})
 
 // Works & Timesheets
 ipcMain.handle('works:getAll', async (event, companyId, isArchived) => {
@@ -1170,6 +1173,12 @@ ipcMain.handle('works:update', async (event, data) => {
 })
 ipcMain.handle('works:delete', async (event, id) => {
     return db.deleteWork(id)
+})
+ipcMain.handle('works:bulkDelete', async (event, ids) => {
+    return db.deleteWorks(ids)
+})
+ipcMain.handle('works:bulkArchive', async (event, ids, isArchived) => {
+    return db.archiveWorks(ids, isArchived)
 })
 
 // Customers

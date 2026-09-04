@@ -282,60 +282,6 @@ async function getRecentActivity(companyId) {
     }
 }
 
-// ========== WORKS (ISLER) ==========
-async function getWorks(companyId) {
-    try {
-        const works = await prisma.works.findMany({
-            where: { company_id: parseInt(companyId) },
-            orderBy: { created_at: 'desc' }
-        });
-        return { success: true, data: works };
-    } catch (error) { return { success: false, error: error.message }; }
-}
-
-async function createWork(data) {
-    try {
-        const result = await prisma.works.create({
-            data: {
-                company_id: parseInt(data.companyId),
-                title: data.title,
-                description: data.description || null,
-                status: data.status || 'pending',
-                price: parseFloat(data.price) || 0,
-                location: data.location || null,
-                start_date: data.startDate ? new Date(data.startDate) : null,
-                end_date: data.endDate ? new Date(data.endDate) : null
-            }
-        });
-        return { success: true, data: result };
-    } catch (error) { return { success: false, error: error.message }; }
-}
-async function updateWork(data) {
-    try {
-        const { id, companyId, ...rest } = data;
-        const result = await prisma.works.update({
-            where: { id: parseInt(id) },
-            data: {
-                title: rest.title,
-                description: rest.description || null,
-                status: rest.status || 'pending',
-                price: parseFloat(rest.price) || 0,
-                location: rest.location || null,
-                start_date: rest.startDate ? new Date(rest.startDate) : null,
-                end_date: rest.endDate ? new Date(rest.endDate) : null
-            }
-        });
-        return { success: true, data: result };
-    } catch (error) { return { success: false, error: error.message }; }
-}
-async function deleteWork(id) {
-    try {
-        await prisma.works.delete({ where: { id: parseInt(id) } });
-        return { success: true };
-    } catch (error) { return { success: false, error: error.message }; }
-}
-
 module.exports = {
-    getDashboardStats, getUpcomingEvents, getRecentActivity,
-    getWorks, createWork, updateWork, deleteWork
+    getDashboardStats, getUpcomingEvents, getRecentActivity
 };
