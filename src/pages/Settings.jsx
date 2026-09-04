@@ -222,6 +222,8 @@ export default function Settings() {
         } catch (err) {
             alert('Hata: ' + err.message)
         }
+    }
+
     const handleResetUser2FA = async (targetUser) => {
         if (!window.confirm(`"${targetUser.username}" kullanıcısının İki Adımlı Doğrulama (2FA) kilidini sıfırlamak istediğinize emin misiniz?`)) {
             return
