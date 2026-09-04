@@ -162,25 +162,36 @@ body {
   -webkit-app-region: drag;
 }
 
-/* Ensure all interactive inputs, textareas, selects, and modals are NEVER blocked by Electron drag */
+/* Ensure all interactive inputs, textareas, selects, search boxes, and modals are NEVER blocked by Electron drag */
 input,
 textarea,
 select,
 button,
 a,
+label,
 [contenteditable="true"],
 .sidebar-toggle,
 .company-selector-btn,
 .user-menu-btn,
 .header-right button,
 .custom-select,
+.custom-select-trigger,
 .custom-select-dropdown,
+.search-box,
+.search-box input,
+.filter-group,
+.filter-group input,
+.filter-group select,
+.form-group,
 .form-input,
 .form-textarea,
 .form-select,
+.floating-label-group,
 .modal,
 .modal-overlay,
-.modal-body {
+.modal-body,
+.modal-header,
+.modal-footer {
   -webkit-app-region: no-drag !important;
 }
 

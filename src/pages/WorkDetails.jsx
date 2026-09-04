@@ -2414,10 +2414,9 @@ export default function WorkDetails(props) {
                                             max="10"
                                             className="form-input"
                                             value={pazarMultiplier}
-                                            onChange={async (e) => {
-                                                const val = e.target.value;
-                                                setPazarMultiplier(val);
-                                                const numVal = parseFloat(val);
+                                            onChange={(e) => setPazarMultiplier(e.target.value)}
+                                            onBlur={async () => {
+                                                const numVal = parseFloat(pazarMultiplier);
                                                 if (!isNaN(numVal) && work?.id) {
                                                     await window.electronAPI.updateWork({ id: work.id, pazar_multiplier: Math.min(Math.max(numVal, 0), 10) });
                                                 }
@@ -2434,10 +2433,9 @@ export default function WorkDetails(props) {
                                             max="10"
                                             className="form-input"
                                             value={mesaiMultiplier}
-                                            onChange={async (e) => {
-                                                const val = e.target.value;
-                                                setMesaiMultiplier(val);
-                                                const numVal = parseFloat(val);
+                                            onChange={(e) => setMesaiMultiplier(e.target.value)}
+                                            onBlur={async () => {
+                                                const numVal = parseFloat(mesaiMultiplier);
                                                 if (!isNaN(numVal) && work?.id) {
                                                     await window.electronAPI.updateWork({ id: work.id, mesai_multiplier: Math.min(Math.max(numVal, 0), 10) });
                                                 }

@@ -19,26 +19,8 @@ const queryClient = new QueryClient({
     },
 })
 
-// Ensure inputs never lose active typing / first-responder ability in Electron / Web
+// Auto-recover from stale Vite deployment chunks (404 dynamic import errors after a new release)
 if (typeof window !== 'undefined') {
-    const ensureInputActive = (target) => {
-        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
-            if (window.electronAPI && typeof window.electronAPI.focusWindow === 'function') {
-                window.electronAPI.focusWindow();
-            }
-        }
-    };
-
-    document.addEventListener('pointerdown', (e) => ensureInputActive(e.target), { capture: true, passive: true });
-    document.addEventListener('focusin', (e) => ensureInputActive(e.target), { capture: true, passive: true });
-    
-    window.addEventListener('focus', () => {
-        if (window.electronAPI && typeof window.electronAPI.focusWindow === 'function') {
-            window.electronAPI.focusWindow();
-        }
-    });
-
-    // Auto-recover from stale Vite deployment chunks (404 dynamic import errors after a new release)
     window.addEventListener('vite:preloadError', (event) => {
         console.warn('[Vite Preload] New version deployed or chunk failed to load. Auto-refreshing...', event);
         window.location.reload();
